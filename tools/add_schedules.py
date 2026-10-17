@@ -1,18 +1,18 @@
 """Author daily schedules onto the camp's characters (task-409).
 
-Dry-run by default; `--apply` writes. Idempotent — re-running replaces the
+Dry-run by default; `--apply` writes. Idempotent - re-running replaces the
 schedules it authored, so it is safe to iterate on the table below.
 
 Why this shape: a schedule is what turns the survival loop into a *day*. Before
 it, every character ate, drank, slept and socialised wherever it happened to be,
 and moved only when a need pushed it somewhere. With it, Mikka goes to the
 Workshop, Gribba cooks, Vekka scouts, and they gather at the Chief's Pit in the
-evening and sleep in the halls — which is also what makes the camp legible to a
+evening and sleep in the halls - which is also what makes the camp legible to a
 player watching time run.
 
 Night is placed, not performed: the `sleep` step only walks them to the Sleeping
 Halls, and the Energy system does the sleeping when it is due. That is deliberate
-— a schedule that *forced* sleep would fight the exhaustion ladder, and vice
+- a schedule that *forced* sleep would fight the exhaustion ladder, and vice
 versa.
 
 Animals get no schedule on purpose. A boar or a raven does not have a working
@@ -122,7 +122,7 @@ def main():
     print(f"  {', '.join(unscheduled)}")
 
     if not args.apply:
-        print("\n(dry run — pass --apply to write)")
+        print("\n(dry run - pass --apply to write)")
         return 0
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nwrote {path.relative_to(ROOT)}")

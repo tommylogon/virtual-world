@@ -1,4 +1,4 @@
-"""Awareness channels — audibility replaces a hop radius (task-418).
+"""Awareness channels - audibility replaces a hop radius (task-418).
 
 A text/graph world has no Euclidean space, so "within two rooms" is a spatial
 fiction: hop radius was only ever a cheap proxy for *co-present at one remove*.
@@ -9,14 +9,14 @@ a locked door demotes a room for a physical reason instead of an arbitrary
 
 An **awareness channel** answers one question from one origin area: *what else
 can be perceived from here, and how strongly?* The seam below exists so a second
-channel — comms, magic, sight — is a class implementing `propagate`, not a second
+channel - comms, magic, sight - is a class implementing `propagate`, not a second
 place that knows how sound works.
 
-Threshold semantics — **shockwave, deliberately.**
+Threshold semantics - **shockwave, deliberately.**
 `engine.sound.propagate_sound` walks the graph as a pressure wave: it takes
 every path and the loudness a listener perceives is set by the *least-damped*
 route, not by whichever route a FIFO flood-fill happened to reach first (bug-30,
-since fixed — it is a Dijkstra on cumulative barrier). So "audible above
+since fixed - it is a Dijkstra on cumulative barrier). So "audible above
 threshold" here means "**some** route leaves enough penetration". A locked door
 cuts a character out of attention only when no cheaper alternate route reaches
 them, which is the physically honest outcome and the one this module is built on.
@@ -33,7 +33,7 @@ from graph import Node, WorldGraph
 #
 # Recency is deliberately *not* a tier. Nothing in the world makes an
 # inaudible character attendable, so a recency tier could only ever restate
-# co-presence at a lower rank — it is the within-tier sort key instead, which is
+# co-presence at a lower rank - it is the within-tier sort key instead, which is
 # also what the eviction order `(tier, recency, id)` says.
 TIER_ANCHOR = 0
 TIER_COPRESENT = 1
@@ -215,7 +215,7 @@ class Anchor:
 
     `kind` is `character` (a named character, attended by definition), `human`
     (a human player, attended by definition), or `item`/`location` (a pinned
-    place — it contributes an area, not a person).
+    place - it contributes an area, not a person).
     """
 
     __slots__ = ("kind", "id")
@@ -276,16 +276,16 @@ def select_attended(anchors: Sequence[Anchor],
     Tiers: an anchor; someone in an anchor's own room; someone in a room the
     anchor can perceive; then a hook. Each character is filed at its *best*
     tier. Within a tier the order is most-recently-in-the-foreground first,
-    then id — so the result is reproducible for a fixed state.
+    then id - so the result is reproducible for a fixed state.
 
     `characters_by_area` is called once per area some channel found audible and
     never for an area nothing perceives, so the cost is bounded by how much of
-    the world is audible from the anchors — not by the population. That is the
+    the world is audible from the anchors - not by the population. That is the
     whole point of retiring the hop radius: the scan follows awareness.
 
     `recency` maps a character to its last foreground tick; absent means least
     recent. Nothing here stores it. `hooks` are characters a mid-plan,
-    mid-quest or in-scope trigger cares about — the only way someone inaudible
+    mid-quest or in-scope trigger cares about - the only way someone inaudible
     gets in.
 
     Returns at most `cap` ids.
@@ -322,7 +322,7 @@ def select_attended(anchors: Sequence[Anchor],
 
     for anchor in anchors:
         if anchor.kind in ("character", "human"):
-            # An anchor is attended even if they are nowhere near themselves —
+            # An anchor is attended even if they are nowhere near themselves -
             # the human's own character, the one being followed.
             offer(anchor.id, TIER_ANCHOR)
     for who in co_present:

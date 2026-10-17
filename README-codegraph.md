@@ -1,4 +1,4 @@
-# Code Graph Tools — Semantic Codebase Search
+# Code Graph Tools - Semantic Codebase Search
 
 A self-contained stack that indexes a codebase into **Neo4j** (AST-extracted
 entities + relational edges + per-entity embeddings) and exposes it to agents
@@ -20,11 +20,11 @@ tools/code_graph_mcp.py (MCP server) ──tools───────┘
 - **No native parsers.** Python via stdlib `ast`; JS via acorn (Node, shelled
   out once per file); docs via heading splitting; JSON via structure walk.
   Nothing crashes with native-DLL issues on Windows (tree-sitter, chroma, and
-  onnxruntime all failed on the author's machine — that's why this exists).
+  onnxruntime all failed on the author's machine - that's why this exists).
 - **100% coverage of indexable files.** Code + comments + docs + library data,
   each with its own embedding.
 - **Hybrid retrieval.** Semantic (cosine over an ANN vector index) *and*
-  keyword (token ranking) — whichever fits the query.
+  keyword (token ranking) - whichever fits the query.
 
 ---
 
@@ -52,9 +52,9 @@ npm install   # for acorn (JS extraction)
 python tools/build_code_graph.py <root> [--clear-old] [--no-embed]
 ```
 
-- `<root>` — repo root (defaults to the repo containing the script).
-- `--clear-old` — delete that root's existing entities before rebuilding.
-- `--no-embed` — skip the LM Studio embedding step (index metadata only).
+- `<root>` - repo root (defaults to the repo containing the script).
+- `--clear-old` - delete that root's existing entities before rebuilding.
+- `--no-embed` - skip the LM Studio embedding step (index metadata only).
 
 What it does:
 
@@ -160,7 +160,7 @@ any harness; example DSH `cordis.patch.yml` row:
 | `file_structure(path)` | Everything a file defines, with line ranges. |
 | `graph_stats()` | Health: entity counts, vector coverage, edge counts. |
 
-Every tool takes plain-text args and returns plain text — its full contract is
+Every tool takes plain-text args and returns plain text - its full contract is
 exposed to MCP clients (names, descriptions, params).
 
 ### MCP resources
@@ -180,7 +180,7 @@ exposed to MCP clients (names, descriptions, params).
 python tools/build_code_graph.py <root> --clear-old
 ```
 
-**Backfill missing vectors** (safe, idempotent — only touches vector-less nodes):
+**Backfill missing vectors** (safe, idempotent - only touches vector-less nodes):
 
 ```bash
 python tools/backfill_embeddings.py [root]
@@ -197,15 +197,15 @@ or just call `graph_stats` from any MCP client.
 
 ## 5. Troubleshooting
 
-- **"No results" on semantic search but graph has entities** — LM Studio down,
+- **"No results" on semantic search but graph has entities** - LM Studio down,
   or the vector index isn't ONLINE: `SHOW VECTOR INDEXES`.
-- **Dimension mismatch on query** — index is 768; ensure
+- **Dimension mismatch on query** - index is 768; ensure
   `EMBEDDING_MODEL` returns 768-dim vectors (nomic). Qwen3-embed (1024-dim)
   will NOT match a 768 index.
-- **JS files missing** — ensure `node` + `acorn` installed, and
+- **JS files missing** - ensure `node` + `acorn` installed, and
   `tools/extract_js.mjs` exists. The builder shells `node extract_js.mjs <file> <rel>`.
-- **Comments missing** — they're line-based; a comment must be `#`/`//`
+- **Comments missing** - they're line-based; a comment must be `#`/`//`
   (block `/* */` single-line supported).
-- **Search picks up stale docs** — docs are section-chunks; the `qualified_name`
+- **Search picks up stale docs** - docs are section-chunks; the `qualified_name`
   is `<path>::<section title>`. Clearing a root with `--clear-old` then
   rebuilding resets everything.

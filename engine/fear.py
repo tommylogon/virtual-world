@@ -42,10 +42,10 @@ def character_tags(gs, other) -> set:
 
     Three sources, because they are populated by different authoring routes:
 
-    1. ``other.tags`` — the list the shipped data actually fills. Every
+    1. ``other.tags`` - the list the shipped data actually fills. Every
        ``data/library/characters/*.json`` and the scenarios carry it
        (``"goblin"``, ``"teen"``, ``"female"``).
-    2. ``other.traits`` keys — set by the trait system.
+    2. ``other.traits`` keys - set by the trait system.
     3. the character's graph node's ``tags`` property.
 
     (3) alone is not enough and used to be the only source: a character node is
@@ -171,7 +171,7 @@ def release_absent_fears(gs, player, sources=None) -> list:
     ``frightened`` exists to gate behaviour toward one *specific* source:
     ``engine.conditions.frightened_block`` refuses an approach, a way, an area
     or an item **by name**. Gating toward something that has left the world is
-    not fear, it is a stuck flag — and it expires on its timer whether or not
+    not fear, it is a stuck flag - and it expires on its timer whether or not
     the goblin is still standing there. So the flag lifts when the thing does.
 
     Precise, per instance: a character who fears two things and has lost one

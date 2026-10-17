@@ -24,8 +24,8 @@ what makes every other decision here cheap:
 On a re-generate, any cell whose current value no longer matches what was
 recorded has been *changed by somebody*, and is left alone. No per-cell lock to
 set, no divergence list to maintain, and a cell the author happened not to touch
-is re-written to exactly what the plan says. The alternative — a manual lock per
-cell — would be a second concept for the same fact, and the author would have to
+is re-written to exactly what the plan says. The alternative - a manual lock per
+cell - would be a second concept for the same fact, and the author would have to
 remember to set it.
 
 Templates live in ``data/worldpainter/interiors.json`` as drawn plans (one
@@ -111,7 +111,7 @@ def template_for(building_id: str, path: Optional[str] = None) -> Tuple[dict, bo
 
     Every building type gets a plan. A type with no drawn plan gets the fallback
     rather than a refusal, because "this building has no interior" is a worse
-    answer than "this building has a plain one" — and the caller is told which
+    answer than "this building has a plain one" - and the caller is told which
     happened, so the report can name it.
     """
     data = interiors(path)
@@ -129,7 +129,7 @@ def _rectangle(rows: List[str], legend: dict, notes: List[str], key: str
                ) -> List[str]:
     """A plan as a rectangle, padding short rows with the wall token.
 
-    A ragged plan is a typo — one row written a character short — and refusing to
+    A ragged plan is a typo - one row written a character short - and refusing to
     generate because of it would make a data mistake look like a broken feature.
     So the row is padded and **said in the report**: the author finds out their
     plan has a hole in it from the generate report, not from a crash.
@@ -138,8 +138,8 @@ def _rectangle(rows: List[str], legend: dict, notes: List[str], key: str
         return []
     width = max(len(row) for row in rows)
     # The pad has to be something a character cannot walk into. A door token would
-    # be the worst possible choice — padding a short row with doors punches holes
-    # in the building — so the preference is `solid` first, then any structure
+    # be the worst possible choice - padding a short row with doors punches holes
+    # in the building - so the preference is `solid` first, then any structure
     # cell that is not passable, and only then an empty cell. Note that
     # ``cell_kind`` returns the *kind* (``solid``/``passable``/``see_through``),
     # not the ``not_a_place`` tag, so a predicate written against the tag would
@@ -181,7 +181,7 @@ def plan_cells(building_id: str, *, storeys: Optional[int] = None,
 
     ``storeys`` overrides the template's height; ``repeat_storeys`` reuses the plan
     on every floor above the first, which is what an apartment block or a keep
-    is — the same plan, stacked.
+    is - the same plan, stacked.
     """
     notes: List[str] = []
     template, is_fallback = template_for(building_id, path)
@@ -229,7 +229,7 @@ def diverged_cells(record: dict, cells: Dict[Tuple[int, int, str], str]
 
     **This is the edit protection, and it is derived rather than declared**
     (task-567 asked for a decision here). The scope record keeps
-    ``generated_cells`` — what the generator last wrote, per cell. A cell whose
+    ``generated_cells`` - what the generator last wrote, per cell. A cell whose
     current paint differs from that has been changed by a person, so a
     re-generate leaves it alone.
 
@@ -238,7 +238,7 @@ def diverged_cells(record: dict, cells: Dict[Tuple[int, int, str], str]
     - nothing extra for the author to maintain or remember;
     - a cell the author did *not* touch is re-written to exactly what the plan
       says, so a plan fix reaches the cells that were never hand-edited;
-    - clearing a cell back to unpainted is an edit too, and is respected — an
+    - clearing a cell back to unpainted is an edit too, and is respected - an
       author who erased a room gets it to stay erased.
 
     A cell the generator never wrote is not a divergence, it is a cell the author
@@ -267,7 +267,7 @@ def generate_interior(manifest: Dict[str, dict], scope_id: str, building_id: str
 
     **Paint only.** The patch carries no nodes and no edges: it writes the grid
     and marks the scope unmade-so-far, and the author (or the next Generate) runs
-    the standard compiler over it. That is deliberate — see the module docstring —
+    the standard compiler over it. That is deliberate - see the module docstring -
     and it is also why this can be re-run over a partly hand-edited interior
     without the two halves of the world disagreeing about what a room is.
 
@@ -325,7 +325,7 @@ def generate_interior(manifest: Dict[str, dict], scope_id: str, building_id: str
         seed = f"{scope_id}:{building_id}:{RECIPE_ID}"
     # **The record is this recipe's output.** A paint recipe has no nodes to
     # return, so there is nothing for `apply_patch` to do and the manifest is
-    # written here — which is why the route commits the manifest and does not
+    # written here - which is why the route commits the manifest and does not
     # apply a patch. `generated_manifest_updates` still carries the same keys so a
     # caller that *does* apply patches (a test, a future batch) gets the same
     # result, and the two cannot drift: they are the same dict.

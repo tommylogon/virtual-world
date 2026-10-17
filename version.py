@@ -6,7 +6,7 @@ so a save can be compared against the app that created it.
 
 APP_VERSION = "1.3.0"
 
-# Format version of the save/scenario *payload* — distinct from APP_VERSION,
+# Format version of the save/scenario *payload* - distinct from APP_VERSION,
 # which is the build that wrote it. Bump only on a breaking payload change and
 # register a migration in engine/schema.py.
 #

@@ -142,7 +142,7 @@ class Player:
     def node_id_for(name: str) -> str:
         """The graph node id for a character named ``name``.
 
-        The single definition of the convention — `PlayerManager.get_player_node_id`
+        The single definition of the convention - `PlayerManager.get_player_node_id`
         delegates here, and `Player.node_id` is derived from it at construction.
         Observation memories key a subject by node id (task-403) and relationships
         key by *name*, so anything that needs to cross between the two (e.g. the
@@ -162,7 +162,7 @@ class Player:
         # conversion has to happen somewhere that knows both.
         self.minutes_per_tick = 1.0
         # Authored daily schedule (task-409): [{start:"HH:MM", activity, area,
-        # fallback}]. Empty means "no schedule" — pure need-driven behaviour,
+        # fallback}]. Empty means "no schedule" - pure need-driven behaviour,
         # which is what every character did before schedules existed.
         self.schedule = []
         # Character-private goals (task-807): [{id, what, status, motivation,
@@ -201,7 +201,7 @@ class Player:
         # weights the disposition reads (engine/disposition.trait_weights). Absent
         # dials read neutral, so an existing character does not move.
         self.personality_dials = {}
-        # Base physical description (naked/baseline appearance — what they look like with nothing on)
+        # Base physical description (naked/baseline appearance - what they look like with nothing on)
         self.base_description = ""
         # Current outward-facing description (auto-generated from base + equipment, or manually set)
         self.description = ""
@@ -224,7 +224,7 @@ class Player:
         #   - HP is on whatever scale the character's stat block says. 100 is the
         #     *default* for a person, so every pre-existing character hydrates to
         #     exactly what it always did; `Max_HP: 7` (or `"hit_dice": "2d6"`)
-        #     makes a real creature possible. Nothing clamps HP to 100 — every
+        #     makes a real creature possible. Nothing clamps HP to 100 - every
         #     reader asks engine.vitals.ceiling(vitals, "HP").
         #   - Temperature is anatomical (~37 °C) and is driven by its own band
         #     model (cold_floor / normal / heat_ceiling), not by a ceiling.
@@ -240,7 +240,7 @@ class Player:
         }
 
         # Per-character decay rate overrides. Defaults mirror
-        # vital_rates.BASELINE_DECAY (the single source of truth) — real-world
+        # vital_rates.BASELINE_DECAY (the single source of truth) - real-world
         # per-minute rates: from a FULL meter a healthy adult reaches the
         # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
         # Energy empties over a ~16h waking day. Sub-1 rates rely on the
@@ -283,7 +283,7 @@ class Player:
         self.crafting_known = []
         # Lifecycle (task-735): birth_tick (sim tick of birth, None until
         # known), life_stage cache (child/adolescent/adult/elder) and the
-        # last game-year the old-age roll ran. See engine/lifecycle.py —
+        # last game-year the old-age roll ran. See engine/lifecycle.py -
         # the clock owns these, the sheet only displays them.
         self.birth_tick = None
         self.life_stage = None
@@ -302,12 +302,12 @@ class Player:
         # (task-187), or the property's default would silently outrank every
         # hand-authored trait and the way max_size gate would stop working.
         self.size = None
-        # Species (task-549): what KIND of creature this is — "goblin", "human",
+        # Species (task-549): what KIND of creature this is - "goblin", "human",
         # "animal". This is the identity the need layer reads, and it is what
         # makes "would an animal use a latrine?" a question about the data rather
         # than about which tags somebody put on a room. `None` means *unspecified*
         # and permits everything, so all 70 library characters and every scenario
-        # load unchanged. See engine/species.py — it is deliberately an
+        # load unchanged. See engine/species.py - it is deliberately an
         # opt-in exclusion list, never a guessed rule.
         self.species = None
         # Tags: identity markers for this character, checked by items/triggers/conditions.
@@ -339,7 +339,7 @@ class Player:
         # Deliberately **transient**: this is runtime bookkeeping about how the
         # meter filled, not authored state, and a save that persisted it would
         # restore a build history the character never lived through. It is not
-        # serialized — see the `to_dict` note there.
+        # serialized - see the `to_dict` note there.
         #
         # Keyed by a path string, valued by the points that path contributed, so
         # "you have been edged on everything but X" is answerable and so the
@@ -355,7 +355,7 @@ class Player:
         # until the span is spent or something promotes them back. None = normal
         # attended play. Transient: deliberately not serialized.
         self.soak_order = None
-        # Conditions system: {condition_id: [instance, instance, ...]} — MULTIPLE
+        # Conditions system: {condition_id: [instance, instance, ...]} - MULTIPLE
         # concurrent instances per condition (5 vials of poison = 5 `poisoned`
         # instances). Each instance: {duration, source, level, periodic, ends_on,
         # symptoms, known} where the optional fields override the catalog default.
@@ -365,7 +365,7 @@ class Player:
         # Track discovered exits: set of (area_name, direction) tuples
         self.discovered_exits = set()
         # Way knowledge learned the hard way (task-333): {(area_name, direction):
-        # set of aspect strings} — 'locked', 'blocked', 'needs_force'. The turn
+        # set of aspect strings} - 'locked', 'blocked', 'needs_force'. The turn
         # panel only reveals these once discovered (examine or a failed go).
         self.known_way_aspects = {}
         # Track areas the character has visited (for Entertainment novelty bonus)
@@ -373,7 +373,7 @@ class Player:
         # Track items the character has discovered (for Entertainment novelty bonus)
         self.discovered_items = set()
         # AUTHORED knowledge (not runtime discovery): entity ids this character
-        # knows from the start — way ids ("way_secret_passage"), item ids
+        # knows from the start - way ids ("way_secret_passage"), item ids
         # ("item_old_key"), player names ("miki doki"), area names or ids.
         # Seeded from the character data's `known` list; the inspector's
         # "Known by" control edits it. Runtime discovery still works on top.
@@ -406,7 +406,7 @@ class Player:
         self.patrol_index = 0           # current index in patrol_route
 
         # === ACTIVITY SYSTEM (task-131) ===
-        # What the character is *doing* across turns. Purely descriptive —
+        # What the character is *doing* across turns. Purely descriptive -
         # mechanical gating comes from player.state + conditions.
         #   None | {"type": str, "started_at_tick": int, "target_item": str|None,
         #           "duration_ticks": int|None, "elapsed_ticks": int, "visible": bool}
@@ -416,7 +416,7 @@ class Player:
         # === ACTION ECONOMY (task-352) ===
         # Remaining per-turn action slots. Empty until the first action of a
         # turn, then {"major":1,"minor":1,"free":3,"activity":1}; reset at the turn
-        # boundary (engine/tick_manager.tick_turn). Runtime only — never persisted,
+        # boundary (engine/tick_manager.tick_turn). Runtime only - never persisted,
         # because a slot does not survive a turn.
         self.turn_slots = {}
 
@@ -425,14 +425,14 @@ class Player:
         # hop the player/agent picks (go/dash/climb/crawl/jump, minor). While this
         # is set the finish is the ONLY valid action directly after a dash. Armed
         # by the dash handler once the first hop succeeds, cleared by the finish
-        # or at the turn boundary. Runtime only — like `turn_slots`.
+        # or at the turn boundary. Runtime only - like `turn_slots`.
         self.burst_pending = 0
 
         # === EMOTION SYSTEM ===
         # **The affect map is the state** (task-652). `emotion` and
         # `emotion_intensity` are no longer fields: they are properties *derived*
         # from `_emotions`, kept because nine files and the save format still read
-        # them. Making them derived rather than stored is the whole migration —
+        # them. Making them derived rather than stored is the whole migration -
         # every existing writer keeps working and now writes the scorecard, so
         # `set_emotion("afraid", 0.8)` finally reaches the character's face
         # instead of landing in a field nothing drew from.
@@ -442,7 +442,7 @@ class Player:
         #
         # **The map is the state; `emotion`/`emotion_intensity` are derived from
         # it** and no longer assigned here. `neutral` is not "calm at half
-        # strength" — `LABEL_TO_DIM` maps it to `calm`, and a character that has
+        # strength" - `LABEL_TO_DIM` maps it to `calm`, and a character that has
         # never felt anything must start at rest rather than mildly serene, so "at
         # rest" is expressed by *not touching* the map.
         #
@@ -494,7 +494,7 @@ class Player:
         self.memory_index = {}
 
         # === LIVED LOG (objective history, task-542) ===
-        # Bounded list of plain dicts written by engine.lived_log — the mechanical
+        # Bounded list of plain dicts written by engine.lived_log - the mechanical
         # "what happened and why" record. Distinct from subjective memories, and
         # distinct from soak telemetry; see docs/design/lived-log-format.md.
         self.lived_log = []
@@ -530,7 +530,7 @@ class Player:
 
     @state.setter
     def state(self, value):
-        """Set a state — ADDS the condition without wiping others."""
+        """Set a state - ADDS the condition without wiping others."""
         set_state(self, value)
 
     def has_condition(self, condition: str) -> bool:
@@ -583,7 +583,7 @@ class Player:
         cold room is not thereby calm.
 
         Raises ``ValueError`` for a label the vocabulary does not know, naming the
-        dimensions available — the old version raised with a 7-item list, which
+        dimensions available - the old version raised with a 7-item list, which
         is why the behaviour editor could only offer seven.
         """
         from engine import emotion as _emotion
@@ -600,7 +600,7 @@ class Player:
 
     @property
     def emotion(self) -> str:
-        """The character's dominant emotion label — **derived, not stored**.
+        """The character's dominant emotion label - **derived, not stored**.
 
         Read by serialization, the world export, the memory badges and nine other
         call sites, so it stays; it just no longer *is* the state. The value is the
@@ -608,7 +608,7 @@ class Player:
         a reader sees the same word it always saw.
         """
         from engine import emotion as _emotion
-        # `None` means nobody has ever felt anything, which is `neutral` — and
+        # `None` means nobody has ever felt anything, which is `neutral` - and
         # reading it must not *materialise* the map, or every character's decay
         # and every tick's read would do the work the laziness exists to avoid.
         if getattr(self, "_emotions", None) is None:
@@ -622,16 +622,16 @@ class Player:
     def emotion(self, value: str) -> None:
         """Route a legacy assignment into the affect map.
 
-        Every pre-existing writer — the behaviour action, the social tiers, the
-        save loader, the library loader — assigns here, and now lands in the one
+        Every pre-existing writer - the behaviour action, the social tiers, the
+        save loader, the library loader - assigns here, and now lands in the one
         model.
 
         Assigned at **full strength**, because this is what the old field did and
         because a caller that says `p.emotion = "furious"` means it: at half
         strength a character who was terrified at 0.9 would keep feeling terrified
         and the assignment would appear to do nothing. An unknown or empty label is
-        a no-op rather than an exception — a save from a future build must not be
-        unloadable for carrying a word this one has not heard of — but `"neutral"`
+        a no-op rather than an exception - a save from a future build must not be
+        unloadable for carrying a word this one has not heard of - but `"neutral"`
         is special: it is a *reset*, not a label, so it returns the map to rest.
         """
         from engine import emotion as _emotion
@@ -648,7 +648,7 @@ class Player:
 
     @property
     def emotion_intensity(self) -> float:
-        """How strongly the dominant feeling is felt, 0.0–1.0 — derived.
+        """How strongly the dominant feeling is felt, 0.0–1.0 - derived.
 
         The scale the callers use: the legacy field stored it directly, and the
         behaviour editor's slider writes it. It is now *how far the leading
@@ -693,7 +693,7 @@ class Player:
         """Canonical expression-portrait key for the current mood.
 
         Derived from the affect map's strongest raised axis (engine.emotion.
-        dominant_expression) — so the character's face follows the emotional
+        dominant_expression) - so the character's face follows the emotional
         state that events and decisions produced, not the legacy free-text
         ``emotion`` string. Returns one of the 12 canonical keys or 'neutral'.
         """
@@ -778,7 +778,7 @@ class Player:
             explicit = _emotion.describe(self._emotions)
             if explicit:
                 return explicit
-            # Near-neutral explicit map — fall through to vitals-derived mood.
+            # Near-neutral explicit map - fall through to vitals-derived mood.
         derived = _emotion.derive_from_vitals(self.vitals, self.state)
         if derived is None:
             return ""
@@ -840,14 +840,14 @@ class Player:
 
     def knows_name(self, other_name: str) -> bool:
         """True when this character has actually learned *other_name*'s name
-        (heard it spoken, or read their name tag) — task-339. Recognition
+        (heard it spoken, or read their name tag) - task-339. Recognition
         (having seen them) is NOT name knowledge."""
         rel = self.relationships.get(self._rel_key(other_name))
         return rel is not None and not rel.get("first_sighting")
 
     def learn_name(self, other_name: str, tick: int) -> bool:
         """Learn another character's NAME (heard it spoken / read their name
-        tag) — task-339. Registers the relationship if new and clears the
+        tag) - task-339. Registers the relationship if new and clears the
         name-unknown flag. Returns True only when this was new knowledge."""
         self.register_first_meeting(other_name, tick)
         rel = self.relationships.get(self._rel_key(other_name))
@@ -860,7 +860,7 @@ class Player:
 
     def learn_way_aspect(self, area_name: str, direction: str, aspect: str) -> None:
         """Record that this character discovered a way's hidden aspect
-        ('locked', 'blocked', 'needs_force') — task-333 scene discovery."""
+        ('locked', 'blocked', 'needs_force') - task-333 scene discovery."""
         key = (str(area_name), str(direction))
         self.known_way_aspects.setdefault(key, set()).add(str(aspect))
 
@@ -891,7 +891,7 @@ class Player:
         first_sentence = re.sub(r"^(?:a|an|the)\s+", "", first_sentence, flags=re.IGNORECASE)
         if not first_sentence:
             return self._tag_unknown_name()
-        # Pronoun-starting descriptions ("She stands bare and unadorned...") —
+        # Pronoun-starting descriptions ("She stands bare and unadorned...") -
         # map to a person label instead of producing "the she stands...".
         m = re.match(r"^(she|he|they)\b", first_sentence, flags=re.IGNORECASE)
         if m:
@@ -935,7 +935,7 @@ class Player:
         It both **reads and records** the observation, which is what makes it
         idempotent with perception in either order (task-434): perception records
         the character on arrival and pays, so a later meeting reads a fresh tick
-        and pays nothing — and a meeting that happens first records, so a later
+        and pays nothing - and a meeting that happens first records, so a later
         perception pays nothing. This used to be a separate flat +10 that
         double-paid with the perception grant.
 
@@ -962,7 +962,7 @@ class Player:
         First meeting with a character grants an Entertainment novelty boost
         (mirrors the area-visit/item-discovery boosts in task-136).
 
-        Goes through `engine/relationships.py` — the one writer of closeness
+        Goes through `engine/relationships.py` - the one writer of closeness
         (task-420), so the change carries a cause and clamps in one place.
         """
         from engine.relationships import apply_relationship_delta, ensure_relationship
@@ -975,7 +975,7 @@ class Player:
         )
 
     #: Familiarity's damping on relationship decay. 0.15 means six prior
-    #: interactions halve the rate — shared history should not evaporate.
+    #: interactions halve the rate - shared history should not evaporate.
     RELATIONSHIP_DECAY_FAMILIARITY = 0.15
 
     def decay_relationships(self, elapsed_days: float, per_day: float) -> int:
@@ -984,7 +984,7 @@ class Player:
         Deliberately safe on authored data: the step can never cross zero
         (strength protects itself), shared history damps the rate through
         `interaction_count`, and an authored `label` ("my brother") is a
-        declaration rather than a measurement, so it is never touched — only the
+        declaration rather than a measurement, so it is never touched - only the
         computed closeness moves.
 
         Sub-1 daily steps accumulate per relationship the way vitals do, or a
@@ -1030,15 +1030,15 @@ class Player:
     def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
-        tags: list[str] — optional keyword labels for targeting via trigger effects.
-        entity_ids: list[str] — graph node ids this memory is about (a subject),
+        tags: list[str] - optional keyword labels for targeting via trigger effects.
+        entity_ids: list[str] - graph node ids this memory is about (a subject),
             used by the observation index and the retrieval entity boost.
-        location: str — the area the memory happened in.
-        source: str — provenance label (auto/manual/trigger/...).
-        category: str — memory kind (episodic/semantic/procedural/social/belief);
+        location: str - the area the memory happened in.
+        source: str - provenance label (auto/manual/trigger/...).
+        category: str - memory kind (episodic/semantic/procedural/social/belief);
             derived from ``memory_type``/tags when omitted (task-685).
-        confidence: float — 0..1 how sure the character is; defaulted by source.
-        contradicts: list[str] — ids of existing memories this one conflicts
+        confidence: float - 0..1 how sure the character is; defaulted by source.
+        contradicts: list[str] - ids of existing memories this one conflicts
             with (authored links; structural detection also runs on write).
         Returns the stored entry so callers can index it.
         """
@@ -1076,7 +1076,7 @@ class Player:
             pass
         self.memories.append(entry)
         # No cap, no eviction, no truncation (2026-10-06): a character keeps
-        # every memory for life. `memory.max_per_character` is ignored — the
+        # every memory for life. `memory.max_per_character` is ignored - the
         # configurable trim path was removed so nothing deletes a memory.
         return entry
 
@@ -1088,8 +1088,8 @@ class Player:
         ONE live observation per subject, updated in place: re-seeing the pantry
         updates the memory that already describes it rather than appending a
         second one. That is what keeps the store bounded by *subjects* instead
-        of by visits — a week of wandering does not become thousands of
-        observations — and it makes "when did I last see this?" a single lookup.
+        of by visits - a week of wandering does not become thousands of
+        observations - and it makes "when did I last see this?" a single lookup.
 
         The trace is the history; this holds the current belief.
         """
@@ -1106,7 +1106,7 @@ class Player:
             # update as well as the create. Leaving it to the create branch let
             # a subject first written by an unlabelled path claim the index
             # slot, after which every later observation of that subject was
-            # refused a kind — and `_observed_by_location` filters on
+            # refused a kind - and `_observed_by_location` filters on
             # kind == "area", so the room a character started in never reached
             # the minimap.
             if kind:
@@ -1167,7 +1167,7 @@ class Player:
 
         The belief was replaced (the bread was eaten, the door was unlocked) and
         nothing new took its place, so recall must stop surfacing it. This is
-        the only path that adds to the supersede chain — sightings refresh in
+        the only path that adds to the supersede chain - sightings refresh in
         place, they do not chain.
         """
         entry = self.observation_memory(str(subject_id))
@@ -1181,11 +1181,11 @@ class Player:
         """Drop the least worth keeping when a retention cap is configured.
 
         Authored memories (``source == "manual"``) are the character's backstory,
-        so they go last — a busy week of generated social chatter must not push
+        so they go last - a busy week of generated social chatter must not push
         the hand-written past out of the character. Among the rest, eviction
         ranks by effective importance + reinforcements (task-685): repeated
         experience survives the cap, one-off noise goes first. ``protect_id``
-        spares the entry being written right now — a character does not
+        spares the entry being written right now - a character does not
         instantly forget what they just saw, and its caller still holds it.
 
         An evicted subject also leaves the observation index, so the character
@@ -1280,7 +1280,7 @@ class Player:
         """Keyword-based memory retrieval respecting suppressions and salience.
 
         Memories with an active suppression are excluded, and so are superseded
-        observations — a belief that was replaced by a later one must not still
+        observations - a belief that was replaced by a later one must not still
         be recallable (task-403).
         Recalled memories are reinforced (task-685): bounded activation /
         confidence / counter stamps replace the old unbounded importance bump.

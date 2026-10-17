@@ -1,4 +1,4 @@
-"""Room perception invariants — ONE source of truth for what a character
+"""Room perception invariants - ONE source of truth for what a character
 can perceive in an area.
 
 Two renderers present the same perception:
@@ -64,7 +64,7 @@ def resolve_area(graph, ref) -> Optional[object]:
     Resolution is **id first** (task-439): an id is the stable handle, so a
     caller holding one never has to guess. A display name is resolved by
     :func:`normalize_name`; when more than one area shares that name the result
-    is ambiguous — it is logged and resolved deterministically by smallest id,
+    is ambiguous - it is logged and resolved deterministically by smallest id,
     never by dict iteration order, so two areas called "Hollow" cannot silently
     swap depending on load order. Falls back to the canonical id the name would
     construct (hand-authored ids strip punctuation: "Taco Bell Men's Restroom"
@@ -94,7 +94,7 @@ def resolve_area(graph, ref) -> Optional[object]:
 
 
 def resolve_area_node(graph, area_name: str) -> Optional[object]:
-    """The area node for *area_name* — id first, then display name (task-439).
+    """The area node for *area_name* - id first, then display name (task-439).
 
     Kept under its historical name for every existing caller; the resolution
     rule now lives in :func:`resolve_area`.
@@ -115,7 +115,7 @@ def way_visible_to(player, player_manager, viewer_name: str,
                    way_node, area_name: str, direction: str) -> bool:
     """Hidden ways stay invisible until discovered: the slasher sees every
     hidden exit, anyone else needs the (area name, raw direction) key in
-    ``discovered_exits`` — search/fumble discovery writes it (narration.py).
+    ``discovered_exits`` - search/fumble discovery writes it (narration.py).
     Authored knowledge: a way, or its area, listed in the viewer's `known`
     registry is visible from the start (the butcher's passage, a scout's map).
     """
@@ -194,7 +194,7 @@ def item_quantity(node) -> int:
 
 
 def pluralise(name, count: int, plural: Optional[str] = None) -> str:
-    """``berry`` at one, ``berries`` at three — but only if the item authored
+    """``berry`` at one, ``berries`` at three - but only if the item authored
     it. Irregulars come from the ``plural`` property; the naive ``+s`` is the
     fallback for everything else. The stored ``name`` always stays singular
     (matching deliberately does not pluralise, so a plural in ``name`` would
@@ -216,8 +216,8 @@ def describe_item_quantity(node) -> str:
     at 1, so "you see 1 giant tree" and "you see 40 berries" read alike.
 
     THE one place an item name picks up a count. Both perception paths call
-    this — the AGENT path through ``area_description.get_area_items``, the
-    PANEL path through ``scene_snapshot`` — so the two can never disagree
+    this - the AGENT path through ``area_description.get_area_items``, the
+    PANEL path through ``scene_snapshot`` - so the two can never disagree
     about how much of something is standing there.
     """
     if node is None:
@@ -231,7 +231,7 @@ def describe_item_quantity(node) -> str:
 
 
 def describe_item(node, description: str = "") -> str:
-    """``"40 berries, dark fruit on low branches."`` — label plus description.
+    """``"40 berries, dark fruit on low branches."`` - label plus description.
 
     A description carrying a ``{qty}``/``{name}`` token *is* the line: the
     prose does the counting, so the label drops its own number. Otherwise the

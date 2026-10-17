@@ -3,7 +3,7 @@
 Every write in this module goes through :func:`engine.vitals.ceiling`, the one
 answer to "what is the top of this vital on this character" (task-538). Before
 that resolver existed these handlers carried their own copies of the rule, and
-`heal` had the wrong one — it clamped to a literal 100, so healing a 7-HP
+`heal` had the wrong one - it clamped to a literal 100, so healing a 7-HP
 goblin by 5 produced 12 HP. That was invisible only because `Max_HP` was itself
 always 100; the moment a stat block declared a real maximum, the bug surfaced.
 """
@@ -15,12 +15,12 @@ def handle_damage(self, params, context, item_node=None, game_state=None):
     """Deal damage to the active player or another character.
 
     params:
-      amount (int) — raw damage dealt on a failed (or absent) save.
-      target — ``"self"``, ``"other"`` (first character in the area /
+      amount (int) - raw damage dealt on a failed (or absent) save.
+      target - ``"self"``, ``"other"`` (first character in the area /
                the one named by ``character_name``), or an explicit
                character name.
-      character_name (str) — which character for ``target="other"``.
-      save (dict) — optional save to resist the damage (task-159):
+      character_name (str) - which character for ``target="other"``.
+      save (dict) - optional save to resist the damage (task-159):
           ``{"stat": "DEX", "dc": 12, "on_success": "half"|"none"}``
         ``stat`` may be an ability (STR/DEX/...) or a skill (Athletics...).
         On success the damage is halved (default) or avoided entirely; the
@@ -88,10 +88,10 @@ def handle_save(self, params, context, item_node=None, game_state=None):
     """Roll a saving throw, then run the matching effect branch.
 
     params:
-      stat (str) — ability (WIS...) or skill (Athletics...) to roll.
-      dc (int) — difficulty class of the save.
-      on_fail (list) — effects to run when the save fails.
-      on_success (list) — effects to run when the save succeeds.
+      stat (str) - ability (WIS...) or skill (Athletics...) to roll.
+      dc (int) - difficulty class of the save.
+      on_fail (list) - effects to run when the save fails.
+      on_success (list) - effects to run when the save succeeds.
 
     This is the world-authoring gate for fears and hazards: a way or item
     trigger can force a fear save and apply ``frightened`` on failure.
@@ -142,15 +142,15 @@ def handle_heal(self, params, context, item_node=None, game_state=None):
     """Restore a vital stat (HP by default).
 
     params:
-      amount (int) — how much to restore.
-      stat (str)   — which vital. Canonical spelling ("HP", "Energy"), resolved
+      amount (int) - how much to restore.
+      stat (str)   - which vital. Canonical spelling ("HP", "Energy"), resolved
                      case-insensitively against the target's vitals.
-      target (str) — "self" (default) or a character name. Mirrors
+      target (str) - "self" (default) or a character name. Mirrors
                      ``apply_condition`` and ``adjust_vital``, which both accept a
                      target; this used to always act on ``game_state.player``.
-      message      — narration.
+      message      - narration.
 
-    The result is clamped to the target's own ceiling — ``Max_HP`` for HP — rather
+    The result is clamped to the target's own ceiling - ``Max_HP`` for HP - rather
     than a hardcoded 100. The old literal was harmless only because ``Max_HP`` was
     itself always 100; the moment a stat block declared a real maximum, healing a
     7-HP goblin by 5 produced 12 HP. See task-538.
@@ -212,7 +212,7 @@ def _effect_subject(params, game_state):
     """Resolve ``target`` to a Player: ``self`` (default) or a named character.
 
     Shared by every vital effect so they all accept the same ``target``
-    vocabulary, and — the reason it exists — so none of them silently acts on
+    vocabulary, and - the reason it exists - so none of them silently acts on
     ``game_state.player`` when the author named someone else.
     """
     if game_state is None:
@@ -239,10 +239,10 @@ def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     """Adjust a vital stat (HP, Energy, Sanity, etc.) on a player.
 
     params:
-      stat (str)    — which vital. Canonical spelling ("HP", "Energy"), resolved
+      stat (str)    - which vital. Canonical spelling ("HP", "Energy"), resolved
                       case-insensitively against the target's vitals.
-      amount (int)  — signed delta.
-      target (str)  — ``"self"`` (default) or a character name.
+      amount (int)  - signed delta.
+      target (str)  - ``"self"`` (default) or a character name.
 
     Clamped against **this character's own ceiling** (``engine.vitals.ceiling``),
     which for HP means an authored ``Max_HP``. The old code clamped to a literal
@@ -277,9 +277,9 @@ def handle_set_vital(self, params, context, item_node=None, game_state=None):
     """Set a vital to an exact value (``task-538``, task-537 §M).
 
     params:
-      stat (str)    — which vital (canonical spelling preferred).
-      value (num)   — the absolute value to set. Clamped to the vital's ceiling.
-      target (str)  — ``"self"`` (default) or a character name.
+      stat (str)    - which vital (canonical spelling preferred).
+      value (num)   - the absolute value to set. Clamped to the vital's ceiling.
+      target (str)  - ``"self"`` (default) or a character name.
 
     This is the "set the meter" counterpart to ``adjust_vital``'s "move the
     meter", and it is what a resurrection or a scripted scene needs. It is
@@ -310,11 +310,11 @@ def handle_modify_vital_max(self, params, context, item_node=None, game_state=No
     """Raise (or lower) a vital's **maximum** (``task-538``, task-537 §M).
 
     params:
-      stat (str)    — which vital.
-      amount (num)  — signed delta to ``Max_{stat}`` (or, for HP, to a
+      stat (str)    - which vital.
+      amount (num)  - signed delta to ``Max_{stat}`` (or, for HP, to a
                       ``max_hp`` alias). A positive amount raises the ceiling.
-      target (str)  — ``"self"`` (default) or a character name.
-      scale_current (bool) — when true (default false), also raise the *current*
+      target (str)  - ``"self"`` (default) or a character name.
+      scale_current (bool) - when true (default false), also raise the *current*
                       value by the same amount, so a character that gains max HP
                       gains the vitality with it. By default the current value
                       is **unchanged**: a spell that lifts your maximum should

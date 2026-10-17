@@ -7,6 +7,7 @@ from typing import Any, List, Optional
 
 from graph import Node
 
+from engine.triggers.context import build_template_context
 from engine.triggers.effect_resolution import _effects_list_from_properties
 
 
@@ -28,13 +29,13 @@ class TestingMixin:
         dict (``trigger_type``, ``conditions``, ``effects``, ``conditions_logic``).
 
         Returns a dict:
-        - ``trigger_type`` — the trigger's type
-        - ``conditions`` — list of ``{condition, expected, passed, detail}``
-        - ``conditions_pass`` — whether all conditions evaluated true
-        - ``fireable`` — whether the trigger type makes sense in this context
-        - ``outputs`` — the messages the effects WOULD produce (dry run) or DID
+        - ``trigger_type`` - the trigger's type
+        - ``conditions`` - list of ``{condition, expected, passed, detail}``
+        - ``conditions_pass`` - whether all conditions evaluated true
+        - ``fireable`` - whether the trigger type makes sense in this context
+        - ``outputs`` - the messages the effects WOULD produce (dry run) or DID
           produce (live run)
-        - ``side_effects`` — list of strings describing what a live run changed
+        - ``side_effects`` - list of strings describing what a live run changed
 
         In dry-run mode, effects are NOT executed -- instead each effect's type +
         params are reported as "would run". In live mode, effects run through the
@@ -57,49 +58,10 @@ class TestingMixin:
         if game_state is not None:
             context["game_state"] = game_state
 
-        # Build template context like _execute_triggers does
-        context.setdefault(
-            "game_time", game_state.get_current_time() if game_state else ""
+        # Build template context (shared with the live execution path).
+        context = build_template_context(
+            item_node=item_node, game_state=game_state, context=context
         )
-        context.setdefault(
-            "time_ticks", str(game_state.time_ticks) if game_state else ""
-        )
-        context.setdefault(
-            "turn_number", str(game_state.turn_number) if game_state else ""
-        )
-        context.setdefault(
-            "player_name", game_state.active_player if game_state else ""
-        )
-        context.setdefault(
-            "area_name",
-            game_state.current_area.name if game_state and game_state.current_area else "",
-        )
-        context.setdefault("item_name", item_node.name if item_node else "")
-        context.setdefault(
-            "item_state",
-            item_node.properties.get("current_state", "") if item_node else "",
-        )
-        context.setdefault(
-            "item_description",
-            item_node.properties.get("description", "") if item_node else "",
-        )
-        context.setdefault("item_properties", item_node.properties if item_node else {})
-        if item_node:
-            context.setdefault(
-                "item_params", item_node.properties.get("parameters", {})
-            )
-        if game_state and game_state.player:
-            context.setdefault(
-                "player_hp", str(game_state.player.vitals.get("HP", 0))
-            )
-            context.setdefault(
-                "player_energy",
-                str(game_state.player.vitals.get("Energy", 0)),
-            )
-            context.setdefault(
-                "player_sanity",
-                str(game_state.player.vitals.get("Sanity", 0)),
-            )
 
         # Does this trigger type plausibly fire in this context?
         itemful_types = {

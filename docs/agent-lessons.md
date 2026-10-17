@@ -1,4 +1,4 @@
-# Agent Lessons — things I must NOT do again
+# Agent Lessons - things I must NOT do again
 
 Working notes for the agent (and any future context) on this project, so the
 same mistakes are not repeated. Written in response to a long relationship/
@@ -9,7 +9,7 @@ emotion/name/memory feature session that over-reached and reinvented things.
   (stream-raw-llm.js `_chipBubble`). I built a parallel `events.log` feedback,
   then re-used the chip. Waste, and it confused the user.
 - `window._lastRecallStats` was ALREADY read by the request chip (line 61) but
-  never set — a dead pipe. I should have found and populated it, not built a
+  never set - a dead pipe. I should have found and populated it, not built a
   second path.
 - PRACTICE: grep for the feature/pipe first. If a half-wired pipe exists, set
   it. Never build a parallel mechanism without checking.

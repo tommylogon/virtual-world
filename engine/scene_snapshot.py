@@ -6,7 +6,7 @@ One call assembles everything the panel's scene view renders:
 - characters present, stranger-masked until met (unknown_display_name)
 - visible items with their data-driven ``available actions``
   (TriggerSystem._get_available_actions contract: {action,label,enabled,reason})
-- ways out reporting ONLY discovered state — hidden ways stay out entirely
+- ways out reporting ONLY discovered state - hidden ways stay out entirely
   (same slasher/discovered_exits rule as look), and lock/block/force
   knowledge comes from Player.known_way_aspects and is never leaked here
 - the player's own strip data: vitals, visible conditions, carrying/worn,
@@ -75,7 +75,7 @@ def _known_aspects(player: Any, area_name: str, handle: str) -> Dict[str, bool]:
 
 def _area_node_id(world: Any, area_name: str) -> str:
     """Resolve the area's graph node id via the shared perception rule
-    (engine/room_perception.py — name-based, bug-26), falling back to the
+    (engine/room_perception.py - name-based, bug-26), falling back to the
     canonical constructed string so callers always get a usable key."""
     graph = getattr(world, "graph", None)
     node = resolve_area_node(graph, area_name)
@@ -128,7 +128,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
     # ── people ───────────────────────────────────────────────────────
     # Mirrors area_description's recognition contract (task-154 + task-339):
     # seeing someone registers the relationship (stable masked label) but
-    # NEVER reveals the name — names are learned only by hearing them
+    # NEVER reveals the name - names are learned only by hearing them
     # spoken or by reading a name tag. `first_sighting` means "name unknown".
     for node in characters_in_area(graph, area_id, exclude_name=player_name):
         name = node.name
@@ -150,7 +150,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
                 except Exception:
                     label = None
             # task-339: a stranger's first sentence is an appearance handle,
-            # but descriptions may open with the character's own name — scrub
+            # but descriptions may open with the character's own name - scrub
             # the real name (and aliases) out before it reaches any prompt.
             try:
                 from engine.matching import node_aliases
@@ -220,7 +220,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             continue
         seen_way_ids.add(way_node.id)
 
-        # Hidden ways stay out until discovered — shared perception rule
+        # Hidden ways stay out until discovered - shared perception rule
         # (engine/room_perception.py, same rule the agent path uses).
         if not way_visible_to(player, player_manager, player_name,
                               way_node, area_name,
@@ -256,7 +256,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         except Exception:
             way_desc = ""
 
-        # Legacy "none" normalizes to "" via the shared perception rule —
+        # Legacy "none" normalizes to "" via the shared perception rule -
         # a truthy "requires none" used to disable Go and hide Open.
         requires = normalize_requires(way_node.properties.get("requires", ""))
 

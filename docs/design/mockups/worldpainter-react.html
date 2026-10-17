@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>WorldPainter — ideal grid surface · React</title>
+<title>WorldPainter - ideal grid surface · React</title>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -52,7 +52,7 @@ h1{font-size:25px;margin:0 0 8px}
 /* ── the surface: rail | grid | right dock ── */
 .surface{display:flex;height:660px;min-height:0;align-items:stretch}
 
-/* tool rail — 8 tools, 2 columns so all 8 fit in one screen-height */
+/* tool rail - 8 tools, 2 columns so all 8 fit in one screen-height */
 .rail{flex:0 0 auto;width:96px;background:var(--bg-inset);border-right:1px solid var(--border);
   padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;align-content:start}
 .tool{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);
@@ -66,7 +66,7 @@ h1{font-size:25px;margin:0 0 8px}
 /* centre column: chrome (2 rows) then the grid, which gets the rest */
 .centre{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
 
-/* row 1 — paint controls, grouped by what they act on */
+/* row 1 - paint controls, grouped by what they act on */
 .bar1{display:flex;align-items:center;gap:7px;padding:6px 9px;border-bottom:1px solid var(--border);
   background:var(--bg-card);flex-wrap:wrap}
 .grp{display:flex;align-items:center;gap:5px;padding-right:8px;border-right:1px solid var(--border)}
@@ -77,7 +77,7 @@ select.sel,.inp{background:var(--bg-input);border:1px solid var(--border);border
 .inp{width:118px}
 select.sel.big{min-width:210px;font-size:11.5px}
 
-/* row 2 — the reference image + grid view controls, one disclosure */
+/* row 2 - the reference image + grid view controls, one disclosure */
 .bar2{display:flex;align-items:center;gap:7px;padding:5px 9px;border-bottom:1px solid var(--border);
   background:var(--bg-inset);flex-wrap:wrap}
 .disc{font-size:10.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer;
@@ -87,7 +87,7 @@ select.sel.big{min-width:210px;font-size:11.5px}
 .refrow input[type=range]{width:78px;accent-color:var(--accent)}
 .refrow label{font-size:10px;color:var(--text-muted)}
 
-/* the grid — the thing being looked at */
+/* the grid - the thing being looked at */
 .gridwrap{flex:1 1 auto;min-height:0;display:flex;position:relative;overflow:auto;background:#08090b}
 .grid{flex:0 0 auto;display:grid;gap:0;align-content:start;padding:0;align-self:flex-start}
 .canvas{flex:0 0 auto;margin:auto;border:1px solid var(--border);border-radius:4px;
@@ -106,7 +106,7 @@ select.sel.big{min-width:210px;font-size:11.5px}
 .zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:4px;align-items:center;z-index:5}
 .zoom .z{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);min-width:38px;text-align:center}
 
-/* right dock — the live cell / area / feature readout, always visible */
+/* right dock - the live cell / area / feature readout, always visible */
 .dock{flex:0 0 auto;width:288px;background:var(--bg-inset);border-left:1px solid var(--border);
   overflow:auto;padding:0}
 .sec{padding:9px 11px;border-bottom:1px solid var(--border-light)}
@@ -137,7 +137,7 @@ ol.steps{margin:0;padding-left:17px;font-size:11.5px;color:var(--text-dim);line-
 ol.steps li.done{color:var(--text-muted);text-decoration:line-through}
 ol.steps li.now{color:var(--text);font-weight:600}
 
-/* palette popover — the 106-biome list as a previewable tile grid */
+/* palette popover - the 106-biome list as a previewable tile grid */
 .pop{position:absolute;z-index:30;background:var(--bg-card);border:1px solid var(--accent);
   border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.6);padding:8px;width:430px}
 .pop .ph{display:flex;gap:6px;align-items:center;margin-bottom:7px}
@@ -195,7 +195,7 @@ const CAMP_AREAS = [
 
 /* Real paint off west_woods, verbatim from GET /api/world/scopes/west_woods/grid:
    62 biome cells and 24 road cells, keyed "x,y" exactly as the payload keys them.
-   No trimming — the sparse shape is the point. */
+   No trimming - the sparse shape is the point. */
 const BIOME_CELLS = ('10,14 sparse_forest|10,23 sparse_forest|10,24 sparse_forest|10,25 sparse_forest|10,3 dense_forest|10,5 dense_forest'
   + '|11,14 sparse_forest|11,17 sparse_forest|11,20 sparse_forest|11,23 sparse_forest|11,24 sparse_forest|11,27 sparse_forest|11,28 sparse_forest|11,3 sparse_forest|11,5 sparse_forest'
   + '|12,14 sparse_forest|12,15 sparse_forest|12,18 sparse_forest|12,19 sparse_forest|12,22 sparse_forest|12,23 sparse_forest|12,24 sparse_forest|12,26 sparse_forest|12,3 sparse_forest'
@@ -282,7 +282,7 @@ function App(){
     const out = [];
     if (!isCamp) out.push({t:'Anyone arriving from “world” lands on the top-left-most painted place, (9,3), because that is the region the gateway opens into.', f:'Paint that approach first so it becomes the top-left-most place.'});
     out.push(isCamp
-      ? {t:'“goblin camp” has no painted ground. An interior is a floor plan — 0 of 10×20 cells are painted.', f:'Switch to the 🖌 Paint tool and drag; the biome layer takes the first cell.'}
+      ? {t:'“goblin camp” has no painted ground. An interior is a floor plan - 0 of 10×20 cells are painted.', f:'Switch to the 🖌 Paint tool and drag; the biome layer takes the first cell.'}
       : {t:'A place with no name compiles to "Inn [Eldenford 12,7]" and cannot be asked for.', f:'Right-click a cell, use the name field. 0 named.'});
     return out;
   },[isCamp]);
@@ -325,11 +325,11 @@ function App(){
 
   return (
     <div>
-      <h1>WorldPainter — the whole grid surface, in one frame</h1>
+      <h1>WorldPainter - the whole grid surface, in one frame</h1>
       <p className="lede">
         React design mockup. Thirteen tasks sit in <code>review/</code> against this one surface
         (495, 496, 520, 524, 536, 540, 541, 557, 595, 596, 597) and each of them changed a
-        different corner of it independently. <b>The problem is not any one control — it is that
+        different corner of it independently. <b>The problem is not any one control - it is that
         the canvas gets 52% of the panel.</b> Everything above the grid is stacked chrome: 488px
         of it, in one non-scrolling column, ending in a prose checklist. This puts the canvas
         first at 85% of the surface, keeps the eight tools reachable, and docks the cell readout
@@ -394,7 +394,7 @@ function App(){
                 <select className="sel" value={scopeId} aria-label="Scope"
                         onChange={e=>{setScopeId(e.target.value); setSel([]); setPalOpen(false);}}>
                   {SCOPES.map(s=>(
-                    <option key={s.id} value={s.id}>{s.name} — {s.w}×{s.h}, {s.areas} areas</option>
+                    <option key={s.id} value={s.id}>{s.name} - {s.w}×{s.h}, {s.areas} areas</option>
                   ))}
                 </select>
                 <span className="glabel">layer</span>
@@ -444,7 +444,7 @@ function App(){
                 <button className="xbtn">➕ Add feature…</button>
                 <span className="glabel">progress</span>
                 <div className="prog" style={{width:74}}><i style={{width:pct+'%'}}/></div>
-                <button className="xbtn" onClick={()=>setStep(s=>s===0?4:s-1)}>📋 {step||5}/5 — what next</button>
+                <button className="xbtn" onClick={()=>setStep(s=>s===0?4:s-1)}>📋 {step||5}/5 - what next</button>
               </div>
             </div>
 
@@ -491,7 +491,7 @@ function App(){
                   biomeAt(cursor.x,cursor.y) && <span>{biomeAt(cursor.x,cursor.y).replace(/_/g,' ')}</span>,
                   roadAt(cursor.x,cursor.y) && <span style={{color:'var(--orange)'}}>road</span>,
                   !areaAt(cursor.x,cursor.y) && !biomeAt(cursor.x,cursor.y) && !roadAt(cursor.x,cursor.y)
-                    && <span className="dim">— nothing here</span>]
+                    && <span className="dim">- nothing here</span>]
                   .filter(Boolean)}
               </div>
               <div className="zoom">
@@ -511,9 +511,9 @@ function App(){
                 <span className={'v'+(biomeAt(cursor.x,cursor.y)?'':' none')}>
                   {biomeAt(cursor.x,cursor.y)?.replace(/_/g,' ') || 'nothing'}</span></div>
               <div className="kv"><span className="l">road</span>
-                <span className={'v'+(roadAt(cursor.x,cursor.y)?'':' none')}>{roadAt(cursor.x,cursor.y)?'road':'—'}</span></div>
-              <div className="kv"><span className="l">floor</span><span className="v none">—</span></div>
-              <div className="kv"><span className="l">climate</span><span className="v none">—</span></div>
+                <span className={'v'+(roadAt(cursor.x,cursor.y)?'':' none')}>{roadAt(cursor.x,cursor.y)?'road':'-'}</span></div>
+              <div className="kv"><span className="l">floor</span><span className="v none">-</span></div>
+              <div className="kv"><span className="l">climate</span><span className="v none">-</span></div>
               <div className="kv"><span className="l">area</span>
                 <span className={'v'+(areaAt(cursor.x,cursor.y)?'':' none')}>
                   {areaAt(cursor.x,cursor.y)?.n || 'unplaced'}</span></div>
@@ -564,16 +564,16 @@ function App(){
           <thead><tr><th>Surface</th><th>Now (measured)</th><th>Here</th><th>Why</th></tr></thead>
           <tbody>
             <tr><td>Canvas share of the panel</td>
-                <td>480px of 920 — <b>52%</b>, and 48px of it clipped at the bottom</td>
-                <td>canvas 563px of 660 — <b>85%</b> of the surface, nothing clipped at any scope size</td>
+                <td>480px of 920 - <b>52%</b>, and 48px of it clipped at the bottom</td>
+                <td>canvas 563px of 660 - <b>85%</b> of the surface, nothing clipped at any scope size</td>
                 <td>The grid is the thing being looked at</td></tr>
             <tr><td>Chrome above the canvas</td>
                 <td>488px in one non-scrolling column, 17 stacked rows</td>
                 <td>Two rows: paint controls, then a disclosure</td>
                 <td>task-536 already decided a rail beats a toolbar; the top rows were never revisited</td></tr>
             <tr><td>Tool rail</td>
-                <td>8 buttons, 1 column, 24px apart — 220px tall</td>
-                <td>8 buttons, 2 columns — 124px tall</td>
+                <td>8 buttons, 1 column, 24px apart - 220px tall</td>
+                <td>8 buttons, 2 columns - 124px tall</td>
                 <td>Same 8 tools, same keys, all above the fold</td></tr>
             <tr><td>Which scope am I in</td>
                 <td>Not stated in the painter; a breadcrumb only</td>
@@ -601,7 +601,7 @@ function App(){
                 <td>The live blockers already carry <code>remedy</code> prose that is thrown away</td></tr>
             <tr><td>Scope switching</td>
                 <td>Not in the painter; you go back to the graph</td>
-                <td>A select in the toolbar — <b>to change which grid you are editing</b></td>
+                <td>A select in the toolbar - <b>to change which grid you are editing</b></td>
                 <td>task-592 owns the scope <i>tree</i>; that is membership and navigation. Choosing
                 which grid to paint is the painter's own job, and task-623 already ships 6 scopes</td></tr>
           </tbody>
@@ -614,7 +614,7 @@ function App(){
           <li><b>Where Generate lives.</b> task-580 needs a preview; scope-tree.js deliberately
             removed its Generate button in favour of a 🖌 Paint jump, and task-592 is in progress
             on that file. This mockup keeps Generate in the painter's toolbar and does not argue
-            the ownership question — the preview modal is the missing half, wherever the button
+            the ownership question - the preview modal is the missing half, wherever the button
             lands.</li>
           <li><b>Konva or something else.</b> The real surface is five stacked canvases. This mockup
             draws a CSS grid so the layout and the dock can be judged; it says nothing about the

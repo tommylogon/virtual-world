@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""attach_traits.py — attach library traits to the characters that should have them.
+"""attach_traits.py - attach library traits to the characters that should have them.
 
 A scenario can ship the trait in ``data/library/traits/`` and never attach it, so
 the authored intent ("goblins burn through food and water") is present in the repo
@@ -9,7 +9,7 @@ hand-picked names is stale the moment somebody joins.
 Traits are written to the ``players`` block, which is where
 ``engine/traits.TraitSystem`` reads them, and to the authored character node so
 the two agree before the loader collapses them. Existing values are kept unless
-``--replace`` is given — a scenario that already parameterised the trait should
+``--replace`` is given - a scenario that already parameterised the trait should
 not be silently reset to ``True``.
 
 Usage:

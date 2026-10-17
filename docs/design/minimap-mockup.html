@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Minimap mockup — human turn composer (MOCKUP, not wired)</title>
+<title>Minimap mockup - human turn composer (MOCKUP, not wired)</title>
 <style>
 :root{
   --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
@@ -112,15 +112,15 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);fon
 <body>
 
 <div class="dochead">
-  <h1>Minimap — human turn composer</h1>
+  <h1>Minimap - human turn composer</h1>
   <div class="sub">Cells this character has actually been in, hover for what was there when you last looked, a red X on a way you know is blocked, a scope selector, and a fullscreen map. Sits in the composer's scene column, above the <i>You</i> strip.</div>
-  <div class="warn">MOCKUP — NOT WIRED. No producer, no route, no engine change. A surface with nothing behind it is how this task can look finished and behave empty (task-677).</div>
+  <div class="warn">MOCKUP - NOT WIRED. No producer, no route, no engine change. A surface with nothing behind it is how this task can look finished and behave empty (task-677).</div>
   <div class="prov">
-    <b>Real data in this file</b> (read from <code>data/scenarios/kraktooth_goblin_camp.json</code>): scope ids, names, grid dimensions and entry cells —
+    <b>Real data in this file</b> (read from <code>data/scenarios/kraktooth_goblin_camp.json</code>): scope ids, names, grid dimensions and entry cells -
     <code>world</code> 20×10 entry (4,1) · <code>eldenford_interior</code> 30×20 entry (13,2) · <code>goblin_camp</code> 20×10 · <code>west_woods</code> 20×40 entry (11,14) · <code>deep_oods</code> 45×30 · <code>test</code> 8×8 unmade.
     Every drawn cell is a real area node at its real <code>properties.cell</code>. Theme colours are <code>static/css/style.css</code> tokens.
     <br><b>Illustrative</b>: which cells this character has visited, the "last seen" contents, who was there, tooltip ages, and the cell pairing of each blocked way.
-    Real way <i>states</i> and <i>directions</i> only — kraktooth authors <code>blocked</code>, and all 15 sampled ways carry a half-integer
+    Real way <i>states</i> and <i>directions</i> only - kraktooth authors <code>blocked</code>, and all 15 sampled ways carry a half-integer
     <code>y</code>, which is the midpoint rule (<code>engine/world_compile.py:2055</code>) placing the X on a cell boundary.
     Portraits are initials; real art comes from <code>CharacterArt.artForNodeId</code>.
   </div>
@@ -182,11 +182,11 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);fon
       </div>
       <div class="htc-feed">
         <h4>What happened</h4>
-        <div class="fline"><b>tick 411</b> — you gutted the last of the salted fish.</div>
-        <div class="fline"><b>tick 410</b> — Goblin Cook says <i>"off with you, we have mouths to fill"</i> and turns back to the pot.</div>
-        <div class="fline"><b>tick 408</b> — Arix arrives from the north trail, shaking rain from a hide.</div>
-        <div class="fline"><b>tick 405</b> — the south passage is blocked by a toppled cart; you cannot shift it alone.</div>
-        <div class="fline"><b>tick 402</b> — you stepped into the Cooking Area.</div>
+        <div class="fline"><b>tick 411</b> - you gutted the last of the salted fish.</div>
+        <div class="fline"><b>tick 410</b> - Goblin Cook says <i>"off with you, we have mouths to fill"</i> and turns back to the pot.</div>
+        <div class="fline"><b>tick 408</b> - Arix arrives from the north trail, shaking rain from a hide.</div>
+        <div class="fline"><b>tick 405</b> - the south passage is blocked by a toppled cart; you cannot shift it alone.</div>
+        <div class="fline"><b>tick 402</b> - you stepped into the Cooking Area.</div>
       </div>
     </div>
   </div>
@@ -196,18 +196,18 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);fon
 
 <div class="note">
   <b>Open questions this mockup is meant to settle.</b>
-  1. <b>One cell is not one area.</b> Cell <code>(10,3)</code> holds both <i>Deep Forest</i> and <i>Sparse Forest (Eldenford interior 10,3)</i>; road areas share cells with forest. The minimap's unit has to be the cell, with a stacked badge — a hover lists every area in it.
+  1. <b>One cell is not one area.</b> Cell <code>(10,3)</code> holds both <i>Deep Forest</i> and <i>Sparse Forest (Eldenford interior 10,3)</i>; road areas share cells with forest. The minimap's unit has to be the cell, with a stacked badge - a hover lists every area in it.
   2. <b>Fog reads as empty, and empty reads as "there is nothing there".</b> The <code>fog</code> toggle compares omitting the extent against hatching it.
-  3. <b>Names embed their own coordinates</b> — <i>"Road (Eldenford interior 13,5)"</i>. On a grid that is redundant in a tooltip and long in a cell.
+  3. <b>Names embed their own coordinates</b> - <i>"Road (Eldenford interior 13,5)"</i>. On a grid that is redundant in a tooltip and long in a cell.
   4. <b>Portrait size.</b> Same data at 22px and 34px, below. The 18px chip in <code>turn-scene-view.ts:459</code> already ships; this is a prominence question, not a missing feature.
   5. <b>"You are here" is not <code>entry_cell</code>.</b> A scope's <code>entry_cell</code> is where a scoped load drops a character (<code>world</code> is (4,1), <code>eldenford_interior</code> is (13,2)); the blue ring is <i>this character's</i> position, which is <code>player.current_area</code> resolved to a cell. Conflating them puts the marker in the wrong place on every scope load.
-  6. <b>A way marker must straddle the boundary, not sit in a cell.</b> First pass drew the ✖ inside the lower of the two cells and it swallowed that cell's hover — the way tooltip came up instead of the room's. Ways carry a half-integer coordinate (<code>world_compile.py:2055</code>), so the marker belongs on the grid line and its hit box has to be small enough that neither cell loses the hover.
+  6. <b>A way marker must straddle the boundary, not sit in a cell.</b> First pass drew the ✖ inside the lower of the two cells and it swallowed that cell's hover - the way tooltip came up instead of the room's. Ways carry a half-integer coordinate (<code>world_compile.py:2055</code>), so the marker belongs on the grid line and its hit box has to be small enough that neither cell loses the hover.
 </div>
 </div>
 
 <script>
 const SCOPES = {
-  world: { name:'World — camp country', w:20, h:10, entry:{x:4,y:1}, at:{x:5,y:3}, visited:true },
+  world: { name:'World - camp country', w:20, h:10, entry:{x:4,y:1}, at:{x:5,y:3}, visited:true },
   eldenford_interior: { name:'Eldenford (interior)', w:30, h:20, entry:{x:13,y:2}, at:{x:13,y:2}, visited:true },
   goblin_camp: { name:'Goblin camp', w:20, h:10, entry:null, at:{x:9,y:4}, visited:true },
   west_woods: { name:'West woods', w:20, h:40, entry:{x:11,y:14}, at:null, visited:false }
@@ -434,7 +434,7 @@ function showWayTip(b, e){
     '<h5>Way ' + b.dir + '</h5>' +
     '<div class="kind">' + b.between[0].join(',') + ' ↔ ' + b.between[1].join(',') + '</div>' +
     '<div class="row"><span class="k">state</span><span class="v">' + stateChip('blocked') + '</span></div>' +
-    '<div class="row"><span class="k">you know</span><span class="v">' + (b.known ? 'yes — you have hit this' : 'no — you have not tried it') + '</span></div>' +
+    '<div class="row"><span class="k">you know</span><span class="v">' + (b.known ? 'yes - you have hit this' : 'no - you have not tried it') + '</span></div>' +
     (b.reason ? '<div class="row"><span class="k">why</span><span class="v">' + esc(b.reason) + '</span></div>' : '') +
     '<div class="src">known_way_aspects · ' + (b.known ? 'learned' : 'unknown, drawn dimmed') + '</div>';
   tip.style.display = 'block';
@@ -461,7 +461,7 @@ PEOPLE.forEach((p, i) => {
   const a = document.createElement('span');
   a.className = 'ini';
   a.textContent = p.i;
-  a.title = 'placeholder — real art comes from CharacterArt.artForNodeId';
+  a.title = 'placeholder - real art comes from CharacterArt.artForNodeId';
   const n = document.createElement('span');
   n.className = 'nm'; n.textContent = p.n;
   d.appendChild(a); d.appendChild(n);
@@ -482,7 +482,7 @@ document.getElementById('labBtn').addEventListener('click', function(){
 window.addEventListener('resize', () => render());
 const scrim = document.createElement('div');
 scrim.className = 'scrim';
-scrim.innerHTML = '<div class="bar"><span class="t">Map — fullscreen</span><span style="flex:1"></span><button class="mm-btn" id="scrimClose">close ✕</button></div><div id="fsHost"></div>';
+scrim.innerHTML = '<div class="bar"><span class="t">Map - fullscreen</span><span style="flex:1"></span><button class="mm-btn" id="scrimClose">close ✕</button></div><div id="fsHost"></div>';
 document.body.appendChild(scrim);
 document.getElementById('fsBtn').addEventListener('click', () => {
   const host = document.getElementById('fsHost');

@@ -148,7 +148,7 @@ def collapse_character_identity(
         name = str((pdata or {}).get("name") or key)
         canonical = anchors[key]
         # An authored node cannot be assigned unambiguously when two players
-        # share the display name — leave it alone rather than guess.
+        # share the display name - leave it alone rather than guess.
         if len(by_name.get(name, [])) != 1:
             continue
         # A suffixed anchor needs the stable uid; without it the runtime derives

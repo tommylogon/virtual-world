@@ -41,7 +41,7 @@ structured action object (see `agent-engine.js:_normalizeStructuredAction`).
 | Guess Time | `guess time` | `guess time` | Survival check; DC varies by weather |
 
 ## Rules
-- **One action per turn.** Do not combine commands *in a single turn* — this is a
+- **One action per turn.** Do not combine commands *in a single turn* - this is a
   limitation of the composer, not of the engine. A turn is a timeframe
   (`docs/virtualWorld/Simulation Model.md:52-68`), and the engine's one-action-per-
   turn-per-character model for agents and background characters is being replaced

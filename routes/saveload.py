@@ -383,31 +383,70 @@ def register_saveload_routes(app):
         try:
             if not os.path.exists(saves_dir):
                 return jsonify([])
+            index = {}
+            try:
+                from .helpers import _load_saves_index, _store_saves_index, _build_index_entry, _upsert_save_index_entry
+                index = _load_saves_index()
+            except Exception:
+                index = {}
             files = []
+            dirty = False
             for fname in sorted(os.listdir(saves_dir), reverse=True):
-                if fname.endswith('.json'):
-                    path = os.path.join(saves_dir, fname)
+                if not fname.endswith('.json'):
+                    continue
+                path = os.path.join(saves_dir, fname)
+                try:
+                    st = os.stat(path)
+                except OSError:
+                    continue
+                entry = index.get(fname)
+                # Verify against mtime+size; fall back to full parse when stale/missing.
+                if not (isinstance(entry, dict)
+                        and entry.get('mtime') == st.st_mtime
+                        and entry.get('size') == st.st_size):
+                    entry = None
                     try:
                         with open(path, 'r', encoding='utf-8-sig') as f:
                             data = json.load(f)
-                        meta = data.get('_save_metadata', {})
-                        files.append({
-                            'filename': fname,
-                            'name': meta.get('name', fname),
-                            'scenario': meta.get('scenario', ''),
-                            'timestamp': meta.get('timestamp', ''),
-                            'tick': meta.get('tick', 0),
-                            'turn': meta.get('turn', 0),
-                            'player': meta.get('player', ''),
-                            'version': meta.get('version', ''),
-                            'autosave': bool(meta.get('autosave', False)),
-                            'players': len(data.get('players', {}) or {}),
-                            'areas': len(data.get('areas', {}) or {}),
-                            'size': os.path.getsize(path),
-                        })
+                        meta = data.get('_save_metadata', {}) if isinstance(data, dict) else {}
+                        entry = _build_index_entry(path, data)
+                        index[fname] = entry
+                        dirty = True
                     except Exception:
                         files.append({'filename': fname, 'name': fname})
-            # Newest first, then a stable pass pins the autosave slot on top.
+                        continue
+                # Ensure all expected keys present (self-heal).
+                row = {
+                    'filename': fname,
+                    'name': entry.get('name', fname),
+                    'scenario': entry.get('scenario', ''),
+                    'timestamp': entry.get('timestamp', ''),
+                    'tick': entry.get('tick', 0),
+                    'turn': entry.get('turn', 0),
+                    'player': entry.get('player', ''),
+                    'version': entry.get('version', ''),
+                    'autosave': bool(entry.get('autosave', False)),
+                    'players': entry.get('players', 0),
+                    'areas': entry.get('areas', 0),
+                    'size': entry.get('size', st.st_size),
+                }
+                files.append(row)
+            if dirty:
+                try:
+                    _store_saves_index(index)
+                except Exception:
+                    pass
+            # Prune index entries for files that no longer exist.
+            try:
+                for key in list(index.keys()):
+                    if not os.path.exists(os.path.join(saves_dir, key)):
+                        del index[key]
+                        dirty = True
+                if dirty:
+                    _store_saves_index(index)
+            except Exception:
+                pass
+            # Newest first, then autosave pinned top.
             files.sort(key=lambda s: s.get('timestamp', ''), reverse=True)
             files.sort(key=lambda s: 0 if s.get('autosave') else 1)
             return jsonify(files)

@@ -1,4 +1,4 @@
-# engine/serialization_legacy.py — Load from legacy areas/items/players dictionary format.
+# engine/serialization_legacy.py - Load from legacy areas/items/players dictionary format.
 
 from typing import Optional
 
@@ -55,7 +55,7 @@ class LegacyLoader:
                 cost = exit_info.get("cost", {})
 
                 # task-313: the heading is a SEPARATE field from the exit key,
-                # and this loader used to drop it — it read `exit_dir` (often a
+                # and this loader used to drop it - it read `exit_dir` (often a
                 # label like "Shaft 1") and never looked at `cardinal`, so the
                 # cardinals authors had already filled in reached neither the
                 # graph nor relative facing. Pass them through, and derive the

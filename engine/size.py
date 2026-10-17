@@ -7,7 +7,7 @@ The trait is still read, so nothing that already sets one breaks.
 
 Two things now consume the tier rather than one: way ``max_size`` passage
 gating, and per-area occupancy (task-653), which is why it is worth being able to
-see and set. There is no height property — the tiers are the whole model.
+see and set. There is no height property - the tiers are the whole model.
 """
 
 SIZE_TIERS = ["tiny", "small", "normal", "huge", "giant", "titanic"]

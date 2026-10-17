@@ -8,7 +8,7 @@ kind of creature it was looking at, only what the room was tagged. That
 distinction was authored by hand in the room's tags and was invisible to the
 simulation.
 
-The world already models the split — but only for narration. 31 of 272 areas in
+The world already models the split - but only for narration. 31 of 272 areas in
 the Kraktooth scenario carry `goblin_description`, `human_description` and
 `goblin_knowledge`. This module is the same distinction in the layer that
 *decides*, not the layer that *describes*.
@@ -23,14 +23,14 @@ Three decisions, all of them load-bearing:
    "what kind of creature is this"; tags answer everything else.
 2. **An unspecified species must change nothing.** Every one of the 70 library
    characters predates this, and so does every scenario. `Player.species`
-   defaults to `None`, and `None` means *no profile applies* — every service is
+   defaults to `None`, and `None` means *no profile applies* - every service is
    permitted, exactly as before. This is what makes the field safe to add, and
    it is the reason the whole mechanism is opt-in.
 3. **Exclusion is authored, not guessed.** There is no hardcoded
    "animals don't use latrines". A species profile lists the services it
    *cannot* use; a species with no profile, or an empty exclusion list, can use
    everything. If the answer should differ it is written down where the author
-   can see it, which is the acceptance criterion — the answer is a property of
+   can see it, which is the acceptance criterion - the answer is a property of
    the data, not of which tags somebody happened to put on a room.
 
 On task-551: relief is **permitted anywhere** and this module does not undo
@@ -60,7 +60,7 @@ SERVICES = ("food", "drink", "relief", "wash", "rest")
 #: positive list silently starts lying.
 SPECIES_PROFILES: dict[str, dict] = {
     # Animals: no fixture-based relief, no goblin-style pump. They relieve where
-    # they stand — which task-551 already permits — they just do not prefer a
+    # they stand - which task-551 already permits - they just do not prefer a
     # built fixture and are not served by one.
     "animal": {"cannot_use": ("relief",), "tags": ("animal",)},
     "beast": {"cannot_use": ("relief",), "tags": ("animal",)},
@@ -79,7 +79,7 @@ SPECIES_PROFILES: dict[str, dict] = {
     "human": {"cannot_use": (), "tags": ()},
     "elf": {"cannot_use": (), "tags": ()},
     # A ghost takes no space (task-653) and is intangible, so it needs no relief
-    # fixture at all — the one case where the exclusion is anatomical.
+    # fixture at all - the one case where the exclusion is anatomical.
     "ghost": {"cannot_use": ("food", "drink", "relief"), "tags": ("ghost",)},
 }
 
@@ -88,8 +88,8 @@ def species_of(entity) -> str:
     """The primary species of a character, normalised to lowercase.
 
     Reads ``Player.species``. A node is accepted but, as everywhere in this
-    engine, a **bare graph character node carries no such field** — the data
-    lives on the ``Player`` — so a node only answers when it was built with its
+    engine, a **bare graph character node carries no such field** - the data
+    lives on the ``Player`` - so a node only answers when it was built with its
     properties (a library load, or an explicitly authored node).
     """
     if entity is None:
@@ -131,7 +131,7 @@ def can_use_service(entity, service) -> bool:
     """May *entity* use *service*?
 
     True unless this character's own species profile says otherwise. An unknown
-    species, and an unknown service, both answer True — the module never
+    species, and an unknown service, both answer True - the module never
     invents a restriction that nobody authored.
     """
     profile = profile_for(species_of(entity))

@@ -1,4 +1,4 @@
-# virtual_world_engine.py — FULL GRAPH INTEGRATION
+# virtual_world_engine.py - FULL GRAPH INTEGRATION
 # All world data now lives in self.graph (WorldGraph).
 # Legacy properties (areas, current_area, etc.) are generated on‑the‑fly for compatibility.
 
@@ -86,7 +86,7 @@ class VirtualWorld:
         # real-world-scaled from a FULL meter: a healthy adult reaches the
         # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
         # Energy empties over a ~16h waking day. Single source of truth is
-        # vital_rates.BASELINE_DECAY — sub-1 rates there depend on the
+        # vital_rates.BASELINE_DECAY - sub-1 rates there depend on the
         # fractional accumulator in TickManager.tick_turn(); int() alone
         # would truncate them to zero. The tick_manager Hunger/Thirst
         # grace + HP-drain constants are tuned against these rates so total
@@ -109,7 +109,7 @@ class VirtualWorld:
         self.add_log_entry(" - Interaction: open/close [door], use [item] (on [target])")
         self.add_log_entry(" - Items: take [item], drop [item], examine [item], inventory")
         self.add_log_entry(" - Vitals: rest [minutes], eat/drink (use item), stats")
-        self.add_log_entry(" - CRITICAL: Keep Energy above 25% to survive and enable HP regeneration! Hunger and Thirst RISE over time — eat and drink before they max out!")
+        self.add_log_entry(" - CRITICAL: Keep Energy above 25% to survive and enable HP regeneration! Hunger and Thirst RISE over time - eat and drink before they max out!")
         self.add_log_entry(" - WARNING: Environmental conditions affect your needs. Pay attention to temperature, air, noise, and smell!")
 
         self.ACTION_COSTS = {
@@ -143,7 +143,7 @@ class VirtualWorld:
         # Optional: scenarios without a manifest behave exactly as before.
         self.world_scopes = {}
 
-        # task-583: the small resident index that survives an unloaded scope —
+        # task-583: the small resident index that survives an unloaded scope -
         # scope parents, area ownership, character/item location, gateways and
         # due work. Derived from the graph on a full load, persisted in a save.
         # Its loader (how a scope is materialised on demand) is registered by
@@ -160,7 +160,7 @@ class VirtualWorld:
         }
 
         # ── Weather forecast (task-227): authored schedule + GM override ──
-        # Default: authored with ZERO entries — a strict no-op until a
+        # Default: authored with ZERO entries - a strict no-op until a
         # scenario authors a schedule or a GM sets an override.
         self.forecast_schedule = {
             "mode": "authored",
@@ -209,7 +209,7 @@ class VirtualWorld:
         # The engine queues; the browser generates + posts back; never saved.
         self.llm_pending_requests = []
         # task-360 presence window: per-area ledger {area_id: {char: entry_tick}}
-        # — who is in each room and since when. The agent prompt only witnesses
+        # - who is in each room and since when. The agent prompt only witnesses
         # events from entry_tick forward; leaving to another room starts a
         # fresh window; back-and-forth is the memory system's job.
         self.area_presence = {}
@@ -235,7 +235,7 @@ class VirtualWorld:
         from engine.area_statuses import AreaStatusSystem
         self.area_statuses = AreaStatusSystem(self.graph, self)
         # Combat needs the facade (roll_dice/is_slasher/get_player/time_ticks) as
-        # its "skills" handle plus the real NPCBehaviorSystem — build it after both.
+        # its "skills" handle plus the real NPCBehaviorSystem - build it after both.
         self.combat = CombatSystem(self.graph, self, self.ghost_system, self.npc_behaviors)
         self.movement = MovementSystem(self.graph, self.player_manager, self.triggers, self.toggleable_items, self.name_matcher, self)
         self.narration = NarrationSystem(self.graph, self.player_manager, self.area_description, self.lighting, self.tick_manager, self.game_logger, self.skills, self.node_ids, self, trigger_fn=self.triggers._execute_triggers)
@@ -517,7 +517,7 @@ class VirtualWorld:
     # `Player.state` is *derived* from the condition hierarchy
     # (`engine/player_conditions.get_state`, with `dead` at the top), so
     # `state == "dead"` and `has_condition("dead")` are the same fact rather
-    # than two that can drift — that was the task's open question and it is
+    # than two that can drift - that was the task's open question and it is
     # already answered by the derived-state work.
     #
     # What was NOT answered was the *causes*. Four sites each set
@@ -529,7 +529,7 @@ class VirtualWorld:
     #   POST /kill          -> body + log, no drop, no lived record
     #
     # So a corpse's inventory survived a killing blow but not a script, and the
-    # lived log — the record designed to explain *why* something happened —
+    # lived log - the record designed to explain *why* something happened -
     # only saw environmental deaths. This is the one place that does all of it.
 
     def kill_player(self, player_name: str, cause: str = "unknown causes",
@@ -857,7 +857,7 @@ class VirtualWorld:
     def rest(self, minutes=10, target_item_name=None):
         # `or 10`: the route passes minutes=None for a bare "rest", which
         # would clobber the signature default and start an endless rest
-        # (task-339 feedback round — miki rested into the void).
+        # (task-339 feedback round - miki rested into the void).
         return self.activities.start_activity(
             self.active_player, "resting", target_item_name,
             self._activity_duration_ticks(minutes or 10),
@@ -908,7 +908,7 @@ class VirtualWorld:
         """
         ended = self.conditions.end_conditions(self.active_player, "fix")
         if not ended:
-            raise ValueError("There's nothing to fix — you aren't hurt or broken.")
+            raise ValueError("There's nothing to fix - you aren't hurt or broken.")
         labels = ", ".join(
             CONDITION_DEFINITIONS[c]["name"] for c, _ in ended if c in CONDITION_DEFINITIONS
         )
@@ -1004,7 +1004,7 @@ class VirtualWorld:
         blank name is what made saves land as "unnamed" and what made the
         frontend's local background-map cache unreachable, since
         `_scenarioIdentity()` keys off the name. Passing None just clears the
-        source — callers that also want to rename set the name explicitly.
+        source - callers that also want to rename set the name explicitly.
         """
         self._scenario_source = path
         if path and not str(getattr(self, "_scenario_name", "") or "").strip():
@@ -1025,7 +1025,7 @@ class VirtualWorld:
             return False
 
     def is_incorporeal(self, player_name: str) -> bool:
-        """task-309 facade: a ghost — phases through ways."""
+        """task-309 facade: a ghost - phases through ways."""
         try:
             return self.player_manager.is_incorporeal(player_name)
         except Exception:
@@ -1057,7 +1057,7 @@ class VirtualWorld:
         """Queue a browser-side LLM response request (task-330, llm_respond).
 
         Returns True when accepted; False when a pending request for the
-        same node is still unconsumed (cooldown — prevents chatty loops).
+        same node is still unconsumed (cooldown - prevents chatty loops).
         """
         node_id = request.get("node_id", "")
         now = request.get("ts", 0)
@@ -1231,8 +1231,8 @@ class VirtualWorld:
         The one entry point: the temperature model, the season narration and the
         `/api/settings/forecast` payload that feeds the sky widget all call this,
         so the engine and the browser cannot end up in different seasons. An
-        authored ``world_state.season`` wins over the clock — a scenario stating
-        it is winter means winter — and with none authored the calendar decides,
+        authored ``world_state.season`` wins over the clock - a scenario stating
+        it is winter means winter - and with none authored the calendar decides,
         so crossing a boundary changes the season with no save and no reload.
         """
         from engine.weather_forecast import resolve_season
@@ -1256,7 +1256,7 @@ class VirtualWorld:
 
     def set_game_date(self, day=None, month=None, year=None):
         """task-234 set_date: rewrite time_ticks so the calendar shows the
-        requested (day, month, year) — the hour of day is preserved."""
+        requested (day, month, year) - the hour of day is preserved."""
         cfg = self.calendar_config or {}
         days_per_month = max(1, int(cfg.get("days_per_month", 30)))
         months_per_year = max(1, int(cfg.get("months_per_year", 12)))
@@ -1278,7 +1278,7 @@ class VirtualWorld:
             + int(getattr(self, "clock_start_minute", 0))
         per_tick = abs(float(getattr(self, "time_per_tick_minutes", 1)) or 1)
         self.time_ticks = max(0, int(round((desired_total - start) / per_tick)))
-        # task-735: a date jump is time travel — the clock agrees
+        # task-735: a date jump is time travel - the clock agrees
         # (stages, old-age death), same as any other advance.
         try:
             from engine import lifecycle as _lifecycle
@@ -1303,7 +1303,7 @@ class VirtualWorld:
         """task-234/406: fire ``on_turn_start`` / ``on_turn_end`` triggers.
 
         task-406: driven by the graph's trigger-event index, so only nodes that
-        actually own such a trigger are visited (any node type — items and ways
+        actually own such a trigger are visited (any node type - items and ways
         included), instead of sweeping every node each turn.
         """
         for source_id in self.graph.get_trigger_sources(trigger_type):
@@ -1318,8 +1318,8 @@ class VirtualWorld:
                 logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
 
     def _fire_time_triggers(self):
-        """task-234: one-shot time-of-day & moon triggers — on_dawn, on_dusk,
-        on_day, on_night, on_full_moon, on_blood_moon — fired on area/way/
+        """task-234: one-shot time-of-day & moon triggers - on_dawn, on_dusk,
+        on_day, on_night, on_full_moon, on_blood_moon - fired on area/way/
         character nodes. Each fires once per game-day transition (cache)."""
         hour = self.current_game_hour()
         moon = self.current_moon_phase()
@@ -1374,7 +1374,7 @@ class VirtualWorld:
         Neighbours are the other open-sky areas reachable through a way: an area
         connects to a way node and the way connects on to the far area, so the
         front-spread coupling (task-763) reads the same edges movement does. The
-        climate map carries only areas the compiler painted (task-557) — absent
+        climate map carries only areas the compiler painted (task-557) - absent
         for an unpainted world. Only open-sky areas are indexed; an interior room
         is not part of the sky.
         """
@@ -1402,8 +1402,8 @@ class VirtualWorld:
     def _weather_field_for_day(self, season):
         """The generated per-area weather field for the current day (task-763).
 
-        Rolled **once per game day** — the machine's default interval is one tick,
-        which would churn the field every tick — and cached until the day turns.
+        Rolled **once per game day** - the machine's default interval is one tick,
+        which would churn the field every tick - and cached until the day turns.
         Seeded from the schedule's seed with the day folded in, so a world's month
         is reproducible and tomorrow differs from today. Ordered overrides are
         applied on top (area > date > heuristic).
@@ -1582,7 +1582,7 @@ class VirtualWorld:
             logger.warning("[area-statuses] drying: %s", e)
 
     def _process_item_drying(self):
-        """task-232: wet items dry over time — slower in humid air, halted in
+        """task-232: wet items dry over time - slower in humid air, halted in
         flooding, sped up by wind."""
         if not self.graph:
             return
@@ -1645,7 +1645,7 @@ class VirtualWorld:
             if override["duration_ticks"] <= 0:
                 self.forecast_override = None
                 override = None
-                self.add_log_entry("[Weather] The override wears off — the sky returns to the forecast.")
+                self.add_log_entry("[Weather] The override wears off - the sky returns to the forecast.")
 
         # 3. Effective environment + apply to exterior areas.
         sched_env = sched.current_environment(
@@ -1685,20 +1685,20 @@ class VirtualWorld:
         """Write the effective weather baseline onto exterior (or all) areas.
 
         **Write order matters here, and the forecast is a delta layer.** The
-        world's own baseline — the area's own ``base_temperature`` plus the
-        diurnal and seasonal curve (task-553) — is decided here, and
+        world's own baseline - the area's own ``base_temperature`` plus the
+        diurnal and seasonal curve (task-553) - is decided here, and
         ``temperature_mod`` is *added* to it. The forecast is never the thing that
         decides what a mountain is: an entry that says "-4" means four degrees
         below whatever that place already was. The order below is the whole
         contract, and ``env["temperature"]`` stays the simulated value that
-        ``environment_propagation`` and heat sources write — two keys, two facts
+        ``environment_propagation`` and heat sources write - two keys, two facts
         (the same split as ``surface`` vs ``floor``).
 
         **The curve is opt-in, and that is the compatibility guarantee.** An area
         that authored no ``base_temperature`` in a world with no season stays at a
         flat 21 °C, which is the number every existing world has always reported.
-        The moment either exists — the author paints a climate (task-557) or the
-        clock crosses into winter (task-554) — the area has a real baseline and a
+        The moment either exists - the author paints a climate (task-557) or the
+        clock crosses into winter (task-554) - the area has a real baseline and a
         real day. Simulating a diurnal swing around a *placeholder* would invent
         variation nobody asked for, in every world that never chose a climate.
         """
@@ -1714,14 +1714,14 @@ class VirtualWorld:
         light_mod = eff.get("light_mod")
         # Read the clock defensively. `world_state` is a plain attribute, and a
         # bare `VirtualWorld` built without a scenario (a test, an embedding) has
-        # none — this ran before task-553 and did not care, so a hard
+        # none - this ran before task-553 and did not care, so a hard
         # `self.world_state.get(...)` here would be a new crash for every such
         # world. `game_hour` is the derived hour and falls back to midday, which is
         # what a world with no calendar has always looked like.
         state = getattr(self, "world_state", None) or {}
         hour = int(state.get("game_hour", 12) or 0)
-        # The engine is the only place a season is read (task-554), so the clock —
-        # not a save file and not a sky widget — is what turns the year.
+        # The engine is the only place a season is read (task-554), so the clock -
+        # not a save file and not a sky widget - is what turns the year.
         season = self.current_season()
         # task-763: when the machine (not an authored entry) is the source, each
         # area's state also carries its wind/humidity/temperature tendency.
@@ -1734,7 +1734,7 @@ class VirtualWorld:
             # bug-54: this asked for the literal "exterior" while a painted
             # WorldPainter area is tagged "outdoor" by its biome, so the forecast
             # silently never reached a compiled world at all. One predicate, both
-            # spellings — see engine/area_tags.py.
+            # spellings - see engine/area_tags.py.
             if scope == "exterior" and not is_open_sky(tags):
                 continue
             env = node.properties.setdefault("environment", {})
@@ -1758,7 +1758,7 @@ class VirtualWorld:
                 env["air"] = eff["air"]
             # The world's own climate. An area that authored no
             # `base_temperature` reads the long-standing 21 °C default, which is
-            # what makes this change invisible to every existing world — and, more
+            # what makes this change invisible to every existing world - and, more
             # importantly, is why the key is **not** written back here: "the key is
             # present" has to keep meaning "the author or a compiler said what this
             # place is like", and a default written every tick would make every
@@ -1779,7 +1779,7 @@ class VirtualWorld:
             if light_mod is not None:
                 env["light"] = round(min(100, 80 + float(light_mod)))
             # Surface snow (task-556): a settled **depth**, not the word "snowy".
-            # Only under the open sky, and only the depth moves here — a clearing
+            # Only under the open sky, and only the depth moves here - a clearing
             # sky decays it over hours (the entry that made it is gone; the snow
             # it left is not) rather than wiping it. A world that never snows
             # never gains the key, and the key is dropped once it melts to zero,
@@ -1820,7 +1820,7 @@ class VirtualWorld:
         # magic words, NPC reactions). The speech + speaker are exposed in the
         # trigger context so speech_matches conditions / message templates can
         # reference {speech} / {speaker}. A DIRECTED whisper (task-248) is
-        # private to its target — doors and area triggers cannot eavesdrop.
+        # private to its target - doors and area triggers cannot eavesdrop.
         if speech_level == "whisper" and whisper_target:
             return
         if not area_name:
@@ -1845,7 +1845,7 @@ class VirtualWorld:
     def listen(self):
         """Focused audio scan of the current area (recently heard speech + sounds).
 
-        The blind character's primary sense — mirrors what's already in the
+        The blind character's primary sense - mirrors what's already in the
         room context but returns it as an explicit, filtered audio report.
         """
         return self.narration.listen()
@@ -1857,7 +1857,7 @@ class VirtualWorld:
         return self.skills.skill_check(skill_name, difficulty_class, use_active_player)
 
     def saving_throw(self, player, stat, dc=12):
-        """Unified save primitive (task-159) — stat or skill, any player."""
+        """Unified save primitive (task-159) - stat or skill, any player."""
         return self.skills.saving_throw(player, stat, dc)
 
     def _render_template(self, text, context):

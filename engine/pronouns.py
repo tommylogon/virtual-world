@@ -4,7 +4,7 @@ Narrator stamps and system copy name characters; the pronoun axis comes
 from the character's identity tags (female / male / …), so "Lyrie hugs
 her arms" instead of the forced-neutral "their arms" (or the old mixed
 voice "hugs yourself"). Characters without a gender tag fall back to
-neutral they/them — never a hardcoded guess.
+neutral they/them - never a hardcoded guess.
 """
 
 PRONOUN_SETS: dict[str, dict[str, str]] = {

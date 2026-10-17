@@ -4,7 +4,7 @@
 The engine emits named events at natural moments (``crawl_tight_way``,
 ``enter_area``, ``loud_noise``, ...). Traits with a matching ``save_on`` entry
 fire a saving throw; failures apply the listed ``on_fail`` effects (conditions +
-vital deltas). Fully data-driven — no trait-specific code in the movement,
+vital deltas). Fully data-driven - no trait-specific code in the movement,
 combat, or narration modules.
 
 Event catalog (v1):
@@ -33,7 +33,7 @@ class SaveOnResolver:
     def emit(self, player_name: str, event: str, context: Optional[dict] = None) -> list:
         """Emit a world event for one player.
 
-        Returns narration lines from FAILED saves (successes are flavor-only —
+        Returns narration lines from FAILED saves (successes are flavor-only -
         no mechanical effect). Context may carry ``source`` (used as the
         condition source, e.g. the area name a frightened character fears),
         ``area_tags``/``item_tags`` filters, and a ``fail_message``.

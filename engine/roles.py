@@ -3,7 +3,7 @@
 A character's **role** biases which checks they are naturally good at, so a
 goblin trapper out-forages a child in the same wood without an LLM ever deciding
 it. Roles are *data* (:data:`data/library/roles.json`): each role maps to additive
-per-skill bonuses, and adding one is a JSON edit — :func:`validate` is generic.
+per-skill bonuses, and adding one is a JSON edit - :func:`validate` is generic.
 
 **Roles are namespaced tags** (``role:trapper``), not a new ``Player`` field.
 This follows the existing ``faction:guard`` convention (``player.py`` tag docs),

@@ -2,15 +2,15 @@
 
 Three separable pieces of a progression model:
 
-* **Setting skill packs** — :data:`data/library/skill_packs.json` names a pack of
+* **Setting skill packs** - :data:`data/library/skill_packs.json` names a pack of
   starting skills a setting grants its characters on top of the base sheet
   (task-474). :func:`apply_pack` raises skills toward the pack value and never
   lowers one unless asked, so applying a pack twice is idempotent.
-* **Proficiency** — an optional, separate term so the sheet expresses a trained
+* **Proficiency** - an optional, separate term so the sheet expresses a trained
   value (``player.skills``) and proficiency independently. It is merged into the
   one check pipeline in :mod:`engine.checks` and defaults to 0, which is exactly
   the pre-task-480 behaviour (task-472 left the term out deliberately).
-* **Use-based advancement** — :func:`record_use` counts *successful* uses and
+* **Use-based advancement** - :func:`record_use` counts *successful* uses and
   raises the skill at the threshold. This is **opt-in**: nothing grows unless a
   scenario sets ``skill_growth``, so no existing save or soak changes.
 
@@ -160,7 +160,7 @@ def record_use(player, skill, *, success: bool = True, amount: int = 1,
                threshold: Optional[int] = None, cap: int = MAX_SKILL) -> bool:
     """Count a use; raise the skill at the threshold. Returns True if it rose.
 
-    Only *successful* uses count — failing teaches little — and the counter is
+    Only *successful* uses count - failing teaches little - and the counter is
     reset when the skill rises so progress is not double-counted. A skill at
     *cap* stops accruing. The threshold is per-call so a scenario can tune it.
     """

@@ -10,8 +10,8 @@ Relationship state is a blunt per-pair scalar:
         "first_sighting": bool,    # identity still hidden this turn
     }
 
-Every gameplay writer used to touch that dict itself — combat, the foreground
-loop, first-meeting registration, the `label` command — so two things were true:
+Every gameplay writer used to touch that dict itself - combat, the foreground
+loop, first-meeting registration, the `label` command - so two things were true:
 
 1. **No cause was recorded.** A delta from a beating looked identical to one
    from a shared meal, so nothing downstream (trace, memory, reflection) could
@@ -180,7 +180,7 @@ def apply_relationship_delta(player, other_name: str, delta, cause: str,
     ``cause`` is a short token naming the deciding layer (`combat`, `dialogue`,
     `meeting`, `gift`, `derive`) and is recorded on the trace with the amount and
     the area, so a relationship change can be located and explained after the
-    fact. Every caller must supply one — an unexplained relationship change is
+    fact. Every caller must supply one - an unexplained relationship change is
     the thing this function exists to prevent.
     """
     record, _ = ensure_relationship(player, other_name, tick or 0)

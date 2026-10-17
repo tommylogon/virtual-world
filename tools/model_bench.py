@@ -53,7 +53,11 @@ DEFAULT_MAX_TOKENS = 512
 
 
 def log(msg):
-    print(f"[model_bench] {msg}", flush=True)
+    # The console is cp1252 on Windows; status emojis (✅❌⚠️) raise
+    # UnicodeEncodeError. Replacements keep the line printable without
+    # hiding the underlying error.
+    safe = msg.encode("ascii", "replace").decode("ascii")
+    print(f"[model_bench] {safe}", flush=True)
 
 
 def start_app(port):
@@ -161,10 +165,15 @@ def capture_prompt(base, char_name):
         page = browser.new_page()
         page.goto(f"{base}/", wait_until="domcontentloaded")
 
-        # Wait for worldState to be populated by the frontend boot
+        # Wait for worldState to be populated by the frontend boot. The prompt
+        # capture reads state.areas, so areas must be present too — waiting on
+        # players alone races the area lookup and reports "Area not found".
         log("Waiting for world state to load in browser...")
         page.wait_for_function(
-            "() => window.worldState && window.worldState.data && window.worldState.data.players",
+            "() => window.worldState && window.worldState.data && "
+            "window.worldState.data.players && "
+            "window.worldState.data.areas && "
+            "Object.keys(window.worldState.data.areas).length > 0",
             timeout=30000,
         )
 
@@ -192,8 +201,18 @@ def discover_models(api_base):
     """Discover models from GET /v1/models (LM Studio / OpenAI-compatible)."""
     url = api_base.rstrip("/") + "/models"
     log(f"Discovering models from {url}...")
-    r = requests.get(url, timeout=15)
-    r.raise_for_status()
+    try:
+        r = requests.get(url, timeout=15)
+        r.raise_for_status()
+    except requests.exceptions.ConnectionError as e:
+        raise SystemExit(
+            f"ERROR: provider unreachable at {api_base} — {e}. "
+            f"Start LM Studio (or the target provider) and retry."
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(
+            f"ERROR: provider at {api_base} did not respond: {e}"
+        ) from e
     data = r.json()
     models = []
     for item in data.get("data", []):

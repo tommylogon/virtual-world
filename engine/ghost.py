@@ -5,7 +5,7 @@ from graph import EDGE_IN, Node, Edge
 
 
 class GhostSystem:
-    """Manages ghost mode behavior — what dead characters can and cannot do,
+    """Manages ghost mode behavior - what dead characters can and cannot do,
     and spawning body items upon death."""
 
     def __init__(self, graph, skills, logging_events):

@@ -46,8 +46,8 @@ def handle_schedule_trigger(self, params, context, item_node=None, game_state=No
     node's ``on_delayed`` trigger, reusing all normal effect types.
 
     params:
-      delay_ticks (int) — ticks from now until the fire.
-      target (str, optional) — item/node name **or** graph node ID whose
+      delay_ticks (int) - ticks from now until the fire.
+      target (str, optional) - item/node name **or** graph node ID whose
           ``on_delayed`` triggers should run. Defaults to the node the
           scheduling trigger sits on (``item_node``).
 
@@ -86,7 +86,7 @@ def handle_schedule_trigger(self, params, context, item_node=None, game_state=No
 def handle_llm_respond(self, params, context, item_node=None, game_state=None):
     """Queue a browser-side LLM response request (task-330).
 
-    The Python engine cannot call LLMs — API keys live in the browser. This
+    The Python engine cannot call LLMs - API keys live in the browser. This
     handler queues a *pending request* on the world's transient store; the
     next /api/state exposes it, the frontend generates the line via VW.llm,
     and posts it back (routes decide attribution: area speech from the
@@ -94,16 +94,16 @@ def handle_llm_respond(self, params, context, item_node=None, game_state=None):
     pending request for the same node is still unconsumed.
 
     params:
-      instructions (str) — persona/behavior prompt for the generation.
-      fallback_message (str) — used when no key / call fails / empty reply.
-      max_words (int, optional) — soft length cap hint (default 40).
-      name (str, optional) — attribution label; defaults to the node name.
-      cooldown (int, optional) — seconds min between accepted requests per
+      instructions (str) - persona/behavior prompt for the generation.
+      fallback_message (str) - used when no key / call fails / empty reply.
+      max_words (int, optional) - soft length cap hint (default 40).
+      name (str, optional) - attribution label; defaults to the node name.
+      cooldown (int, optional) - seconds min between accepted requests per
           node (default 30). 
 
     game_state must provide:
-      game_state.queue_llm_respond(request: dict) — transient queue hook
-      game_state.time_ticks — tick count for the context.
+      game_state.queue_llm_respond(request: dict) - transient queue hook
+      game_state.time_ticks - tick count for the context.
     """
     if game_state is None or not hasattr(game_state, "queue_llm_respond"):
         return [params.get("fallback_message", "The object remains silent.")]
@@ -126,7 +126,7 @@ def handle_llm_respond(self, params, context, item_node=None, game_state=None):
     }
     accepted = game_state.queue_llm_respond(request)
     if not accepted:
-        # dropped by cooldown — stay quiet rather than spam the inbox
+        # dropped by cooldown - stay quiet rather than spam the inbox
         return [request["fallback_message"]] if request["fallback_message"] else []
     return []
 

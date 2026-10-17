@@ -1,4 +1,4 @@
-# engine/matching.py — Name and item matching utilities extracted from VirtualWorld
+# engine/matching.py - Name and item matching utilities extracted from VirtualWorld
 
 import difflib
 import re
@@ -105,7 +105,7 @@ CHARACTER_GENERIC_WORDS = frozenset({
 #: Physical route words a way can answer to, so "go over the bridge" or "take
 #: the tunnel" resolves against the *way* even when its handle is a place name.
 #: Only a unique match resolves, so a road network does not swallow a plain
-#: "go road". Kept to the feature route words — `door`/`stairs` are handles
+#: "go road". Kept to the feature route words - `door`/`stairs` are handles
 #: already and are not aliased here.
 ROUTE_WORDS = frozenset({"road", "bridge", "ford", "gate", "tunnel"})
 
@@ -152,8 +152,8 @@ class NameMatching:
         """Reference handle for a way in prompts and matching.
 
         ``direction`` (the per-side edge label) wins when set. Otherwise a
-        short name is derived from the way node's name — the current area's
-        "Name - " prefix is stripped, underscores become spaces — so a way
+        short name is derived from the way node's name - the current area's
+        "Name - " prefix is stripped, underscores become spaces - so a way
         named "Task 18 - final door" with an empty direction still resolves
         as "final door". Falls back to "door".
         """
@@ -172,7 +172,7 @@ class NameMatching:
     def _collect_exits(self, area_id: str) -> list:
         """Every connection edge from the area as (edge, way_node, handle,
         target_area_name). Unlike the old matcher, empty-direction edges are
-        included — their handle comes from the way node's name."""
+        included - their handle comes from the way node's name."""
         out = []
         if not area_id:
             return out
@@ -207,7 +207,7 @@ class NameMatching:
         if not area_id or not input_str:
             return None, None, ""
         input_lower = input_str.lower().strip()
-        # "go the door" / "open the door" — leading articles never break exit
+        # "go the door" / "open the door" - leading articles never break exit
         # matching (the handle is often a bare word: "out", "gap", "arch").
         input_lower = re.sub(r'^(the|a|an)\s+', '', input_lower)
 
@@ -232,7 +232,7 @@ class NameMatching:
 
         # 1b. Relative facing (task-313): "left" / "right" / "forward" / "back"
         # rotate the character's heading and then resolve the resulting
-        # cardinal as an ORDINARY direction. That ordering is the whole point —
+        # cardinal as an ORDINARY direction. That ordering is the whole point -
         # the words alias this area's directions, they never replace them, so
         # the room keeps the name of the door you can see. Placed after the
         # exact-handle tier so a way genuinely authored as "back" still wins.
@@ -250,7 +250,7 @@ class NameMatching:
                         )
                         return edge, way_node, handle
                 # The heading resolved but nothing lies that way. Say so, and
-                # name the cardinal — "no exit 'left'" would hide a rotation
+                # name the cardinal - "no exit 'left'" would hide a rotation
                 # that actually worked.
                 raise ValueError(
                     f"'{input_str}' would be {resolved_cardinal} from here "
@@ -281,7 +281,7 @@ class NameMatching:
         if direct_matches:
             return _pick(direct_matches)
 
-        # 3b. Alias tier — the way node's aliases, or the aliases of the area
+        # 3b. Alias tier - the way node's aliases, or the aliases of the area
         # it leads to ("go to the butcher shop", "go through the trapdoor").
         alias_matches = []
         area_nodes_by_name = {}
@@ -302,7 +302,7 @@ class NameMatching:
             self._fuzzy_match_note = f"matched '{input_str}' as exit '{alias_matches[0][2]}' (alias match, ambiguous)"
             return alias_matches[0][0], alias_matches[0][1], alias_matches[0][2]
 
-        # 3c. Route tag tier — a way's physical route tag (`bridge`, `ford`,
+        # 3c. Route tag tier - a way's physical route tag (`bridge`, `ford`,
         # `gate`, `tunnel`, `road`) is an addressable name, so "go over the
         # bridge" resolves even when the handle is a place name. A unique match
         # only, so a road network does not swallow a plain "go road".
@@ -319,7 +319,7 @@ class NameMatching:
                                           f"'{route_matches[0][2]}' (route match)")
                 return route_matches[0][0], route_matches[0][1], route_matches[0][2]
 
-        # 4. Way node name / target area name — word-boundary both ways
+        # 4. Way node name / target area name - word-boundary both ways
         name_matches = []
         for info in exits_info:
             _, way_node, handle, target_area_name = info
@@ -338,7 +338,7 @@ class NameMatching:
         if name_matches:
             return _pick(name_matches)
 
-        # 5. Description words — "the circular door with the keycard slot"
+        # 5. Description words - "the circular door with the keycard slot"
         significant = [
             w for w in re.findall(r"[a-z]+", input_lower)
             if len(w) >= 4 and w not in CHARACTER_DESCRIPTION_STOPWORDS
@@ -369,7 +369,7 @@ class NameMatching:
                     if distinctive:
                         return top[0][0], top[0][1], top[0][2]
 
-        # 6. State word — "examine locked door" resolves via current_state
+        # 6. State word - "examine locked door" resolves via current_state
         state_words = {
             "open", "closed", "locked", "blocked", "broken", "jammed",
         }
@@ -497,7 +497,7 @@ class NameMatching:
         if len(input_lower) < 2:
             return None
 
-        # 2. Word-boundary substring — input as a whole word inside a name,
+        # 2. Word-boundary substring - input as a whole word inside a name,
         #    or name appearing as a whole word inside the input. Raw substring
         #    is NOT used ("stove" must not match "stovepipe").
         direct_matches = []
@@ -515,7 +515,7 @@ class NameMatching:
             self._fuzzy_match_note = f"matched '{input_str}' as item '{direct_matches[0]}' (substring match, ambiguous)"
             return direct_matches[0]
 
-        # 2b. Alias + description tier — input matches an item's aliases, or
+        # 2b. Alias + description tier - input matches an item's aliases, or
         #     the significant words of its description ("withered crown",
         #     "pale petals" → the crushed flower crown).
         item_nodes_by_name = {}
@@ -532,7 +532,7 @@ class NameMatching:
                 if alias == input_lower or re.search(r'(?<!\w)' + re.escape(input_lower) + r'(?!\w)', alias):
                     alias_matches.append(name)
                     break
-            # Description words — same significant-word scoring as characters
+            # Description words - same significant-word scoring as characters
             desc_text = (str(node.properties.get("description", "") or "")).lower()
             if desc_text:
                 significant = [
@@ -564,7 +564,7 @@ class NameMatching:
             self._fuzzy_match_note = f"matched '{input_str}' as item '{top[0]}' (by description, ambiguous)"
             return alias_matches[0]
 
-        # 3. Fuzzy difflib match — score each item name against the input (tight cutoff)
+        # 3. Fuzzy difflib match - score each item name against the input (tight cutoff)
         scored = difflib.get_close_matches(input_lower, [n.lower() for n in item_names], n=1, cutoff=0.7)
         if scored:
             for name in item_names:
@@ -584,11 +584,11 @@ class NameMatching:
     def character_candidate_details(self, candidates) -> list:
         """Structured disambiguation choices for ambiguous targets (task-448).
 
-        Returns ``[{"key", "label", "detail"}]`` — one per candidate. ``label``
+        Returns ``[{"key", "label", "detail"}]`` - one per candidate. ``label``
         is the display name; ``detail`` distinguishes same-named characters (the
         appearance label before meeting them, a short description, their area, or
         something they visibly carry); ``key`` is the identity to target. Never
-        auto-picks — the caller lists these and waits.
+        auto-picks - the caller lists these and waits.
         """
         out = []
         for key in candidates or []:
@@ -627,7 +627,7 @@ class NameMatching:
         1. Exact name (case-insensitive)
         2. Word-boundary substring on the name
         3. Fuzzy difflib match on the name
-        4. Description words — significant words from the input matched
+        4. Description words - significant words from the input matched
            against each same-area character's description/base_description.
 
         Returns ``(name, candidates)``:
@@ -654,7 +654,7 @@ class NameMatching:
         #    resolves a pick to the player's key, and a duplicate-named "Violet"
         #    may key as "Violet__a1b2c3" which no display-name tier matches.
         #    The `key:` prefix keeps this from colliding with the first duplicate,
-        #    whose key equals its display name — a bare "violet" must stay
+        #    whose key equals its display name - a bare "violet" must stay
         #    ambiguous, only "key:violet" (from the chooser) names an identity.
         if input_lower.startswith("key:"):
             probe = input_lower[4:].strip()
@@ -665,7 +665,7 @@ class NameMatching:
 
         # 1. Exact name (compared against the DISPLAY name so two characters
         #    named "Jon" surface as ambiguous instead of silently picking the
-        #    first — task-446).
+        #    first - task-446).
         exact = [p for p in same_area if self._player_display_name(p).lower() == input_lower]
         if len(exact) == 1:
             return exact[0], []
@@ -687,7 +687,7 @@ class NameMatching:
         if len(name_matches) > 1:
             return None, name_matches
 
-        # 2b. Alias tier — subjective names assigned to a character they've
+        # 2b. Alias tier - subjective names assigned to a character they've
         # observed ("attack the butcher", "talk to Hollow-Eyes").
         alias_matches = []
         for p in same_area:
@@ -702,7 +702,7 @@ class NameMatching:
         if len(alias_matches) > 1:
             return None, alias_matches
 
-        # 2c. Appearance-label tier — the label a character is listed under in
+        # 2c. Appearance-label tier - the label a character is listed under in
         # the scene before you have met them ("the woman", "the tall man in
         # green"). The prompt hands the actor that label, so targeting by it has
         # to resolve; otherwise "approach the woman" fails against a stranger
@@ -739,7 +739,7 @@ class NameMatching:
         if len(label_matches) > 1:
             return None, label_matches
 
-        # 3. Fuzzy name match (tight cutoff — only accept a clear single winner)
+        # 3. Fuzzy name match (tight cutoff - only accept a clear single winner)
         scored = difflib.get_close_matches(
             input_lower, [self._player_display_name(p).lower() for p in same_area], n=1, cutoff=0.6
         )
@@ -799,7 +799,7 @@ class NameMatching:
                 if len(top) > 1:
                     return None, top
 
-        # 5. Generic descriptor fallback — "the woman"/"the man"/"the stranger".
+        # 5. Generic descriptor fallback - "the woman"/"the man"/"the stranger".
         # Runs even when no ≥4-char significant words exist (e.g. "the man"),
         # resolving when the kind word literally appears in exactly one
         # description, or matches one character's gender pronouns; genderless
@@ -808,7 +808,7 @@ class NameMatching:
             w for w in re.findall(r"[a-z]+", input_lower)
             if w in CHARACTER_GENERIC_WORDS
         ]
-        # Only a pure generic label ("the woman", "the man") gets the fallback —
+        # Only a pure generic label ("the woman", "the man") gets the fallback -
         # if the input also names descriptive words ("distant room man") those
         # describe someone/something else, so a generic kind must not resolve.
         descriptive_words = [
@@ -866,7 +866,7 @@ class NameMatching:
         for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
             if edge.source == item_id:
                 return True
-        # In player inventory (carried or equipped — a worn backpack counts)
+        # In player inventory (carried or equipped - a worn backpack counts)
         player_id = self.gs._player_node_id(self.gs.active_player)
         for edge in self.graph.get_edges_for_target(player_id, (EDGE_CARRYING, EDGE_EQUIPPED)):
             if edge.source == item_id:
@@ -899,8 +899,8 @@ class NameMatching:
         if not player:
             return
         player_node_id = self.gs._player_node_id(player_name)
-        # task-439/581: resolve the area *id* deterministically — id first, then
-        # an unambiguous name — instead of taking whichever same-named node
+        # task-439/581: resolve the area *id* deterministically - id first, then
+        # an unambiguous name - instead of taking whichever same-named node
         # iteration order hit first. Area node ids can differ from the id derived
         # from the area name (e.g. "Task 2" vs "area_Task_2").
         from engine.room_perception import resolve_area_node

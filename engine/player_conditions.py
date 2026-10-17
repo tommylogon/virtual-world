@@ -1,5 +1,5 @@
 # engine/player_conditions.py
-"""Condition system — catalog, instance helpers, and derived constants.
+"""Condition system - catalog, instance helpers, and derived constants.
 
 All names formerly defined in player.py are re-exported from here so
 ``from player import CONDITION_DEFINITIONS`` keeps working via thin
@@ -162,7 +162,7 @@ CONDITION_DEFINITIONS = {
         "excludes": [],
     },
     "injured": {
-        "name": "Injured", "description": "A wounded body part. Light/moderate/severe (level 1-3) — needs healing.",
+        "name": "Injured", "description": "A wounded body part. Light/moderate/severe (level 1-3) - needs healing.",
         "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
         "auto_fail_checks": [], "auto_fail_saves": [],
         "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
@@ -174,7 +174,7 @@ CONDITION_DEFINITIONS = {
         "known": True,
         "symptoms": {
             3: "The {body_part} throbs painfully.",
-            2: "The {body_part} aches badly — you favour it.",
+            2: "The {body_part} aches badly - you favour it.",
             1: "The {body_part} is badly hurt. Every move sends a spike of pain.",
         },
         "stack": "accumulate", "default_duration": None,
@@ -191,7 +191,7 @@ CONDITION_DEFINITIONS = {
         "ends_on": ["fix", "heal", "medicine"],
         "known": True,
         "symptoms": {
-            5: "The {body_part} is bleeding — warm blood soaks your skin.",
+            5: "The {body_part} is bleeding - warm blood soaks your skin.",
             3: "Blood continues to flow from the {body_part}.",
             1: "The {body_part} keeps bleeding. You're getting light-headed.",
         },
@@ -292,7 +292,7 @@ CONDITION_DEFINITIONS = {
         "known": False, "symptoms": {}, "stack": "noop", "default_duration": None,
         "excludes": [],
     },
-    # ── Arousal state conditions (task-209) — gated by world.mature_content ──
+    # ── Arousal state conditions (task-209) - gated by world.mature_content ──
     "warming_up": {
         "name": "Warming Up", "description": "A pleasant warmth spreads. Interest is building.",
         "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
@@ -360,7 +360,7 @@ CONDITION_DEFINITIONS = {
         "excludes": [],
     },
     "nipple_hard": {
-        "name": "Nipple Hard", "description": "Cold or aroused — their nipples stand out against the fabric.",
+        "name": "Nipple Hard", "description": "Cold or aroused - their nipples stand out against the fabric.",
         "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
         "auto_fail_checks": [], "auto_fail_saves": [],
         "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
@@ -419,7 +419,7 @@ CONDITION_DEFINITIONS = {
         "auto_fail_checks": [], "auto_fail_saves": [],
         "attack_mod": -2, "defense_mod": -2, "speed_mult": 1.0,
         "movement_mode": None, "drops_held_items": False,
-        # No Sanity drain: it used to be -1/min against a 0.005/min baseline —
+        # No Sanity drain: it used to be -1/min against a 0.005/min baseline -
         # 200x, and a condition that drains the meter causing it can only
         # maintain itself. The behavioural penalty is the cost.
         "periodic": {}, "ends_on": ["socialize", "comfort"],
@@ -431,7 +431,7 @@ CONDITION_DEFINITIONS = {
         "excludes": [],
     },
     # ── Sanity-triggered breakdown (task-353 §5, sanity branch) ──────────
-    # Low Sanity is NOT a death sentence (it never drains HP) — it makes the
+    # Low Sanity is NOT a death sentence (it never drains HP) - it makes the
     # character more dangerous, exactly as you'd expect: paranoia makes you
     # attack first, hallucinations make you misread the room. These are the
     # named conditions behind the === YOUR MIND === prompt tiers.
@@ -464,7 +464,7 @@ CONDITION_DEFINITIONS = {
         # condition; the condition must not then hold Sanity down.
         "periodic": {}, "ends_on": ["comfort", "rest", "meditate"],
         "known": True, "symptoms": {
-            5: "A voice whispers from the corner of the room — no one else seems to hear it.",
+            5: "A voice whispers from the corner of the room - no one else seems to hear it.",
             3: "The person standing in front of you isn't the person you remember.",
             1: "The room breathes when you look away. Don't trust the exits.",
         }, "stack": "refresh", "default_duration": 30,
@@ -527,9 +527,9 @@ _CONDITION_BASE = {
     "known": True, "symptoms": {}, "stack": "noop", "default_duration": None,
     "excludes": [],
     # Catalog metadata (single source of truth: the JSON library):
-    #   order            — position in CONDITION_HIERARCHY; None = not in it
-    #   perception_skip  — in the hierarchy but never rendered as a perception line
-    #   tags             — a `mature` tag gates the entry behind mature_content (task-750)
+    #   order            - position in CONDITION_HIERARCHY; None = not in it
+    #   perception_skip  - in the hierarchy but never rendered as a perception line
+    #   tags             - a `mature` tag gates the entry behind mature_content (task-750)
     "order": None, "perception_skip": False, "tags": [],
     # Roll-affecting lists read by engine/checks.py: names of skills, abilities
     # or "attack"/"*" that gain advantage / disadvantage / auto-fail (task-472).
@@ -543,7 +543,7 @@ _CONDITION_BASE = {
 # (loaded below, seeded by seed_condition_library). These tables are only the
 # built-in fallback for entries with no file yet, and every file the seeder
 # writes is stamped with them, so the values become editable per-condition JSON.
-# Conditions WITHOUT an `order` stay out of CONDITION_HIERARCHY on purpose —
+# Conditions WITHOUT an `order` stay out of CONDITION_HIERARCHY on purpose -
 # mature arousal state is surfaced by the mature prompt path, not the generic
 # perception line.
 _CATALOG_ORDER = [
@@ -660,7 +660,7 @@ def seed_condition_library():
 
     Runtime truth is the JSON library, so every catalog entry gets a file; an
     existing file only receives schema keys it is missing (never a value
-    overwrite), so user-edited values are preserved. Idempotent — called at app
+    overwrite), so user-edited values are preserved. Idempotent - called at app
     startup (non-TESTING).
     """
     cond_dir = _condition_library_dir()
@@ -696,7 +696,7 @@ def seed_condition_library():
 
 
 # ──────────────────────────────────────────────────────────────
-# Derived constants (rebuilt from the catalog — never hand-maintained)
+# Derived constants (rebuilt from the catalog - never hand-maintained)
 # ──────────────────────────────────────────────────────────────
 
 CONDITION_HIERARCHY: List[str] = []
@@ -948,7 +948,7 @@ def get_state(player) -> str:
 
 
 def set_state(player, value: str):
-    """Set a state — ADDS the condition without wiping others."""
+    """Set a state - ADDS the condition without wiping others."""
     condition_add_condition(player, value)
 
 

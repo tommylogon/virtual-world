@@ -1,8 +1,8 @@
-# WT-B — Items and inventory
+# WT-B - Items and inventory
 
 **Parallel arm.** You touch no hub file. Merge first.
 
-## Your queue — 9 tasks
+## Your queue - 9 tasks
 
 | Task | Priority | Title |
 |---|---|---|
@@ -16,7 +16,7 @@
 | task-332 | medium | Migrate legacy item effect props to triggers, then remove support |
 | task-454 | medium | Save list must not parse every save file on each modal open |
 
-Suggested order: **task-504 first** — it gates WT-A's task-569. Then 493 (the part/component
+Suggested order: **task-504 first** - it gates WT-A's task-569. Then 493 (the part/component
 contract that 516 and 518 build on), then the content batches 513 / 515 / 517, then 516,
 518, 332, 454.
 
@@ -32,7 +32,7 @@ data/library/items/       tests/test_item_quantity.py
 
 - **task-504 blocks task-569** (WT-A, biome resource distribution). Ship it early and say
   so on the board.
-- **task-493 is referenced by task-492** (docs, WT-0) — the item/action reference page
+- **task-493 is referenced by task-492** (docs, WT-0) - the item/action reference page
   documents the part/component contract. Land 493 before 492 does its final pass.
 
 ## Notes on specific tasks
@@ -41,7 +41,7 @@ data/library/items/       tests/test_item_quantity.py
   change. Do it as its own commit so it can be reverted cleanly. The task file has the
   full per-file breakdown.
 - **task-454** touches save-file listing, which is close to `engine/serialization.py`
-  territory. If you find yourself needing that file, it is a hub — note it on the board
+  territory. If you find yourself needing that file, it is a hub - note it on the board
   for WT-0 instead of editing it.
 
 ## Rules

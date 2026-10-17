@@ -7,16 +7,16 @@ ruin, ...) name where they may appear; and resource/hostile distribution tables
 say what a painted area is likely to hold.
 
 The taxonomy is *data*: :func:`validate` is generic, so adding a biome is a JSON
-edit that reuses existing area tags and forage skills — no code change. The
+edit that reuses existing area tags and forage skills - no code change. The
 foraging layer already recognises the biome tags (``engine/foraging.py``
 ``AREA_SKILL_BONUS``) and the resource tags come from its ``SKILL_TABLES``
 vocabulary, so a painted area forages with the machinery that already exists.
 
 Two nouns that are easy to confuse, so they are kept apart on purpose:
 
-- ``surface`` (this module, :func:`ground_surface`) — the ground *material*: dirt,
+- ``surface`` (this module, :func:`ground_surface`) - the ground *material*: dirt,
   grass, stone, sand, pine needles. What your feet are on.
-- ``floor`` (``engine/world_grid.py``, area ``properties.floor``) — the *storey
+- ``floor`` (``engine/world_grid.py``, area ``properties.floor``) - the *storey
   index*: 0 is ground, 1 one up, -1 one down, unbounded. Which deck of the
   skyscraper, which room of the stacked house, how far under the lake surface.
   An earlier revision of this taxonomy put the material under ``floor``, which
@@ -41,7 +41,7 @@ DATA_PATH = os.path.join(
 HOSTILE_KINDS = ("predator", "bandit", "monster")
 
 #: Ground material used when a record declares none. This is the *material* you
-#: stand on, not a storey — see :func:`ground_surface`.
+#: stand on, not a storey - see :func:`ground_surface`.
 DEFAULT_SURFACE = "dirt"
 
 #: How a painted cell is *traversable* (task-562).
@@ -50,16 +50,16 @@ DEFAULT_SURFACE = "dirt"
 #: not enough for a floor plan: a Japanese high-school plan needs blanks you cannot
 #: walk through, windows you can see through but not through, and a door you can.
 #: So a biome record may declare what its cell *is to movement*, and the vocabulary
-#: decides — the compiler asks this, rather than knowing that `wall` and `void` are
+#: decides - the compiler asks this, rather than knowing that `wall` and `void` are
 #: special, so a modder can add a `hedge` or a `turnstile` the same way.
 #:
-#: - ``place`` — a place. Compiles to an area, as before.
-#: - ``solid`` — not a place, and nothing crosses it (a wall, a blank between
+#: - ``place`` - a place. Compiles to an area, as before.
+#: - ``solid`` - not a place, and nothing crosses it (a wall, a blank between
 #:   rooms, a cliff face). It is also *not* something you can see through.
-#: - ``see_through`` — not a place, and nothing walks through it, but you can
+#: - ``see_through`` - not a place, and nothing walks through it, but you can
 #:   *see* through it: a shut window. The adjacent place records it, so the
 #:   description can say there is a window there and the map can draw one.
-#: - ``passable`` — not a place, but a way may cross it: a door or a gateway
+#: - ``passable`` - not a place, but a way may cross it: a door or a gateway
 #:   between the two places it stands between.
 CELL_KINDS = ("place", "solid", "see_through", "passable")
 
@@ -72,7 +72,7 @@ CELL_KIND_TAG_PREFIX = "cell_kind:"
 
 #: The kind to read when a record does not declare one we know. A *place*, on
 #: purpose: the alternative (solid) means a misspelled or renamed biome id quietly
-#: deletes the author's cells from the map — a wall where their classroom was. An
+#: deletes the author's cells from the map - a wall where their classroom was. An
 #: unknown id still compiles to an area and still carries the "no area tag foraging
 #: recognises" warning, and `compile_grid` lists unknown ids in its report, so a
 #: typo is visible rather than destructive.
@@ -82,14 +82,14 @@ DEFAULT_UNKNOWN_CELL_KIND = "place"
 #: the record (``merge:always``) for the same reason ``cell_kind:`` is: a modder
 #: adding a ``cellar`` or a ``subway`` gets the behaviour without a code change.
 #:
-#: - ``always`` — same-kind cells always become one place, whatever the scope's
+#: - ``always`` - same-kind cells always become one place, whatever the scope's
 #:   merge switch says. A hallway is a *shape*, not a count: ten cells of corridor
 #:   are one corridor, and with the switch off a plan would otherwise be a row of
 #:   anonymous one-cell rooms.
-#: - ``never`` — same-kind neighbours are always separate places. A building cell
+#: - ``never`` - same-kind neighbours are always separate places. A building cell
 #:   is a *plot*: two adjacent cottages are two cottages, and merging them would
 #:   quietly make a terrace one enormous house with one door.
-#: - ``""`` (the default) — the scope's own switch decides, which is what every
+#: - ``""`` (the default) - the scope's own switch decides, which is what every
 #:   terrain cell, road and room wants.
 MERGE_ALWAYS = "always"
 MERGE_NEVER = "never"
@@ -127,7 +127,7 @@ def clear_cache() -> None:
 
     Called from the save/commit path so a hand edit to a biome JSON is visible
     without a server restart. It clears both the bundled ``biomes.json`` cache
-    (``_cache``) and the per-file library cache (``_lib_cache``) — the two are
+    (``_cache``) and the per-file library cache (``_lib_cache``) - the two are
     separate because one is a single file and the other is 106 files, but a
     taxonomy edit is a taxonomy edit and both have to go together.
     """
@@ -173,7 +173,7 @@ def _load_id_dir_cached(directory: str) -> Dict[str, dict]:
     per painted cell (task-716): ``cell_kind`` / ``merge_rule`` / ``is_building``
     are called from the per-cell identity and merge passes, and each one
     re-scanned all 106 biome JSON files from disk. A 160x100 grid took ~7
-    minutes for a grid read that should take a second — 2.3 million file
+    minutes for a grid read that should take a second - 2.3 million file
     opens for one ``GET /grid``. The directory contents do not change at
     runtime, so caching the parsed result is correct, not a shortcut.
     """
@@ -271,7 +271,7 @@ def cell_kind(biome_id, path: Optional[str] = None) -> str:
     """How a cell painted with this biome is *traversable* (task-562).
 
     One of :data:`CELL_KINDS`. A record with no ``not_a_place`` tag is a place,
-    which is every biome that shipped before edge semantics — so this reads as
+    which is every biome that shipped before edge semantics - so this reads as
     "a place" for the whole existing wilderness taxonomy without touching it.
 
     A cell painted with an id the taxonomy does not know is a *place*, not a hole:
@@ -304,7 +304,7 @@ def area_tags(biome_id, path: Optional[str] = None) -> List[str]:
 
 #: The tag that makes a record a *building* (task-561/563). A building cell is a
 #: thing you **go into** with ``in`` rather than a place you step sideways onto,
-#: so the tag is what the compiler asks — vocabulary-driven like
+#: so the tag is what the compiler asks - vocabulary-driven like
 #: :func:`cell_kind`, so a modder's ``watermill`` joins without a code change.
 BUILDING_TAG = "building"
 
@@ -340,7 +340,7 @@ def merge_rule(biome_id, path: Optional[str] = None) -> str:
 def is_stair(biome_id, path: Optional[str] = None) -> bool:
     """Whether this cell is a *stairway* (task-568).
 
-    A passable cell between two storeys mints a stairway on its own — the storey
+    A passable cell between two storeys mints a stairway on its own - the storey
     step is the strongest signal about what crossing it does. This is the author
     making the same claim directly, so a plan can have a stair between two rooms
     drawn on one storey (a loft stair, a cellar stair) where the floor layer says
@@ -353,18 +353,18 @@ def entry_phrases(record_id, path: Optional[str] = None) -> Optional[dict]:
     """The narrative move a record asks for when you enter it (task-529).
 
     Returns ``{"in": ..., "out": ..., "aliases": [...]}`` when the record declares
-    an entry, and ``None`` when it does not — which is the signal to fall back to
+    an entry, and ``None`` when it does not - which is the signal to fall back to
     deriving one from the placement (see ``world_compile._entry_phrases``).
 
     Three sources, most specific first, and the reason they are checked in that
     order is that they are three different authors:
 
-    - the **record** (a `tunnel` says "go down the tunnel") — the vocabulary,
+    - the **record** (a `tunnel` says "go down the tunnel") - the vocabulary,
       shared by every world, and what a modder edits;
-    - the **placement** (`placements[child].entry_phrase`) — *this* mouth of *this*
+    - the **placement** (`placements[child].entry_phrase`) - *this* mouth of *this*
       tunnel, because a mine with two adits has two ways in and only the author
       knows which is which;
-    - the derived phrase — the last resort, and the only one that can be wrong
+    - the derived phrase - the last resort, and the only one that can be wrong
       without anybody noticing.
 
     The pair is read together: a record that declares only ``entry_phrase`` still
@@ -399,7 +399,7 @@ def ground_surface(record: Optional[dict],
                    fallback: Optional[dict] = None) -> str:
     """The ground **material** a biome/road record declares (dirt, stone, ...).
 
-    Deliberately *not* called ``floor``. A floor is a **storey index** — 0 is
+    Deliberately *not* called ``floor``. A floor is a **storey index** - 0 is
     ground, 1 is one storey up, -1 one down, and it is unbounded (three stacked
     rooms, a lake bottom at -2, an 80-storey tower, -900 in a hole to hell).
     The material underfoot is a different fact and lives under ``surface``, so
@@ -441,7 +441,7 @@ def _num(value, default=None):
 
 
 #: Descriptive climate fields a biome MAY carry (task-758). These are for the
-#: palette's detail panel, not the painted `climate` layer — which is a 5-value
+#: palette's detail panel, not the painted `climate` layer - which is a 5-value
 #: enum (task-557) and must stay an enum, not ranges. Absent = unknown, never
 #: guessed.
 _CLIMATE_FIELDS = ("temperature", "rainfall", "elevation")
@@ -452,7 +452,7 @@ _NEIGHBOUR_FIELDS = ("natural_neighbors", "unlikely_neighbors", "transition_biom
 def _climate_problems(bid: str, rec: dict) -> List[str]:
     """Validate a biome's optional ``climate`` block (task-758).
 
-    Absent is valid — the palette shows "unknown". Present must be an object
+    Absent is valid - the palette shows "unknown". Present must be an object
     whose ``temperature``/``rainfall``/``elevation`` are ``[min, max]`` numbers
     with ``min <= max``.
     """
@@ -478,7 +478,7 @@ def _neighbour_problems(bid: str, rec: dict) -> List[str]:
     """Validate a biome's optional adjacency lists (task-758).
 
     A neighbour is a biome id *or* a documented soft noun ("meadow"), so only the
-    shape is checked here — names are not forced into a second vocabulary. The
+    shape is checked here - names are not forced into a second vocabulary. The
     compiler-side adjacency rule that consumes them is separate work.
     """
     out: List[str] = []
@@ -497,12 +497,12 @@ def _record_tags(rec: dict) -> set:
 
 
 def is_made_place(rec: dict) -> bool:
-    """A *made* place (task-561) — a building or an indoor room, not wild country.
+    """A *made* place (task-561) - a building or an indoor room, not wild country.
 
     A building is authored as a biome so it can be a cell with an identity and
     prose, but the wild-country contract does not apply to it: nobody forages
     berries off a smithy's wall, and no wildlife spawns in a bank. So the forage
-    tag and distribution checks are skipped — deliberately, not by omission. An
+    tag and distribution checks are skipped - deliberately, not by omission. An
     **indoor room** (task-568) is made in the same sense; it is read from the
     `indoor` tag, so a modder adding a `cellar` is exempt without saying so.
     """
@@ -511,7 +511,7 @@ def is_made_place(rec: dict) -> bool:
 
 
 def is_structure(rec: dict) -> bool:
-    """Not a place at all (task-562) — a wall, a window, a door, a void.
+    """Not a place at all (task-562) - a wall, a window, a door, a void.
 
     A structure cell never compiles to an area, so it has no ground and nothing
     to forage: the checks that ask those questions do not apply.
@@ -580,7 +580,7 @@ def resource_table_problems(entry_id: str, rec: dict) -> List[str]:
     """Validate one raw resource loot-table entry (task-718/589).
 
     The raw shape (`id`, `biome_tags`, `item_tags`, `weight`, `conditions`) as the
-    file stores it — distinct from the per-biome shape `validate()` checks, which
+    file stores it - distinct from the per-biome shape `validate()` checks, which
     `_library_to_per_biome` derives from this.
     """
     if not isinstance(rec, dict):

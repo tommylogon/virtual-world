@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Fix three authoring defects the trigger validator reports:
 
-1. **Ways** — every bidirectional way has only one authored side (cardinal +
+1. **Ways** - every bidirectional way has only one authored side (cardinal +
    direction + visible_in_direction); the reverse side falls back to the way
    name, which is why exits read backwards ("passage to scouting rooms" from
    *inside* the rooms). This derives the opposite side.
-2. **Weapons** — `tag: weapon` needs a `damage` value (combat reads
+2. **Weapons** - `tag: weapon` needs a `damage` value (combat reads
    `weapon_props["damage"]`, defaulting to a flat 5). Items that carry
    `damage_dice` get `damage` mirrored from it.
-3. **Legacy triggers** — authored as `logic_trigger -> owner` with the event on
+3. **Legacy triggers** - authored as `logic_trigger -> owner` with the event on
    the node. The runtime matches `owner -> logic_trigger` with `trigger_type` on
    the edge, so these never fire. This inverts the edge and moves the legacy
    flat fields (`message`, `spawn_items`, `grant_memory`) into `effects[]`.
@@ -288,7 +288,7 @@ def main() -> int:
         print(f"\nApplied {len(changes)} fix(es) to {path}.")
         print("Reload the scenario (or restart the server) to pick them up.")
     else:
-        print("\nDry run — re-run with --apply to write.")
+        print("\nDry run - re-run with --apply to write.")
     return 0
 
 

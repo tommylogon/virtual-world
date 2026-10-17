@@ -1,5 +1,5 @@
 # engine/traits.py
-"""Trait system — registered trait definitions and runtime processing.
+"""Trait system - registered trait definitions and runtime processing.
 
 Each player has a ``traits`` dict mapping ``trait_id → param_value``.
 The param_value is ``True`` for boolean traits, a string for parameterized
@@ -27,19 +27,19 @@ ACTION_COST_MOD = "action_cost_mod"
 VITAL_MULTIPLIER = "vital_multiplier"
 
 
-#: boolean — player can see in total darkness
+#: boolean - player can see in total darkness
 DARK_VISION = "dark_vision"
 
-#: boolean — horror monster, exempt from vitals decay
+#: boolean - horror monster, exempt from vitals decay
 IS_SLASHER = "is_slasher"
 
-#: boolean — threat marker for AI: considers this character a danger to others
+#: boolean - threat marker for AI: considers this character a danger to others
 HOSTILE = "hostile"
 
-#: tag string — when near a matching tag, apply a condition
+#: tag string - when near a matching tag, apply a condition
 ALLERGIC_TO = "allergic_to"
 
-#: blood-temperature model — a band name ("cold_blooded"/"hot_blooded") or a
+#: blood-temperature model - a band name ("cold_blooded"/"hot_blooded") or a
 #: partial override dict. Absent ⇒ warm-blooded (the engine default).
 TEMPERATURE_BAND = "temperature_band"
 
@@ -64,7 +64,7 @@ GROUP_ENERGY_DRAIN = "group_energy_drain"
 #: per-tick social gain from being near others
 SOCIAL_GAIN = "social_gain"
 
-#: boolean — skip entertainment decay entirely
+#: boolean - skip entertainment decay entirely
 NO_ENTERTAINMENT_DECAY = "no_entertainment_decay"
 
 #: minimum noise level required to wake (1=whisper, 5=scream)
@@ -102,7 +102,7 @@ CARRY_CAPACITY_MOD = "carry_capacity_mod"
 #: character's state/action. Negative = more observant, positive = oblivious.
 PERCEPTION_DC_MOD = "perception_dc_mod"
 
-#: task-214: how an NPC reacts to a perceived stimulus — "disapprove",
+#: task-214: how an NPC reacts to a perceived stimulus - "disapprove",
 #: "approach", or "ignore". Consumed by NPCBehaviorSystem.process_npc_reaction.
 NPC_REACTION = "npc_reaction"
 
@@ -229,7 +229,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # ── task-214: reaction traits (how an NPC answers what it perceives) ──
     "prudish": {
         "name": "Prudish",
-        "description": "Open displays embarrass and offend you — you look away and disapprove.",
+        "description": "Open displays embarrass and offend you - you look away and disapprove.",
         "category": "social",
         "params": None,
         "effects": {NPC_REACTION: "disapprove"},
@@ -243,13 +243,13 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "effects": {NPC_REACTION: "approach"},
         "conflicts": ["prudish"],
     },
-    # ── Mature traits (task-213) — hidden from pickers unless mature_content ──
+    # ── Mature traits (task-213) - hidden from pickers unless mature_content ──
     # the ``mature`` tag marks them for UI filtering. ``body_part_multipliers``
     # rides inside the standard ``effects`` dict and is consumed by the
     # pleasure pipeline (task-212).
     "wired_differently": {
         "name": "Wired Differently",
-        "description": "Your body's map of pleasure is unusual — some places overwhelm, others barely register.",
+        "description": "Your body's map of pleasure is unusual - some places overwhelm, others barely register.",
         "category": "physical",
         "params": None,
         "effects": {"body_part_multipliers": {"nipple_left": 3.0, "nipple_right": 3.0, "genitals": 0.1}},
@@ -258,7 +258,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "quick_recovery": {
         "name": "Quick Recovery",
-        "description": "Overstimulation passes quickly — you bounce back fast.",
+        "description": "Overstimulation passes quickly - you bounce back fast.",
         "category": "physical",
         "params": None,
         "effects": {"quick_recovery": True},
@@ -300,7 +300,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "effects": {"exhibitionist": True},
         # task-487: the effect was inert until now, so an agent carrying this
         # trait was told nothing about it. The prompt is what makes the *behaviour*
-        # the trait implies possible even when the arithmetic does not fire — being
+        # the trait implies possible even when the arithmetic does not fire - being
         # seen in an empty room thrills nobody.
         "behavior_prompt": "Being seen thrills you. You don't mind being watched, and you show yourself more freely than most.",
         "tags": ["mature"],
@@ -308,7 +308,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "single_track": {
         "name": "Single Track",
-        "description": "One path to release and one only — anything else just frustrates.",
+        "description": "One path to release and one only - anything else just frustrates.",
         "category": "physical",
         "params": None,
         "effects": {"single_track": True},
@@ -317,7 +317,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "attracted": {
         "name": "Attracted",
-        "description": "Visible desire pulls at you — you can't help moving closer.",
+        "description": "Visible desire pulls at you - you can't help moving closer.",
         "category": "social",
         "params": None,
         "effects": {NPC_REACTION: "approach", "drawn_to_arousal": True},
@@ -393,7 +393,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "slasher": {
         "name": "Slasher",
-        "description": "Horror monster — exempt from vital decay and can see in the dark.",
+        "description": "Horror monster - exempt from vital decay and can see in the dark.",
         "category": "physical",
         "params": None,
         "effects": {IS_SLASHER: True, DARK_VISION: True},
@@ -407,7 +407,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "hostile": {
         "name": "Hostile",
-        "description": "Threat marker — other characters should consider this person dangerous and flee or fight.",
+        "description": "Threat marker - other characters should consider this person dangerous and flee or fight.",
         "category": "social",
         "params": None,
         "effects": {HOSTILE: True},
@@ -462,19 +462,19 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "params": None,
         "effects": {"patient": True},
     },
-    # ── Phase 2 — trait schema v2 example traits ──
+    # ── Phase 2 - trait schema v2 example traits ──
     "paranoid": {
         "name": "Paranoid",
-        "description": "Permanently frightened — trusts no one and watches everything for threats.",
+        "description": "Permanently frightened - trusts no one and watches everything for threats.",
         "category": "mental",
         "params": None,
         "effects": {},
-        "behavior_prompt": "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
+        "behavior_prompt": "You trust no one. Watch everyone and everything for threats - assume hidden motives.",
         "grants_conditions": [{"condition": "frightened"}],
     },
     "chronically_ill": {
         "name": "Chronically Ill",
-        "description": "A permanent, mild sickness — hunger and thirst worsen faster.",
+        "description": "A permanent, mild sickness - hunger and thirst worsen faster.",
         "category": "physical",
         "params": None,
         "effects": {},
@@ -518,7 +518,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "jittery": {
         "name": "Jittery",
-        "description": "-1 on all skill checks — nervous hands.",
+        "description": "-1 on all skill checks - nervous hands.",
         "category": "mental",
         "params": None,
         "effects": {SKILL_CHECK_MOD: -1},
@@ -534,13 +534,13 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     },
     "oblivious": {
         "name": "Oblivious",
-        "description": "Subtle cues pass you by — you miss what others catch.",
+        "description": "Subtle cues pass you by - you miss what others catch.",
         "category": "mental",
         "params": None,
         "effects": {PERCEPTION_DC_MOD: 5},
         "conflicts": ["observant"],
     },
-    # ── Phase 3 — save_on event-hook example traits ──
+    # ── Phase 3 - save_on event-hook example traits ──
     "claustrophobic": {
         "name": "Claustrophobic",
         "description": "Tight, enclosed spaces make you panic.",
@@ -626,14 +626,14 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
              "fail_message": "Pain flashes through you and your courage drains."},
         ],
     },
-    # ── Phase 4 — acquired (dynamic) traits ──
+    # ── Phase 4 - acquired (dynamic) traits ──
     "scarred": {
         "name": "Scarred",
         "description": "Bears the marks of a brush with death.",
         "category": "mental",
         "params": None,
         "effects": {"scarred": True},
-        "behavior_prompt": "You've been close to death before. You take dangers seriously — and you know what pain costs.",
+        "behavior_prompt": "You've been close to death before. You take dangers seriously - and you know what pain costs.",
     },
     "frail": {
         "name": "Frail",
@@ -648,92 +648,27 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
 # Data-driven trait catalog
 # ──────────────────────────────────────────────────────────────
 
-_TRAIT_BASE = {
-    "name": "", "description": "", "category": "custom", "params": None,
-    "effects": {}, "conflicts": [], "behavior_prompt": "",
-    "grants_conditions": [], "save_on": [], "immune_to_condition": [],
-}
-
-
-def _trait_library_dir():
-    import os as _os
-    return _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'data', 'library', 'traits')
-
-
-def _trait_is_active(defn: dict) -> bool:
-    return bool(defn.get("effects") or defn.get("grants_conditions") or defn.get("save_on"))
+from engine.trait_library import (
+    _TRAIT_BASE, _trait_library_dir, _trait_is_active,
+    _merge_trait_definition as _tl_merge_trait_definition,
+    _load_trait_library as _tl_load_trait_library,
+    seed_trait_library as _tl_seed_trait_library,
+)
 
 
 def _merge_trait_definition(tid: str, entry: dict):
-    base = TRAIT_DEFINITIONS[tid] if tid in TRAIT_DEFINITIONS else dict(_TRAIT_BASE)
-    merged = base
-    merged.update(entry)
-    merged.setdefault('name', merged.get('name') or tid.title().replace('_', ' '))
-    TRAIT_DEFINITIONS[tid] = merged
+    return _tl_merge_trait_definition(tid, entry, TRAIT_DEFINITIONS)
 
 
 def _load_trait_library():
-    """Merge data-driven trait definitions from data/library/traits/*.json.
-
-    Runs at import time so TraitSystem reads the post-load catalog. A file that
-    names an existing engine trait merges over the hardcoded fallback (so a
-    partial/truncated file can't wipe behavior). A brand-new id is accepted only
-    if it declares real effects / grants_conditions / save_on — UI-only marker
-    traits (e.g. size_*) stay out of the engine catalog.
-    """
-    import json as _json
-    import os as _os
-    trait_dir = _trait_library_dir()
-    if not _os.path.isdir(trait_dir):
-        return
-    for fname in sorted(_os.listdir(trait_dir)):
-        if not fname.endswith('.json'):
-            continue
-        tid = fname[:-5]
-        try:
-            with open(_os.path.join(trait_dir, fname), 'r', encoding='utf-8-sig') as f:
-                entry = _json.load(f)
-        except Exception:
-            continue
-        if not isinstance(entry, dict):
-            continue
-        if tid in TRAIT_DEFINITIONS or _trait_is_active(entry):
-            _merge_trait_definition(tid, entry)
+    return _tl_load_trait_library(TRAIT_DEFINITIONS)
 
 
 _load_trait_library()
 
 
 def seed_trait_library():
-    """Migrate data/library/traits/*.json to the full engine trait schema.
-
-    Rewrites any file that is missing the active fields the code catalog defines
-    (the old params-only format) to the canonical full definition. Leaves
-    already-canonical and user-edited files, and UI-only marker traits (size_*),
-    untouched.
-    """
-    import json as _json
-    import os as _os
-    trait_dir = _trait_library_dir()
-    try:
-        _os.makedirs(trait_dir, exist_ok=True)
-    except OSError:
-        return
-    for tid, definition in TRAIT_DEFINITIONS.items():
-        path = _os.path.join(trait_dir, f"{tid}.json")
-        if _os.path.exists(path):
-            try:
-                with open(path, 'r', encoding='utf-8-sig') as f:
-                    existing = _json.load(f)
-            except Exception:
-                existing = {}
-            if _trait_is_active(existing):
-                continue
-        try:
-            with open(path, 'w', encoding='utf-8') as f:
-                _json.dump(definition, f, indent=2, ensure_ascii=False)
-        except OSError:
-            continue
+    return _tl_seed_trait_library(TRAIT_DEFINITIONS)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -1043,8 +978,8 @@ class TraitSystem:
     def get_save_on_entries(player, event: str, context: Optional[dict] = None) -> List[dict]:
         """All ``save_on`` entries on the player's traits matching *event*.
 
-        Entries may filter on ``area_tags`` / ``item_tags`` — the entry only
-        matches when one of its tags is present in the context tag lists — and
+        Entries may filter on ``area_tags`` / ``item_tags`` - the entry only
+        matches when one of its tags is present in the context tag lists - and
         on ``source_type`` (way/area/item/character), matching only events that
         originate from that kind of source (see_item = "item",
         takes_damage from combat = "character", crawl/climb/jump = "way",
@@ -1085,7 +1020,7 @@ class TraitSystem:
 
         Every trait with ``grants_conditions`` keeps its granted condition
         active (added with ``source: "trait:<id>"`` if missing); trait-sourced
-        conditions whose trait is gone are dropped. Self-healing — call on
+        conditions whose trait is gone are dropped. Self-healing - call on
         trait add/remove and once per turn so any path that mutates
         ``player.traits`` reconciles within a tick.
         """
@@ -1153,7 +1088,7 @@ class TraitSystem:
             # task-538: the threshold is a fraction of *this character's* maximum.
             # With a literal 100 fallback a 7-HP goblin could never be scarred at
             # all, because `hp <= max(1, 10)` was false at 7 HP and true at
-            # nothing — the trait was unreachable for exactly the stat blocks
+            # nothing - the trait was unreachable for exactly the stat blocks
             # that should have it.
             max_hp = ceiling(vitals, "HP") or 1
             hp = vitals.get("HP", max_hp)
@@ -1237,7 +1172,7 @@ class TraitSystem:
 
 def _collect_item_tags_in_area(area_node) -> Set[str]:
     """Gather all tags from items located in a area node.
-    Placeholder — real implementation would query graph edges.
+    Placeholder - real implementation would query graph edges.
     """
     tags: Set[str] = set()
     items = area_node.properties.get("items", [])

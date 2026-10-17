@@ -36,7 +36,7 @@ KNOWN_ACTIVITIES = ("work", "socialise", "eat", "drink", "sleep", "rest",
                     "patrol", "guard", "roam", "wait")
 
 #: Activities that need an actual engine activity started. `socialise`, `patrol`,
-#: `guard` and `roam` need nothing beyond being present — company is handled by
+#: `guard` and `roam` need nothing beyond being present - company is handled by
 #: the social pass, and the others are satisfied by the travel itself.
 BLOCKING_ACTIVITIES = {"work": "working", "rest": "resting"}
 

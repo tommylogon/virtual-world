@@ -6,6 +6,7 @@ Moved from engine/trigger_system.py.
 import re
 from typing import Any, List, Optional
 
+from engine.triggers.context import build_template_context
 from engine.triggers.effect_resolution import _resolve_trigger_effects
 
 from graph import (
@@ -68,12 +69,12 @@ class ExecutionMixin:
 
         Supported patterns:
 
-        * ``{variable_name}`` — direct lookup in the context dict.
-        * ``{param:<key>}`` — lookup in ``context['item_params']``.
-        * ``{prop:<key>}`` — lookup in ``context['item_properties']``.
-        * ``{uses}`` / ``{weight}`` / ``{current_state}`` / ``{name}`` —
+        * ``{variable_name}`` - direct lookup in the context dict.
+        * ``{param:<key>}`` - lookup in ``context['item_params']``.
+        * ``{prop:<key>}`` - lookup in ``context['item_properties']``.
+        * ``{uses}`` / ``{weight}`` / ``{current_state}`` / ``{name}`` -
           from the triggering item node (task-200 template params).
-        * ``{vital:<Stat>}`` — current vital value of the acting player,
+        * ``{vital:<Stat>}`` - current vital value of the acting player,
           e.g. ``{vital:Thirst}`` (vitals readout templating).
 
         Unrecognised variables are left unchanged.
@@ -169,7 +170,7 @@ class ExecutionMixin:
           target_tag: legacy tag fan-out (items in area)
           target_name: named target (character / node)
 
-        Returns an empty list when there is no fan-out — the caller then runs
+        Returns an empty list when there is no fan-out - the caller then runs
         the effect once against the default target (self / on_use_on target).
         """
         by = effect_params.get("target_by")
@@ -177,7 +178,7 @@ class ExecutionMixin:
         scope = effect_params.get("target_scope", "area")
         area_id = effect_params.get("area_id") or self._get_current_area_id(item_node, game_state)
 
-        # Legacy tag fan-out (items in the area) — keep working.
+        # Legacy tag fan-out (items in the area) - keep working.
         if not by:
             tag = effect_params.get("target_tag")
             if tag and area_id:
@@ -196,7 +197,7 @@ class ExecutionMixin:
 
         if by == "tag":
             tag = str(value or "").lower()
-            # Characters: match against player.tags (live) — the graph node's
+            # Characters: match against player.tags (live) - the graph node's
             # properties.tags may lag behind player mutations.
             if game_state is not None:
                 players = getattr(game_state, "players", None) or {}
@@ -212,7 +213,7 @@ class ExecutionMixin:
                                     if any(e.type == EDGE_IN and e.source == n.id and e.target.lower() == area_lower
                                            for e in self.graph.edges)]
                 return char_results
-            # No game state — fall back to graph tag scan.
+            # No game state - fall back to graph tag scan.
             if scope == "world":
                 return [n for n in self.graph.nodes.values()
                         if tag in [str(t).lower() for t in (n.properties.get("tags", []) or [])]]
@@ -288,7 +289,7 @@ class ExecutionMixin:
             Template-rendering context.  Auto-populated with default keys
             if not provided.
         expected_target_state : str, optional
-            For ``on_state_enter`` / ``on_state_exit`` — the specific
+            For ``on_state_enter`` / ``on_state_exit`` - the specific
             state to filter on.
         game_state : object, optional
             Duck-typed game state providing access to player data, area
@@ -369,55 +370,15 @@ class ExecutionMixin:
                     area_name = getattr(legacy_area, "name", "") or ""
                     area_env = getattr(legacy_area, "environment", {}) or {}
 
-        context.setdefault(
-            "game_time",
-            game_state.get_current_time() if game_state else "",
+        context = build_template_context(
+            item_node=item_node,
+            game_state=game_state,
+            area_node=area_node,
+            area_name=area_name,
+            area_env=area_env,
+            target_name=target_name if target_name is not None else None,
+            context=context,
         )
-        context.setdefault(
-            "time_ticks", str(game_state.time_ticks) if game_state else ""
-        )
-        context.setdefault(
-            "turn_number", str(game_state.turn_number) if game_state else ""
-        )
-        context.setdefault(
-            "player_name", game_state.active_player if game_state else ""
-        )
-        context.setdefault(
-            "area_name",
-            area_node.name if area_node is not None else area_name,
-        )
-        context.setdefault("item_name", item_node.name if item_node else "")
-        context.setdefault(
-            "item_state",
-            item_node.properties.get("current_state", "") if item_node else "",
-        )
-        context.setdefault(
-            "item_description",
-            item_node.properties.get("description", "") if item_node else "",
-        )
-        context.setdefault("item_properties", item_node.properties if item_node else {})
-        if item_node:
-            context.setdefault(
-                "item_params", item_node.properties.get("parameters", {})
-            )
-        if target_name is not None:
-            context.setdefault("target_name", target_name)
-        if game_state and game_state.player:
-            context.setdefault(
-                "player_hp", str(game_state.player.vitals.get("HP", 0))
-            )
-            context.setdefault(
-                "player_energy",
-                str(game_state.player.vitals.get("Energy", 0)),
-            )
-            context.setdefault(
-                "player_sanity",
-                str(game_state.player.vitals.get("Sanity", 0)),
-            )
-        if area_env:
-            context.setdefault("area_light", str(area_env.get("light", "")))
-            context.setdefault("area_temp", str(area_env.get("temperature", "")))
-            context.setdefault("area_smell", area_env.get("smell", ""))
 
         for trigger_edge in triggers:
             trigger_types_on_edge = trigger_edge.properties.get("trigger_type", "")
@@ -513,7 +474,7 @@ class ExecutionMixin:
                         target_name, game_state
                     )
                 if not isinstance(conditions_list, dict) or "operator" not in conditions_list:
-                    # Flat list — apply conditions_logic
+                    # Flat list - apply conditions_logic
                     conditions_logic = trigger_edge.properties.get(
                         "conditions_logic", "and"
                     )
@@ -552,7 +513,7 @@ class ExecutionMixin:
                 continue
 
             # ── Fire-once triggers (legacy `once`) ──
-            # A discovery trigger must not re-fire on every examine — that
+            # A discovery trigger must not re-fire on every examine - that
             # would repeat its message and duplicate its spawned items.
             once_node = self.graph.get_node(trigger_edge.target)
             if once_node is not None:
@@ -589,7 +550,7 @@ class ExecutionMixin:
                         tag_context["target_item_state"] = target_node.properties.get("current_state", "")
                         tag_context["target_node"] = target_node
                         # For character targets, effect handlers resolve `target`
-                        # against player names — pass the resolved name explicitly.
+                        # against player names - pass the resolved name explicitly.
                         tparams = effect_params
                         if target_node.type in ("player", "character") and isinstance(effect_params, dict):
                             tparams = dict(effect_params)

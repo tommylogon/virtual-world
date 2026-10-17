@@ -11,7 +11,7 @@ An item that declares::
 reports a narrative reading on examine/use: how far the nearest matching
 presence is (same room = sharp, adjacent = jumping needle, farther = faint
 blip). Room distance = BFS over area→way→area connections. No numbers are
-emitted — the reading is prose only.
+emitted - the reading is prose only.
 """
 
 from collections import deque
@@ -147,9 +147,9 @@ def proximity_report(player_manager, item_node, graph, game_state=None) -> str:
 
     lines = []
     if strong:
-        lines.append(f"The device reads sharply — {', '.join(strong)} is right here.")
+        lines.append(f"The device reads sharply - {', '.join(strong)} is right here.")
     if near:
-        lines.append("The needle jumps — something is close by.")
+        lines.append("The needle jumps - something is close by.")
     if far:
-        lines.append("A faint blip — something drifts a few rooms away, direction unclear.")
+        lines.append("A faint blip - something drifts a few rooms away, direction unclear.")
     return " ".join(lines)

@@ -1,6 +1,6 @@
 """Dynamic area status system (task-233).
 
-Areas can carry a ``statuses`` property list — instances of dynamic
+Areas can carry a ``statuses`` property list - instances of dynamic
 environmental states like ``on_fire``, ``flooded`` or ``poison_gas``. Each
 status ticks environment mutations, damage and condition application on
 everyone present, and (for the definitions that declare it) propagates to
@@ -13,7 +13,7 @@ the *pattern* (registry + instance schema), not the code. Area statuses can
 inflict character conditions via the existing ``apply_condition`` pathway.
 
 Status instances live on the area node's ``properties["statuses"]`` list, so
-they persist through the regular graph serialization — no extra save/load
+they persist through the regular graph serialization - no extra save/load
 surface needed.
 """
 
@@ -26,12 +26,12 @@ from typing import Any, Optional
 MAX_SEVERITY = 5
 
 #: Status type definitions. ``default_tick_effects`` values:
-#:   temperature  — °C added to the area environment each tick
-#:   air          — env air override while active
-#:   light        — ambient light delta each tick (clamped 0-100)
-#:   damage       — {vital: amount} applied to every character present
-#:   condition    — character condition applied to everyone present
-#:   movement_cost — extra Energy per move action while present
+#:   temperature  - °C added to the area environment each tick
+#:   air          - env air override while active
+#:   light        - ambient light delta each tick (clamped 0-100)
+#:   damage       - {vital: amount} applied to every character present
+#:   condition    - character condition applied to everyone present
+#:   movement_cost - extra Energy per move action while present
 #: ``propagation``: spread to areas connected through open ways.
 AREA_STATUS_DEFINITIONS: dict[str, dict[str, Any]] = {
     "on_fire": {

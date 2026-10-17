@@ -2,17 +2,17 @@
 
 Fixes two corruption patterns that accumulate in saved worlds:
 
-1. Phantom edges — connection edges whose source/target does not resolve
+1. Phantom edges - connection edges whose source/target does not resolve
    to any node (case-insensitively). E.g. edges referencing a legacy
    mixed-case id like ``area_Task_18_-_Room_4`` after the node id was
    normalized to ``area_task_18_-_room_4``.
-2. Stale multi-side wiring — a way connected to MORE than two areas
+2. Stale multi-side wiring - a way connected to MORE than two areas
    (leftover edges from an earlier connect that was never cleaned up).
 
 For every way the script computes the canonical pair of areas (from the
 way's ``area_from`` / ``area_to`` properties, resolved by name) and plans:
-- DROP  — phantom edges and edges to areas outside the canonical pair
-- REMAP — keep the edge but rewrite source/target to the canonical
+- DROP  - phantom edges and edges to areas outside the canonical pair
+- REMAP - keep the edge but rewrite source/target to the canonical
   (lowercase) node id
 
 By default it only *prints* the plan (dry run). Pass ``--apply`` to
@@ -107,7 +107,7 @@ def plan_for_graph(nodes_dict, edges):
                     })
             continue
 
-        # More than two areas — pick the canonical pair, drop the rest.
+        # More than two areas - pick the canonical pair, drop the rest.
         if desired and desired.issubset(set(groups.keys())):
             keep = desired
             pair_source = "area_from/area_to props"
@@ -140,7 +140,7 @@ def plan_for_graph(nodes_dict, edges):
                     "action": "DROP",
                     "edge": e,
                     "way": way_id,
-                    "detail": f"stale side ({other}) — keeping {', '.join(sorted(keep))} ({pair_source})",
+                    "detail": f"stale side ({other}) - keeping {', '.join(sorted(keep))} ({pair_source})",
                 })
 
     return changes
@@ -252,7 +252,7 @@ def main():
     changes = plan_for_graph(nodes_dict, edges)
 
     if not changes:
-        print("No issues found — all connection edges are healthy.")
+        print("No issues found - all connection edges are healthy.")
         return
 
     drops = [c for c in changes if c["action"] == "DROP"]
@@ -264,7 +264,7 @@ def main():
         print(f"        {ch['detail']}")
 
     if not args.apply:
-        print("\nDry run — no changes written. Re-run with --apply (and --live for the server).")
+        print("\nDry run - no changes written. Re-run with --apply (and --live for the server).")
         return
 
     if args.live:

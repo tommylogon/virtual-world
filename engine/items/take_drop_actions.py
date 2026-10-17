@@ -37,7 +37,7 @@ def _display_name(name):
     """Strip a leading article so verb phrasings don't double up.
 
     e.g. "You pick up the {item_name}" with item_name="the iron key" would
-    become "the the iron key" — this normalises the noun first. No-op when the
+    become "the the iron key" - this normalises the noun first. No-op when the
     name has no leading article (the common canonical case).
     """
     return re.sub(r'^(?:the|a|an)\s+', '', str(name or '').strip())
@@ -68,7 +68,7 @@ def split_leading_amount(item_name: str):
 
 
 def is_resource_pool(node) -> bool:
-    """True when an item node stands for a *pool* — many of a kind in the
+    """True when an item node stands for a *pool* - many of a kind in the
     world rather than one thing that moves (task-504).
 
     A node qualifies when it authors a ``harvest`` spec, or when it authors a
@@ -117,7 +117,7 @@ class TakeDropActionsMixin:
         Perception usually gets there first: walking into an area already
         observed everything visible there (engine/observation.py), and those
         items pay nothing here because the arrival already paid for them. This
-        is the fallback for an item perception could *not* see — one hidden until
+        is the fallback for an item perception could *not* see - one hidden until
         examined, or taken out of a container.
 
         The novelty curve is what makes "first time" a curve rather than a set
@@ -150,7 +150,7 @@ class TakeDropActionsMixin:
 
         gained = grant(player, subject_id, tick)
         # Stamp it either way, so the next look within the window is not novel
-        # again — absence of an observation has to mean "never met".
+        # again - absence of an observation has to mean "never met".
         player.record_observation(
             subject_id, f"You have seen {item_node.name}.", tick,
             kind="item", tags=item_tags, importance=3,
@@ -211,7 +211,7 @@ class TakeDropActionsMixin:
     @staticmethod
     def _auto_select_identical(nodes) -> Optional[Node]:
         """If every candidate is a functionally identical copy (same name,
-        description, tags and state — e.g. two jumpsuits placed from the same
+        description, tags and state - e.g. two jumpsuits placed from the same
         library item), auto-pick the first instead of prompting the player.
         Returns None when the copies differ, so the caller keeps the
         "Which one?" ambiguity prompt."""
@@ -235,7 +235,7 @@ class TakeDropActionsMixin:
         A player says "take 3 berries" while the bush standing there is called
         a blueberry bush, so the count is a request for the pool's *yield*, not
         for its own name. Only pools are considered, and only when nothing
-        else matched by name — an ordinary item called "berries" still resolves
+        else matched by name - an ordinary item called "berries" still resolves
         through the normal cascade and is never routed here.
         """
         needle = normalize_name(item_name)
@@ -257,7 +257,7 @@ class TakeDropActionsMixin:
         """A visible ``stackable`` stack in the area matching *item_name* (task-473).
 
         Used so "take a piece" reaches the pile even while the player already
-        holds a piece — the same precedence :func:`_find_pool_by_yield` gives a
+        holds a piece - the same precedence :func:`_find_pool_by_yield` gives a
         standing resource pool. Includes a 1-use remnant so the last unit can
         still be picked up while a twin is in hand.
         """
@@ -289,7 +289,7 @@ class TakeDropActionsMixin:
         yield_id = str(spec.get("item") or "").strip() if isinstance(spec, dict) else ""
         if not yield_id:
             raise ValueError(
-                f"The {_display_name(item_node.name)} is rooted where it stands — "
+                f"The {_display_name(item_node.name)} is rooted where it stands - "
                 f"you can't take the whole thing."
             )
 
@@ -342,7 +342,7 @@ class TakeDropActionsMixin:
             raise ValueError(f"The {_display_name(item_node.name)} yields nothing you can carry.")
 
         # A heavy harvest is left lying where it was picked rather than
-        # refused — the yield happened either way.
+        # refused - the yield happened either way.
         cap_error = self._check_player_capacity(player_manager, total_weight)
         to_player = cap_error is None
 
@@ -412,7 +412,7 @@ class TakeDropActionsMixin:
         if wanted:
             # task-504: a standing pool keeps giving after the first pick, so
             # "already carrying" must not short-circuit the second harvest. A
-            # pool in the area that yields this name takes precedence — the
+            # pool in the area that yields this name takes precedence - the
             # player is asking for more of what the thicket grows, not for the
             # handful already in their pack.
             pool_standing = self._find_pool_by_yield(item_name, area_id)
@@ -623,7 +623,7 @@ class TakeDropActionsMixin:
         # task-783: walk to the thing before you take it, the way `use`,
         # `place`, `steal` and `give` already do. `approach_item` is a no-op
         # for anything not in the current area, so an item already in hand,
-        # worn, or inside a carried container is left alone — you are already
+        # worn, or inside a carried container is left alone - you are already
         # at it. A heavy or skill-gated take therefore resolves from where you
         # are standing, not from across the room.
         from engine.character_spatial import approach_item
@@ -741,7 +741,7 @@ class TakeDropActionsMixin:
         # (generic held when no hand slots are declared); only intrinsic
         # abilities (spell/talent) skip straight to carrying. When both hands
         # are occupied, the currently-held item is auto-stowed to carrying and
-        # the new item takes its hand — all in the same turn.
+        # the new item takes its hand - all in the same turn.
         tags_list = [str(t).lower() for t in (item_node.properties.get("tags", []) or [])]
         is_intrinsic = any(t in ("spell", "ability", "innate", "intrinsic", "power") for t in tags_list)
         two_handed = "two_handed" in tags_list
@@ -752,7 +752,7 @@ class TakeDropActionsMixin:
             player = player_manager.players.get(player_manager.active_player)
             if player and isinstance(getattr(player, "equipped", None), dict):
                 if two_handed and (player.equipped.get("hand_left") or player.equipped.get("hand_right")):
-                    raise ValueError("Your hands are full — you can't take that. You need both hands free for a two-handed item.")
+                    raise ValueError("Your hands are full - you can't take that. You need both hands free for a two-handed item.")
                 free_hand = None
                 if not two_handed:
                     for hand in ["hand_right", "hand_left"]:
@@ -793,7 +793,7 @@ class TakeDropActionsMixin:
             self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_CARRYING))
 
         # Any placement edges beyond the one retargeted onto the player are
-        # genuine leftovers — drop them now that placement succeeded.
+        # genuine leftovers - drop them now that placement succeeded.
         for e in placement_edges:
             self.graph.remove_edge(e.source, e.target, e.type)
 
@@ -840,7 +840,7 @@ class TakeDropActionsMixin:
             for pname, p in list(player_manager.players.items()):
                 if p.simple_npc and p.state != "dead":
                     # Pass the item's node, not just its name, so a behaviour
-                    # condition can inspect it — `target_has_tag` reads
+                    # condition can inspect it - `target_has_tag` reads
                     # `context["target_node"]`, which was never set here, so a
                     # "defend the kill" behaviour could not match (task-739).
                     self.world.process_simple_npcs(
@@ -987,7 +987,7 @@ class TakeDropActionsMixin:
         """Drop everything a character holds in their hands into their area.
 
         Fired when a condition with ``drops_held_items`` applies (unconscious,
-        dead) — the character lets go of what's in hand_left/hand_right.
+        dead) - the character lets go of what's in hand_left/hand_right.
         Returns the names of the items dropped.
         """
         player = player_manager.players.get(player_name)

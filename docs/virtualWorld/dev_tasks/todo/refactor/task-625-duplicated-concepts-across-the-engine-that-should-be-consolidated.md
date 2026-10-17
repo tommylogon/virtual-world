@@ -56,11 +56,27 @@ front-end/graph-boundary and testable), then defer #3/#4 to task-430.
 
 ## Why
 
-TODO
+Dual-store concepts are the class of bug where a fact is written in two places with
+different behaviour, so readers disagree silently (see task-724 for the character case
+and AGENTS.md "Never infer runtime behavior from existence"). Consolidating onto one
+authoritative home, with derived projections rebuilt from it, removes a whole category
+of drift. This card owns the cross-cutting inventory; task-724 owns the character
+case and task-430 owns the visited/discovered memory case.
 
 ## How
 
-TODO
+1. Work the inventory one concept at a time, smallest first (#1 and #2 — front-end/graph
+   boundary, testable; then defer #3/#4 to task-430).
+2. For each concept: record authored source, runtime writer, every reader/caller, and the
+   serialized home before changing anything. Identify the authoritative side and the
+   behaviour mismatch.
+3. Consolidate onto the authoritative home; make the other a derived projection rebuilt
+   from it (or retire it). Update `to_scenario_dict`/serialization so the fact is stored
+   once.
+4. Update the AGENTS.md invariant sentence where reality disagrees with it (task-724 did
+   this for the character node).
+5. Add a regression test proving the remaining home is the one read. Run the focused
+   module(s) only; never the full suite by default.
 
 ## Steps to verify
 

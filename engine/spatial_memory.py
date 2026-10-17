@@ -1,7 +1,7 @@
-"""Spatial memory — BFS route discovery from visited_areas + real graph.
+"""Spatial memory - BFS route discovery from visited_areas + real graph.
 
 Replaces the browser-side EntityIndex.buildSpatialContext / buildRoutesFrom.
-Reads the real graph directly — no extraction, no junk.
+Reads the real graph directly - no extraction, no junk.
 """
 
 from collections import deque

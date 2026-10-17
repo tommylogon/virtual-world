@@ -1,4 +1,4 @@
-# engine/npc_behaviors.py — NPC behavior and AI hunting system extracted from VirtualWorld
+# engine/npc_behaviors.py - NPC behavior and AI hunting system extracted from VirtualWorld
 
 import logging
 import random
@@ -24,7 +24,7 @@ from engine.observation_signal import (
 #: Base DC for an NPC to notice another character's state or action.
 PERCEPTION_BASE_DC = 10
 
-#: Stimuli that only exist in mature worlds — gated on ``world.mature_content``.
+#: Stimuli that only exist in mature worlds - gated on ``world.mature_content``.
 SEXUAL_STIMULI = frozenset({"intimacy", "aroused", "nipple_hard", "wetness"})
 
 #: Which region's outer-layer coverage makes a stimulus harder to read. Exposed
@@ -69,7 +69,7 @@ def _interval_ticks(gs, minutes) -> int:
     game units and scales; this was the last one that did not.
 
     Quantised to the nearest tick with a floor of one, because a tick is the
-    smallest step the scheduler can take — at 15 min/tick a "20 minute" interval
+    smallest step the scheduler can take - at 15 min/tick a "20 minute" interval
     is one tick (15 minutes), which is as close as it can get. At the default
     1 min/tick the meaning of an authored value is unchanged.
     """
@@ -188,7 +188,7 @@ class NPCBehaviorSystem:
         return dc
 
     def check_perception(self, npc, dc) -> bool:
-        """d20 + WIS modifier + Perception trait mods vs DC (silent — no log spam)."""
+        """d20 + WIS modifier + Perception trait mods vs DC (silent - no log spam)."""
         from engine.traits import TraitSystem
         stat_value = (getattr(npc, "stats", None) or {}).get("WIS", 10)
         mod = (stat_value - 10) // 2
@@ -264,7 +264,7 @@ class NPCBehaviorSystem:
         return self._emit_reaction(npc, reaction)
 
     def _can_observe(self, npc, target, stimulus_type) -> bool:
-        """Cheap eligibility gate — is this character a candidate observer at all?
+        """Cheap eligibility gate - is this character a candidate observer at all?
 
         Kept separate from the DC roll so a tier that is not *looking* (dead,
         spectral, or in a non-mature world reading a sexual stimulus) never
@@ -286,7 +286,7 @@ class NPCBehaviorSystem:
         Answers "was there an audience", which ``body_parts.is_exposed`` cannot:
         that answers "is this body part covered", and a covered body part in an
         empty room is nobody's business. Someone who noticed something in the
-        dark, or who is asleep or unconscious, is a witness but not an onlooker —
+        dark, or who is asleep or unconscious, is a witness but not an onlooker -
         the record keeps them, marked covert.
 
         Deliberately reads conditions and the activity rather than ``state``:
@@ -310,7 +310,7 @@ class NPCBehaviorSystem:
                             stimulus_data: dict = None) -> List[dict]:
         """One structured perception pass: who saw *target*, and how openly.
 
-        Every character tier that can look is included — agent-driven and human
+        Every character tier that can look is included - agent-driven and human
         characters as well as simple NPCs. The old pass skipped them because it
         only ever returned reaction *lines*, which those tiers already narrate
         through their own prompts; a "was I seen" record is not a line, and the
@@ -408,7 +408,7 @@ class NPCBehaviorSystem:
         * a packmate's call **names a target** here, so
           ``player.pack_target`` is set even for a character that never saw the
           fight itself;
-        * if this character is being threatened, it **calls for help** — the
+        * if this character is being threatened, it **calls for help** - the
           "warn each other" half of task-354, throttled so a cornered rat does
           not have the whole sewer howling every tick.
 
@@ -470,7 +470,7 @@ class NPCBehaviorSystem:
             if not player.simple_npc:
                 continue
             # `autonomy` is the engine's one "does this character act on its own"
-            # switch — background_simulation.py:234 already refuses to puppet a
+            # switch - background_simulation.py:234 already refuses to puppet a
             # non-autonomous character. A declared simple NPC that is not
             # autonomous keeps its behaviour tree but does not run it until a
             # caller turns autonomy on. tests/fixtures/world.json relies on this
@@ -541,7 +541,7 @@ class NPCBehaviorSystem:
             if not acted and trigger_type == "on_tick":
                 # `or 3`: the attribute is often present as None (saved data
                 # writes null), and getattr's default only applies when it is
-                # absent — `time_ticks % None` used to raise and take the tick
+                # absent - `time_ticks % None` used to raise and take the tick
                 # down with it.
                 interval_ticks = _interval_ticks(
                     self.gs, getattr(player, 'npc_action_interval', 3) or 3)
@@ -761,7 +761,7 @@ class NPCBehaviorSystem:
             return ""
 
         if hunter.current_area == target.current_area:
-            # Same area — attack! (combat.player_attack via facade delegate)
+            # Same area - attack! (combat.player_attack via facade delegate)
             return self.gs.player_attack(slasher_name, target_name)
 
         # Try to move toward the target
@@ -785,7 +785,7 @@ class NPCBehaviorSystem:
             if way_node.properties.get("one_way"):
                 source_area = way_endpoint_name(way_node, self.graph, "from")
                 if hunter.current_area != source_area:
-                    return f"{slasher_name} snarls at the {direction} but can't go that way — the passage is one-way."
+                    return f"{slasher_name} snarls at the {direction} but can't go that way - the passage is one-way."
             if way_node.properties.get("current_state") in ("closed",):
                 # Slasher can force open closed ways
                 way_node.properties["current_state"] = "open"

@@ -196,7 +196,7 @@ def weather_light_mult(weather: Any) -> float:
     """Ambient light multiplier for a weather value, ``1.0`` when unknown.
 
     Returns ``1.0`` for an unset or unrecognised value, so a world with no
-    forecast is completely unaffected — only a world that actually authors
+    forecast is completely unaffected - only a world that actually authors
     weather sees its light change (bug-54).
     """
     rec = weather_types().get(normalize_weather(weather))

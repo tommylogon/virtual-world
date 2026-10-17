@@ -1,9 +1,9 @@
-"""Relative facing — ``forward`` / ``left`` / ``right`` / ``back`` as directions.
+"""Relative facing - ``forward`` / ``left`` / ``right`` / ``back`` as directions.
 
 A character has no orientation of its own. What it has is **the heading of the
 last crossing**: stamp the way it came through and the cardinal it travelled,
-and that cardinal is its facing. Facing changes only by moving — there is no
-turn-in-place verb — which keeps the whole feature to one piece of state.
+and that cardinal is its facing. Facing changes only by moving - there is no
+turn-in-place verb - which keeps the whole feature to one piece of state.
 
     coming from the south  -> travelling north -> facing north
     so "right" is east, "left" is west
@@ -90,18 +90,18 @@ def rotate(word: str, facing: str) -> Optional[str]:
 def explain_unresolved(word: str, facing) -> str:
     """A sentence saying *why* a relative word could not be resolved.
 
-    "can't go there" hides the actual problem — the player typed a perfectly
+    "can't go there" hides the actual problem - the player typed a perfectly
     good word and the answer should tell them what the character is missing.
     """
     clean = str(word or "").strip().lower()
     if not facing:
         return (
-            f"You cannot tell '{clean}' — this character has not moved yet, so it "
+            f"You cannot tell '{clean}' - this character has not moved yet, so it "
             "has no facing. Use a direction like north or south."
         )
     if normalize_cardinal(facing) is None:
         return (
-            f"You cannot tell '{clean}' — facing '{facing}' is not a cardinal "
+            f"You cannot tell '{clean}' - facing '{facing}' is not a cardinal "
             "direction, so there is nothing to turn it from. Use north, south, "
             "east or west."
         )
@@ -117,7 +117,7 @@ def explain_unresolved(word: str, facing) -> str:
 def resolve_for_player(word: str, player) -> Tuple[Optional[str], str]:
     """Resolve ``word`` for a player. Returns ``(cardinal, reason_if_none)``.
 
-    The single call site for "which way is that for this character" — the
+    The single call site for "which way is that for this character" - the
     resolver and the messaging read the same two facts, so a rotation can never
     succeed in one and fail in the other.
     """
@@ -133,8 +133,8 @@ def resolve_for_player(word: str, player) -> Tuple[Optional[str], str]:
 def edge_cardinal(edge) -> Optional[str]:
     """The normalised cardinal a connection edge points along, or ``None``.
 
-    One reader for both sides of this feature — stamping facing on the way in
-    and resolving a relative word on the way out — because they must agree
+    One reader for both sides of this feature - stamping facing on the way in
+    and resolving a relative word on the way out - because they must agree
     about which exits are north.
 
     It reads ``cardinal`` first and falls back to ``direction``, and the
@@ -142,7 +142,7 @@ def edge_cardinal(edge) -> Optional[str]:
     (``world_compile.create_way``) sets both, but the runtime writers
     (``movement.connect_areas`` and the ``create_way`` effect) set **only**
     ``direction``. Reading ``cardinal`` alone would have made facing work in
-    compiled zones and silently fail everywhere else — a mechanic that looks
+    compiled zones and silently fail everywhere else - a mechanic that looks
     wired and is not, which is the failure mode this whole feature exists to
     avoid.
 

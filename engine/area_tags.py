@@ -1,11 +1,11 @@
-"""Area tag predicates — one home per fact.
+"""Area tag predicates - one home per fact.
 
 An area being **under the open sky** was decided four separate ways:
 
-- ``lighting.LightingSystem.is_outdoor_area`` — ``"outdoor" in tags``
-- ``area_description._is_open_sky`` — either spelling
-- ``environment_propagation`` (twice) — ``"exterior" in tags``
-- ``tick_manager`` — ``"exterior" in tags``
+- ``lighting.LightingSystem.is_outdoor_area`` - ``"outdoor" in tags``
+- ``area_description._is_open_sky`` - either spelling
+- ``environment_propagation`` (twice) - ``"exterior" in tags``
+- ``tick_manager`` - ``"exterior" in tags``
 
 One fact, four readers, and the spellings disagreeing. That is why a painted
 WorldPainter world could have weather prose in one subsystem and none at all in
@@ -28,7 +28,7 @@ OPEN_SKY_TAGS = frozenset({"outdoor", "exterior"})
 def is_open_sky(tags: Any) -> bool:
     """True when an area's tags say it is under the open sky.
 
-    Accepts a list of tags, a comma-joined string, or ``None`` — call sites pass
+    Accepts a list of tags, a comma-joined string, or ``None`` - call sites pass
     whatever their area node happens to hold, and a missing key must mean
     "indoors" rather than raise.
     """

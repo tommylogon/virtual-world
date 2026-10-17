@@ -1,7 +1,7 @@
 """Carry-weight math for characters (encumbrance).
 
 Moved verbatim from engine/item_actions.py as part of the task-314
-verb-family split. Pure graph functions — no class context needed.
+verb-family split. Pure graph functions - no class context needed.
 `engine.item_actions` re-exports the public names so existing imports
 (routes, serialization, effects) keep working.
 """

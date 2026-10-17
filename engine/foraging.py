@@ -1,8 +1,8 @@
 """Skill-driven search finds (task-471).
 
 An area need not be hand-stocked to be worth searching. What a search turns up
-depends on the *skill* it is made with — Survival finds herbs, fruit, roots and
-grubs; History finds old things; Religion finds relics — and the **area** tilts
+depends on the *skill* it is made with - Survival finds herbs, fruit, roots and
+grubs; History finds old things; Religion finds relics - and the **area** tilts
 both the chance and the flavour: a forest favours Survival, a ruin favours
 History and Religion, and an item already present (an old religious statue in a
 forest) raises the weight of the matching kind of find.
@@ -13,11 +13,11 @@ turn one wood into a loot piñata. Finds are ordinary library items, spawned as
 fresh copies, so they can be taken, eaten, given away or ignored by every other
 system.
 
-Tag convention (additive — an item keeps every tag that is true of it):
+Tag convention (additive - an item keeps every tag that is true of it):
 ``forage`` is a **mechanics** tag meaning "this can turn up when someone
 searches the wilds". Tables name type tags (``fruit``, ``tool``, ``coin``,
 ``relic`` …) and, when any candidate carries ``forage``, only tagged items are
-eligible — so a search draws from a curated pool instead of matching a cauldron
+eligible - so a search draws from a curated pool instead of matching a cauldron
 or a nail-polish kit just because both say ``food``/``tool``. Biome preference
 lives in the tables (:data:`AREA_SKILL_BONUS`), not on the items.
 
@@ -180,7 +180,7 @@ _LIBRARY_INDEX = None
 #: tagged items when any exist (see _pick_item), so the pool stays curated.
 FORAGE_TAG = "forage"
 
-#: Anything useless a search can also turn up — the wilds are not a pantry.
+#: Anything useless a search can also turn up - the wilds are not a pantry.
 JUNK_ENTRY = {"tags": ["junk", "scrap", "debris"], "weight": 2}
 
 
@@ -319,7 +319,7 @@ def _candidate_entries(skill_key, want_tags, strong: bool = False,
 
     A **strong** result (margin ≥ 5) delivers what was asked for: if a need is
     given, only entries satisfying it. A bare success delivers the skill's
-    table plus junk — the wilds are not a pantry, and an unskilled searcher
+    table plus junk - the wilds are not a pantry, and an unskilled searcher
     mostly finds sticks. This is what makes a Survival-trained goblin eat where
     a child goes hungry (task-471/472).
 
@@ -374,7 +374,7 @@ def _weight(entry, skill_key, area_tags, present_tags, want_tags=()):
     # What the searcher actually needs is much more likely to be what they spot.
     if want & tags:
         weight += 3.0
-    # Something already here — an old religious statue in a forest — makes the
+    # Something already here - an old religious statue in a forest - makes the
     # matching kind of find more likely.
     weight += float(len(tags & present_tags))
     return max(0.0, weight)
@@ -408,7 +408,7 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None,
     """Search *area_name* with *skill*; spawn and return a find, or None.
 
     Returns None when the area is capped for the day, the check fails, or the
-    library has nothing matching — an empty-handed search is a normal result.
+    library has nothing matching - an empty-handed search is a normal result.
 
     ``require_notice`` makes this the *second* half of notice-then-search
     (task-478): the area must first have been noticed by :func:`notice`, or the
@@ -424,7 +424,7 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None,
 
     # Only an area that can plausibly *hold* a find yields one: a forest, shore,
     # ruin, road, battlefield. A bare interior with no such tag stays barren, so
-    # this never turns every room into a resource dispenser — unless the area
+    # this never turns every room into a resource dispenser - unless the area
     # authors its own table override (task-483), which is explicit intent.
     area_tags = _area_tags(area_node)
     area_tables = _area_tables(area_node)
@@ -500,7 +500,7 @@ def notice(gs, player, area_name, *, dc: int = SEARCH_DC) -> bool:
     The *first* half of notice-then-search. Returns True when something is
     noticed (and remembers it on the area), False when the searcher walks past.
     Perception is the **gate**; the search skill (Investigation, ...) is the
-    *find* — so a perceptive but untrained character notices the cache and still
+    *find* - so a perceptive but untrained character notices the cache and still
     cannot open it, and a trained but unobservant one never sees it at all.
 
     Fails open when there is no skill system, matching `_search_check`.
@@ -527,7 +527,7 @@ def search_hidden(gs, player, area_name, *, skill="investigation", want_tags=(),
                   rng=None):
     """Two-step hidden search (task-478): Perception notices, *skill* finds.
 
-    A failed notice means no search happens at all — the character did not see
+    A failed notice means no search happens at all - the character did not see
     there was anything to look for. A success is remembered on the area, so
     coming back later does not pay for the notice again. Returns the find or None.
     """
@@ -590,7 +590,7 @@ def _draw_from_pool(gs, pool) -> None:
     """Charge one unit against a standing pool and retire it when it empties.
 
     The caller still spawns the loose copy the search promised, so the world
-    trades one unit of standing thicket for one unit lying about — the same
+    trades one unit of standing thicket for one unit lying about - the same
     accounting a hand harvest does, without the harvest's skill gate.
     """
     from engine.room_perception import item_quantity

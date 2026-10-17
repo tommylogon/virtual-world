@@ -149,13 +149,13 @@ class UiMixin:
         # `on_light` (task-396) is the semantic "this got lit" hook and
         # fires on the same transition, so it implies toggleability too.
         # The `toggleable` tag is the gate ToggleableItems.toggle_item_status
-        # actually enforces — offering Toggle without it renders an
+        # actually enforces - offering Toggle without it renders an
         # affordance the engine rejects ("the X can't be toggled").
         if (
             {"on_toggle_on", "on_toggle_off", "on_light"} & trigger_types
         ) and "toggleable" in tags:
             # The engine's vocabulary is lit/unlit (ToggleableItems), not
-            # on/off — "off" never matched anything, so an unlit match read
+            # on/off - "off" never matched anything, so an unlit match read
             # "Toggle off". Anything that is not `lit` is unlit, which also
             # covers the library's `normal` initial state.
             is_lit = str(state).lower() == "lit"

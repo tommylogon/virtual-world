@@ -1,4 +1,4 @@
-"""Runtime engine constants — the user-facing "Engine Config" menu.
+"""Runtime engine constants - the user-facing "Engine Config" menu.
 
 Task-304: centralize the constants that previously needed a code edit to tune
 (sound propagation, heat propagation, light spill) behind a single editable
@@ -57,7 +57,7 @@ DEFAULTS: dict = {
     "heat.max_delta": 2.0,
     # engine/lighting.py
     "light.spill_factor": 0.5,
-    # engine/barriers.py (task-421) — light's TRANSMISSION per way state. Sound
+    # engine/barriers.py (task-421) - light's TRANSMISSION per way state. Sound
     # has a matching `sound.way_*` set; the two share one state ladder, not one
     # number, because a cost and a fraction run in opposite directions.
     "light.way_open": 1.0,
@@ -66,7 +66,7 @@ DEFAULTS: dict = {
     "light.way_locked": 0.1,
     "light.way_blocked": 0.0,
     "light.way_hidden": 0.0,
-    # engine/beyond_visibility.py (task-498) — how many ways a sightline runs
+    # engine/beyond_visibility.py (task-498) - how many ways a sightline runs
     # through. A taste decision, so it lives where it can be argued with.
     "sightline.depth": 3,
     # engine/weather_forecast.py
@@ -75,7 +75,7 @@ DEFAULTS: dict = {
     "emotion.decay_per_tick": 1.5,
     "emotion.llm_spike_max": 15.0,
     "emotion.recall_spike_scale": 0.25,
-    # engine/emotion.py (task-505) — resolve emotion labels the curated keyword
+    # engine/emotion.py (task-505) - resolve emotion labels the curated keyword
     # map has never seen, by nearest affect-dimension anchor. Off by default: the
     # keyword map is the fast path, and a semantic miss costs an embedding call.
     "emotion.semantic_labels": False,
@@ -83,17 +83,17 @@ DEFAULTS: dict = {
     "graph.physics_enabled": True,
     "graph.show_items": False,
     "graph.show_only_inhabited": True,
-    # player.py — per-character memory retention
+    # player.py - per-character memory retention
     "memory.max_per_character": 0,
-    # engine/memory_dynamics.py (task-687) — activation lost per tick; 0 freezes
+    # engine/memory_dynamics.py (task-687) - activation lost per tick; 0 freezes
     "memory.decay_per_tick": 0.01,
-    # engine/memory_dynamics.py (task-688) — consolidate even without cap pressure
+    # engine/memory_dynamics.py (task-688) - consolidate even without cap pressure
     "memory.consolidate": False,
-    # player.py — relationship drift toward neutral when unmaintained
+    # player.py - relationship drift toward neutral when unmaintained
     "relationship.decay_per_day": 0.5,
-    # engine/novelty.py — Entertainment from fresh places/things/people
+    # engine/novelty.py - Entertainment from fresh places/things/people
     "entertainment.novelty_recovery_minutes": 120,
-    # engine/combat.py (task-607) — how an equipped `defense`/`damage_reduction`
+    # engine/combat.py (task-607) - how an equipped `defense`/`damage_reduction`
     # expression is applied to incoming damage. ``flat`` is the historical
     # behaviour (subtract the value) and is the default so no scenario changes
     # silently. ``dice`` strips damage dice instead of points; ``percentage``
@@ -102,18 +102,18 @@ DEFAULTS: dict = {
 }
 
 #: Consuming modules read values at call time via config.get(); no module
-#: patching is needed — keep this file purely storage + persistence.
+#: patching is needed - keep this file purely storage + persistence.
 _SECTION_DESCRIPTIONS: dict[str, str] = {
-    "sound": "Sound propagation — speech penetration, door/sound barriers, ambient-noise levels",
-    "heat": "Temperature propagation — per-tick heat exchange rate and max single-tick delta",
-    "light": "Lighting — fraction of a lit neighbor area's light that spills through an open door",
-    "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling, semantic resolution of unknown labels (task-505)",
-    "graph": "Graph visualization — physics simulation, item visibility, area filtering",
-    "forecast": "Weather forecast — scope of areas the schedule baseline is applied to (exterior | all)",
-    "memory": "Character memories — retention cap (0 = keep everything)",
-    "relationship": "Relationships — closeness drift toward neutral when nobody maintains the bond",
-    "entertainment": "Entertainment — how long a place, thing or person stays familiar before it is fresh (and entertaining) again",
-    "combat": "Combat defence (task-604/607) — how worn damage-reduction is applied to incoming damage",
+    "sound": "Sound propagation - speech penetration, door/sound barriers, ambient-noise levels",
+    "heat": "Temperature propagation - per-tick heat exchange rate and max single-tick delta",
+    "light": "Lighting - fraction of a lit neighbor area's light that spills through an open door",
+    "emotion": "Character affect (task-96) - per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling, semantic resolution of unknown labels (task-505)",
+    "graph": "Graph visualization - physics simulation, item visibility, area filtering",
+    "forecast": "Weather forecast - scope of areas the schedule baseline is applied to (exterior | all)",
+    "memory": "Character memories - retention cap (0 = keep everything)",
+    "relationship": "Relationships - closeness drift toward neutral when nobody maintains the bond",
+    "entertainment": "Entertainment - how long a place, thing or person stays familiar before it is fresh (and entertaining) again",
+    "combat": "Combat defence (task-604/607) - how worn damage-reduction is applied to incoming damage",
 }
 
 #: Default config file location, relative to this module file.
@@ -121,7 +121,7 @@ _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 CONFIG_FILE = os.path.join(_DATA_DIR, "engine_config.json")
 
 #: How a **string** spelling of a boolean is read. A hand-edit of a JSON file
-#: writes `"true"`, and ``bool("false")`` is ``True`` — so a config that *looks*
+#: writes `"true"`, and ``bool("false")`` is ``True`` - so a config that *looks*
 #: like it turned something off actually turned it on. Listed explicitly rather
 #: than with a truthiness test, because a typo has to be a refusal, not a guess.
 _TRUE_SPELLINGS = {"true", "1", "yes", "on"}
@@ -133,7 +133,7 @@ def _coerce_like_default(default: object, value: object) -> object:
 
     The type is taken from the **default**, never from the value. A setting is
     declared by its default, and a value that cannot be read as that type is a bad
-    edit the author needs told about — not something to reshape into whatever
+    edit the author needs told about - not something to reshape into whatever
     happens to parse.
 
     - ``bool`` accepts a real bool, and the string and number spellings people
@@ -160,7 +160,7 @@ def _coerce_like_default(default: object, value: object) -> object:
         raise ValueError(f"{value!r} is not a yes/no value")
     if isinstance(default, int):
         if isinstance(value, bool):
-            # A bool IS an int in Python, and `int(True)` is 1 — so a hand-edited
+            # A bool IS an int in Python, and `int(True)` is 1 - so a hand-edited
             # `"graph.physics_enabled": true` for a count would silently become 1.
             raise ValueError(f"{value!r} is a bool, not a number")
         return int(value)
@@ -181,7 +181,7 @@ def _refuse_if_not_a_choice(key: str, value: object) -> Optional[str]:
     A key may declare ``"choices"`` in :data:`SCHEMA`, which is how a *string*
     setting says which strings it means. Without it the value is taken on trust,
     and a consumer whose default branch is "anything else" turns a typo into a
-    silently different behaviour — ``forecast.apply_scope`` reads "not exterior"
+    silently different behaviour - ``forecast.apply_scope`` reads "not exterior"
     as "apply to every area", so ``"exteriorr"`` would have quietly widened the
     weather to interiors. Declaring the set is one line per key; a mistake in it
     becomes a message instead of a change nobody asked for.
@@ -223,7 +223,7 @@ class RuntimeConfig:
                 #
                 # Every arm of this ladder used to be bool → int → `else: float`,
                 # so a **string**-defaulted key had no arm at all and fell into
-                # the float one — `float("exterior")` raised, and
+                # the float one - `float("exterior")` raised, and
                 # `forecast.apply_scope` was therefore *unsettable*: the only
                 # string-defaulted key warned "Ignoring bad value" on every load
                 # and silently kept the default, so the operator could not change
@@ -258,7 +258,7 @@ class RuntimeConfig:
         """Merge ``values`` over the current state, persist, apply live.
 
         Only known keys are accepted, and a value is coerced to its default's type
-        by the same rule the loader uses (:func:`_coerce_like_default`) — the two
+        by the same rule the loader uses (:func:`_coerce_like_default`) - the two
         used to have separate copies of that ladder, so a string-defaulted key
         failed on the *file* path with a warning and on the *API* path in silence.
         Returns the merged values dict.

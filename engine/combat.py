@@ -60,7 +60,7 @@ class CombatSystem:
         ``VirtualWorld`` itself, while ``tests/test_combat.py`` hands over a
         ``SkillSystem`` that has been monkey-patched with just the handful of
         methods the attack maths calls. So the world is not always reachable
-        through ``self.skills`` directly — walk to it when it is there rather
+        through ``self.skills`` directly - walk to it when it is there rather
         than assuming either shape, which is what let the death branch below
         raise ``AttributeError`` on a perfectly ordinary test.
         """
@@ -78,7 +78,7 @@ class CombatSystem:
             return None
 
     def _armor_wear_text(self, target):
-        """Natural-language armor-wear note for a hit (task-161) — never raw
+        """Natural-language armor-wear note for a hit (task-161) - never raw
         use counts. Empty string when no tracked armor is equipped."""
         try:
             equipment = self.skills.equipment
@@ -92,7 +92,7 @@ class CombatSystem:
         return ""
 
     def _wound_sentence(self, damage: int, damage_type: str, region: str) -> str:
-        """Narrative-only wound description — NO hit points, no totals.
+        """Narrative-only wound description - NO hit points, no totals.
 
         The engine still tracks HP internally; characters live in injuries and
         conditions. Region + severity + damage type drive the prose: a slashing
@@ -114,7 +114,7 @@ class CombatSystem:
         if dt == "bludgeoning":
             if damage >= 13:
                 return f"a crushing impact slams into the {region}, the flesh swelling at once."
-            return f"a heavy blow slams into the {region}" + (" — the area swells immediately." if damage >= 8 else " — a stinging bruise.")
+            return f"a heavy blow slams into the {region}" + (" - the area swells immediately." if damage >= 8 else " - a stinging bruise.")
         if damage >= 8:
             return f"a heavy hit lands in the {region}, knocking the wind out of them."
         return f"a glancing hit lands in the {region}."
@@ -229,11 +229,11 @@ class CombatSystem:
             return ""
 
         # task-309 (5e-aligned): you can only strike what you can see. An unseen
-        # target — mundane hidden, or an unmanifested ghost — can't be aimed at;
+        # target - mundane hidden, or an unmanifested ghost - can't be aimed at;
         # a manifested ghost is solid and hittable like any other creature.
         try:
             if not self.skills.player_manager.is_visible(target.name):
-                return (f"{attacker_name} swings at {target_name} — and the blow passes "
+                return (f"{attacker_name} swings at {target_name} - and the blow passes "
                         f"straight through empty air. {target_name} is not there to hit.")
         except Exception:
             pass
@@ -253,7 +253,7 @@ class CombatSystem:
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} can't bring themselves to hurt {target_name} (charmed)."
                 )
-                return f"{attacker_name} hesitates — they can't bring themselves to hurt {target_name}."
+                return f"{attacker_name} hesitates - they can't bring themselves to hurt {target_name}."
 
         # Frightened (character source): can't attack the character they fear
         if attacker.has_condition("frightened"):
@@ -261,9 +261,9 @@ class CombatSystem:
             block = frightened_block(attacker, "character", source_name=target_name)
             if block:
                 self.skills.add_log_entry(f"[COMBAT] {attacker_name} is too afraid to attack {target_name}.")
-                return f"{attacker_name} trembles — {block}"
+                return f"{attacker_name} trembles - {block}"
 
-        # Decrease target's relationship toward the attacker — catches the "psychotic friend" betrayal case.
+        # Decrease target's relationship toward the attacker - catches the "psychotic friend" betrayal case.
         # Through the one write path (task-420) so the cause is recorded: a
         # beating and a shared meal both move the same scalar, and only the
         # trace can tell them apart afterwards.
@@ -299,7 +299,7 @@ class CombatSystem:
 
         # Condition catalog mods (Phase 1 + follow-up): each condition's
         # attack_mod applies to the bearer's rolls; `defense_mod` is the
-        # TARGET's defense, subtracted here — a negative defense (helpless
+        # TARGET's defense, subtracted here - a negative defense (helpless
         # conditions) hands the attacker +X.
         from engine.conditions import get_condition_mods
         attacker_mods = get_condition_mods(attacker)
@@ -307,7 +307,7 @@ class CombatSystem:
         attack_mod += attacker_mods["attack_mod"] - target_mods["defense_mod"]
 
         # Auto-select the attacker's best weapon when none was named. "attack X"
-        # used to resolve BARE-HANDED even when a butcher carried a cleaver —
+        # used to resolve BARE-HANDED even when a butcher carried a cleaver -
         # the weapon just sat unseen in inventory.
         if weapon_node is None:
             weapon_node = self._best_weapon_node(attacker_name)
@@ -423,7 +423,7 @@ class CombatSystem:
                 # aggregate above (a flat subtraction) cannot express, so this is
                 # a separate step rather than more entries in that dict. A
                 # magical weapon still gets through the weapon-resistance half
-                # — that is the 5e rule and the reason a ghost is a problem.
+                # - that is the 5e rule and the reason a ghost is a problem.
                 undead_note = ""
                 if damage > 0:
                     from engine import undead as undead_mod
@@ -467,19 +467,19 @@ class CombatSystem:
                 else:
                     region_phrase = ""
 
-                # Narrative-first result — NO hit-point numbers. Characters live
+                # Narrative-first result - NO hit-point numbers. Characters live
                 # in wounds and conditions; HP stays engine-internal.
                 wound = self._wound_sentence(damage, damage_type, region_phrase)
                 armor_note = " Armor blunted the blow." if dr_label else ""
                 resist_note = f" ({resisted_by} resisted)" if resisted_by > 0 else ""
                 if undead_note:
                     # Nothing solid was struck, so no wound sentence and no
-                    # region injury — the blow did not land.
+                    # region injury - the blow did not land.
                     wound = undead_note
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT - {wound}"
                     f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
@@ -496,10 +496,10 @@ class CombatSystem:
                 if wake_msg:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
-                    hit_msg += f" {target_name} — {injury_note}."
+                    hit_msg += f" {target_name} - {injury_note}."
                 hit_msg += self._armor_wear_text(target)
 
-                # Stun on hit — driven by weapon stun_chance (0-100) and stun_duration.
+                # Stun on hit - driven by weapon stun_chance (0-100) and stun_duration.
                 # `stunned` stacks as "refresh": a fresh stun extends the countdown.
                 stun_chance = int(weapon_props.get("stun_chance", 0) or 0)
                 if stun_chance > 0 and random.randint(1, 100) <= stun_chance:
@@ -542,7 +542,7 @@ class CombatSystem:
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT - {wound}"
                     f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
@@ -559,7 +559,7 @@ class CombatSystem:
                 if wake_msg:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
-                    hit_msg += f" {target_name} — {injury_note}."
+                    hit_msg += f" {target_name} - {injury_note}."
                 hit_msg += self._armor_wear_text(target)
 
             if target.vitals["HP"] <= 0:
@@ -567,7 +567,7 @@ class CombatSystem:
                 # held items and writes the lived-log record, so a body killed
                 # by a sword is indistinguishable from one the cold took. The
                 # guard is for the isolated harness, which passes a partial
-                # `skills` double with no world behind it — there the original
+                # `skills` double with no world behind it - there the original
                 # inline handling stands in.
                 cause = f"slain by {attacker_name}"
                 game_state = self._game_state()
@@ -583,7 +583,7 @@ class CombatSystem:
                     except Exception:
                         pass
                 self.skills.add_log_entry(f"[{target_name}] has been killed by {attacker_name}!")
-                return f"{hit_msg} {target_name} collapses — dead."
+                return f"{hit_msg} {target_name} collapses - dead."
             return hit_msg
         else:
             self.skills.add_log_entry(
@@ -631,11 +631,11 @@ class CombatSystem:
 
         Only fires when the region is exposed (not covered by high-coverage
         clothing) and damage crosses the injury threshold. Each body part holds
-        its own condition instances via the ``body_part`` override — so a gash
+        its own condition instances via the ``body_part`` override - so a gash
         on the arm and a bruise on the leg are mechanically distinct and heal
         independently (``ends_on: fix`` ends only the matching instances).
         Slashing/piercing wounds bleed at a lower threshold (they cut blood
-        vessels — the condition matches the prose in _wound_sentence).
+        vessels - the condition matches the prose in _wound_sentence).
         Returns a human-readable injury note ("" when nothing applies).
         """
         if not region or not injury_target:
@@ -741,7 +741,7 @@ class CombatSystem:
         """Auto-select the strongest weapon the attacker carries or equips.
 
         ``attack X`` with no explicit ``with <weapon>`` used to resolve bare
-        handed even when the attacker held a weapon — the butcher's cleaver did
+        handed even when the attacker held a weapon - the butcher's cleaver did
         fists while the cleaver sat ignored in inventory. Candidates are item
         nodes with a ``damage`` property or a ``weapon`` tag; highest flat/dice
         damage wins.

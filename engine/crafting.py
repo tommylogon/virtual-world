@@ -6,7 +6,7 @@ canonical home is ``data/library/recipes/<id>.json``; a recipe may also ride
 on an item's properties (cookbook, recipe note) or in a character's
 ``crafting_known`` store. The ``type: recipe`` node lookup below
 (``recipe_nodes`` / ``_find_recipe``) is TECH DEBT retained for the existing
-tests — new code reads the registry, and new recipes are authored as entries.
+tests - new code reads the registry, and new recipes are authored as entries.
 
 A recipe entry declares:
 
@@ -40,7 +40,7 @@ fail closed.
 Inputs are matched carrying-first, then the current area (reachable items).
 ``consumed: true`` inputs are eaten: one use if the item tracks uses, the
 whole node otherwise. Outputs are hydrated from the item library via the
-``give_item`` effect (lands in the player's hands/inventory) — so output
+``give_item`` effect (lands in the player's hands/inventory) - so output
 ``item`` values are library ids.
 """
 
@@ -50,7 +50,7 @@ import random as _random
 import re
 
 #: Tier names the check degree maps to. ``strong_success`` is a success
-#: degree (margin >= 5), not a fifth outcome — it shares the success
+#: degree (margin >= 5), not a fifth outcome - it shares the success
 #: outputs. ``auto_fail`` (a condition prevents the attempt) fails.
 TIER_MAP = {
     "crit_fail": "crit_fail",
@@ -73,7 +73,7 @@ def load_registry(directory=None) -> dict:
     """Read every ``<id>.json`` recipe entry into ``{id: entry}``.
 
     Lightweight by design: presence and shape (dict with ``id``) only.
-    The full contract lives in ``tools/recipe_check.py`` — the engine
+    The full contract lives in ``tools/recipe_check.py`` - the engine
     reads what the gate has already approved, and skips what it cannot
     parse rather than refusing to craft anything.
     """
@@ -203,7 +203,7 @@ class CraftingSystem:
 
     def known_recipes(self, player_name: str) -> list:
         """One projection per character (task-841): id, name, source,
-        skill, dc, duration. No new stores — registry + knowledge read."""
+        skill, dc, duration. No new stores - registry + knowledge read."""
         player = self.player_manager.players.get(player_name)
         if not player:
             return []
@@ -317,7 +317,7 @@ class CraftingSystem:
                         game_state=self.world,
                     )
                     msgs.extend(results if isinstance(results, list) else [results])
-                except Exception as e:  # noqa: BLE001 — a bad output shouldn't kill the craft
+                except Exception as e:  # noqa: BLE001 - a bad output shouldn't kill the craft
                     msgs.append(f"The {item_id} fails to materialize: {e}")
         return msgs
 
@@ -348,7 +348,7 @@ class CraftingSystem:
             except Exception:
                 success = False
             return success
-        # fail closed for anything else — crafting gates must be explicit
+        # fail closed for anything else - crafting gates must be explicit
         return False
 
     def teach(self, player_manager, student_name: str, subject: str) -> str:
@@ -366,7 +366,7 @@ class CraftingSystem:
         if teacher_name == student_name:
             raise ValueError("You already know everything you could teach yourself.")
         if student.current_area != teacher.current_area:
-            raise ValueError(f"{student_name} isn't here — they can't learn that from you.")
+            raise ValueError(f"{student_name} isn't here - they can't learn that from you.")
 
         subject = str(subject or '').strip()
         if subject.lower().startswith('skill:'):
@@ -377,7 +377,7 @@ class CraftingSystem:
             student_skills = dict(getattr(student, 'skills', {}) or {})
             student_skills[skill_name] = int(student_skills.get(skill_name, 0) or 0) + 1
             student.skills = student_skills
-            return f"You spend a while going over the basics with {student_name} — they gain a bit of {skill_name}."
+            return f"You spend a while going over the basics with {student_name} - they gain a bit of {skill_name}."
 
         recipe = self._find_recipe(subject)
         if recipe is None:
@@ -389,7 +389,7 @@ class CraftingSystem:
             return f"{student_name} already knows how to make {recipe.get('name')}."
         known.append(recipe.get("name", subject))
         student.crafting_known = known
-        return f"You walk {student_name} through it — they now know how to make {recipe.get('name')}."
+        return f"You walk {student_name} through it - they now know how to make {recipe.get('name')}."
 
     def resolve_craft_tier(self, entry: dict, player) -> tuple:
         """Roll a recipe's check and map the degree to a tier (task-840 Q5).
@@ -451,7 +451,7 @@ class CraftingSystem:
             player.name, "cooking", duration_minutes=float(minutes),
             recipe_id=entry.get("id", recipe_name))
         return (f"You start cooking {recipe_label.lower()} "
-                f"({minutes} min) — interruption ends it with nothing "
+                f"({minutes} min) - interruption ends it with nothing "
                 f"consumed and the pot waiting.")
 
     def complete_cooking(self, player_manager, player_name: str,
@@ -470,7 +470,7 @@ class CraftingSystem:
             recipe_ref = activity.get("recipe_id") or ""
         entry = self._find_recipe(recipe_ref) if recipe_ref else None
         if entry is None:
-            return "The recipe is gone — nothing to finish."
+            return "The recipe is gone - nothing to finish."
         recipe_label = entry.get("name", recipe_ref)
         try:
             self._verify_inputs(player_manager, entry, recipe_label)
@@ -495,7 +495,7 @@ class CraftingSystem:
             consume = True
         # The tier's own outputs win; absent means the top-level success
         # default (back-compat with pre-outcome recipes). An explicit
-        # empty list stays empty (pot boiled dry — nothing spawns).
+        # empty list stays empty (pot boiled dry - nothing spawns).
         if tier in outcomes and "outputs" in outcome:
             tier_outputs = outcome.get("outputs") or []
         else:
@@ -563,7 +563,7 @@ class CraftingSystem:
         """The outputs for one outcome tier, honouring per-entry weights.
 
         Entries may carry ``weight`` (crit-fail lotteries); default weight
-        is 1 and a single entry stays deterministic — recipes stay
+        is 1 and a single entry stays deterministic - recipes stay
         learnable unless the author opts into variance.
         """
         outputs = (outcome or {}).get("outputs", []) or []

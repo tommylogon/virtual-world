@@ -894,7 +894,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently — and left scratches pointing toward the library.",
+                "success_message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently - and left scratches pointing toward the library.",
                 "fail_message": ""
               }
             }
@@ -958,7 +958,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Inside the vase, you find a tiny key — no larger than your thumb — taped to the inner wall. It's a jewelry box key.",
+                "success_message": "Inside the vase, you find a tiny key - no larger than your thumb - taped to the inner wall. It's a jewelry box key.",
                 "fail_message": ""
               }
             }
@@ -1098,7 +1098,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly — there's a faint line around the frame. It's a door. The portrait is a door.",
+                "success_message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly - there's a faint line around the frame. It's a door. The portrait is a door.",
                 "fail_message": ""
               }
             }
@@ -1188,7 +1188,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A crumpled note that was stuck to the glasses case: 'Augustus — I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
+                "description": "A crumpled note that was stuck to the glasses case: 'Augustus - I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
                 "item_id": "item_professors_note",
                 "name": "professor's_note"
               }
@@ -1221,7 +1221,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours — a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there.",
+                "success_message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours - a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there.",
                 "fail_message": ""
               }
             }
@@ -1418,7 +1418,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair — at the far end of the table — is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one.",
+                "success_message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair - at the far end of the table - is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one.",
                 "fail_message": ""
               }
             }
@@ -1468,7 +1468,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness — and something else. Recognition? As if she knows why you're here.",
+                "success_message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness - and something else. Recognition? As if she knows why you're here.",
                 "fail_message": ""
               }
             }
@@ -1500,7 +1500,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You hold the photograph closer. The youngest child's face isn't blurred by movement — it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'",
+                "success_message": "You hold the photograph closer. The youngest child's face isn't blurred by movement - it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'",
                 "fail_message": ""
               }
             }
@@ -1526,7 +1526,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress — her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'",
+                "success_message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress - her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'",
                 "fail_message": ""
               }
             }
@@ -1718,7 +1718,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate — this was a finely made key. Without the other half, it's useless.",
+                "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate - this was a finely made key. Without the other half, it's useless.",
                 "item_id": "item_key_fragment",
                 "name": "key_fragment"
               }
@@ -1783,7 +1783,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly — the heat-seal is an occult binding, not a physical break.",
+                "success_message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly - the heat-seal is an occult binding, not a physical break.",
                 "fail_message": ""
               }
             }
@@ -1809,7 +1809,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful — and sad. This key was meant to keep something locked away forever.",
+                "success_message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful - and sad. This key was meant to keep something locked away forever.",
                 "fail_message": ""
               }
             }
@@ -1873,7 +1873,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. — Mother and Father.' This is a grave.",
+                "success_message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. - Mother and Father.' This is a grave.",
                 "fail_message": ""
               }
             }
@@ -1935,7 +1935,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. — Mother.' The handwriting is elegant, old-fashioned. Fresh.",
+                "success_message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. - Mother.' The handwriting is elegant, old-fashioned. Fresh.",
                 "fail_message": ""
               }
             }
@@ -1999,7 +1999,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You kneel to examine the smallest headstone — Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals — from the red rose bush in the garden — are scattered on the ground.",
+                "success_message": "You kneel to examine the smallest headstone - Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals - from the red rose bush in the garden - are scattered on the ground.",
                 "fail_message": ""
               }
             }
@@ -2107,7 +2107,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them — a bottle of something expensive.",
+                "success_message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them - a bottle of something expensive.",
                 "fail_message": ""
               }
             }
@@ -2219,7 +2219,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn — To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
+                "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn - To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
                 "item_id": "item_ritual_book",
                 "name": "ritual_book"
               }
@@ -2270,7 +2270,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife — the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'",
+                "success_message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife - the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'",
                 "fail_message": ""
               }
             }
@@ -2308,7 +2308,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up — it's real.",
+                "success_message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up - it's real.",
                 "fail_message": ""
               }
             }
@@ -2372,7 +2372,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit — like the one from the foyer vase.",
+                "success_message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit - like the one from the foyer vase.",
                 "fail_message": ""
               }
             }
@@ -2448,7 +2448,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot — a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came.",
+                "success_message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot - a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came.",
                 "fail_message": ""
               }
             }
@@ -2621,7 +2621,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby — the same melody as the one in the nursery.",
+                "success_message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby - the same melody as the one in the nursery.",
                 "fail_message": ""
               }
             }
@@ -2693,7 +2693,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in — it's cold, colder than the water should be — and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes.",
+                "success_message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in - it's cold, colder than the water should be - and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes.",
                 "fail_message": ""
               }
             }
@@ -2725,7 +2725,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection — it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass.",
+                "success_message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection - it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass.",
                 "fail_message": ""
               }
             }
@@ -2848,7 +2848,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence — angry, trapped, desperate.",
+                "success_message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence - angry, trapped, desperate.",
                 "fail_message": ""
               }
             }
@@ -2868,7 +2868,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. — E.'",
+                "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. - E.'",
                 "item_id": "item_hidden_note_doll",
                 "name": "hidden_note"
               }
@@ -2933,7 +2933,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace — and profound sadness.",
+                "success_message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace - and profound sadness.",
                 "fail_message": ""
               }
             }
@@ -2965,7 +2965,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You press your ear to the trunk. The tapping stops. Then a voice — a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'",
+                "success_message": "You press your ear to the trunk. The tapping stops. Then a voice - a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'",
                 "fail_message": ""
               }
             }
@@ -3063,7 +3063,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. — Yours, forever, M.'",
+                "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. - Yours, forever, M.'",
                 "item_id": "item_margaret_letters",
                 "name": "margaret_letters"
               }
@@ -3287,7 +3287,7 @@
             "time": 1
           },
           "current_state": "hidden",
-          "description": "A concealed door behind a large wardrobe. The wardrobe has been moved recently — the dust trail is unmistakable.",
+          "description": "A concealed door behind a large wardrobe. The wardrobe has been moved recently - the dust trail is unmistakable.",
           "area_from": "Attic",
           "area_to": "Servant Quarters"
         },
@@ -3304,7 +3304,7 @@
             "time": 1
           },
           "current_state": "open",
-          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic — like old blood.",
+          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic - like old blood.",
           "area_from": "Cellar",
           "area_to": "Basement"
         },
@@ -3384,7 +3384,7 @@
             "time": 1
           },
           "current_state": "open",
-          "description": "A door leading to the kitchen. A sliver of light glows from beneath it — impossible, since there's no electricity.",
+          "description": "A door leading to the kitchen. A sliver of light glows from beneath it - impossible, since there's no electricity.",
           "area_from": "Dining Area",
           "area_to": "Kitchen"
         },
@@ -3547,7 +3547,7 @@
             "time": 1
           },
           "current_state": "hidden",
-          "description": "A bookcase that looks like it could slide aside. The books on this shelf are all titled 'Arcane Heraldry' — and they're all identical, which is suspicious.",
+          "description": "A bookcase that looks like it could slide aside. The books on this shelf are all titled 'Arcane Heraldry' - and they're all identical, which is suspicious.",
           "area_from": "Library",
           "area_to": "Secret Study"
         },
@@ -3579,7 +3579,7 @@
             "time": 1
           },
           "current_state": "hidden",
-          "description": "A narrow service passage that leads up behind the kitchen hearth. It was used by servants — now used by something else.",
+          "description": "A narrow service passage that leads up behind the kitchen hearth. It was used by servants - now used by something else.",
           "area_from": "Slaughterhouse",
           "area_to": "Kitchen"
         },
@@ -3693,7 +3693,7 @@
             "time": 1
           },
           "current_state": "closed",
-          "description": "A large oak door with a polished brass knob — polished recently, as it gleams.",
+          "description": "A large oak door with a polished brass knob - polished recently, as it gleams.",
           "area_from": "Upstairs Hall",
           "area_to": "Master Bedroom"
         },
@@ -3913,7 +3913,7 @@
             "examine",
             "use"
           ],
-          "description": "A slightly crushed granola bar from her bag. Chocolate chip — her favorite.",
+          "description": "A slightly crushed granola bar from her bag. Chocolate chip - her favorite.",
           "effect_amount": 30,
           "effect_stat": "Hunger",
           "effect_target": "player",
@@ -4078,7 +4078,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A stone altar draped in dusty black cloth. A shallow depression in the shape of a skull sits at its center, lined with faded runes. This is where the crystal skull belongs — the altar in the crypt, just as the journal said. When placed here, it might break the curse... or seal it forever.",
+          "description": "A stone altar draped in dusty black cloth. A shallow depression in the shape of a skull sits at its center, lined with faded runes. This is where the crystal skull belongs - the altar in the crypt, just as the journal said. When placed here, it might break the curse... or seal it forever.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4146,7 +4146,7 @@
             "examine",
             "take"
           ],
-          "description": "A folded letter from inside the sarcophagus: 'If you're reading this, the curse has taken me as it took the others. I write this in the dark, trapped in my own tomb, waiting for the end. I should never have brought the skull here. It whispers constantly now. It wants Eleanor — the real Eleanor, my little girl. It wants to use her body. I thought I was protecting my family. I've doomed us all. If you carry the skull, know this: placing it on the altar will free Eleanor's spirit. But something else will be released too. Choose wisely. — Augustus Blackwood, October 31st, 1891, 3:17 AM'",
+          "description": "A folded letter from inside the sarcophagus: 'If you're reading this, the curse has taken me as it took the others. I write this in the dark, trapped in my own tomb, waiting for the end. I should never have brought the skull here. It whispers constantly now. It wants Eleanor - the real Eleanor, my little girl. It wants to use her body. I thought I was protecting my family. I've doomed us all. If you carry the skull, know this: placing it on the altar will free Eleanor's spirit. But something else will be released too. Choose wisely. - Augustus Blackwood, October 31st, 1891, 3:17 AM'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4168,7 +4168,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A large oak barrel. It smells strongly of vinegar — whatever wine was in here has long since turned. But the barrel itself is solid, and the iron bands are intact.",
+          "description": "A large oak barrel. It smells strongly of vinegar - whatever wine was in here has long since turned. But the barrel itself is solid, and the iron bands are intact.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4196,7 +4196,7 @@
             "examine",
             "use"
           ],
-          "description": "A grand four-poster bed with moth-eaten velvet curtains. The mattress is surprisingly comfortable despite its age — the feathers have settled into a perfect contour.",
+          "description": "A grand four-poster bed with moth-eaten velvet curtains. The mattress is surprisingly comfortable despite its age - the feathers have settled into a perfect contour.",
           "effect_amount": 100,
           "effect_stat": "Energy",
           "effect_target": "player",
@@ -4224,7 +4224,7 @@
             "examine",
             "use"
           ],
-          "description": "A narrow iron bed with a thin, stained mattress. The sheets are yellowed with age. Someone slept here recently — the pillow is dented.",
+          "description": "A narrow iron bed with a thin, stained mattress. The sheets are yellowed with age. Someone slept here recently - the pillow is dented.",
           "effect_amount": 20,
           "effect_stat": "Energy",
           "effect_target": "player",
@@ -4291,7 +4291,7 @@
           "actions": [
             "examine"
           ],
-          "description": "The window is boarded from the outside — someone didn't want anyone looking in. Or didn't want anyone climbing out.",
+          "description": "The window is boarded from the outside - someone didn't want anyone looking in. Or didn't want anyone climbing out.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4336,7 +4336,7 @@
           "actions": [
             "examine"
           ],
-          "description": "Scattered bones on the floor — some animal, some human. One skull has a neat hole drilled through the crown.",
+          "description": "Scattered bones on the floor - some animal, some human. One skull has a neat hole drilled through the crown.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4358,7 +4358,7 @@
           "actions": [
             "examine"
           ],
-          "description": "One shelf contains a series of identical books: 'Arcane Heraldry: Volumes I through XIV.' They're all the same book republished with different covers. The shelf behind them is hollow — it's a door.",
+          "description": "One shelf contains a series of identical books: 'Arcane Heraldry: Volumes I through XIV.' They're all the same book republished with different covers. The shelf behind them is hollow - it's a door.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4485,7 +4485,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A brass key that has been ritually broken in half and bound with an occult heat-seal. The two halves, when joined, form a complete key. The tag reads: 'Eleanor's Hope Chest — never to be opened.'",
+          "description": "A brass key that has been ritually broken in half and bound with an occult heat-seal. The two halves, when joined, form a complete key. The tag reads: 'Eleanor's Hope Chest - never to be opened.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4621,7 +4621,7 @@
             "examine",
             "take"
           ],
-          "description": "A brass wall sconce with a half-melted candle. The wax has dripped down in frozen rivulets. The candle was extinguished recently — the wick is still slightly warm.",
+          "description": "A brass wall sconce with a half-melted candle. The wax has dripped down in frozen rivulets. The candle was extinguished recently - the wick is still slightly warm.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4826,7 +4826,7 @@
             "examine",
             "take"
           ],
-          "description": "Several children's drawings pinned to the wall, yellowed and faded. Most show a happy family. But one drawing stands out: a stick-figure family of eight, with one figure — the smallest — drawn in heavy black crayon and crossed out violently. Beneath it, in a child's unsteady handwriting: 'Eleanor is lonely. She wants a friend. I don't want to go with her.'",
+          "description": "Several children's drawings pinned to the wall, yellowed and faded. Most show a happy family. But one drawing stands out: a stick-figure family of eight, with one figure - the smallest - drawn in heavy black crayon and crossed out violently. Beneath it, in a child's unsteady handwriting: 'Eleanor is lonely. She wants a friend. I don't want to go with her.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4893,7 +4893,7 @@
           "actions": [
             "examine"
           ],
-          "description": "An empty rack that once held butcher's tools. Only one remains — and it's in The Butcher's hand.",
+          "description": "An empty rack that once held butcher's tools. Only one remains - and it's in The Butcher's hand.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4915,7 +4915,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A tall mahogany coat rack holding a single dusty overcoat. The coat has a strange shape — something is in the pocket.",
+          "description": "A tall mahogany coat rack holding a single dusty overcoat. The coat has a strange shape - something is in the pocket.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4937,7 +4937,7 @@
           "actions": [
             "examine"
           ],
-          "description": "An old hand-crank coffee grinder on the counter. There are still coffee beans inside — they've carbonized over the decades but might still produce something drinkable.",
+          "description": "An old hand-crank coffee grinder on the counter. There are still coffee beans inside - they've carbonized over the decades but might still produce something drinkable.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5016,7 +5016,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A wooden crate stamped 'PROVISIONS — 1889'. Nailed shut. The wood is swollen with moisture. You'd need a tool to open it.",
+          "description": "A wooden crate stamped 'PROVISIONS - 1889'. Nailed shut. The wood is swollen with moisture. You'd need a tool to open it.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5106,7 +5106,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A wooden cupboard. Inside, dusty plates and a few intact glasses. A jar of what looks like pickled vegetables sits on the top shelf — the seal is still intact.",
+          "description": "A wooden cupboard. Inside, dusty plates and a few intact glasses. A jar of what looks like pickled vegetables sits on the top shelf - the seal is still intact.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5173,7 +5173,7 @@
             "examine",
             "take"
           ],
-          "description": "A leather diary with the initials 'C.B.' — Cordelia Blackwood's diary. The final entry reads: 'The skull must never be moved. It holds the spirit of the firstborn, little Eleanor. Augustus refuses to listen. The spirit in the study grows stronger each night. Tonight it spoke to me — it said we would all be together forever. I'm so frightened.'",
+          "description": "A leather diary with the initials 'C.B.' - Cordelia Blackwood's diary. The final entry reads: 'The skull must never be moved. It holds the spirit of the firstborn, little Eleanor. Augustus refuses to listen. The spirit in the study grows stronger each night. Tonight it spoke to me - it said we would all be together forever. I'm so frightened.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5195,7 +5195,7 @@
           "actions": [
             "examine"
           ],
-          "description": "The dirt path leading from the garden gate to the mausoleum is well-worn. Despite the overgrown garden, this path has been used recently. Footprints in the damp earth — a woman's shoes, narrow heels, size six or seven.",
+          "description": "The dirt path leading from the garden gate to the mausoleum is well-worn. Despite the overgrown garden, this path has been used recently. Footprints in the damp earth - a woman's shoes, narrow heels, size six or seven.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5262,7 +5262,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A thick layer of dust covers everything. No one has been here in months — except the fresh footprints leading from the door toward the library. They're small, like a child's, but there are no children here.",
+          "description": "A thick layer of dust covers everything. No one has been here in months - except the fresh footprints leading from the door toward the library. They're small, like a child's, but there are no children here.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5284,7 +5284,7 @@
           "actions": [
             "examine"
           ],
-          "description": "The floor of the secret study is covered in a fine layer of dust — except for a single set of footprints leading to the pedestal and back. Small footprints, like a child's bare feet.",
+          "description": "The floor of the secret study is covered in a fine layer of dust - except for a single set of footprints leading to the pedestal and back. Small footprints, like a child's bare feet.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5306,7 +5306,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A daguerreotype on the sideboard showing the Blackwood family: Augustus, Eleanor, and five children ranging from a teenager to a baby. The youngest child — a girl of about three — has a blank, blurred face, as if she moved during the exposure. But photography in 1891 required sitting still for minutes.",
+          "description": "A daguerreotype on the sideboard showing the Blackwood family: Augustus, Eleanor, and five children ranging from a teenager to a baby. The youngest child - a girl of about three - has a blank, blurred face, as if she moved during the exposure. But photography in 1891 required sitting still for minutes.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5328,7 +5328,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A cluster of smaller headstones bearing the Blackwood name. The children: 'Thomas, age 12. — Elizabeth, age 10. — James, age 8. — Margaret, age 6. — Eleanor the Younger, age 3.' But these graves are empty — they were never buried here. The stones were placed as memorials.",
+          "description": "A cluster of smaller headstones bearing the Blackwood name. The children: 'Thomas, age 12. - Elizabeth, age 10. - James, age 8. - Margaret, age 6. - Eleanor the Younger, age 3.' But these graves are empty - they were never buried here. The stones were placed as memorials.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5350,7 +5350,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A cold marble fireplace with a soot-stained interior. The ash has been disturbed — something was hidden here and recently removed. The strange compass points here for a reason.",
+          "description": "A cold marble fireplace with a soot-stained interior. The ash has been disturbed - something was hidden here and recently removed. The strange compass points here for a reason.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5394,7 +5394,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A patch of wilted roses, their petals brown and curling. But one bush defies the decay — a single red rose bush blooms vibrantly, as if it's June instead of October.",
+          "description": "A patch of wilted roses, their petals brown and curling. But one bush defies the decay - a single red rose bush blooms vibrantly, as if it's June instead of October.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5462,7 +5462,7 @@
             "examine",
             "take"
           ],
-          "description": "A delicate gold ring set with a small garnet. Inside: 'Forever, A.B.' — Augustus Blackwood's gift to someone who wasn't his wife.",
+          "description": "A delicate gold ring set with a small garnet. Inside: 'Forever, A.B.' - Augustus Blackwood's gift to someone who wasn't his wife.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5507,7 +5507,7 @@
             "examine",
             "take"
           ],
-          "description": "A leather case containing reading glasses. The prescription might still work. A small brass plate reads: 'Property of Professor Aldridge — University of London, Occult Studies Department.'",
+          "description": "A leather case containing reading glasses. The prescription might still work. A small brass plate reads: 'Property of Professor Aldridge - University of London, Occult Studies Department.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5530,7 +5530,7 @@
             "examine",
             "take"
           ],
-          "description": "A silver hairbrush with long strands of gray hair tangled in the bristles. Not Eleanor's hair — this is darker, coarser. A servant's?",
+          "description": "A silver hairbrush with long strands of gray hair tangled in the bristles. Not Eleanor's hair - this is darker, coarser. A servant's?",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5552,7 +5552,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A weathered headstone, older than the others: 'Eleanor Blackwood, 1847-1891. May her soul find peace. Forgive us, Eleanor.' The date is unusual — she died the same year the family vanished. Fresh lilies lie at its base.",
+          "description": "A weathered headstone, older than the others: 'Eleanor Blackwood, 1847-1891. May her soul find peace. Forgive us, Eleanor.' The date is unusual - she died the same year the family vanished. Fresh lilies lie at its base.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5575,7 +5575,7 @@
             "examine",
             "take"
           ],
-          "description": "A tiny scrap of paper that was hidden inside the broken doll: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. — E.' The handwriting is a child's, but the message is clear.",
+          "description": "A tiny scrap of paper that was hidden inside the broken doll: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. - E.' The handwriting is a child's, but the message is clear.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5619,7 +5619,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A brass incense burner on a small shelf. The ashes inside are cold but smell of frankincense and something unfamiliar — something acrid.",
+          "description": "A brass incense burner on a small shelf. The ashes inside are cold but smell of frankincense and something unfamiliar - something acrid.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5730,7 +5730,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A small wooden box inlaid with mother-of-pearl. It's locked with a tiny brass lock — the kind that takes a very small key.",
+          "description": "A small wooden box inlaid with mother-of-pearl. It's locked with a tiny brass lock - the kind that takes a very small key.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5753,7 +5753,7 @@
             "examine",
             "take"
           ],
-          "description": "A leather-bound journal. The final entry, written in shaky handwriting: 'The skull is the key. Take it to the altar in the crypt beneath the graveyard. But be warned — the ways will seal behind those who dare disturb the firstborn's rest. I have seen what happens to those who try to leave. God forgive me, I cannot stay. — Augustus Blackwood, October 30th, 1891'",
+          "description": "A leather-bound journal. The final entry, written in shaky handwriting: 'The skull is the key. Take it to the altar in the crypt beneath the graveyard. But be warned - the ways will seal behind those who dare disturb the firstborn's rest. I have seen what happens to those who try to leave. God forgive me, I cannot stay. - Augustus Blackwood, October 30th, 1891'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5844,7 +5844,7 @@
             "examine",
             "take"
           ],
-          "description": "A large butcher knife on the counter, still sharp after all these years. The blade is pristine — recently cleaned.",
+          "description": "A large butcher knife on the counter, still sharp after all these years. The blade is pristine - recently cleaned.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5913,7 +5913,7 @@
             "examine",
             "take"
           ],
-          "description": "A crumpled but legible letter: 'To whoever finds this — I, James Blackwood, Head of Staff at Blackwood Manor, write this in desperation. The skull in the study whispers to me at night. It knows my name. It calls me when no one else is around. I saw it move of its own accord. The master is obsessed. The missus weeps constantly. The children are afraid. Something terrible is going to happen. I'm leaving tonight. God have mercy on whoever reads this. — J. Blackwood, October 30th, 1891'",
+          "description": "A crumpled but legible letter: 'To whoever finds this - I, James Blackwood, Head of Staff at Blackwood Manor, write this in desperation. The skull in the study whispers to me at night. It knows my name. It calls me when no one else is around. I saw it move of its own accord. The master is obsessed. The missus weeps constantly. The children are afraid. Something terrible is going to happen. I'm leaving tonight. God have mercy on whoever reads this. - J. Blackwood, October 30th, 1891'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5935,7 +5935,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A small metal locker. Inside: a neatly folded servant's uniform and a crumpled letter. A silver crucifix hangs from a nail inside — identical to the one from the garden fountain.",
+          "description": "A small metal locker. Inside: a neatly folded servant's uniform and a crumpled letter. A silver crucifix hangs from a nail inside - identical to the one from the garden fountain.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5958,7 +5958,7 @@
             "examine",
             "take"
           ],
-          "description": "A tarnished silver locket containing a miniature portrait of a young woman and a lock of dark hair. The initials 'E.B.' are engraved on the inside. Not Eleanor Blackwood the elder — Eleanor the younger.",
+          "description": "A tarnished silver locket containing a miniature portrait of a young woman and a lock of dark hair. The initials 'E.B.' are engraved on the inside. Not Eleanor Blackwood the elder - Eleanor the younger.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5981,7 +5981,7 @@
             "examine",
             "take"
           ],
-          "description": "A bundle of letters tied with a faded silk ribbon. The handwriting is elegant and desperate. 'My dearest Augustus, I cannot bear another night in that cold house while she lies in the next room. The child we made deserves more than this secret. — M.'",
+          "description": "A bundle of letters tied with a faded silk ribbon. The handwriting is elegant and desperate. 'My dearest Augustus, I cannot bear another night in that cold house while she lies in the next room. The child we made deserves more than this secret. - M.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6032,7 +6032,7 @@
             "examine",
             "take"
           ],
-          "description": "A bundle of love letters between Margaret Holloway and James Blackwood (the head of staff, not the patriarch). Their story was forbidden — a servant and a woman who was Augustus's mistress. The letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
+          "description": "A bundle of love letters between Margaret Holloway and James Blackwood (the head of staff, not the patriarch). Their story was forbidden - a servant and a woman who was Augustus's mistress. The letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6061,7 +6061,7 @@
             "take",
             "use"
           ],
-          "description": "A small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. It rattles — there are several inside.",
+          "description": "A small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. It rattles - there are several inside.",
           "effect_amount": 40,
           "effect_stat": "light",
           "effect_target": "room",
@@ -6204,7 +6204,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A small nest of shredded cloth and dried grass in the corner of a shelf. Tiny bones are scattered around it — mouse bones, thankfully.",
+          "description": "A small nest of shredded cloth and dried grass in the corner of a shelf. Tiny bones are scattered around it - mouse bones, thankfully.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6228,7 +6228,7 @@
             "take",
             "use"
           ],
-          "description": "A small, dented music box. When wound, it plays a hauntingly beautiful but sad lullaby. The melody fills you with a strange sense of peace — and loss.",
+          "description": "A small, dented music box. When wound, it plays a hauntingly beautiful but sad lullaby. The melody fills you with a strange sense of peace - and loss.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6273,7 +6273,7 @@
             "examine",
             "take"
           ],
-          "description": "A water-damaged gardener's notebook. The last entry: 'October 30th — Strange lights in the study again tonight. The missus says it's nothing, but I've worked here 20 years. I know what I saw. The skull. I found a sketch of it in the master's private papers. And I found where it goes — the altar in the crypt below the graveyard. Tomorrow I'm leaving. I don't care if they dock my pay.' The notebook ends there.",
+          "description": "A water-damaged gardener's notebook. The last entry: 'October 30th - Strange lights in the study again tonight. The missus says it's nothing, but I've worked here 20 years. I know what I saw. The skull. I found a sketch of it in the master's private papers. And I found where it goes - the altar in the crypt below the graveyard. Tomorrow I'm leaving. I don't care if they dock my pay.' The notebook ends there.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6380,7 +6380,7 @@
             "examine",
             "take"
           ],
-          "description": "A crumbling newspaper from 1891. Headline: 'BLACKWOOD FAMILY VANISHES — No Trace Found. Entire household of seven disappears overnight. The door was barred from the inside. Police baffled.'",
+          "description": "A crumbling newspaper from 1891. Headline: 'BLACKWOOD FAMILY VANISHES - No Trace Found. Entire household of seven disappears overnight. The door was barred from the inside. Police baffled.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6425,7 +6425,7 @@
           "actions": [
             "examine"
           ],
-          "description": "The other headstones mark the graves of servants and distant relatives. The most recent is dated 1889. One grave catches your eye — a small, simple stone with no name, only a date: 'October 31st, 1891.' The same day the family vanished.",
+          "description": "The other headstones mark the graves of servants and distant relatives. The most recent is dated 1889. One grave catches your eye - a small, simple stone with no name, only a date: 'October 31st, 1891.' The same day the family vanished.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6498,7 +6498,7 @@
             "take",
             "use"
           ],
-          "description": "A sealed jar of pickled vegetables from 1891. The seal is intact — technically still preserved and edible. They smell strongly of vinegar and herbs.",
+          "description": "A sealed jar of pickled vegetables from 1891. The seal is intact - technically still preserved and edible. They smell strongly of vinegar and herbs.",
           "effect_amount": 25,
           "effect_stat": "Hunger",
           "effect_target": "player",
@@ -6547,7 +6547,7 @@
             "examine",
             "take"
           ],
-          "description": "A silver pocket watch from the wardrobe, wrapped in a handkerchief. Engraved: 'Property of J. Blackwood, Head of Staff.' The watch has stopped at 3:17 AM — the exact same time as the pocket watch in Guest Area 2.",
+          "description": "A silver pocket watch from the wardrobe, wrapped in a handkerchief. Engraved: 'Property of J. Blackwood, Head of Staff.' The watch has stopped at 3:17 AM - the exact same time as the pocket watch in Guest Area 2.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6595,7 +6595,7 @@
           "actions": [
             "examine"
           ],
-          "description": "Above the mantel hangs a portrait of Augustus Blackwood — a stern man with cold, calculating eyes. The nameplate reads 'Augustus Blackwood, 1835-1891'. But the paint seems... fresher than 130 years old.",
+          "description": "Above the mantel hangs a portrait of Augustus Blackwood - a stern man with cold, calculating eyes. The nameplate reads 'Augustus Blackwood, 1835-1891'. But the paint seems... fresher than 130 years old.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6617,7 +6617,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A portrait of Eleanor Blackwood — the matriarch, not the child. Her eyes are sharp and calculating. A small plaque reads: 'Eleanor Blackwood, 1847-1891. May her soul find peace.' There's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
+          "description": "A portrait of Eleanor Blackwood - the matriarch, not the child. Her eyes are sharp and calculating. A small plaque reads: 'Eleanor Blackwood, 1847-1891. May her soul find peace.' There's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6639,7 +6639,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A painting of Augustus Blackwood in his prime. His cold, calculating eyes follow you around the room. The nameplate reads: 'Augustus Blackwood, 1835-1891, Patriarch of Blackwood Manor.' There's a crack in the canvas — deliberate, not from age.",
+          "description": "A painting of Augustus Blackwood in his prime. His cold, calculating eyes follow you around the room. The nameplate reads: 'Augustus Blackwood, 1835-1891, Patriarch of Blackwood Manor.' There's a crack in the canvas - deliberate, not from age.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6661,7 +6661,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A rusted iron railing that creaks ominously when you lean on it. It's not safe, but it's held for 130 years. One section is wrapped with a faded ribbon — a woman's hair ribbon, blue silk.",
+          "description": "A rusted iron railing that creaks ominously when you lean on it. It's not safe, but it's held for 130 years. One section is wrapped with a faded ribbon - a woman's hair ribbon, blue silk.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6729,7 +6729,7 @@
             "examine",
             "take"
           ],
-          "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The marked page describes how to release a spirit bound to a crystal skull: return the skull to the place of death (the altar in the crypt), speak the name of the bound spirit at midnight, and break the skull. 'But be warned — the spirit released may not be the one you intended to free.'",
+          "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The marked page describes how to release a spirit bound to a crystal skull: return the skull to the place of death (the altar in the crypt), speak the name of the bound spirit at midnight, and break the skull. 'But be warned - the spirit released may not be the one you intended to free.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6795,7 +6795,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A thick, pale root has pushed through the cellar wall and snakes across the floor. It's warm to the touch, and when you press your ear to it, you can hear a faint, rhythmic pulsing — like a heartbeat far beneath the earth.",
+          "description": "A thick, pale root has pushed through the cellar wall and snakes across the floor. It's warm to the touch, and when you press your ear to it, you can hear a faint, rhythmic pulsing - like a heartbeat far beneath the earth.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6817,7 +6817,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A faded Persian rug covering most of the floor. One marble tile beneath it shifts when pressed — it's been disturbed recently. There's a faint scraping sound when you step on it.",
+          "description": "A faded Persian rug covering most of the floor. One marble tile beneath it shifts when pressed - it's been disturbed recently. There's a faint scraping sound when you step on it.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6839,7 +6839,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A stone sarcophagus bearing the name 'Augustus Blackwood (1835-1891)'. The lid is heavy but slightly ajar. Scratch marks — long, desperate scratch marks — cover the inside of the lid. He was buried alive.",
+          "description": "A stone sarcophagus bearing the name 'Augustus Blackwood (1835-1891)'. The lid is heavy but slightly ajar. Scratch marks - long, desperate scratch marks - cover the inside of the lid. He was buried alive.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6928,7 +6928,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A mahogany sideboard with crystal decanters. One decanter contains a dark, syrupy liquid. On a platter beside it, the desiccated remains of a roast meal — from 1891.",
+          "description": "A mahogany sideboard with crystal decanters. One decanter contains a dark, syrupy liquid. On a platter beside it, the desiccated remains of a roast meal - from 1891.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6982,7 +6982,7 @@
             "examine",
             "take"
           ],
-          "description": "A small silver crucifix, tarnished by years underwater. It's still intact. The back is engraved: 'Sanctuary — 1889.'",
+          "description": "A small silver crucifix, tarnished by years underwater. It's still intact. The back is engraved: 'Sanctuary - 1889.'",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7032,7 +7032,7 @@
             "examine",
             "take"
           ],
-          "description": "A tarnished silver ring on the altar. Inscription: 'For my beloved Eleanor, forever in death as in life. — A.B.' It's identical to the garnet ring found in the conservatory, except this one holds a small diamond.",
+          "description": "A tarnished silver ring on the altar. Inscription: 'For my beloved Eleanor, forever in death as in life. - A.B.' It's identical to the garnet ring found in the conservatory, except this one holds a small diamond.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7055,7 +7055,7 @@
             "examine",
             "use"
           ],
-          "description": "A deep stone sink with a dripping faucet. The tap still works — water flows, brown with rust at first, then clear. The water is cold and clean. When the water runs, the dripping sound continues from elsewhere.",
+          "description": "A deep stone sink with a dripping faucet. The tap still works - water flows, brown with rust at first, then clear. The water is cold and clean. When the water runs, the dripping sound continues from elsewhere.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7078,7 +7078,7 @@
             "examine",
             "use"
           ],
-          "description": "A porcelain pedestal sink. The tap still works — the water runs brown at first, then clear. The water is ice cold.",
+          "description": "A porcelain pedestal sink. The tap still works - the water runs brown at first, then clear. The water is ice cold.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7223,7 +7223,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A cast-iron stove, still faintly warm to the touch. Impossible — there's no fuel, no fire. A kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
+          "description": "A cast-iron stove, still faintly warm to the touch. Impossible - there's no fuel, no fire. A kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7246,7 +7246,7 @@
             "examine",
             "take"
           ],
-          "description": "A brass compass in the desk drawer. The needle doesn't point north — it points toward the fireplace, no matter where you stand. There must be something magnetic behind it.",
+          "description": "A brass compass in the desk drawer. The needle doesn't point north - it points toward the fireplace, no matter where you stand. There must be something magnetic behind it.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7291,7 +7291,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A long table set for a meal that never came. Seven place settings — one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
+          "description": "A long table set for a meal that never came. Seven place settings - one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7342,7 +7342,7 @@
             "take",
             "use"
           ],
-          "description": "A dusty bottle of wine hidden behind the fireplace. The label reads 'Blackwood Reserve 1887'. The liquid inside is dark and smells vinegary — but also metallic, like blood.",
+          "description": "A dusty bottle of wine hidden behind the fireplace. The label reads 'Blackwood Reserve 1887'. The liquid inside is dark and smells vinegary - but also metallic, like blood.",
           "effect_amount": -15,
           "effect_stat": "Thirst",
           "effect_target": "player",
@@ -7420,7 +7420,7 @@
             "examine",
             "take"
           ],
-          "description": "A tiny brass key barely larger than your thumb. It was hidden inside the cracked vase — taped to the inner wall.",
+          "description": "A tiny brass key barely larger than your thumb. It was hidden inside the cracked vase - taped to the inner wall.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7509,7 +7509,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A large steamer trunk with a rusty latch and reinforced corners. It's locked with a heavy padlock. The nameplate reads: 'E. Blackwood — Personal Effects.' Something inside is tapping against the lid.",
+          "description": "A large steamer trunk with a rusty latch and reinforced corners. It's locked with a heavy padlock. The nameplate reads: 'E. Blackwood - Personal Effects.' Something inside is tapping against the lid.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7531,7 +7531,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A claw-foot tub with an inch of grimy water at the bottom. The water is dark and still. A ring of scum marks the high-water line — someone took a bath here, and recently. The water isn't cold enough.",
+          "description": "A claw-foot tub with an inch of grimy water at the bottom. The water is dark and still. A ring of scum marks the high-water line - someone took a bath here, and recently. The water isn't cold enough.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7576,7 +7576,7 @@
           "actions": [
             "examine"
           ],
-          "description": "A wooden vanity with a cracked, spotted mirror. A silver hairbrush and jewelry box sit on it, exactly as they were left. The mirror reflects strangely — your image seems to move a split second after you do.",
+          "description": "A wooden vanity with a cracked, spotted mirror. A silver hairbrush and jewelry box sit on it, exactly as they were left. The mirror reflects strangely - your image seems to move a split second after you do.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -7824,7 +7824,7 @@
             "examine",
             "take"
           ],
-          "description": "A rusty watering can. Empty. When you pick it up, something rattles inside — a small object.",
+          "description": "A rusty watering can. Empty. When you pick it up, something rattles inside - a small object.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -8001,7 +8001,7 @@
         "id": "area_attic",
         "name": "Attic",
         "properties": {
-          "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space — furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls — not mice, something larger.",
+          "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space - furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls - not mice, something larger.",
           "environment": {
             "air": "dusty",
             "light": 10,
@@ -8154,7 +8154,7 @@
         "id": "area_garden",
         "name": "Garden",
         "properties": {
-          "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms — red flowers against the decay.",
+          "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms - red flowers against the decay.",
           "environment": {
             "air": "fresh",
             "light": 80,
@@ -8205,7 +8205,7 @@
         "id": "area_guest_room_2",
         "name": "Guest Area 2",
         "properties": {
-          "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall — crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
+          "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall - crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
           "environment": {
             "air": "stale",
             "light": 20,
@@ -8239,7 +8239,7 @@
         "id": "area_library",
         "name": "Library",
         "properties": {
-          "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else — something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
+          "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else - something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
           "environment": {
             "air": "stale",
             "light": 30,
@@ -8256,7 +8256,7 @@
         "id": "area_master_bedroom",
         "name": "Master Bedroom",
         "properties": {
-          "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume — rosewater, perhaps. French ways lead to a small balcony.",
+          "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume - rosewater, perhaps. French ways lead to a small balcony.",
           "environment": {
             "air": "stagnant",
             "light": 20,
@@ -8273,7 +8273,7 @@
         "id": "area_nursery",
         "name": "Nursery",
         "properties": {
-          "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing — but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
+          "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing - but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
           "environment": {
             "air": "cold",
             "light": 20,
@@ -8290,7 +8290,7 @@
         "id": "area_outside",
         "name": "Outside",
         "properties": {
-          "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door — the only entrance — stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
+          "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door - the only entrance - stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
           "environment": {
             "air": "fresh",
             "light": 60,
@@ -8358,7 +8358,7 @@
         "id": "area_slaughterhouse",
         "name": "Slaughterhouse",
         "properties": {
-          "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones — human and animal — litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
+          "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones - human and animal - litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
           "environment": {
             "air": "stale",
             "light": 5,
@@ -8375,7 +8375,7 @@
         "id": "area_upstairs_hall",
         "name": "Upstairs Hall",
         "properties": {
-          "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you — but when you stop, they stop too.",
+          "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you - but when you stop, they stop too.",
           "environment": {
             "air": "drafty",
             "light": 30,
@@ -8505,7 +8505,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful — and sad. This key was meant to keep something locked away forever.",
+                "success_message": "The heat-seal cracks as you examine the joined halves. The key is whole again. It feels powerful - and sad. This key was meant to keep something locked away forever.",
                 "fail_message": ""
               }
             }
@@ -8659,7 +8659,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them — a bottle of something expensive.",
+                "success_message": "Through a gap in the crate's slats, you can see moldy burlap sacks. But something glints beneath them - a bottle of something expensive.",
                 "fail_message": ""
               }
             }
@@ -8703,7 +8703,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours — a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there.",
+                "success_message": "You peer into the crystal skull's eye sockets. For just a moment, you see a reflection that isn't yours - a young girl with dark hair and sad eyes, standing behind you. You spin around. There's no one there.",
                 "fail_message": ""
               }
             }
@@ -8798,7 +8798,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. — E.'",
+                "description": "A tiny scrap of paper that falls from the doll's hollow arm: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. - E.'",
                 "item_id": "item_hidden_note_doll",
                 "name": "hidden_note"
               }
@@ -8828,7 +8828,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence — angry, trapped, desperate.",
+                "success_message": "A piercing headache lances through your skull as you pick up the doll. You feel a presence - angry, trapped, desperate.",
                 "fail_message": ""
               }
             }
@@ -8850,7 +8850,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You hold the photograph closer. The youngest child's face isn't blurred by movement — it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'",
+                "success_message": "You hold the photograph closer. The youngest child's face isn't blurred by movement - it's been deliberately scratched out. But beneath the scratches, you can just make out a small, sad face. The name on the back: 'Eleanor the Younger, age 3. Taken October 1890.'",
                 "fail_message": ""
               }
             }
@@ -8872,7 +8872,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You kneel to examine the smallest headstone — Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals — from the red rose bush in the garden — are scattered on the ground.",
+                "success_message": "You kneel to examine the smallest headstone - Eleanor the Younger's. The earth at its base has settled unevenly, as if something was buried here recently. A small handful of wilted rose petals - from the red rose bush in the garden - are scattered on the ground.",
                 "fail_message": ""
               }
             }
@@ -8916,7 +8916,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. — Mother and Father.' This is a grave.",
+                "success_message": "The single red rose bush seems out of place in this garden of decay. As you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'For our Eleanor, who loved roses. Gone but never forgotten. - Mother and Father.' This is a grave.",
                 "fail_message": ""
               }
             }
@@ -8960,7 +8960,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up — it's real.",
+                "success_message": "Where the figure stood, you find a small, cold spot on the floor. A single white feather lies there, untouched by dust. You pick it up - it's real.",
                 "fail_message": ""
               }
             }
@@ -8982,7 +8982,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A crumpled note that was stuck to the glasses case: 'Augustus — I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
+                "description": "A crumpled note that was stuck to the glasses case: 'Augustus - I've found what you requested. The crystal skull is not a legend. It is in the catacombs beneath Prague. I will bring it to the manor on All Hallows Eve. Your servant, Prof. Aldridge.'",
                 "item_id": "item_professors_note",
                 "name": "professor's_note"
               }
@@ -9005,7 +9005,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn — To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
+                "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The book falls open to a marked page: 'The Ritual of the Firstborn - To release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
                 "item_id": "item_ritual_book",
                 "name": "ritual_book"
               }
@@ -9050,7 +9050,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit — like the one from the foyer vase.",
+                "success_message": "The jewelry box is locked, but the keyhole is tiny. A key no larger than your thumb would fit - like the one from the foyer vase.",
                 "fail_message": ""
               }
             }
@@ -9072,7 +9072,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly — the heat-seal is an occult binding, not a physical break.",
+                "success_message": "As you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. They fit together perfectly - the heat-seal is an occult binding, not a physical break.",
                 "fail_message": ""
               }
             }
@@ -9116,7 +9116,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace — and profound sadness.",
+                "success_message": "The lullaby fills the room. For a moment, the cold recedes, and you feel an overwhelming sense of peace - and profound sadness.",
                 "fail_message": ""
               }
             }
@@ -9138,7 +9138,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection — it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass.",
+                "success_message": "You stare at the mirror, focusing on the fragment that doesn't match your movement. It's not a reflection - it's something behind the mirror, watching you. You see the outline of a small handprint on the other side of the glass.",
                 "fail_message": ""
               }
             }
@@ -9270,7 +9270,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness — and something else. Recognition? As if she knows why you're here.",
+                "success_message": "The crack in the painting seems to form the shape of a '7'. You study Eleanor's face more closely. Her expression is stern, but her eyes hold a deep sadness - and something else. Recognition? As if she knows why you're here.",
                 "fail_message": ""
               }
             }
@@ -9292,7 +9292,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife — the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'",
+                "success_message": "You touch the crack in the canvas. Behind the painting, taped to the back, you find a small photograph. It shows Augustus with a woman who is NOT his wife - the same woman from the love letters in the library. They're holding hands. On the back: 'My dearest Margaret. Someday we'll be free.'",
                 "fail_message": ""
               }
             }
@@ -9314,7 +9314,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly — there's a faint line around the frame. It's a door. The portrait is a door.",
+                "success_message": "As you study the portrait, you notice the eyes are painted with an unsettling attention to detail. They seem to follow you. But more importantly - there's a faint line around the frame. It's a door. The portrait is a door.",
                 "fail_message": ""
               }
             }
@@ -9336,7 +9336,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot — a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came.",
+                "success_message": "The blue silk ribbon tied to the railing is old but well-preserved. It's tied in a complex knot - a lover's knot. Someone stood here, looking out at the garden, waiting for someone who never came.",
                 "fail_message": ""
               }
             }
@@ -9424,7 +9424,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently — and left scratches pointing toward the library.",
+                "success_message": "As you lift the rug, you notice faint scratch marks on the marble tile beneath. Something was dragged here recently - and left scratches pointing toward the library.",
                 "fail_message": ""
               }
             }
@@ -9468,7 +9468,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. — Yours, forever, M.'",
+                "description": "A bundle of letters from Margaret Holloway to James Blackwood. 'Dear James, I know we cannot be together in this house. But I watch for you at the garden gate every evening. Meet me by the oak tree. I have news I can only share in person. - Yours, forever, M.'",
                 "item_id": "item_margaret_letters",
                 "name": "margaret_letters"
               }
@@ -9491,7 +9491,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress — her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'",
+                "success_message": "You open the stove door. Inside, you find a charred fragment of a photograph. It shows a woman in a dark dress - her face has been burned away. On the back, in shaky handwriting: 'Forgive me, Eleanor. I couldn't protect you.'",
                 "fail_message": ""
               }
             }
@@ -9586,7 +9586,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair — at the far end of the table — is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one.",
+                "success_message": "You count the place settings carefully. Seven. But there are eight chairs. The eighth chair - at the far end of the table - is pushed slightly away from the table, as if an invisible guest is seated there. A dusty plate sits before it, completely clean. No dust on this one.",
                 "fail_message": ""
               }
             }
@@ -9652,7 +9652,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby — the same melody as the one in the nursery.",
+                "success_message": "At the very bottom of the toy box, beneath all the broken toys, you find a small music box. It's dented but intact. When you wind it, it plays a haunting, tinny lullaby - the same melody as the one in the nursery.",
                 "fail_message": ""
               }
             }
@@ -9674,7 +9674,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You press your ear to the trunk. The tapping stops. Then a voice — a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'",
+                "success_message": "You press your ear to the trunk. The tapping stops. Then a voice - a child's whisper, muffled by the wood: 'Let me out. She's not who she says she is.'",
                 "fail_message": ""
               }
             }
@@ -9696,7 +9696,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in — it's cold, colder than the water should be — and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes.",
+                "success_message": "You lean closer to the tub. Beneath the grimy water, something glints. You reach in - it's cold, colder than the water should be - and pull out a small silver locket. Identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes.",
                 "fail_message": ""
               }
             }
@@ -9784,7 +9784,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Inside the vase, you find a tiny key — no larger than your thumb — taped to the inner wall. It's a jewelry box key.",
+                "success_message": "Inside the vase, you find a tiny key - no larger than your thumb - taped to the inner wall. It's a jewelry box key.",
                 "fail_message": ""
               }
             }
@@ -9806,7 +9806,7 @@
             {
               "type": "spawn_item",
               "params": {
-                "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate — this was a finely made key. Without the other half, it's useless.",
+                "description": "Half of a broken brass key, snapped cleanly in two. The teeth are intricate - this was a finely made key. Without the other half, it's useless.",
                 "item_id": "item_key_fragment",
                 "name": "key_fragment"
               }
@@ -9829,7 +9829,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. — Mother.' The handwriting is elegant, old-fashioned. Fresh.",
+                "success_message": "You pick up the lilies. They're real, still moist at the stems. Beneath them, you find a small card. 'Welcome home, little one. - Mother.' The handwriting is elegant, old-fashioned. Fresh.",
                 "fail_message": ""
               }
             }
@@ -9877,7 +9877,7 @@
       "npc_action_interval": 3,
       "npc_behavior": "wander",
       "npc_state": "idle",
-      "personality": "You are Elena Vance, a seasoned paranormal investigator with a decade of experience. You've seen enough to believe, but not enough to stop being skeptical. You approach each case methodically, documenting everything. The Blackwood disappearance is your most intriguing case yet — a family of seven vanished overnight in 1891, and the mansion has remained untouched since. You're brave but cautious, and you trust your equipment. Your partner Miki tagged along — a chaotic ASMR artist you met at a convention who insisted she could help.",
+      "personality": "You are Elena Vance, a seasoned paranormal investigator with a decade of experience. You've seen enough to believe, but not enough to stop being skeptical. You approach each case methodically, documenting everything. The Blackwood disappearance is your most intriguing case yet - a family of seven vanished overnight in 1891, and the mansion has remained untouched since. You're brave but cautious, and you trust your equipment. Your partner Miki tagged along - a chaotic ASMR artist you met at a convention who insisted she could help.",
       "relationships": {},
       "simple_npc": false,
       "skills": {
@@ -10280,7 +10280,7 @@
   ],
   "areas": {
     "Attic": {
-      "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space — furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls — not mice, something larger.",
+      "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space - furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls - not mice, something larger.",
       "environment": {
         "air": "dusty",
         "light": 10,
@@ -10308,7 +10308,7 @@
       "items": [],
       "name": "Attic",
       "properties": {
-        "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space — furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls — not mice, something larger.",
+        "description": "A cramped, oppressive attic under the eaves. Old trunks and forgotten belongings fill the space - furniture draped in white sheets that look like ghosts in the dim light. A single bare bulb hangs from a rafter, but there's no power. The air is thick with dust and the sharp smell of mothballs. Scratching sounds echo from the walls - not mice, something larger.",
         "environment": {
           "air": "dusty",
           "light": 10,
@@ -10371,7 +10371,7 @@
             "energy": 2,
             "time": 1
           },
-          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic — like old blood.",
+          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic - like old blood.",
           "way_id": "way_Cellar_basement_stairs",
           "hidden": false,
           "pass_message": "",
@@ -10448,7 +10448,7 @@
             "energy": 2,
             "time": 1
           },
-          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic — like old blood.",
+          "description": "A narrow staircase descending into darkness. Cold air rises from below, carrying the faint smell of earth and something metallic - like old blood.",
           "way_id": "way_Cellar_basement_stairs",
           "hidden": false,
           "pass_message": "",
@@ -10642,7 +10642,7 @@
           "cost": {
             "time": 1
           },
-          "description": "A door leading to the kitchen. A sliver of light glows from beneath it — impossible, since there's no electricity.",
+          "description": "A door leading to the kitchen. A sliver of light glows from beneath it - impossible, since there's no electricity.",
           "way_id": "way_Dining Room_kitchen_way",
           "hidden": false,
           "pass_message": "",
@@ -10746,7 +10746,7 @@
       }
     },
     "Garden": {
-      "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms — red flowers against the decay.",
+      "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms - red flowers against the decay.",
       "environment": {
         "air": "fresh",
         "light": 80,
@@ -10786,7 +10786,7 @@
       "items": [],
       "name": "Garden",
       "properties": {
-        "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms — red flowers against the decay.",
+        "description": "An overgrown garden where nature has reclaimed what was once carefully manicured. A cracked stone path winds through tangled weeds and brambles. A crumbling fountain stands in the centre, its basin filled with dark, stagnant water. To the north, a rusted wrought-iron gate leads to a graveyard. To the south, the conservatory's glass panels glint. The air is fresh but cold. A single rose bush, impossibly, still blooms - red flowers against the decay.",
         "environment": {
           "air": "fresh",
           "light": 80,
@@ -10886,7 +10886,7 @@
       }
     },
     "Guest Area 2": {
-      "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall — crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
+      "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall - crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
       "environment": {
         "air": "stale",
         "light": 20,
@@ -10913,7 +10913,7 @@
       "items": [],
       "name": "Guest Area 2",
       "properties": {
-        "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall — crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
+        "description": "A larger guest room that was once clearly intended for a child visitor. A small crib sits in the corner, its blankets moth-eaten and gray. The wallpaper has faded patterns of flowers and teddy bears, now barely visible. A child's drawings are pinned to the wall - crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
         "environment": {
           "air": "stale",
           "light": 20,
@@ -10964,7 +10964,7 @@
           "cost": {
             "time": 1
           },
-          "description": "A door leading to the kitchen. A sliver of light glows from beneath it — impossible, since there's no electricity.",
+          "description": "A door leading to the kitchen. A sliver of light glows from beneath it - impossible, since there's no electricity.",
           "way_id": "way_Dining Room_kitchen_way",
           "hidden": false,
           "pass_message": "",
@@ -11002,7 +11002,7 @@
       }
     },
     "Library": {
-      "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else — something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
+      "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else - something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
       "environment": {
         "air": "stale",
         "light": 30,
@@ -11029,7 +11029,7 @@
       "items": [],
       "name": "Library",
       "properties": {
-        "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else — something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
+        "description": "Floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. A large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. A cold fireplace with a marble mantel dominates the north wall. The room smells of old paper, dust, and something else - something metallic. One bookcase looks subtly different from the others, its spine alignment just slightly off.",
         "environment": {
           "air": "stale",
           "light": 30,
@@ -11040,7 +11040,7 @@
       }
     },
     "Master Bedroom": {
-      "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume — rosewater, perhaps. French ways lead to a small balcony.",
+      "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume - rosewater, perhaps. French ways lead to a small balcony.",
       "environment": {
         "air": "stagnant",
         "light": 20,
@@ -11066,7 +11066,7 @@
           "cost": {
             "time": 1
           },
-          "description": "A large oak door with a polished brass knob — polished recently, as it gleams.",
+          "description": "A large oak door with a polished brass knob - polished recently, as it gleams.",
           "way_id": "way_Upstairs Hall_master_bedroom_way",
           "hidden": false,
           "pass_message": "",
@@ -11080,7 +11080,7 @@
       "items": [],
       "name": "Master Bedroom",
       "properties": {
-        "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume — rosewater, perhaps. French ways lead to a small balcony.",
+        "description": "A large, ornate bedroom with a four-poster bed draped in heavy, moth-eaten velvet curtains the color of dried blood. A vanity with a tarnished mirror stands against one wall, its surface spotted with age. The air is heavy with the cloying scent of decay and old perfume - rosewater, perhaps. French ways lead to a small balcony.",
         "environment": {
           "air": "stagnant",
           "light": 20,
@@ -11091,7 +11091,7 @@
       }
     },
     "Nursery": {
-      "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing — but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
+      "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing - but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
       "environment": {
         "air": "cold",
         "light": 20,
@@ -11118,7 +11118,7 @@
       "items": [],
       "name": "Nursery",
       "properties": {
-        "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing — but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
+        "description": "A small child's nursery frozen in time. A wooden rocking horse stands in the corner, its painted eyes strangely lifelike. Toys are scattered across the floor as if a child just finished playing - but the dust says otherwise. The room is unnaturally cold, at least ten degrees colder than the hallway. Faint whispers seem to come from the walls, speaking in a language you don't recognize.",
         "environment": {
           "air": "cold",
           "light": 20,
@@ -11129,7 +11129,7 @@
       }
     },
     "Outside": {
-      "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door — the only entrance — stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
+      "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door - the only entrance - stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
       "environment": {
         "air": "fresh",
         "light": 60,
@@ -11157,7 +11157,7 @@
       "items": [],
       "name": "Outside",
       "properties": {
-        "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door — the only entrance — stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
+        "description": "You stand on the front porch of Blackwood Manor. The night air is cool and clean, carrying the scent of pine and distant woodsmoke. The mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. The barred front door - the only entrance - stands firmly shut. The overgrown driveway leads to a rusted gate, beyond which the road home waits. You have escaped the Blackwood curse... for now.",
         "environment": {
           "air": "fresh",
           "light": 60,
@@ -11254,7 +11254,7 @@
       }
     },
     "Slaughterhouse": {
-      "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones — human and animal — litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
+      "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones - human and animal - litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
       "environment": {
         "air": "stale",
         "light": 5,
@@ -11282,7 +11282,7 @@
       "items": [],
       "name": "Slaughterhouse",
       "properties": {
-        "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones — human and animal — litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
+        "description": "A hidden chamber deep beneath the mansion, long forgotten by the living. The walls are lined with butcher hooks and rusted meat racks. Bones - human and animal - litter the earthen floor. A single bare bulb flickers with no visible power source. The stench of old blood and decay is overwhelming. Chains hang from the ceiling, swaying in currents of air that don't exist. A narrow tunnel leads up into the darkness.",
         "environment": {
           "air": "stale",
           "light": 5,
@@ -11293,7 +11293,7 @@
       }
     },
     "Upstairs Hall": {
-      "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you — but when you stop, they stop too.",
+      "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you - but when you stop, they stop too.",
       "environment": {
         "air": "drafty",
         "light": 30,
@@ -11373,7 +11373,7 @@
           "cost": {
             "time": 1
           },
-          "description": "A large oak door with a polished brass knob — polished recently, as it gleams.",
+          "description": "A large oak door with a polished brass knob - polished recently, as it gleams.",
           "way_id": "way_Upstairs Hall_master_bedroom_way",
           "hidden": false,
           "pass_message": "",
@@ -11400,7 +11400,7 @@
       "items": [],
       "name": "Upstairs Hall",
       "properties": {
-        "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you — but when you stop, they stop too.",
+        "description": "A long, dim hallway on the second floor. The carpet is threadbare and stained, the wallpaper peeling in long strips. A portrait of Augustus Blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. A cold draft seeps from under one of the ways. The floorboards creak in a pattern that sounds almost like footsteps behind you - but when you stop, they stop too.",
         "environment": {
           "air": "drafty",
           "light": 30,

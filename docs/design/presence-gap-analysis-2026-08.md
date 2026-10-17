@@ -1,8 +1,8 @@
-# Presence Gap Analysis — Chat RP vs VirtualWorld
+# Presence Gap Analysis - Chat RP vs VirtualWorld
 
 **Date:** 2026-08-23
 **Purpose:** Evidence-based list of what the agent experience already does well, what
-genuinely hurts the "characters feel present" feeling, and candidate fixes — so we can
+genuinely hurts the "characters feel present" feeling, and candidate fixes - so we can
 re-verify each item and decide what to build. Nothing here is implemented yet.
 
 **Method:** compared exported engine logs against a hand-played multi-character chat RP
@@ -21,7 +21,7 @@ verification in a current-build run.
 
 ---
 
-## Part 1 — Already working (verified in logs)
+## Part 1 - Already working (verified in logs)
 
 These were previously suspected missing and are NOT; do not re-litigate without new evidence.
 
@@ -49,7 +49,7 @@ These were previously suspected missing and are NOT; do not re-litigate without 
 
 ---
 
-## Part 2 — Confirmed issues
+## Part 2 - Confirmed issues
 
 Each: evidence → impact → proposed action → how to verify.
 
@@ -92,7 +92,7 @@ Each: evidence → impact → proposed action → how to verify.
   escalation (argument, revelation, arrival) not caused by random wander.
 
 ### G5. Emotional accumulation is thin in practice
-- **Evidence:** Aug 10 log repeats `You feel fine — no pressing needs right now.` every
+- **Evidence:** Aug 10 log repeats `You feel fine - no pressing needs right now.` every
   turn; emotional state line exists (new format) but appears as a single adjective line.
   Contrast benchmark: one rejection colored 20+ exchanges.
 - **Impact:** characters reset to neutral between beats unless something big just happened.
@@ -100,8 +100,8 @@ Each: evidence → impact → proposed action → how to verify.
   fast, add mood inertia (events set a baseline that tints N subsequent prompts).
 - **Verify:** after a distressing event, check the next 3–5 decision prompts carry tint.
 
-### G6. Memory reliability — false positives
-- **Evidence:** Aug 10 L41014: *"I have nothing on me — no keycard"* while ground truth was
+### G6. Memory reliability - false positives
+- **Evidence:** Aug 10 L41014: *"I have nothing on me - no keycard"* while ground truth was
   `Carrying: keycard`; self-corrected two turns later (L21602).
 - **Impact:** confident wrong memories are worse than gaps; they cause ghost-correction loops.
 - **Action:** keyword recall can retrieve stale contradicted entries; consider recency +
@@ -114,7 +114,7 @@ Each: evidence → impact → proposed action → how to verify.
 - **Impact:** this IS most of the felt gap. Content is present; typesetting isn't.
 - **Action:** optional "scene view" renderer composing a turn's events into paragraphs
   (monologue italic, speech quoted, emotes woven, engine results as connective tissue).
-  Pure presentation layer — no engine change required.
+  Pure presentation layer - no engine change required.
 - **Verify:** read a scene-view export next to the chat benchmark; ask "who wrote which?".
 
 ### G8. Social density unverified in current build
@@ -128,7 +128,7 @@ Each: evidence → impact → proposed action → how to verify.
 
 ---
 
-## Part 3 — Ideas ranked (impact ÷ effort)
+## Part 3 - Ideas ranked (impact ÷ effort)
 
 | # | Idea | Addresses | Effort |
 |---|------|-----------|--------|
@@ -141,17 +141,17 @@ Each: evidence → impact → proposed action → how to verify.
 | 7 | Memory contradiction/recency weighting | G6 | M |
 | 8 | Director pressure prototype (tension/beat goals) | G4 | L |
 
-## Part 4 — Open questions
+## Part 4 - Open questions
 
-- Does tick→time memory stamp conversion exist in the current build? (Tommy says yes/planned — verify.)
+- Does tick→time memory stamp conversion exist in the current build? (Tommy says yes/planned - verify.)
 - Do provider-side cached system prompts work with our OpenAI-compatible providers?
 - Should scene-view live in the event stream UI or as an export filter first?
 
 ---
 
-## Part 5 — Verification round 1: mansion multi-agent run (2026-08-23)
+## Part 5 - Verification round 1: mansion multi-agent run (2026-08-23)
 
-Log: `data/exports/mansion_event_log_2026-08-23T15-04-54.txt` — 7 characters
+Log: `data/exports/mansion_event_log_2026-08-23T15-04-54.txt` - 7 characters
 (elena vance, kyrie johansen, jake halloway, sammy lopez, miki, the butcher,
 kayla jenkins), ~240 ticks, 29 LLM calls.
 
@@ -159,12 +159,12 @@ kayla jenkins), ~240 ticks, 29 LLM calls.
 
 | Item | Result | Evidence |
 |------|--------|----------|
-| G1 pronoun stitching | **FIXED** — 0 leaks in rendered emotes | line scan over all 💭/🎭 renders |
-| Memory stamp aging | **LIVE** — recalls show "1 minute ago"/"2 minutes ago"; `[just now]` only for same-turn writes | 22/43 recall blocks aged |
-| G3 prompt boilerplate | **MOSTLY SOLVED** — static rules/schema ≈ 7–8% of call-body chars (~82k of ~1.05M) | boundary scan ACTIONS→first dynamic section |
-| G8 social emergence | **PASSING** — collaborative deduction chain across 5 agents: diary/skull rule relayed room-to-room → Blackwood calling cards → loose tile under rug → love letters w/ "m." initial → key taped in vase. Direct addressation, distinct voices, building on findings | speech stream ticks 10–246 |
-| Conversation instinct | live — "You feel sociable right now — inclined to speak up." drives speech | === CONVERSATION === ×51 |
-| Anti-repeat guard | live — ANTI-REPEAT rule references agent's own prior lines | decision prompts |
+| G1 pronoun stitching | **FIXED** - 0 leaks in rendered emotes | line scan over all 💭/🎭 renders |
+| Memory stamp aging | **LIVE** - recalls show "1 minute ago"/"2 minutes ago"; `[just now]` only for same-turn writes | 22/43 recall blocks aged |
+| G3 prompt boilerplate | **MOSTLY SOLVED** - static rules/schema ≈ 7–8% of call-body chars (~82k of ~1.05M) | boundary scan ACTIONS→first dynamic section |
+| G8 social emergence | **PASSING** - collaborative deduction chain across 5 agents: diary/skull rule relayed room-to-room → Blackwood calling cards → loose tile under rug → love letters w/ "m." initial → key taped in vase. Direct addressation, distinct voices, building on findings | speech stream ticks 10–246 |
+| Conversation instinct | live - "You feel sociable right now - inclined to speak up." drives speech | === CONVERSATION === ×51 |
+| Anti-repeat guard | live - ANTI-REPEAT rule references agent's own prior lines | decision prompts |
 | Cross-area hearing | attributed via ways: "[Heard from the library_door_back] a woman's voice said:" | WITNESSED blocks, 23/29 non-empty |
 | Threat autonomy | butcher runs independent horror logic off-screen ("Intruders in my house. The Entity demands sacrifice.") | butcher decide pass |
 
@@ -172,9 +172,9 @@ kayla jenkins), ~240 ticks, 29 LLM calls.
 
 | Item | Result | Evidence |
 |------|--------|----------|
-| **G5 emotional accumulation** | **CONFIRMED OPEN** — 43/43 state blocks read "You feel fine — no pressing needs right now."; zero dynamic affect despite horror stimuli (stalking butcher, haunted-house tension). The Lyrie-run emotion line did not appear on this code path | all `=== YOUR STATE ===` bodies |
+| **G5 emotional accumulation** | **CONFIRMED OPEN** - 43/43 state blocks read "You feel fine - no pressing needs right now."; zero dynamic affect despite horror stimuli (stalking butcher, haunted-house tension). The Lyrie-run emotion line did not appear on this code path | all `=== YOUR STATE ===` bodies |
 | G2 engine outcome prose | unchanged (terse ⚙️ lines); less jarring at this event density but still stubs vs model prose | outcome lines throughout |
-| G7 scene-view rendering | untested (presentation layer not built yet) | — |
+| G7 scene-view rendering | untested (presentation layer not built yet) | - |
 | G4 pacing authority | partially exercised: butcher acts as an organic instigator/threat, which may be enough pressure in horror scenarios; calm scenarios remain untested | butcher behavior |
 
 ### Round 2: taco_bell_date first load (2026-08-23, later)
@@ -183,13 +183,13 @@ Two-agent run of the authored date scenario (Miki + Jake both autonomous).
 
 | Item | Result | Evidence |
 |------|--------|----------|
-| **G5 emotional states** | **RESOLVED (rendering)** — "miki doki is quite anxious." renders when the character has an emotion set; mansion run was empty because every character was neutral/healthy. Vitals-derived inner life also fires: Sanity 70 → `=== YOUR MIND ===` unease text; Social 40 → "You feel isolated." | decision prompts, turn 0 |
-| Authored-beat reproduction | **The earring arc replayed itself**: seeded memory ("missing… it matters") + hidden item under table → Miki crawls under the booth mid-date, nearly cries, writes an importance-8 memory (*"I told jake 'i'm fine' while absolutely not being fine"*, tags relief/grief/hope). No director involved — graph props + memories were enough | turns 0–1 |
-| Vitals → characterful behavior | Jake's hunger 10 triggered CRITICAL NEEDS plan-first rules, but he satisfied them in voice: steals the burrito as "date tax" — the same beat hand-written in the source RP | jake decide turn 1 |
-| POV stranger labels | bare `[Heard] a woman's voice said:` pre-introduction — correct; names withheld until introduced | witnessed blocks |
+| **G5 emotional states** | **RESOLVED (rendering)** - "miki doki is quite anxious." renders when the character has an emotion set; mansion run was empty because every character was neutral/healthy. Vitals-derived inner life also fires: Sanity 70 → `=== YOUR MIND ===` unease text; Social 40 → "You feel isolated." | decision prompts, turn 0 |
+| Authored-beat reproduction | **The earring arc replayed itself**: seeded memory ("missing… it matters") + hidden item under table → Miki crawls under the booth mid-date, nearly cries, writes an importance-8 memory (*"I told jake 'i'm fine' while absolutely not being fine"*, tags relief/grief/hope). No director involved - graph props + memories were enough | turns 0–1 |
+| Vitals → characterful behavior | Jake's hunger 10 triggered CRITICAL NEEDS plan-first rules, but he satisfied them in voice: steals the burrito as "date tax" - the same beat hand-written in the source RP | jake decide turn 1 |
+| POV stranger labels | bare `[Heard] a woman's voice said:` pre-introduction - correct; names withheld until introduced | witnessed blocks |
 
 **Bugs found & fixed in `taco_bell_date.json`:**
-1. World lore rendered `[general] undefined:` — prompt builder expects `entry.title`
+1. World lore rendered `[general] undefined:` - prompt builder expects `entry.title`
    (`system-prompt.js:112`), scenario used `name`. Added title.
 2. Second-person converter verb artifact: "grinning like he knows…" → "like you knows".
    Reworded description to avoid pronoun+verb constructions (converter family, G1).
@@ -200,12 +200,12 @@ Two-agent run of the authored date scenario (Miki + Jake both autonomous).
 - Ambient dread flavor ("the shadows seem to watch you") is horror-generic; fine for
   sanity<75 anywhere but worth a scene-appropriate variant pool eventually.
 - Steering prefixes before JSON in assistant turns ("Take the earring.",
-  "React silently, emotional.") — confirm these are the intended mode-steering mechanism.
+  "React silently, emotional.") - confirm these are the intended mode-steering mechanism.
 
 ### New observations
 
 - Recall quality is planning-grade and relationship-aware: *"miki's following me in.
   good. i don't want her wandering off alone"* (elena, decision prompt).
-- Witnessed-empty blocks (6/29) occur only when a character is genuinely alone — correct.
+- Witnessed-empty blocks (6/29) occur only when a character is genuinely alone - correct.
 - Next highest-leverage move: wire emotional states into the multiplayer decision-prompt
   path (they rendered in the solo Lyrie run but not here), then re-export and re-check.

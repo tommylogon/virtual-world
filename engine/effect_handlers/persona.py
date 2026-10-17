@@ -7,12 +7,12 @@ Every 828 field changes at runtime through four effects, all targeting a
 character and persisting on the node's structured block (the state); the
 explicit Compile refreshes the prose (the projection):
 
-- ``set_persona_field {path, value}`` — dotted path write
+- ``set_persona_field {path, value}`` - dotted path write
   (``appearance.eyes.color``, ``identity.age`` ...). Lenses, scissors,
   tattoo kits and prosthetics are content carrying this effect, not code.
-- ``add_persona_id`` / ``remove_persona_id {field, id}`` — id-list growth
+- ``add_persona_id`` / ``remove_persona_id {field, id}`` - id-list growth
   both directions (kinks, fears, traumas, interests ...).
-- ``advance_age {years}`` — author age override until task-735's clock.
+- ``advance_age {years}`` - author age override until task-735's clock.
 
 Fear/interest mirroring: ``fears``/``traumas`` entries also land on
 ``player.fear_tags`` and ``interests``/``likes`` on

@@ -6,15 +6,15 @@ attack the same target.
 
 Three pieces, matching the MVP the task file itself specifies:
 
-* **Pack identity** — a ``pack:<name>`` entry in the character's existing
+* **Pack identity** - a ``pack:<name>`` entry in the character's existing
   ``tags``. No new field: ``player.tags`` is where the shipped data already puts
   the things a character *is* (``"goblin"``, ``"rat"``), and adding a
   ``pack`` attribute to :class:`Player` would be ``player.py``, a hub file. A
   tag also means a pack is visible to everything else that reads tags.
-* **Packmate awareness** — who shares a pack and where, plus a *call* that
+* **Packmate awareness** - who shares a pack and where, plus a *call* that
   reaches one room further than sight, which is the "hear or smell over larger
   areas" half of the idea.
-* **A coordinated target** — the nearest packmate's target, so a pack converges
+* **A coordinated target** - the nearest packmate's target, so a pack converges
   on one enemy instead of splitting.
 
 Deliberately **not** here: formation, flanking, role assignment. The task file
@@ -22,7 +22,7 @@ puts those out of scope, and they are the part that turns a mechanic into a
 project.
 
 Scope note: this only does anything for characters a scenario has actually
-tagged. Like task-552, the mechanic is inert until the data exists — a `pack:`
+tagged. Like task-552, the mechanic is inert until the data exists - a `pack:`
 tag with no packmate is just a character, and that is the correct answer.
 """
 
@@ -47,7 +47,7 @@ PACK_CALL_COOLDOWN = 10
 def pack_of(player) -> Optional[str]:
     """This character's pack name, or None.
 
-    Lowercased so ``pack:Sewer`` and ``pack:sewer`` are the same pack — the same
+    Lowercased so ``pack:Sewer`` and ``pack:sewer`` are the same pack - the same
     reasoning as ``player_manager.relationship_key``.
     """
     for tag in (getattr(player, "tags", None) or []):
@@ -63,7 +63,7 @@ def packmates_in(gs, player, areas: int = 0) -> List[str]:
     """Names of packmates, nearest first.
 
     ``areas`` widens the search: 0 is same area only, and a positive value walks
-    that many areas away through the area graph. Living packmates only — a dead
+    that many areas away through the area graph. Living packmates only - a dead
     packmate is not calling for help.
     """
     pack = pack_of(player)
@@ -139,7 +139,7 @@ def call_for_help(gs, player, cause: str, tick: int) -> List[str]:
 
     Returns the packmates that heard it. The caller stamps
     ``pack_target`` on each listener so :func:`coordinated_target` has something
-    to converge on — the call is what carries the information, and without that
+    to converge on - the call is what carries the information, and without that
     stamp a "pack" is just a crowd standing near each other.
     """
     pack = pack_of(player)

@@ -270,7 +270,7 @@ class Effects:
         With ``always_fresh=True`` a brand-new standalone node is created on
         every call (``add_node`` appends a unique suffix when the id is taken),
         so the same library entry can be spawned any number of times as
-        distinct copies — one puddle per relieve, ad infinitum. With the
+        distinct copies - one puddle per relieve, ad infinitum. With the
         default False the existing graph node is reused when present.
 
         Returns ``(node, lib_data)``. Reused by ``spawn_item`` (drops into an
@@ -385,7 +385,7 @@ class Effects:
         remaining = float(max_cap) - current_weight
         if item_weight > remaining:
             return (
-                f"The {container_node.name} can't hold that — it's too heavy "
+                f"The {container_node.name} can't hold that - it's too heavy "
                 f"(capacity: {current_weight:.1f}/{float(max_cap)} kg)."
             )
         return None
@@ -446,7 +446,7 @@ class Effects:
                     trigger_data.get("conditions_logic", "and")
             # Legacy singular shape (task-410): a library plant authors its growth
             # increment as `condition` + `effect_type`/`effect_params`. Carry those
-            # keys through too — the runtime reads both shapes (execution.py /
+            # keys through too - the runtime reads both shapes (execution.py /
             # effect_resolution.py), but without this a hydrated plant would get a
             # trigger with no conditions and no effects, i.e. it would never grow.
             for legacy_key in ("condition", "effect_type", "effect_params"):
@@ -473,8 +473,8 @@ class Effects:
 
         Returns ``(player_obj, lib_data)``. Reused by ``handle_spawn_character``.
 
-        With ``always_fresh=True`` a brand-new ``Player`` — hence a fresh opaque
-        id, registry key and anchor node — is built on every call, so the same
+        With ``always_fresh=True`` a brand-new ``Player`` - hence a fresh opaque
+        id, registry key and anchor node - is built on every call, so the same
         library character can be spawned any number of times as distinct
         entities (task-316: e.g. 100 same-named zombies). With the default
         ``False`` an existing player is reused when its anchor node is present.
@@ -518,8 +518,8 @@ class Effects:
         p.vitals = {**p.vitals, **lib_data.get("vitals", {})}
         # task-538: a stat block may declare `hit_dice` instead of `Max_HP`
         # ("7d8+14" -> 49), so a family of creatures can be authored by formula.
-        # An explicit Max_HP wins, so the 68 existing library characters — which
-        # all set it directly — hydrate to exactly what they always did.
+        # An explicit Max_HP wins, so the 68 existing library characters - which
+        # all set it directly - hydrate to exactly what they always did.
         apply_hit_dice(p.vitals, {**lib_data, **lib_data.get("vitals", {})})
         p.vitals.setdefault("Max_HP", DEFAULT_MAX_HP)
         if "HP" in p.vitals:

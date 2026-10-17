@@ -23,7 +23,7 @@ double-spend the charge.
 Deterministic and idempotent: stable trigger ids, and an existing trigger of the
 same type is rewritten in place, so re-running changes nothing and the scenario
 diff stays small. Edits the raw JSON surgically (never
-``world.to_scenario_dict()``, which rewrites every character) — dry-run by default.
+``world.to_scenario_dict()``, which rewrites every character) - dry-run by default.
 
     python tools/author_camp_consumables.py            # show the plan
     python tools/author_camp_consumables.py --write    # apply it
@@ -197,7 +197,7 @@ def main():
     if missing:
         return 1
     if not args.write:
-        print("dry run — rerun with --write to save")
+        print("dry run - rerun with --write to save")
         return 0
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, ensure_ascii=False)

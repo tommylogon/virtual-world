@@ -1,4 +1,4 @@
-"""Speech broadcasting — extracted from narration.py (task-322 R1/R2).
+"""Speech broadcasting - extracted from narration.py (task-322 R1/R2).
 
 Owns everything about delivering a line of speech to listeners:
 same-area hearing entries, directed whispers (task-248), cross-area
@@ -16,7 +16,7 @@ from graph import EDGE_IN
 
 
 #: How close a bystander must stand to a speaker to catch a directed whisper.
-#: "Nearby" is the same area — the whisper's sound penetration is already 0, so
+#: "Nearby" is the same area - the whisper's sound penetration is already 0, so
 #: nothing crosses a wall. What decides it is the RELATIONSHIP: the people close
 #: enough to be leaned toward are the ones close to you, so a whisper is heard by
 #: its recipient plus anyone in the room at least this friendly with the speaker.
@@ -73,7 +73,7 @@ class SpeechBroadcaster:
 
         The shared NameMatching resolver maps aliases/partial names to a
         canonical character name first (task-322 R2); the same-area scan
-        then enforces the privacy constraint — you can only whisper to
+        then enforces the privacy constraint - you can only whisper to
         someone present. Returns the canonical player name or None.
         """
         wanted = str(whisper_target).strip()
@@ -104,7 +104,7 @@ class SpeechBroadcaster:
         """Names (besides the speaker) who hear a directed whisper's words.
 
         The recipient always does. So does anyone standing in the same area who
-        is at least ``WHISPER_EAVESDROP_BAND`` friendly with the speaker — the
+        is at least ``WHISPER_EAVESDROP_BAND`` friendly with the speaker - the
         people close enough to be "at" them. A stranger at the same table hears
         nothing (they only see the gesture), which is what makes a whisper worth
         choosing over talking to the room.
@@ -134,7 +134,7 @@ class SpeechBroadcaster:
         every listener who doesn't know a matched character's name yet
         learns it. One mechanism covers self-intros ("hi, I'm rosa"),
         direct address ("hey Miki, look here"), and third-party mentions
-        ("order up for rosa!"). Same-area only — muffled speech through a
+        ("order up for rosa!"). Same-area only - muffled speech through a
         wall teaches nothing.
         """
         from engine.matching import node_aliases
@@ -147,7 +147,7 @@ class SpeechBroadcaster:
             return
 
         text_lower = speech_text.lower()
-        # candidates = EVERYONE present, speaker included — a self-intro
+        # candidates = EVERYONE present, speaker included - a self-intro
         # ("hi, I'm rosa") is the speaker's own name in their own line.
         for candidate in present:
             candidate_node = None
@@ -262,7 +262,7 @@ class SpeechBroadcaster:
         if is_directed_whisper:
             event["whisper_target"] = resolved_target
             event["whisper_audience"] = sorted(whisper_audience - {resolved_target})
-            # A private aside is an intimate exchange — both parties warm
+            # A private aside is an intimate exchange - both parties warm
             # slightly toward each other (task-94: closeness gate).
             tick = event.get("tick", 0) or 0
             if speaker is not None and hasattr(speaker, "update_relationship"):
@@ -407,7 +407,7 @@ class SpeechBroadcaster:
                 {"spoken_text": speech_text, "speaker": speaker_name},
             )
 
-        # item on_speech triggers (objects that talk back — magic mirrors,
+        # item on_speech triggers (objects that talk back - magic mirrors,
         # radios, doors with opinions). Fired for every item/way/area node
         # in the same area whose trigger system is wired. A directed whisper
         # is private to its target and never fires them.
@@ -430,7 +430,7 @@ class SpeechBroadcaster:
                         node = self.graph.get_node(edge.source)
                         if node is not None and node.type == "item":
                             # _execute_triggers(item, type, target_name, context, ...)
-                            # — pass the speech context as CONTEXT (4th arg) and
+                            # - pass the speech context as CONTEXT (4th arg) and
                             # the game_state (5th) if the hook owns one.
                             if self.game_state is not None:
                                 self.trigger_fn(node, "on_speech", None, speech_ctx, None, self.game_state)

@@ -8,7 +8,7 @@ numbers live in one place and an author can retune them without a code change.
 
 A ladder maps a **strength threshold** (1..20) to a DC. For an encounter of
 strength ``S`` the highest threshold ``<= S`` wins; a strength below the lowest
-rung uses the lowest, and above the highest uses the highest — so a table is
+rung uses the lowest, and above the highest uses the highest - so a table is
 total over any strength the world can present.
 
 @module hazards

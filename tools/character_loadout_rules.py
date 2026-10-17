@@ -7,7 +7,7 @@ consumed by ``tools/character_loadout_check.py`` (the executable) and pinned by
 ``tools/way_properties.py`` uses to feed ``tools/way_property_index.py``.
 
 Keeping the *reasons* here rather than inline in the checker means the valuable
-part of each rule — why bad data is a defect and not a style nit — is
+part of each rule - why bad data is a defect and not a style nit - is
 referenceable by the docs and the tests, not buried in the scanner.
 """
 

@@ -12,13 +12,13 @@ Complete reference for every action verb in VirtualWorld.
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
 | `go` | `move`, `walk` | ✅ | `movement.go` |
-| `dash` | — | ✅ | `movement.dash_to_area` |
-| `crawl` | — | ✅ | `movement.crawl_to_area` |
-| `climb` | — | ✅ | `movement.climb_to_area` |
-| `jump` | — | ✅ | `movement.jump_to_area` |
+| `dash` | - | ✅ | `movement.dash_to_area` |
+| `crawl` | - | ✅ | `movement.crawl_to_area` |
+| `climb` | - | ✅ | `movement.climb_to_area` |
+| `jump` | - | ✅ | `movement.jump_to_area` |
 | `approach` | `approach to` | ✅ | `movement.approach` |
-| `traverse` | — | ✅ | Delegates to `move_to_area` for NPC behaviors |
-| `toggle way` | — | ❌ | Not a player verb; `toggle_way` is internal/open-close only |
+| `traverse` | - | ✅ | Delegates to `move_to_area` for NPC behaviors |
+| `toggle way` | - | ❌ | Not a player verb; `toggle_way` is internal/open-close only |
 | `wait` | `pass`, `rest` | ✅ | `tick_manager` |
 
 ---
@@ -28,9 +28,9 @@ Complete reference for every action verb in VirtualWorld.
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
 | `attack` | `hit`, `strike`, `punch`, `kick`, `slash`, `shoot`, `stab` | ✅ | `combat.attack` |
-| `throw` | — | ⚠️ | Simplified in behaviors; drops item instead of true projectile |
-| `break` | — | ✅ | Sets item uses to 0 in NPC behaviors |
-| `fumble around` | — | ✅ | `narration.fumble_around` |
+| `throw` | - | ⚠️ | Simplified in behaviors; drops item instead of true projectile |
+| `break` | - | ✅ | Sets item uses to 0 in NPC behaviors |
+| `fumble around` | - | ✅ | `narration.fumble_around` |
 
 ---
 
@@ -47,21 +47,21 @@ Complete reference for every action verb in VirtualWorld.
 
 ---
 
-## 4. Items — General
+## 4. Items - General
 
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
-| `use` | — | ✅ | `use_actions.use_item` |
-| `activate` | — | ❌ | No `use_actions.activate` |
+| `use` | - | ✅ | `use_actions.use_item` |
+| `activate` | - | ❌ | No `use_actions.activate` |
 | `light` | `ignite`, `burn` | ⚠️ | Alias for `use`/`toggle_item_status`; no dedicated light verb |
-| `toggle` | — | ✅ | `toggleable_items.toggle_item_status` |
+| `toggle` | - | ✅ | `toggleable_items.toggle_item_status` |
 | `place` | `put`, `set`, `lay` | ✅ | `place_actions.place_item` |
 | `combine` | `mix`, `blend`, `forge` | ✅ | `crafting.combine_items` |
 | `carve` | `engrave`, `decorate` | ❌ | No `crafting.decorate` verb |
 | `stow` | `store`, `put away` | ✅ | `stacking.stow_item` |
 | `steal` | `pickpocket` | ✅ | `transfer_actions.steal_item` |
 | `repair` | `fix`, `mend`, `patch` | ❌ | No `crafting.repair_item` |
-| `read` | — | ✅ | Via `examine` text reveal |
+| `read` | - | ✅ | Via `examine` text reveal |
 
 ---
 
@@ -70,7 +70,7 @@ Complete reference for every action verb in VirtualWorld.
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
 | `take` | `get`, `pickup`, `grab`, `pick up` | ✅ | `take_drop_actions.take_item` |
-| `drop` | — | ✅ | `take_drop_actions.drop_item` |
+| `drop` | - | ✅ | `take_drop_actions.drop_item` |
 | `put (in)` | `place (in)`, `insert` | ✅ | `take_drop_actions.put_in_container` |
 | `remove` | `take off` | ✅ | `take_drop_actions.remove_held` |
 | `hold` | `grip` | ❌ | Not a command verb |
@@ -99,7 +99,7 @@ Complete reference for every action verb in VirtualWorld.
 |------|---------|--------|-------|
 | `eat` | `bite`, `nibble`, `devour`, `consume` | ✅ | `consume_actions.eat_item` |
 | `drink` | `swig`, `sip`, `gulp`, `quaff` | ✅ | `consume_actions.drink_item` |
-| `gulp down` | — | ✅ | Uses `_consume_item` pipeline in NPC behaviors |
+| `gulp down` | - | ✅ | Uses `_consume_item` pipeline in NPC behaviors |
 
 ---
 
@@ -108,10 +108,10 @@ Complete reference for every action verb in VirtualWorld.
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
 | `craft` | `make`, `build`, `create` | ✅ | `crafting.craft_item` |
-| `combine` | — | ✅ | `crafting.combine_items` |
-| `teach` | — | ✅ | `crafting.teach_item` |
+| `combine` | - | ✅ | `crafting.combine_items` |
+| `teach` | - | ✅ | `crafting.teach_item` |
 | `cook` | `brew`, `distill` | ❌ | No `crafting.cook_item` |
-| `repair` | — | ❌ | No `crafting.repair_item` |
+| `repair` | - | ❌ | No `crafting.repair_item` |
 
 ---
 
@@ -122,8 +122,8 @@ Complete reference for every action verb in VirtualWorld.
 | `manifest` | `phase in` | ❌ | No `ghost.manifest` verb |
 | `vanish` | `phase out`, `disappear` | ❌ | No `ghost.vanish` verb |
 | `possess` | `enter` | ❌ | No `ghost.possess` verb |
-| `wraith form` | — | ❌ | No `ghost.ghost_tint` verb |
-| `spawn body item` | — | ❌ | No `ghost.spawn_body_item` verb |
+| `wraith form` | - | ❌ | No `ghost.ghost_tint` verb |
+| `spawn body item` | - | ❌ | No `ghost.spawn_body_item` verb |
 
 ---
 
@@ -139,11 +139,11 @@ Complete reference for every action verb in VirtualWorld.
 | `introduce` | `greet` | ❌ | No `social.introduce` |
 | `beg` | `plead`, `propose` | ❌ | No `social.*` verb |
 | `demand` | `order`, `threaten` | ❌ | No `social.*` verb |
-| `bribe` | — | ❌ | No `social.*` verb |
+| `bribe` | - | ❌ | No `social.*` verb |
 | `follow` | `lead`, `accompany` | ❌ | No `social.follow` verb |
 | `trade` | `barter`, `swap` | ⚠️ | Alias for `give` |
-| `name` | — | ✅ | Set a personal alias on a character or item |
-| `label` | — | ✅ | Set a relationship label for a person |
+| `name` | - | ✅ | Set a personal alias on a character or item |
+| `label` | - | ✅ | Set a relationship label for a person |
 
 ---
 
@@ -159,13 +159,13 @@ Complete reference for every action verb in VirtualWorld.
 
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
-| `kiss` | — | ✅ | `pleasure.kiss` |
+| `kiss` | - | ✅ | `pleasure.kiss` |
 | `caress` | `pet`, `stroke` | ✅ | `pleasure.caress` |
-| `lick` | — | ✅ | `pleasure.lick` |
+| `lick` | - | ✅ | `pleasure.lick` |
 | `suck` | `blow` | ✅ | `pleasure.suck` |
-| `bite` | — | ✅ | `pleasure.bite` |
-| `pinch` | — | ✅ | `pleasure.pinch` |
-| `tickle` | — | ❌ | No `pleasure.ticklish` |
+| `bite` | - | ✅ | `pleasure.bite` |
+| `pinch` | - | ✅ | `pleasure.pinch` |
+| `tickle` | - | ❌ | No `pleasure.ticklish` |
 | `embrace` | `hug`, `cuddle`, `snuggle` | ✅ | `pleasure.embrace` |
 
 ---
@@ -185,8 +185,8 @@ Complete reference for every action verb in VirtualWorld.
 | `dress` | `get dressed` | ✅ | `activities.dress` |
 | `strip` | `undress` | ✅ | `activities.strip` |
 | `relieve` | `relieve oneself` | ✅ | `activities.relieve_self` |
-| `read` | — | ✅ | Via `examine` text reveal |
-| `listen` | — | ✅ | `narration.listen` |
+| `read` | - | ✅ | Via `examine` text reveal |
+| `listen` | - | ✅ | `narration.listen` |
 | `fumble around` | `grope`, `feel around` | ✅ | `narration.fumble_around` |
 | `lie down` | `lay down` | ✅ | `activities.lie_down` |
 | `fix` | `treat` | ✅ | `activities.fix` |
@@ -197,13 +197,13 @@ Complete reference for every action verb in VirtualWorld.
 
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
-| `open` | — | ✅ | `item_actions.open` / `movement.open` |
-| `close` | — | ✅ | `item_actions.close_item` |
-| `lock` | — | ✅ | `item_actions.lock_item` |
-| `unlock` | — | ✅ | `item_actions.lock_item` |
+| `open` | - | ✅ | `item_actions.open` / `movement.open` |
+| `close` | - | ✅ | `item_actions.close_item` |
+| `lock` | - | ✅ | `item_actions.lock_item` |
+| `unlock` | - | ✅ | `item_actions.lock_item` |
 | `push` | `pull`, `move (object)` | ✅ | `item_actions.push_pull` |
 | `turn` | `rotate`, `spin` | ✅ | `item_actions.turn` |
-| `drag` | — | ✅ | `item_actions.push_pull` |
+| `drag` | - | ✅ | `item_actions.push_pull` |
 | `push through` | `squeeze` | ✅ | Delegates to `move_to_area` in NPC behaviors |
 | `climb` | `swing`, `vault`, `leap` | ✅ | `movement.climb_to_area` |
 | `block` | `barricade` | ❌ | No `crafting.place_obstacle` verb |
@@ -217,25 +217,25 @@ Complete reference for every action verb in VirtualWorld.
 | `look` | `l`, `scan` | ✅ | `examine_actions` |
 | `examine` | `inspect`, `check`, `look at`, `describe` | ✅ | `examine_actions` |
 | `search` | `rummage`, `root through`, `probe` | ✅ | `item_actions.search` |
-| `listen` | — | ✅ | `narration.listen` |
-| `read` | — | ✅ | Via `examine` |
+| `listen` | - | ✅ | `narration.listen` |
+| `read` | - | ✅ | Via `examine` |
 | `inventory` | `inv`, `i` | ✅ | `get_inventory` |
-| `find` | — | ✅ | Alias/helper for search |
-| `split` | — | ✅ | `crafting.split_item` |
-| `guess time` | — | ✅ | Survival check vs weather-based DC; reveals moon phase at night |
+| `find` | - | ✅ | Alias/helper for search |
+| `split` | - | ✅ | `crafting.split_item` |
+| `guess time` | - | ✅ | Survival check vs weather-based DC; reveals moon phase at night |
 ---
 
 ## 16. System / Info
 
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
-| `help` | — | ❌ | No `action_handlers.help` verb |
+| `help` | - | ❌ | No `action_handlers.help` verb |
 | `commands` | `verbs` | ❌ | No `action_handlers.commands` verb |
 | `who` | `whoami` | ❌ | No `whoami` verb |
 | `time` | `date` | ❌ | No `world.time` verb |
 | `stats` | `status` | ✅ | `get_status` / `format_vitals_readout` |
 | `map` | `north` | ❌ | No `report_map` verb |
-| `save` | — | ❌ | Session control only; not a game verb |
+| `save` | - | ❌ | Session control only; not a game verb |
 | `quit` | `exit` | ❌ | Session control only; not a game verb |
 | `version` | `about` | ❌ | No `version` verb |
 
@@ -246,11 +246,11 @@ Complete reference for every action verb in VirtualWorld.
 | Verb | Aliases | Status | Notes |
 |------|---------|--------|-------|
 | `drop all` | `empty`, `dump` | ✅ | Uses `drop_held_items` + carried items in NPC behaviors |
-| `give` | — | ✅ | `transfer_actions.give_item` |
+| `give` | - | ✅ | `transfer_actions.give_item` |
 | `take all` | `loot` | ✅ | Takes all reachable items in NPC behaviors |
 | `steal` | `pickpocket` | ✅ | `transfer_actions.steal_item` |
-| `follow` | — | ❌ | No `social.follow` verb |
-| `lead` | — | ✅ | `grapple.lead` |
+| `follow` | - | ❌ | No `social.follow` verb |
+| `lead` | - | ✅ | `grapple.lead` |
 | `bind` | `enchant` | ✅ | Agent/item trigger authoring |
 | `emote` | `do`, `act`, `gesture` | ✅ | `narration.process_emote` |
 

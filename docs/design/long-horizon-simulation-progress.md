@@ -1,8 +1,8 @@
-# Long-Horizon Simulation — Design & Progress
+# Long-Horizon Simulation - Design & Progress
 
 **Last updated:** 2026-09-19
 **Goal:** run the Kraktooth Goblin Camp (and any scenario) for weeks of in-game
-time with **every** character a real agent — not 7 minds and 16 mannequins —
+time with **every** character a real agent - not 7 minds and 16 mannequins -
 while keeping LLM cost proportional to *novelty and attention*, not to time or
 population. Then let the user watch it, follow a character, and drop in to
 interact.
@@ -15,12 +15,12 @@ Related: [[reversibility-contract]], [[lived-log-format]], tasks 397 (scopes),
 ## 1. The constraint that drives everything
 
 The goblin scenario pins `time_per_tick_minutes = 1`. A week is 10,080 ticks.
-With ~23 characters, LLM-per-character-per-tick is ~80,000 calls/week — dead on
+With ~23 characters, LLM-per-character-per-tick is ~80,000 calls/week - dead on
 arrival. So the design decouples three things that the current engine fuses:
 
-1. **World time** — a cheap 1-minute tick that advances regardless of the player.
-2. **Cognition** — LLM calls anchored to events/sequence-boundaries, not ticks.
-3. **Fidelity** — only the attended set (anchors + graph-hop radius) runs full
+1. **World time** - a cheap 1-minute tick that advances regardless of the player.
+2. **Cognition** - LLM calls anchored to events/sequence-boundaries, not ticks.
+3. **Fidelity** - only the attended set (anchors + graph-hop radius) runs full
    cognition; everything else runs deterministic background rules.
 
 Non-negotiable decisions:
@@ -37,28 +37,28 @@ with Dwarf Fortress / RimWorld identity continuity): anchors (observed
 character, human player, pinned location/item) + a graph-hop radius + a global
 cap with deterministic eviction + hysteresis, promoting on approach.
 
-## 2. Phase 0 — Survival (done)
+## 2. Phase 0 - Survival (done)
 
 The world could not survive a day: session-scaled drains killed everyone in ~2h.
 
-- **`vital_rates.py`** — single source of truth for per-minute rates (1 tick =
+- **`vital_rates.py`** - single source of truth for per-minute rates (1 tick =
   1 in-game minute). From a full meter: Hunger ~3 weeks, Thirst ~3 days, Energy
   ~16h; Social/Hygiene/Entertainment ~1–2 days; Sanity slow (~14 days).
   `change(player, stat, per_minute)` is the fractional accumulator so sub-1
   rates actually accrue.
-- **`engine/tick_manager.py`** — baseline loop + all environmental, temperature,
+- **`engine/tick_manager.py`** - baseline loop + all environmental, temperature,
   social, sanity, bladder, sleep and HP-regen effects routed through
   `vital_rates`. Hunger/Thirst grace+drain retuned so time-to-death lands near
   the 3-week / 3-day targets.
-- **`engine/activities.py`** — activity regen rescaled to per-minute.
-- **Scenario migration** — `tools/migrate_decay_rates.py` re-bakes per-player
+- **`engine/activities.py`** - activity regen rescaled to per-minute.
+- **Scenario migration** - `tools/migrate_decay_rates.py` re-bakes per-player
   `decay_rates` (baked rates *override* engine defaults, so calibration was
   invisible without this). Applied to `world_template.json` + the goblin
   scenario.
-- **Goblin weather fixed** — the scenario shipped a perpetual blizzard
+- **Goblin weather fixed** - the scenario shipped a perpetual blizzard
   (`temperature_mod` to -15) on a green, temperate map, inherited as authored
   content. Replaced with a clear → overcast → rain day cycle.
-- **`data/library/traits/high_metabolism.json`** — goblin fast metabolism
+- **`data/library/traits/high_metabolism.json`** - goblin fast metabolism
   (Hunger ×2, Thirst ×1.5, Energy ×1.3).
 
 ### Findings (with evidence)
@@ -73,7 +73,7 @@ The world could not survive a day: session-scaled drains killed everyone in ~2h.
 - The soak's "neutral environment" was initially invalid because weather
   re-writes area env each tick; the tool now clears forecast too.
 
-### Tooling — `tools/soak_sim.py`
+### Tooling - `tools/soak_sim.py`
 
 Headless fast-forward with **live progress** (bar, %, game time, ticks/s,
 elapsed, ETA, alive/dead, new deaths + causes), projected wall-clock for
@@ -85,25 +85,25 @@ day/week/month, survival + cause breakdown, death times, growth
 **Throughput:** ~6–9 ticks/s with 23 characters → **1 game week ≈ 18–29 min,
 1 month ≈ 1.5–2h.**
 
-## 3. Phase 1 — Time engine (partially exists)
+## 3. Phase 1 - Time engine (partially exists)
 
 Run-N-turns already works, and with no human in the roster nothing blocks the
 round. Remaining: a server-side batch `advance` and a non-blocking human
 (no-human roster, or a turn timeout). See the recap for the verified mechanics
 (2s/step hardcoded, one `tick_turn` per queue wrap).
 
-## 4. Phase 2 — Background tier (in progress)
+## 4. Phase 2 - Background tier (in progress)
 
 ### Done: the objective trace
 
-- **`engine/lived_log.py`** — `record / recent / since / summarize_window / rollup /
+- **`engine/lived_log.py`** - `record / recent / since / summarize_window / rollup /
   load / to_list`. Unbounded (2026-10-06); every entry kept for life. `rollup`
   (run collapsing) exists but is not called. No LLM.
-- **Integrated** — `Player.lived_log`, `Player.to_dict`, and
+- **Integrated** - `Player.lived_log`, `Player.to_dict`, and
   `engine/serialization._deserialize_player` round-trip it.
-- **Wired** — need tier crossings (`why="needs:<vital>"`), deaths (`salient`),
+- **Wired** - need tier crossings (`why="needs:<vital>"`), deaths (`salient`),
   and resolved actions in `apply_action`.
-- **Tests** — `tests/test_lived_log.py` (7). Soak reports trace volume.
+- **Tests** - `tests/test_lived_log.py` (7). Soak reports trace volume.
 
 This is task-399's "append-only facts log."
 
@@ -115,7 +115,7 @@ into `tick_turn()` after `process_simple_npcs`. Characters with
 (`next_due_tick`, deterministic jittered interval), and make one coarse
 decision against shared state:
 
-- **drink** when Thirst ≥ 55 — either from a water-tagged **area** (natural
+- **drink** when Thirst ≥ 55 - either from a water-tagged **area** (natural
   water is an area tag, not an item) or a drink item, else travel toward one;
 - **eat** when Hunger ≥ 55 from a reachable food item;
 - **sleep** when Energy ≤ 30, or ≤ 15 regardless (critical exhaustion wins);
@@ -127,14 +127,14 @@ alive → 22/23** after the priority fix. Tests: `tests/test_background_simulati
 
 ### Next: schedules, promotion/demotion, and scenario hygiene
 
-These are filed as tasks — see §9 for the current map.
+These are filed as tasks - see §9 for the current map.
 
 1. **Background schedules / work / coarse social** (task-409) so background
    characters do more than survive.
-2. **Promotion/demotion** (task-412) — `lived_log.summarize_window` builds the LLM
+2. **Promotion/demotion** (task-412) - `lived_log.summarize_window` builds the LLM
    catch-up summary on promotion; demotion rolls the foreground span into the
    trace (reversibility contract).
-3. **Scenario hygiene** (task-408) — reachability is now fixed (30/30, see §7);
+3. **Scenario hygiene** (task-408) - reachability is now fixed (30/30, see §7);
    what remains is de-duplicating the 46→23 character nodes, canonical
    way/area ids at authoring time, and giving the scenario a `name`.
 4. **Food renewal** (task-410) so a month does not starve the camp.
@@ -143,18 +143,18 @@ These are filed as tasks — see §9 for the current map.
 
 | File | Change |
 |---|---|
-| `vital_rates.py` | **new** — canonical per-minute rates + `change()` |
+| `vital_rates.py` | **new** - canonical per-minute rates + `change()` |
 | `player.py` | decay defaults from `vital_rates`; `lived_log` + serialization |
 | `virtual_world_engine.py` | `baseline_decay` from `vital_rates` |
 | `engine/tick_manager.py` | all drains → per-minute; trace on needs/death/act |
 | `engine/activities.py` | per-minute activity regen |
-| `engine/lived_log.py` | **new** — lived-log store |
+| `engine/lived_log.py` | **new** - lived-log store |
 | `engine/serialization.py` | restore `lived_log` |
 | `data/library/traits/high_metabolism.json` | **new** goblin metabolism trait |
 | `data/scenarios/kraktooth_goblin_camp.json` | temperate forecast; decay_rates |
 | `world_template.json` | decay_rates migrated |
-| `tools/soak_sim.py` | **new/expanded** — reporting, debug, isolation |
-| `tools/migrate_decay_rates.py` | **new** — rate migration |
+| `tools/soak_sim.py` | **new/expanded** - reporting, debug, isolation |
+| `tools/migrate_decay_rates.py` | **new** - rate migration |
 | `tests/test_lived_log.py` | **new**; `test_activities.py`, `test_social_company.py` updated to per-minute |
 | `docs/design/reversibility-contract.md`, `docs/design/lived-log-format.md` | **new** contracts |
 
@@ -165,7 +165,7 @@ attribute` failures, unrelated): **2879 passing, 0 failures**. The combat suite
 has a pre-existing flaky RNG test that can fail intermittently.
 
 The exact total moves with `tests/test_data_no_mojibake.py`, which is
-parametrized over every JSON under `data/` — adding or deleting a scenario,
+parametrized over every JSON under `data/` - adding or deleting a scenario,
 template, or tag file shifts it by one. Compare failures, not the total.
 
 ## 7. Open issues
@@ -186,7 +186,7 @@ template, or tag file shifts it by one. Compare failures, not the total.
   `trigger_type` on the edge with the owner as source, and nothing flips them at
   load. Folder-authoring must emit the modern shape (task-408).
 - **Food is at the edge.** One-week soak survivors average Hunger **84.7**
-  (max 100 — starvation end of the drive scale). The camp cannot feed itself
+  (max 100 - starvation end of the drive scale). The camp cannot feed itself
   over a month (task-410).
 - Background characters currently only **survive** (eat/drink/sleep); they have
   no schedules, work, or social behavior yet. Soak shows Social 0.1, Sanity 0,
@@ -194,31 +194,31 @@ template, or tag file shifts it by one. Compare failures, not the total.
 - **Cross-zone roaming** remains the hardest seam (see reversibility contract).
 - **MCP test failures** are pre-existing and unrelated to this work.
 
-## 8. Performance pass (2026-09-19) — tasks 406, 407
+## 8. Performance pass (2026-09-19) - tasks 406, 407
 
 The blocker found by profiling was **not** the LLM: it was trigger/exit
 plumbing. Per tick the engine swept all ~106 nodes calling `_execute_triggers`,
 which built a full template context *before* checking for a match, and that
-context read the legacy `current_area` property — rebuilding an `Area` and its
+context read the legacy `current_area` property - rebuilding an `Area` and its
 exits on every access, by scanning all edges and lowercasing every endpoint
 (~876 exit rebuilds and ~1M `str.lower()` per tick). The camp has **zero**
 tick/time triggers, so all of it was waste.
 
-**Task 406 — trigger dispatch**
+**Task 406 - trigger dispatch**
 - `graph.get_trigger_sources(type)`: event index over `triggers` edges that
   carry a `trigger_type`. `_fire_turn_triggers` / `_fire_time_triggers` now
   iterate only trigger owners, of any node type.
 - Standing items (not carried, not lit) now get `on_tick`, once, without
-  double-firing the carried/lit paths — the prerequisite for growth triggers.
+  double-firing the carried/lit paths - the prerequisite for growth triggers.
 - `_execute_triggers` fetches edges and type-filters before building context,
   and reads the area by id instead of the `current_area` property.
 
-**Task 407 — graph lookups**
+**Task 407 - graph lookups**
 - Edges indexed by lowercased source/target; lookups are O(degree) with no
   per-edge `.lower()`. `_revision` drives cache invalidation; a length check
   lazily rebuilds if external code mutates `edges` directly.
 - `build_exits_for_area(include_hidden=True)` cached by revision (authoring path
-  only — the game view depends on player discovery state).
+  only - the game view depends on player discovery state).
 - Lighting scan collapsed from two passes to one.
 
 **Measured**
@@ -232,7 +232,7 @@ tick/time triggers, so all of it was waste.
   `Player.state`. The old trigger/exit cost is gone from the hot path.
 
 **What this does and does not change for playing**
-- *Simulating/observing* the world: materially better — weeks are now minutes
+- *Simulating/observing* the world: materially better - weeks are now minutes
   headless, triggers cost nothing when unused, and objects can act over time.
 - *Interactive play*: essentially unchanged. The browser still drives one
   character at a time with a hardcoded ~2s step and one `tick_turn` per full
@@ -240,7 +240,7 @@ tick/time triggers, so all of it was waste.
   `RateLimiter`); it should be configurable and skipped when a step already took
   longer. Making the world playable at speed is **task-414**.
 
-**Second pass (same day) — lighting and edge moves.**
+**Second pass (same day) - lighting and edge moves.**
 - `get_ambient_light` now uses `max(base, best_item)` instead of
   `min(base + sum_items, max(base, best_item))`. The sum was dead arithmetic the
   ceiling discarded: four torches never out-shone one. Effective light is the
@@ -259,14 +259,14 @@ tick/time triggers, so all of it was waste.
 
 Measured after the second pass: one-week soak **56s → 181 ticks/s** (was 9m49s /
 17.1 t/s after the first pass), 23/23 alive, and **identical survivor vitals and
-trace count** — behaviour unchanged. Test suite runtime fell 78s → ~25s.
+trace count** - behaviour unchanged. Test suite runtime fell 78s → ~25s.
 
-**Third pass — the accumulating cost was the turn-event buffer.**
+**Third pass - the accumulating cost was the turn-event buffer.**
 Profiling early vs late ticks (200 vs 9,500) showed `get_edges_for_target`,
 `condition_has_condition`, `get_state`, lighting and temperature all flat, but
 `GameLogger.record_turn_event` went 0.086s → 0.987s for the *same* call count.
 Cause: it rebuilt the whole `turn_events` list on every append, and a headless
-run never calls `clear_turn_events`, so the buffer grew to ~17,000 — O(n²) across
+run never calls `clear_turn_events`, so the buffer grew to ~17,000 - O(n²) across
 the run. It now prunes only when the turn changes and caps the buffer at 2,000.
 After the fix, call counts are flat early vs late (~2% drift) and
 `record_turn_event` is out of the hot list. The residual is periodic hourly work

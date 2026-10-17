@@ -146,7 +146,7 @@ def set_character_position(
 # Position is a *relation*, not a coordinate, and a character holds exactly one
 # `at` edge in the whole world at a time â€” not one per target. That is what
 # keeps the edge set at O(population) instead of O(nÂ²): 40 characters in an area
-# are 40 `in <area>` edges and at most `cap` `at` edges, not 40 Ã— 40 pairs.
+# are 40 `in <area>` edges and at most `cap` `at` edges, not 40 Ã- 40 pairs.
 #
 # `set_character_position` already clears first, so the invariant holds on the
 # path everything uses. `enforce_single_at` exists for the other path: an effect

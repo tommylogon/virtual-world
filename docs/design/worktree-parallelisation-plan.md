@@ -1,4 +1,4 @@
-# Plan — Dev-task worktree parallelisation
+# Plan - Dev-task worktree parallelisation
 
 **Date:** 2026-09-28
 **Scope:** map every actionable dev task to the files it touches, decide what can
@@ -27,8 +27,8 @@ files cause almost all of them.
 
 | Hub file | Queued tasks | Review tasks | Why it is a hub |
 |---|---|---|---|
-| `engine/tick_manager.py` | 13 | 12 | the turn loop — every behavioural change lands here |
-| `engine/serialization.py` | 10 | 10 | save/load — any new persisted field lands here |
+| `engine/tick_manager.py` | 13 | 12 | the turn loop - every behavioural change lands here |
+| `engine/serialization.py` | 10 | 10 | save/load - any new persisted field lands here |
 | `virtual_world_engine.py` | 9 | 18 | the facade nearly every feature imports |
 | `routes/library_ops.py` | 9 | 2 | library schema + every registry write path |
 | `routes/action_handlers.py` | 8 | 4 | the action dispatch table |
@@ -39,8 +39,8 @@ files cause almost all of them.
 Two more files are touched constantly but are **append-only**, so concurrent edits merge
 almost cleanly and they should *not* be treated as hubs:
 
-- `templates/index.html` (28 tasks — a list of `<script>` tags)
-- `tools/unit/run.cjs` (36 tasks — the module list at the top of the runner)
+- `templates/index.html` (28 tasks - a list of `<script>` tags)
+- `tools/unit/run.cjs` (36 tasks - the module list at the top of the runner)
 
 ---
 
@@ -88,7 +88,7 @@ touch no hubs**.
         merge first ───────────────┴──────────────────────────► merge, then spine
 ```
 
-### WT-0 — Spine: hubs and world scale *(serial, 1 lane)*
+### WT-0 - Spine: hubs and world scale *(serial, 1 lane)*
 
 The only lane allowed to edit the eight hub files. Everything else merges into it.
 
@@ -96,16 +96,16 @@ The only lane allowed to edit the eight hub files. Everything else merges into i
 
 | # | Task | Title | Blocked by |
 |---|---|---|---|
-| 1 | task-397 | World scopes, hierarchy manifest, server graph | — |
+| 1 | task-397 | World scopes, hierarchy manifest, server graph | - |
 | 2 | task-398 | Deterministic scoped structure generation | 397 |
 | 3 | task-400 | Pines vertical slice for grouped generation | 397, 398 |
 | 4 | task-401 | Chunk persistence, scoped indexes, gateway ways | 397, 400 |
 | 5 | task-402 | Large-world projection and indexing benchmark | 397 |
 | 6 | task-409 | Background schedules, daily reflection | 408 |
 | 7 | task-414 | Server-side batch time advance | 409, 411 |
-| 8 | task-416 | Area-major tick iteration | — |
-| 9 | task-418 | Awareness channels — audibility replaces `radius_hops` | 416 |
-| 10 | task-419 | Relational spatial model — one `at` per character | 416 |
+| 8 | task-416 | Area-major tick iteration | - |
+| 9 | task-418 | Awareness channels - audibility replaces `radius_hops` | 416 |
+| 10 | task-419 | Relational spatial model - one `at` per character | 416 |
 | 11 | task-426 | Plan archetypes and group goals | 409 |
 | 12 | task-569 | Biome resource distribution consumer | 504 |
 
@@ -113,34 +113,34 @@ Because 416 (area-major tick iteration) gates 418 and 419, and 397 gates four ot
 **this lane is a queue, not a parallel set.** Running it across two worktrees would just
 create conflict resolution work.
 
-Also worth knowing: three queued tasks are blocked by things *outside* the work queue —
+Also worth knowing: three queued tasks are blocked by things *outside* the work queue -
 task-407 (graph edge indexing) blocks three others, task-553 (per-area temperature)
 blocks one, task-53 (in review) blocks one. Those need promoting into the queue first.
 
-### WT-A — Perception and world presentation *(parallel, 16 tasks)*
+### WT-A - Perception and world presentation *(parallel, 16 tasks)*
 
 Touches `engine/sound.py`, `engine/lighting.py`, `engine/room_perception.py`,
-`engine/area_description.py`, `engine/biomes.py` — **no hub files**. Highest priority
+`engine/area_description.py`, `engine/biomes.py` - **no hub files**. Highest priority
 density in the queue (6 high-priority tasks).
 
-task-400, task-401, task-402, task-419, task-422 are *not* here — they are spine work.
+task-400, task-401, task-402, task-419, task-422 are *not* here - they are spine work.
 
 Highest value: task-418 (awareness channels), task-419 (relational spatial model),
 task-499 (per-agent fog of war), task-411 (attention budget / fidelity tiers),
 task-550 (faction and ownership as tags).
 
-### WT-B — Items and inventory *(parallel, 9 tasks)*
+### WT-B - Items and inventory *(parallel, 9 tasks)*
 
 Touches `engine/equipment.py`, `engine/toggleable_items.py`, `engine/crafting.py`,
-`data/library/items/` — no hub files. Includes two refactor tasks that are effectively
+`data/library/items/` - no hub files. Includes two refactor tasks that are effectively
 data migrations and are safe to run alongside feature work.
 
 task-490, task-504, task-505 are spine (504 gates 569).
 
-### WT-C — Characters and social *(parallel, 11 tasks)*
+### WT-C - Characters and social *(parallel, 11 tasks)*
 
 Touches `engine/npc_behaviors.py`, `engine/background_social.py`,
-`engine/speech.py`, `static/js/agent/prompt-builder/*` — no hub files.
+`engine/speech.py`, `static/js/agent/prompt-builder/*` - no hub files.
 
 Includes the two open speech bugs (bug-28, bug-29) which are cheap wins and are
 currently blocked on finding a live repro.
@@ -154,7 +154,7 @@ already-written work waiting on a decision.
 
 - 45 of them touch a hub file (18 claim `virtual_world_engine.py`, 15 claim
   `routes/action.py`).
-- 21 have no resolvable file footprint at all — those are cheap to close.
+- 21 have no resolvable file footprint at all - those are cheap to close.
 - **130 files are claimed by both queues.** That is the real risk: reviewing a task can
   invalidate a queued task that assumed the old behaviour.
 
@@ -173,7 +173,7 @@ delete or shrink work in the queue, and it removes hub contention before the arm
 1. **Never `git stash`.** Stashes are shared across worktrees. For conflicts, rebase or
    merge the base branch into the worktree, resolve there, then merge or Apply.
 2. **One owner per hub file.** Only WT-0 edits the eight hubs. Another lane that needs a
-   hub change either does it behind a small PR or files it — never silently.
+   hub change either does it behind a small PR or files it - never silently.
 3. **Append-only files are shared.** `templates/index.html` and `tools/unit/run.cjs` may
    be appended to by any lane. Rebase before merging anyway.
 4. **Every lane clears the same gate before proposing a merge:**
@@ -188,7 +188,7 @@ delete or shrink work in the queue, and it removes hub contention before the arm
    `templates/index.html`.
 5. **Merge order:** arms (WT-A, WT-B, WT-C) merge first and one at a time; the spine
    merges last, rebase-and-resolve inside its own worktree.
-6. **Move task files as you go** — `python tools/tasks.py move --id N --status inprogress`
+6. **Move task files as you go** - `python tools/tasks.py move --id N --status inprogress`
    then `--status review`, so two lanes never both claim the same task.
 
 ---
@@ -200,7 +200,7 @@ delete or shrink work in the queue, and it removes hub contention before the arm
 | 1 | 0 | everything serial, no gain |
 | 2 | 263 | barely better than serial |
 | 3 | 345 | marginal |
-| **4 (1 spine + 3 arms)** | **385** | **recommended** — the arms are conflict-free, the collisions sit inside the spine, which is serial anyway |
+| **4 (1 spine + 3 arms)** | **385** | **recommended** - the arms are conflict-free, the collisions sit inside the spine, which is serial anyway |
 | 6 | 425 | the extra lanes add nothing but merge debt |
 | 8 | 442 | actively harmful |
 
@@ -210,7 +210,7 @@ chain no matter how they are split.
 
 **Realistic gain:** 3 arms × ~6–10 tasks each, running against a serial spine. If the
 spine is the critical path, the throughput ceiling is set by how fast 397→398→400→401→402
-lands — not by how many arms are running.
+lands - not by how many arms are running.
 
 ---
 
@@ -239,13 +239,13 @@ lands — not by how many arms are running.
    cross-references. There are also ~12 advisory `frontmatter status != folder` warnings
    and ~12 non-conforming filenames; the folder is authoritative so those are cosmetic,
    but the duplicate id is a hard error.
-4. Drain the 21 review tasks with no file footprint — a free afternoon, zero conflict.
+4. Drain the 21 review tasks with no file footprint - a free afternoon, zero conflict.
 5. Cut the three arm worktrees from the task lists in §3, spine included, and let the
    arms run while the spine grinds through task-397.
 
 ---
 
-## Outcome — 2026-09-28 (the first round landed)
+## Outcome - 2026-09-28 (the first round landed)
 
 The plan was executed as written and the prediction held. Merged to `master` in
 the prescribed order, with **no conflicts at all**:
@@ -261,8 +261,8 @@ What the plan got right, and it is worth keeping:
 
 - **The hub analysis was exact.** No arm touched any of the eight hub files, so the
   spine's claim was never contested and the rebase after each arm was trivial. The
-  two files two arms did both touch — `engine/runtime_config.py` (A/C) and
-  `engine/background_simulation.py` (B/C) — resolved without a hand.
+  two files two arms did both touch - `engine/runtime_config.py` (A/C) and
+  `engine/background_simulation.py` (B/C) - resolved without a hand.
 - **Treating the append-only files as append-only worked.** `templates/index.html`
   and `tools/unit/run.cjs` took edits from all four lanes and merged cleanly, which
   is what the plan predicted. Had they been treated as hubs, the spine would have
@@ -284,7 +284,7 @@ Where the plan was wrong, or incomplete:
   cannot start 401 until 400 is proved.
 - **One item from §5 is now stale:** "cut the worktrees and let the arms run while
   the spine grinds through task-397" is done, so the next round is not a
-  re-cut — it is a fresh partition of whatever remains in the queues, against a
+  re-cut - it is a fresh partition of whatever remains in the queues, against a
   `master` that now contains the spine's scope tree, awareness channels, spatial
   model and generation recipes.
 
@@ -299,7 +299,7 @@ Standing advice for the next round, from what this one taught:
 
 ---
 
-## Appendix — how the file footprints were derived
+## Appendix - how the file footprints were derived
 
 `docs/virtualWorld/dev_tasks/{todo,inprogress,review}/<area>/<kind>-<id>-<slug>.md`
 was parsed for every file path mentioned in prose, in fenced code, and in frontmatter.
@@ -310,6 +310,6 @@ files in the same library directory still register as related.
 
 **This is an approximation.** A task's *survey* section names files it only reads, so
 some footprints overstate what will be edited. The lane boundaries are therefore
-deliberately conservative — anything touching a hub went to the spine regardless. Before
+deliberately conservative - anything touching a hub went to the spine regardless. Before
 a lane starts, its lead should confirm its file list from the task's Acceptance section
 and say so on the board if a task turns out to need a hub it was not assigned.

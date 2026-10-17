@@ -4,7 +4,7 @@ A character is either **attended** (the normal agent/simple-NPC loop asks them
 for decisions) or **background** (``engine/background_simulation.py`` runs them
 deterministically). Switching between the two is the promote/demote seam
 described in ``docs/design/reversibility-contract.md``: the same ``Player``, the
-same graph, the same clock — only the decision source changes.
+same graph, the same clock - only the decision source changes.
 
 This module owns the *memory* half of that seam:
 
@@ -15,7 +15,7 @@ This module owns the *memory* half of that seam:
   The trace is the objective record (``engine/lived_log.py``); the memory is the
   bounded read of it.
 
-Everything here is deterministic and templated — **no LLM call is made** (v1;
+Everything here is deterministic and templated - **no LLM call is made** (v1;
 task-412 non-goals). Code writes the trace and the summary; a later LLM pass may
 only *read* the trace.
 
@@ -92,7 +92,7 @@ def promote(gs, player, *, tick: Optional[int] = None,
     if player is None:
         return None
     if getattr(player, "simulation_mode", "active") != "background":
-        return None  # already attended — promotion is not a foreground rewrite
+        return None  # already attended - promotion is not a foreground rewrite
     now = _tick(gs, tick)
     since = max(int(getattr(player, "last_offload_tick", 0) or 0),
                 int(getattr(player, "background_consolidated_through", 0) or 0))
@@ -135,7 +135,7 @@ def pending_span(player, since_tick: Optional[int] = None) -> List[Dict[str, Any
 
 # ─────────────────── atomic transitions (task-399) ────────────────────────
 # A tier change is a boundary event: it must land at one tick boundary, before
-# any character is resolved, or a character could act twice in the same turn —
+# any character is resolved, or a character could act twice in the same turn -
 # once as background and once as attended. Callers therefore *request* a
 # transition and the turn loop applies the whole batch with `flush()`.
 
@@ -270,7 +270,7 @@ def _span(player, since_exclusive: int) -> List[Dict[str, Any]]:
 
     The tick comes from the module's reader, not a bare ``e.get("t", 0)``:
     task-542 renamed the key to ``tick``, and a stale ``t`` read here fails
-    *silently* — every entry reads as tick 0, the span comes back empty, and a
+    *silently* - every entry reads as tick 0, the span comes back empty, and a
     promotion writes no memory at all rather than raising.
     """
     return [e for e in lived_log_mod.ensure(player)

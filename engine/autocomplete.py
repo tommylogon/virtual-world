@@ -1,4 +1,4 @@
-# engine/autocomplete.py — UI input helpers extracted from VirtualWorld facade.
+# engine/autocomplete.py - UI input helpers extracted from VirtualWorld facade.
 #
 # These helpers take a VirtualWorld-like object (anything exposing
 # `.graph`, `.player_manager`, and `_get_area_id_for_player`) so the

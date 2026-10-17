@@ -3,7 +3,7 @@
 Knowledge is scattered across ``Player.memories``, ``SpatialMemory``,
 ``VectorStore``, ``known_way_aspects``, ``known``, ``flags`` and trait effects.
 None of them share a query interface, so an agent cannot answer "where is food?"
-— that question touches several stores at once. ``AgentMind`` does not
+- that question touches several stores at once. ``AgentMind`` does not
 reimplement any storage: it delegates to the existing fields and defines the
 seams between them. Nothing here calls an LLM.
 
@@ -23,7 +23,7 @@ from engine.traits import (
 )
 from engine.memory_dynamics import DECAY_RATE_KEY, CONSOLIDATE_KEY
 # decay-source rules (preconceived never / background half) live in
-# engine.memory_dynamics, the one writer of decay — not duplicated here.
+# engine.memory_dynamics, the one writer of decay - not duplicated here.
 
 
 def _default_salience(memory: Dict[str, Any]) -> float:
@@ -54,7 +54,7 @@ class AgentMind:
         attached). Ranked by ``effective_importance * salience * recall_boost *
         urgency`` (task-685: availability and confidence modulate the base
         importance), and filtered by the character's ``max_importance_cap``
-        trait when set. Recalled memories are reinforced — thinking about
+        trait when set. Recalled memories are reinforced - thinking about
         something keeps it available.
         """
         player = self.player
@@ -116,7 +116,7 @@ class AgentMind:
     def knows_way(self, way_id: str, aspect: str = None) -> None:
         """Record a known way (optionally a discovered aspect of it).
 
-        The store is keyed ``(area, direction)`` — the key
+        The store is keyed ``(area, direction)`` - the key
         ``Player.learn_way_aspect`` writes and ``scene_snapshot`` /
         ``routes/player_ops`` read through ``knows_way_aspect``. A way node id is
         not a key in that store, so the way's *sides* are resolved from the graph
@@ -136,7 +136,7 @@ class AgentMind:
                 if direction and area is not None:
                     sides.append((area.name, direction))
         # No graph, or a way with no resolvable sides, cannot be recorded in a
-        # store keyed by (area, direction) — write nothing rather than a key no
+        # store keyed by (area, direction) - write nothing rather than a key no
         # reader can see.
         for area_name, direction in sides:
             if aspect:
@@ -150,7 +150,7 @@ class AgentMind:
         """Inject authored starting knowledge. Idempotent; returns memories added.
 
         Accepts the six optional keys either at the top level or under
-        ``preconceived_knowledge``. Knowledge is not omniscient — only what is
+        ``preconceived_knowledge``. Knowledge is not omniscient - only what is
         authored here is known.
         """
         block = pdata.get("preconceived_knowledge")
@@ -225,7 +225,7 @@ class AgentMind:
         ordinary characters finally forget and ``0`` freezes everyone.
 
         Preconceived memories never decay; background memories fade at half
-        rate. Consolidation (task-688) runs after decay only under pressure —
+        rate. Consolidation (task-688) runs after decay only under pressure -
         a retention cap nearly full, or ``memory.consolidate`` enabled.
         """
         player = self.player

@@ -81,8 +81,8 @@ def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str) -> set:
     written by :func:`assign_area_membership` (on promote, on unplace) and by the
     normaliser, but **not** by the compile path, which is the one that mints the
     most areas. Reading it here meant a scope generated after being promoted or
-    hand-authored accumulated stamped areas its record never listed — Eldenford
-    interior reached 71 areas on the node and 1 in the record — and every subtree
+    hand-authored accumulated stamped areas its record never listed - Eldenford
+    interior reached 71 areas on the node and 1 in the record - and every subtree
     count, the scope tree and "Whole world" were answering from the stale copy
     while the single-scope projection answered from the stamps, so the two views
     of the same hierarchy disagreed.
@@ -115,7 +115,7 @@ def own_area_ids(graph, scope_id: str) -> set:
     """Leaf area ids belonging to *exactly* this scope, ignoring descendants.
 
     The graph view loads a scope's **own level** (task-397 revision): a parent
-    shows its own painted cells — a placed child is a single feature cell, not
+    shows its own painted cells - a placed child is a single feature cell, not
     its whole interior. Use :func:`area_ids_in_scope` when the subtree is wanted.
     """
     return {
@@ -132,7 +132,7 @@ def assign_area_membership(manifest: Dict[str, dict], area_id: str,
     ``world_scope_id`` on the node is the single source of truth; a scope record's
     ``area_ids`` list is the denormalized mirror that :func:`area_ids_in_scope`
     also reads, so both ends have to move together or a moved area keeps showing
-    up in the old scope's count and canvas. This only touches the manifest — the
+    up in the old scope's count and canvas. This only touches the manifest - the
     caller owns the node side, because only it knows whether the area exists and
     is hand-authored enough to move.
 
@@ -186,9 +186,9 @@ def spatial_item_nodes(graph, container_id) -> List:
 
     The one definition of "what can be reached in here", so the background
     simulation and a route handler asking the same question get the same answer.
-    It used to be spelled out twice — as a class attribute in
+    It used to be spelled out twice - as a class attribute in
     `background_simulation.REACHABLE_RELATIONS` and as `_SPATIAL_TYPES` in
-    `routes/population_ops.py` — and the tiers drifting apart on it is how
+    `routes/population_ops.py` - and the tiers drifting apart on it is how
     `engine/relief.py` ended up unable to tell whether a fixture was in reach.
     """
     out = []
@@ -239,9 +239,9 @@ def way_endpoints(node, name_to_id: Dict[str, str], graph=None):
 
     **Falls back to the connection edges**, which are the *authority* on what a way
     connects: movement walks the edges (``NameMatching._collect_exits``) and never
-    reads these properties. A way with edges and no properties — which is what the
+    reads these properties. A way with edges and no properties - which is what the
     NL editor's ``connect_areas`` and the graph canvas produce, both of which
-    predate the scope model — resolved to ``(None, None)`` here, so the scope
+    predate the scope model - resolved to ``(None, None)`` here, so the scope
     projection dropped it from *every* scope while the unfiltered graph kept it.
     The way was not scopeless; it was merely described badly, and the one reader
     that believed the description was the one deciding membership.
@@ -426,14 +426,14 @@ def rename_scope(manifest: Dict[str, dict], scope_id: str, name: str) -> dict:
 
 def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
                  cascade: bool = False) -> dict:
-    """Remove a scope — and with ``cascade`` its descendants — from the world.
+    """Remove a scope - and with ``cascade`` its descendants - from the world.
 
     - Refuses when the scope still has children unless ``cascade`` is set.
     - Unplaces it from every parent (``placements`` + ``children`` lists).
     - Deletes its **generated** graph nodes (provenance
       ``properties.generated.scope_id``): areas, ways, gateways and the items
       that generation placed. Hand-authored nodes are left alone rather than
-      guessed at — except hand-*placed* areas (task-528), whose reserved cell
+      guessed at - except hand-*placed* areas (task-528), whose reserved cell
       lived in the record being deleted: they keep the area and lose the cell.
     - Returns ``{scope_ids, unplaced_from, deleted_nodes, released_areas}``.
     """
@@ -486,7 +486,7 @@ def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
             deleted += 1
             continue
         # A hand-placed area (task-528) survives its scope, but the cell it was
-        # parked on lived in that scope's record — which is about to disappear.
+        # parked on lived in that scope's record - which is about to disappear.
         # Leaving `cell` behind would make the whole graph think it has a
         # painted grid (layout-engine's has_painted_grid) on the strength of a
         # cell nothing reserves any more, and a later scope with the same id
@@ -528,7 +528,7 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
 
     - **Validate before mutating.** Every refusal below happens before the
       manifest, the nodes or the placement are touched, so a rejected promotion
-      leaves the world exactly as it was — a half-created scope whose areas have
+      leaves the world exactly as it was - a half-created scope whose areas have
       already moved is worse than no promotion at all.
     - **The scope is ``baked``.** It is authored, not compiled: these areas came
       from paint or from the author's hand, and the compiler's own rule is to
@@ -538,16 +538,16 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
     - **The gateway is hand-authored and carries no ``generated`` block.**
       ``world_compile._gateway`` stamps ``generated.scope_id`` with the *parent*,
       which would make Ungenerate on the parent delete a gateway the author made
-      by promoting something — the exact "it deleted my work" that task-528's
+      by promoting something - the exact "it deleted my work" that task-528's
       boundary ways exist to prevent. The parent is left knowing only *where* the
       child is (``placements``); the way belongs to nobody's recipe.
     - **The entry is a choice, not a fallback.** ``entry_area_id`` when the author
-      names one, else the first selected area **by id** — deterministic, and not
+      names one, else the first selected area **by id** - deterministic, and not
       the "top-left-most" as the compiler picks, because a promoted selection has
       no painted anchor to be top-left-most of.
     - **No gateway when the doorstep is one of the promoted areas.** Promoting a
-      single placed area — the shape the painter's one-area button can only offer
-      — puts the selection on the very cell it already sat on, so the "place a
+      single placed area - the shape the painter's one-area button can only offer
+      - puts the selection on the very cell it already sat on, so the "place a
       gateway opens from" resolves to the area being promoted. A way from a place
       to itself goes nowhere, so none is minted and the scope simply takes the
       cell; the promoted area's own ways out stay the entrance. A doorstep that
@@ -608,13 +608,13 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
         "id": scope_id,
         "name": name,
         # A promoted selection is a plain scope. Without this the record reached
-        # `scope_summary` — which reads `kind` as a hard key — and the route 500'd
+        # `scope_summary` - which reads `kind` as a hard key - and the route 500'd
         # on every promote; `normalise_manifest` would have papered over it on the
         # next load, long after the author saw the failure.
         "kind": DEFAULT_KIND,
         "parent_id": parent_id,
         "mode": str(mode or "interior"),
-        # Authored, not compiled — see the docstring.
+        # Authored, not compiled - see the docstring.
         "paint_policy": "baked",
         "state": "materialized",
         "area_ids": list(wanted),
@@ -645,14 +645,14 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
             graph.refresh_node_scope(area_id)
             # The painted cell belonged to the scope that owned the area; inside
             # the new scope the position is hand-authored canvas space, so the
-            # painted marker goes — otherwise the layout engine would read engine
+            # painted marker goes - otherwise the layout engine would read engine
             # units as canvas pixels and place the area somewhere else entirely.
             props.pop("cell", None)
 
     way_id = ""
     if gateway_place is not None and cell is not None:
         place_area_id, place_name = gateway_place
-        # The area standing on the cell is often *in the selection* — promoting
+        # The area standing on the cell is often *in the selection* - promoting
         # one placed area is exactly that: it is the whole selection, promoted
         # from the cell it already sat on. A gateway from a place to itself is a
         # way that goes nowhere ("Eldenford - Eldenford"), and a doorstep that
@@ -687,7 +687,7 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
                     "entry_target": record["entry_area_name"],
                     "aliases": ["in", "out"],
                     # The author's own way, on purpose: **no** `generated` block. See
-                    # the docstring — a parent-stamped one would die with the parent's
+                    # the docstring - a parent-stamped one would die with the parent's
                     # next Ungenerate.
                     "authored": True,
                 })
@@ -717,7 +717,7 @@ def _gateway_place(manifest: Dict[str, dict], graph, parent_id: str, x: int, y: 
     """The place a gateway out of ``parent_id`` opens from a cell, as ``(id, name)``.
 
     A hand-placed area on the cell wins (task-528, and the normal case for a
-    promoted entrance — the thing being promoted is usually parked beside the road
+    promoted entrance - the thing being promoted is usually parked beside the road
     first), else the compiled region anchored there. ``None`` when the cell holds
     nothing a way can start from, which the caller turns into a refusal.
     """
@@ -739,8 +739,8 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     """Delete a scope's generated nodes but keep the scope and its painted grid.
 
     The inverse of ``⚙ Generate``: every node whose provenance
-    (``properties.generated.scope_id``) is this scope is removed — areas, ways,
-    gateways and generated items — plus any gateway a *parent* emitted that opens
+    (``properties.generated.scope_id``) is this scope is removed - areas, ways,
+    gateways and generated items - plus any gateway a *parent* emitted that opens
     into this scope (``properties.child_scope_id``). The scope record itself
     survives with its paint, reference, map offset and placements; only
     ``state``/``area_ids``/entry and the compiled ``placements`` area links are
@@ -751,7 +751,7 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     selection of the author's own areas is ``paint_policy: "baked"``: nothing in it
     was compiled, so there is nothing to undo, and a "delete everything this scope
     generated" that emptied it would take a hand-drawn interior with it. So the
-    refusal is explicit rather than a no-op — Generate is the button that would
+    refusal is explicit rather than a no-op - Generate is the button that would
     have something to do, and it says why it will not.
 
     **A hand-authored way into this scope is kept**, and reported in
@@ -765,7 +765,7 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     record = manifest[scope_id]
     if str(record.get("paint_policy") or "") == "baked":
         raise ValueError(
-            f"scope {scope_id!r} is authored, not generated — there is nothing to "
+            f"scope {scope_id!r} is authored, not generated - there is nothing to "
             f"ungenerate. Delete the scope if you mean to throw it away.")
 
     deleted = 0
@@ -808,14 +808,14 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
                      include_items: bool = True, descendants: bool = False) -> dict:
     """A vis-loadable subgraph for one scope (task-397 step 3).
 
-    Returns ``{nodes, edges}`` in the same shapes as ``WorldGraph.to_dict`` —
-    ``nodes`` keyed by id, ``edges`` a list — so the graph view can load a
+    Returns ``{nodes, edges}`` in the same shapes as ``WorldGraph.to_dict`` -
+    ``nodes`` keyed by id, ``edges`` a list - so the graph view can load a
     scope's slice instead of the whole world. That is what keeps a densely
     painted WorldPainter world from freezing the canvas: the browser never
     receives nodes outside the requested scope (task-400).
 
     **Level-scoped by default.** Only the scope's *own* areas are included, so
-    selecting a parent shows its own level — a placed child zone is one feature
+    selecting a parent shows its own level - a placed child zone is one feature
     cell (carrying ``child_scope_id``), not its whole interior. Pass
     ``descendants=True`` for the recursive subtree (what "Whole world" uses).
 

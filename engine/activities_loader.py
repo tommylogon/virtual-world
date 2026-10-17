@@ -1,4 +1,4 @@
-"""Activity definition loader — data-driven activity metadata (task-716).
+"""Activity definition loader - data-driven activity metadata (task-716).
 
 Activities are JSON files under ``data/library/activities/``. Adding a new
 activity is a JSON edit; no Python change is required unless the activity needs

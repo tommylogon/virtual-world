@@ -18,6 +18,7 @@ AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'autosave.json')
 # always-restorable snapshot without manual saves piling up.
 SAVES_DIR = os.path.join(PROJECT_ROOT, 'saves')
 AUTOSAVE_SLOT = os.path.join(SAVES_DIR, 'autosave.json')
+SAVES_INDEX_PATH = os.path.join(SAVES_DIR, 'index.json')
 
 #: Windows reserves these stems (case-insensitively, with or without an
 #: extension): a file actually named `con.json` cannot be created there.
@@ -112,8 +113,70 @@ def _write_autosave_slot(data):
         os.makedirs(SAVES_DIR, exist_ok=True)
         with open(AUTOSAVE_SLOT, 'w', encoding='utf-8') as f:
             json.dump(slot_data, f, indent=2, ensure_ascii=False)
+        try:
+            _upsert_save_index_entry(os.path.basename(AUTOSAVE_SLOT), _build_index_entry(AUTOSAVE_SLOT, slot_data))
+        except Exception as e:
+            logger.warning(f"Could not update saves index: {e}")
     except Exception as e:
         logger.warning(f"Autosave slot write failed: {e}")
+
+
+def _load_saves_index():
+    """Read the saves metadata index. Returns {} on missing/corrupt."""
+    try:
+        if not os.path.exists(SAVES_INDEX_PATH):
+            return {}
+        with open(SAVES_INDEX_PATH, 'r', encoding='utf-8-sig') as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return {}
+        return data
+    except Exception:
+        return {}
+
+
+def _store_saves_index(index):
+    """Atomically write the saves metadata index."""
+    try:
+        os.makedirs(SAVES_DIR, exist_ok=True)
+        tmp = SAVES_INDEX_PATH + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(index, f, indent=2, ensure_ascii=False)
+        os.replace(tmp, SAVES_INDEX_PATH)
+    except Exception as e:
+        logger.warning(f"Could not write saves index: {e}")
+
+
+def _build_index_entry(path, data):
+    """Build an index entry from a parsed save dict + its file stat."""
+    meta = (data.get('_save_metadata') or {}) if isinstance(data, dict) else {}
+    st = os.stat(path)
+    return {
+        'filename': os.path.basename(path),
+        'name': meta.get('name', os.path.basename(path)),
+        'scenario': meta.get('scenario', ''),
+        'timestamp': meta.get('timestamp', ''),
+        'tick': meta.get('tick', 0),
+        'turn': meta.get('turn', 0),
+        'player': meta.get('player', ''),
+        'version': meta.get('version', ''),
+        'autosave': bool(meta.get('autosave', False)),
+        'players': len((data.get('players') or {}) if isinstance(data, dict) else {}),
+        'areas': len((data.get('areas') or {}) if isinstance(data, dict) else {}),
+        'size': st.st_size,
+        'mtime': st.st_mtime,
+    }
+
+
+def _upsert_save_index_entry(filename, entry):
+    """Merge one entry into the index and persist."""
+    index = _load_saves_index()
+    index[filename] = entry
+    # prune entries for files that no longer exist
+    for key in list(index.keys()):
+        if not os.path.exists(os.path.join(SAVES_DIR, key)):
+            del index[key]
+    _store_saves_index(index)
 
 
 def load_autosave_if_exists(world):
@@ -401,6 +464,11 @@ def _save_game(world, name=None, slot=None):
         }
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        # task-454: keep the metadata index in sync with the saved file.
+        try:
+            _upsert_save_index_entry(filename, _build_index_entry(path, data))
+        except Exception as e:
+            logger.warning(f"Could not update saves index: {e}")
         return filename
     except Exception as e:
         logger.error(f"Could not save game: {e}")

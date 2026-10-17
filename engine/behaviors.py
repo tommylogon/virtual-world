@@ -18,7 +18,7 @@ carries ``behavior_refs: [id]``; hydration copies each resolved library record
 into ``player.behaviors`` (tagged with ``_library_id`` so provenance stays
 inspectable). The evaluator is untouched, saves keep working because behaviours
 were already serialized inline, and no new ``Player`` field is introduced. A ref
-that resolves to nothing is **collected and reported**, never silently dropped —
+that resolves to nothing is **collected and reported**, never silently dropped -
 the rule ``world_compile`` follows for an unknown biome id.
 
 Every ``*.json`` under the directory is either loaded into the catalog or

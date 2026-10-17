@@ -90,12 +90,12 @@ class ExamineActionsMixin:
             return text
 
         desc = node.properties.get("description", "")
-        # task-191: freshness state joins the treated description naturally —
+        # task-191: freshness state joins the treated description naturally -
         # no numbers, just what senses tell you.
         if node.properties.get("perishable"):
             fstate = node.properties.get("freshness_state", "")
             if fstate == "cooked":
-                desc = (desc + " It's been cooked — still good.").strip()
+                desc = (desc + " It's been cooked - still good.").strip()
             elif fstate == "spoiled":
                 desc = (desc + " It has gone bad.").strip()
         # task-10: proximity tools read their surroundings on examine.
@@ -189,7 +189,7 @@ class ExamineActionsMixin:
                 set_position_examining_character(self.graph, player_manager, target_pname)
             return "\n".join(desc_parts)
 
-        # Task-154: the target isn't a known name — try resolving by description
+        # Task-154: the target isn't a known name - try resolving by description
         # ("examine the tall man in the corner") before falling through to items.
         if target_pname is None and self.matching is not None and hasattr(self.matching, "_match_character_name"):
             resolved, candidates = self.matching._match_character_name(target_name)
@@ -220,7 +220,7 @@ class ExamineActionsMixin:
             elif candidates:
                 return f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?"
 
-        # Area examine: "examine the room" / "examine this area" — resolve the
+        # Area examine: "examine the room" / "examine this area" - resolve the
         # current area by name (or id), describe it and fire its on_examine
         # triggers. Falls through to items when no area matches.
         current_area_node = self.graph.get_node(area_id) if area_id else None
@@ -267,7 +267,7 @@ class ExamineActionsMixin:
                 # hand, worn, or inside a carried container is left alone.
                 approach_item(self.graph, player_manager, target_name, item_node)
                 set_position_examining_item(self.graph, player_manager, target_name, item_node)
-                # Phase 3 — see_item save_on hook (e.g. hemophobic + blood/corpse)
+                # Phase 3 - see_item save_on hook (e.g. hemophobic + blood/corpse)
                 try:
                     player_manager._emit_save_on(
                         player_manager.active_player, "see_item",
@@ -357,8 +357,8 @@ class ExamineActionsMixin:
                                 # halves are needed and they are different: the state flip
                                 # above is about what the world shows, this is about what
                                 # *this* character has seen. The three readers that
-                                # render "known" — contextual-actions.js isDiscovered,
-                                # room-context.js and memory-context.js — all read
+                                # render "known" - contextual-actions.js isDiscovered,
+                                # room-context.js and memory-context.js - all read
                                 # `player.discovered_items`, so the stamp is what makes the
                                 # reveal mean anything to the player. Idempotent: a second
                                 # examine of the same chest refreshes the observation in
@@ -475,7 +475,7 @@ class ExamineActionsMixin:
             visible.append(f"{d} ({state})" if state else d)
 
         # Descriptive fallback: target isn't a real item/exit but appears in area
-        # or item descriptions — describe it as flavor text instead of erroring.
+        # or item descriptions - describe it as flavor text instead of erroring.
         descriptive = self._describe_flavor_target(player_manager, target_name, area_id)
         if descriptive:
             return descriptive

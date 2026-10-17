@@ -3,7 +3,7 @@
 The payload's *format* version (``SCHEMA_VERSION`` in ``version.py``) is distinct
 from the app build version. Every load path runs the payload through
 :func:`migrate` first, so a file written before a breaking format change is
-either migrated or refused with a specific error — never silently read as if it
+either migrated or refused with a specific error - never silently read as if it
 were current (task-453).
 
 The migration itself is read-old/write-new and in memory only; it never rewrites
@@ -67,7 +67,7 @@ def migrate(data):
 
     Raises :class:`SchemaError` when the payload is newer than this app, or when
     a required migration step is not registered. ``from_version`` is the version
-    the payload declared (``LEGACY_SCHEMA_VERSION`` — i.e. current — when it
+    the payload declared (``LEGACY_SCHEMA_VERSION`` - i.e. current - when it
     declared none, since unstamped payloads use the current shape), so a caller
     can tell the user "migrated from v1" when a real migration ran.
     """

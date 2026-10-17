@@ -9,7 +9,6 @@ from player import Player
 from area import Area
 from engine.conditions import perceived_conditions
 from engine.abilities import normalize_stat_block
-from engine.traits import TraitSystem, TRAIT_DEFINITIONS
 from engine.vitals import (
     DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
 )
@@ -24,153 +23,25 @@ from version import SCHEMA_VERSION
 logger = logging.getLogger(__name__)
 
 
-def _body_region_catalog():
-    """Lazy-import the body-region catalog to avoid a hard import cycle."""
-    from engine.body_parts import BODY_REGIONS
-    return BODY_REGIONS
+from engine.serialization_helpers import (
+    _body_region_catalog, _VITAL_KEY_ALIASES, canonical_vitals,
+    _region_exposure_map, _goals_payload, _mosiac_payload, _trait_behavior,
+    normalize_dials, _disposition_payload,
+)
 
-
-#: Lowercase keys that need a non-trivial canonical form (not just capitalize).
-_VITAL_KEY_ALIASES = {"hp": "HP", "max_hp": "Max_HP", "mp": "Mana", "max_mp": "Max_Mana"}
-
-
-def canonical_vitals(vitals) -> dict:
-    """Fold mixed-case vital keys into their canonical form.
-
-    Library character files have historically carried BOTH cases ("Social"
-    and "social") — the lowercase duplicates leak into the runtime vitals
-    dict, where lowercase readers (talkinessHint reads ``vitals.social``)
-    pick them up and misread character state. Capitalized/aliased wins.
-    """
-    if not isinstance(vitals, dict):
-        return dict(vitals or {})
-    out = {}
-    for k, v in vitals.items():
-        key = str(k)
-        if key in _VITAL_KEY_ALIASES:
-            key = _VITAL_KEY_ALIASES[key]
-        elif key and key[0].islower():
-            key = key[0].upper() + key[1:]
-        out[key] = v
-    return out
-
-
-def _region_exposure_map(player, graph):
-    """Computed per-region exposure for a player (single source of truth)."""
-    from engine.body_parts import BODY_REGIONS, is_exposed
-    return {
-        region_id: is_exposed(player, region_id, graph)
-        for region_id in BODY_REGIONS
-    }
-
-
-def _goals_payload(graph, player_manager, player, pname):
-    """A character's goals with a derived ``blocked_by`` (task-810).
-
-    A projection for the payload and the UI: the stored goal keeps only its
-    authored ``blocks``. Resolution is skipped when there are no goals, so the
-    common case pays nothing.
-    """
-    from engine import goals as _goals
-    stored = getattr(player, 'goals', []) or []
-    if not stored:
-        return []
-    try:
-        holder = player_manager._player_node_id(pname)
-        resolvers = _goals.world_resolvers(graph, holder, stored)
-    except Exception:
-        resolvers = {"goal": _goals.goal_resolver(stored)}
-    return _goals.with_blockers(stored, resolvers)
-
-
-def _mosiac_payload(gs, player):
-    """A character's MOSIAC decision context (task-812) - a projection, not state.
-
-    Returns None if assembly fails, so a state fetch never 500s on it.
-    """
-    try:
-        from engine.mosiac import assemble
-        return assemble(gs, player)
-    except Exception:
-        return None
-
-
-def _trait_behavior(player) -> list:
-    """Prose lines for the LLM prompt: trait `behavior_prompt`s + disposition whispers.
-
-    The prompt builder reads `player.trait_behavior`
-    (`static/js/agent/prompt-builder/character-state.ts`) and nothing wrote it
-    before task-805, so the trait schema-v2 behavior_prompt never reached a prompt.
-    This is the writer: each trait's own prose, then task-805's `disposition.whispers`
-    derived from the same traits, so soak and LLM share one vocabulary.
-    """
-    try:
-        from engine import disposition
-        lines = list(TraitSystem.behavior_prompts(player))
-        lines += list(disposition.whispers(player))
-    except Exception:
-        return []
-    seen: set = set()
-    out: list = []
-    for line in lines:
-        if line and line not in seen:
-            seen.add(line)
-            out.append(line)
-    return out
-
-
-def normalize_dials(raw) -> dict:
-    """Coerce a saved personality-dial map to ``{trait_id: float in 0..1}``.
-
-    An unreadable value is dropped (the dial then reads neutral), never a crash -
-    so an old save with no dials loads to `{}` and an existing character is
-    unchanged (task-806).
-    """
-    out: dict = {}
-    if isinstance(raw, dict):
-        for key, value in raw.items():
-            try:
-                out[str(key)] = max(0.0, min(1.0, float(value)))
-            except (TypeError, ValueError):
-                continue
-    return out
-
-
-def _disposition_payload(player) -> dict:
-    """The character's decision weights, for the Mind panel and debugging.
-
-    Each weight carries its registry `kind` / `base` / range alongside the value
-    (task-800), so the panel can label it without a second lookup; `dials` are the
-    authored inputs (task-806). The whispers ride on `trait_behavior` (task-805).
-    Nothing here is stored - it is a live read, rebuilt on every serialize.
-    """
-    try:
-        from engine import disposition
-        index = disposition.by_name()
-        weights = []
-        for name, value in disposition.character_weights(player).items():
-            score = index.get(name)
-            weights.append({
-                "name": name,
-                "value": value,
-                "kind": score.kind if score else "",
-                "base": score.base if score else 0.0,
-                "lo": score.lo if score else 0.0,
-                "hi": score.hi if score else 0.0,
-            })
-        return {
-            "weights": weights,
-            "dials": dict(getattr(player, "personality_dials", {}) or {}),
-            "gated": sorted(disposition.gated_verbs(player)),
-            # The soak candidate verbs and the score each contributes (task-801),
-            # so the panel can show what the character can choose and what it feeds.
-            "actions": [
-                {"verb": verb, "scores": sorted(disposition.features_of(verb).keys())}
-                for verb in disposition.SOAK_VERBS
-            ],
-        }
-    except Exception:
-        return {"weights": [], "dials": {}, "gated": [], "actions": []}
+# Backward-compat re-exports: keep names in this module's namespace so existing
+# ``from engine.serialization import X`` and ``mock.patch`` targets keep working.
+globals().update({
+    "_body_region_catalog": _body_region_catalog,
+    "_VITAL_KEY_ALIASES": _VITAL_KEY_ALIASES,
+    "canonical_vitals": canonical_vitals,
+    "_region_exposure_map": _region_exposure_map,
+    "_goals_payload": _goals_payload,
+    "_mosiac_payload": _mosiac_payload,
+    "_trait_behavior": _trait_behavior,
+    "normalize_dials": normalize_dials,
+    "_disposition_payload": _disposition_payload,
+})
 
 
 class WorldSerializer:
@@ -247,7 +118,7 @@ class WorldSerializer:
 
     def _serialize_player(self, pname, p, lite=False):
         # Character *definition* (personality, appearance prose) lives on the
-        # character node's `properties` — the single persisted home. The Player
+        # character node's `properties` - the single persisted home. The Player
         # is runtime state. Publish the definition here so the live read payload
         # (the frontend and the LLM prompt read the Player shape) carries it;
         # `to_scenario_dict` strips it so a saved file keeps it only on the node.
@@ -432,7 +303,7 @@ class WorldSerializer:
                     areas_by_id[node.id] = record
                     # The name-keyed map stays because the live frontend reads
                     # worldState.areas[<area name>] / [player.current_area] (40+
-                    # sites) and `player.current_area` is still a display name — the
+                    # sites) and `player.current_area` is still a display name - the
                     # string→id refactor is task-581. It is a convenience view, not
                     # the canonical one: on a duplicate name the *last* writer wins
                     # here, while areas_by_id keeps both.
@@ -452,7 +323,7 @@ class WorldSerializer:
             "clock_start_hour": self.legacy.clock_start_hour,
             "clock_start_minute": self.legacy.clock_start_minute,
             # Lite mode: derived projections are dropped. The graph itself is
-            # always present — it is the world, not a projection. Consumers that
+            # always present - it is the world, not a projection. Consumers that
             # need area detail (area inspector, look, exits) fetch it on demand.
             "areas": {} if lite else rooms_serialized,
             "rooms": {} if lite else rooms_serialized,
@@ -469,8 +340,8 @@ class WorldSerializer:
             "mature_content": getattr(self.legacy, "mature_content", False),
             # The scenario's own name. Without this a saved file cannot be
             # identified on reload (routes fall back to "unnamed"), and the
-            # frontend's _scenarioIdentity() — which gates the local
-            # background-map cache — always sees null.
+            # frontend's _scenarioIdentity() - which gates the local
+            # background-map cache - always sees null.
             "_scenario_name": getattr(self.legacy, "_scenario_name", None),
             # Stable local storage identity keeps evicted scope chunks
             # addressable when a savegame is adopted without its scenario path.
@@ -516,7 +387,7 @@ class WorldSerializer:
         # silently leave the character with no readable STR/CON.
         p.stats = normalize_stat_block(pdata.get("stats", {}))
         # task-549: species is optional. Absent (every pre-existing save) leaves
-        # it None, which means "unspecified" and permits every service — the
+        # it None, which means "unspecified" and permits every service - the
         # backward-compatible default that makes adding the field safe.
         p.species = pdata.get("species")
         p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
@@ -617,7 +488,7 @@ class WorldSerializer:
             # folded into the map here and nowhere else, so a world saved by any
             # earlier build comes back feeling what it was saved feeling rather
             # than blank. Once a save carries `emotions`, the legacy pair is
-            # ignored on load — it is a cache of the map now, not a second
+            # ignored on load - it is a cache of the map now, not a second
             # opinion, and letting it win would be the duplication this task
             # exists to remove.
             p.emotion = emotion_data.get("current", "neutral")
@@ -709,7 +580,7 @@ class WorldSerializer:
             # task-403/425: a scenario is authored content, so it carries no
             # runtime *perception*. Merely loading a scenario observes every
             # character's starting area (engine/observation.py), and saving it
-            # back would otherwise bake that into the file — 23 characters'
+            # back would otherwise bake that into the file - 23 characters'
             # worth of "you have been in Blackmarsh" written into the scenario
             # and growing it by ~60KB on the first save, for state the loader
             # regenerates anyway. `memory_index` is derived and goes with them;
@@ -735,7 +606,7 @@ class WorldSerializer:
         # a second copy of data already carried by `graph.nodes`:
         #   - `areas` / `rooms` are projections the loader never reads
         #     (LegacyCompat rebuilds them from the graph), and `rooms` was the
-        #     same dict written twice — 13% of the file, byte for byte.
+        #     same dict written twice - 13% of the file, byte for byte.
         #   - `ways` / `item_registry` were legacy attrs only the loader
         #     populated and nothing consumed.
         # Every field of an `areas` entry that mattered already lives on the
@@ -768,7 +639,7 @@ class WorldSerializer:
 
     @staticmethod
     def strip_redundant_exits(data):
-        """task-222: saved worlds are graph-only — the per-room ``exits`` /
+        """task-222: saved worlds are graph-only - the per-room ``exits`` /
         ``exits_authoring`` copies are always recomputed at runtime
         (build_exits_for_area), so writing them is redundant data that can
         drift. Keep the live /api/state payload intact (to_dict is separate);
@@ -806,7 +677,7 @@ class WorldSerializer:
         duplicate_areas = duplicate_area_names(self.graph)
         if duplicate_areas:
             logger.warning(
-                "[load] duplicate area display name(s) — resolve these by id: %s",
+                "[load] duplicate area display name(s) - resolve these by id: %s",
                 duplicate_areas)
         # task-450: repair any item that ended up both carried and equipped. The
         # modern branch already does this inside graph.load_from_dict; the legacy
@@ -820,7 +691,7 @@ class WorldSerializer:
         self.legacy.turn_number = data.get("turn_number", 0)
         self.legacy.turn_events = list(data.get("turn_events", []))
         self.legacy.game_log = list(data.get("game_log", []))
-        # task-360 presence ledger (per-area {char: entry_tick}) — restore as-is.
+        # task-360 presence ledger (per-area {char: entry_tick}) - restore as-is.
         try:
             raw_presence = data.get("area_presence", {}) or {}
             self.legacy.area_presence = {
@@ -955,7 +826,7 @@ class WorldSerializer:
         # Perception at load (task-403): a character knows the room it is
         # standing in from the moment it is there. Observations are otherwise
         # written on arrival, so without this pass the one area a character
-        # could never remember would be the one it started in — and task-425's
+        # could never remember would be the one it started in - and task-425's
         # novelty would pay for it again on the first re-entry.
         try:
             from engine.observation import observe_area

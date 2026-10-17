@@ -1,7 +1,7 @@
 """Single-condition evaluation helpers for TriggerSystem.
 
 Task-343: all leaf evaluation lives in ``ConditionTreeMixin._evaluate_conditions``
-(engine/triggers/condition_tree.py) — this module kept only its resolver/comparison
+(engine/triggers/condition_tree.py) - this module kept only its resolver/comparison
 helpers plus a delegating ``_evaluate_trigger_condition`` so the single-condition
 entry point (movement ``requires_open``, facade wrappers) evaluates through the
 same leaf registry as tree/list conditions.
@@ -102,7 +102,7 @@ class EvaluationMixin:
 
         Task-343: delegates to ``ConditionTreeMixin._evaluate_conditions`` so
         both entry points share one leaf implementation (previously the two
-        evaluators duplicated ~20 leaves and diverged — e.g. ``random_chance``
+        evaluators duplicated ~20 leaves and diverged - e.g. ``random_chance``
         always divided by 100 here, while the tree honours NPC-style
         0.0–1.0 ``chance`` vs item-trigger 0–100 ``value``).
 

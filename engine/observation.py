@@ -1,4 +1,4 @@
-"""Observation memories — what a character has seen (task-403).
+"""Observation memories - what a character has seen (task-403).
 
 One *live* observation memory per subject: the area the character is standing in
 and each item it can see there. The memory carries who/what/where/when, and the
@@ -11,7 +11,7 @@ with that and a saturating Entertainment source.
 
 Re-seeing a subject refreshes that memory **in place**
 (``Player.record_observation``) rather than appending another one, so the store
-is bounded by *subjects*, not by visits — a week of wandering does not become
+is bounded by *subjects*, not by visits - a week of wandering does not become
 thousands of observations. ``player.memory_index`` then takes "which memory is
 about this subject?" out of the memory list, so a subject is never found by
 scanning for it. The trace remains the history; the memory holds the current
@@ -53,7 +53,7 @@ def can_perceive(player, gs, area_node=None) -> bool:
 
     Excludes the states where a character plainly is not looking: dead,
     unconscious, or asleep. Light is checked through the engine's lighting
-    system when it is reachable, and assumed sufficient when it is not — a
+    system when it is reachable, and assumed sufficient when it is not - a
     missing lighting object must not silently blind the whole world.
     """
     if player is None:
@@ -89,14 +89,14 @@ def _item_tags(node) -> list:
 def perceivable_subjects(player, gs, area_node):
     """Yield ``(subject_id, kind, text, tags)`` for everything perceptible.
 
-    **The area itself is not yielded here** — the caller records it
+    **The area itself is not yielded here** - the caller records it
     unconditionally, because a character always knows which room it is standing
     in, even in the dark.
 
     **Characters present are deliberately not yielded either.** They are stamped
     by `Player.register_first_meeting` instead, which is what pays for meeting
     someone (task-434). If arrival stamped them too, the meeting grant would read
-    a tick this had just refreshed and pay nothing — and paying on *sight*
+    a tick this had just refreshed and pay nothing - and paying on *sight*
     instead saturates the meter, because a crowded camp re-observes five to ten
     people on every arrival and their observations go stale again within the
     recovery window. Measured: arrival paying for people pinned camp
@@ -117,7 +117,7 @@ def observe_area(player, gs, tick=None) -> dict:
     """Record what *player* currently perceives. Returns a small summary.
 
     ``{"seen": int, "novel": [subject_id, ...], "freshness": {subject_id: float}}``
-    — ``novel`` lists the subjects this character had no observation of at all,
+    - ``novel`` lists the subjects this character had no observation of at all,
     and ``freshness`` is each subject's novelty (task-425) **as it was before the
     refresh**, so a caller can pay for the experience without the refresh having
     already wiped the evidence.

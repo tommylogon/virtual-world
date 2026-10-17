@@ -1,7 +1,7 @@
 """Who saw whom, and whether it was public (task-547).
 
 **Not** :mod:`engine.observation`. That module is task-403's *observation
-memories* — "what has this character seen", a per-subject belief stored on the
+memories* - "what has this character seen", a per-subject belief stored on the
 character. This is the mirror image: "who has seen *this character*", a
 social/audience fact about the target. They answer different questions and are
 updated by different passes, so they live in different modules.
@@ -11,8 +11,8 @@ thing close was ``NPCBehaviorSystem.process_bystander_reactions``, which is the
 wrong shape for the question:
 
 1. it returns **strings**, so no caller can learn *who* perceived anything;
-2. it walks only ``simple_npc`` characters, so agent-driven and human characters —
-   the ones a player most expects to be watching — are skipped;
+2. it walks only ``simple_npc`` characters, so agent-driven and human characters -
+   the ones a player most expects to be watching - are skipped;
 3. ``max_reactions`` (default 1) breaks the loop, so the reaction cap was also a
    silent truncation of the observer set;
 4. it conflates *noticed* with *emitted a line*, so an observer whose reaction
@@ -25,7 +25,7 @@ recomputes. The cost is that a page reload drops the recent window, which
 self-heals on the next turn.
 
 The public/covert distinction answers "was there an audience", which
-``engine.body_parts.is_exposed`` cannot — that answers "is this body part
+``engine.body_parts.is_exposed`` cannot - that answers "is this body part
 covered", and a covered body part in an empty room is nobody's business.
 """
 
@@ -45,7 +45,7 @@ DEFAULT_MEMORY_TURNS = 3
 PUBLIC_LIGHT_FLOOR = 20
 
 #: Conditions that mean the observer is not watching. ``Player.state`` is derived
-#: from a precedence hierarchy, so it cannot answer this on its own — a
+#: from a precedence hierarchy, so it cannot answer this on its own - a
 #: character who is ``awake`` and asleep at once reads as ``awake``. The
 #: conditions are the truth. ``sleeping`` is listed alongside the activities
 #: because the codebase sets it both ways (``player.state = "sleeping"`` adds
@@ -60,7 +60,7 @@ OFF_WATCH_ACTIVITIES = frozenset({"sleeping", "bathing"})
 class ObservationSignalLog:
     """Tick-stamped, self-pruning store of *who observed whom*.
 
-    Not thread-safe and not serialized — it is per-run derived state, rebuilt by
+    Not thread-safe and not serialized - it is per-run derived state, rebuilt by
     the perception pass (see
     :meth:`engine.npc_behaviors.NPCBehaviorSystem.record_observations`).
     """
@@ -148,7 +148,7 @@ class ObservationSignalLog:
         Called on every write. Reads filter by window without mutating, so a
         scene that stops producing observations ages them out at the next write
         and costs nothing in the meantime. The store is bounded by *pairs* of
-        characters, not by turns — see :meth:`record`.
+        characters, not by turns - see :meth:`record`.
         """
         window = self.memory_turns
         for target, observers in list(self._by_target.items()):

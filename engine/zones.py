@@ -12,7 +12,7 @@ scope), and chunk load/evict is task-401. What is left here is the zone as the
 
 **Provenance is the selector.** Every compiled node already carries
 ``properties.generated.scope_id`` (`engine.generation.provenance`), so releasing
-a zone is "delete exactly the nodes that recipe produced for it" — the same
+a zone is "delete exactly the nodes that recipe produced for it" - the same
 mechanism the design doc's 🧹 Ungenerate calls for, used as the runtime
 half of a materialise/release cycle.
 
@@ -27,11 +27,11 @@ more than the happy path. Four, in the order they are checked:
    (`way_gateway_<parent>_<child>`) is emitted by whichever scope compiles second,
    so releasing a child without the parent present leaves an orphan, and
    re-materialising needs the parent's cell area to link against. Only a parent
-   *this store* released blocks — a parent that was never materialised is the
+   *this store* released blocks - a parent that was never materialised is the
    author's own doing and is not a reason to keep a zone resident.
 3. **A ``baked`` zone is never released.** A baked zone compiles once and is
    hand-edited thereafter, so a release/re-materialise cycle would silently
-   destroy the edits — the clobber trap
+   destroy the edits - the clobber trap
    (`docs/design/worldpainter-knowledge-and-fog.md`, task-496) wearing a
    different hat. A baked zone is a permanent graph citizen.
 4. **A zone with hand-authored nodes in it is not released** unless every
@@ -125,7 +125,7 @@ class ZoneStore:
         self.seed = seed
         #: Zones that were released and can be rebuilt: scope_id -> recipe seed.
         #: A released zone's record stays in the manifest the whole time, which
-        #: is the point — the zone exists, it just is not a graph citizen.
+        #: is the point - the zone exists, it just is not a graph citizen.
         self.released: Dict[str, str] = {}
 
     # ── the query ────────────────────────────────────────────────────────
@@ -188,8 +188,8 @@ class ZoneStore:
         if (parent and str(parent) in self.released
                 and not self.is_materialised(parent)):
             # Only a parent **this store released** blocks. A parent that was
-            # never materialised is the author's own doing — the zone compiled
-            # anyway — and refusing on that would make the rule fire on every
+            # never materialised is the author's own doing - the zone compiled
+            # anyway - and refusing on that would make the rule fire on every
             # scope whose parent has no grid of its own, which is a normal
             # authoring shape and not a reason to keep a zone resident.
             return (f"parent {parent!r} was released, so this zone's gateway "
@@ -235,7 +235,7 @@ class ZoneStore:
         # The seed comes from the NODES, not from what this store was configured
         # with. `compile_grid` mints its own default (`<scope>:grid.v2`) when it is
         # given none, so a store-level seed is a guess and a rebuild on a guessed
-        # seed produces a *different* zone wearing the old one's name — which is
+        # seed produces a *different* zone wearing the old one's name - which is
         # worse than not rebuilding at all.
         ambiguous_seed = sorted(seeds) if len(seeds) > 1 else None
         if len(seeds) == 1:

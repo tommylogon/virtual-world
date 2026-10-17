@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Weather generator preview — a standalone spike.
+"""Weather generator preview - a standalone spike.
 
 Runs the *heuristic* weather generator (the model task-763 will land) over a
 scenario and prints what it chose **and why**: the candidate distribution, the
@@ -9,12 +9,12 @@ touches the engine, a save, or the running app, and it never writes.
 This is a design instrument, not the engine. The transition table and the
 weather vocabulary are imported from `engine/weather_forecast.py` so there is
 one source for them; the season and terrain *factors* below are the prototype
-numbers to iterate on — when they feel right, they move into the engine.
+numbers to iterate on - when they feel right, they move into the engine.
 
 What it does **not** model (on purpose, see
 `docs/design/weather-world-integration.md` §7): precipitation amount (there is
 no mm field), snow accumulation, and neighbour coupling (a front spreading
-across adjacent areas) — this previews the single-chain-per-world case.
+across adjacent areas) - this previews the single-chain-per-world case.
 
 Usage:
     python tools/weather_preview.py

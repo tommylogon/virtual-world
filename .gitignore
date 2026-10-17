@@ -21,7 +21,7 @@ playwright/.cache/
 downloads/
 
 # Browser-verification screenshot dumps (~19MB of throwaway evidence). Keep them
-# local — the finding lives in the task card, not the image.
+# local - the finding lives in the task card, not the image.
 review-verify/
 
 # Node / npm (Playwright MCP server dependencies)
@@ -30,7 +30,7 @@ npm-debug.log*
 
 # IDE
 .idea/
-# .vscode/ — intentionally NOT ignored; shared launch configs for tests
+# .vscode/ - intentionally NOT ignored; shared launch configs for tests
 *.bak
 saves/
 *.swp
@@ -43,7 +43,7 @@ docs/virtualWorld/dev_tasks/.tasks-index.json
 # Runtime port lock, written by the test/app run in every worktree
 .kilo-local-port
 
-# Copyrighted D&D source books — keep local, never commit.
+# Copyrighted D&D source books - keep local, never commit.
 # The extracted tables and rules live in docs/dm-tools-reference.md instead.
 # (docs/dev_tasks.pdf and docs/non_dev_tasks.pdf are generated project artifacts and stay tracked.)
 /docs/dm toolbox.pdf

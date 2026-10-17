@@ -5,10 +5,10 @@ def handle_grant_memory(self, params, context, item_node=None, game_state=None):
     """Add a memory entry to the target player (trigger-authored discovery).
 
     params:
-      memory (dict) — a memory object (text/importance/tags/type/source), or
+      memory (dict) - a memory object (text/importance/tags/type/source), or
         pass those fields inline in ``params``.
-      target (str, default "self") — player name.
-      message (str) — optional narrative line to emit.
+      target (str, default "self") - player name.
+      message (str) - optional narrative line to emit.
     """
     player = self._resolve_memory_target(params, game_state)
     if player is None or not hasattr(player, "add_memory"):
@@ -36,16 +36,16 @@ def handle_surface_memory(self, params, context, item_node=None, game_state=None
     """Force a matching memory into active recall with a salience boost.
 
     params:
-      tags (list[str]) — memories tagged with ALL of these are matched.
-      keywords (str) — text substring match (case-insensitive).
-      salience_boost (int, default 3) — temporary relevance bump written
+      tags (list[str]) - memories tagged with ALL of these are matched.
+      keywords (str) - text substring match (case-insensitive).
+      salience_boost (int, default 3) - temporary relevance bump written
         into the memory entry as ``salience_override``.
-      message (str) — optional narrative line; if empty, no output is
+      message (str) - optional narrative line; if empty, no output is
         emitted when there is no match.
 
     game_state must provide:
-      game_state.players — dict of Player objects
-      game_state.active_player — current active player name
+      game_state.players - dict of Player objects
+      game_state.active_player - current active player name
     """
     tags = [str(t).lower() for t in (params.get("tags") or []) if t]
     keywords = (params.get("keywords") or "").lower().strip()
@@ -84,13 +84,13 @@ def handle_suppress_memory(self, params, context, item_node=None, game_state=Non
     params:
       tags (list[str])
       keywords (str)
-      duration (int, default 1) — turns to suppress; 0 = permanent until
+      duration (int, default 1) - turns to suppress; 0 = permanent until
         ``unblock_memory`` fires.
-      scope (str, default "self") — "self" or explicit character name.
+      scope (str, default "self") - "self" or explicit character name.
 
     game_state must provide:
-      game_state.players — dict of Player objects
-      game_state.active_player — current active player name
+      game_state.players - dict of Player objects
+      game_state.active_player - current active player name
     """
     player = self._resolve_memory_target(params, game_state)
     if player is None:
@@ -115,8 +115,8 @@ def handle_unblock_memory(self, params, context, item_node=None, game_state=None
       scope (str, default "self")
 
     game_state must provide:
-      game_state.players — dict of Player objects
-      game_state.active_player — current active player name
+      game_state.players - dict of Player objects
+      game_state.active_player - current active player name
     """
     player = self._resolve_memory_target(params, game_state)
     if player is None:

@@ -15,7 +15,7 @@ and no migration:
 Three decisions this module makes, and why:
 
 **1. Ownership is a tag, not a derivation from the area's scope.** A scope is a
-containment construct — the WorldPainter grid hierarchy of task-397 — and it
+containment construct - the WorldPainter grid hierarchy of task-397 - and it
 does not track who lives where: the camp's own scope ``deep_woods_2`` also holds
 the Human Road and the Abandoned Farm, so deriving ownership from scope would
 make the goblin tribe the owner of a human farm. Scope answers "where is this",
@@ -62,7 +62,7 @@ def _tags(source: Any) -> List[str]:
 
     A graph node keeps its tags in ``properties["tags"]``; a ``Player`` exposes
     them as ``.tags``. Both shapes reach this module, so read both rather than
-    making every caller unwrap first — and a caller that passed the *wrong* one
+    making every caller unwrap first - and a caller that passed the *wrong* one
     would otherwise silently read zero tags and conclude nothing is owned.
     """
     if source is None:
@@ -85,7 +85,7 @@ def _bare(name: Any) -> str:
 
     The comparison helpers take bare names, but a description builder that has a
     tag list in hand will hand them ``held_by:goblin``. Accepting both means a
-    caller cannot silently treat a prefixed tag as an unknown faction — which
+    caller cannot silently treat a prefixed tag as an unknown faction - which
     would report every area as unheld rather than as held.
     """
     text = str(name or "").strip().lower()
@@ -195,13 +195,13 @@ def describe_standing_on(factions: Iterable[str], holders: Iterable[str]) -> str
 def note_contested_use(player, area_node, need: str, gs=None) -> Optional[dict]:
     """Record a non-owner using a held need-resource. Returns the entry, or None.
 
-    Called when a character satisfies a need from an area somebody else holds —
+    Called when a character satisfies a need from an area somebody else holds -
     drank from the goblin camp's water, ate from Eldenford's stores. The need is
     satisfied either way; what changes is that the fact exists.
 
     Writes two places, because they answer different questions: the player's
     ``lived_log`` (what happened to this character) and the game log (what
-    happened in the world). Both are best-effort — a bookkeeping failure must
+    happened in the world). Both are best-effort - a bookkeeping failure must
     never abort a survival action, so every failure is swallowed.
     """
     if player is None or area_node is None:
@@ -241,7 +241,7 @@ def note_contested_use(player, area_node, need: str, gs=None) -> Optional[dict]:
             holder_text = describe_standing_on(mine, holders)
             gs.add_log_entry(
                 f"[{getattr(player, 'name', 'Someone')}] takes {need} at "
-                f"{area_name} — {holder_text}."
+                f"{area_name} - {holder_text}."
             )
     except Exception:  # noqa: BLE001
         pass

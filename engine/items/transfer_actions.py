@@ -19,7 +19,7 @@ from engine.items.ownership import (
 
 
 class TransferActionsMixin:
-    """give_item / steal_item — same-area character-to-character transfer."""
+    """give_item / steal_item - same-area character-to-character transfer."""
 
     def give_item(self, player_manager, item_name: str, target_name: str) -> str:
         """Hand a carried item to another character in the same area."""
@@ -67,7 +67,7 @@ class TransferActionsMixin:
             raise ValueError(portable_refusal(self.graph, item_node, "hand it over"))
 
         # task-515: you cannot give away what was never yours. This is
-        # different from taking it — the owner is right here and says no, and
+        # different from taking it - the owner is right here and says no, and
         # no amount of asking changes that. `steal` is the way through.
         refusal = permission_refusal(item_node, player_manager.active_player,
                                      "give it away", player_manager)
@@ -139,7 +139,7 @@ class TransferActionsMixin:
 
         target_player_id = _pm_get_player_node_id(player_manager, target_name)
 
-        # Find item in target's inventory — bug-35: route through the tiered
+        # Find item in target's inventory - bug-35: route through the tiered
         # matcher too, so misspellings resolve and WORN items are eligible, then
         # fall back to the strict name scan if matching is unavailable.
         resolved_name = None
@@ -170,19 +170,19 @@ class TransferActionsMixin:
         # target the thing, so steal refuses rather than silently succeeding.
         if item_node.properties.get("concealed"):
             raise ValueError(
-                f"You can't find a '{item_name}' on {target_name} — "
+                f"You can't find a '{item_name}' on {target_name} - "
                 f"they keep it hidden. Search them first."
             )
 
         # task-493: a part does not come loose, from anyone. The roster scan
         # above only sees what is worn or carried, so a part is not reachable
-        # here today — but "not reachable" is not the same as "refused", and
+        # here today - but "not reachable" is not the same as "refused", and
         # this is the verb where a silent pass would hand over a battery.
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "steal it"))
 
         # task-515: `steal` is the contested override. Ownership never blocks it
-        # — it makes it harder, because someone watches their own property more
+        # - it makes it harder, because someone watches their own property more
         # closely than the loose change in a pack.
         personal = is_personal(item_node) or is_owned(item_node)
         caught_note = " They will know it was you." if personal else ""
@@ -199,7 +199,7 @@ class TransferActionsMixin:
         )
 
         if sleight_roll >= per_roll:
-            # Success — move item from target to player
+            # Success - move item from target to player
             for edge in list(self.graph.get_edges_for_source(item_node_id, EDGE_IN)):
                 self.graph.remove_edge(edge.source, edge.target, EDGE_IN)
             self.graph.remove_edge(item_node_id, target_player_id, EDGE_CARRYING)
@@ -237,7 +237,7 @@ class TransferActionsMixin:
         Perception-gated, exactly like the area `search` verb: a success clears
         ``concealed`` on everything they carry or wear so the item becomes
         lootable/stealable; a failure reveals nothing. The flag is the discovery
-        state — concealing it again is an authoring action.
+        state - concealing it again is an authoring action.
         """
         from engine.character_spatial import _pm_get_player_node_id
 

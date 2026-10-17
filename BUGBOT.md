@@ -1,6 +1,6 @@
 # BUGBOT.md
 
-Repository rules for Bugbot / Agent Review. Kept short and specific — this
+Repository rules for Bugbot / Agent Review. Kept short and specific - this
 file is loaded into the reviewer's context, so every line must change what it
 does.
 
@@ -40,13 +40,13 @@ review. If a change *touches* one of them, the finding is valid.
 
 - Routes follow the `*_ops.py` + thin registrar split; a new JS module needs a
   `<script>` tag in `templates/index.html`.
-- `docs/design/js-module-index.md` is **generated** — regenerate with
+- `docs/design/js-module-index.md` is **generated** - regenerate with
   `python tools/js_module_index.py --write`. Never hand it into a commit that
   does not include the modules it names.
 - JS unit tests (`node tools/unit/run.cjs`) are **not** part of `npm run lint`.
   A front-end change needs both.
 - Ignore `.kilo/worktrees/` when searching.
-- `docs/virtualWorld/dev_tasks/` — the **folder** under `<status>/<area>/` is
+- `docs/virtualWorld/dev_tasks/` - the **folder** under `<status>/<area>/` is
   authoritative for status. Some task files carry a UTF-8 BOM on purpose.
 
 ## Reviewing a change in this repo

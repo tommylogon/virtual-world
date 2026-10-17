@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Memory Mind mockup — character memory dynamics (MOCKUP, not wired)</title>
+<title>Memory Mind mockup - character memory dynamics (MOCKUP, not wired)</title>
 <style>
 :root{
   --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
@@ -142,14 +142,14 @@ svg{display:block}
 <body>
 
 <div class="dochead">
-  <h1>Memory Mind — character memory dynamics interface</h1>
+  <h1>Memory Mind - character memory dynamics interface</h1>
   <div class="sub">Design target for the inspector's Memories tab + the standalone memory dashboard. Renders the dynamic memory model from
   <b>docs/virtualWorld/AI &amp; Narration/Memory Dynamics.md</b>: episodic/semantic/belief categories, activation · confidence · reinforcements,
   contradiction links, derived per-person profiles (via the existing <code>derive.py</code> reducer), and the structured recall block the LLM receives.</div>
-  <div class="warn">MOCKUP — static HTML, not wired to any data</div>
-  <div class="prov"><b>Provenance:</b> fields shown are the actual planned memory fields — <code>category</code>, <code>activation</code>,
+  <div class="warn">MOCKUP - static HTML, not wired to any data</div>
+  <div class="prov"><b>Provenance:</b> fields shown are the actual planned memory fields - <code>category</code>, <code>activation</code>,
   <code>confidence</code>, <code>reinforcements</code>, <code>last_recalled_tick</code>, <code>contradicts[]</code>, <code>source_memory_ids[]</code>,
-  <code>reflection_depth</code> — layered over the existing <code>Player.memories[]</code> schema (text/tick/importance/type/tags/entity_ids/emotions).
+  <code>reflection_depth</code> - layered over the existing <code>Player.memories[]</code> schema (text/tick/importance/type/tags/entity_ids/emotions).
   The per-person panel reads the existing <code>engine/derive.py</code> profile (trust/fear/attraction/disgust/respect, −100..100). Nothing here introduces a new store.</div>
 </div>
 
@@ -188,7 +188,7 @@ svg{display:block}
       </div>
 
       <div class="sec">
-        <h3>People — derived from memories</h3>
+        <h3>People - derived from memories</h3>
         <div class="person">
           <div class="ph"><div class="pa">👩</div><b>Anna</b><span class="band">rival · 14 mems</span></div>
           <div class="dimrow center"><span class="dl">trust</span><div class="track"><div class="fill" style="margin-left:50%;width:16%;background:var(--red)"></div></div><span class="dv">−34</span></div>
@@ -200,7 +200,7 @@ svg{display:block}
           <div class="ph"><div class="pa">🧓</div><b>Father</b><span class="band">family · 22 mems</span></div>
           <div class="dimrow center"><span class="dl">trust</span><div class="track"><div class="fill" style="margin-left:50%;width:41%;background:var(--green)"></div></div><span class="dv">+82</span></div>
           <div class="dimrow center"><span class="dl">respect</span><div class="track"><div class="fill" style="margin-left:50%;width:45%;background:var(--purple)"></div></div><span class="dv">+90</span></div>
-          <div class="dimrow"><span class="dl" style="color:var(--text-muted)">seed ×4</span><span class="dv" style="width:auto;color:var(--text-muted)">identity-defining — decay-locked</span></div>
+          <div class="dimrow"><span class="dl" style="color:var(--text-muted)">seed ×4</span><span class="dv" style="width:auto;color:var(--text-muted)">identity-defining - decay-locked</span></div>
         </div>
         <div class="person">
           <div class="ph"><div class="pa">🐈</div><b>Moss the cat</b><span class="band">acquaintance · 3 mems</span></div>
@@ -280,7 +280,7 @@ svg{display:block}
 
       <div class="mem">
         <div class="mh"><span class="ic">👣</span><span class="ago">tick 1712 · yesterday</span><span class="sp"></span><span class="bd imp7">imp 6</span></div>
-        <div class="txt">I heard footsteps upstairs again — <b>the same slow pattern</b> as two nights ago.</div>
+        <div class="txt">I heard footsteps upstairs again - <b>the same slow pattern</b> as two nights ago.</div>
         <div class="badges">
           <span class="bd cat-episodic">episodic</span><span class="bd reinf">↻ ×4 reinforced</span><span class="bd">conf 88%</span>
           <span class="bd">sound</span><span class="bd">fear</span>
@@ -291,7 +291,7 @@ svg{display:block}
         <div class="mh"><span class="ic">🍞</span><span class="ago">tick 903 · 9 days ago</span><span class="sp"></span><span class="bd">imp 3</span></div>
         <div class="txt">Ate bread and hard cheese in the kitchen. It was quiet.</div>
         <div class="badges">
-          <span class="bd cat-episodic">episodic</span><span class="bd">act 0.31 — fading</span><span class="bd">conf 100%</span>
+          <span class="bd cat-episodic">episodic</span><span class="bd">act 0.31 - fading</span><span class="bd">conf 100%</span>
         </div>
       </div>
 
@@ -338,26 +338,26 @@ svg{display:block}
           <div class="dbox" style="margin-bottom:8px">
             <div class="t">Connections</div>
             <div class="conn"><span class="ct">tick 1762</span><span class="rel-con">contradicts</span><span class="txt">"Anna said she never entered the cellar." (conf 58%)</span></div>
-            <div class="conn"><span class="ct">tick 1712</span><span class="rel-sup">supports</span><span class="txt">"Footsteps upstairs — the same slow pattern…" (shared: fear)</span></div>
+            <div class="conn"><span class="ct">tick 1712</span><span class="rel-sup">supports</span><span class="txt">"Footsteps upstairs - the same slow pattern…" (shared: fear)</span></div>
             <div class="conn"><span class="ct">tick 1790</span><span class="rel-der">derived →</span><span class="txt">belief: "Anna is probably lying about the cellar." (conf 71%)</span></div>
-            <div class="conn"><span class="ct">tick 1440</span><span class="txt" style="color:var(--text-muted)">same entity: Anna — "Anna asked why I was carrying the lantern." </span></div>
+            <div class="conn"><span class="ct">tick 1440</span><span class="txt" style="color:var(--text-muted)">same entity: Anna - "Anna asked why I was carrying the lantern." </span></div>
           </div>
           <button class="fbtn" style="border-color:var(--accent-dim);color:var(--accent)">Open in editor</button>
         </div>
       </div>
 
       <div class="sec">
-        <h3>Key beliefs — what Evan has concluded</h3>
+        <h3>Key beliefs - what Evan has concluded</h3>
         <div class="detail" style="border-color:var(--border)">
           <div class="bel"><span class="conf">71%</span><span class="txt">Anna is probably lying about the cellar. <span style="color:var(--red)">⚡ conflicts with her denial</span></span></div>
           <div class="bel"><span class="conf">88%</span><span class="txt">Someone else is in the house at night.</span></div>
           <div class="bel"><span class="conf">64%</span><span class="txt">Father's letter points at the cellar, not the attic.</span></div>
-          <div class="bel"><span class="conf">95%</span><span class="txt">Weakness is a choice. <span style="color:var(--text-muted)">(seed belief — near-permanent)</span></span></div>
+          <div class="bel"><span class="conf">95%</span><span class="txt">Weakness is a choice. <span style="color:var(--text-muted)">(seed belief - near-permanent)</span></span></div>
         </div>
       </div>
 
       <div class="sec">
-        <h3>Decay &amp; reinforcement — accessibility over time</h3>
+        <h3>Decay &amp; reinforcement - accessibility over time</h3>
         <div class="decay">
           <div class="t"><span>activation by memory</span><span class="legend">
             <span><span class="sw" style="background:var(--red)"></span>father's letter</span>
@@ -366,7 +366,7 @@ svg{display:block}
             <span><span class="sw" style="background:var(--green)"></span>bread &amp; cheese</span></span></div>
           <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="none">
             <line x1="0" y1="45" x2="320" y2="45" stroke="#30363d" stroke-dasharray="3 4"/>
-            <text x="4" y="42" fill="#6e7681" font-size="8">act 0.5 — below this, recall needs a query hit</text>
+            <text x="4" y="42" fill="#6e7681" font-size="8">act 0.5 - below this, recall needs a query hit</text>
             <polyline fill="none" stroke="#f85149" stroke-width="1.6" points="0,18 40,19 80,21 120,22 160,24 200,25 240,27 280,28 320,29"/>
             <polyline fill="none" stroke="#e3b341" stroke-width="1.6" points="0,30 40,34 80,40 110,42 150,48 190,52 230,56 270,60 320,64"/>
             <polyline fill="none" stroke="#58a6ff" stroke-width="1.6" points="0,44 30,50 60,58 80,40 110,52 140,62 170,48 200,58 230,66 260,58 290,66 320,70"/>
@@ -374,7 +374,7 @@ svg{display:block}
           </svg>
           <div style="font-size:9.5px;color:var(--text-muted);line-height:1.5">
             Steep flat line = identity-defining seed (resistance ×0.4). Sawtooth = reinforced on recall (every bump is a ↻).
-            The green line is an ordinary event dying of natural causes — it will consolidate into a trace, not linger.
+            The green line is an ordinary event dying of natural causes - it will consolidate into a trace, not linger.
           </div>
         </div>
       </div>
@@ -383,19 +383,19 @@ svg{display:block}
 
   <!-- ══════════ PROMPT PREVIEW ══════════ -->
   <div class="prompt">
-    <div class="ph2">What the LLM sees — the same data, as the structured recall block (query: "Anna · approach · hidden · cellar")</div>
+    <div class="ph2">What the LLM sees - the same data, as the structured recall block (query: "Anna · approach · hidden · cellar")</div>
     <pre><span class="h">=== I REMEMBER ===</span>
 <span class="h">EVENTS</span>
 <span class="m">[2 turns ago]</span> 🗣️ Anna said she never entered the cellar. <span class="m">(conf 58% · ⚡conflicts with tick 1683)</span>
 <span class="m">[2 days ago]</span> 🔑 I found Anna's key on the cellar floor. <span class="m">(↻×3 · conf 96%)</span>
-<span class="m">[yesterday]</span> 👣 Footsteps upstairs — the same slow pattern as before.
+<span class="m">[yesterday]</span> 👣 Footsteps upstairs - the same slow pattern as before.
 
 <span class="h">WHAT I BELIEVE</span>
-<span class="c">Anna is probably lying about the cellar.</span> <span class="m">(71% — not sure; her denial conflicts with the key)</span>
+<span class="c">Anna is probably lying about the cellar.</span> <span class="m">(71% - not sure; her denial conflicts with the key)</span>
 <span class="c">Someone else is in the house at night.</span> <span class="m">(88%)</span>
 
 <span class="h">HOW I SEE PEOPLE</span>
-<span class="b">Anna:</span> trust −34, fear +74, respect −18 — rival. <span class="m">She has lied to me before; I feel on guard around her.</span>
+<span class="b">Anna:</span> trust −34, fear +74, respect −18 - rival. <span class="m">She has lied to me before; I feel on guard around her.</span>
 
 <span class="h">WHAT I EXPECT</span>
 <span class="b">When Anna makes a claim, check it against what I've seen before acting on it.</span></pre>

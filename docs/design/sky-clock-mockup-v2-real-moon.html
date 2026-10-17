@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sky Clock v2 — Real Moon</title>
+<title>Sky Clock v2 - Real Moon</title>
 <style>
   :root{
     --bg:#0b0d12; --surface:#121522; --surface-2:#171b2a;
@@ -202,14 +202,14 @@
         <div class="ctl">
           <div class="ctl-head"><span class="field-label">🌙 Moon phase</span></div>
           <div class="chip-grid" id="moon-chips">
-            <button class="chip moon-chip" data-i="0" title="New Moon — up with the sun, invisible">🌑</button>
-            <button class="chip moon-chip" data-i="1" title="Waxing Crescent — afternoon → evening">🌒</button>
-            <button class="chip moon-chip on" data-i="2" title="First Quarter — noon → midnight">🌓</button>
-            <button class="chip moon-chip" data-i="3" title="Waxing Gibbous — afternoon → late night">🌔</button>
-            <button class="chip moon-chip" data-i="4" title="Full Moon — sunset → sunrise">🌕</button>
-            <button class="chip moon-chip" data-i="5" title="Waning Gibbous — evening → morning">🌖</button>
-            <button class="chip moon-chip" data-i="6" title="Last Quarter — midnight → noon">🌗</button>
-            <button class="chip moon-chip" data-i="7" title="Waning Crescent — pre-dawn → afternoon">🌘</button>
+            <button class="chip moon-chip" data-i="0" title="New Moon - up with the sun, invisible">🌑</button>
+            <button class="chip moon-chip" data-i="1" title="Waxing Crescent - afternoon → evening">🌒</button>
+            <button class="chip moon-chip on" data-i="2" title="First Quarter - noon → midnight">🌓</button>
+            <button class="chip moon-chip" data-i="3" title="Waxing Gibbous - afternoon → late night">🌔</button>
+            <button class="chip moon-chip" data-i="4" title="Full Moon - sunset → sunrise">🌕</button>
+            <button class="chip moon-chip" data-i="5" title="Waning Gibbous - evening → morning">🌖</button>
+            <button class="chip moon-chip" data-i="6" title="Last Quarter - midnight → noon">🌗</button>
+            <button class="chip moon-chip" data-i="7" title="Waning Crescent - pre-dawn → afternoon">🌘</button>
           </div>
         </div>
       </div>
@@ -247,7 +247,7 @@
   };
 
   // ★ the real deal: each phase carries its synodic "age" (0 → 1 across the lunar month).
-  //   moonrise = sunrise + age × 24h  — that's the entire trick.
+  //   moonrise = sunrise + age × 24h  - that's the entire trick.
   const MOONS = [
     { n:'New Moon',        g:'🌑', illum:0,    age:0,     waxing:true },
     { n:'Waxing Crescent', g:'🌒', illum:.25,  age:.125,  waxing:true },
@@ -409,7 +409,7 @@
        The moon stays up for the same arc length as the sun, so
        moonset = moonrise + dayLen. This is why a First Quarter
        moon rides the afternoon sky and a Waning Crescent is a
-       morning moon — and why only the Full Moon is night-only. */
+       morning moon - and why only the Full Moon is night-only. */
     const moon=$('moon');
     const moonRise=(sr + m.age*24) % 24;
     const moonSet =(moonRise + dayLen) % 24;
@@ -417,7 +417,7 @@
     const moonUp=sinceRise<=dayLen;
 
     // elongation from the sun (°): 0 = new moon, 180 = full.
-    // A moon too close to the sun drowns in glare — fade it out.
+    // A moon too close to the sun drowns in glare - fade it out.
     const sep=Math.min(m.age,1-m.age)*360;
     const vis=Math.max(0,Math.min(1,(sep-12)/28));
 
@@ -448,7 +448,7 @@
     $('ro-time').textContent=`${hh}:${mm}`;
     $('ro-sub').innerHTML=`${periodAt(t,sr,ss)} · ${tempAt()}°C · ☀ ${Math.floor(dayLen)}h${dlm?' '+dlm+'m':''} daylight`;
     $('ro-moon').textContent = sep<12
-      ? `${m.g} ${m.n} — hidden in the sun's glare`
+      ? `${m.g} ${m.n} - hidden in the sun's glare`
       : `${m.g} ${m.n} · rises ${fmtTime(moonRise)} · sets ${fmtTime(moonSet)}${moonUp?' · ☾ up now':''}`;
     $('time-val').textContent=`${hh}:${mm}`;
     $('time-slider').value=t;

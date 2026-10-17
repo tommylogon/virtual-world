@@ -29,7 +29,7 @@ class PlayerManager:
     def reindex(self):
         """Rebuild the id→key index and give duplicate-keyed players a unique
         anchor node id. Safe to call after a bulk ``players`` assignment (save
-        load) — unique-name players are left exactly as they were."""
+        load) - unique-name players are left exactly as they were."""
         self._players_by_id = {}
         self._players_by_node_id = {}
         for key, p in self.players.items():
@@ -182,8 +182,8 @@ class PlayerManager:
     def rename_player(self, old_ref, new_name: str) -> Player:
         """Rename a registered player's DISPLAY NAME and registry key (task-447/619).
 
-        The graph node id stays put — it is the opaque anchor every edge already
-        references — so only the name-resolution layer moves: the ``players`` key,
+        The graph node id stays put - it is the opaque anchor every edge already
+        references - so only the name-resolution layer moves: the ``players`` key,
         ``Player.name``, the id/node reverse maps, ``active_player`` and (by the
         caller) the node's display ``name``. Relationship keys are keyed by
         display name today, so callers must re-key them separately.
@@ -315,7 +315,7 @@ class PlayerManager:
         if not player_obj or not player_obj.current_area:
             return None
         area_id = f"area_{player_obj.current_area}".replace(' ', '_')
-        # get_node is case-insensitive at the graph layer — scenario ids are
+        # get_node is case-insensitive at the graph layer - scenario ids are
         # always lowercase ("area_task_7") while player.current_area stores the
         # display name ("Task 7"), so exact-id lookup would miss.
         node = self.graph.get_node(area_id)
@@ -395,7 +395,7 @@ class PlayerManager:
     # ── Area Queries ─────────────────────────────────────────────────────
 
     def is_undead(self, player_name: str) -> bool:
-        """task-309 (5e-aligned): ``undead`` tag — not alive. Skips vitals and
+        """task-309 (5e-aligned): ``undead`` tag - not alive. Skips vitals and
         physiological needs, but is fully corporeal (a zombie is *not* invisible
         and *not* untargetable)."""
         p = self.players.get(player_name)
@@ -404,7 +404,7 @@ class PlayerManager:
         return "undead" in (getattr(p, "tags", None) or [])
 
     def is_incorporeal(self, player_name: str) -> bool:
-        """task-309 (5e-aligned): ``ghost`` tag — intangible. Phases through
+        """task-309 (5e-aligned): ``ghost`` tag - intangible. Phases through
         ways, and is unseen until it manifests. Visibility is a separate state
         (see ``is_visible``); intangibility does not by itself stop targeting."""
         p = self.players.get(player_name)
@@ -416,14 +416,14 @@ class PlayerManager:
         """task-309 compat alias: undead *or* incorporeal.
 
         Prefer ``is_undead`` / ``is_incorporeal`` / ``is_visible`` at call sites
-        — this broad check is kept for callers that mean "spectral entity" (e.g.
+        - this broad check is kept for callers that mean "spectral entity" (e.g.
         skipping vitals or social reactions)."""
         return self.is_undead(player_name) or self.is_incorporeal(player_name)
 
     def is_visible(self, player_name: str) -> bool:
         """Can this character be seen (listed in a room, targeted) right now?
 
-        Mundane hiding always hides. A ``ghost`` is unseen until manifested —
+        Mundane hiding always hides. A ``ghost`` is unseen until manifested -
         a plain `undead` (zombie) is not affected.
         """
         p = self.players.get(player_name)
@@ -438,7 +438,7 @@ class PlayerManager:
     def get_players_in_area(self, area_name: str = None, include_ghosts: bool = False) -> List[dict]:
         """Get players in a area. Excludes the active player by default.
         When include_ghosts is False, dead players in ghost mode are omitted,
-        and so is anyone not currently visible — hidden characters and
+        and so is anyone not currently visible - hidden characters and
         unmanifested ghosts (task-309)."""
         target_area = area_name
         if not target_area:

@@ -6,21 +6,21 @@
 
 A 10-year soak should change who people are: ages advance with sim time,
 life stages gate behaviour, and the very old can die. Pregnancy and birth
-ride a follow-up card — this module is the clock, the stages, and death.
+ride a follow-up card - this module is the clock, the stages, and death.
 
-Clock source: ``world.time_ticks`` — the sim clock every turn,
+Clock source: ``world.time_ticks`` - the sim clock every turn,
 need and trait system already reads. NOT wall time, and not the
 ``player_manager.time_ticks`` name (TickManager IS constructed with
 the world in that seat, so both names reach the same counter).
 
-Storage (bounded — three scalars on the Player, no event stores):
+Storage (bounded - three scalars on the Player, no event stores):
 
-- ``birth_tick`` — sim tick of birth (nullable). An authored
+- ``birth_tick`` - sim tick of birth (nullable). An authored
   ``identity.age`` resolves to one exactly once, against the current
   date; ``advance_age`` shifts it earlier.
-- ``life_stage`` — cached stage string (child/adolescent/adult/elder);
+- ``life_stage`` - cached stage string (child/adolescent/adult/elder);
   transitions emit a turn event so soaks show them.
-- ``last_mortality_year`` — last game-year the old-age roll ran, so
+- ``last_mortality_year`` - last game-year the old-age roll ran, so
   death is checked once per year, not once per tick.
 
 Species pacing: ``SPECIES_AGE_RATE`` (goblins age ~3x, per the race
@@ -39,7 +39,7 @@ SPECIES_AGE_RATE = {
 }
 
 #: Typical lifespan in effective years. Death is probabilistic past
-#: this, never scheduled — an elder may live years beyond it.
+#: this, never scheduled - an elder may live years beyond it.
 SPECIES_LIFESPAN = {
     "human": 80,
     "elf": 300,
@@ -131,7 +131,7 @@ def age_years(player, world, node=None) -> Optional[float]:
 
 
 def life_stage(age: Optional[float]) -> Optional[str]:
-    """Stage for an effective age (None stays None — ageless)."""
+    """Stage for an effective age (None stays None - ageless)."""
     if age is None:
         return None
     for bound, stage in LIFE_STAGES:

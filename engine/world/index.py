@@ -1,4 +1,4 @@
-"""Global scope index — the small resident map over a chunked world (task-583).
+"""Global scope index - the small resident map over a chunked world (task-583).
 
 A scope (chunk) can be unloaded from the live graph; the index is what stays.
 It records, without holding the nodes themselves:
@@ -61,7 +61,7 @@ class GlobalScopeIndex:
         self._scope_parent: Dict[str, Optional[str]] = {}
         self._area_owner: Dict[str, str] = {}
         self._areas_by_scope: Dict[str, set] = {}
-        # Every node's owning scope, not just areas — so a due event aimed at a
+        # Every node's owning scope, not just areas - so a due event aimed at a
         # trigger in an evicted scope can find which scope to load (task-584).
         self._node_owner: Dict[str, str] = {}
         self._nodes_by_scope: Dict[str, set] = {}
@@ -233,7 +233,7 @@ class GlobalScopeIndex:
         A character or unique item is **not** owned by the scope that holds its
         current area: when that scope unloads, the entity survives and only its
         location edge is dropped. Its location is kept here by id, and an
-        ``in`` edge is restored once the area is back. Idempotent — an entity
+        ``in`` edge is restored once the area is back. Idempotent - an entity
         that already has a location edge is left alone.
         """
         if scope_id is not None:

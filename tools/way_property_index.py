@@ -108,7 +108,7 @@ def merge_page(generated: str, existing: str = "") -> str:
 
     `doc_tags --apply` writes this page's frontmatter and `doc_connected --apply`
     writes its `Connected` block. Both are machine-written and both are correct,
-    and neither is ours — so regenerating must carry them over instead of
+    and neither is ours - so regenerating must carry them over instead of
     deleting them. Before this, one `--write` silently stripped the page's tags
     and every inbound relation it had earned, and `--check` then failed on a
     difference nobody could see.
@@ -143,10 +143,10 @@ def build_page() -> str:
     a("## The four traversal axes")
     a("")
     a("These are independent of each other. Any combination is valid, which is why")
-    a("`see_through` is not a kind of door — it is one axis among four.")
+    a("`see_through` is not a kind of door - it is one axis among four.")
     a("")
     for axis in ("passage", "transparency", "verb", "size"):
-        a(f"- **{axis}** — {AXES[axis]}")
+        a(f"- **{axis}** - {AXES[axis]}")
     a("")
     a("Everything else in this page is either naming and layout (`identity`) or editor")
     a("metadata (`authoring`), neither of which changes what a character can do.")
@@ -189,7 +189,7 @@ def build_page() -> str:
         a("| property | values | notes |")
         a("|---|---|---|")
         for p in rows:
-            vals = ", ".join(f"`{v}`" for v in p.values) if p.values else "—"
+            vals = ", ".join(f"`{v}`" for v in p.values) if p.values else "-"
             note = p.notes.replace("|", "\\|") if p.notes else ""
             a(f"| `{p.name}` | {vals} | {note} |")
         a("")
@@ -199,7 +199,7 @@ def build_page() -> str:
             a("")
             for p, reads in readers:
                 for path, line, what in reads:
-                    a(f"- `{p.name}` — `{path}:{line}` — {what}")
+                    a(f"- `{p.name}` - `{path}:{line}` - {what}")
             a("")
 
     # ── the coverage table that exists to make drift visible ────────────────────
@@ -218,7 +218,7 @@ def build_page() -> str:
     for n in names:
         cells = []
         for label, _r, _s, _e, _m in SPAWN_LISTS:
-            cells.append("yes" if n in lists.get(label, set()) else "—")
+            cells.append("yes" if n in lists.get(label, set()) else "-")
         a(f"| `{n}` | " + " | ".join(cells) + " |")
     a("")
 
@@ -230,7 +230,7 @@ def build_page() -> str:
         a("decision, not just a note.")
         a("")
         for p, cav in caveats:
-            a(f"- **`{p.name}`** — {cav}")
+            a(f"- **`{p.name}`** - {cav}")
         a("")
 
     from way_properties import TRIGGER_OMISSIONS
@@ -311,7 +311,7 @@ def check() -> int:
     fixed = [p for p in baseline if p not in current]
     if fixed:
         print(f"way-property index: {len(fixed)} baseline entr(y/ies) now resolved "
-              f"— re-run --update-baseline to drop them")
+              f"- re-run --update-baseline to drop them")
     if new:
         print(f"way-property index: {len(new)} NEW drift problem(s)\n")
         for p in new:

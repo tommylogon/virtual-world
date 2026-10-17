@@ -29,7 +29,7 @@ The assignment has this shape (``Player.active_pursuit``):
 
 The runner **resumes** the character's own assignment; it does not scan the graph
 for ``pursuit`` nodes (that node type is retired). A plan never fabricates an item
-— if the source holds nothing matching, ``take`` fails and the plan is abandoned
+- if the source holds nothing matching, ``take`` fails and the plan is abandoned
 with a trace.
 
 Trace vocabulary: each progressed short-term step writes
@@ -271,7 +271,7 @@ def _run(sim, p, plan, step):
         if current == want:
             return None
         target_item = step.get("target_item")
-        # task-726: keep the units separate — a minutes value must never be
+        # task-726: keep the units separate - a minutes value must never be
         # passed as a tick count.
         dur_ticks = step.get("duration_ticks")
         try:

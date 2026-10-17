@@ -4,7 +4,7 @@ A headcount cannot express a room. "Four occupants" is no answer to "can the
 tarrasque come in?", and it is equally wrong for a fairy's house as for a throne
 room. Occupancy here is a **sum of footprints**, and each footprint comes from
 the size tier that way ``max_size`` passage gating already reads
-(:mod:`engine.size`) — a second reader of the same axis, not a new concept.
+(:mod:`engine.size`) - a second reader of the same axis, not a new concept.
 
 Two things make it more than a scaled headcount:
 
@@ -24,7 +24,7 @@ Two things make it more than a scaled headcount:
 Authoring:
 
 * An area's ``max_occupancy`` property is its budget. Absent, an area gets
-  :data:`DEFAULT_MAX_OCCUPANCY`, which is deliberately generous — this is a
+  :data:`DEFAULT_MAX_OCCUPANCY`, which is deliberately generous - this is a
   *narrative* pressure ("the room is packed"), not a collision system, and a
   world whose every corridor jams is a world nobody can move in.
 * A size tier's footprint is a named scale (:data:`TIER_SPACE`) rather than a
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 #: How much of a room's budget one creature of each tier fills. Relative
 #: (non-linear) on purpose: a titanic thing is not six normals, it does not fit
-#: beside them. Tunable rather than derived — see the module docstring.
+#: beside them. Tunable rather than derived - see the module docstring.
 TIER_SPACE: dict[str, int] = {
     "tiny": 1,      # a rat, a sprite
     "small": 2,     # a goblin
@@ -81,7 +81,7 @@ def _tag_source(entity):
     """Where an entity's tags live, for either kind of object.
 
     A ``Player`` carries ``tags`` directly. A **bare graph character node does
-    not** — it is created with id/type/name and nothing else, which is exactly
+    not** - it is created with id/type/name and nothing else, which is exactly
     the trap that made ``engine/fear.py`` match against the wrong object. So a
     node's tags come from its ``properties``, and both are accepted here rather
     than guessing which one was handed in.
@@ -102,7 +102,7 @@ def _tag_source(entity):
 def takes_no_space(entity) -> bool:
     """True when *entity* is intangible and occupies no room at all.
 
-    Reads the ``Player`` **or** the node's ``properties`` — never a bare graph
+    Reads the ``Player`` **or** the node's ``properties`` - never a bare graph
     node's attributes, which carry no tags at all.
     """
     return bool(ZERO_SPACE_TAGS & {str(t).lower() for t in _tag_source(entity)})
@@ -138,7 +138,7 @@ def space_of(entity) -> int:
     This is the single place a size becomes an occupancy number. It deliberately
     does **not** call ``engine.size.size_name``: that reads ``player.size``, which
     a graph node does not have, so a graph-only resident would silently be
-    counted as ``normal`` — a dragon read as a person.
+    counted as ``normal`` - a dragon read as a person.
     """
     if takes_no_space(entity):
         return 0
@@ -194,7 +194,7 @@ def normalize_area_id(area, graph) -> str:
 def _entity_in_area(entity, area_id, graph) -> bool:
     """True when *entity* is standing in *area_id*.
 
-    *area_id* is always an area **node id** here — the callers resolve it first.
+    *area_id* is always an area **node id** here - the callers resolve it first.
     A ``Player`` knows its own room by display name (``current_area``), so that
     is resolved through the graph and compared as an id. A node reached *via* the
     area's ``in`` edges is standing there by definition, but it is recognised by
@@ -210,7 +210,7 @@ def _entity_in_area(entity, area_id, graph) -> bool:
 def _area_id_of(entity, graph) -> str:
     """Resolve an entity's ``current_area`` (a display name) to the area node id.
 
-    ``current_area`` is prose — "Kitchen", "Blizzard Forest Clearing" — while every
+    ``current_area`` is prose - "Kitchen", "Blizzard Forest Clearing" - while every
     graph edge is keyed by the slug ``area_kitchen``. So this tries the raw name,
     then the slug form, then a by-name scan as a last resort; falling back to the
     raw name when nothing matches keeps a character with an unslotted area
@@ -240,7 +240,7 @@ def occupants(area_id, players=None, graph=None, include_dead: bool = False):
     """Every entity standing in *area_id*, as ``(name, entity)`` pairs.
 
     ``entity`` is the live ``Player`` where one exists, and the graph **node**
-    where the area only has graph residents — never ``None``, because both carry
+    where the area only has graph residents - never ``None``, because both carry
     a size and a tag list and a missing one would silently read as `normal`.
     The dead are excluded by default: a corpse on the floor is not occupying the
     room.
@@ -264,7 +264,7 @@ def occupants(area_id, players=None, graph=None, include_dead: bool = False):
                         continue
                 # Hand back the NODE, not None. A graph-only resident still has a
                 # size and a tag list on its properties, and returning None would
-                # make every such occupant cost a default `normal` — a dragon
+                # make every such occupant cost a default `normal` - a dragon
                 # read as a person, which is the bug this module exists to stop.
                 found.setdefault(str(node.name), node)
         except Exception as e:
@@ -282,7 +282,7 @@ def occupancy_report(area_id, players=None, graph=None, include_dead: bool = Fal
                      area_node=None) -> dict:
     """Everything a caller (or the UI) needs to explain how full a room is.
 
-    ``full`` is True at *or over* budget — an area holding a dragon it was never
+    ``full`` is True at *or over* budget - an area holding a dragon it was never
     sized for is over capacity, and reporting that as "full" is more useful than
     a separate concept the caller has to invent.
     """
@@ -315,7 +315,7 @@ def fits(area_id, entity, players=None, graph=None, area_node=None,
          include_dead: bool = False) -> bool:
     """Would *entity* fit in *area_id* right now?
 
-    Intangible entities always fit — that is the whole point of the zero-space
+    Intangible entities always fit - that is the whole point of the zero-space
     flag. An entity is also always allowed to be the *only* thing in a room, so a
     leviathan is never refused a hall; what is refused is the leviathan arriving
     into a room that is already full.
@@ -336,7 +336,7 @@ def fits(area_id, entity, players=None, graph=None, area_node=None,
 
 
 #: Prose for how full a room is, as a fraction of its budget. Deliberately
-#: coarse — the reader wants "cramped" vs "empty", not a percentage — and the
+#: coarse - the reader wants "cramped" vs "empty", not a percentage - and the
 #: over-capacity band is a separate phrase because "the room cannot hold what is
 #: in it" is a scene, not a percentage.
 _CROWDED_AT = 0.75
@@ -354,7 +354,7 @@ def describe_occupancy(report: dict) -> str:
     if used <= 0:
         return ""
     if budget <= 0 or used > budget:
-        # Over capacity — say what is in there rather than abstracting it.
+        # Over capacity - say what is in there rather than abstracting it.
         biggest = sorted(
             (o for o in report.get("occupants", []) if o.get("space", 0) > 0),
             key=lambda o: -o["space"],

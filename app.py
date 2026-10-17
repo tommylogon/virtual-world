@@ -115,11 +115,11 @@ def create_app(config=None):
         seed_trait_library()
 
     # Override template with autosave if present (so edits survive restart)
-    # Skip autosave in TESTING mode — tests need deterministic template state.
+    # Skip autosave in TESTING mode - tests need deterministic template state.
     if app.config.get('TESTING'):
-        logger.info("TESTING mode — skipping autosave load")
+        logger.info("TESTING mode - skipping autosave load")
     elif not load_autosave_if_exists(world):
-        logger.info("No autosave found — using template")
+        logger.info("No autosave found - using template")
 
     from engine.world.store import configure_scope_store
     configure_scope_store(world, app.config['DATA_DIR'])
@@ -168,7 +168,7 @@ def create_app(config=None):
         # Bug-545: paint strokes are the highest-frequency mutating calls
         # in the app (one per cell). They still bump _edit_seq (dirty dot)
         # and push their own delta undo entries, but they skip the 15 MB
-        # pretty-printed autosave — that write per cell is what made
+        # pretty-printed autosave - that write per cell is what made
         # painting seconds-per-cell. Durability for strokes is already
         # best-effort (the undo stack is in-memory); explicit commit
         # still persists everything.
@@ -180,8 +180,8 @@ def create_app(config=None):
                 # The Commons is saved runtime communication state (channels,
                 # messages, membership, and read cursors), not scenario content.
                 or path.startswith('/api/commons/')
-                # Settings that persist to the scenario — clock, date, forecast,
-                # calendar, narration, ghost/mature flags — are edits too, so
+                # Settings that persist to the scenario - clock, date, forecast,
+                # calendar, narration, ghost/mature flags - are edits too, so
                 # they must mark the scenario dirty and offer Commit. The
                 # app-global settings are excluded: they do not live in the
                 # scenario, so dirtying on them would be a false positive.
@@ -193,7 +193,7 @@ def create_app(config=None):
                 # mutation becomes a labeled history entry so simple edits show
                 # up in the 📜 undo dropdown. Load/reset/undo/redo push their
                 # own entries and live outside the covered paths. (In-memory
-                # only — safe to keep active in TESTING.)
+                # only - safe to keep active in TESTING.)
                 if not app.config.get('TESTING'):
                     app.world._edit_seq = getattr(app.world, '_edit_seq', 0) + 1
                 try:
@@ -211,7 +211,7 @@ def create_app(config=None):
                         # list of suffixes: `/rename`, `/delete` and `/offset`
                         # were missed by the suffix list and each of them pushed
                         # twice, so one Undo after a rename did nothing visible.
-                        # `/api/world/promote` is the odd one out — it is a World
+                        # `/api/world/promote` is the odd one out - it is a World
                         # Painter handler that does not live under `/grid/` or
                         # `/scopes/`, so the prefix missed it and the promote
                         # pushed twice, leaving the first Undo a no-op.
@@ -238,13 +238,13 @@ def create_app(config=None):
                 if not app.config.get('TESTING') and not _paint_burst:
                     save_autosave(app.world)
         # Broadcast a live world-change so the GUI (and any MCP / SSE client) can
-        # refetch state in real time — including edits made by external agents
+        # refetch state in real time - including edits made by external agents
         # hitting the same API. The MCP server tags calls with X-WV-Editor so the
         # editor is attributed in the live stream.
         # `/api/soak` and `/api/bugs` are excluded: neither changes the world, and
         # a `world_changed` here would make the client refetch the 2.48 MB
         # /api/state for a report that touched nothing.
-        # task-753: invalidate the /api/state cache on every mutating call —
+        # task-753: invalidate the /api/state cache on every mutating call -
         # including /api/soak, which advances the world and so changes state.
         if method in ('POST', 'PATCH', 'DELETE', 'PUT') and path.startswith('/api/'):
             app._state_revision = getattr(app, '_state_revision', 0) + 1
@@ -257,7 +257,7 @@ def create_app(config=None):
                 # for the Persona tab's live preview) opt out via
                 # ``g.no_broadcast``: broadcasting would make every
                 # client refetch 2.48 MB of state for a preview that
-                # stored nothing — and worse, the re-render wipes the
+                # stored nothing - and worse, the re-render wipes the
                 # very form being previewed.
                 and not g.get('no_broadcast')):
             editor = request.headers.get('X-WV-Editor', 'app')

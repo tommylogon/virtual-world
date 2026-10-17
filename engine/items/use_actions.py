@@ -62,7 +62,7 @@ class UseActionsMixin:
         Two meanings, and which one applies is the item's own answer:
 
         - A **part** (non-portable) does not detach. A battery that runs flat
-          stays in its phone and goes ``unlit``, firing ``on_depleted`` — the
+          stays in its phone and goes ``unlit``, firing ``on_depleted`` - the
           same semantic ``engine/toggleable_items.py`` already uses for a lit
           item burning out, chosen here so one rule covers both. The old code
           stripped the ``in`` edge instead, which silently fished a component
@@ -85,7 +85,7 @@ class UseActionsMixin:
 
         dep_outputs = self._exec_triggers(item_node, "on_depleted")
         if not self.graph.get_node(item_node.id):
-            # The hook took the part out of the world itself — that was the
+            # The hook took the part out of the world itself - that was the
             # author's intent, so stop here rather than touching a dead node.
             return ("".join("\n" + out for out in dep_outputs) + " The item is used up!")
         if item_node.properties.get("current_state") not in ("unlit", "off", "dead", "spent"):
@@ -100,7 +100,7 @@ class UseActionsMixin:
 
         item_node = player_manager.find_item_node(item_name)
         if not item_node:
-            # Not carried — anything reachable counts (room fixtures,
+            # Not carried - anything reachable counts (room fixtures,
             # surfaces, open containers, equipped backpack contents).
             from engine.item_reach import find_reachable
             item_node = find_reachable(self.graph, self.matching, player_manager, item_name)
@@ -165,7 +165,7 @@ class UseActionsMixin:
         if trigger_type != "on_use":
             use_outputs = self._exec_triggers(item_node, "on_use")
             trigger_outputs = use_outputs + trigger_outputs
-        # task-102: on_use_progressive fires alongside on_use on every use —
+        # task-102: on_use_progressive fires alongside on_use on every use -
         # authors gate behaviors with `uses_reached`/`uses_above` conditions
         # (threshold effects) and build "charging" messages from the item's
         # current `uses` in `{param:...}`-style messaging.
@@ -282,7 +282,7 @@ class UseActionsMixin:
             records = []
             target_node.properties["inscriptions"] = records
         if len(records) >= INSCRIPTION_MAX_COUNT:
-            raise ValueError(f"The {target_node.name} is full — there's no room left to write.")
+            raise ValueError(f"The {target_node.name} is full - there's no room left to write.")
 
         tick = getattr(player_manager, "time_ticks", 0) or 0
         records.append({
@@ -304,7 +304,7 @@ class UseActionsMixin:
     def use_item_on(self, player_manager, item_name: str, target_name: str = None, params: str = None, amount: int = 1) -> str:
         if not target_name:
             return self.use_item(player_manager, item_name)
-        # task-196: quantity — validate against tracked uses before anything fires.
+        # task-196: quantity - validate against tracked uses before anything fires.
         amount = max(1, int(amount or 1))
 
         ghost_block = self.ghost_system.check_ghost_action(player_manager, "use", item_name)
@@ -327,14 +327,14 @@ class UseActionsMixin:
 
         item_node = player_manager.find_item_node(item_name)
         if not item_node:
-            # Tool doesn't have to be in hand — reachable counts
+            # Tool doesn't have to be in hand - reachable counts
             # ("use the crowbar on the crate" with it lying on the floor).
             from engine.item_reach import find_reachable
             item_node = find_reachable(self.graph, self.matching, player_manager, item_name)
         if not item_node:
             raise ValueError(f"You don't have '{item_name}'.")
 
-        # task-196: quantity — validate against tracked uses before anything fires.
+        # task-196: quantity - validate against tracked uses before anything fires.
         if amount > 1:
             uses_tracked = int(item_node.properties.get("uses", -1) or 0)
             if uses_tracked > 0 and amount > uses_tracked:
@@ -450,7 +450,7 @@ class UseActionsMixin:
                 return result
             return result
 
-        # task-191: a cooking interaction is complete on its own — don't fall
+        # task-191: a cooking interaction is complete on its own - don't fall
         # through into the "no on_use_on fallback" that would burn the wrong item.
         if cook_note:
             return result
@@ -474,7 +474,7 @@ class UseActionsMixin:
             # The used-on way fires its own on_use triggers (e.g. a door
             # that reacts to being used on). The source item's on_use_on
             # already ran above and returns early if it produced output, so
-            # this is the target's on_use response — same semantic as the
+            # this is the target's on_use response - same semantic as the
             # item-target fallback below (use_item on the matched item).
             way_use_outputs = self._exec_triggers(
                 way_node, "on_use", context={"params": params or ""},
@@ -487,7 +487,7 @@ class UseActionsMixin:
                 way_node.properties["current_state"] = "closed"
                 self.graph.nodes[way_node.id] = way_node
                 area_name = player_manager.current_area.name if player_manager.current_area else None
-                player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name} on the {target_name} — unlocked it!", area_name=area_name)
+                player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name} on the {target_name} - unlocked it!", area_name=area_name)
                 return f"You use the {item_name} on the {target_name}. The lock clicks open!"
 
             effect_target = item_node.properties.get("effect_target")
@@ -496,7 +496,7 @@ class UseActionsMixin:
                 way_node.properties["current_state"] = new_state
                 self.graph.nodes[way_node.id] = way_node
                 area_name = player_manager.current_area.name if player_manager.current_area else None
-                player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name} on the {target_name} — changed to {new_state}", area_name=area_name)
+                player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name} on the {target_name} - changed to {new_state}", area_name=area_name)
                 return f"You use the {item_name} on the {target_name}. It changes to {new_state}."
 
             raise ValueError(f"You try using the {item_name} on the {target_name}, but nothing happens.")
@@ -596,14 +596,14 @@ class UseActionsMixin:
         # "it's not movable".
         fire_reasons = [
             f"but the {target_name} are too cold and damp to catch",
-            f"but the {target_name} smolder briefly and go out — nothing dry enough to burn",
+            f"but the {target_name} smolder briefly and go out - nothing dry enough to burn",
             f"but the {target_name} refuse to ignite; the cold is too deep here",
         ]
         generic_reasons = [
-            f"but it doesn't budge — it's part of the scenery, not something you can interact with",
+            f"but it doesn't budge - it's part of the scenery, not something you can interact with",
             f"but nothing happens. It's just {target_name}, fixed in place",
             f"but it doesn't seem to be loose or movable at all",
-            f"but there's no purchase on it — it's purely decorative",
+            f"but there's no purchase on it - it's purely decorative",
         ]
         reasons = generic_reasons
         if item_node is not None:

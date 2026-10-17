@@ -3,7 +3,7 @@
 A **blueprint** is a saved trigger graph in ``data/library/triggers/*.json``.
 The editor compiles that graph to the JSON contract below with
 ``TriggerGraph.compileToEngine``; this module is the Python side of the same
-contract — it turns one definition into an ordinary ``logic_trigger`` node plus
+contract - it turns one definition into an ordinary ``logic_trigger`` node plus
 a ``triggers`` edge, exactly the shape the rest of the engine already reads. No
 parallel trigger format is introduced.
 
@@ -30,7 +30,7 @@ honest and is what the existing materialisers do.
 Condition branching: ``conditions`` may be a tree (the engine evaluates
 and/or/not recursively) or a flat list combined with ``conditions_logic``. The
 materialiser stores it verbatim, so a blueprint with a condition branch reaches
-the engine unchanged — the compile-fidelity half lives in the editor
+the engine unchanged - the compile-fidelity half lives in the editor
 (task-501/task-502), not here.
 """
 
@@ -59,7 +59,7 @@ def trigger_properties(trigger_def: dict, extra: Optional[dict] = None) -> Dict[
     """Normalise a trigger definition into the node/edge property dict.
 
     Empty/absent keys are dropped so a materialised trigger carries only what it
-    means — an empty ``conditions`` must not mask the legacy singular
+    means - an empty ``conditions`` must not mask the legacy singular
     ``condition`` fallback in ``_execute_triggers``.
     """
     t = dict(trigger_def or {})

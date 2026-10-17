@@ -1,6 +1,6 @@
-"""Action tiers — the free / minor / major / activity classification (task-352).
+"""Action tiers - the free / minor / major / activity classification (task-352).
 
-One verb, one tier, fixed slots. The tier table is shared vocabulary — the
+One verb, one tier, fixed slots. The tier table is shared vocabulary - the
 composer, the agent turn, and the soak must all read the same data, and a second
 copy would be the same "two homes" bug the rest of the tree is full of
 (task-491, task-724).
@@ -15,7 +15,7 @@ by `tools/action_tiers_index.py`) so the turn prompt can hide what the budget
 cannot pay for.
 
 Task-352's fixed allowance is `major: 1, minor: 1, free: 3, activity: 1`. Position
-gates free actions: `open` is free only for something you are *at* — reaching it
+gates free actions: `open` is free only for something you are *at* - reaching it
 costs `approach` (minor) or `go` (major).
 
 @module action_tiers
@@ -47,9 +47,9 @@ DEFAULT_BUDGET = {MAJOR: 1, MINOR: 1, FREE: 3, ACTIVITY: 1}
 #: `routes/action_handlers.py:_slot_gate`, which every budgeted actor shares
 #: (humans and LLM agents); NPC paths that keep no budget dash as a plain hop.
 BURST_INITIATE = "dash"
-#: The verbs a dash's finish hop accepts — a movement across a way. `approach`
+#: The verbs a dash's finish hop accepts - a movement across a way. `approach`
 #: is deliberately absent: it stops short of crossing, so it cannot complete a
-#: dash — and `wait` is the abort, not a finish.
+#: dash - and `wait` is the abort, not a finish.
 BURST_FINISH_VERBS = frozenset({"go", "dash", "climb", "crawl", "jump"})
 #: Verbs that abandon an unfinished dash: the character stops. Clears the armed
 #: burst without spending the minor, so a dead-end dash is never a soft-lock.
@@ -70,7 +70,7 @@ def apply_action_gate(slots: dict, verb: str, burst_pending: int = 0):
     character's burst flag:
 
       ``"clear"``  a finish hop or a wait abandoned the armed dash;
-      ``"arm"``    a dash was initiated — arm the burst once the hop **succeeds**;
+      ``"arm"``    a dash was initiated - arm the burst once the hop **succeeds**;
       ``"none"``   leave the flag alone.
 
     *slots* is mutated in place. The caller arms on success only, so a dash that
@@ -209,7 +209,7 @@ def tier_of(verb: str, item_node=None) -> str:
     """The tier a verb costs, honouring a per-item override and ability default.
 
     Resolution order (task-352):
-      1. `item.properties.action_costs[verb].tier` — the declared override.
+      1. `item.properties.action_costs[verb].tier` - the declared override.
       2. intrinsic ability (spell/ability/innate/intrinsic/power) → ``minor``.
       3. the verb table.
       4. ``major`` for an unknown verb (the coverage test should make this dead).

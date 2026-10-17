@@ -3,15 +3,15 @@ materialize it into another world.
 
 See ``docs/virtualWorld/dev_tasks/todo/library/task-357-structure-save-load-connected-areas.md``.
 
-A *structure* is a portable, internally-wired subgraph — areas + ways + items +
-resident characters (as full ``Player`` payloads) — plus boundary stubs for exits
+A *structure* is a portable, internally-wired subgraph - areas + ways + items +
+resident characters (as full ``Player`` payloads) - plus boundary stubs for exits
 that leave the captured group. Capture is a raw graph subset so materialization
 is a straight replay with deterministic id remapping.
 
 Design rules (task-357, settled 2026-09-22):
 
 - Template semantics are the core; a pinned-identity pack is a special case.
-- Node collisions remap **ids only** — a node's display name is never changed.
+- Node collisions remap **ids only** - a node's display name is never changed.
   Residents are the exception: the engine keys people by name, so a duplicate
   resident **mints a unique instance name** (``zombie`` → ``zombie 2``) rather
   than being dropped. True duplicate display names need the id-keyed identity
@@ -395,7 +395,7 @@ def materialize_structure(
             payload["name"] = instance_name
             player_obj = world.serializer._deserialize_player(instance_name, payload)
             # Residents default to the background tier. Use the promotion seam
-            # (task-399) so the demotion boundary tick is stamped — a later
+            # (task-399) so the demotion boundary tick is stamped - a later
             # activation can then summarize exactly the background span.
             mode = payload.get("simulation_mode") or "background"
             if mode == "background":

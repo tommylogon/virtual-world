@@ -65,10 +65,10 @@ def aggregate_bonuses(player, graph) -> dict:
 
     task-604 split the old single ``defense`` into two anti-correlated axes:
 
-    * **damage reduction** — how much of a blow does not get through. Authored
+    * **damage reduction** - how much of a blow does not get through. Authored
       on an item as ``defense`` (the historical name, on ~1800 items) or the
       newer ``damage_reduction``; both are read here.
-    * **evasion** — a *signed* modifier applied on the attack side. Positive is
+    * **evasion** - a *signed* modifier applied on the attack side. Positive is
       harder to hit, negative easier; heavy armour authors a negative value so
       it is deliberately easy to hit but hard to kill in. Omitted = 0, so the
       penalty is an authoring act, not an accident.
@@ -162,7 +162,7 @@ def aggregate_bonuses(player, graph) -> dict:
             pass
 
     # Wet clothing (task-190): soaked garments insulate far worse. Levels
-    # scale the loss — 1: 60% kept, 2: 40%, 3: 20%.
+    # scale the loss - 1: 60% kept, 2: 40%, 3: 20%.
     wet_levels = [
         inst.get("level", 1) for cid, instances in getattr(player, "conditions", {}).items()
         if cid == "wet" for inst in instances if inst is not None

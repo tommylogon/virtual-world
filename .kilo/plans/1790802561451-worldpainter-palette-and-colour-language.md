@@ -20,7 +20,7 @@ Satisfies `task-596` (its Acceptance is `- TODO` today; fill it in rather than f
 
 `door` and `stairway` placement is **derived by applying your window rule** (a threshold between
 rooms belongs to the interior), not stated by you. A door also belongs to the building it sits
-in, so this is the one ambiguous placement — confirm at review.
+in, so this is the one ambiguous placement - confirm at review.
 
 **Colour carries kind.** Hue is the only channel reliably discriminable at 22px per cell. Within
 a family each subgroup gets its own hue; entries sharing a subgroup separate by lightness.
@@ -32,7 +32,7 @@ already in `grid-model.js:88-92` move into `biomes.json`.
 
 **Structure colours stay reserved.** `wall` `#55525c`, `void` `#22222a`, `window` `#8fc4d8`,
 `door` `#a8763f` read as fabric or threshold, not as places. Check them against every place hue
-before finishing — door brown against storage brown is the obvious collision.
+before finishing - door brown against storage brown is the obvious collision.
 
 ## Findings that changed this plan
 
@@ -48,13 +48,13 @@ before finishing — door brown against storage brown is the obvious collision.
 `movement.py:564` gates passage on `current_state`, so you **can** walk every one. But
 `barriers.py:147-149` resolves `see_through` ahead of state for light and sound, and
 `DEFAULT_LIGHT_TRANSMISSION` gives `see_through: 0.75` against `open: 1.0`. So every painted
-way — doors, stairs, region boundaries, island links — passes ¾ light and rates worse for sound
+way - doors, stairs, region boundaries, island links - passes ¾ light and rates worse for sound
 than an open doorway. The same emitter serves every one of them (`world_compile.py:1998-2001`).
 
 This is why the window branch at `:1777` refuses to mint a way: minting one would be
 indistinguishable from a door, because all of them already are. The special case is the symptom.
 
-### 2. The engine already models glass correctly — twice over
+### 2. The engine already models glass correctly - twice over
 
 `movement.py` gates on `current_state`; `barriers.py` gates light/sound on `see_through`. They are
 independent, so all four combinations exist:
@@ -66,7 +66,7 @@ independent, so all four combinations exist:
 
 `tests/test_beyond_visibility.py:145` covers the closed case. So the way layer needs nothing new.
 
-### 3. The way layer already models this — three independent axes
+### 3. The way layer already models this - three independent axes
 
 From the Way inspector's Passage and Behavior tabs:
 
@@ -75,26 +75,26 @@ From the Way inspector's Passage and Behavior tabs:
 | passage | `current_state` (`open`/`closed`/`locked`/`blocked`/`broken`/`hidden`) + `requires` (none/crawl/climb/jump) |
 | transparency | `see_through`, a single boolean |
 | uncloseable | `prevent_close`; `requires: crawl/climb/jump` is always uncloseable |
-| effort to open | `needs_open` `{skill, dc}` — auto-sets `current_state: "open"` on success |
+| effort to open | `needs_open` `{skill, dc}` - auto-sets `current_state: "open"` on success |
 | size | `max_size` (tiny…titanic) |
 | per-side | `visible_in_direction`, command, cardinal, visible characters/items |
 
 `movement.py` gates passage on `current_state` (`:564`); `barriers.py:148` gates light and sound on
 `see_through`. So every combination asked for already exists:
 
-- open door — `open`
-- closable and opaque — `closed`
-- closable and seen through — `closed` + `see_through: true`
-- archway / forest trail / cave entrance — `open` + `prevent_close: true` + `see_through: true`
-- door with a small window, broken through — `closed` + `see_through: true` + `needs_open`
+- open door - `open`
+- closable and opaque - `closed`
+- closable and seen through - `closed` + `see_through: true`
+- archway / forest trail / cave entrance - `open` + `prevent_close: true` + `see_through: true`
+- door with a small window, broken through - `closed` + `see_through: true` + `needs_open`
 
 **The gap is not the way model. It is `cell_kind`.** `CELL_KINDS = ("place", "solid",
-"see_through", "passable")` (`biomes.py:64`) is single-axis — `passable` and `see_through` are
-mutually exclusive values of one field — so a *painted* cell can be walkable or see-through but
+"see_through", "passable")` (`biomes.py:64`) is single-axis - `passable` and `see_through` are
+mutually exclusive values of one field - so a *painted* cell can be walkable or see-through but
 never both. A glass wall is already expressible (today's `window`); a painted glass door is not.
 
 Because `cell_kind` is the mechanic and records are the names, `window` and `glass_wall` can share
-a kind and differ only in name and `descriptions` — one JSON record, no code.
+a kind and differ only in name and `descriptions` - one JSON record, no code.
 
 ### 4. The way library already holds the vocabulary
 
@@ -107,41 +107,41 @@ No painted cell can express "a swinging door" however many `cell_kind` values ar
 offer these templates as paintable entries**, not only cell kinds. That is the difference between
 painting *glass* and painting *the library's glass door*.
 
-### 6. Three climb systems — one of which the palette cannot see
+### 6. Three climb systems - one of which the palette cannot see
 
 | system | where | decided by |
 |---|---|---|
 | author-declared verb | way `requires: crawl/climb/jump` + `<requires>_dc` | the author; Athletics roll (`movement.py:542-546`), `on_fail_<requires>` triggers, own prose line and save effect |
-| storey-delta gate | `DEFAULT_MAX_STOREY_STEP = 3`, per-scope via `_climb_threshold` | **the compiler, from the `floor` layer** — `_climb_step` (`world_compile.py:1202`), called at all four emission sites |
+| storey-delta gate | `DEFAULT_MAX_STOREY_STEP = 3`, per-scope via `_climb_threshold` | **the compiler, from the `floor` layer** - `_climb_step` (`world_compile.py:1202`), called at all four emission sites |
 | prose-only cliff | `CLIFF_FLOOR_DELTA = 2` (`world_compile.py:237`) | entry phrasing only, no traversal effect |
 
 `_climb_step`'s own report note (`:2614-2619`) says a gated climb is "a way the author cannot walk
-until they paint a road over it." So **verticality is inferred, never declared** — a painted cell
+until they paint a road over it." So **verticality is inferred, never declared** - a painted cell
 cannot say "this is a climb," only produce a `floor` delta that reads as one. An interior opts out
 of the gate entirely by being an interior (`:1191`).
 
 Consequence for task 5: the palette's "what does this do" panel cannot be a per-entry constant for
 anything whose behaviour depends on a neighbouring cell's storey. Either the panel computes it
 (same payload problem as task 6), or it states the rule and names `floor` as the input. Note also
-that `CLIFF_FLOOR_DELTA` and `DEFAULT_MAX_STOREY_STEP` are adjacent constants with different jobs —
+that `CLIFF_FLOOR_DELTA` and `DEFAULT_MAX_STOREY_STEP` are adjacent constants with different jobs -
 a reader will conflate them.
 
 The inspector's State dropdown offers `broken`. `WAY_STATES` (`barriers.py:36-38`) does not list
 it, and the module documents that an unrecognised state resolves to `UNKNOWN_STATE_FALLBACK =
-"open"` (`:69-71`). If that holds, a broken door is fully passable and passes 1.0 light — more open
+"open"` (`:69-71`). If that holds, a broken door is fully passable and passes 1.0 light - more open
 than an open door. **Verify before asserting**; then either add `broken` to the ladder in both
 tables (the module requires the two tables stay ordered along the same ladder) or remove it from
 the dropdown.
 
 ### 4. What the palette must actually answer
 
-task-596's own example is *"what is the difference between a bridge and a road?"* — a **gameplay**
+task-596's own example is *"what is the difference between a bridge and a road?"* - a **gameplay**
 question, not a colour one. The answer is in entry phrasing:
 `world_compile.py:785-786` returns `("cross the bridge", "cross back over", ["in","out","bridge"])`.
 Bridge, tunnel, ford, gate and road each get their own verb pair. That is the axis the detail
 panel should speak to.
 
-*(A previous draft of this plan claimed `road` and `bridge` were the same brown. Retracted — that
+*(A previous draft of this plan claimed `road` and `bridge` were the same brown. Retracted - that
 was read off two hex values without looking at the screen, and you can see the difference.)*
 
 ## Tasks
@@ -159,9 +159,9 @@ Stop hardcoding it in `_mint_way`. Each minted way states what it is:
 **Blast radius: every generated world's lighting and sound changes.** Painted rooms get brighter
 and quieter through their doors, because a real opening is 1.0 light / 0.5 sound rather than
 0.75 / 0.75. Expect `tests/test_light_barriers.py` and lighting fixtures to move. Compare failure
-*names* against the 12-failure baseline, not counts — and do not get green by weakening assertions.
+*names* against the 12-failure baseline, not counts - and do not get green by weakening assertions.
 
-Decide whether the window branch keeps `props["windows"]` (nothing reads it — `area_description.py`
+Decide whether the window branch keeps `props["windows"]` (nothing reads it - `area_description.py`
 never mentions it) or is deleted. Recommend deleting once doors are correct, since a real window
 way would reach prose through way metadata like any other.
 
@@ -170,8 +170,8 @@ way would reach prose through way metadata like any other.
 - New `cell_kind` for walkable-and-see-through, wired in `biomes.cell_kind()` and the compiler's
   branch at `:1777-1813`. A `passable` cell with `see_through` must mint a way carrying both.
 - New records, each one JSON with no code beyond the new kind:
-  - `glass_door` — walkable, see-through
-  - `glass_wall` — `cell_kind:see_through`, not walkable (may share the kind with `window`)
+  - `glass_door` - walkable, see-through
+  - `glass_wall` - `cell_kind:see_through`, not walkable (may share the kind with `window`)
   - optionally `curtain` / `hedge` / `fence` to show the mechanism is general
 - Breakable variant: `needs_open` already exists (`movement.py:584-600`), so a see-through wall
   you must break is a state change, not a new mechanic. Confirm it reads correctly for a
@@ -180,11 +180,11 @@ way would reach prose through way metadata like any other.
 ### 3. Wall reaches the description
 
 Walls mint no way, so prose is their only channel. Record facing walls onto the place they border
-mirroring the shape `windows` used — `props["walls"] = [{"x","y","facing"}]`, and only when exactly
+mirroring the shape `windows` used - `props["walls"] = [{"x","y","facing"}]`, and only when exactly
 one side faces a place (the same `len(facing) == 1` rule, for the same ambiguity reason). Extend
 `engine/area_description.py` to read it; the sibling mechanism is `visible_in_direction`.
 
-**This changes compiled description prose** — the largest regression surface here.
+**This changes compiled description prose** - the largest regression surface here.
 
 ### 4. Give every biome a colour, server-owned
 
@@ -200,7 +200,7 @@ one side faces a place (the same `len(facing) == 1` rule, for the same ambiguity
 ### 5. Build the palette (task-596 proper)
 
 Replace the 105-option `<select>` (`editor.js:1194-1276`). Keep the text filter (task-647) and the
-`<optgroup>` logic (task-561/568/648) as data — only the rendering changes.
+`<optgroup>` logic (task-561/568/648) as data - only the rendering changes.
 
 - Layer-aware: renders per `PAINT_LAYERS` (`biome`, `road`, `floor`, `climate`).
 - Three family chips + search; the swatch shows the served colour exactly, which makes the
@@ -208,10 +208,10 @@ Replace the 105-option `<select>` (`editor.js:1194-1276`). Keep the text filter 
 - Tile grid, no nested scrolling. Persistent detail panel (not hover-only) showing name, id,
   family, subgroup, both `descriptions`, tag chips, **and what it does for gameplay**:
   - places: becomes an area, named or unnamed
-  - `door` / `glass_door` / `stairway`: mints a way — walkable, and `stairway` climbs
+  - `door` / `glass_door` / `stairway`: mints a way - walkable, and `stairway` climbs
   - `window` / `glass_wall`: see-through, not walkable, mints nothing
   - `wall`: nothing itself; separates regions so they do not merge
-  - `void`: an empty unwalkable cell — explicitly **not** an unpainted one, which is a different
+  - `void`: an empty unwalkable cell - explicitly **not** an unpainted one, which is a different
     state and usually a mistake worth warning about
   - roads: the entry phrasing, so "cross the bridge" is answerable without leaving the palette
 - Keep a compact current-value indicator: painting needs the selection visible without reopening.
@@ -252,7 +252,7 @@ markup or one viewport is not judged.
 - Breakable window: paint a see-through wall with `needs_open`, attempt to cross, confirm the
   skill check fires and the state changes on success.
 - Walls: paint a room against a wall, Generate, confirm the description mentions it.
-- **Scrub the whole panel bottom to top and open every disclosure** — the checklist, blocker badge
+- **Scrub the whole panel bottom to top and open every disclosure** - the checklist, blocker badge
   and cell inspector are all collapsible, and that is where the equipment-UI mistake came from.
 - Gates: `python -m pytest -q --tb=no --ignore=tests/test_tick_time_scaling.py` comparing FAILED
   *names* against a clean-`master` worktree; `node tools/unit/run.cjs`; `npm run lint`;
@@ -263,7 +263,7 @@ markup or one viewport is not judged.
 ## Filing
 
 - Update `task-596`'s `Acceptance` (currently `- TODO`) for tasks 4, 5, 6, 7.
-- File new tasks for **1**, **2** and **3** — engine changes with lighting and prose fallout, which
+- File new tasks for **1**, **2** and **3** - engine changes with lighting and prose fallout, which
   do not belong inside a UI task's acceptance.
 - `tools/tasks.py new --area ui|world`; do not hand-number. Regenerate `docs/dev_tasks.html`.
 
@@ -274,7 +274,7 @@ Agreed, not deferred silently:
 - Canvas usability: no brush footprint under the pointer, no zoom-scale readout, space-pan and
   wheel-zoom wired but undiscoverable, ~12 browser-native `confirm`/`prompt` dialogs. Real
   findings, separately fileable.
-- Fog rendering — `docs/design/worldpainter-knowledge-and-fog.md` leaves granularity open and
+- Fog rendering - `docs/design/worldpainter-knowledge-and-fog.md` leaves granularity open and
   task-499 records `reveal_*` as having no caller.
 - Task-597 (grid bounds preview, drag/resize) and task-595 (zoom clamp).
 - Unused tags `perceivable` / `impassable`. `see_through` becomes real in task 1; the others stay
@@ -283,10 +283,10 @@ Agreed, not deferred silently:
 
 ## Open questions
 
-1. **`door` and `stairway` placement** — derived from your window rule; confirm.
-2. **Region-boundary and island-link ways** — should they be open or glazed? Task 1 recommends open.
-3. **`props["windows"]`** — recommend deletion once doors are correct.
-4. **Wild-terrain grouping** — the 16 are flat and unheaded. Group by `terrain` (7/5/3/1 water/rock/
+1. **`door` and `stairway` placement** - derived from your window rule; confirm.
+2. **Region-boundary and island-link ways** - should they be open or glazed? Task 1 recommends open.
+3. **`props["windows"]`** - recommend deletion once doors are correct.
+4. **Wild-terrain grouping** - the 16 are flat and unheaded. Group by `terrain` (7/5/3/1 water/rock/
    forest/farm) or leave flat. Four stubs may read worse than no grouping.
-5. **Three climb systems, and one of them is invisible from the palette.** See below — decide
+5. **Three climb systems, and one of them is invisible from the palette.** See below - decide
    whether a painted cell can *declare* verticality or only be *read* as vertical.

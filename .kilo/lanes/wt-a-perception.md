@@ -1,8 +1,8 @@
-# WT-A — Perception and world presentation
+# WT-A - Perception and world presentation
 
 **Parallel arm.** You touch no hub file. Merge first.
 
-## Your queue — 11 tasks
+## Your queue - 11 tasks
 
 | Task | Priority | Title |
 |---|---|---|
@@ -30,18 +30,18 @@ engine/area_description.py                       engine/biomes.py
 engine/world_grid.py     data/worldpainter/biomes.json
 ```
 
-Watch `engine/area_description.py` — several tasks across all lanes mention it. Keep your
+Watch `engine/area_description.py` - several tasks across all lanes mention it. Keep your
 edits in their own region and rebase before merging.
 
 ## Also yours
 
-**task-418, task-419, task-400, task-401, task-402 are NOT yours** — they depend on
+**task-418, task-419, task-400, task-401, task-402 are NOT yours** - they depend on
 WT-0's task-416 / task-397 and belong to the spine.
 
 ## Cross-lane
 
 - **task-408 blocks task-409** (WT-C, background schedules) and **task-414** (WT-0).
-  Ship it early — it is gating two other lanes.
+  Ship it early - it is gating two other lanes.
 - **task-569 depends on task-504** (WT-B, item quantity). Coordinate on the board; if
   504 is not started, do the other nine tasks first.
 
@@ -49,5 +49,5 @@ WT-0's task-416 / task-397 and belong to the spine.
 
 - Full rules in `.kilo/lanes/README.md`.
 - Do not edit any of the eight hub files. If you need one, note it on the board and move on.
-- `templates/index.html` and `tools/unit/run.cjs` are shared append-only — add your lines,
+- `templates/index.html` and `tools/unit/run.cjs` are shared append-only - add your lines,
   do not reorganise.

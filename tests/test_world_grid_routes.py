@@ -183,7 +183,7 @@ def test_paint_and_erase_cell(tmp_path):
 
 def test_grid_payload_presents_every_paint_layer(tmp_path):
     """task-651: the payload must answer with all four paint layers, each present
-    and possibly empty — not just the two that happen to hold cells.
+    and possibly empty - not just the two that happen to hold cells.
 
     The stored record is normalized to drop empty layers, so an unpainted scope
     used to arrive with only ``biome``/``road`` (or neither) and no ``floor`` or
@@ -404,7 +404,7 @@ def test_paint_batch_paints_many_cells_atomically(tmp_path):
     biome = resp.get_json()["layers"]["biome"]
     assert sorted(biome) == ["0,0", "1,0", "2,0", "3,0"]
 
-    # A single bad edit rejects the whole batch — no half-painted route.
+    # A single bad edit rejects the whole batch - no half-painted route.
     bad = [{"layer": "biome", "x": 0, "y": 1, "value": "hills"},
            {"layer": "biome", "x": 9, "y": 1, "value": "hills"}]
     rejected = client.post("/api/world/scopes/the_pines/grid/paint_batch", json={"edits": bad})

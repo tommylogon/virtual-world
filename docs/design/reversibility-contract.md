@@ -19,7 +19,7 @@ where decisions come from:
   validates and executes.
 
 Promotion is "start asking the character instead of their rulebook."
-Demotion is the reverse. Nothing is materialized, re-rolled, or recreated —
+Demotion is the reverse. Nothing is materialized, re-rolled, or recreated -
 so nothing can contradict.
 
 ## What must stay continuously true (both fidelities)
@@ -59,7 +59,7 @@ Background may never invent outcomes the foreground could not have produced
 
 On promotion the character must receive:
 
-1. Their **current state** (already real — no update needed).
+1. Their **current state** (already real - no update needed).
 2. A **catch-up summary** built from the trace since they were last foreground
    (`engine/lived_log.summarize_window`), so the LLM knows what happened to them
    and can act as someone who lived it.
@@ -77,19 +77,19 @@ store and the lived log covers the mechanical span.
 
 ## Invariants that must hold across any promote/demote
 
-1. **Position continuity** — the character is in a real area before and after.
-2. **Object conservation** — items are neither duplicated nor lost.
-3. **Vital continuity** — no jumps in vitals, only real accumulated change.
-4. **Relationship symmetry** — A's view of B and B's view of A stay consistent.
-5. **Identity stability** — the opaque id (`task-316`) never changes on promotion.
-6. **Determinism** — a background span replays identically from its seed.
-7. **No orphans** — promotion never creates a second node for an existing
+1. **Position continuity** - the character is in a real area before and after.
+2. **Object conservation** - items are neither duplicated nor lost.
+3. **Vital continuity** - no jumps in vitals, only real accumulated change.
+4. **Relationship symmetry** - A's view of B and B's view of A stay consistent.
+5. **Identity stability** - the opaque id (`task-316`) never changes on promotion.
+6. **Determinism** - a background span replays identically from its seed.
+7. **No orphans** - promotion never creates a second node for an existing
    character (guards against the duplicate-character-node class of bug).
 
 ## Non-goals
 
 - Pixel/tick-perfect motion while backgrounded.
-- Identical LLM and rule outcomes — they will differ; they must not *contradict*.
+- Identical LLM and rule outcomes - they will differ; they must not *contradict*.
 - Making background characters as smart as foreground ones.
 
 ## Open problem

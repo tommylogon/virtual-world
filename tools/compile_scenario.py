@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""compile_scenario.py — compile a folder-authored scenario into one JSON (task-408).
+"""compile_scenario.py - compile a folder-authored scenario into one JSON (task-408).
 
 Authoring a whole scenario as a single JSON has proven unreliable for LLMs:
 one entity per small file is reviewable and individually regeneratable. This
@@ -16,7 +16,7 @@ Layout::
       triggers/*.json    # optional
 
 Deterministic: files are read in sorted order, ids are derived from filenames,
-and output is written with sorted keys — compiling twice is byte-identical.
+and output is written with sorted keys - compiling twice is byte-identical.
 
 Usage:
     python tools/compile_scenario.py --input data/scenarios/src/goblin --output data/scenarios/goblin.json
@@ -67,7 +67,7 @@ def resolve_dir_names(folder: Path):
 def compile_players(folder: Path, dir_names, scenario: dict) -> dict:
     """Build the ``players`` block from ``characters/*.json``.
 
-    ``current_area`` must be the area DISPLAY NAME (engine convention —
+    ``current_area`` must be the area DISPLAY NAME (engine convention -
     ``engine/room_perception.resolve_area_node`` matches by name), so the
     authored area id is translated here. IDs are stable per player key.
     """

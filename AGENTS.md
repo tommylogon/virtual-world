@@ -294,12 +294,12 @@ A **property-only** change (a character's `current_state`, an emotion/avatar, a
 pin, a `cell`, a name) is never a rebuild. A `loadGraphData()` on that path is a
 bug, not a design. Note the corollary: because a `worldState.fetch()` emits
 `'update'`, any edit that already fetches state must **not** also call
-`loadGraphData()` — the redundant reload is the thing to delete.
+`loadGraphData()` - the redundant reload is the thing to delete.
 
 **`_graphNodesObj` is the loaded set.** It is what the toolbar counts
 (`toolbar.ts: _nodeCounts`) and what the graph diff and the projector read. A
 **scoped** view holds a *subgraph* of `worldState.graph`, so a sync must never
-assign the whole-world map to it — doing so makes the next sync treat every
+assign the whole-world map to it - doing so makes the next sync treat every
 world node as "loaded", build a config for each, and pour the whole world into
 the scope's dataset, silently widening the scope. Refresh in scope mode
 (goblin_camp = 142 nodes / 21 areas server-side) must keep showing 142, not the
@@ -310,7 +310,7 @@ into the dataset at build time): `toggleEdgeLabels`, `setEdgeLabelSize`,
 `toggleImages`, `_clearOverlay`. Convert them to in-place `edges.update` /
 `nodes.update` when touched.
 
-### One `nodes.update()` call redraws the WHOLE graph — batch it
+### One `nodes.update()` call redraws the WHOLE graph - batch it
 
 `GraphNetwork._applyNodeLabelDecorations` called `nodes.update({...})` **once per
 node** inside a `forEach`. vis's `DataSet.update()` fires an update and a
@@ -325,8 +325,8 @@ on the second load (the first pass had no tags, so no label changed and it was
 `GraphRelativeLayout.apply()` puts each child on its ring **once per layout**
 (`_seedApplied`); only `reseed()` re-arms it, and a fresh load calls
 `reseed()` + `apply()`. It used to run unguarded on every
-`stabilizationIterationsDone`, so a mid-life re-stabilization — toggling one
-node's physics, say — re-seeded every settled node back onto its ring, which
+`stabilizationIterationsDone`, so a mid-life re-stabilization - toggling one
+node's physics, say - re-seeded every settled node back onto its ring, which
 read as the graph rebuilding/refreshing. After the seed the solver owns
 positions. A per-node pin must not call `reseed()`.
 
@@ -336,7 +336,7 @@ A tracer that `console.info()`s on every call of a hot method can cost more than
 the method it wraps: a per-call log inflated a separation pass to a reported
 **"6 s"** that was almost entirely the logging. Make a tracer **adaptive** (log
 the first few calls per function, aggregate silently after), or use a platform
-profiler. And `PerformanceObserver('longtask')` does **not** exist in Firefox —
+profiler. And `PerformanceObserver('longtask')` does **not** exist in Firefox -
 the long-task section reads empty there, which is not evidence of "no long
 tasks".
 
@@ -345,11 +345,11 @@ tasks".
 Two different paths reach `worldState.fetch()`, and only one is spectator-gated:
 
 - The **1.5 s poll** (`WorldState.startPolling`) is started only from the
-  `spectator-mode` checkbox, which ships **unchecked** — so there is no poll by
+  `spectator-mode` checkbox, which ships **unchecked** - so there is no poll by
   default.
 - The **`/api/events` SSE** (`world-state.ts` `connectLiveEdits`) opens
-  **unconditionally** and fetches state on every `world_changed` — any mutating
-  API call, including external / MCP edits — even with spectator OFF.
+  **unconditionally** and fetches state on every `world_changed` - any mutating
+  API call, including external / MCP edits - even with spectator OFF.
 
 Do not reason about graph updates from the spectator checkbox. (This mixed-up
 sentence cost several exchanges across one session.)
@@ -382,7 +382,7 @@ Preserve these unless a task explicitly changes the architecture:
   behavioral `tags`/`traits`) belongs to the `Player` model; a bare character
   graph node is not authoritative for behavior. Authored **definition**
   (personality, `base_description`/`description` prose, authored `tags`/`traits`)
-  lives on the character node's `properties` — the single persisted home — and
+  lives on the character node's `properties` - the single persisted home - and
   the Player reads it for prompts and the UI (a projection, not a second
   source). Do not persist a second copy in a saved file; `to_scenario_dict`
   strips it from the players block.
@@ -402,7 +402,7 @@ Preserve these unless a task explicitly changes the architecture:
 - A new rule must not silently invalidate unrelated existing scenarios.
 - Graph nodes are physical entities (items, characters, areas, ways). Knowledge
   is never a node: a crafting recipe, a fact, a memory, a plan template lives
-  ON something — an item's properties (cookbook, recipe note), a character's
+  ON something - an item's properties (cookbook, recipe note), a character's
   knowledge store (`crafting_known`, memory records), or a library data file
   (`data/library/recipes/`). Never invent a `type: recipe` node, a `type: fact`
   node, or any knowledge-as-entity. A task proposing one is wrong; correct it,
@@ -530,7 +530,7 @@ Never call a mechanic complete when only its data model or seam exists.
 `docs/virtualWorld/World Building/Ways.md` is the worked example;
 `Way Properties.md` and the pre-2026-10-11 `Doors & Connections.md` are the
 anti-examples. A page in this vault is a manual for the world, written for the
-person building or playing it — not a restatement of the schema.
+person building or playing it - not a restatement of the schema.
 
 **Three tiers, three readers.** Every note is written at one of these depths, and
 a feature page carries all three in order:
@@ -538,12 +538,12 @@ a feature page carries all three in order:
 | tier | what it answers | reader |
 |---|---|---|
 | **feature** | what is this, and what can I do with it? | the player |
-| **mechanic** | how does it work — the rules, fields and effects? | the author |
-| **system** | where does it live — code, data, config? | the engineer |
+| **mechanic** | how does it work - the rules, fields and effects? | the author |
+| **system** | where does it live - code, data, config? | the engineer |
 
 A **feature** is something a person does, uses or interacts with (movement, tags,
 the lighting system, an item, a way). A **mechanic** is how it works: the
-operations and rules inside a feature. A **system** is the implemented whole —
+operations and rules inside a feature. A **system** is the implemented whole -
 the module, the data and the config that make the mechanic true. The verbs you
 perform (`go`, `take`, `attack`) are a feature's *mechanics*, not features of
 their own: you *do* movement; you do it *by* typing `go`. (`go` is not the
@@ -552,25 +552,25 @@ feature, exactly as pressing W is not the feature of a shooter.)
 **The page template.** A feature page is written in this order, and the reader
 stops when they are satisfied:
 
-1. **What it is** — one paragraph, in-world, no jargon. A thing, not a field list.
-2. **What you see / what you can do** — the surface, with the real player-facing
+1. **What it is** - one paragraph, in-world, no jargon. A thing, not a field list.
+2. **What you see / what you can do** - the surface, with the real player-facing
    output quoted.
-3. **How it works** — the mechanics: the rules, the knobs, the thresholds, the
+3. **How it works** - the mechanics: the rules, the knobs, the thresholds, the
    *why* where the engine is indifferent. This is where an author stops.
-4. **Where it lives** — the system: module, data file, config key, route. This is
+4. **Where it lives** - the system: module, data file, config key, route. This is
    where an engineer stops.
 5. **See also** + the machine-owned `## Connected` block.
 
 An **entity** (a way, an item, an area, a character, a scope) is a graph node
 with its own properties and an authoring surface, so it gets a page of its own
-and other features link *to* it — it is never inlined into the feature that
+and other features link *to* it - it is never inlined into the feature that
 happens to act on it. A **shared mechanic** (tags, conditions, light) is read by
 many features, so it gets one page and every feature links up to it; never copy
 its rules into a feature page.
 
 **Naming and home.** A feature page is named for the feature, not the module
 (`Movement`, not `movement.py`), and lives in the vault folder that owns the
-subject — `World Building/` for the world's objects, `Characters/` for a
+subject - `World Building/` for the world's objects, `Characters/` for a
 character's, `Rules Engine/` for a resolution system, `Items & Inventory/`,
 `Environment/`, `Gameplay/`. A **family** (Environment: light, heat, weather,
 sky) gets an umbrella page linking subpages, because the parts have independent
@@ -580,7 +580,7 @@ would search for one part.
 The eight rules below still apply on top of the tiers:
 
 1. **Write for the author and the player, not the code.** A code reference
-   (`movement.py:564`) is a footnote; the document's job is the decision — what a
+   (`movement.py:564`) is a footnote; the document's job is the decision - what a
    thing is, when to use it, and why. A `property | values | read by` table is a
    generated reference, not a page.
 2. **Order it the way the reader meets it:** what it is → what you see → what you
@@ -589,8 +589,8 @@ The eight rules below still apply on top of the tiers:
 3. **Attach a concrete in-world example to every abstract rule.** "A frost
    giant's iron door." "A mouse hole the winged woman hid behind." "A thorn bush
    wedged in the cave mouth." The picture is the meaning.
-4. **Show the actual player-facing output.** For a way that is the exit line —
-   `[rocky slope] is open — … (you can go through it, approach it, dash, examine
+4. **Show the actual player-facing output.** For a way that is the exit line -
+   `[rocky slope] is open - … (you can go through it, approach it, dash, examine
    or close it)`. A page that documents internals and never shows what a
    character experiences has documented the wrong thing.
 5. **Say why where the engine is indifferent.** `locked` and `blocked` are the
@@ -607,22 +607,22 @@ The eight rules below still apply on top of the tiers:
    knows the system.
 8. **Connect the page.** `[[wikilinks]]` to its siblings and to the generated
    schema page; the `## Connected` block is machine-owned. The page carries the
-   changelog — *what changed, why and when* — generated from the task cards whose
+   changelog - *what changed, why and when* - generated from the task cards whose
    `wiki:` points at it.
 
 **Generated vs hand-written.** A schema/reference page (`Way Properties.md`,
 `Action Tiers`) is generated and drift-guarded: never hand-edit its body, and
 never let it stand in for the conceptual page. The conceptual page (`Ways.md`) is
 hand-written and links *down* to the generated one for the full key list. When a
-generated page's own contents drift from the engine — a `values` tuple that no
-longer matches — that is a bug in the declaration; file it, do not paper over it
+generated page's own contents drift from the engine - a `values` tuple that no
+longer matches - that is a bug in the declaration; file it, do not paper over it
 in prose.
 
 **Coverage gaps are content or tasks, not prose.** An engine-only property that
 no UI exposes is a UI task, not a documentation footnote.
 
-**Intent is a separate layer.** Where a feature is *going* — what it will do when
-it is finished — never sits on the feature page next to the truth of what it does
+**Intent is a separate layer.** Where a feature is *going* - what it will do when
+it is finished - never sits on the feature page next to the truth of what it does
 now. Intent that ages beside truth becomes a lie. Keep it one link away, in a
 dated "design intent" note or the roadmap.
 
@@ -672,7 +672,7 @@ Notes on the gates:
   end is `.ts` emitting to `.js` (158 files, migration complete). `npm run lint`
   alone will not catch a behavioural regression. A run can fail with
   `TS5033 ... user-mapped section open` when the running server or browser holds
-  the emitted `.js` open; it is **transient — just re-run**.
+  the emitted `.js` open; it is **transient - just re-run**.
 - **`feature_index.py`**: `--report` joins features to claiming modules (and shows
   unclaimed features); `--write` regenerates `docs/design/feature-index.md`;
   `--update-baseline` accepts today's debt. A feature is **not** a module:
@@ -868,8 +868,8 @@ dependency DAG from `blocked_by` / `depends_on` / `parent` (precede) and
 `next` ranks the open cards whose predecessors are all terminal; `roadmap`
 buckets them Now / Next / Later from that graph plus the folders (a `horizon:`
 frontmatter value overrides the computed bucket) and writes to
-`docs/design/roadmap-computed.md` with `--out`. The narrative — why, in what
-order, and the cited simulation-substrate audit — is `docs/design/roadmap.md`.
+`docs/design/roadmap-computed.md` with `--out`. The narrative - why, in what
+order, and the cited simulation-substrate audit - is `docs/design/roadmap.md`.
 The same core is exposed over
 MCP at `tools/tasks_mcp.py` (`python tools/tasks_mcp.py`); its write tools
 `add_task` / `set_task` default to `dry_run`.
@@ -911,11 +911,11 @@ several (it also flags dangling dependency references). Before
   pass. Unchecked boxes with known outcomes are also lying.
 - docs with the behavior, not after the milestone: when a mechanic
   becomes real (wired + exercised), update its vault note in the same
-  pass — feature page, `wiki:` links, consumer map. A shipped mechanic
+  pass - feature page, `wiki:` links, consumer map. A shipped mechanic
   with no doc update is half-shipped.
 
 **No duplication, everything usable, coherent with viwo.** One source of
-truth per concept (block is state, prose is projection — never two
+truth per concept (block is state, prose is projection - never two
 stores); `exists ≠ wired` (a schema entry, route, or tab with no caller
 and no exercised path is a draft, not a feature); every new surface
 must be reachable, read by something, and round-trippable. When in

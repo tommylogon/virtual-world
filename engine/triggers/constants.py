@@ -37,7 +37,7 @@ TRIGGER_TYPES = [
     "on_fail_climb",
     "on_delayed",
     "on_spoil",
-    # task-234: turn-cycle and time/moon triggers — fired by the engine on
+    # task-234: turn-cycle and time/moon triggers - fired by the engine on
     # area/way/character nodes (see VirtualWorldEngine._fire_turn_triggers /
     # _fire_time_triggers), not by item interaction.
     "on_turn_start",
@@ -120,7 +120,7 @@ EFFECT_TYPES = [
     # task-716: persistent activity and downstream movement for fishing slice.
     "start_activity",
     "push_actor",
-    # task-829: persona growth — every 828 field changes at runtime.
+    # task-829: persona growth - every 828 field changes at runtime.
     "set_persona_field",
     "add_persona_id",
     "remove_persona_id",
@@ -128,7 +128,7 @@ EFFECT_TYPES = [
 ]
 
 # task-242: effects agents may bind via the `bind`/`enchant` action. This is
-# the safe subset — no inventory mutations, no world-destroying effects.
+# the safe subset - no inventory mutations, no world-destroying effects.
 SAFE_EFFECT_TYPES = {
     "message",
     "set_state",
@@ -149,7 +149,7 @@ SAFE_EFFECT_TYPES = {
     "set_description",
     "adjust_vital",
     # task-538: same class as `adjust_vital` and `apply_trait`, both already
-    # here — a charm that grants vitality is an ordinary authored reward, and a
+    # here - a charm that grants vitality is an ordinary authored reward, and a
     # maximum is just another stat once it is data.
     "set_vital",
     "modify_vital_max",

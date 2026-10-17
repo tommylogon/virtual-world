@@ -7,9 +7,9 @@ light into neighbours regardless of what stood between them.
 The numbers for the two systems are **not** the same, and forcing them to be
 would be wrong:
 
-* sound's barrier is a **cost** — the quietest route is the sum of its barriers,
+* sound's barrier is a **cost** - the quietest route is the sum of its barriers,
   and higher means worse;
-* light's is a **transmission** — the fraction of a lit neighbour that reaches
+* light's is a **transmission** - the fraction of a lit neighbour that reaches
   you, and higher means better.
 
 So this module holds two named tables side by side, as the task allows, over one
@@ -17,7 +17,7 @@ shared **state ladder** and one shared resolution order. What cannot drift
 anymore is the part that actually had drifted: *which* states exist, and the rule
 that a see-through way is not an open way. Light used to treat `see_through` as
 fully open, so a window leaked as much as a missing door while sound rated a
-window *worse* than an open doorway — the two systems disagreed about the very
+window *worse* than an open doorway - the two systems disagreed about the very
 thing a window is.
 
 Per-door overrides: ``sound_barrier`` and ``light_barrier`` float properties,
@@ -48,7 +48,7 @@ DEFAULT_SOUND_COSTS: Dict[str, float] = {
     "hidden": 2.0,
 }
 
-#: Default light TRANSMISSION per state — the fraction of a lit neighbour's light
+#: Default light TRANSMISSION per state - the fraction of a lit neighbour's light
 #: that crosses the way. The ladder is the same as sound's, the sign is not.
 #:
 #: - open passes everything;
@@ -141,7 +141,7 @@ def way_state(way_node: Any) -> str:
     ``see_through`` outranks ``current_state``, which is the order
     ``engine/sound.py`` already used: a window is a window whether or not
     somebody also called the way open. Keeping that order is what makes the two
-    systems comparable — the bug was never that light had a different rule, it
+    systems comparable - the bug was never that light had a different rule, it
     was that light had a *binary* one.
     """
     props = _props(way_node)
@@ -160,7 +160,7 @@ def _override(way_node: Any, property_name: str) -> Optional[float]:
 def get_sound_cost(way_node: Any) -> float:
     """Sound's cost for a way, in the order ``engine/sound.py`` always used.
 
-    1. a way whose *declared* state is solid takes its ``sound_barrier`` — a shut
+    1. a way whose *declared* state is solid takes its ``sound_barrier`` - a shut
        window is still a shut door, and the author said how heavy it is;
     2. otherwise a see-through way is a window (0.75);
     3. otherwise the per-state table.
@@ -177,7 +177,7 @@ def get_light_transmission(way_node: Any) -> float:
 
     The per-door ``light_barrier`` override is a **transmission**, not a cost, so
     an author writing ``light_barrier: 0.1`` on a closed door means "a tenth of
-    the light gets through" — the same direction as the word suggests, which is
+    the light gets through" - the same direction as the word suggests, which is
     the opposite of what copying the sound number would have meant.
     """
     if declared_state(way_node) in SOLID_STATES:

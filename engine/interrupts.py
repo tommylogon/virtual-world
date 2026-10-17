@@ -3,13 +3,13 @@
 One deterministic answer to "does this character need to stop and react?".
 It is shared, by design, between:
 
-* **timeskip actions** (task-464) — the interrupt that hands control back to the
+* **timeskip actions** (task-464) - the interrupt that hands control back to the
   human mid-skip;
-* **attention / fidelity tiers** (task-411 / task-418) — what draws a character
+* **attention / fidelity tiers** (task-411 / task-418) - what draws a character
   into the attended set;
-* **background soak deferral** (task-399) — events too unsafe to resolve
+* **background soak deferral** (task-399) - events too unsafe to resolve
   silently;
-* **memory salience** (task-403) — what is worth remembering.
+* **memory salience** (task-403) - what is worth remembering.
 
 The evaluator is pure: it compares two :func:`snapshot` dicts plus the events
 recorded this tick and returns structured :class:`Interrupt` reasons. It never
@@ -30,7 +30,7 @@ RESOURCE_DANGER = {
 }
 #: Below this, HP itself is the emergency.
 HP_DANGER = 30
-#: Bladder crossing here is "you are about to lose control" — the involuntary
+#: Bladder crossing here is "you are about to lose control" - the involuntary
 #: action the human should decide about, not something a skip resolves for them.
 INVOLUNTARY_BLADDER = 95
 
@@ -76,7 +76,7 @@ def snapshot(gs, player) -> dict:
     """Capture the state the evaluator compares across one tick.
 
     ``visible`` is the set of ``(type, id, name, tags)`` the character's area
-    holds by a spatial relation — the substrate for discovery interrupts. It is
+    holds by a spatial relation - the substrate for discovery interrupts. It is
     built from edges into the area, not a full-graph scan.
     """
     vitals = dict(getattr(player, "vitals", {}) or {})

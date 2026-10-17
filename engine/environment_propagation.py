@@ -86,7 +86,7 @@ def propagate_temperature(graph) -> None:
                 processed_pairs.add(pair)
 
                 pair_rate = rate
-                # task-231: wind accelerates heat exchange — the STRONGER wind
+                # task-231: wind accelerates heat exchange - the STRONGER wind
                 # of the two connected areas wins.
                 env_a = graph.get_node(area_list[i]).properties.get("environment", {}) if graph.get_node(area_list[i]) else {}
                 env_b = graph.get_node(area_list[j]).properties.get("environment", {}) if graph.get_node(area_list[j]) else {}
@@ -200,7 +200,7 @@ def propagate_air(graph) -> None:
 
     Smoke/toxic/stale air creeps into connected fresh areas at a slow rate,
     arriving diluted (``hazy``) first. Only propagates through ways whose
-    ``current_state`` is ``"open"`` — same rule as heat.
+    ``current_state`` is ``"open"`` - same rule as heat.
     """
     if not graph:
         return

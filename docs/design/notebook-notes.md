@@ -1,4 +1,4 @@
-# World Notebook — handwritten notes (transcribed)
+# World Notebook - handwritten notes (transcribed)
 
 Transcribed from `virtualworld_notebook_notes.pdf` (28 pages, ~70 MB, modified
 2026-10-09). This is a faithful best-effort transcription of handwritten notes,
@@ -23,7 +23,7 @@ transcript, not a curated vault note, so it is not subject to the vault guards
 
 ---
 
-## Page 1 — World generation and the painter checklist
+## Page 1 - World generation and the painter checklist
 
 > Paradise world-gen. 5th[?].
 >
@@ -47,7 +47,7 @@ Checklist:
 - []  helpers for topology, distributoin, and biome fading. example if we place river next to forest, the helper might push theforest to the side or suggest replacing it with a bank, river edge, beach, or simular matching biome first. 
 - [] fill tool to fill a empty area with a biome. 
 - helpers for elevatin, possibly use a heightmap to import with standard blackto white grayscale values to translate into the areas floor value.
-- [x] Town: place features of towns — shops, buildings, cities, houses, lakes
+- [x] Town: place features of towns - shops, buildings, cities, houses, lakes
 - [ ] Interior: hallways, rooms of types, windows, floors, themes or genres, tags
 - [ ] Vehicle: a drivable item or a area that can change its way connectoins, simlation traversal.
 - [ ] Template items for  for plants and resources (berry bush, apple tree, fern, etc.)
@@ -55,7 +55,7 @@ Checklist:
 - [ ] Energy consumption increased when traversal between elevatoins. on u[phill]/downhill
 - [ ] stamina?
 >                               the woods grows denser to the west
-> dense woods near a road — dense woods → sparse woods → farms
+> dense woods near a road - dense woods → sparse woods → farms
                               |             |             |
 >a road into the deep dense woods -  road        → road         → road
 >                        |   a road next to sparse woods | a road south of farmlands
@@ -63,7 +63,7 @@ Checklist:
 
 ---
 
-## Page 2 — Confirmations needed
+## Page 2 - Confirmations needed
 
 Checklist:
 
@@ -79,16 +79,16 @@ Checklist:
 - [ ] Character age - included in worldgrpah form
 - [x] Fear affects traversal checks
 - [ ] Scale / back-sim (consider abilities and movement capabilities)
-- beach — shrine — lake … bottom — underwater ↓ bottom
+- beach - shrine - lake … bottom - underwater ↓ bottom
 - [ ] How to handle prices, ledger, shops
-- [ ] Quests, missions, jobs — how do we handle generated requests for others to complete? obligations in MOSIAC
+- [ ] Quests, missions, jobs - how do we handle generated requests for others to complete? obligations in MOSIAC
 - [ ] biomes seasonsa nd variants (dead forest, [tundra?], frozen, burned, [stare?]), frozen cliff, snow cliff, rockcliff
 - [ ] Make characters not want to stay in certain areas, like trashpiles, wasteareas, latrines, dirty or cold or too hot areas
 - [ ] UI designer bot? specialise agent with a UI toolkit and data?
 
 ---
 
-## Page 3 — Demons and their kinds (lore)
+## Page 3 - Demons and their kinds (lore)
 
 > Demons and devils, forests, hordes and abominations. A vast collection of
 > creatures and spirits born by fear, manipulation, sin, disasters, offspring,
@@ -109,7 +109,7 @@ Checklist:
 
 ---
 
-## Page 4 — Scope layers, walls, survival needs
+## Page 4 - Scope layers, walls, survival needs
 
 > Select scope, add layer (biome, land/industry, tourism). Navigate, move cells.
 > Fallout of [builds?], basin, hilly other, multi-clim[ate] features (hazards?).
@@ -137,7 +137,7 @@ Checklist:
 
 - [ ] Walls: why? It's not a [bare?] or it feels [description for all?] or areas. True?
 - [ ] Checklist of survival needs: water sources / food sources / bathrooms / washrooms / public baths, river/[colony?] (water because cold) / houses / beds for person / entertainment / social / sanity.
-- [ ] House water (interiors) — assume is a source of heat, kettle and water.
+- [ ] House water (interiors) - assume is a source of heat, kettle and water.
 - [ ] Allow features and manual areas to occupy multiple cells like biomes.
 - [ ] Dresser / checklist: (locks, glow, …)
 - [ ] Pregnancy
@@ -146,7 +146,7 @@ Checklist:
 
 ---
 
-## Page 5 — Mini-games and tasks
+## Page 5 - Mini-games and tasks
 
 > Mini games. backscratch "[battel ship vs the "no not there, lower yes ther eno no up and tot he side not he other side!"]".
 >
@@ -157,42 +157,42 @@ Checklist:
 
 ---
 
-## Page 6 — Painter problems and the sibling-scope question
+## Page 6 - Painter problems and the sibling-scope question
 
 > Painters: scaling issues everywhere. Map/images and positions rotate to
 > centre. Multiplayer from lobby. Documentation inconsistencies. No hard terms
 > in library. Tag validation on thousands of items.
 >
 > Worlds or stories? The tools created should allow for a variety of stories in
-> any setting or world. Let's generate a setting — can I work in my load game?
+> any setting or world. Let's generate a setting - can I work in my load game?
 > Make hubs, features, scopes. Populate with biomes, lands, make characters …
 > randomly generated NPCs, that's the big one … [illegible] … and run them.
 >
 > Biggest question: is it fun to play?
 >
-> **Sibling scopes, non-variant boundaries** — but I can see exit: can I travel
+> **Sibling scopes, non-variant boundaries** - but I can see exit: can I travel
 > across scope↔scope by enter? Hidden entrance, wilderness.
 
 ---
 
-## Page 7 — Town to wilderness, travel cost
+## Page 7 - Town to wilderness, travel cost
 
 > WorldPainter: town map/description … you can walk from town to wilderness.
 > 3 steps unless the centre[?] a world scope with exactly 2[?] similar …
 > wilderness between, on a treasure, in a random town … you can also pass a
 > forest in the wilderness. Slipping into these towns and the true scale of
-> [the] towns — the size! In a wilderness …
+> [the] towns - the size! In a wilderness …
 >
 > 2) How to build these … that the issue is 1) How to build these between 3x, 5x
 > to ensure less … than the same town? Sibling town? Half a day's travel between
 > … So instead of deciding [on] the scope to the world scope …
 >
-> Gate | Time cost | (change hops) Grass — forest wilderness, scope … town/scope,
+> Gate | Time cost | (change hops) Grass - forest wilderness, scope … town/scope,
 > gate/scope …
 
 ---
 
-## Page 8 — Current model and the chunk-tier question
+## Page 8 - Current model and the chunk-tier question
 
 > Current model: town / church house / keep / gate →; world: hills, deep woods …
 > (in town there are …) you can [exit] gate → world scope towards wilds with AI
@@ -228,9 +228,9 @@ chunks; cross to the sibling at the boundary) but leaves the tier question open.
 
 ---
 
-## Page 9 — Memory / Plans / Schedules UI
+## Page 9 - Memory / Plans / Schedules UI
 
-Memory / Plans / Schedules — click on memory to open `[edit] [delete]` icons.
+Memory / Plans / Schedules - click on memory to open `[edit] [delete]` icons.
 
 Memories (examples written on the page): "Joked [Eyea?] to a spooky house", "I've
 got a bad feeling this [has] …", "I hear something", "I [should] be home …",
@@ -238,16 +238,16 @@ got a bad feeling this [has] …", "I hear something", "I [should] be home …",
 Type: personal / work / part of something; embedded. Actions: edit / delete /
 save.
 
-Plans: Task 1 / Task 2 / Task 3 — click to open details. Fields: What: find a
+Plans: Task 1 / Task 2 / Task 3 - click to open details. Fields: What: find a
 key?; How: look through the house; Prio: high; Why: [wander?] in the home;
 Status: [doing].
 
-Relations: `[name]` relation: friend, love, affection — colour bar: enemy,
+Relations: `[name]` relation: friend, love, affection - colour bar: enemy,
 neutral, like, family, friend, love, dislike; memories about…
 
 ---
 
-## Page 10 — Biome adjacency graph and a cabin interior
+## Page 10 - Biome adjacency graph and a cabin interior
 
 Hand-drawn biome graph and a small building layout.
 
@@ -282,7 +282,7 @@ flowchart TB
 
 ---
 
-## Page 11 — Actions, items, item types
+## Page 11 - Actions, items, item types
 
 Actions:
 
@@ -299,7 +299,7 @@ Trailing note: "[illegible] modes: [mutton?] worn on in drawer session."
 
 ---
 
-## Page 12 — Template world changes (content wishlist)
+## Page 12 - Template world changes (content wishlist)
 
 > Template world changes
 
@@ -336,7 +336,7 @@ Narrative paragraph on the page:
 
 ---
 
-## Page 13 — House walk-through: item affordances
+## Page 13 - House walk-through: item affordances
 
 > Living room > chair implies energy ✔; > fishing and > social/entertainment ✔;
 > > books to entertainment ✔; > fireplace to temperature ✔; > key to box ☐;
@@ -356,7 +356,7 @@ weapon).
 
 ---
 
-## Page 14 — Room description as a collection of items
+## Page 14 - Room description as a collection of items
 
 > Recording my [special?] relationships. Living room has a clock in the wall
 > towards the kitchen door, a clock by the study door … and by the stairs the
@@ -368,7 +368,7 @@ weapon).
 
 ---
 
-## Page 15 — Item and behaviour checklist
+## Page 15 - Item and behaviour checklist
 
 - [ ] Items by type
 - [ ] Crafting by types: kindling, paper, oil
@@ -380,13 +380,13 @@ weapon).
 - [ ] Match on name
 - [ ] Use "[name/run?] 2" on items and chests acts [rather?] with [spices?]
 - [ ] When trying to use an item that only exists in descriptions, don't do "You
-      see the iron X" but "[it does not?] [reveal/contain?]…" — [useful?] or not
+      see the iron X" but "[it does not?] [reveal/contain?]…" - [useful?] or not
 - [ ] Only allow one equipped weapon / match on description
 - [ ] Inventory limits on weight and volume / [parametrise?] (see configs)
 - [ ] Item uses [affecting] weight / weight affects energy decay
 - [ ] Place item in container / steal / take item
 - [ ] Narrative actions to others / [print?] remember traumas, action/target/effects
-- [x] Spells/abilities — arrow reduces uses per hit
+- [x] Spells/abilities - arrow reduces uses per hit
 - [ ] Item states / dash, run from danger into a [room] and [guide] to go again this [window/turn]
 - [ ] Wind to affect temp
 - [ ] Custom scenarios to test mechanics/features ~ [LABAS?]
@@ -394,13 +394,13 @@ weapon).
 - [ ] Saves and [recipes] to trigger [Airin?]
 - [ ] Choice to [stun] on attack/hit
 - [ ] [Entering] actions / ticks/behaviours like buff, [coash?], stumble, [self?]
-- (reversed/rotated text on the page: "Big — stop counter, [kaybese?] step for
+- (reversed/rotated text on the page: "Big - stop counter, [kaybese?] step for
   [size]"; "add to [2/6] and [the]"; "way to add [fire] [names]"; "go [up/down]
-  [remain] [deps] [downward] when [downward]" — readings uncertain.)
+  [remain] [deps] [downward] when [downward]" - readings uncertain.)
 
 ---
 
-## Page 16 — Schedules: the receptors of life, pursuits
+## Page 16 - Schedules: the receptors of life, pursuits
 
 > **Schedules: the receptors of life, pursuits.** Schedules are the building
 > block of what tells someone what they have to do, but on a higher level than
@@ -410,13 +410,13 @@ weapon).
 > of plans. The [model] I have is that schedules are made by authors, missions,
 > jobs, and agents themselves.
 >
-> Let's say Frank — he is now a merchant in Eldenford, specialising in gemstones,
+> Let's say Frank - he is now a merchant in Eldenford, specialising in gemstones,
 > tending the northern hills. Travel there takes about 4 hours. To stay there for
 > the days and to forage … and to [need?] a [pickle?]… as such the schedule is
 > formed as (**where, how far, doing what, how long, requirements**).
 >
 > Now the second part would be decision. Unlike the [fisherman simplex?], Frank
-> should be able to reason about which schedule tile to use — maybe he had
+> should be able to reason about which schedule tile to use - maybe he had
 > [monsters] there [lately], and wants [protection?]; maybe he gets goblins on
 > the way, or abandons; maybe he realises the goblins [are stationed] and he can
 > stay extra long.
@@ -427,14 +427,14 @@ weapon).
 
 ---
 
-## Page 17 — Only relevant schedules
+## Page 17 - Only relevant schedules
 
 > We don't want to list all schedules for an agent, only the relevant ones. So
 > the top ones are the important [ones].
 
 ---
 
-## Page 18 — "Vanishing in the cold" (scenario draft)
+## Page 18 - "Vanishing in the cold" (scenario draft)
 
 > Who are they? Why is a [sailor/wanderer] [so] looking for … Why does he have a
 > handwritten spellbook.
@@ -444,8 +444,8 @@ weapon).
 > cold … [the guy?] got into a fight with a wolf. Man, wife, son; human, elf,
 > half-elf; [shadows], [hearth] …
 
-Hand-drawn house map (labels read from the page): bath — hallway — kitchen;
-[cellar] / [living]; [gatehouse] / garden; living-room — study — book/TV;
+Hand-drawn house map (labels read from the page): bath - hallway - kitchen;
+[cellar] / [living]; [gatehouse] / garden; living-room - study - book/TV;
 cupboard; outside; [line of hearth] / cave.
 
 ```mermaid
@@ -466,7 +466,7 @@ flowchart TB
 
 ---
 
-## Page 19 — Items of "The Vanishing"; change flame / create light
+## Page 19 - Items of "The Vanishing"; change flame / create light
 
 Items by room (as written):
 
@@ -491,7 +491,7 @@ Mechanics noted:
 
 ---
 
-## Page 20 — Personal journal entry (not design)
+## Page 20 - Personal journal entry (not design)
 
 This page is a personal journal entry dated *19.07.2026* ("New book, same shit"),
 about a domestic situation. It is **not** design content and is deliberately
@@ -500,13 +500,13 @@ stays out of this document.
 
 ---
 
-## Page 21 — Triggers: what and to whom
+## Page 21 - Triggers: what and to whom
 
 - [ ] [Linking?] way target / source + direction name
 - [ ] Change view: "the X"
 - [x] Chemistry items/triggers should show me *what* and *what to whom*; e.g.
       "Jolip ate an apple, hunger decreased by 5"
-- [ ] Aliases — personal aliases? Agents calling themselves, and add it as a
+- [ ] Aliases - personal aliases? Agents calling themselves, and add it as a
       hidden alias?
 - [x] Use X item on target: "use 2 eggs on pan"
 - [x] [Thickness] of consumables / [ ] states: raw / cooked / spilled
@@ -528,11 +528,11 @@ stays out of this document.
 - [x] If item has trigger for an action, enable the action or warn user
 
 The header also lists trigger subjects (world, ways, agents, examinations,
-items, …) — the list is partly illegible.
+items, …) - the list is partly illegible.
 
 ---
 
-## Page 22 — "Task 14: Eat and drink"
+## Page 22 - "Task 14: Eat and drink"
 
 > Crafting? A small farm with an oven for eggs, milk, water, oven, knife,
 > [strain?], [flashcards?], pan.
@@ -557,14 +557,14 @@ Worked steps:
 
 Questions written after:
 
-> How can skill play in? How to generalise? Recipes — learning: all require needs
-> and steps [into] a stateful action [that] is [??] — and less chance of failure.
+> How can skill play in? How to generalise? Recipes - learning: all require needs
+> and steps [into] a stateful action [that] is [??] - and less chance of failure.
 > Recipes used as "make [omelette]", [hoards] progress, [fireman?]. Missing
 > requirements are [have/leave]… skill requirement and experience?
 
 ---
 
-## Page 23 — Recipe schema and a worked example
+## Page 23 - Recipe schema and a worked example
 
 > Recipes: **Name, Type, Required Items, Required Tools, Time, Result/Outcome,
 > Skill.**
@@ -577,7 +577,7 @@ Worked example:
 
 ---
 
-## Page 24 — "Task 19: NPC" reaction lines and skills
+## Page 24 - "Task 19: NPC" reaction lines and skills
 
 NPC story lines, per area:
 
@@ -597,7 +597,7 @@ repair, track, talk, [eat].
 
 ---
 
-## Page 25 — "Task 16: Triggers" — event types to test
+## Page 25 - "Task 16: Triggers" - event types to test
 
 > Goal: test and confirm every type of trigger, condition and effect.
 
@@ -619,7 +619,7 @@ repair, track, talk, [eat].
 
 ---
 
-## Page 26 — Broad checklist
+## Page 26 - Broad checklist
 
 - [ ] Clear each clue how items and triggers
 - [ ] [Sharp cuts] with realism, beliefs and…
@@ -645,7 +645,7 @@ repair, track, talk, [eat].
 
 ---
 
-## Page 27 — Simulation, AI direction, timeskips
+## Page 27 - Simulation, AI direction, timeskips
 
 - [x] Simulate select/script characters
 - [x] Only simulate in select/local area
@@ -671,7 +671,7 @@ repair, track, talk, [eat].
 
 ---
 
-## Page 28 — World layout and "preceding area" idea
+## Page 28 - World layout and "preceding area" idea
 
 Hand-drawn world layout:
 
@@ -694,7 +694,7 @@ Also written on the page:
 >
 > **Grid biome painter!**
 >
-> Preceding-area idea: N[?] — yard — road — road — E | S | Unknown
+> Preceding-area idea: N[?] - yard - road - road - E | S | Unknown
 
 ```mermaid
 %% Interpretive reconstruction of the "preceding area" fragment (not a tracing).
@@ -712,7 +712,7 @@ flowchart LR
 
 These recur and are worth pulling out of the per-page detail:
 
-- **"Is it fun to play?"** (p6) and **"Worlds or stories?"** (p6) — the framing
+- **"Is it fun to play?"** (p6) and **"Worlds or stories?"** (p6) - the framing
   question behind the tooling. The tools should let any setting/world tell a
   variety of stories; random-generated NPCs are called "the big one".
 - **Scale / traversal** (pp. 1, 6, 7, 8, 27, 28): grids, chunks, gates, travel
@@ -721,7 +721,7 @@ These recur and are worth pulling out of the per-page detail:
   naming affordances (p13), templates (pp. 1, 12, 26).
 - **Crafting + skill** (pp. 22, 23) and **recipes as data**.
 - **Triggers** with a fixed event vocabulary and conditional effects (pp. 21, 25).
-- **Schedules / pursuits / MOSIAC** (pp. 16, 17) — already codified elsewhere in
+- **Schedules / pursuits / MOSIAC** (pp. 16, 17) - already codified elsewhere in
   the repo (`Character Pursuits.md`, task-699 and related), so listed here for
   completeness, not as new work.
 - **Biome fallout/states** (p2) and **layers beyond the current four** (p4).

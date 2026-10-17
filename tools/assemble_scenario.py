@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-assemble_scenario.py — Scenario assembly workflow driver.
+assemble_scenario.py - Scenario assembly workflow driver.
 
 Usage:
     python tools/assemble_scenario.py --goal "Kraktooth goblin camp sandbox" \
@@ -277,7 +277,7 @@ def build_scenario_from_components(
 def validate_areas(nodes: dict, issues: list):
     areas = [n for n in nodes.values() if n.get("type") == "area"]
     if not areas:
-        issues.append("No areas found — the world will be empty after load.")
+        issues.append("No areas found - the world will be empty after load.")
     for area_id, node in nodes.items():
         if node.get("type") != "area":
             continue

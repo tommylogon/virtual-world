@@ -9,7 +9,7 @@ Review this change as a skeptic looking for correctness defects.
 Scope: $ARGUMENTS
 
 If no scope is given, review the uncommitted changes (staged, unstaged, and
-untracked). Otherwise review exactly what is named — for example
+untracked). Otherwise review exactly what is named - for example
 "branch changes" or a list of files.
 
 Build the diff yourself with `git status --short` and `git diff`; do not

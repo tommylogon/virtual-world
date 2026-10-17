@@ -55,7 +55,7 @@ def handle_apply_trait(self, params, context, item_node=None, game_state=None):
     """Apply a trait to a character.
     params: {"trait": "dark_vision", "target": "self", "param": true}
 
-    SILENT by default — no announcement is emitted unless the trigger
+    SILENT by default - no announcement is emitted unless the trigger
     author explicitly sets ``message``. A cursed object can curse you
     without your knowledge; a button can flag someone else without telling
     the presser.
@@ -76,7 +76,7 @@ def handle_apply_trait(self, params, context, item_node=None, game_state=None):
             if conflicts:
                 # Conflict = a failed grant. Surface it to the SYSTEM log
                 # (event stream / UI) but never to the agent's action
-                # result — the character shouldn't meta-know their trait
+                # result - the character shouldn't meta-know their trait
                 # grants failed unless the author wrote a message for it.
                 if params.get("message"):
                     return [params["message"]]
@@ -103,7 +103,7 @@ def handle_remove_trait(self, params, context, item_node=None, game_state=None):
     """Remove a trait from a character.
     params: {"trait": "dark_vision", "target": "self"}
 
-    SILENT by default — only announces when ``message`` is explicitly set.
+    SILENT by default - only announces when ``message`` is explicitly set.
     """
     trait_id = params.get("trait", "")
     if not trait_id:

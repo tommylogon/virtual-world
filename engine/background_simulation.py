@@ -5,7 +5,7 @@ Instead this module makes *coarse, deterministic* decisions against the
 **same** Player/graph state so the character stays the same person (see
 docs/design/reversibility-contract.md).
 
-Every character takes **one action per turn** — the turn is the unit of agency,
+Every character takes **one action per turn** - the turn is the unit of agency,
 and a turn is the same amount of game time for everyone. Background decisions used
 to be paced by an "action credit" measured in game minutes (one decision per 10
 game minutes), which put this tier on a different clock from the live one: at a
@@ -14,7 +14,7 @@ slightly more, and the two agreed only around T=10 by coincidence. A live
 character and a background character now spend a turn the same way, which is also
 what makes promotion between the tiers safe.
 
-v1 scope — survival only:
+v1 scope - survival only:
     drink when thirsty, eat when hungry, sleep when tired, travel one hop
     toward a known food/water area when the local area has none.
 
@@ -51,7 +51,7 @@ DRINK_TAGS = ("drink", "water", "beverage")
 def _surface_need_recall(gs, player, need):
     """task-403: surface one recalled memory when a need is pressing.
 
-    Memory only — it never changes what the character does — and ``AgentMind``
+    Memory only - it never changes what the character does - and ``AgentMind``
     dedupes to one surfacing per in-game day per need, so a long soak does not
     accumulate recall spam. Failures are swallowed: recall is a nice-to-have and
     must never abort a survival action.
@@ -73,7 +73,7 @@ ENERGY_THRESHOLD = 30     # resource: low = tired
 #: a character that is not tired yet should not be walking across town to book a
 #: room, and well above the critical 15, so this never competes with "lie down
 #: now". The gap is the space where seeking a bed is a decision rather than a
-#: panic — which is the point: a town should be something a character *walks* to.
+#: panic - which is the point: a town should be something a character *walks* to.
 REST_SEEK_ENERGY = 55
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
@@ -95,7 +95,7 @@ CARRIED_WATER_FILL = 3
 WORK_MINUTES = 30
 
 #: resource: low = unravelling; rest a while. This is the "rest" half of the
-#: task-432 sources — see `_recuperate` for why it is a bounded *rest* rather
+#: task-432 sources - see `_recuperate` for why it is a bounded *rest* rather
 #: than sleep.
 SANITY_THRESHOLD = 40
 #: How long one recuperative rest lasts, in game minutes.
@@ -108,10 +108,10 @@ SANITY_REST_MINUTES = 60
 #: fails if one stops doing so, so this number should never be reached by a
 #: library item. It is kept, rather than deleted, because a save or a scenario
 #: written before the authoring pass can hold a tag-only item that nothing
-#: authored — and the two ways to remove that risk are both worse. Deleting it
+#: authored - and the two ways to remove that risk are both worse. Deleting it
 #: makes such an item an **infinite, useless loaf** (eaten, restores nothing,
 #: never depletes); zeroing it makes 42 real foods restore nothing at all.
-#: If you add a new library consumable, author the trigger — do not reach here.
+#: If you add a new library consumable, author the trigger - do not reach here.
 UNAUTHORED_MEAL_RESTORE = 45    # Hunger (drive) reduced by this when eating
 UNAUTHORED_DRINK_RESTORE = 50   # Thirst (drive) reduced by this when drinking
 
@@ -126,7 +126,7 @@ WATER_AREA_DRINK_RESTORE = 50
 #: A relief site: an area tag (a latrine) or a fixture standing in the area.
 #: Re-exported from `engine.relief`, which both tiers read so the background
 #: goblin and the human at the keyboard agree on what a restroom is. This is the
-#: *comfort* vocabulary — task-551 made it emphatically not a permission one.
+#: *comfort* vocabulary - task-551 made it emphatically not a permission one.
 RELIEF_TAGS = _relief.RELIEF_TAGS
 #: At or above this the character relieves where they stand. Below it they are
 #: willing to walk `PRIVACY_SEARCH_HOPS` ways for somewhere better. The split is
@@ -145,7 +145,7 @@ RECREATION_TAGS = ("recreation",)
 ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
 
 #: What an hour of carried entertainment costs in Energy. The area-fixture path
-#: has always been free, and stays free — this only prices the fallback, so
+#: has always been free, and stays free - this only prices the fallback, so
 #: the camp-with-a-drum path is untouched.
 RECREATION_ENERGY_COST = 5
 
@@ -169,7 +169,7 @@ FORAGE_DC = 10
 #: same timeframe, which is what stops a 30-minute turn from becoming thirty
 #: meals. This replaces the old per-turn action *budget* (`actions_per_turn`),
 #: which handed out one action per game minute and so assumed actions had no
-#: duration — making long turns frantic as well as wasteful.
+#: duration - making long turns frantic as well as wasteful.
 TASK_MINUTES = {
     "drink": 2,
     "eat": 10,
@@ -181,7 +181,7 @@ TASK_MINUTES = {
     "forage": 5,   # searching the area for something edible; may find nothing
     "take": 2,     # picking up a supply to carry (preparation)
     "travel": 1,   # one step; repeats until the timeframe is full
-    "sleep": 1,    # lying down — the sleeping activity occupies what follows
+    "sleep": 1,    # lying down - the sleeping activity occupies what follows
 }
 
 #: The action-economy tier each background task costs (task-352 slice 5). The soak
@@ -227,18 +227,18 @@ class BackgroundSimulation:
     # ───────────────────────────── entry point ─────────────────────────────
 
     def process_due(self):
-        """Fill every character's timeframe — deterministically, for the
+        """Fill every character's timeframe - deterministically, for the
         characters that do not have a decision of their own this turn.
 
         A turn is a *timeframe* of T game minutes, and a character fills it with
         an action flow: each action consumes its `TASK_MINUTES` duration until the
         timeframe is full or nothing is due. The number of actions is therefore
-        emergent — one at a 1-minute turn, and at 15 minutes the four or five
+        emergent - one at a 1-minute turn, and at 15 minutes the four or five
         things that actually fit. It is not a budget handed out per turn.
 
         The loop stops as soon as `_act` reports nothing to do, which is the
         common case: a fed, rested character spends a whole turn doing nothing at
-        all. That is the point — survival is infrastructure, not a treadmill.
+        all. That is the point - survival is infrastructure, not a treadmill.
 
         A focused character has already spent its decision, which was this turn's
         first minute, so it flows for the remainder. Beyond that, an LLM-driven
@@ -252,7 +252,7 @@ class BackgroundSimulation:
         from engine import action_tiers as _at
         for name, p in list(self.gs.players.items()):
             # A declared soak order drives this character for its span (its
-            # intent, not the generic need policy) — see engine/soak.
+            # intent, not the generic need policy) - see engine/soak.
             if getattr(p, "soak_order", None):
                 continue
             focused = getattr(p, "simulation_mode", "active") != "background"
@@ -280,7 +280,7 @@ class BackgroundSimulation:
             served = set()  # tasks already done in THIS timeframe (not travel)
             # task-352 slice 5: the soak spends the SAME per-turn budget as the
             # attended tiers, so a background character makes no more decisions
-            # than a player. The budget is a ceiling, not a quota — a character
+            # than a player. The budget is a ceiling, not a quota - a character
             # who is fine stops at the first `None`, exactly as before; it is the
             # composition of a *busy* turn that the tiers now bound.
             slots = getattr(p, "turn_slots", None)
@@ -307,7 +307,7 @@ class BackgroundSimulation:
 
         # Social pass last (task-423): after everyone has moved and acted, so a
         # conversation happens where the characters actually ended up. Pairs per
-        # area, once per tick, and gives both sides a short conversing activity —
+        # area, once per tick, and gives both sides a short conversing activity -
         # which is why the loop above skips anyone mid-activity.
         try:
             from engine.background_social import (
@@ -354,7 +354,7 @@ class BackgroundSimulation:
         The activity is authored in **minutes**, so however the clock is sliced
         the character is eating for ten minutes: ten turns at a 1-minute turn,
         most of one turn at fifteen. `process_due` skips anyone mid-activity and
-        `ActivitySystem.tick_activity` ends it — and the type must be listed in
+        `ActivitySystem.tick_activity` ends it - and the type must be listed in
         `ACTIVITY_INTERRUPTIBLE` or it never expires and strands them busy.
         """
         if duration <= remaining:
@@ -362,7 +362,7 @@ class BackgroundSimulation:
         if p.activity:
             # A helper already opened an activity for this task (`_recuperate`
             # starts a `resting` block, `_pursue_schedule` a `working` one).
-            # Overwriting it would discard that duration — and for `resting` it
+            # Overwriting it would discard that duration - and for `resting` it
             # silently replaced a correctly minute-converted one with ours.
             return
         p.activity = {
@@ -382,7 +382,7 @@ class BackgroundSimulation:
         reachable: open the same cooking Activity a human's `Make X`
         opens, with this character swapped in as the actor. Returns
         ``(minutes, "cook")`` or None. Instant (untimed) recipes are
-        skipped — ready food already ate above; cooking here is the
+        skipped - ready food already ate above; cooking here is the
         timed path. Never emits verbs: the Activity is the action.
         """
         try:
@@ -401,7 +401,7 @@ class BackgroundSimulation:
                 self.gs.active_player = p.name
                 self.gs.crafting.start_cooking(self.gs, recipe["name"])
             except Exception:
-                # Unaffordable, unknown, gated — next recipe, or nothing.
+                # Unaffordable, unknown, gated - next recipe, or nothing.
                 continue
             finally:
                 try:
@@ -415,22 +415,22 @@ class BackgroundSimulation:
     def _act(self, name, p, served=None, remaining=None):
         """Take the character's next action in this turn's flow.
 
-        Returns ``(minutes, task)`` — the minutes the action took and the task
-        that produced it — or ``None`` if nothing was due, which is the common
+        Returns ``(minutes, task)`` - the minutes the action took and the task
+        that produced it - or ``None`` if nothing was due, which is the common
         case and ends the flow, letting the rest of the timeframe pass quietly.
         The caller fills a timeframe with these, so an action's duration limits
         how many fit in a turn, and the task lets it charge the action economy
         (task-352 slice 5).
 
         ``served`` is the set of tasks already done *in this timeframe*. A task
-        is not repeated once done — otherwise a character whose meal did not fully
+        is not repeated once done - otherwise a character whose meal did not fully
         clear their hunger would eat again, and again, as many times as the turn
         was long. Travel is deliberately **not** recorded: a walk is progress, so
         a character keeps stepping toward food until they reach it, at one minute
         a step.
 
         ``remaining`` is how much of the timeframe is left. A task longer than
-        that does not resolve instantly — it starts an activity and spans turns,
+        that does not resolve instantly - it starts an activity and spans turns,
         so its cost is the same game time at any clock resolution.
         """
         if served is None:
@@ -438,7 +438,7 @@ class BackgroundSimulation:
         if remaining is None:
             remaining = minutes_in_turn(self.gs)
         if p.activity:
-            return None  # mid-activity (e.g. sleeping) — leave them to it
+            return None  # mid-activity (e.g. sleeping) - leave them to it
         if p.state == "unconscious":
             return None  # collapsed; the engine's recovery path handles waking
 
@@ -491,7 +491,7 @@ class BackgroundSimulation:
             return TASK_MINUTES["sleep"], "sleep"
 
         # Tired, and nowhere to be tired *in* (task-566). A painted town has beds
-        # in it — the inn carries `sleeps`, so does a guest room — and before the
+        # in it - the inn carries `sleeps`, so does a guest room - and before the
         # venue lookup a character had no way to know that, so it lay down on the
         # street or stood in the tap room until dawn. This asks where a bed is and
         # walks there, one hop at a time, and says so in the log.
@@ -524,14 +524,14 @@ class BackgroundSimulation:
                             self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
                             return TASK_MINUTES["eat"], "eat"
                         # Found something useless (junk, an herb): spend the search
-                        # time and look elsewhere next turn — the wilds are not a
+                        # time and look elsewhere next turn - the wilds are not a
                         # pantry, and survival is not guaranteed (task-471/472).
                         served.add("eat")
                         self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
                         return TASK_MINUTES["forage"], "forage"
             # Hungry with ingredients but no ready food: cook instead of
             # wandering. The same start_cooking dispatch the turn modal
-            # uses — one path for humans, agents and backsim (task-840).
+            # uses - one path for humans, agents and backsim (task-840).
             if "cook" not in served:
                 cooked = self._cook_meal(p)
                 if cooked is not None:
@@ -581,7 +581,7 @@ class BackgroundSimulation:
         # Loneliness drives a character toward people (task-409). Company steadies
         # Social and is the precondition for the paired social pass, so a lonely
         # character walks to where others are rather than isolating to zero.
-        # With company already present this is a no-op — the ambient gain and the
+        # With company already present this is a no-op - the ambient gain and the
         # social pass handle it there.
         if (not is_animal(p) and v.get("Social", 100) <= SOCIAL_THRESHOLD
                 and "company" not in served):
@@ -602,7 +602,7 @@ class BackgroundSimulation:
                 return used, "plan"
 
         # Preparation (task-426). At a service area with a moment to spare, make
-        # supplies portable — fill a waterskin, pocket a ration — so a later need
+        # supplies portable - fill a waterskin, pocket a ration - so a later need
         # is answered from the pack instead of by another round trip. Cheap here
         # precisely because camp travel is single-digit minutes.
         if "prepare" not in served:
@@ -629,7 +629,7 @@ class BackgroundSimulation:
             if self._travel_toward(p, RECREATION_TAGS, "entertainment"):
                 return TASK_MINUTES["travel"], "travel"
 
-        return None  # nothing is due — the rest of the timeframe passes quietly
+        return None  # nothing is due - the rest of the timeframe passes quietly
 
     # ─────────────────── public policy hooks (task-464) ────────────────────
     # The timeskip runner drives a *specific* character through these, instead
@@ -731,7 +731,7 @@ class BackgroundSimulation:
 
         There is no longer any gate: a world with no latrine is a world where
         people still go. What the old `_service_here(p, RELIEF_TAGS)` check
-        really bought was the *dignity* distinction, and that is what survives —
+        really bought was the *dignity* distinction, and that is what survives -
         a proper place is silent, an improvised one costs Sanity and, if anyone
         saw, Social. Same numbers as the foreground handler, which is the point
         of both reading `engine.relief`.
@@ -743,7 +743,7 @@ class BackgroundSimulation:
             self.gs.graph, area_id, getattr(self.gs, "players", None),
             exclude_name=p.name)
         # task-549: a fixture built for a different kind of body is not a proper
-        # place. This changes the *comfort* of the act, never its permission —
+        # place. This changes the *comfort* of the act, never its permission -
         # task-551's "permitted anywhere" stands, and an animal whose species
         # rules out the latrine relieves where it stands with the same dignity
         # cost anybody else would pay.
@@ -874,7 +874,7 @@ class BackgroundSimulation:
 
         Carried, not standing: a drum on a stand is a fixture the area already
         offers, and a character who *carries* one has brought their own
-        entertainment — which is the point of task-517, since before this a
+        entertainment - which is the point of task-517, since before this a
         goblin with Rikka's kit in their pack had no way to spend a bored hour
         unless the camp happened to contain a drum as well.
         """
@@ -885,7 +885,7 @@ class BackgroundSimulation:
                 continue
             if str(node.properties.get("current_state", "")).lower() == "hidden":
                 continue
-            # `uses: -1` is "no charge model" — a deck of cards does not wear
+            # `uses: -1` is "no charge model" - a deck of cards does not wear
             # out. A positive count is finite and must be respected here or a
             # character beats a spent drum forever.
             uses = node.properties.get("uses", -1)
@@ -924,7 +924,7 @@ class BackgroundSimulation:
             0, min(100, p.vitals.get("Entertainment", 0) + amount))
         if source is not None:
             # Only the fallback is priced. The fixture path has always been
-            # free and stays free — a camp with a drum must not start costing
+            # free and stays free - a camp with a drum must not start costing
             # its goblins Energy, which would move every existing soak.
             p.vitals["Energy"] = max(
                 0, min(100, p.vitals.get("Energy", 100) - RECREATION_ENERGY_COST))
@@ -963,7 +963,7 @@ class BackgroundSimulation:
         """Rest a while to steady the mind (task-432).
 
         Sleep is Sanity's main source, but `_tick_sleeping` wakes a character the
-        moment Energy is full — *before* it checks any duration — so sleep cannot
+        moment Energy is full - *before* it checks any duration - so sleep cannot
         help anybody who is not exhausted, and gating Sanity recovery on Energy
         meant a character whose day costs little Energy never slept and never
         recovered. Resting is duration-based, so it works at full Energy.
@@ -996,7 +996,7 @@ class BackgroundSimulation:
         """The ``stat`` a fixture grants, read from its authored `adjust_vital`.
 
         Read rather than hardcoded so the library entry stays the single source
-        of truth for how much a fixture helps — the same rule for washing and for
+        of truth for how much a fixture helps - the same rule for washing and for
         recreation, so authoring a new fixture needs no engine change.
         """
         if fixture is None:
@@ -1027,7 +1027,7 @@ class BackgroundSimulation:
     def _requires_search(self, node) -> bool:
         """True when an item sits inside/on another *item* (a basket, a larder).
 
-        Open-area resources are plain maintenance — a camp that starves beside a
+        Open-area resources are plain maintenance - a camp that starves beside a
         visible stew is not the game we want. Only something tucked away is a
         Perception check (task-469); carried items are never searched for.
         """
@@ -1176,7 +1176,7 @@ class BackgroundSimulation:
         where the item authored nothing: when it does author its consumption, its
         ``adjust_vital`` trigger is the single source of truth and applying the
         constant too would double the restore (task-424). Since task-506 no
-        library item reaches that path — see `UNAUTHORED_MEAL_RESTORE` and
+        library item reaches that path - see `UNAUTHORED_MEAL_RESTORE` and
         `tools/lint_library.py --check unauthored_consumables`.
         """
         tick = self.gs.time_ticks
@@ -1306,7 +1306,7 @@ class BackgroundSimulation:
     def _seek_venue(self, p, venue, reason):
         """One hop toward the place that serves *venue*, saying why (task-566).
 
-        Returns True when it moved, False when there was nowhere to go — and
+        Returns True when it moved, False when there was nowhere to go - and
         False is the useful answer, because every caller falls back to what it
         would have done anyway. That is deliberate: a world with no beds, no
         baths and no smithies should leave the simulation behaving exactly as it
@@ -1315,7 +1315,7 @@ class BackgroundSimulation:
 
         The step is a real step. The venue lookup ranks by hops along the same
         ``build_exits_for_area`` graph the rest of the sim walks, so the
-        direction returned is one ``movement.move_to_area`` accepts — a venue is
+        direction returned is one ``movement.move_to_area`` accepts - a venue is
         never somewhere a character is routed that the player could not go.
         """
         from engine import venues
@@ -1382,7 +1382,7 @@ class BackgroundSimulation:
 
         Short is the point: `_act` skips anyone mid-activity, so the duration is
         the longest a character can go without eating, drinking or relieving
-        itself. Long blocks are tick-length traps too — one that rounds to a
+        itself. Long blocks are tick-length traps too - one that rounds to a
         single tick at 15 min/tick looks harmless and is not.
         """
         if p.activity:
@@ -1404,7 +1404,7 @@ class BackgroundSimulation:
     # ───────────────────────────── lookups ─────────────────────────────────
 
     #: Spatial relations a forager can reach *through*. An area holds things in,
-    #: on, under, behind, beside or at it, and an item can hold the same ways —
+    #: on, under, behind, beside or at it, and an item can hold the same ways -
     #: berries in a bush, bread on a table, a pouch beside a log. The list itself
     #: lives in `engine/world_scopes.SPATIAL_TYPES` (task-551), which is the one
     #: place that decides what "reachable" means.
@@ -1489,7 +1489,7 @@ class BackgroundSimulation:
 
         Returns the action's minutes, or None. This is what makes supplies
         portable, so a need is answered from the pack rather than by another
-        round trip — task-426's precondition for a trip into the wild.
+        round trip - task-426's precondition for a trip into the wild.
         """
         if self._fill_waterskin(p):
             return TASK_MINUTES["drink"]
@@ -1502,8 +1502,8 @@ class BackgroundSimulation:
 
         Carried first, then anything the area holds by a spatial relation, then
         ONE level into what those hold. Before this it only looked at items with
-        an ``in`` edge to the area, so food in a container — berries on a bush, a
-        larder, a basket — was invisible and the background tier could starve
+        an ``in`` edge to the area, so food in a container - berries on a bush, a
+        larder, a basket - was invisible and the background tier could starve
         beside a full store.
         """
         graph = self.gs.graph
@@ -1594,7 +1594,7 @@ class BackgroundSimulation:
         connect), which guarantees the returned label is one
         ``movement.move_to_area`` will accept.
 
-        ``areas`` overrides the tag lookup with an explicit set of area names —
+        ``areas`` overrides the tag lookup with an explicit set of area names -
         what a schedule needs, since a step names its destination directly rather
         than describing it by tags (task-409). ``avoid`` is a set of
         ``(area, label)`` keys the character is routing around for now, so a way

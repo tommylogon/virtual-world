@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build_scenario.py — Assemble a scenario from component files.
+build_scenario.py - Assemble a scenario from component files.
 
 Usage:
     python tools/build_scenario.py --components tools/scenario_components --output data/scenarios/kraktooth_goblin_camp.json

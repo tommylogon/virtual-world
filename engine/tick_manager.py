@@ -108,8 +108,8 @@ class TickManager:
 
     # ── task-416: per-tick presence index ──────────────────────────────────
     #
-    # Co-presence used to be reconstructed inline wherever it was needed —
-    # `for n, op in players.items() if op.current_area == <this room>` — which
+    # Co-presence used to be reconstructed inline wherever it was needed -
+    # `for n, op in players.items() if op.current_area == <this room>` - which
     # is a full scan of the roster for every character, every tick. The index
     # below is built once per tick and then kept live: a character that changes
     # area is moved between buckets in constant time instead of by rescanning,
@@ -181,11 +181,11 @@ class TickManager:
                 and not self.gs.is_undead_ghost(other)]
 
     def _resolve_area_node(self, area_name):
-        """Area node for a display name — id first, then name.
+        """Area node for a display name - id first, then name.
 
         ``current_area`` holds a display name, but area node ids are sanitized
         differently (apostrophes, generated coordinates), so an id-only lookup
-        silently returns None and the caller skips its whole per-area block —
+        silently returns None and the caller skips its whole per-area block -
         including the environment effects and the company-aware Social gain.
         Fall back to the same name resolution the player-facing paths use
         (``engine/room_perception.resolve_area_node``).
@@ -220,7 +220,7 @@ class TickManager:
         """Who should run at full fidelity, given what the anchors can perceive.
 
         There is no hop radius here. A character is a candidate because an anchor
-        is in their room, or because a channel says they are audible from one —
+        is in their room, or because a channel says they are audible from one -
         and the roster is never scanned: candidates come from the task-416
         presence buckets of the audible rooms only. Returns a list of registry
         keys, highest priority first, at most `cap` long.
@@ -268,7 +268,7 @@ class TickManager:
         """area node id -> [item nodes] for every item lying in a room.
 
         Which item sits in which area changes only when the graph changes, so
-        the map is cached against the graph revision — the old sweep paid one
+        the map is cached against the graph revision - the old sweep paid one
         indexed in-edge lookup per area on *every* tick to rebuild it. Item
         *state* is not cached: the caller reads it fresh each turn.
 
@@ -340,8 +340,8 @@ class TickManager:
                     continue
                 handled.add(item_node.id)
 
-        # An on_tick item the world has not placed anywhere — in no area, in
-        # nobody's hands — has no area to belong to, but it still ticks. It
+        # An on_tick item the world has not placed anywhere - in no area, in
+        # nobody's hands - has no area to belong to, but it still ticks. It
         # sorts by node id so the tail is as reproducible as the sweep above.
         for node_id in sorted(tick_sources - handled):
             item_node = self.graph.get_node(node_id)
@@ -428,7 +428,7 @@ class TickManager:
                 target.vitals[key] = max(0, min(100, target.vitals[key] - int(v)))
         # task-436: vital costs are absolute. They used to be multiplied by a
         # `time` field, which meant `move: {energy: 1}` cost 1 but
-        # `fumble: {energy: 3, time: 2}` cost 6 — the table's numbers read as
+        # `fumble: {energy: 3, time: 2}` cost 6 - the table's numbers read as
         # totals while acting as per-minute rates. Whether the action advanced
         # the clock is no longer this function's business: every atomic action
         # takes a minute, so the caller advances unconditionally.
@@ -490,7 +490,7 @@ class TickManager:
         except Exception as e:
             logger.warning("[tick] fidelity flush: %s", e)
 
-        # task-234: on_turn_start area/way/character triggers fire FIRST —
+        # task-234: on_turn_start area/way/character triggers fire FIRST -
         # before conditions, vitals decay, and environmental effects.
         try:
             self.gs._fire_turn_triggers("on_turn_start")
@@ -535,7 +535,7 @@ class TickManager:
             logger.warning("[tick] area light recompute: %s", e)
 
         # Incapacitated grapplers let go of everyone they're holding
-        # (unconscious/dead/paralysed etc. — can't keep a grip while down),
+        # (unconscious/dead/paralysed etc. - can't keep a grip while down),
         # then run the edge⇔condition grapple sync (orphan cleanup + desync repair).
         try:
             grapple = getattr(self.gs, "grapple", None)
@@ -571,7 +571,7 @@ class TickManager:
 
             # Whether this character was asleep when the tick began. The noise
             # wake below can end the sleep activity, and the sleep-regen block
-            # runs later in the tick — capturing it here means a sleeper woken
+            # runs later in the tick - capturing it here means a sleeper woken
             # by noise still gets that tick's regen instead of losing it every
             # tick and draining to 0 (the training-pit / dripping-tunnel death).
             was_sleeping = bool(p.activity and p.activity.get("type") == "sleeping")
@@ -604,7 +604,7 @@ class TickManager:
                 # system wakes at full Energy (regen applied below)
 
             from engine.traits import TraitSystem, MEMORY_DECAY_PER_TICK
-            # task-309: undead-ghost NPCs skip vitals processing entirely —
+            # task-309: undead-ghost NPCs skip vitals processing entirely -
             # they don't hunger, tire, or freeze (same handling as slashers).
             if TraitSystem.has_effect(p, "is_slasher") or self.gs.is_undead_ghost(pname):
                 continue
@@ -651,7 +651,7 @@ class TickManager:
                     p.decay_relationships(day - last_day, relationship_decay_per_day())
                 p._rel_decay_day = day
 
-            # Affect drift toward baseline (task-96) — cheap no-op until the
+            # Affect drift toward baseline (task-96) - cheap no-op until the
             # character's emotion map has been touched.
             if hasattr(p, 'decay_emotions'):
                 p.decay_emotions()
@@ -675,7 +675,7 @@ class TickManager:
                         ent_mod += 2 * LEGACY_PER_TICK
                 if ent_mod:
                     self._decay(p, "Entertainment", ent_mod)
-                # task-213: sex_addict — Entertainment decays twice as fast
+                # task-213: sex_addict - Entertainment decays twice as fast
                 # when Arousal sits below 15 (the itch comes back fast).
                 if ("Arousal" in p.vitals and p.vitals.get("Arousal", 100) < 15
                         and TraitSystem.has_effect(p, "sex_addict")):
@@ -692,7 +692,7 @@ class TickManager:
 
             if p.vitals.get("Energy", 1) <= 0:
                 p.add_condition("unconscious", duration=5)
-                # drops_held_items — collapsing, you let go of what's in your hands
+                # drops_held_items - collapsing, you let go of what's in your hands
                 try:
                     self.gs.item_actions.drop_held_items(self.gs, pname)
                 except Exception as e:
@@ -703,7 +703,7 @@ class TickManager:
                     # collapse one line above already made them let go of both
                     # hands; the helper would otherwise drop them twice.
                     if pname == self.player_manager.active_player:
-                        self.player_manager.add_log_entry("The cold has claimed you. Your body gives out one last time — you do not wake.")
+                        self.player_manager.add_log_entry("The cold has claimed you. Your body gives out one last time - you do not wake.")
                     self.gs.kill_player(pname, "exposure", drop_items=False)
                     continue
                 if pname == self.player_manager.active_player:
@@ -711,7 +711,7 @@ class TickManager:
 
             hp_loss = 0
             # Flipped drives: Hunger/Thirst max out at 100 (starving/dehydrated).
-            # HP only starts dropping AFTER a grace period at max — a person
+            # HP only starts dropping AFTER a grace period at max - a person
             # doesn't die the instant their stomach growls, and with the
             # decay rates now real-world-scaled the drives spend a long time
             # maxed while the character figures out where the food is. Without
@@ -783,7 +783,7 @@ class TickManager:
                     cause_parts.append("heat stroke")
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
-                # task-538: the single death path — it also writes the lived-log
+                # task-538: the single death path - it also writes the lived-log
                 # record, zeroes HP and drops held items, none of which this
                 # site used to do.
                 if pname == self.player_manager.active_player:
@@ -801,7 +801,7 @@ class TickManager:
                         self._decay(p, "Energy", -ENV_STALE_ENERGY)
                     elif air == "humid":
                         # task-353: humid air is physical discomfort, not social
-                        # isolation — it saps Hygiene, never Social.
+                        # isolation - it saps Hygiene, never Social.
                         self._decay(p, "Hygiene", -ENV_HUMID_HYGIENE)
                     elif air == "toxic":
                         # Preserve the resistance ratio; scale the magnitude to
@@ -811,7 +811,7 @@ class TickManager:
                             self._decay(p, "HP", -ENV_TOXIC_HP * (1 - resisted))
                     noise = env.get("noise", "quiet")
                     if noise in ["loud", "chaotic", "dripping", "dripping water", "scratches"]:
-                        # Phase 3 — loud_noise save_on hook (paranoid, light sleepers)
+                        # Phase 3 - loud_noise save_on hook (paranoid, light sleepers)
                         try:
                             self.gs._emit_save_on(
                                 pname, "loud_noise",
@@ -834,11 +834,11 @@ class TickManager:
                         self._decay(p, "Hygiene", -ENV_ROT_HYGIENE)
                     elif smell == "perfume":
                         # task-353: perfume is a physical/sensory pleasure, not
-                        # social connection — a lone character in a perfumed
+                        # social connection - a lone character in a perfumed
                         # room is still alone. It boosts Entertainment instead.
                         self._decay(p, "Entertainment", ENV_PERFUME_ENTERTAINMENT)
                     # task-232: humid atmosphere is physical discomfort (task-353)
-                    # — it saps Hygiene, distinct from the legacy air:"humid" check.
+                    # - it saps Hygiene, distinct from the legacy air:"humid" check.
                     humidity = env.get("humidity", "dry")
                     if humidity == "humid":
                         self._decay(p, "Hygiene", -ENV_HUMID_HYGIENE)
@@ -853,7 +853,7 @@ class TickManager:
                     # lone character and a crowded one decayed identically).
                     # gain defaults to 1; the `social_gain` trait effect (e.g.
                     # extrovert: 2, introvert: 0, loner: 0) scales BOTH
-                    # directions — introverts need less company, extroverts
+                    # directions - introverts need less company, extroverts
                     # crave it (task-353).
                     try:
                         from engine.traits import TraitSystem, SOCIAL_GAIN, GROUP_ENERGY_DRAIN
@@ -878,13 +878,13 @@ class TickManager:
                         if social_mult > 0:
                             self._decay(p, "Social", SOCIAL_COMPANY_GAIN * social_mult)
                             social_cause = f"with company ({', '.join(others_here[:3])})"
-                        # task-353 §1: GROUP_ENERGY_DRAIN — crowds sap energy
+                        # task-353 §1: GROUP_ENERGY_DRAIN - crowds sap energy
                         # (introvert -2, default 0, extrovert/loner 0). Legacy
                         # per-tick trait magnitude, scaled to per-minute.
                         if group_drain and len(others_here) >= 3:
                             self._decay(p, "Energy", group_drain * LEGACY_PER_TICK)
                     else:
-                        # task-353: loner reverses the isolation penalty — being
+                        # task-353: loner reverses the isolation penalty - being
                         # alone restores their social well-being.
                         if is_loner:
                             self._decay(p, "Social", SOCIAL_COMPANY_GAIN)
@@ -893,7 +893,7 @@ class TickManager:
                         else:
                             if social_mult > 0:
                                 self._decay(p, "Social", -SOCIAL_ALONE_DRAIN * social_mult)
-                            # task-353 §1: isolation timer — after 5 consecutive
+                            # task-353 §1: isolation timer - after 5 consecutive
                             # alone-ticks, Social decay accelerates. Introverts
                             # (social_mult 0) are exempt.
                             alone_ticks = getattr(p, "_alone_ticks", 0) + 1
@@ -903,7 +903,7 @@ class TickManager:
                                 social_cause = f"isolated in {player_area_name}"
                             else:
                                 social_cause = f"alone in {player_area_name}"
-                        # Phase 3 — alone_in_dark save_on hook (nyctophobic)
+                        # Phase 3 - alone_in_dark save_on hook (nyctophobic)
                         if light < 20:
                             try:
                                 self.gs._emit_save_on(pname, "alone_in_dark", {"light": light})
@@ -922,7 +922,7 @@ class TickManager:
                             signed = (SOCIAL_COMPANY_GAIN if len(others_here) > 0
                                       else -SOCIAL_ALONE_DRAIN)
                             self.player_manager.add_log_entry(
-                                f"[{name}] Social {signed:+.2f}/min — {social_cause}."
+                                f"[{name}] Social {signed:+.2f}/min - {social_cause}."
                             )
                         except Exception as e:
                             logger.warning("[tick] social log %s: %s", pname, e)
@@ -947,7 +947,7 @@ class TickManager:
                         # on a fixed schedule.
                         self._decay(p, "Sanity", SANITY_COMPANY_GAIN * social_mult)
                     # task-353 §5 (sanity branch): low Sanity is NOT a death
-                    # sentence — it never drains HP. It makes the character
+                    # sentence - it never drains HP. It makes the character
                     # more dangerous instead: paranoid → attack first,
                     # hallucinating → misread the room. Named conditions with
                     # attack/defense mods, mirroring social_breakdown.
@@ -974,7 +974,7 @@ class TickManager:
                     # Drift and convergence are per-minute, like the cold/heat
                     # damage they feed below. Left unscaled, a 15-minute tick
                     # spent 15 minutes taking band damage per 1 minute of
-                    # leaving the band — which killed poorly-sheltered and
+                    # leaving the band - which killed poorly-sheltered and
                     # cold-blooded characters.
                     minutes = self.minutes_per_tick()
                     if area_temp < band["ambient_cold"]:
@@ -1071,8 +1071,8 @@ class TickManager:
 
                 for item_node in carried_items:
                     is_lit = item_node.properties.get("current_state") == "lit"
-                    # Fire on_tick for ANY carried item with the trigger — not
-                    # just lit ones — so hidden disease carriers, amulets, and
+                    # Fire on_tick for ANY carried item with the trigger - not
+                    # just lit ones - so hidden disease carriers, amulets, and
                     # ticking hazards work from inventory (the sneeze-cloud
                     # contagion pattern).
                     tick_outputs = self.trigger_system._execute_triggers(
@@ -1179,7 +1179,7 @@ class TickManager:
         # ── Sound sources: items with sound_source tag emit sound ──
         self._process_sound_sources()
 
-        # task-234: on_turn_end area/way/character triggers fire LAST —
+        # task-234: on_turn_end area/way/character triggers fire LAST -
         # after the clock advanced, NPC behavior, and environment settled.
         try:
             self.gs._fire_turn_triggers("on_turn_end")
@@ -1363,14 +1363,14 @@ class TickManager:
         """Can this character's build actually release? task-488.
 
         Returns ``(allowed, reason)``. For everyone without the trait this is
-        ``(True, "")`` — the ordinary cascade is untouched, which is the property
+        ``(True, "")`` - the ordinary cascade is untouched, which is the property
         the task asks for and the reason this is a gate rather than a branch
         inside the cascade.
 
         `single_track` names one designated route and refuses every other one.
         The designated route lives in the trait's params (the trait already has a
         `params` field, so this adds no new field on the character). Absent a
-        designated route the trait cannot gate anything — and rather than
+        designated route the trait cannot gate anything - and rather than
         inventing one, the trait is inert, because "single track" with no track
         named is not a rule an engine can execute.
         """
@@ -1418,7 +1418,7 @@ class TickManager:
                 return named
             # An ancestor route counts: naming `torso` should cover a record under
             # `genitals`, because `region_chain` walks that region up through its
-            # parents. The test is `named in chain(recorded_key)` — checking the
+            # parents. The test is `named in chain(recorded_key)` - checking the
             # key against its *own* chain would be true for every key and would
             # match the very first recorded path no matter what was named, which
             # made the gate a no-op that released everything.
@@ -1450,7 +1450,7 @@ class TickManager:
         p.add_condition("frustrated", duration=15)
         if pname == self.player_manager.active_player:
             self.player_manager.add_log_entry(
-                "The tension has nowhere to go — frustration settles in.")
+                "The tension has nowhere to go - frustration settles in.")
         return True
 
     def _pleasure_tick(self, p, pname):
@@ -1491,7 +1491,7 @@ class TickManager:
                 before_arousal = vitals.get("Arousal", 0)
                 vitals["Arousal"] = min(100, before_arousal + trickle)
                 # task-545: friction is not a *path*. It has no region and no
-                # verb, so it is filed under its own source key — which is what
+                # verb, so it is filed under its own source key - which is what
                 # lets a path-gated effect (task-488) tell "you were touched
                 # somewhere else" apart from "nobody touched you, your clothes
                 # did it".
@@ -1535,7 +1535,7 @@ class TickManager:
             # task-546: honour `ends_on: ["release"]` here. Four mature
             # conditions declared it (`sensitized`, `highly_aroused`, `frantic`
             # and the new `frustrated`) and **nothing ever ended them**, because
-            # `Player.end_instances` had no caller — so "discharge on release"
+            # `Player.end_instances` had no caller - so "discharge on release"
             # was authored and inert. This is the one place a release happens,
             # so this is the one line that makes the declaration true, and it
             # discharges frustration (task-546) as a side effect rather than a
@@ -1558,7 +1558,7 @@ class TickManager:
                     p.add_condition("sensitized", duration=10)
             if pname == self.player_manager.active_player:
                 self.player_manager.add_log_entry(
-                    "A wave of release washes through you — every muscle lets go at once.")
+                    "A wave of release washes through you - every muscle lets go at once.")
 
     def _sync_arousal_conditions(self, p):
         """task-209: drive arousal-state conditions from the Arousal vital.

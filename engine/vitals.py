@@ -1,20 +1,20 @@
-"""Vital polarity registry — the single source for how each vital reads.
+"""Vital polarity registry - the single source for how each vital reads.
 
 Three types (task-337):
-* ``resource`` — ↑ good, decays downward over time (HP, Energy, ...)
-* ``drive``    — ↑ bad, fills upward over time  (Hunger, Thirst, Bladder)
-* ``band``     — comfort window, both extremes bad (Temperature; Pleasure later)
+* ``resource`` - ↑ good, decays downward over time (HP, Energy, ...)
+* ``drive``    - ↑ bad, fills upward over time  (Hunger, Thirst, Bladder)
+* ``band``     - comfort window, both extremes bad (Temperature; Pleasure later)
 
 Hunger/Thirst flipped from satiation to drive semantics 2026-08-23:
 every scenario ever authored food/drink as negative-amount relief, so the
 content convention wins and the engine follows.
 
 Use these helpers instead of hardcoding comparisons or "adjusted by N"
-messages — UI bars, prompt text and feedback all derive from here.
+messages - UI bars, prompt text and feedback all derive from here.
 
 **And the ceiling** (task-538). This module also answers "what is the top of
 this vital on this character?", which used to be a literal ``100`` written out in
-about ten places — ``player.py``, ``effects.py``, both deserialisers, both vital
+about ten places - ``player.py``, ``effects.py``, both deserialisers, both vital
 effect handlers, ``vital_rates.change``, ``combat.py``, ``traits.py`` and the
 HP-regeneration gate in ``tick_manager``. The literal was harmless only because
 ``Max_HP`` was itself always 100; a stat block that declares a real maximum
@@ -49,8 +49,8 @@ VITAL_POLARITY: Dict[str, str] = {
     # use resource mechanics in the baseline-decay loop despite arousal being
     # a "need" narratively.
     "Arousal": "resource",        # eases off slowly when nothing feeds it
-    "Stimulation": "resource",    # direct contact meter — drains toward 0
-    "Pleasure": "resource",       # afterglow metric — fades fastest
+    "Stimulation": "resource",    # direct contact meter - drains toward 0
+    "Pleasure": "resource",       # afterglow metric - fades fastest
     # bands: comfort window, both extremes bad
     "Temperature": "band",
 }
@@ -128,7 +128,7 @@ BAND_VITAL_FLOOR = {
 
 
 def ceiling(vitals: dict | None, stat: str) -> float:
-    """The top of ``stat`` for this character — the one answer (task-538).
+    """The top of ``stat`` for this character - the one answer (task-538).
 
     Resolution order, and the order is the whole point:
 
@@ -136,7 +136,7 @@ def ceiling(vitals: dict | None, stat: str) -> float:
        (``Max_HP``, ``Max_Mana``, …). This is the ``Max_`` convention
        ``routes/player_ops`` already looked for, so a stat block that sets
        ``Max_HP: 7`` is bounded by 7 here;
-    2. for HP, a value derived from ``hit_dice`` — see
+    2. for HP, a value derived from ``hit_dice`` - see
        :func:`engine.vitals.hit_dice_max`, applied by the deserialisers at load
        time rather than here, so this function stays a pure reader;
     3. the vital's natural scale: ``DEFAULT_MAX_HP`` for HP, 100 for the
@@ -184,7 +184,7 @@ def clamp_to_ceiling(vitals: dict, stat: str, value) -> float:
 
 # ── Hit dice (task-538) ──────────────────────────────────────────────────
 
-#: How ``hit_dice`` resolves at load time. A **bestiary** wants the average —
+#: How ``hit_dice`` resolves at load time. A **bestiary** wants the average -
 #: the 7 HP of an orc is a stat line, not a dice roll, and re-rolling it on
 #: every load would make a creature's health drift every time a save was read.
 #: A character that *rolls up* wants the roll, which is what
@@ -195,7 +195,7 @@ HIT_DICE_MODES = ("average", "roll")
 def parse_hit_dice(expression) -> tuple[int, int, int] | None:
     """``"7d8+14"`` -> ``(7, 8, 14)``; ``(2, 6, -1)`` -> itself.
 
-    Returns ``None`` for anything it cannot read rather than guessing — a typo
+    Returns ``None`` for anything it cannot read rather than guessing - a typo
     in a stat block must be visible, not silently resolved to zero HP. A bare
     ``"d8"`` means 1d8, matching how weapon damage already reads (``task-607``
     fixed the same shorthand in ``equipment_bonuses.parse_damage``).
@@ -233,7 +233,7 @@ def hit_dice_max(expression, mode: str = "average", rng=None) -> int | None:
 
     ``average`` is the default and the right answer for a bestiary: 7d8+14 is
     49, which is what the stat block means. ``roll`` is for a character that
-    rolls up at creation — pass ``rng`` (anything with ``randint``) or the
+    rolls up at creation - pass ``rng`` (anything with ``randint``) or the
     standard library is used.
 
     The result is floored at 1: a stat block that resolves to 0 or less is
@@ -250,7 +250,7 @@ def hit_dice_max(expression, mode: str = "average", rng=None) -> int | None:
         roller = rng or random
         total = sum(roller.randint(1, sides) for _ in range(count)) + bonus
     else:
-        # The true mean, rounded half-up — 2d6 is 7, not the 6 an integer
+        # The true mean, rounded half-up - 2d6 is 7, not the 6 an integer
         # division gives, and `round()` is banker's rounding so half-up has to
         # be spelled out. Half-up is the convention every stat block uses.
         import math
@@ -266,7 +266,7 @@ def apply_hit_dice(vitals: dict, data: dict) -> dict:
     characters predate this task and set ``Max_HP`` directly, and a stat block
     that declares both has already said what it wants; the formula is only ever
     the fallback. Recording that as a decision here rather than raising is the
-    deliberate choice — a bestiary listing both is redundant, not contradictory,
+    deliberate choice - a bestiary listing both is redundant, not contradictory,
     and failing the load over it would be worse than honouring the number.
 
     Returns the same ``vitals`` dict, mutated in place.
@@ -308,7 +308,7 @@ def apply_hit_dice(vitals: dict, data: dict) -> dict:
 
 def format_vital_change(stat: str, amount: int) -> str:
     """Player-facing adjustment line that states direction AND whether it
-    helps or hurts — replaces the ambiguous '{stat} adjusted by N.'"""
+    helps or hurts - replaces the ambiguous '{stat} adjusted by N.'"""
     try:
         amount = int(amount)
     except (TypeError, ValueError):
@@ -323,12 +323,12 @@ def format_vital_change(stat: str, amount: int) -> str:
         return f"Your {name} builds ({signed})."
     # resource (bands shouldn't route through here, but degrade gracefully)
     if amount > 0:
-        return f"{stat} +{abs(amount)} — improves."
-    return f"{stat} -{abs(amount)} — worsens."
+        return f"{stat} +{abs(amount)} - improves."
+    return f"{stat} -{abs(amount)} - worsens."
 
 
 def format_vitals_readout(vitals: dict) -> str:
-    """Format a vitals dict for the ``stats`` command — one line per vital,
+    """Format a vitals dict for the ``stats`` command - one line per vital,
     polarity-aware. Drives note they fill toward crisis; bands note the
     comfort window. Resources need no annotation (high = good)."""
     if not vitals:
@@ -337,9 +337,9 @@ def format_vitals_readout(vitals: dict) -> str:
     for stat, value in vitals.items():
         p = polarity(stat)
         if p == "drive":
-            lines.append(f"  {stat}: {value} — fills toward 100")
+            lines.append(f"  {stat}: {value} - fills toward 100")
         elif p == "band":
-            lines.append(f"  {stat}: {value} — comfort band")
+            lines.append(f"  {stat}: {value} - comfort band")
         else:
             lines.append(f"  {stat}: {value}")
     return "\n".join(lines)

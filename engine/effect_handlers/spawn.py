@@ -4,7 +4,7 @@ from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 
 
 def _natural_article(name: str) -> str:
-    """'a'/'an' for a noun phrase — 'an Everflame Ember', 'a Key'."""
+    """'a'/'an' for a noun phrase - 'an Everflame Ember', 'a Key'."""
     head = str(name or "").strip().lstrip('"\'')
     return "an" if head[:1].lower() in "aeiou" else "a"
 
@@ -18,9 +18,9 @@ def _capture_recent(self, game_state, item_node, capture: str, limit: int) -> li
     ``action``/``actor``/``description``.
 
     capture modes:
-      ``speech`` — spoken lines only (a recorder's tape)
-      ``sight``  — visible events only, speech excluded (a camera photo)
-      anything else — unfiltered (every described event in the area)
+      ``speech`` - spoken lines only (a recorder's tape)
+      ``sight``  - visible events only, speech excluded (a camera photo)
+      anything else - unfiltered (every described event in the area)
     """
     if game_state is None:
         return []
@@ -71,13 +71,13 @@ def handle_spawn_item(self, params, context, item_node=None, game_state=None):
     """Spawn a new item into the current area (default) or into a container.
 
     params:
-      item_id — library / graph id to spawn
-      into — ``"area"`` (default) or ``"container"`` (``EDGE_IN`` into the
+      item_id - library / graph id to spawn
+      into - ``"area"`` (default) or ``"container"`` (``EDGE_IN`` into the
              triggering container; requires ``item_node``)
-      capture — ``"speech"`` (recorder tape) or ``"sight"`` (camera photo);
+      capture - ``"speech"`` (recorder tape) or ``"sight"`` (camera photo);
              appends the captured lines to the spawned item's description
-      capture_limit — max captured lines (default 5)
-      message / fail_message — narration on success / capacity failure
+      capture_limit - max captured lines (default 5)
+      message / fail_message - narration on success / capacity failure
 
     game_state must provide: game_state.get_current_area_id() -> str | None
     """
@@ -141,16 +141,16 @@ def handle_give_item(self, params, context, item_node=None, game_state=None):
     """Place a library item directly into a character's inventory.
 
     params:
-      item_id (str) — library id (or existing graph node id) to give.
-      target — ``"self"`` (active player, default), ``"target"``
+      item_id (str) - library id (or existing graph node id) to give.
+      target - ``"self"`` (active player, default), ``"target"``
                (the on_use_on target), or a character name.
-      message (str) — optional narration (supports {target_name}).
-      display_name / description / current_state — overrides when
+      message (str) - optional narration (supports {target_name}).
+      display_name / description / current_state - overrides when
         hydrating from the library (same knobs as spawn_item).
 
     Unlike ``spawn_item`` (drops in the area), this attaches the item via
     a ``carrying`` edge, so the character is immediately infected / in
-    possession — e.g. a failed Medicine check on a corpse puts the hidden
+    possession - e.g. a failed Medicine check on a corpse puts the hidden
     disease carrier on you.
     """
     item_id = params.get("item_id", "")
@@ -211,9 +211,9 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
     never the display name, so a duplicate is not moved onto the primary.
 
     params:
-      character_id — library id to spawn
-      area — optional area name override (defaults to current actor's area)
-      message — optional narration (supports {character_name})
+      character_id - library id to spawn
+      area - optional area name override (defaults to current actor's area)
+      message - optional narration (supports {character_name})
 
     game_state must provide: add_player, get_player, get_current_area_id,
     set_player_area, active_player, graph.
@@ -235,7 +235,7 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
 
     area_name = params.get("area")
     if not area_name and item_node is not None and game_state is not None:
-        # A spawner fixture spawns into *its own* area, not the active actor's —
+        # A spawner fixture spawns into *its own* area, not the active actor's -
         # a rabbit burrow must not drop rabbits where the player happens to be.
         for _edge in game_state.graph.get_edges_for_source(item_node.id, EDGE_IN):
             _target = game_state.graph.get_node(_edge.target)

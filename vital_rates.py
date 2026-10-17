@@ -1,12 +1,12 @@
 """Canonical per-minute vital rates for long-horizon simulation.
 
-Every rate in this module is expressed **per in-game minute** — not per
+Every rate in this module is expressed **per in-game minute** - not per
 tick-as-a-session-beat, which is what the pre-2026-09 tuning assumed. A tick is
 ``world.time_per_tick_minutes`` of game time, which a scenario or the live
 Engine Config can set to anything, so callers pass that length as ``minutes``
 and the effect scales with it: a 15-minute tick drains 15 minutes' worth. Left
 unscaled, decay and the clock disagree the moment the tick stops being a
-minute — a 15-minute world would starve everyone 15x too slowly.
+minute - a 15-minute world would starve everyone 15x too slowly.
 
 Fractional rates are applied through :func:`change`, a per-player per-stat
 accumulator that carries the leftover between ticks. Sub-1 rates vanish under
@@ -41,7 +41,7 @@ BASELINE_DECAY = {
     "Mana": 0.0,
 }
 
-# Bladder is not in BASELINE_DECAY — it has its own thirst-modulated fill.
+# Bladder is not in BASELINE_DECAY - it has its own thirst-modulated fill.
 # Filling every ~4h is realistic; the hygiene cost of each event is what
 # must stay modest or Hygiene crashes four times a day.
 BLADDER_FILL = 0.42
@@ -66,7 +66,7 @@ COLD_MILD_ENERGY = 0.05        # core 36..37
 COLD_SEVERE_ENERGY = 0.15      # core 33..35
 COLD_SEVERE_HP = 0.05
 COLD_CRITICAL_HP = 0.15        # core < 33
-HEAT_MILD_THIRST = 0.02        # core 37..38 — heat makes you thirstier
+HEAT_MILD_THIRST = 0.02        # core 37..38 - heat makes you thirstier
 HEAT_MODERATE_THIRST = 0.05    # core 38..40
 HEAT_MODERATE_HP = 0.05
 HEAT_SEVERE_HP = 0.20          # core > 40
@@ -78,14 +78,14 @@ SLEEP_ENERGY_REGEN = 0.30      # net ~+0.20/min after baseline Energy drain
 # ── Social / sanity coupling ────────────────────────────────────────────
 # Company is MAINTENANCE, not a source (task-431): the gain equals the Social
 # baseline, so standing near people stops the rot (net 0/min) without filling the
-# meter — what actually builds Social is *interacting* with them (task-423's
+# meter - what actually builds Social is *interacting* with them (task-423's
 # background social actions, and the foreground conversation loop).
 #
 # Do not raise this above the baseline. `tests/test_decay_rate_bake.py::
 # test_company_is_maintenance_not_a_source` guards it: 0.030 against a 0.020
 # baseline fills Social from mere co-presence, so interactions become decoration.
 # A dispersed camp whose Social collapses (see task-409) is therefore an
-# interaction/co-location problem — bundled chores and schedules — not a reason to
+# interaction/co-location problem - bundled chores and schedules - not a reason to
 # make company a source.
 SOCIAL_COMPANY_GAIN = 0.020
 SOCIAL_ALONE_DRAIN = 0.020     # extra beyond baseline while alone
@@ -95,7 +95,7 @@ SOCIAL_ISOLATION_EXTRA = 0.020  # after 5 consecutive alone-ticks
 # Sanity used to have none: five drains and no inflow, so an authored 65-90 ran
 # out on a fixed schedule and *every* character in a camp ended a week
 # hallucinating. Sleep is the primary source (see ACTIVITY_REGEN), this is the
-# social half — the mirror of SANITY_PENALTY_SOCIAL_LOW, so being connected
+# social half - the mirror of SANITY_PENALTY_SOCIAL_LOW, so being connected
 # steadies a character and isolation unsteadies them.
 SANITY_COMPANY_GAIN = 0.004    # per minute while Social is healthy
 SANITY_COMPANY_MIN_SOCIAL = 70  # the Social level above which company steadies you
@@ -128,7 +128,7 @@ def change(player, stat, per_minute, *, minutes=1, cap=None, floor=0):
     """Accumulate a per-minute change and apply whole units when they land.
 
     ``per_minute`` is signed (negative drains, positive restores/fills) and
-    ``minutes`` is how much game time this tick covers — normally
+    ``minutes`` is how much game time this tick covers - normally
     ``world.time_per_tick_minutes``. Pass it from every caller that is not
     already iterating minutes, or the effect silently freezes at the 1-minute
     rate while the clock runs faster.

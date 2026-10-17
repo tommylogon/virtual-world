@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-validate_scenario.py — Validate a scenario JSON against engine conventions.
+validate_scenario.py - Validate a scenario JSON against engine conventions.
 
 Usage:
     python tools/validate_scenario.py --input data/scenarios/kraktooth_goblin_camp.json
@@ -32,14 +32,14 @@ def validate_area_names(nodes: dict, issues: list):
     """
     for name, ids in sorted(duplicate_area_names(nodes).items()):
         issues.append(
-            f"Duplicate area display name '{name}' shared by: {', '.join(ids)} — "
+            f"Duplicate area display name '{name}' shared by: {', '.join(ids)} - "
             f"give each a unique name or address them by id")
 
 
 def validate_areas(nodes: dict, issues: list):
     areas = [n for n in nodes.values() if n.get("type") == "area"]
     if not areas:
-        issues.append("No areas found — the world will be empty after load.")
+        issues.append("No areas found - the world will be empty after load.")
     for area_id, node in nodes.items():
         if node.get("type") != "area":
             continue

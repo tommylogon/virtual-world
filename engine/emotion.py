@@ -171,7 +171,7 @@ LABEL_TO_DIM: dict[str, str] = {
     "surprised": "surprised",
     # task-652: the eleven AXIS names, declared here so they are read as authored
     # vocabulary rather than falling out of `AXIS_TO_EXPRESSION` by the back door.
-    # `map_label` has always resolved "sadness" and "anger" — but because it
+    # `map_label` has always resolved "sadness" and "anger" - but because it
     # happens to invert the *expression* table, which is a different concern that
     # happens to share eleven names. Those eleven names belong here, next to
     # `terrified` and `furious`, where an author can see them.
@@ -208,42 +208,42 @@ SPEAK_THRESHOLD = 18.0
 #: First-person band phrases, high → low deviation. Index 0 = strongest.
 _BANDS: dict[str, tuple[str, str, str]] = {
     "happy": (
-        "You are elated — everything feels bright and possible.",
+        "You are elated - everything feels bright and possible.",
         "You feel genuinely happy.",
         "There is a quiet warmth in you.",
     ),
     "sad": (
-        "You are crushed by sorrow — it takes effort just to stay upright.",
+        "You are crushed by sorrow - it takes effort just to stay upright.",
         "A heavy sadness sits on you.",
         "You feel low, a dull ache behind everything.",
     ),
     "afraid": (
-        "You are terrified — your heart hammers and every shadow moves.",
+        "You are terrified - your heart hammers and every shadow moves.",
         "You are afraid, watchful and tense.",
         "A nervous dread you can't quite name lingers.",
     ),
     "angry": (
-        "You are livid — it takes everything not to lash out.",
+        "You are livid - it takes everything not to lash out.",
         "Anger simmers in you, hot and close.",
         "You are irritated, shorter-tempered than usual.",
     ),
     "envious": (
-        "Envy burns in you — what they have should be yours.",
+        "Envy burns in you - what they have should be yours.",
         "You feel envious, acutely aware of what you lack.",
         "A small jealous pang colors how you look at others.",
     ),
     "affectionate": (
-        "Warmth floods you — you want to be close to someone, now.",
+        "Warmth floods you - you want to be close to someone, now.",
         "You feel affectionate and open.",
         "You feel a gentle fondness toward those around you.",
     ),
     "disgusted": (
-        "Disgust churns in you — you want it AWAY from you.",
+        "Disgust churns in you - you want it AWAY from you.",
         "You are repulsed and keep your distance.",
         "Something here turns your stomach slightly.",
     ),
     "calm": (
-        "You are utterly at peace — nothing touches you.",
+        "You are utterly at peace - nothing touches you.",
         "A deep calm settles over you.",
         "You feel pleasantly calm.",
     ),
@@ -251,12 +251,12 @@ _BANDS: dict[str, tuple[str, str, str]] = {
     # these, a derived mood falls back to the generic "You feel <dim> with
     # unusual intensity." phrasing, which reads like a debug string.
     "lonely": (
-        "You are achingly lonely — the quiet is a weight you cannot put down.",
+        "You are achingly lonely - the quiet is a weight you cannot put down.",
         "Loneliness sits heavy in you.",
         "You feel a small, persistent loneliness.",
     ),
     "craving": (
-        "A raw craving gnaws at you — you can think of little else.",
+        "A raw craving gnaws at you - you can think of little else.",
         "You are craving something badly.",
         "A dull craving tugs at the edge of your thoughts.",
     ),
@@ -266,12 +266,12 @@ _BANDS: dict[str, tuple[str, str, str]] = {
         "A thread of anxiety runs under everything.",
     ),
     "uneasy": (
-        "You cannot settle — something feels wrong.",
+        "You cannot settle - something feels wrong.",
         "You feel uneasy, on edge.",
         "A faint unease prickles at you.",
     ),
     "irritated": (
-        "You are thoroughly irritated — everything grates.",
+        "You are thoroughly irritated - everything grates.",
         "Irritation simmers just under the surface.",
         "You feel a little irritated.",
     ),
@@ -284,7 +284,7 @@ _BANDS: dict[str, tuple[str, str, str]] = {
 
 
 def baseline() -> dict[str, float]:
-    """A fresh neutral emotion map (copy — safe to mutate/store)."""
+    """A fresh neutral emotion map (copy - safe to mutate/store)."""
     return dict(BASELINES)
 
 
@@ -317,7 +317,7 @@ def spike(values: dict, emotion: str, delta: float) -> dict[str, float]:
 # `set_emotion(label, intensity)` predates the affect map and every caller still
 # means the same thing by it: *this is now how the character feels*. The four
 # functions below are the translation, and they are the only place that
-# translation exists — the point of the task was that the two models had drifted
+# translation exists - the point of the task was that the two models had drifted
 # into being two states, and a second copy of this logic is how that would
 # happen again.
 
@@ -343,7 +343,7 @@ def resolve_label(label: str) -> str | None:
 def dominant_dimension(values: dict, min_margin: float | None = None) -> str | None:
     """The strongest dimension above its baseline, or ``None`` at rest.
 
-    ``min_margin`` is the bar a dimension must clear to count as a *feeling* —
+    ``min_margin`` is the bar a dimension must clear to count as a *feeling* -
     the same threshold :func:`dominant_expression` uses, so the label and the
     portrait can never disagree about which feeling is leading.
     """
@@ -364,8 +364,8 @@ def raised_axes(values: dict, min_margin: float | None = None) -> dict:
 
     :func:`dominant_dimension` answers "which feeling leads"; this answers "what
     is this character actually feeling, all of it". The behaviour layer needed
-    the second question — a frightened character expresses fear through
-    `confide` as well as through `bully` being suppressed — and it needed it as
+    the second question - a frightened character expresses fear through
+    `confide` as well as through `bully` being suppressed - and it needed it as
     a property of **the model**, not as arithmetic re-derived per call site.
 
     Only axes clear of ``min_margin`` (the same bar that decides a label counts
@@ -402,7 +402,7 @@ def dominant_intensity(values: dict, min_margin: float | None = None) -> float:
 
 
 def dominant_label(values: dict, min_margin: float | None = None) -> str:
-    """The leading dimension's name, or ``"neutral"`` — what ``emotion`` reads.
+    """The leading dimension's name, or ``"neutral"`` - what ``emotion`` reads.
 
     Returns the **dimension** rather than the 12 portrait keys, because that is
     what every caller of the legacy field expects to read back: `set_emotion` is
@@ -420,7 +420,7 @@ def set_dominant(values: dict, dimension: str, intensity: float) -> dict[str, fl
     told to be "afraid" is not left equally afraid, anxious *and* uneasy at full
     strength. The other axes are untouched: being frightened in a cold room does
     not make you calm, and the damping is per axis precisely so that a second,
-    unrelated feeling can be true at the same time — which is the entire reason the
+    unrelated feeling can be true at the same time - which is the entire reason the
     map replaced the single slot.
     """
     if dimension not in (values or {}) or dimension not in BASELINES:
@@ -476,10 +476,10 @@ def derive_from_vitals(vitals: dict, state: str = "") -> dict | None:
         return None
     state = str(state or "")
     if state == "dead":
-        # Detached, calm — a ghost pov (the living rarely see it).
+        # Detached, calm - a ghost pov (the living rarely see it).
         return {"calm": 80.0}
     if state in ("unconscious", "sleeping"):
-        # Asleep (or under) — no mood worth narrating mid-sleep.
+        # Asleep (or under) - no mood worth narrating mid-sleep.
         return None
 
     try:
@@ -701,12 +701,12 @@ def resolve_label_semantic(label, embed_fn=None) -> str | None:
 
     The semantic half of the bridge (task-505). The browser already does this in
     ``static/js/shared/emotion-mapper.js``; this is the server-side twin for
-    anything that reaches the engine without passing through the browser — a
+    anything that reaches the engine without passing through the browser - a
     trigger effect, a background agenda, a saved decision.
 
     Gated on ``emotion.semantic_labels``: with it off this returns None
     immediately, so the default cost of an unrecognised label stays a dict
-    lookup. Returns None — never a guess — when the provider is unavailable or
+    lookup. Returns None - never a guess - when the provider is unavailable or
     the best anchor is too far away; callers keep treating None as a no-op.
     """
     if embed_fn is None:
@@ -741,8 +741,8 @@ def map_label(label, embed_fn=None) -> list[tuple[str, float]]:
     """Map an emotion label to one or more (dimension, weight) pairs.
 
     Exact match first, then substring containment over the curated vocabulary,
-    then — only if the keyword path missed and an embedding provider is
-    available — a semantic nearest-anchor match (task-505). Returns [] for a
+    then - only if the keyword path missed and an embedding provider is
+    available - a semantic nearest-anchor match (task-505). Returns [] for a
     genuinely unknown label so creative or agent-invented vocabulary never
     crashes the emotion path, and never invents a dimension.
     """
@@ -770,7 +770,7 @@ def felt_from_llm(raw, max_intensity: float | None = None,
     (``emotion.llm_spike_max``).
 
     Resolution is **authored vocabulary first, semantic bridge second, never a
-    substring** — task-652, and it fixes two ways this was wrong:
+    substring** - task-652, and it fixes two ways this was wrong:
 
     * It used to consult only :data:`BASELINES`, so every alias this module
       declares was silently dropped: ``terrified`` (an alias of ``afraid``),
@@ -778,7 +778,7 @@ def felt_from_llm(raw, max_intensity: float | None = None,
       the LLM path rejected the same word, which is the definition of two
       vocabularies for one thing.
     * The *route* used :func:`map_label` instead of this, which substring-matches,
-      so ``hangry`` became ``angry`` on a coincidence — precisely what
+      so ``hangry`` became ``angry`` on a coincidence - precisely what
       task-505 was filed to prevent. ``hangry`` is now resolved through
       :data:`LABEL_TO_DIM` if an author has said so, through the semantic bridge
       if one is configured, and otherwise ignored.

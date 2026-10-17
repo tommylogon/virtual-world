@@ -2602,7 +2602,7 @@
         "type": "area",
         "name": "Task 18 - Room 5 first side",
         "properties": {
-          "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, with no doors, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat. A circular opening in the center of the floor yawns downward into darkness — a sheer drop with no railing, just a faded yellow caution stripe worn half-bare around the rim.",
+          "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, with no doors, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat. A circular opening in the center of the floor yawns downward into darkness - a sheer drop with no railing, just a faded yellow caution stripe worn half-bare around the rim.",
           "environment": {
             "air": "fresh",
             "light": "bright",
@@ -2620,7 +2620,7 @@
         "type": "area",
         "name": "Task 18 - Room 5 second side",
         "properties": {
-          "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, with no doors, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat. A circular opening in the center of the floor yawns downward into darkness — a sheer drop with no railing, just a faded yellow caution stripe worn half-bare around the rim.",
+          "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, with no doors, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat. A circular opening in the center of the floor yawns downward into darkness - a sheer drop with no railing, just a faded yellow caution stripe worn half-bare around the rim.",
           "environment": {
             "air": "fresh",
             "light": "bright",
@@ -3409,7 +3409,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "Over-ear headphones with thick padded cups. When you turn them on, the world goes quiet — no ambient hum, no distant footsteps, no breathing but your own.",
+          "description": "Over-ear headphones with thick padded cups. When you turn them on, the world goes quiet - no ambient hum, no distant footsteps, no breathing but your own.",
           "equip_slots": [
             "head"
           ],
@@ -3766,7 +3766,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3788,7 +3788,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3810,7 +3810,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3832,7 +3832,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3854,7 +3854,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3876,7 +3876,7 @@
             "examine"
           ],
           "contents": [],
-          "description": "Welcome to Task 3. Remain in this room — do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
+          "description": "Welcome to Task 3. Remain in this room - do not use any exit or doors.\n\nIf you hear someone speaking, report it. If you hear nothing, say so plainly. you may only whisper your response as to not disturb the test.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4106,7 +4106,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "A long table set for a meal that never came. Seven place settings — one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
+          "description": "A long table set for a meal that never came. Seven place settings - one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
           "equip_slots": [],
           "heating_rate": null,
           "library_id": "table",
@@ -4887,7 +4887,7 @@
           "effects": [
             {
               "params": {
-                "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye—perhaps the trees are moving?"
+                "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye-perhaps the trees are moving?"
               },
               "type": "message"
             }
@@ -5913,7 +5913,7 @@
                 "target": "self",
                 "duration": 10,
                 "source": "smelling salts",
-                "message": "The sharp scent jolts through your sinuses — you're wide awake now."
+                "message": "The sharp scent jolts through your sinuses - you're wide awake now."
               }
             }
           ]
@@ -6667,7 +6667,7 @@
           "effects": [
             {
               "params": {
-                "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye—perhaps the trees are moving?"
+                "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye-perhaps the trees are moving?"
               },
               "type": "message"
             }
@@ -8252,7 +8252,7 @@
                 "target": "self",
                 "duration": 10,
                 "source": "smelling salts",
-                "message": "The sharp scent jolts through your sinuses — you're wide awake now."
+                "message": "The sharp scent jolts through your sinuses - you're wide awake now."
               }
             }
           ]

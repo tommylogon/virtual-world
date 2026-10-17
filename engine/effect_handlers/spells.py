@@ -1,4 +1,4 @@
-"""Spell effect handlers (task-391) — Lyrie's spellbook.
+"""Spell effect handlers (task-391) - Lyrie's spellbook.
 
 These are the five effects the Lyrie spellbook needed that no existing handler
 covered. Each one is deliberately built out of machinery that already exists
@@ -14,7 +14,7 @@ Shared params
 -------------
 ``radius_areas`` (int, default 1)
     How many area-hops out to reach. Sweeps pass through ways whether open or
-    closed — a spell should not be blocked by a shut door, and neither should
+    closed - a spell should not be blocked by a shut door, and neither should
     the reveal it casts.
 """
 
@@ -93,7 +93,7 @@ def _nodes_in_areas(graph, area_ids, node_types) -> list:
     """Every node of the given types sitting in any of *area_ids*.
 
     ``EDGE_IN`` points *from* the thing *to* its area (item -> room), so the
-    sweep has to walk edges by target and read the source node — the same way
+    sweep has to walk edges by target and read the source node - the same way
     ``engine.room_perception.characters_in_area`` does.
     """
     wanted = set(node_types or _DEFAULT_SWEEP_TYPES)
@@ -171,14 +171,14 @@ def handle_polymorph_target(self, params, context, item_node=None, game_state=No
     """Transform a node into a library template, and revert it again.
 
     params:
-      target / node_id — what to transform. Defaults to the ``use X on Y`` target.
-      target_template  — library id under ``data/library/items`` (or
+      target / node_id - what to transform. Defaults to the ``use X on Y`` target.
+      target_template  - library id under ``data/library/items`` (or
                          ``characters`` when the target is a character).
-      revert (bool)    — true restores the pre-polymorph state instead of
+      revert (bool)    - true restores the pre-polymorph state instead of
                          casting. Paired with ``schedule_trigger`` +
                          ``on_delayed`` this gives a duration without needing a
                          second effect type.
-      message          — narration.
+      message          - narration.
 
     The original ``name``/``properties`` are snapshotted onto the node under
     ``_polymorph_snapshot`` while transformed, so revert is exact rather than a
@@ -216,7 +216,7 @@ def handle_polymorph_target(self, params, context, item_node=None, game_state=No
         return [
             params.get(
                 "fail_message",
-                f"The transmutation falters — there is no {template_id} to become.",
+                f"The transmutation falters - there is no {template_id} to become.",
             )
         ]
 
@@ -272,16 +272,16 @@ def handle_create_illusory_companion(
     """Summon a temporary, non-acting companion character.
 
     params:
-      character_id      — library id under ``data/library/characters`` to summon.
-      name              — display-name override.
-      description       — description override.
-      greeting          — folded into the description so the first look at the
+      character_id      - library id under ``data/library/characters`` to summon.
+      name              - display-name override.
+      description       - description override.
+      greeting          - folded into the description so the first look at the
                           companion already carries its voice.
-      duration (ticks)  — how long it lasts. Expiry is swept by
+      duration (ticks)  - how long it lasts. Expiry is swept by
                           ``engine.companions.expire_companions``.
-      dialogue          — lines kept on the instance for a future talk handler.
-      vanish_on_area_leave (bool) — also drop it when the caster leaves.
-      message           — narration.
+      dialogue          - lines kept on the instance for a future talk handler.
+      vanish_on_area_leave (bool) - also drop it when the caster leaves.
+      message           - narration.
 
     The companion is deliberately **inert**: ``autonomy`` is cleared and
     ``simple_npc`` set, so it never draws an LLM turn, never soaks, and never
@@ -298,7 +298,7 @@ def handle_create_illusory_companion(
         return [
             params.get(
                 "fail_message",
-                f"The summoning falters — there is no {char_id or 'companion'} to call.",
+                f"The summoning falters - there is no {char_id or 'companion'} to call.",
             )
         ]
 
@@ -355,12 +355,12 @@ def handle_broadcast_emotion(self, params, context, item_node=None, game_state=N
     """Shift the affect of every character within a radius.
 
     params:
-      spikes          — ``{emotion: delta}`` against the task-96 affect map
+      spikes          - ``{emotion: delta}`` against the task-96 affect map
                         (``calm``, ``peaceful``, ``anxious``, ``craving``, …).
                         Positive soothes, negative unsettles.
-      radius_areas    — area-hops to reach (default 1).
-      include_caster  — whether the caster is affected too (default False).
-      message         — narration.
+      radius_areas    - area-hops to reach (default 1).
+      include_caster  - whether the caster is affected too (default False).
+      message         - narration.
 
     Affect needs no ``duration``: the map relaxes back toward its baseline on its
     own each tick, so a one-shot spike decays naturally. ``duration`` is accepted
@@ -410,13 +410,13 @@ def handle_bind_companion(self, params, context, item_node=None, game_state=None
     """Mark a node as a persistent companion that follows its caster.
 
     params:
-      node_id / item_id — the companion node. Defaults to the spell item itself,
+      node_id / item_id - the companion node. Defaults to the spell item itself,
                           which is the common case (the spell casts its own
                           familiar).
-      follow_distance   — hops it will trailing behind (recorded; the follower
+      follow_distance   - hops it will trailing behind (recorded; the follower
                           keeps the caster's area, the value is for authors).
-      duration (ticks)  — how long the bond lasts.
-      message           — narration.
+      duration (ticks)  - how long the bond lasts.
+      message           - narration.
 
     Following is not done here. The node is tagged with ``companion`` metadata
     and ``engine.companions.process_companions`` does the moving on each turn, so
@@ -459,13 +459,13 @@ def handle_reveal_hidden(self, params, context, item_node=None, game_state=None)
     """Unhide things within a radius, and remember what to put back.
 
     params:
-      radius_areas  — area-hops to sweep (default 1).
-      types         — node types to consider (default ``item``, ``way``).
-      duration      — ticks before they hide again. Omit for permanent.
-      message       — narration.
+      radius_areas  - area-hops to sweep (default 1).
+      types         - node types to consider (default ``item``, ``way``).
+      duration      - ticks before they hide again. Omit for permanent.
+      message       - narration.
 
     This is the radius form of the single-node ``set_hidden``. Only nodes that
-    are actually hidden are touched — revealing something already visible is a
+    are actually hidden are touched - revealing something already visible is a
     no-op, not a bookkeeping entry.
 
     The prior ``current_state`` is recorded per node rather than assumed, so a

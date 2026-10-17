@@ -4,16 +4,16 @@ The design is deliberately asymmetric, and getting that asymmetry wrong is what
 created a 45,844-tick traffic jam in the one `Waste Disposal` room of the
 Kraktooth camp:
 
-* **Permission** — *any* character may relieve themselves in *any* area. A
+* **Permission** - *any* character may relieve themselves in *any* area. A
   world that happens to contain no latrine is not a world where nobody can go;
   the `RELIEF_TAGS` tag marks a *proper place*, not the only legal one. Nothing
   in this module may ever be used to refuse relief.
-* **Preference** — a character who can choose would rather not do it in front of
+* **Preference** - a character who can choose would rather not do it in front of
   people, and prefers a room built for it. That is a *ranking* of candidates,
   never a gate.
 
 Both tiers read this module, so a background goblin and a human at the keyboard
-are subject to exactly the same rules — including the dignity cost, which used to
+are subject to exactly the same rules - including the dignity cost, which used to
 exist only in the foreground handler and was hardcoded there.
 
 The occupancy count is the load-bearing part of the score. An author's `private`
@@ -51,7 +51,7 @@ DIGNITY_SOCIAL_COST = 3
 #: `witness` is 1.0 because it is the term that actually caused the hub and it is
 #: the only one a character can do anything about at run time. `private` is 1.5,
 #: i.e. worth rather more than a single onlooker, so a character will cross one
-#: room to reach a spot the author called secluded — but not an unbounded
+#: room to reach a spot the author called secluded - but not an unbounded
 #: distance, which is what `PRIVACY_SEARCH_HOPS` bounds instead of the weight.
 #: `fixture` is 1.0: a latrine is worth exactly one person's presence, so a busy
 #: latrine loses to an empty one but a quiet one still wins.

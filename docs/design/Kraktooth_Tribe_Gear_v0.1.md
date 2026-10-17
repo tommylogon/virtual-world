@@ -1,4 +1,4 @@
-# KRAKTOOTH TRIBE — Character Clothing, Equipment & Personal Gear v0.1
+# KRAKTOOTH TRIBE - Character Clothing, Equipment & Personal Gear v0.1
 
 ## General philosophy
 Kraktooth goblins do not generally have coordinated outfits. Clothing and equipment are found, stolen, traded, made, repaired, and repurposed.

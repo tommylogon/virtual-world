@@ -1,8 +1,8 @@
 """Incorporeal undead: what cannot be done to them (task-490).
 
-The still-open half of task-309. That task gave undead identities — the
+The still-open half of task-309. That task gave undead identities - the
 ``undead`` tag (not alive, corporeal) and the ``ghost`` tag (incorporeal,
-unseen until manifested) — and wired them into visibility and vitals. What it
+unseen until manifested) - and wired them into visibility and vitals. What it
 left out is the other side of the coin: **what those identities do to an
 attacker**. A 5e ghost cannot be cut, cannot be chilled, cannot be poisoned, and
 cannot be grabbed; today it can be all four, because nothing here existed.
@@ -40,7 +40,7 @@ UNDEAD_RESIST_DAMAGE: FrozenSet[str] = frozenset({
 
 #: Conditions a ghost cannot be put into. 5e's "All except exhaustion" list: a
 #: ghost has no body to hold, no limbs to twist, no strength to tire. ``exhausted``
-#: is deliberately NOT here — the 5e wording is "all conditions except
+#: is deliberately NOT here - the 5e wording is "all conditions except
 #: exhaustion", and dropping it would be the same kind of well-meaning edit that
 #: turns a rule into a different rule.
 GHOST_IMMUNE_CONDITIONS: FrozenSet[str] = frozenset({
@@ -88,7 +88,7 @@ def damage_profile(player) -> Dict[str, FrozenSet[str]]:
 
     Returns ``{"resist": set(...), "immune": set(...)}``. ``resist`` may contain
     :data:`NONMAGICAL_WEAPON`, which means "halve anything a mundane weapon
-    does" and is only applied by a caller that knows where the hit came from —
+    does" and is only applied by a caller that knows where the hit came from -
     see ``apply_damage_resistance``'s ``from_nonmagical_weapon``.
 
     An ordinary character gets two empty sets rather than None, so a caller can
@@ -129,14 +129,14 @@ def apply_damage_resistance(damage: int, damage_type: str,
     """Halve resisted damage, zero immune damage.
 
     Returns ``{"damage": int, "resisted": bool, "immune": bool}``. 5e semantics:
-    resistance halves, immunity negates, and a halved 1 is 0 — which is why this
+    resistance halves, immunity negates, and a halved 1 is 0 - which is why this
     is written as ``damage // 2`` rather than a float round, so a resisted point
     of bludgeoning damage really does become nothing.
 
     ``from_nonmagical_weapon`` is what arms the
     :data:`NONMAGICAL_WEAPON` half of a profile. It is a parameter rather than
     something derived here because only the caller knows whether there was a
-    weapon at all — a bare-fisted hit is not a weapon hit.
+    weapon at all - a bare-fisted hit is not a weapon hit.
     """
     profile = profile or {}
     immune = profile.get("immune") or ()
@@ -154,7 +154,7 @@ def apply_damage_resistance(damage: int, damage_type: str,
 def resistance_for_weapon(player, weapon_props: dict) -> dict:
     """Damage profile with the weapon's magicalness taken into account.
 
-    An incorporeal undead resists **nonmagical** weapons specifically — that is
+    An incorporeal undead resists **nonmagical** weapons specifically - that is
     the 5e rule and it is the whole reason a ghost is a problem: reach it with
     something enchanted. So a magical weapon disarms the
     :data:`NONMAGICAL_WEAPON` half of the profile, while the damage-type
@@ -196,9 +196,9 @@ def _is_magical(weapon_props: dict) -> bool:
 
 
 #: In-world line when an attack simply does not land on a ghost. Deliberately
-#: flavourful rather than numeric — combat reports wounds, not hit points.
+#: flavourful rather than numeric - combat reports wounds, not hit points.
 IMMUNE_HIT_LINES = (
-    "The blow passes straight through {target} — there is nothing solid there to strike.",
+    "The blow passes straight through {target} - there is nothing solid there to strike.",
     "{target} is not touched by it at all.",
     "It should have connected. It does not; {target} is not there in the way that matters.",
 )

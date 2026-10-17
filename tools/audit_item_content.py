@@ -6,8 +6,8 @@
 **Why this exists.** On 2026-09-30, 545 authored items were absent from
 `data/library/items` and the pass that produced them was reported as written,
 because the count came from what the generator *wrote* rather than what was
-*there*. A stray delete — one `Remove-Item` that hit a filename with a space in
-it and whose error was silenced — took them, and nothing in the repository
+*there*. A stray delete - one `Remove-Item` that hit a filename with a space in
+it and whose error was silenced - took them, and nothing in the repository
 noticed, because the tables that produced them were in a temp directory.
 
 The same thing is also a test (`tests/test_library_content_pass.py`), so a
@@ -47,7 +47,7 @@ def main(argv=None):
     missing = item_shapes.audit(records_by_pass(), verbose=True)
     total = sum(len(v) for v in missing.values())
     if total and "--strict" in argv:
-        print("\n%d authored item(s) are missing from the library — run the "
+        print("\n%d authored item(s) are missing from the library - run the "
               "passes that own them." % total)
         return 1
     if not total:

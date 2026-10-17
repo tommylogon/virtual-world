@@ -196,13 +196,13 @@ def build_item_subtree(library_id: str, lib_item: dict, node_id: str,
 
     Returns ``(nodes, edges, missing_content_ids)``. Child and trigger ids are
     derived from ``node_id`` and their position, so the same library entry
-    staged twice produces the same ids — which is what lets
+    staged twice produces the same ids - which is what lets
     :func:`engine.generation.apply_patch` reject a duplicate generation rather
     than writing a second copy under a fresh name.
 
     `extra` is merged into the item node's properties *and* into every
     descendant's, because a generator stamps one `generated` fragment over the
-    whole subtree and a child missing it would read as hand-authored — which is
+    whole subtree and a child missing it would read as hand-authored - which is
     exactly the state a later regenerate is allowed to overwrite.
 
     `missing_content_ids` is returned rather than logged: a recipe must be able

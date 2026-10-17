@@ -10,9 +10,9 @@ registered trait ids, so the same validator can back the batch route, the
 pre-Apply endpoint, and tests.
 
 Severity:
-- ``error``   — the op cannot do what it says (missing node, unknown trait,
+- ``error``   - the op cannot do what it says (missing node, unknown trait,
                 malformed payload). A strict Apply is refused.
-- ``warning`` — the op will apply but probably not as intended (id casing,
+- ``warning`` - the op will apply but probably not as intended (id casing,
                 duplicate area display name, unknown item action, deleted node
                 still referenced).
 
@@ -37,8 +37,8 @@ KNOWN_OP_TYPES = {
     "update_player", "create_trigger", "rename_character",
 }
 #: Player-state patch keys the NL editor may write (task-738). These are NOT
-#: graph edges — they live on the Player (memories list, relationships dict,
-#: emotion pulses) — so they take a dedicated op, not `attach`.
+#: graph edges - they live on the Player (memories list, relationships dict,
+#: emotion pulses) - so they take a dedicated op, not `attach`.
 PLAYER_PATCH_KEYS = {"memories", "relationship", "remove_relationship", "emotion", "behaviors"}
 #: Registries the NL editor may write to (task-460).
 WRITABLE_REGISTRIES = {"items", "characters", "areas", "ways", "traits"}
@@ -59,7 +59,7 @@ NPC_BEHAVIOUR_TRIGGERS = {
     "on_player_leave_area",
     "on_speech_heard",
 }
-#: Behaviour actions that are not effect types — the executor's own verbs
+#: Behaviour actions that are not effect types - the executor's own verbs
 #: (`engine/triggers/behaviors.py`). An action type is valid if it is one of
 #: these OR a member of ``EFFECT_TYPES`` (the executor falls back to the effect
 #: registry, so the two vocabularies are one).
@@ -246,8 +246,8 @@ def _behaviour_issues(index: int, optype: str, behaviours: List[Any]) -> List[Di
     The NL editor could author behaviours in the *node/item* trigger vocabulary
     (``on_take``, ``on_night``) or with keys the engine never reads
     (``adjust_vital`` with ``vital``/``delta``, ``vital_below`` with no ``stat``,
-    ``spawn_character`` with ``template``). None of those raise — they simply
-    never fire — so the editor staged silently-dead behaviours (task-739).
+    ``spawn_character`` with ``template``). None of those raise - they simply
+    never fire - so the editor staged silently-dead behaviours (task-739).
     """
     issues: List[Dict[str, Any]] = []
     try:

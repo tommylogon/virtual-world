@@ -155,7 +155,7 @@
     },
     "The Old Steel Mill": {
       "name": "The Old Steel Mill",
-      "description": "An abandoned industrial site about twenty minutes from Millwood, rusting in the Oklahoma weather. Corrugated metal walls are pocked with holes. A deep, metal-lined shaft dominates the center of the main floor — Jake uses it to practice his electromagnetic powers. The railgun hole in the far wall attracted government agents and the Amalgam. The air is thick with dust and the echo of dripping water.",
+      "description": "An abandoned industrial site about twenty minutes from Millwood, rusting in the Oklahoma weather. Corrugated metal walls are pocked with holes. A deep, metal-lined shaft dominates the center of the main floor - Jake uses it to practice his electromagnetic powers. The railgun hole in the far wall attracted government agents and the Amalgam. The air is thick with dust and the echo of dripping water.",
       "environment": {
         "light": "dim",
         "temperature": 18,
@@ -261,7 +261,7 @@
     },
     "Halloway House Kitchen": {
       "name": "Halloway House Kitchen",
-      "description": "A messy, lived-in suburban kitchen that hides in plain sight through its sheer lack of curation. Pots are stacked haphazardly, dishes crowd the sink, and the counter bears fresh scuff marks. The Halloways use chaos as camouflage — no government agent would believe a super family lives in this mess.",
+      "description": "A messy, lived-in suburban kitchen that hides in plain sight through its sheer lack of curation. Pots are stacked haphazardly, dishes crowd the sink, and the counter bears fresh scuff marks. The Halloways use chaos as camouflage - no government agent would believe a super family lives in this mess.",
       "environment": {
         "light": "normal",
         "temperature": 23,
@@ -370,7 +370,7 @@
     },
     "Halloway House Living Room": {
       "name": "Halloway House Living Room",
-      "description": "A cluttered living room with mismatched furniture, stacked board games, and a TV playing something nobody is watching. The chaos is deliberate — camouflage for a family of supers hiding from the government. A worn leather jacket hangs over the back of the couch.",
+      "description": "A cluttered living room with mismatched furniture, stacked board games, and a TV playing something nobody is watching. The chaos is deliberate - camouflage for a family of supers hiding from the government. A worn leather jacket hangs over the back of the couch.",
       "environment": {
         "light": "normal",
         "temperature": 22,
@@ -412,7 +412,7 @@
     },
     "Parr House Living Room": {
       "name": "Parr House Living Room",
-      "description": "An immaculately kept suburban living room that serves as the Parr family's perfect disguise. Everything is in its place — until now. The front wall has been blown outward, exposing the interior to the night air and the harsh glare of government floodlights. Debris litters the carpet. The site of the joint family meeting and the Amalgam's devastating attack.",
+      "description": "An immaculately kept suburban living room that serves as the Parr family's perfect disguise. Everything is in its place - until now. The front wall has been blown outward, exposing the interior to the night air and the harsh glare of government floodlights. Debris litters the carpet. The site of the joint family meeting and the Amalgam's devastating attack.",
       "environment": {
         "light": "bright",
         "temperature": 15,
@@ -512,7 +512,7 @@
     },
     "The Woods": {
       "name": "The Woods",
-      "description": "A dense, forested path connecting the school, the steel mill, and the neighborhoods. The canopy is thick enough to block most moonlight. The shadows here seem to move on their own, and the ambient sounds of insects occasionally fall dead silent — a sign the Amalgam is near. This was the site of the creature's initial ambush on Jake and Violet.",
+      "description": "A dense, forested path connecting the school, the steel mill, and the neighborhoods. The canopy is thick enough to block most moonlight. The shadows here seem to move on their own, and the ambient sounds of insects occasionally fall dead silent - a sign the Amalgam is near. This was the site of the creature's initial ambush on Jake and Violet.",
       "environment": {
         "light": "dim",
         "temperature": 16,
@@ -1049,7 +1049,7 @@
             "take",
             "inspect"
           ],
-          "description": "A severed piece of the Amalgam — a twitching mass of black tendrils and dark biomass. It smells of copper and ancient earth. It slowly attempts to re-knit itself. Touching it directly is extremely dangerous.",
+          "description": "A severed piece of the Amalgam - a twitching mass of black tendrils and dark biomass. It smells of copper and ancient earth. It slowly attempts to re-knit itself. Touching it directly is extremely dangerous.",
           "current_state": "normal",
           "uses": -1,
           "weight": 1.2,
@@ -1163,9 +1163,9 @@
         "type": "character",
         "name": "Jake Halloway",
         "properties": {
-          "personality": "You are Jake Halloway, 18. Chaotic, unfiltered, oscillating between shy and hyperactively silly. Fiercely intelligent but socially oblivious, you use sexual humor and bad puns to deflect and connect. Deeply loyal, you always ask permission and respect boundaries despite your impulsive nature. Known as the 'weird kid' at school but unbothered by it. Your electromagnetic powers require precision — emotional states cause uncontrolled bursts.",
+          "personality": "You are Jake Halloway, 18. Chaotic, unfiltered, oscillating between shy and hyperactively silly. Fiercely intelligent but socially oblivious, you use sexual humor and bad puns to deflect and connect. Deeply loyal, you always ask permission and respect boundaries despite your impulsive nature. Known as the 'weird kid' at school but unbothered by it. Your electromagnetic powers require precision - emotional states cause uncontrolled bursts.",
           "description": "An 18-year-old with seagreen eyes flecked with gold, short stiff hair that sticks up, and a slim build. He wears a utilitarian hoodie and jeans. Sparks of static electricity occasionally crackle at his fingertips.",
-          "base_description": "Jake Halloway, 18, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair. Style is utilitarian, lived-in — mostly hoodies and jeans. Son of Leah and Marcus Halloway, brother to Erin and Vi. His electromagnetic powers let him fire railgun-like projectiles, levitate metal, manipulate electronics, numb nerves, deliver shocks, and perform Tesla coil discharges.",
+          "base_description": "Jake Halloway, 18, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair. Style is utilitarian, lived-in - mostly hoodies and jeans. Son of Leah and Marcus Halloway, brother to Erin and Vi. His electromagnetic powers let him fire railgun-like projectiles, levitate metal, manipulate electronics, numb nerves, deliver shocks, and perform Tesla coil discharges.",
           "stats": {
             "STR": 9,
             "DEX": 12,
@@ -1496,7 +1496,7 @@
         "properties": {
           "personality": "Cool, intimidating, and seemingly aloof, but fiercely protective of her family. Selective about who she interacts with. Uses her power subtly. Smokes.",
           "description": "An older sister (graduated last year) with dark hair, punk/goth style, ripped jeans, and band tees. A cigarette dangles from her fingers.",
-          "base_description": "Erin Halloway, graduated last year. Powers: emotional manipulation through her voice — her singing can influence feelings (calm, joy, fear). Not mind control, but powerful suggestion. Once calmed a furious Bob Parr with a lullaby in exchange for $200.",
+          "base_description": "Erin Halloway, graduated last year. Powers: emotional manipulation through her voice - her singing can influence feelings (calm, joy, fear). Not mind control, but powerful suggestion. Once calmed a furious Bob Parr with a lullaby in exchange for $200.",
           "stats": {
             "STR": 10,
             "DEX": 11,
@@ -1592,7 +1592,7 @@
         "name": "Leah Halloway",
         "properties": {
           "personality": "Stern, intimidating, fair, and utterly unflappable. A retired government spy known as 'Swift.' Analytical and strategic but deeply caring. She twists Jake's ear when he's reckless. Looks like she could beat the shit out of you but also be kind about it.",
-          "description": "Angular, dark hair with a silver streak, goth/punk style — leather jacket, band tees, silver rings. Her eyes miss nothing.",
+          "description": "Angular, dark hair with a silver streak, goth/punk style - leather jacket, band tees, silver rings. Her eyes miss nothing.",
           "base_description": "Leah Halloway (née Swift), mother. A legendary ex-government spy. Powers: memory reading via touch (sees recent, prominent memories). Recently unlocked a dormant ability to manifest diamond-like armor over her body, triggered by touching the Amalgam. Knew Bob and Helen Parr from the old days.",
           "stats": {
             "STR": 13,
@@ -1704,8 +1704,8 @@
         "name": "Marcus Halloway",
         "properties": {
           "personality": "Laid-back, dry humor, but a formidable fighter. Fiercely protective. Has a 'no pulling metal objects around the house' rule due to a personal piercing incident. Was tragically killed by the Amalgam.",
-          "description": "Tall, thin, muscular, salt-and-pepper hair, goatee, bandana, sunglasses, leather jacket. Looks like a biker. Currently deceased — killed by the Amalgam when a tendril pierced his skull.",
-          "base_description": "Marcus Halloway, father. Retired mercenary (code name 'Mimic'/'Echo'), former military, biker, chef, and stripper. Powers: kinetic memory/skill duplication — perfectly replicates any physical skill he observes. Had a brief fling with Helen Parr 25 years ago. Killed by the Amalgam.",
+          "description": "Tall, thin, muscular, salt-and-pepper hair, goatee, bandana, sunglasses, leather jacket. Looks like a biker. Currently deceased - killed by the Amalgam when a tendril pierced his skull.",
+          "base_description": "Marcus Halloway, father. Retired mercenary (code name 'Mimic'/'Echo'), former military, biker, chef, and stripper. Powers: kinetic memory/skill duplication - perfectly replicates any physical skill he observes. Had a brief fling with Helen Parr 25 years ago. Killed by the Amalgam.",
           "stats": {
             "STR": 15,
             "DEX": 13,
@@ -1801,7 +1801,7 @@
         "type": "character",
         "name": "Bob Parr",
         "properties": {
-          "personality": "Protective to a fault, gruff but loving. Struggles to accept his daughter growing up and the danger their family faces, but is capable of surprising gentleness. Famous retired superhero — Mr. Incredible.",
+          "personality": "Protective to a fault, gruff but loving. Struggles to accept his daughter growing up and the danger their family faces, but is capable of surprising gentleness. Famous retired superhero - Mr. Incredible.",
           "description": "Massive, muscular build. His jaw is set tight and his fists are clenched. The destruction of his home has him barely containing his rage.",
           "base_description": "Bob Parr (Mr. Incredible). Massive, muscular build. Powers: super strength and near-invulnerability. Father of Violet, Dash, and Jack-Jack. Husband of Helen.",
           "stats": {
@@ -3146,7 +3146,7 @@
       "id": "lore_chimera",
       "category": "threat",
       "title": "Project CHIMERA",
-      "content": "A government bioweapon that merged with a centuries-old Navajo skinwalker to create the Amalgam — a shapeshifting mass that consumes living matter, absorbs memories and skills, and can mimic forms. Weaknesses: intense fire and sustained loud sound."
+      "content": "A government bioweapon that merged with a centuries-old Navajo skinwalker to create the Amalgam - a shapeshifting mass that consumes living matter, absorbs memories and skills, and can mimic forms. Weaknesses: intense fire and sustained loud sound."
     },
     {
       "id": "lore_family_history",

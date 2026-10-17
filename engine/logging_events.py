@@ -13,7 +13,7 @@ from typing import Optional
 class GameLogger:
     """Owns the game event log, speech history, and per-turn event buffer.
 
-    This is pure engine state — no dependencies beyond the Python
+    This is pure engine state - no dependencies beyond the Python
     standard library.  External subsystems inject their references
     when they need to log or query events.
     """
@@ -199,7 +199,7 @@ class GameLogger:
         Parameters
         ----------
         players:
-            Dict of ``{name: Player}`` — used to render player state.
+            Dict of ``{name: Player}`` - used to render player state.
         active_player:
             Name of the current active player.
         ghost_mode:
@@ -265,7 +265,7 @@ class GameLogger:
             for event in self.turn_events:
                 f.write(
                     f"  [T{event['tick']}] {event['actor']}: "
-                    f"{event['action']} — {event['description']}\n"
+                    f"{event['action']} - {event['description']}\n"
                 )
             f.write("\n")
             f.write("=== END OF LOG ===\n")

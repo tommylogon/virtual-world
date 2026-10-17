@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""canonicalize_way_ids.py — make every way's endpoints the area NODE ID.
+"""canonicalize_way_ids.py - make every way's endpoints the area NODE ID.
 
 A way's ``properties.area_from`` / ``area_to`` may hold either an area node id
 or an area display name, because the engine resolves both. Strict-id pathfinding
@@ -60,7 +60,7 @@ def canonicalize(data: dict) -> dict:
             continue
         # The connection edges are the truth about which areas a way touches.
         # A name that resolves to an area the graph does not connect means the
-        # authored claim and the graph genuinely disagree — report, do not
+        # authored claim and the graph genuinely disagree - report, do not
         # silently point the property at the graph's version.
         sides = graph_sides.get(way_id) or set()
         if sides and resolved not in sides:

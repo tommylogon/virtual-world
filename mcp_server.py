@@ -361,7 +361,7 @@ def clear_player_memories(name: str) -> dict:
 
 
 # ──────────────────────────────────────────────
-# 5. World Editing — Graph CRUD
+# 5. World Editing - Graph CRUD
 # ──────────────────────────────────────────────
 @mcp.tool()
 def create_node(type: str, name: str, properties: dict = None) -> dict:
@@ -418,7 +418,7 @@ def delete_edge(source: str, target: str, type: str) -> dict:
 
 
 # ──────────────────────────────────────────────
-# 6. World Editing — High-Level Builders
+# 6. World Editing - High-Level Builders
 # ──────────────────────────────────────────────
 @mcp.tool()
 def build_area(name: str, description: str, light: int = None,
@@ -654,13 +654,13 @@ def reset_world() -> dict:
 
 @mcp.tool()
 def undo() -> dict:
-    """Undo the last reset/load — restores the pre-reset world state."""
+    """Undo the last reset/load - restores the pre-reset world state."""
     return _api("POST", "/api/undo")
 
 
 @mcp.tool()
 def redo() -> dict:
-    """Redo a previously undone reset/load — re-applies the reset state."""
+    """Redo a previously undone reset/load - re-applies the reset state."""
     return _api("POST", "/api/redo")
 
 

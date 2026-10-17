@@ -254,8 +254,8 @@
 <body>
   <div class="wrap">
     <div class="eyebrow">VirtualWorld Engine · Item Studio</div>
-    <h1>Item Studio v3 — properties follow the tags</h1>
-    <p class="sub">The full studio, restored. Universal stuff (weight / uses / state) is always there. Everything mechanical — damage, defense, insulation, light — only appears when its chip is on. Triggers are authored in the Trigger Editor, not here.</p>
+    <h1>Item Studio v3 - properties follow the tags</h1>
+    <p class="sub">The full studio, restored. Universal stuff (weight / uses / state) is always there. Everything mechanical - damage, defense, insulation, light - only appears when its chip is on. Triggers are authored in the Trigger Editor, not here.</p>
 
     <div class="studio">
 
@@ -422,7 +422,7 @@
               <div class="prop-card" data-card="resistance">
                 <div class="c-head"><span class="ci">🧿</span><span class="cn">Resistance</span></div>
                 <div class="field"><label>Resistances</label><input class="input" placeholder="fire:5, cold:3"></div>
-                <div class="hint">type:amount — 999 ≈ immune.</div>
+                <div class="hint">type:amount - 999 ≈ immune.</div>
               </div>
               <div class="prop-card" data-card="electric">
                 <div class="c-head"><span class="ci">⚡</span><span class="cn">Electric</span></div>
@@ -488,7 +488,7 @@
                     <span class="tag">accessory</span><span class="tag">hand_l</span><span class="tag">hand_r</span>
                   </div>
                 </div>
-                <div class="two-hand-note" id="two-hand-note">✌️ Two-handed is on — this will lock both <b>hand_left</b> + <b>hand_right</b>.</div>
+                <div class="two-hand-note" id="two-hand-note">✌️ Two-handed is on - this will lock both <b>hand_left</b> + <b>hand_right</b>.</div>
                 <div class="hint" style="margin-top:12px;font-size:11px;color:var(--dim)">Click the body or a pill to toggle slots. This whole block disappears if you turn off Clothing / Armor / Weapon.</div>
               </div>
             </div>
@@ -571,7 +571,7 @@
           <div class="assistant">
             <div class="at">🧠 Assistant</div>
             <div class="ai-item">Insulation + Armor both on → reads as protective clothing. Consider an <b>on_equip</b> trigger.</div>
-            <div class="ai-item warn">Container has 4 items — they stay hidden until the coat is opened.</div>
+            <div class="ai-item warn">Container has 4 items - they stay hidden until the coat is opened.</div>
             <button class="btn sm">Open Trigger Editor</button>
           </div>
 
@@ -622,7 +622,7 @@
     // summary
     summary.innerHTML = active.size
       ? 'Active: <b>' + [...active].map(k=>labels[k]).join('</b> · <b>') + '</b>'
-      : 'Nothing selected — only universal fields (uses / weight / state) are shown.';
+      : 'Nothing selected - only universal fields (uses / weight / state) are shown.';
 
     // preview pills
     const pills = ['<span class="gc-stat">⚖ 3.5 kg</span>'];

@@ -1,7 +1,7 @@
 """Server-side embeddings using sentence-transformers (local provider).
 
-Lazy-loaded model — first call to embed() loads the model on demand.
-No longer auto-loads at startup — configured in Settings → Embedding.
+Lazy-loaded model - first call to embed() loads the model on demand.
+No longer auto-loads at startup - configured in Settings → Embedding.
 Use 'local' provider for built-in model, or 'api' provider for LLM endpoint."""
 
 import logging

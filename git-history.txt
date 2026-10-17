@@ -1,4 +1,4 @@
-# Git history dump — VirtualWorld (commit messages only)
+# Git history dump - VirtualWorld (commit messages only)
 
 Generated:     2026-10-10T21:38:52.4807165+02:00
 Branch:        master
@@ -7,7 +7,7 @@ Commits:       580 (all refs)
 Date range:    2026-08-26 .. 2026-10-10
 HEAD:          95497e40
 
-Format: one block per commit — hash, author, date, refs, full message body. No file changes.
+Format: one block per commit - hash, author, date, refs, full message body. No file changes.
 
 ==============================================================================
 
@@ -36,7 +36,7 @@ Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-10-09T23:24:00+02:00
 Refs:   
 
-chore: checkpoint working tree — worldpainter, hazards, task tooling, inspector design
+chore: checkpoint working tree - worldpainter, hazards, task tooling, inspector design
 
 - worldpainter: editor/grid-model rework, biome palette records, hazards paint layer + engine/hazards.py
 - library: mature content tag, condition/trait/item data refresh, in-app dialog replaces native popups
@@ -77,7 +77,7 @@ Refs:
 
 feat(turn,nl-editor): continuous multi-action human panel (task-352 v4) + world-issues read tool (task-740)
 
-Human panel v4: one continuous panel that stays open — Act runs a step, the result lands, pips drop, Act again until End. React restored as a SINGLE closing beat (outcome-grounded memory); the old burst phase and the /can't|could not|fail/i narration regex are deleted. Budget pips gate with the shared ActionTiers.tierOf. Contract: request -> {step}|{endTurn}, react(results), closeTurn(); one applyTurn.
+Human panel v4: one continuous panel that stays open - Act runs a step, the result lands, pips drop, Act again until End. React restored as a SINGLE closing beat (outcome-grounded memory); the old burst phase and the /can't|could not|fail/i narration regex are deleted. Budget pips gate with the shared ActionTiers.tierOf. Contract: request -> {step}|{endTurn}, react(results), closeTurn(); one applyTurn.
 
 agent-engine: the human turn loops one step at a time, stopping on failure or an empty budget; react fires once, skip when the player ended the turn or passed.
 
@@ -371,7 +371,7 @@ docs(tasks): file the findings from the plan, UI and library passes
 
 Adds and updates the dev-task tree for this batch:
 
-- task-706: LLM output is never truncated — length stops re-request with a
+- task-706: LLM output is never truncated - length stops re-request with a
   larger budget
 - bug-519: editorial rewrite notes are stored inside character memories, so a
   character recalls its own drafting notes
@@ -403,7 +403,7 @@ Adds a graph_node_scale multiplier on the drawn size of item/way/character nodes
 separation pass reads the same value so larger nodes get correspondingly more
 room.
 
-The guard's knobs — strength, range, pull — and node size only took effect when
+The guard's knobs - strength, range, pull - and node size only took effect when
 the pass ran, and it was reachable solely through apply(), i.e. via a full layout
 re-derivation on a stabilization event. Tuning them live did nothing until the
 next rebuild. resolveSeparation() re-runs the overlap guard in place with no
@@ -472,29 +472,29 @@ fix(expression-pack): make the 30-expression vocabulary the single source of tru
 
 The "generate expression pack" prompt emitted a stale 11-name list padded out to
 a 40-item `slot13..slot40` suggestion, and the sprite-sheet splitter labelled
-tiles with the same drifted vocabulary — position 5 read `afraid`, positions 8-12
+tiles with the same drifted vocabulary - position 5 read `afraid`, positions 8-12
 were wrong outright. Both now read one shared list.
 
 Root cause was four separate copies of the expression order that had drifted
 apart:
 
-- inspector/helpers.ts EXPRESSION_ORDER — the real one, now `neutral` + the 30
+- inspector/helpers.ts EXPRESSION_ORDER - the real one, now `neutral` + the 30
   authored expressions (31 tiles), with an icon per key
-- inspector/agent-view.ts — carried a stale literal AND a hardcoded
+- inspector/agent-view.ts - carried a stale literal AND a hardcoded
   `slot13..slot40` array; both deleted, it reads EXPRESSION_ORDER now
-- inspector/sprite-sheet.ts EMOTION_ORDER and character-art.ts CANONICAL — module
+- inspector/sprite-sheet.ts EMOTION_ORDER and character-art.ts CANONICAL - module
   fallbacks for when InspectorHelpers has not loaded yet, realigned
 
 Splitter overflow past the 31st tile is now blank rather than a `slotN`
 placeholder: the Names textarea's own contract is "blank = skip", so a sheet
 wider than the authored vocabulary does not upload the extra tiles instead of
-inventing names for art nobody specified. Verified at widths 12/31/33/40/60 —
+inventing names for art nobody specified. Verified at widths 12/31/33/40/60 -
 zero `slotN` at any of them.
 
 The authored art vocabulary and the engine's face vocabulary are two different
 sets and conflating them was the trap. engine/emotion.py:AXIS_TO_EXPRESSION picks
 a face from the 11 affect axes and emits keys of its own (afraid, ashamed, ...),
-and character-art.ts:emotionKeyFor returns that key unconditionally — so swapping
+and character-art.ts:emotionKeyFor returns that key unconditionally - so swapping
 the list alone would have left a frightened character with no portrait, silently
 fallback to neutral. EXPRESSION_ART_ALIASES joins the two (afraid -> fearful,
 ashamed -> embarrassed), applied only after a direct slot lookup misses so packs
@@ -1101,7 +1101,7 @@ build(js): pin lit-html 3.2.1 for types and convert lit-bootstrap
 
 shared/lit-bootstrap.js was the one structurally-blocked file: it is the only ES
 module in static/js, it imports from eight `lit-html` specifiers, the vendored
-bundle ships zero .d.ts, and lit was not in node_modules — so `import … from
+bundle ships zero .d.ts, and lit was not in node_modules - so `import … from
 'lit-html'` could not resolve and the file could not become .ts at all.
 
 Installing the real package was chosen over hand-writing `declare module`
@@ -1113,11 +1113,11 @@ derived type and a fiction.
 Version skew, caught and corrected: `npm i -D lit@3.2.1` resolved to
 lit-html 3.3.3, because the `lit` metapackage takes a caret range on its
 lit-html dependency. Types from 3.3.3 would have described a different lit than
-the one the vendored bundle runs — confirmed by reading 3.2.1 out of
+the one the vendored bundle runs - confirmed by reading 3.2.1 out of
 static/js/vendor/lit-html/lit-html.js. Dropped the `lit` metapackage entirely
 (lit-bootstrap imports only from `lit-html`) and pinned `lit-html: "3.2.1"`
 exact, so a future install cannot drift. AGENTS.md's package-lock `name`-field
-rewrite trap did not trigger — verified absent in the diff.
+rewrite trap did not trigger - verified absent in the diff.
 
 No runtime change: the browser still loads the vendored bundle; node_modules is
 dev-only.
@@ -1125,7 +1125,7 @@ dev-only.
 All eight specifiers resolve, so the file converts. The two repo-local helpers
 (renderPanel, renderInto) take `TemplateResult` imported from lit-html itself.
 Verified the emitted ES module keeps all 8 imports and both exports and the
-`window.Lit` assignment — a stripped import would break the app at runtime.
+`window.Lit` assignment - a stripped import would break the app at runtime.
 
 This was the last file blocked on types. 137 of 158 converted.
 
@@ -1141,7 +1141,7 @@ refactor(js): remove the temptation that broke test_fear_verbs
 A converter silenced `Property 'config' does not exist on type 'Window'` by
 rewriting `window.config` to bare `config`. That made the type check pass and
 the runtime fail: `window.X` is undefined-safe, bare `X` throws ReferenceError
-when the module has not loaded. Proven ours by A/B — clean HEAD runs
+when the module has not loaded. Proven ours by A/B - clean HEAD runs
 `522 passed, 0 failed`, the worktree ran `521 passed, 1 failed`.
 
 Fixing 80 sites with local casts would have left the trap in place for the next
@@ -1160,7 +1160,7 @@ converter, so this removes the cause instead.
   `window.NAME` usage counts at conversion time, because once the conversion is
   committed the original .js is gone from HEAD and the baseline could no longer
   be re-derived. Current state: 136 files baselined, 52 dropped prefixes
-  flagged for review. Reported rather than blanket-failed — a drop is benign
+  flagged for review. Reported rather than blanket-failed - a drop is benign
   when the name is a binding the file itself declares, and adding defensive
   casts where none are needed is its own damage.
 
@@ -1182,8 +1182,8 @@ noEmitOnError, so one lane's mid-conversion file fails the build for every
 other lane and concurrent runs race on the same emit. That is the blocker for
 converting the remaining 133 files with more than one agent.
 
-Converted files share no imports — they are classic scripts whose cross-file
-symbols are ambient in globals.d.ts — so a single file's typecheck depends only
+Converted files share no imports - they are classic scripts whose cross-file
+symbols are ambient in globals.d.ts - so a single file's typecheck depends only
 on itself plus that declaration file. Two new subcommands exploit that:
 
 - build-one PATH   type-check and emit ONE file, independent of the project
@@ -1194,18 +1194,18 @@ Comparing a rebuilt file against itself proves nothing: the first version of
 this check did that and reported 25/25 while tsc was actually writing to
 static/js/shared/shared/, leaving the real .js stale. That also explains the
 stray nested agent/ graph/ inspector/ shared/ soak/ stream/ ui/ directories,
-which held duplicate .js copies that the typecheck then picked up — producing
+which held duplicate .js copies that the typecheck then picked up - producing
 a bogus "Cannot redeclare block-scoped variable 'ScenarioStatus'". Both fixed;
 no stray directories remain.
 
 convert --apply now emits per-file instead of running the project build, so it
 is safe to run concurrently. The invariant this preserves: a file is only ever
-either an untouched .js, or a .ts whose .js has already been regenerated — so
+either an untouched .js, or a .ts whose .js has already been regenerated - so
 templates/index.html never 404s on a script.
 
 globals.d.ts gains provisional declarations for 28 singletons owned by modules
 that are still .js (InspectorHelpers, GraphToolbar, DiffModal, tippy, vis and
-the rest), so parallel lanes never need to edit this hub file — concurrent
+the rest), so parallel lanes never need to edit this hub file - concurrent
 edits to one file lose declarations. Each records its owning module so the real
 shape can replace it when that module converts.
 
@@ -1228,7 +1228,7 @@ and set data-lit-bound, clear() emptied it through lit's render path. No console
 errors on / , and SSE on /api/events connects.
 
 ui/recent-edits.js wraps ApiClient.updateNode/duplicateNode. Its pass-through
-uses rest args rather than named parameters — the original was
+uses rest args rather than named parameters - the original was
 `apply(this, arguments)`, and narrowing to two named params would silently drop
 a third argument if any caller passes one.
 
@@ -2990,7 +2990,7 @@ feat(graph): central gravity follows layout, contents simulated, follow pass rem
 
 Central gravity is now per-layout: 0.05 in the free Graph layout (barnesHut 0.3), 0 in Map and Levels. The rule lives in `GraphNetwork.centralGravityFor()` and all physics switches route through `GraphNetwork.applyModePhysics()` to prevent silent re-enablers.
 
-With `centralGravity: 0` in both solvers, the global field that dragged children to the canvas origin is gone. Items, characters, and logic triggers are now in the vis solver (`physics: true`, unfixed) — verified on kraktooth_goblin_camp: 29/29 items, 23/23 characters, 29/29 triggers simulated. The 120 ms follow pass, parent-relative offset map, `rememberDrop`, and live separation easer are deleted (~270 lines from `relative-layout.js`). A drag no longer re-derives on `dragEnd`; the edge spring carries contents.
+With `centralGravity: 0` in both solvers, the global field that dragged children to the canvas origin is gone. Items, characters, and logic triggers are now in the vis solver (`physics: true`, unfixed) - verified on kraktooth_goblin_camp: 29/29 items, 23/23 characters, 29/29 triggers simulated. The 120 ms follow pass, parent-relative offset map, `rememberDrop`, and live separation easer are deleted (~270 lines from `relative-layout.js`). A drag no longer re-derives on `dragEnd`; the edge spring carries contents.
 
 Separation module is now a seed pass only: it de-overlaps the derived ring once per layout. Measured cold on kraktooth_goblin_camp (638 nodes): contents median 134 px from their room, 0 overlapping pairs.
 
@@ -2998,7 +2998,7 @@ Physics defaults rebalanced for `centralGravity: 0`: repulsion `-8`, spring cons
 
 Added Jake Halloway character and authoring tools (`author_kraktooth_library.py`, `names_jake_halloway.py`). Updated task-485 (superseded) and task-511 (narrowed) documentation. Unit tests updated for new behavior.
 
-BREAKING CHANGE: Nodes previously pinned with `physics: false` and a follow pass are now simulated. Scenarios where a content's parent is excluded from physics will see contents drift (known gap — fix requires "content belongs in solver only when its parent is").
+BREAKING CHANGE: Nodes previously pinned with `physics: false` and a follow pass are now simulated. Scenarios where a content's parent is excluded from physics will see contents drift (known gap - fix requires "content belongs in solver only when its parent is").
 
 commit 119cc28dec24e2b13dce0476441bda10b4183047
 Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
@@ -3453,7 +3453,7 @@ measured rather than read off comments.
 The finding: there are two emotion models, they write different fields, and
 nothing synchronises them. A legacy single-label string on Player.emotion and a
 36-dimension affect map on Player._emotions. Five of the six production write
-paths still write the legacy one — and the legacy one is not what selects a
+paths still write the legacy one - and the legacy one is not what selects a
 character's face, so the most common way to change a character's emotion does not
 change their expression.
 
@@ -3466,7 +3466,7 @@ actually touches and it reaches 7 of 36.
 Also recorded: felt_from_llm is written, tested and called by nothing but two
 tests; there is no stored 'mood' anywhere (the word means a derived narrative
 state); and the label map duplicated across the wire is in sync today (verified
-70/70, zero divergence) with no test that would notice if it stopped being so —
+70/70, zero divergence) with no test that would notice if it stopped being so -
 which corrects the expectation that these two copies had already drifted.
 
 Every file:line citation is checked: 35 resolve, none past end of file, 13 task
@@ -3500,17 +3500,17 @@ they interleave in the tree.
 the library defines is a reference that cannot resolve, and 117 of them existed
 with nothing to say so. `tests/test_library_lint_dead_fears.py` covers the new
 check and `test_fear.py` the engine side. The three tag records the fix needed to
-key on — `goblin`, `concern`, `despair` — are added. bug-513 records the half
+key on - `goblin`, `concern`, `despair` - are added. bug-513 records the half
 this does *not* cover: the same drift in scenario saves is still invisible,
 because the linter only walks `data/library`.
 
 **The Generate buttons are now covered by tests.** `test_inspector_tag_generation.js`
 (305 lines) exercises the interest/fear generators, which had none.
 
-**Twenty-odd tasks filed from a live audit of the running app** — `audit/` (55
+**Twenty-odd tasks filed from a live audit of the running app** - `audit/` (55
 screenshots) and `docs/live-audit/` are that audit's evidence. They are worth
 having as a set: the app was walked end to end and every observation is now a
-card rather than a memory. task-602 through task-609 are the substantive ones —
+card rather than a memory. task-602 through task-609 are the substantive ones -
 aimed attacks silently dropping a region when the phrase carries an article,
 `defense` split into two anti-correlated axes, damage reduction as a percentage
 rather than flat subtraction, derived values rendering identically to
@@ -3521,7 +3521,7 @@ segments come along.
 
 **The Kraktooth scenario is committed in a partially-repaired state**, and this is
 the one thing here worth reading before you rely on it. Today's Eldenford
-generation is in it — 71 areas, and the scope mirrors now agree everywhere
+generation is in it - 71 areas, and the scope mirrors now agree everywhere
 (71/71, 21/21, 53/53) after the compile path stopped leaving them stale. Two
 consequences of the earlier 20:28 runtime save-overwrite survive: the scenario has
 **no `name`**, and the **23 `character_<slug>` alias nodes are gone**, which is
@@ -3537,7 +3537,7 @@ away the Eldenford generation, which is why it is committed rather than reverted
 **One thing this commit does not fix**, recorded so it is not lost: `world` still
 has 60 areas stamped and 51 listed. Those nine are hand-placed areas, whose
 `world_scope_id` is set but which never entered the mirror. Readers no longer
-care — `area_ids_in_scope` derives from the stamps (d7a5021) — so the mirror gap
+care - `area_ids_in_scope` derives from the stamps (d7a5021) - so the mirror gap
 is cosmetic, but the record is still the wrong shape and the next thing to touch
 it should rewrite it rather than append to it.
 
@@ -3553,14 +3553,14 @@ constant 'LLM' fallback mattered more than the missing labels, and the note that
 there is no server-side provider call to capture.
 
 task-600 was filed in another lane with acceptance "TODO" and is rewritten with
-what the Generate button actually does. It works — it wrote a persona — and the
+what the Generate button actually does. It works - it wrote a persona - and the
 persona is bad, which is this task rather than a separate one. Four causes, each
 traced:
 
 - `json-schemas.js:154` declares a *strict* schema of two nullable strings, so the
   model is required to compress a character into one prose blob. The shape
-  `character_appearance.py` reads — fears, likes, dislikes, kinks, turn_offs, each
-  a list of tag ids — has no slot at all.
+  `character_appearance.py` reads - fears, likes, dislikes, kinks, turn_offs, each
+  a list of tag ids - has no slot at all.
 - the prompt names fears and motivations and provides nowhere to put either;
 - `temperature: 0.9` for output that is saved permanently and feeds every prompt;
 - and `parsed.personality || 'A mysterious character.'` silently overwrites a
@@ -3568,7 +3568,7 @@ traced:
   failure was ambiguous.
 
 Three decisions are recorded as decisions rather than left as chat: whether prose
-stays alongside the ids (recommend yes — different code reads each, and the ids
+stays alongside the ids (recommend yes - different code reads each, and the ids
 are derived from the prose in the same call so they cannot disagree), which id
 vocabulary applies, and whether task-600 absorbs bug-514. It does not: the
 personality button toasts when no key is set, but three *other* generators return
@@ -3590,7 +3590,7 @@ Refs:
 fix(inspector): label every LLM call site, and never fall back to a bare 'LLM'
 
 Eleven of seventeen provider call sites passed no `label`, and the collector's
-fallback was the constant `'LLM'` — so eleven unrelated calls were
+fallback was the constant `'LLM'` - so eleven unrelated calls were
 indistinguishable in the inspector and in the tick log (`LLM -> inclusionai/...`
 over and over). The four inspector *Generate* buttons were all among them, which
 is why the tool looked broken precisely where it was used.
@@ -3603,7 +3603,7 @@ Improve flow, `ai-generator/generate` and `ai-generator/repair` (the second call
 of a repair pair), `object-responder`, `settings/test-connection`.
 
 The fallback is the real fix. `captureRaw`'s `'LLM'` is a name carrying no
-information, and it is indistinguishable from a capture that failed — which is
+information, and it is indistinguishable from a capture that failed - which is
 exactly the confusion it created. `_deriveLabel` now uses the caller's label, then
 the model, then a shape summary of the request (tools / streamed / structured /
 chat), so a future call site that forgets to label itself is still traceable and
@@ -3616,7 +3616,7 @@ already captured on all three exits (error, streamed, normal).
 There is no server-side provider call to capture: the backend queues
 (`queue_llm_respond`), the browser calls the provider and posts back to
 `/api/llm_respond`, so every request passes through `llmClient`. Labelling the
-call sites therefore covers all of them — worth stating, because the alternative
+call sites therefore covers all of them - worth stating, because the alternative
 architecture would have been a much larger piece of work.
 
 commit d7a5021bb7cceb624143b48511fd45db16a85677
@@ -3627,14 +3627,14 @@ Refs:
 fix(world): a promoted scope compiles, and a way knows what it connects
 
 Two authoring paths, both older than the scope model, produced nodes the scope
-projection could not place — and both failed *silently*, which is the worst way.
+projection could not place - and both failed *silently*, which is the worst way.
 
 **A way with edges but no properties.** `connect_areas` (the NL editor, and the
 graph canvas behind the same route) creates the way node and its four connection
 edges and nothing else, so `area_from`/`area_to`/`world_scope_id` were empty.
 `world_scopes.way_endpoints` read only those properties, so it resolved to
 `(None, None)`, the membership test in `project_subgraph` never passed, and the
-way existed only in the unfiltered graph — visible under "Whole world", absent
+way existed only in the unfiltered graph - visible under "Whole world", absent
 from the scope it plainly belonged to.
 
 The properties were a *cache* of the edges; movement walks the edges and never
@@ -3646,8 +3646,8 @@ membership. Two fixes, in that order of importance:
   authoring path, present and future.
 - `_infer_way_facts` fills the cache on write from both graph write doors
   (`/api/graph/nodes` and the batch `connect_areas`), stamping the endpoints as
-  ids, `world_scope_id` when both ends share a scope — deliberately unset when
-  they do not, which is a real state — plus the midpoint and `current_state`.
+  ids, `world_scope_id` when both ends share a scope - deliberately unset when
+  they do not, which is a real state - plus the midpoint and `current_state`.
   Existing properties are never overwritten.
 
 **A `baked` scope refused to compile.** Promotion sets `paint_policy: "baked"`
@@ -3656,7 +3656,7 @@ and writes no grid, so the record read as authored-not-painted and the refusal a
 does: the paint route creates a grid on demand, so promoting a selection and then
 painting the rest of the room landed exactly there, and the error told the author
 to delete the scope and start again with 70 painted cells discarded. Nothing
-overlaps — promotion clears the promoted area's painted cell — so the fix is to
+overlaps - promotion clears the promoted area's painted cell - so the fix is to
 delete the refusal and let it compile; hand-authored nodes carry no provenance, so
 `apply_patch` cannot replace them and ungenerate skips them. The three tests that
 asserted the old contract are rewritten to the new one, including the case the
@@ -3664,7 +3664,7 @@ refusal was written for (a baked scope with *nothing* to compile now says so).
 
 **And the mirror stops being a second opinion.** A scope record's `area_ids` list
 is a denormalised cache of what the areas' own `world_scope_id` stamp already
-says, but it was written by two paths and read by a third — and not by the compile
+says, but it was written by two paths and read by a third - and not by the compile
 path, which is the one that mints the most areas. Eldenford interior reached 71
 stamped areas and 1 listed. `area_ids_in_scope` now derives from the stamps like
 `own_area_ids` already did, so the subtree counts, the scope tree and "Whole
@@ -3676,7 +3676,7 @@ Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-30T12:21:44+02:00
 Refs:   
 
-feat(backsim): preparation — carry rations and fill waterskins (task-426 substrate)
+feat(backsim): preparation - carry rations and fill waterskins (task-426 substrate)
 
 background_simulation: _fill_waterskin (top up carried containers at a water area), _stock_food (pocket a movable food item at a food area), _carry (re-home an item into the character's hands). Wired as a low-priority 'prepare' step in _act; TASK_MINUTES['take']=2. A need can now be answered from the pack instead of a fresh journey.
 
@@ -3718,7 +3718,7 @@ were silently absent from the library and the pass was still being reported as
 written, because the count came from what the generator *wrote* rather than what
 was *there*; the tables were in a temp directory, so nothing in the repo noticed.
 The same comparison then found 194 items whose weight had been truncated to an
-integer by a scratch helper and then defaulted to 1.0 — an ash scoop weighing a
+integer by a scratch helper and then defaulted to 1.0 - an ash scoop weighing a
 stone instead of three quarters of one. A presence-only test would have shipped
 that forever, so the test compares the record, not just the id.
 
@@ -3726,7 +3726,7 @@ item_shapes.py carries the lessons as enforced rules rather than as a note to
 self: a row's *shape* decides what it is (four transposed-column bugs in one
 session, each failing differently), a claim that cannot be backed is dropped
 rather than half-written, and a typo'd wearables id raises instead of skipping
-silently — which is how seven items shipped with no equip slot.
+silently - which is how seven items shipped with no equip slot.
 
 Two forage tests asserted a pool that no longer exists (one draw of exactly three
 ids; one literal relief of 45). They now assert the property: whatever is drawn is
@@ -3740,8 +3740,8 @@ Refs:
 
 feat(graph): one hierarchy, and a map that names its places
 
-The scope tree lived at the bottom of the graph view while the Outline tab — the
-panel that already held a hierarchy — held only the bottom of one, and a region
+The scope tree lived at the bottom of the graph view while the Outline tab - the
+panel that already held a hierarchy - held only the bottom of one, and a region
 could be picked from two further dropdowns. It is now the top of the Outline tab:
 world, then scope, then the areas inside it. Clicking a scope row loads it, and an
 unmade scope offers the honest jump to the WorldPainter, which is where ⚙ Generate
@@ -3751,8 +3751,8 @@ question about the canvas and "what else is there" is a question about the world
 The clipboard copy of the outline now carries the whole hierarchy; copying areas
 alone silently dropped the two levels above them.
 
-AUTO_SPAN_PX 1600 -> 4200, so a 20x30 painted extent derives 140px/cell — the card
-threshold — and the Map layout draws named cards instead of anonymous dots. The
+AUTO_SPAN_PX 1600 -> 4200, so a 20x30 painted extent derives 140px/cell - the card
+threshold - and the Map layout draws named cards instead of anonymous dots. The
 ladder still holds at both ends: a small zone clamps to 300 and gets roomy cards, a
 200-cell world clamps to 25 and takes the whole map in view as dots. The test
 asserts the property at each end rather than a number, because a single span
@@ -3784,7 +3784,7 @@ nothing.
 Both paths now share one coercion, keyed on the **default's** type rather than the
 value's. That also fixes `bool("false")` reading as True, and a bool being silently
 accepted where a number is declared. A key may declare `choices`, and
-forecast.apply_scope does — without it "exteriorr" quietly applies the weather to
+forecast.apply_scope does - without it "exteriorr" quietly applies the weather to
 every area.
 
 commit 5200f53d676018b53ff2ea44f2376cbe608a3eb3
@@ -4386,7 +4386,7 @@ looked for a spot tagged `recreation` and found nothing else, so a goblin
 carrying Rikka's kit in their pack had no way to spend a bored hour unless the
 camp happened to contain a drum as well.
 
-A carried item is now a **fallback**, and the area is still checked first —
+A carried item is now a **fallback**, and the area is still checked first -
 deliberately, because a camp with a drum must behave exactly as it did, and its
 fixture is free while the fallback costs a little Energy. That split is the
 whole design: the new path is additive and the old one is untouched, so no
@@ -4394,13 +4394,13 @@ existing soak moves.
 
 - `RECREATION_ENERGY_COST = 5`, applied only on the carried path.
 - `_carried_recreation` skips a hidden item and a spent one. `uses: -1` is "no
-  charge model" — pebbles and cups do not wear out; a drum has a skin that does,
+  charge model" - pebbles and cups do not wear out; a drum has a skin that does,
   and at zero charges the fallback reports False rather than topping a
   character up from an empty drum for the rest of the run.
 - A spent item is marked `used_up`, not deleted: a used-up drum is still a drum,
   and `_consume_here` deleting things is a hazard task-425 already guards
   against for fixtures.
-- Foreground `use` needed no engine change — an `on_use → adjust_vital
+- Foreground `use` needed no engine change - an `on_use → adjust_vital
   Entertainment` trigger already reaches the vital. It just needed authoring.
 
 Rikka's kit: juggling stones, string puppet, nested cups (`uses: -1`) and a
@@ -4411,7 +4411,7 @@ kit takes a few rounds to lift a character off zero and then stops. The test
 says so explicitly rather than pretending one use was enough.
 
 Gate: `pytest -q` 61 failed / 4320 passed, the same 61 as before this change.
-The 61 background-simulation and 66 soak/determinism tests pass unchanged —
+The 61 background-simulation and 66 soak/determinism tests pass unchanged -
 checked separately, since "the fixture path is unchanged" is the acceptance
 criterion and the full-suite count alone would not show it.
 `node tools/unit/run.cjs` 397 passed / 13 failed (the same pre-existing ones).
@@ -4753,7 +4753,7 @@ Refs:
 docs(tasks): file the feature-to-documentation linking chain
 
 Four linked tasks so the idea can be picked up one piece at a time as
-blockers clear. No Wiki.js involved — the @docs convention already in the
+blockers clear. No Wiki.js involved - the @docs convention already in the
 JS side is the better primitive, and it is git-tracked and agent-readable.
 
 - task-576 (docs): extend @docs to engine/ and routes/. 152 of 179 JS
@@ -4781,7 +4781,7 @@ A treasured object is not a tool. Gribba's Good Knife is not communal kitchen
 equipment, and "nobody else may touch it" should be true in the world rather
 than only in the fiction.
 
-The marker is a node property, not an edge: `owner` (a name or a node id — the
+The marker is a node property, not an edge: `owner` (a name or a node id - the
 same person either way) plus the informational `personal` tag. An item with no
 `owner` is nobody's in particular and behaves exactly as before. `take`, `give`,
 `use` and `use-on` all refuse a non-owner, naming the owner and pointing at the
@@ -4794,16 +4794,16 @@ pinned by tests:
 - **A missing or incapacitated owner lifts the refusal.** A dead goblin's knife
   is not a sacred object, and a rule that keeps protecting a corpse's belongings
   is a worse failure mode than a permissive one. An owner who is merely
-  *elsewhere* still owns the knife — only a claim nobody can enforce fades. An
+  *elsewhere* still owns the knife - only a claim nobody can enforce fades. An
   owner handle we have never heard of is assumed alive: silence is not consent.
 - **A Social or Intimidation check does NOT lift it.** `steal` is already a
   roll; a second one hidden inside `take` would make an ordinary verb
   unpredictable. So the normal verbs say no plainly and `steal` is the way
-  through — never blocked, just harder: a personal item adds a flat +3 to the
+  through - never blocked, just harder: a personal item adds a flat +3 to the
   target's Perception, because someone watches their own property more closely
   than loose change. `owner_bonus_to_perception()` is the one place to tune it.
 
-`owner` joins the `_hydrate_item` passthrough — a spawned keepsake that lost the
+`owner` joins the `_hydrate_item` passthrough - a spawned keepsake that lost the
 property would come up unowned and anyone could pocket it, which is the one
 thing the property exists to prevent.
 
@@ -4831,9 +4831,9 @@ not declare `take` in its own `actions`. That is the model task-299 agreed.
 - `engine/items/action_contract.py` is where every verb that *moves* an item
   now asks. Before this only `take` read the action list, so a part was
   untakeable but would still have been droppable, stealable, giveable and
-  puttable — untested because nothing happened to point those verbs at one.
+  puttable - untested because nothing happened to point those verbs at one.
   `take`, `drop`, `steal`, `give`, `put` and `place` are all gated now, and the
-  refusal names the device ("the battery is part of the phone — it doesn't
+  refusal names the device ("the battery is part of the phone - it doesn't
   come loose to steal it") rather than shrugging.
 - **Charge is the generic `uses`.** No `power` or `charge` property, and a test
   asserts no library item invents one. The phone body is `uses: -1`; the cell
@@ -4842,7 +4842,7 @@ not declare `take` in its own `actions`. That is the model task-299 agreed.
   `use` path used to cut a used-up item's `in` edge, which fished a battery out
   of its phone and left the player holding a loose cell they never asked for,
   with no message and no hook. A part now goes `unlit`, fires `on_depleted`, and
-  keeps its place — the same rule toggleable_items already used for a lit item
+  keeps its place - the same rule toggleable_items already used for a lit item
   burning out. An ordinary used-up item keeps the old behaviour. A part may
   author a different ending from its own `on_depleted`; that runs first.
 - **Non-portable is not inert.** A part stays reachable and usable via
@@ -4860,7 +4860,7 @@ not declare `take` in its own `actions`. That is the model task-299 agreed.
 
 Found and filed bug-509 while testing: `drop_item` scans only EDGE_CARRYING
 while `take` puts everything in a hand (EDGE_EQUIPPED), so you cannot drop
-anything you just picked up. Not fixed here — out of scope, and test_item_parts
+anything you just picked up. Not fixed here - out of scope, and test_item_parts
 avoids depending on the broken path.
 
 Gate: `pytest -q` 61 failed / 4267 passed, the same 61 as before this change.
@@ -4878,8 +4878,8 @@ Refs:
 feat(items): item quantity property and pooled resource nodes (task-504)
 
 One item node can now stand for many of the same kind. Mostly a presentation
-win — "1 giant tree" and "40 berries" read correctly, and one node is far
-cheaper than hundreds — but underneath it is the pooled resource node: a bush,
+win - "1 giant tree" and "40 berries" read correctly, and one node is far
+cheaper than hundreds - but underneath it is the pooled resource node: a bush,
 thicket or tree that yields real item copies when taken from and depletes as
 it goes.
 
@@ -4906,7 +4906,7 @@ is not something you can carry at all.
 - `lint_library` gains `resource_pools`, so a quantity without a yield, a yield
   naming a missing library id, or a pool yielding itself fails at lint time.
 - Data: `apple_tree` becomes a pool of 3 apples; new `berry_thicket` pool.
-  `bush_of_berries` is left as the task-410 renewable plant — it is a live,
+  `bush_of_berries` is left as the task-410 renewable plant - it is a live,
   separately tested food-renewal system, and the task's own notes call the two
   related but not the same.
 
@@ -4948,7 +4948,7 @@ worktree lanes branch from a current base.
 
 - engine/world_scopes.py: emit a plain scope record on promote (missing
   `kind` made scope_summary 500 on every promote), and skip the gateway
-  when the doorstep is one of the promoted areas — a self-referential way
+  when the doorstep is one of the promoted areas - a self-referential way
   goes nowhere.
 - engine/world_compile.py, routes/world_grid_ops.py: scope and grid
   compilation/route fixes.
@@ -5067,7 +5067,7 @@ fix(examine): credit the character who actually looks inside a container
 
 `examine <container>` already un-hid its contents, but that write is on the
 node, so the first character to open a chest revealed the loot to everyone
-permanently — and the character who did the looking was never credited with
+permanently - and the character who did the looking was never credited with
 meeting any of it. Contents therefore never rendered as known, and a second
 character who opened the same chest later got nothing at all, because the reveal
 had already happened and there was no per-player record to add.
@@ -5076,7 +5076,7 @@ Every item the examine reports is now passed through _register_item_discovery,
 which writes the observation memory and the discovered_items entry. All three
 readers of "known" are client-side and all read discovered_items
 (contextual-actions.js isDiscovered, room-context.js, memory-context.js), so
-the stamp is the whole contract — no engine renderer change needed.
+the stamp is the whole contract - no engine renderer change needed.
 
 Scope is everything the examine reports, not just `in`: on, under, behind,
 beside and at count too. The credit is idempotent, and a count of genuinely new
@@ -5099,7 +5099,7 @@ feat(relief): relief is permitted anywhere, privacy is a preference
 
 The background tier could only relieve itself in an area tagged latrine/
 toilet/privy/restroom/bathroom, and a camp with no such area left characters
-who simply never went — the bladder branch ended in a bare `return None`. The
+who simply never went - the bladder branch ended in a bare `return None`. The
 foreground had no such gate, so the two tiers disagreed about the same room.
 
 engine/relief.py is now the single place both tiers read. It keeps the tags as
@@ -5117,7 +5117,7 @@ Worth knowing: build_exits_for_area hands back display names, not node ids, so
 ranking has to resolve through _resolve_area_id first or every neighbour looks
 empty.
 
-The two tiers also disagreed on vocabulary — the foreground tested only
+The two tiers also disagreed on vocabulary - the foreground tested only
 toilet/bathroom/restroom, so a room tagged `latrine` or `privy` was a restroom
 to the engine and a corner to the player. Fixed by sharing RELIEF_TAGS.
 
@@ -5584,7 +5584,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-27T12:50:58+02:00
 Refs:   
 
-feat(world): every painted cell is a place — roads, prose, scope membership, and map drawing
+feat(world): every painted cell is a place - roads, prose, scope membership, and map drawing
 
 Completes the task-496 block and the WorldPainter/graph session work that hangs
 off it. The observer-view model, locked with the author, now holds end to end.
@@ -5617,7 +5617,7 @@ Map drawing (bug-51, bug-52, bug-53, task-548)
   cannot drift onto a different grid than the areas.
 - A painted cell always wins over the physics-off flag the scenario builders set,
   so raising Map grid moves the areas with the art.
-- Node boxes, item offsets, item rings and the solver spring follow the pitch —
+- Node boxes, item offsets, item rings and the solver spring follow the pitch -
   in the Map layout only.
 - Dragging a zone moves *its* art, identified by reference image, instead of
   whichever layer happens to be selected in the panel.
@@ -5683,9 +5683,9 @@ Refs:
 docs(roadmap): the next-session plan and the sequence after it
 
 Adds docs/virtualWorld/Roadmap.md: where the world is (340 done / 140 review
-/ 8 in progress / 83 todo), the three rules that set priority — one copy of
+/ 8 in progress / 83 todo), the three rules that set priority - one copy of
 every truth, scale bounded by attention and never by turn length, document the
-non-obvious — and a sequenced plan:
+non-obvious - and a sequenced plan:
 
 1. Finish WorldPainter (496/398/520/397/400), with the exit test of painting,
    compiling, scoping, walking and committing a zone with no engine change.
@@ -5707,7 +5707,7 @@ chore(tasks): file the session's task moves
 
 The folder is authoritative, so the moves land here:
 
-- 71 tasks to done/ — the full condition set (254–276), bugs 34/41/43/44, and
+- 71 tasks to done/ - the full condition set (254–276), bugs 34/41/43/44, and
   the character/world/ui/gameplay work filed over the last weeks.
 - In-progress items advance (the WorldPainter compiler and scope tasks).
 - New tasks recorded: task-495/496/520 (WorldPainter), task-486 (description
@@ -5725,7 +5725,7 @@ test(timeskip): fixtures that measure decay scaling, not the focus rule (task-43
 The minute-scale decay tests placed a *focused* character in a stocked
 clearing. A focused character is assumed to have spent the turn's first minute
 on their own decision, so at a 1-minute turn it has no deterministic minutes
-left (by design) — the fixture was measuring that rule, and the need ladder
+left (by design) - the fixture was measuring that rule, and the need ladder
 would drink away a maxed Thirst before the assertion.
 
 The fixture now sets simulation_mode = "background" and runs the starvation
@@ -5752,10 +5752,10 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-25T00:45:27+02:00
 Refs:   
 
-feat(items): one depletion rule for consume — the engine spends the charge (task-508)
+feat(items): one depletion rule for consume - the engine spends the charge (task-508)
 
 `use` auto-decremented `uses` and removed the item at 0; `eat`/`drink` did
-not. So consume depletion had to be hand-authored — and the trigger suggester
+not. So consume depletion had to be hand-authored - and the trigger suggester
 told the model NOT to author it, which silently minted infinite food.
 
 - ConsumeActionsMixin._spend_uses() spends one charge exactly as `use` does,
@@ -5786,7 +5786,7 @@ the prose stale until the next equipment change.
   what the description renders (_get_state_hash: equipped stacks and their
   live states, mature_content, visible conditions, region sensitivities), and
   _update_state_description(), which rebuilds only when the hash moved.
-- ConditionsSystem refreshes on apply and remove (best-effort — the per-turn
+- ConditionsSystem refreshes on apply and remove (best-effort - the per-turn
   pass is the safety net for the many paths that apply conditions).
 - TickManager reconciles every living character once per turn, so a change
   made by a direct player.conditions write is caught as well.
@@ -5802,7 +5802,7 @@ Refs:
 
 feat(world): WorldPainter grids, world scopes and per-scope graph loading
 
-A painted world is thousands of cells and, once compiled, thousands of areas —
+A painted world is thousands of cells and, once compiled, thousands of areas -
 more than the graph can hold at once and more than a DOM grid could render.
 
 WorldPainter (task-495/496/520):
@@ -5810,7 +5810,7 @@ WorldPainter (task-495/496/520):
   town / interior), one-request batch paint, and a route tool that reports its
   length in cells · turns · hours (1 cell = 1 turn, 60 turns/hour).
 - static/js/worldpainter/{grid-model,editor}.js: a Konva canvas surface, so a
-  16k-cell grid renders without one DOM node per cell — the old 60x60 DOM cap
+  16k-cell grid renders without one DOM node per cell - the old 60x60 DOM cap
   is gone.
 - engine/world_compile.py + engine/generation.py: per-scope compile, so the
   root stays coarse and each zone holds its detail rather than one generate
@@ -5854,7 +5854,7 @@ fix(timeskip): world advance soaks everyone (task-436 root cause)
 
 advance_world just called tick_turn(), leaving every character 'active'. A
 focused character gets minutes_in_turn - 1 minutes of action time in
-process_due, which is 1 - 1 = 0 at a 1-minute tick — so a fine-grained world
+process_due, which is 1 - 1 = 0 at a 1-minute tick - so a fine-grained world
 advance decayed every drive without ever serving it. After one camp day at
 T=1: Energy 0, Hunger 56, Thirst 78, Bladder 100, while T=15 sat near Energy
 50 / Hunger 31 / Thirst 34 / Bladder 81. Energy was a symptom, not the cause.
@@ -5908,7 +5908,7 @@ _declared_span uses the same ceiling.
 Tests: a two-day world advance reports elapsed_minutes == 2880; 20,000 min is
 rejected with max_minutes == 10080. Still open on task-482: vendor leisure
 buying and explore-prefers-frontier (blocked on task-398). The task-436 Energy
-residual was not folded in — cause still unidentified, next step is a
+residual was not folded in - cause still unidentified, next step is a
 measurement harness, not another guess. Suite 61 failed / 3798 passed.
 
 commit ab198cd334d3028975f680141ab196814aadc708
@@ -5916,7 +5916,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-24T18:16:25+02:00
 Refs:   
 
-feat(world): Pines vertical slice — scopes, schedules and the task-399 proof
+feat(world): Pines vertical slice - scopes, schedules and the task-399 proof
 
 Data-only authoring via tools/author_pines_slice.py (surgical raw-JSON edit,
 idempotent):
@@ -6224,7 +6224,7 @@ Characters stop being generic and start being themselves: what they are good at
 (role profiles), what they can find (notice-then-search plus four more tables), how
 they improve (opt-in growth, proficiency, mutable abilities), what they will do
 unobserved (a real theft agenda and varied approaches), and whether the camp's plants
-actually feed anyone (the hydrate path — two real bugs fixed).
+actually feed anyone (the hydrate path - two real bugs fixed).
 
 - task-476 role skill profiles via namespaced `role:` tags (data/library/roles.json,
   engine/roles.py); merged into the one check pipeline, inert until authored.
@@ -6239,7 +6239,7 @@ actually feed anyone (the hydrate path — two real bugs fixed).
 - task-409 note: one action per turn (default 1-minute turns); bundled chores are
   crafting-recipe-shaped.
 
-Full suite: 61 failed / 3618 passed — the same documented pre-existing 61.
+Full suite: 61 failed / 3618 passed - the same documented pre-existing 61.
 
 commit bdd3ab8ce131ecba4fe24f35bc57b7ec34559d72
 Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
@@ -6440,7 +6440,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-23T16:18:03+02:00
 Refs:   
 
-docs(release): "Hands Off the Wheel" — the arc, written down
+docs(release): "Hands Off the Wheel" - the arc, written down
 
 Nine days of commits went in one change at a time and never got release
 notes, so the changelog stopped at 09-21 while the world gained timeskips,
@@ -6448,7 +6448,7 @@ soak orders, a single dice path, skill-checked finding, and a graph that
 derives its own positions. This writes that release, and fixes two docs that
 had quietly become lies.
 
-CHANGELOG — new Unreleased section (2026-09-21 → 09-23), "Hands Off the
+CHANGELOG - new Unreleased section (2026-09-21 → 09-23), "Hands Off the
 Wheel": timeskip as a controller swap (frame dial, no stasis/protection,
 zero LLM calls, 409 on interleaving mutations, 1440-min request cap); soak
 orders as per-character orders declared on that player's turn (promotion
@@ -6459,7 +6459,7 @@ checks with junk and the `forage` tag; fear as per-character tags; traversal
 gates (routine takes 10, risky rolls DC 12); derived graph layout (orbit,
 incremental follow, levels mode, per-node physics); bug-44/45/46.
 
-World Building/Graph System — new "Derived layout" section: parent priority,
+World Building/Graph System - new "Derived layout" section: parent priority,
 orbit constants, exact vs inherited distances, why contents are kept out of
 the global solver (centralGravity is a global field applied to every node
 every iteration; measured 2px of ~5900), levels mode, and the `layout_*`
@@ -6467,13 +6467,13 @@ per-node properties. Corrected the physics-sliders note: they govern areas
 and ways, not a room's contents. Recorded the two bug-45 guards (cardinal
 only in map mode; frozen nodes skipped).
 
-Rules Engine/Conditions System — check_advantage/check_disadvantage in the
+Rules Engine/Conditions System - check_advantage/check_disadvantage in the
 Definition Schema and a new Advantage / Disadvantage section (condition_flags
 matches skills, abilities or "attack"; presence is per condition, not per
 instance; restrained pins ["attack"]).
 
-Simulation Model — a shared-world skip is a per-character order, not a
-table-wide jump. _Index — Graph System blurb + date. .gitignore —
+Simulation Model - a shared-world skip is a per-character order, not a
+table-wide jump. _Index - Graph System blurb + date. .gitignore -
 .playwright-mcp/ is tool output, not repo content.
 
 Docs only. Checked against engine/checks.py::condition_flags,
@@ -6736,7 +6736,7 @@ Refs:
 perf(graph): incremental child follow instead of a per-frame graph sweep
 
 The follow pass walked every child every frame, copied every node's
-position to do it, and moved nodes on an afterDrawing hook — which could
+position to do it, and moved nodes on an afterDrawing hook - which could
 re-trigger a redraw off its own moves. At a large graph that is a
 per-frame tax over the whole node set, and idle graphs could spin.
 
@@ -6746,7 +6746,7 @@ Now:
   false) rather than being held in it and corrected every frame. Central
   gravity is a field applied to every node every iteration, so a child
   left in it is dragged off its parent however stiff its edge is, and
-  holding it back needs a per-child sweep — the thing that does not
+  holding it back needs a per-child sweep - the thing that does not
   scale. The parent is still physics-driven and the child follows it; a
   dragged child re-records its offset from where it was dropped, so
   contents stay dynamic with their room and hand-arrangeable.
@@ -6761,7 +6761,7 @@ parent, identical after 2.5s (no drift) and through moving the room by
 (380,-160); an idle tick is 0.03ms.
 
 Recorded negative result: rebalancing the global physics cannot fix
-clusters — springConstant 0.04->0.14 and centralGravity 0.3->0.06
+clusters - springConstant 0.04->0.14 and centralGravity 0.3->0.06
 (applied and verified in network.physics.options) changed the settled
 layout by 2px out of ~5900. vis-network exposes no per-cluster force, so
 the parent-relative offset is the only per-cluster control.
@@ -6789,7 +6789,7 @@ offset is re-applied to the parent's live position on every drawn frame
   central gravity can neither drag them to the middle nor stretch them
   across the map;
 - dragging a room carries its contents with it exactly;
-- dragging a child keeps the place it was dropped — the offset is
+- dragging a child keeps the place it was dropped - the offset is
   recomputed from the drop, so a hand-arranged room still follows.
 
 Nested children resolve shallowest-first against the map updated in the
@@ -6821,7 +6821,7 @@ positions once near the parent anchor with `physics:true, fixed:false`, so
 global central gravity pulled every leaf node to the graph's centre of
 mass while the many-linked areas spread out. A saved `properties.x/y` is
 only a starting position (network-manager.js:533), so locking was the only
-thing that made them hold — and a snapshot is wrong the moment someone
+thing that made them hold - and a snapshot is wrong the moment someone
 picks an item up and walks off with it.
 
 graph/relative-layout.js derives the position instead:
@@ -7007,11 +7007,11 @@ player's turn, not a table consensus and not a blocking server jump.
   characters so the generic need policy never competes with the declared intent.
 - Promotion on fear, hostile condition, critical vital, or a watched discovery:
   order cleared, frightened applied for fear, one resume memory, a `soak_end`
-  turn event — and NO table pause. The character is simply re-queued and acts on
+  turn event - and NO table pause. The character is simply re-queued and acts on
   its next turn by normal turn order.
 - API: POST/DELETE /api/world/soak. POST /api/world/timeskip now declares an
   order when another attended human exists (instead of freezing them and 409ing
-  them), and still fast-forwards when nothing attended remains — the blocking
+  them), and still fast-forwards when nothing attended remains - the blocking
   jump is demoted to that degenerate fast path.
 
 tests/test_soak_orders.py: 12 passed; targeted soak/background/timeskip/fear/
@@ -7030,7 +7030,7 @@ Answers the "who gets the option?" gap. With no active/human character a
 timeskip has no subject, so it is now a WORLD advance rather than a 400:
 
 - engine/timeskip.advance_world(gs, minutes): runs the clock with everyone in
-  soak — no policy, no interrupts, no resume memory — and reports mode "world".
+  soak - no policy, no interrupts, no resume memory - and reports mode "world".
   TimeskipResult gains a `mode` field ("character" | "world").
 - POST /api/world/timeskip: no active character -> advance_world (intent/target
   are meaningless without a subject); with a character -> the existing policy
@@ -7111,7 +7111,7 @@ Survival is not guaranteed in the wilds, and skill separates the goblin from
 the child:
 
 - A strong search result (margin >= 5 over the DC) delivers what was asked for
-  — only want_tags-matching entries. A bare success includes the skill's table
+  - only want_tags-matching entries. A bare success includes the skill's table
   plus a junk entry (junk/scrap/debris), so a low-skill searcher mostly turns up
   sticks while a trained one reliably finds food.
 - Three junk library items (bundle_of_twigs, chipped_stone, sodden_bark) give
@@ -7143,7 +7143,7 @@ One place that answers what to roll, what modifies it, and how good the result
 is. Before this, roll_dice lived in the skill system, skill checks ignored the
 character's ability scores, saves rolled their own way, and there was no
 advantage/disadvantage, no criticals, no degrees of success and no opposed
-checks — every call site re-invented a piece.
+checks - every call site re-invented a piece.
 
 - engine/checks.py: dice (`roll_dice`, `parse_dice`, `roll`, `roll_d20` with
   advantage/disadvantage that cancel), abilities (`ability_mod`, STAT_NAMES,
@@ -7208,7 +7208,7 @@ and moves on.
 
 - BackgroundSimulation._requires_search(node): true only when the item sits
   inside/on another *item* (basket, larder, bush). Open-area resources and
-  carried food stay automatic — deliberate, so a camp never starves beside a
+  carried food stay automatic - deliberate, so a camp never starves beside a
   visible stew and the existing soak survival numbers stay stable.
 - _forage_check(p, kind): Perception vs DC 10, swapped to the acting character
   and restored after; fails open if the skill system is unavailable.
@@ -7460,7 +7460,7 @@ Refs:
 test(sim): cover leisure/explore intents; document timeskip in Simulation Model
 
 - tests: leisure eats when hungry; explore moves through an exit (27 total).
-- Simulation Model.md: "Timeskip actions" subsection under Time — the
+- Simulation Model.md: "Timeskip actions" subsection under Time - the
   controller-swap, no-stasis rule, forced minute resolution, interrupts via
   task-466, and the 464/467/468 links.
 
@@ -7536,7 +7536,7 @@ deterministic policy, stopping when something relevant happens.
   (player.py:194, event-stream.js:136).
 - tests/test_timeskip.py: 19 tests for the evaluator and the runner.
 
-Full suite: 60 failed / 3356 passed — the same 60 pre-existing failures.
+Full suite: 60 failed / 3356 passed - the same 60 pre-existing failures.
 
 commit 53420e657c9bc89940d6e24434e18f6599a98a2c
 Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
@@ -7582,7 +7582,7 @@ decisions supplied by a scripted policy, and interrupt back to the human on
 threat, vital/condition crossing, involuntary action, or discovery.
 
 - Drop the protect_human stasis. Consequences always apply: the skip
-  removes decisions, not harm — waiting without food or water can kill.
+  removes decisions, not harm - waiting without food or water can kill.
 - Force 1-minute resolution regardless of the scenario's
   time_per_tick_minutes so interrupts land on a minute boundary.
 - Intents: idle/wait, leisure/mingle, search, explore, travel/fast-travel.
@@ -7651,7 +7651,7 @@ hierarchy/perception-skip/mature metadata lived in hand-maintained lists.
 - Docs: Conditions System catalog/schema/derived-constants; Library 2.0
   conditions-tab status.
 
-No engine features added — the declarative schema already covers
+No engine features added - the declarative schema already covers
 condition behavior; id-keyed reactions (charmed/frightened/grappled/
 unconscious) intentionally stay in code.
 
@@ -8307,7 +8307,7 @@ One entity at four processing levels, sharing one clock and one action flow.
 Cognition refines but never creates capability, so scale is bounded by attention
 rather than world size. A turn is a timeframe filled by an action flow, survival
 is slack-and-emptiness rather than a drain rate, and routine satisfies survival
-by default so that deprivation — not maintenance — is the crisis.
+by default so that deprivation - not maintenance - is the crisis.
 
 Marks the per-turn action budget as superseded debt: budgeting one-minute actions
 with no durations gives a 30-minute turn thirty actions, and ~1,440 actions per
@@ -8340,7 +8340,7 @@ per focused character and is what costs money: a deterministic character spends
 its whole turn, an LLM decides once and the engine resolves the ticks. Conflating
 those two is what produced both this mistake and the earlier one.
 
-Consequence: 30 game minutes is 30 actions at 1, 5 or 15 min/turn — the invariant
+Consequence: 30 game minutes is 30 actions at 1, 5 or 15 min/turn - the invariant
 that makes fast-forward and live play the same world. A fixed one-per-turn budget
 would give 30 actions at 1 min/turn and 2 at 15.
 
@@ -8417,7 +8417,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T18:09:55+02:00
 Refs:   
 
-docs(schedule): record two failed fixes and the real blocker — the action budget (task-409)
+docs(schedule): record two failed fixes and the real blocker - the action budget (task-409)
 
 Neither attempted fix worked, and both were reverted rather than kept as
 unproven complexity. The measurements matter more than the changes did.
@@ -8442,18 +8442,18 @@ just where workers drink. A co-location pass cannot be evaluated as a local data
 tweak, and the tool is kept with that caveat documented rather than deleted.
 
 THE BLOCKER IS ARITHMETIC. A background character takes one action per
-DECISION_MINUTES (10 game minutes) — about 96 actions a day. Survival service is
+DECISION_MINUTES (10 game minutes) - about 96 actions a day. Survival service is
 not cheap in actions: each need is a journey of one hop per action, and the camp's
 food, water, latrine and wash sit in different corners. Twelve 30-minute work
 blocks cannot fit beside those errands, and once schedule travel competes for the
-same budget the errands slow down too — which is exactly what the numbers show
+same budget the errands slow down too - which is exactly what the numbers show
 (Hygiene and Entertainment collapse, schedule:work fires about once per character
 per day).
 
 So this is a design decision, and the task now records three options with (b)
 recommended: (a) more actions per day, which multiplies tick CPU and makes the
 character finer-grained when the goal is "supercharged simple NPCs"; (b) coarser
-need service — one "chores" trip to a service area servicing several needs in one
+need service - one "chores" trip to a service area servicing several needs in one
 action, which is what a coarse simulation should already do and collapses ~5
 errands into 1; (c) drop the working day and keep schedules for placement only,
 which is already measured as Energy-positive.
@@ -8474,7 +8474,7 @@ standing, and moved only when a need pushed it somewhere. A schedule says Mikka
 goes to the Workshop, Gribba cooks, Vekka scouts, and the camp gathers at the
 Chief's Pit in the evening and sleeps in the halls.
 
-Engine (engine/schedule.py, tests/test_schedule.py — 39 tests):
+Engine (engine/schedule.py, tests/test_schedule.py - 39 tests):
 
 - Steps are {start: "HH:MM", activity, area, fallback}, sorted, wrapping at
   midnight; before the first step the LAST step stays in force, so a day starting
@@ -8482,13 +8482,13 @@ Engine (engine/schedule.py, tests/test_schedule.py — 39 tests):
 - Malformed steps are dropped, not guessed: a step with no usable start cannot be
   placed in a day, and inventing one would make a character behave in a way nobody
   authored. An unknown activity degrades to `wait` rather than freeing the
-  character to wander. An empty schedule is a valid state — exactly how every
+  character to wander. An empty schedule is a valid state - exactly how every
   character behaved before this task.
 - minutes_of_day reads the engine's own clock (total_game_minutes), so a step at
   07:00 is 07:00 at any tick length. normalize also runs on load, so a
   hand-edited or legacy save cannot put a bad step into somebody's day.
-- _pursue_schedule walks to the step's area — _target_step gains an explicit
-  `areas` override for a named destination — then starts a short `working` block.
+- _pursue_schedule walks to the step's area - _target_step gains an explicit
+  `areas` override for a named destination - then starts a short `working` block.
   It runs after every survival need and before boredom, so a character works with
   time no need claims and still breaks off to eat.
 - `working` is registered in all five activity registries INCLUDING
@@ -8510,13 +8510,13 @@ over 3 days at 15 min/tick, schedules on vs off, same seed:
   Energy            72.3      55.4      40.0     31.0
   Hunger/Thirst/Sanity unchanged
 
-Schedules work — traces show Thrazz at the Chief's Den working at 09:30, Mikka at
-the Workshop, schedule:work firing — and Energy is BETTER with them, because the
+Schedules work - traces show Thrazz at the Chief's Den working at 09:30, Mikka at
+the Workshop, schedule:work firing - and Energy is BETTER with them, because the
 night step puts characters in the Sleeping Halls so they sleep properly. But
 Hygiene, Social and Entertainment collapse: 388 schedule-travels against 53 work
 blocks. Schedule travel competes for the same action budget as the need ladder and
 drags characters to work sites that hold no facilities, so the lower-priority
-needs never get their turn — priority starvation via travel, not a broken
+needs never get their turn - priority starvation via travel, not a broken
 schedule.
 
 So the schedule was reverted out of the scenario (verified byte-identical to HEAD
@@ -8554,7 +8554,7 @@ target the wrong one:
 - _showAddItemPicker had the same bug; fixed the same way.
 - _showContainerPicker deduped containers by NAME, so two containers called "Bag"
   collapsed into one and `getNodeByIdentifier(name)` then resolved to whichever
-  came first — "put in Bag" could target the wrong one. It now builds id/name
+  came first - "put in Bag" could target the wrong one. It now builds id/name
   pairs from getInventoryIds + equipped slots and dedups by id.
 
 New `worldState.getInventoryIds(charName, edgeTypes)` is the id sibling of
@@ -8568,7 +8568,7 @@ DEFECTS FOUND WHILE TRIAGING
 
 - static/js/inspector/agent-view.js: the picker bug above (real, user-visible).
 - engine/item_actions.py: the item split left two dead facade wrappers that would
-  have raised NameError — `_get_effective_weight` and `_sum_container_contents`
+  have raised NameError - `_get_effective_weight` and `_sum_container_contents`
   called `_node_effective_weight` / `_sum_container_contents` from
   engine/items/carry_weight.py without importing them, and the second shadowed the
   module function's own name inside the method. No callers existed, which is why
@@ -8586,35 +8586,35 @@ TRIAGE OF THE 11 IN-PROGRESS TASKS
 Closed, with verified outcomes and moved to done/ (each claim read against the
 code, not trusted from the file's own checkboxes):
 
-- task-349 relationship system hardening — every deliverable present; the write
+- task-349 relationship system hardening - every deliverable present; the write
   path it hardened is now engine/relationships.py (task-420).
-- task-350 experience-driven relationships — present and tested; it was filed as a
+- task-350 experience-driven relationships - present and tested; it was filed as a
   work log with no frontmatter and a stray first line, now given frontmatter.
-- task-392 EDGE_KNOWN — present; the two gaps above closed.
-- task-394 graph search freeze and centre — implemented in graph/focus.js; its own
+- task-392 EDGE_KNOWN - present; the two gaps above closed.
+- task-394 graph search freeze and centre - implemented in graph/focus.js; its own
   line citations corrected, and bug-36 noted as the open moveNode guard.
-- task-395 way-orientation authoring — the four code deliverables present, the
+- task-395 way-orientation authoring - the four code deliverables present, the
   cleanup op now tested, offline-generator follow-up split to task-435.
 
 Left in progress, now each carrying a "State (verified 2026-09-21)" section with
 the exact remaining items and the false claims corrected:
 
-- task-324 — tag files + script + goblin pass landed; the ~33-area domain backfill,
+- task-324 - tag files + script + goblin pass landed; the ~33-area domain backfill,
   lint-clean coverage and the convention doc are not done, and downstream work
   already assumes they are not.
-- task-393 — core triage mechanics landed; library_mismatch "mark intended", the
+- task-393 - core triage mechanics landed; library_mismatch "mark intended", the
   library_mismatch field recalibration, and the specified progress definition are
   absent (and the file's claims about the first two are false).
-- task-396 — examples embedded and on_light genuinely fixed; the prompt is a
+- task-396 - examples embedded and on_light genuinely fixed; the prompt is a
   condensed subset, not "every type/condition/effect", and there are no tests. Its
   "why the current prompt fails" premise describes the pre-fix state.
-- task-314 — wave-1 splits real; traits/movement/tick_manager/matching/equipment,
+- task-314 - wave-1 splits real; traits/movement/tick_manager/matching/equipment,
   the JS trio and the 2724-line test module are unsplit and several regrew past
   their pre-audit sizes.
-- task-358 — Phases 1-2 done; Phases 3-5 absent (no page.reload, no page.route, no
+- task-358 - Phases 1-2 done; Phases 3-5 absent (no page.reload, no page.route, no
   --suite anywhere), the helper has 2 adopters of 28 .cjs files, and the
   referenced tools/test_ways.cjs does not exist.
-- task-351 — Phase 1 shipped (one false `reduce_uses` claim corrected); the Phase 2
+- task-351 - Phase 1 shipped (one false `reduce_uses` claim corrected); the Phase 2
   blueprint browser and all of Phase 3 runtime compile/branching remain, and
   task-388 supersedes only its UI/UX half.
 
@@ -8625,12 +8625,12 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T17:24:49+02:00
 Refs:   
 
-docs(tasks): scope task-424 — it is three pieces, and the code half is invisible alone
+docs(tasks): scope task-424 - it is three pieces, and the code half is invisible alone
 
 Measured before starting it:
 
 - Only six of ~40 edible library items author an on_eat/on_drink trigger, and
-  _consume_item accepts the rest on their tag alone — so the authored path would
+  _consume_item accepts the rest on their tag alone - so the authored path would
   fire no effect and never deplete them. The hardcoded depletion is currently the
   only thing making camp food finite.
 - The camp places five consumables (berries, bread, dried meat, mushrooms, water
@@ -8702,14 +8702,14 @@ fix(sanity): give Sanity sources and remove the self-locking condition drains (t
 
 Sanity had five drains and no source. A week emptied an authored 65-90 (the
 baseline alone is 7.2/day), so every one of the 23 characters ended a soak
-hallucinating — and it was not the Social coupling task-431 fixed: with Social and
+hallucinating - and it was not the Social coupling task-431 fixed: with Social and
 Entertainment pinned at 100 for a whole week Sanity was still 0/0/0.
 
 The self-lock was the worse half. hallucinating drained Sanity at -2/min and
 social_breakdown at -1/min against a 0.005/min baseline, so -2/min was 400x the
 baseline and -2880/day: a character who reached hallucinating could never climb
 back out however well they lived, and low Sanity is what causes the condition.
-Both drains are gone. The behavioural penalty is the cost — the same reasoning as
+Both drains are gone. The behavioural penalty is the cost - the same reasoning as
 "low Sanity makes a character dangerous, not dead".
 
 Sources, all reusing what the world already models (the chosen option) rather than
@@ -8729,7 +8729,7 @@ The background tier gains a rest step, because sleep alone could not help
 everybody: _tick_sleeping wakes a character the moment Energy is full BEFORE it
 checks any duration, so sleep cannot serve anyone who is not exhausted, and a
 character whose day costs little Energy never slept and never recovered its mind
-— which is exactly who the five chronically-low characters were. _act now rests
+- which is exactly who the five chronically-low characters were. _act now rests
 for SANITY_REST_MINUTES = 60 when Sanity is low, a bounded block on purpose since
 _act skips anyone mid-activity and a sprawling rest would stop them eating. An
 earlier attempt that simply sent low-Sanity characters to sleep KILLED four of
@@ -8746,7 +8746,7 @@ Measured, one week, 23 background characters:
 The same four at both tick lengths (Croak-Mother at Social 30, Silver-Talon 39,
 Tusker 36, Old Iron-Back), so it is a property of the world rather than noise: the
 sedentary, poorly-connected characters sit on the edge while nineteen campmates
-are fine. Not darkness, which was the first hypothesis — they are in the LIT Camp
+are fine. Not darkness, which was the first hypothesis - they are in the LIT Camp
 Entrance.
 
 16 tests in tests/test_sanity_sources.py, including that the conditions no longer
@@ -8770,11 +8770,11 @@ plant growth, the social cooldown) is in game units and scales with the tick;
 this was the last one that did not.
 
 _interval_ticks(gs, minutes) converts at evaluation, quantised to the nearest
-tick with a floor of one — a tick is the smallest step the scheduler has, so at
+tick with a floor of one - a tick is the smallest step the scheduler has, so at
 15 min/tick an authored '20 minutes' becomes one tick. At the default 1 min/tick
 an authored value's meaning is unchanged, so nothing in existing content shifts,
 and nothing in the shipped data uses either field anyway (rg finds no authored
-'interval' or 'npc_action_interval' in data/ or world_template.json) — which is
+'interval' or 'npc_action_interval' in data/ or world_template.json) - which is
 exactly why the divergence went unnoticed.
 
 11 tests pin the unit, the floor (a short interval must not become 'never'), and
@@ -8793,7 +8793,7 @@ was 0, then pinned at 100; it now settles mid-range at both tick lengths.
 
 1. Perception novelty never paid anything. _grant_arrival_entertainment called
    grant(), which RECOMPUTES freshness from the tick observe_area had just
-   refreshed — so it measured 0 for every subject on every arrival. Task-425's
+   refreshed - so it measured 0 for every subject on every arrival. Task-425's
    tests checked grant and observe_area separately and never the composition,
    which is exactly how it hid. New grant_freshness pays the value observe_area
    reported, and its docstring says why.
@@ -8806,7 +8806,7 @@ was 0, then pinned at 100; it now settles mid-range at both tick lengths.
 
 3. The window guards bouncing but not roaming, so it was never the farm guard.
    With 31 areas a character revisits a given one only after ~5 hours, so every
-   arrival is a fresh subject and pays — a fresh subject per action against
+   arrival is a fresh subject and pays - a fresh subject per action against
    43/day of decay is unbounded. Measured with only the area subject paying and
    social switched off, one day still pinned Entertainment at 81 average.
    NOVELTY_DAILY_BUDGET = 30 now bounds it, deliberately below the daily decay so
@@ -8819,11 +8819,11 @@ the meter (a crowded camp re-observes 5-10 people per arrival, all going stale
 within the window): 87 avg / 100 max with the fixtures never firing. observe_area
 now records the area and its items only; a person is claimed by
 register_first_meeting, which is what pays for meeting them. And a conversation is
-now Social rather than Entertainment in the action tables — only joke/tease/flirt
+now Social rather than Entertainment in the action tables - only joke/tease/flirt
 pay amusement, and only a little.
 
 task-434 proper: Player.node_id_for is the single definition of the character
-node-id convention, Player.node_id derives from it (so a reload cannot go stale —
+node-id convention, Player.node_id derives from it (so a reload cannot go stale -
 the deserializer builds Players without going through add_player), and
 PlayerManager.get_player_node_id delegates. _grant_meeting_entertainment goes
 through the novelty curve keyed on that id and both READS and RECORDS the
@@ -8854,15 +8854,15 @@ correction the measurements forced.
 
 task-423 is done with task-417 absorbed into it: the co-presence gate (per area,
 never globally; both parties background; deterministic greedy pairing by mutual
-affinity) is a component of the action pass, not a separate deliverable — the
+affinity) is a component of the action pass, not a separate deliverable - the
 "symmetric meeting" task-417 specified was the placeholder task-423 replaces.
 Task-416 was not needed: grouping ~23 characters by current_area in one pass is
 cheaper than an index and has no cache to invalidate.
 
 The blocking `conversing` activity specified in task-423 §4 is GONE. Its stated
 purpose ("without this a character takes ~1,000 interactions a week") is already
-served by the daily cap — measured at 6.2 social memories/character/day at
-15 min/tick and 6.7 at 1 min/tick — while it broke the survival ladder at short
+served by the daily cap - measured at 6.2 social memories/character/day at
+15 min/tick and 6.7 at 1 min/tick - while it broke the survival ladder at short
 ticks:
 
   1 day, 1 min/tick   with activity   without
@@ -8938,7 +8938,7 @@ a 0.050 baseline, so Social fell even in constant company.
 tools/migrate_decay_rates.py --all rewrote 93 player records across 15 files.
 That turned up a second, larger class of drift the camp probe had hidden:
 thirteen scenarios baked the legacy `1` for every vital (the pre-2026-09
-per-tick scale), which the per-minute engine now applies as -1/min — vitals
+per-tick scale), which the per-minute engine now applies as -1/min - vitals
 empty in about a hundred minutes. Fixed too.
 
 Verified mechanically rather than by eye that ONLY decay_rates changed and every
@@ -8953,8 +8953,8 @@ worse than inheriting.
 
 2. SOCIAL_COMPANY_GAIN 0.030 -> 0.020, equal to the Social baseline. Company is
 maintenance: it stops the rot. Interaction is the source (task-423). It was
-0.030 against a 0.020 baseline, so mere co-presence filled Social — +14.4/day
-with nothing competing — and every social action landed on a capped vital.
+0.030 against a 0.020 baseline, so mere co-presence filled Social - +14.4/day
+with nothing competing - and every social action landed on a capped vital.
 social_gain traits still scale it both ways, so an extrovert (x2) exceeding the
 baseline remains intended.
 
@@ -8969,7 +8969,7 @@ The two tick lengths agreeing is the property that matters.
 
 Sanity is still 0 for all 23 and it is NOT the Social coupling: with Social and
 Entertainment pinned at 100 for a whole week it is still 0/0/0 with all 23
-hallucinating. Sanity is a meter with five drains and no source — the baseline
+hallucinating. Sanity is a meter with five drains and no source - the baseline
 alone is 7.2/day, which empties an authored 65-90 in ~11 days. Filed as task-432
 rather than fixed here.
 
@@ -9010,11 +9010,11 @@ engine/relationships.py is now the only writer:
   flirt/confide gates) can no longer disagree with the prompt's wording about
   where the boundaries are. band_at_least is the min-quality gate.
 - ensure_relationship(player, other, tick) -> (record, created): creating a
-  record is not the same as feeling something — no closeness, no novelty.
+  record is not the same as feeling something - no closeness, no novelty.
 
 Refactored callers: player.update_relationship (cause `dialogue`),
 register_first_meeting, felt_toward, get_relationship_nl, engine/combat.py
-(cause `combat`, was an inline -30 — combat.py had no logger, so one is added
+(cause `combat`, was an inline -30 - combat.py had no logger, so one is added
 rather than silently swallowing), the `label` command (writes label, not
 closeness: a declaration is not a measurement), and the felt-toward route.
 engine/derive.py turned out to be a reader only and needed no change.
@@ -9034,7 +9034,7 @@ Also files task-431, found while probing why Social is 0 for every character in
 a week soak: the camp bakes decay_rates Social 0.050 / Hygiene 0.050 /
 Entertainment 0.070 against engine defaults of 0.020 / 0.020 / 0.030. Baked
 Social 0.050 exceeds SOCIAL_COMPANY_GAIN 0.030, so Social falls even in constant
-company (the sampled character had company 94 of 96 ticks) — and Sanity is
+company (the sampled character had company 94 of 96 ticks) - and Sanity is
 coupled to Social, so all 23 characters end the week in social_breakdown +
 hallucinating. With --engine-decay, Social is 99.2/84/100. The task records both
 readings of which side is wrong, since it is a balance decision, and notes that
@@ -9048,10 +9048,10 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T14:52:27+02:00
 Refs:   
 
-feat(gameplay): novelty recovery and recreation — Entertainment is no longer pinned at 0 (task-425)
+feat(gameplay): novelty recovery and recreation - Entertainment is no longer pinned at 0 (task-425)
 
 Entertainment had no recurring source: an area paid +15 once ever, item discovery
-paid +8 once ever, and ACTIVITY_REGEN has nothing recreational in it — so a
+paid +8 once ever, and ACTIVITY_REGEN has nothing recreational in it - so a
 settled goblin's Entertainment decayed to 0 within a day and stayed there for the
 rest of the week. A background week now ends at 40.1 avg / 25 min / 50 max at
 15 min/tick and 39.3 / 24 / 50 at 1 min/tick, 23/23 alive. The two tick lengths
@@ -9068,7 +9068,7 @@ entertainment.novelty_recovery_minutes, default 120.
 
 The curve is SQUARED, not linear, and that is a fix rather than a flourish. A
 linear ramp pays a little for any gap: a two-room bounce every 10 minutes earned
-+1 a hop, 6/hour against Entertainment's 1.8/hour decay — the treadmill the
++1 a hop, 6/hour against Entertainment's 1.8/hour decay - the treadmill the
 window was supposed to prevent, and task-425's "a window comparable to the decay
 time" reasoning was wrong about it. Squaring makes a short gap worth nothing
 (10 minutes of 120 pays 0, 40 minutes pays 2) while a real absence still pays in
@@ -9080,7 +9080,7 @@ re-deriving the tick afterwards reports every arrival as already stale.
 
 Item novelty is now paid on PERCEPTION rather than only on take/use. task-425's
 table said "taking or using it" and the non-goal deferred perceptual novelty
-"until the perception path can carry it" — that path now exists, and paying on
+"until the perception path can carry it" - that path now exists, and paying on
 take would pay zero because entering the area already stamped the item. The
 take/examine path stays as a fallback for items perception could not see: hidden
 until examined, or taken out of a container.
@@ -9088,12 +9088,12 @@ until examined, or taken out of a container.
 Recreation is authored, not trickled: three fixtures (camp_drum, knucklebones,
 story_fire) placed by tools/add_renewable_sources.py in Chief's Pit, Camp
 Entrance and Cooking Area, with a _recreate step in the background tier that
-gates on need. The gate is also the anti-spam — after using one, Entertainment
+gates on need. The gate is also the anti-spam - after using one, Entertainment
 sits above the threshold for the better part of a day. The fixtures carry
 `recreation`, never `food`/`drink`, or _consume_here would eat them.
 
 Also fixes a real leak the fixture save exposed: loading a scenario observes
-every character's starting area, and saving it back baked that into the file —
+every character's starting area, and saving it back baked that into the file -
 23 characters' worth of "you have been in Blackmarsh", ~60KB on the first save.
 to_scenario_dict now strips runtime perception and the derived memory_index
 (authored `manual` memories stay); to_dict, the savegame path, keeps everything.
@@ -9113,25 +9113,25 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T14:13:02+02:00
 Refs:   
 
-feat(memory): observation memories — one live record per subject (task-403 slice 1)
+feat(memory): observation memories - one live record per subject (task-403 slice 1)
 
 The prerequisite task-425 was blocked on: `entity_ids` populated (was 0/17) plus
 a per-subject index so "have I seen this?" is not a scan over uncapped memories.
 
-engine/observation.py records one *live* observation memory per subject — the
+engine/observation.py records one *live* observation memory per subject - the
 area the character stands in, each item it can see there, each character standing
-there — carrying who/what/where/when and the subject id in `entity_ids`.
+there - carrying who/what/where/when and the subject id in `entity_ids`.
 Perception is not re-implemented: the subject list comes from
 engine.room_perception, the shared prompt/panel source of truth, and
 get_edges_for_target already expands spatial edges so an item on a bush counts.
 The area itself is recorded unconditionally (you know which room you are in with
-the lights out) while its contents need light — can_perceive excludes dead,
+the lights out) while its contents need light - can_perceive excludes dead,
 unconscious and asleep, and honours darkvision.
 
 Player.record_observation refreshes that memory IN PLACE rather than appending.
 That is what keeps the store bounded by subjects instead of by visits, and it is
 measured: 908 memories after a week at 1 min/tick vs 912 after a week at
-15 min/tick — fifteen times the game time, the same count.
+15 min/tick - fifteen times the game time, the same count.
 
 Player.memory_index (subject -> memory id) takes "which memory is about this
 subject?" out of the memory list. has_seen / observation_tick /
@@ -9139,7 +9139,7 @@ supersede_observation read it; observation_memory falls back to a scan and
 repairs the index, so it can never silently disagree with the store. Sightings
 refresh and do not chain; superseded_by retires a belief that was replaced (the
 bread was eaten) so recall stops surfacing it, and _trim_memories drops an
-evicted subject from the index — forgetting re-enchants the world (task-425).
+evicted subject from the index - forgetting re-enchants the world (task-425).
 
 Wired on area entry in engine/movement.py, which the background tier also passes
 through (_travel_toward swaps gs.active_player), and once per character at load:
@@ -9148,7 +9148,7 @@ be the one place a character could never remember. add_memory now accepts
 entity_ids/location/salience and returns the entry; the index, superseded_by and
 an evicted subject's entry all round-trip and are rebuilt on load.
 
-Cost: ~5% of a background week (alternating A/B with warm-up; cProfile agrees —
+Cost: ~5% of a background week (alternating A/B with warm-up; cProfile agrees -
 a first measurement of 43% was a cold-start artifact). Soak unchanged at 1 and
 15 min/tick: 23/23 alive, vitals identical to baseline (Hunger 34.2, Hygiene
 53.7). Tests: 14 in test_observation_memory.py plus round-trip and load-time
@@ -9163,7 +9163,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T13:44:18+02:00
 Refs:   
 
-docs(tasks): file the four genuine gaps — plans, creatures, cadence, housekeeping
+docs(tasks): file the four genuine gaps - plans, creatures, cadence, housekeeping
 
 Audited the "not doing today" list against the backlog. Most points already had
 tasks, several better than I had credited: observation memories and who/what/
@@ -9177,7 +9177,7 @@ Filed the four that genuinely had none:
 - task-425: novelty recovery across areas/items/people, derived from observation
   memories rather than the visited_areas/discovered_items sets, plus recreational
   fixtures.
-- task-426: plan archetypes (haul, gather, hunt, raid) and group goals — a
+- task-426: plan archetypes (haul, gather, hunt, raid) and group goals - a
   leader's goal assigned to members with a rally point. task-409 is per-step, so
   multi-step templates and collective goals were not covered.
 - task-427: creature spawners, population caps (`tagged_count`) and a death path
@@ -9185,7 +9185,7 @@ Filed the four that genuinely had none:
   without a death path is a dead end.
 - task-428: the last tick-quantised scheduler (`behaviors[].interval` and
   `npc_action_interval`).
-- task-429: housekeeping and the open data decisions — boot-template junk items,
+- task-429: housekeeping and the open data decisions - boot-template junk items,
   template mature_content, savegame payload size, and the 4.1MB background PNG.
 
 Also correcting a claim from this session: task-409 already allows one capped
@@ -9198,21 +9198,21 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T13:23:07+02:00
 Refs:   
 
-feat(background): goblins now relieve themselves and wash — Hygiene was pinned at 0
+feat(background): goblins now relieve themselves and wash - Hygiene was pinned at 0
 
 Two needs the background tier ignored entirely. Bladder filled to 100 every ~4
 hours and crossing it docked 8 Hygiene (tick_manager), while nothing in the
-background set ever restored Hygiene — the `bathing` activity exists (+1.5/min)
+background set ever restored Hygiene - the `bathing` activity exists (+1.5/min)
 but was never started. At -0.05/min decay plus ~48/day from bladder crossings,
 Hygiene hit 0 within ten hours and stayed there for the entire week. The camp's
-area named "Waste Disposal" had tags ['interior','cave','goblin_camp'] — nothing
+area named "Waste Disposal" had tags ['interior','cave','goblin_camp'] - nothing
 marked it usable, so even a player typing `relieve` there soiled a corner.
 
 - **Services come from an area tag or a fixture item.** `_service_here` accepts
   either: a latrine room, a river, or a standing fixture (a wash spot, a shower).
   `tools/add_renewable_sources.py` now also tags areas and places fixtures.
 - **Relief**: at Bladder 60+, relieve where a facility exists (Bladder -> 0) or
-  travel to one. Nowhere to go still means the engine's own penalty — which is
+  travel to one. Nowhere to go still means the engine's own penalty - which is
   the honest outcome for a camp with no latrine.
 - **Washing**: at Hygiene 40-, wash where a facility exists or travel to one. The
   amount is **read back from the fixture's authored `adjust_vital`** rather than
@@ -9225,7 +9225,7 @@ marked it usable, so even a player typing `relieve` there soiled a corner.
 
 Week soak, 15 min/tick: Hygiene **avg 53.7 / min 38.0 / max 100**, down to the
 wash threshold and no further (was 0/0/0), still 23/23 alive. Social, Sanity and
-Entertainment remain at 0 — those are the background social work (task-409/423),
+Entertainment remain at 0 - those are the background social work (task-409/423),
 not needs the survival runner manages.
 
 Tests: tests/test_background_relief_and_washing.py (12). 2964 passing.
@@ -9235,7 +9235,7 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-21T13:03:46+02:00
 Refs:   
 
-feat(world): renewable sources — plants feed the camp, and foraging sees containers
+feat(world): renewable sources - plants feed the camp, and foraging sees containers
 
 A week soak of the goblin camp now ends 23/23 alive at 1, 5 and 15 min/tick, and
 the food supply stabilises instead of collapsing (4 -> 50 items, hungriest
@@ -9246,7 +9246,7 @@ The source pattern (task-410, now widened to renewable world sources):
 - `data/library/items/bush_of_berries.json` was already there and broken three
   ways: it tagged ITSELF `food` (so a hungry character ate the bush and
   `_consume_here` deleted it), its spawn effect referenced `item_id: "b"` (not a
-  real item), and it fired `on_examine` only — a one-shot, not a source. Rebuilt
+  real item), and it fired `on_examine` only - a one-shot, not a source. Rebuilt
   as an untagged standing item with `parameters.growth`, a `parameter_reached`
   gate at 100, a `contains_count` cap of 10, and `per: "minute"` so growth
   measures game time rather than ticks (100 growth was 100 minutes at 1 min/tick
@@ -9259,7 +9259,7 @@ Three bugs surfaced on the way, all broader than plants:
 - **`_find_consumable` only saw items with an `in` edge to the area**, so food in
   ANY container was unreachable and the background tier could starve beside a
   full store. It now traverses every spatial relation (in/on/under/behind/
-  beside/at) plus one level of nesting, and `_areas_with` does the same — that is
+  beside/at) plus one level of nesting, and `_areas_with` does the same - that is
   what decides which area a forager travels to, so without it nobody walks to the
   forest where the bushes are.
 - **`_is_consumable`'s action fallback accepted `eat` OR `drink`**, so a hungry
@@ -9269,7 +9269,7 @@ Three bugs surfaced on the way, all broader than plants:
   lost its counter at placement. It also accepts an explicit `node_id` now, so
   authored placement gets stable, re-runnable ids instead of name+timestamp+random.
 
-Tests: tests/test_forage_reachability.py (9) — spatial relations, nesting, the
+Tests: tests/test_forage_reachability.py (9) - spatial relations, nesting, the
 tag trap, intent, and travel targeting. Note the graph renames a node whose
 id/name already exists, so those tests assert identity rather than id strings.
 2951 passing.
@@ -9283,15 +9283,15 @@ feat(triggers): parameter_reached and contains_count conditions for gauge gating
 
 task-410's plant needs to gate on a growth counter and on how much produce it
 already holds. Neither was expressible: the only numeric gate was
-`uses_reached`/`uses_above`, which keys on `uses` — and `uses` is remaining
+`uses_reached`/`uses_above`, which keys on `uses` - and `uses` is remaining
 charges, not a counter. The consume and crafting paths delete a node at
 `uses <= 0`, and examine/stacking/carry-weight present `uses` as durability, so a
 gauge that starts at 0 reads as a broken item and invites removal.
 
-- `parameter_reached` — compares a gauge in the node's `parameters` dict
+- `parameter_reached` - compares a gauge in the node's `parameters` dict
   (`key`/`parameter`, `value`, `op` defaulting to `gte`). Missing reads as 0, a
   non-numeric stored value fails safe rather than raising.
-- `contains_count` — counts the items a container holds, optionally filtered by a
+- `contains_count` - counts the items a container holds, optionally filtered by a
   name/id substring. `op: "lt"` is the produce cap ("has room for more").
 
 Both registered in `trigger_validator.CONDITION_TYPES` (an unregistered type
@@ -9300,7 +9300,7 @@ the Rules Engine doc.
 
 task-410 updated: its task-406 dependency is satisfied (standing-item on_tick
 landed at tick_manager.py:745-757 and does not double-fire), the mechanism is
-now expressible, and the tag trap is written down — the plant itself must carry
+now expressible, and the tag trap is written down - the plant itself must carry
 no food tags or a hungry character will eat the bush and `_consume_here` will
 delete it. Put the food tags on the produce, stacked as `count: N`.
 
@@ -9317,7 +9317,7 @@ Everything measured in game time now honours `time_per_tick_minutes`, which a
 scenario or Engine Config can set to anything. Before this, decay, conditions,
 temperature drift and background decisions all silently assumed a one-minute
 tick, so a 15-minute world starved everyone 15x too slowly while the clock ran
-15x faster — and nothing errored.
+15x faster - and nothing errored.
 
 Time scaling:
 - `vital_rates.change(..., minutes=)` and `tick_minutes(world)`; every per-minute
@@ -9368,12 +9368,12 @@ Refs:
 feat(actions): name, label and guess-time verbs, with prompt and lore view updates
 
 Three player-facing verbs:
-- `name <target> <alias>` — personal alias on a character or an item.
-- `label <person> <relationship>` — how you relate to someone, stored on the
+- `name <target> <alias>` - personal alias on a character or an item.
+- `label <person> <relationship>` - how you relate to someone, stored on the
   relationship as an authored `label` that takes precedence over the computed
   closeness descriptor. Creates the entry with closeness/last_interaction_tick/
   interaction_count when the pair have not met.
-- `guess time` — Survival check against a weather-scaled DC (clear 10 → stormy
+- `guess time` - Survival check against a weather-scaled DC (clear 10 → stormy
   20) with graded output by margin, reading the game hour, moon phase and the
   area's weather.
 
@@ -9386,25 +9386,25 @@ Author: Tommy slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-09-20T18:48:33+02:00
 Refs:   
 
-feat(scenario): make the graph the only copy — 28% smaller files, working map restore
+feat(scenario): make the graph the only copy - 28% smaller files, working map restore
 
 A saved scenario carried `areas`, `rooms` and `graph.nodes` for the same world,
 with `rooms` a byte-identical duplicate of `areas`. Every field was audited and
 nothing in `areas` was unique: name/description/environment/floor already live on
 the node, ambient_light/light_description are recomputed each tick, and `items`
 was always empty (placement is the graph's `in` edges). to_scenario_dict() is now
-graph-only — the goblin camp drops 455,567 -> 322,407 bytes (-28%) with identical
+graph-only - the goblin camp drops 455,567 -> 322,407 bytes (-28%) with identical
 reload behaviour. The live /api/state payload keeps the projection, because ~20
 frontend call sites read worldState.areas.
 
 Also in this pass:
 - `_scenario_name` round-trips again. Every save dropped it, so a restored file
-  was "unnamed" — and since the name keys the local background-map cache, that
+  was "unnamed" - and since the name keys the local background-map cache, that
   alone made a saved map unloadable. An empty name is now omitted rather than
   written as "", which `data.get(...) or ...` reads as "unnamed".
 - The Changes panel reads areas from graph nodes, exactly as it already did for
   items and ways; areas had simply never been migrated. Its fingerprint drops
-  `exits`, which every written payload strips — a constant on the live side and a
+  `exits`, which every written payload strips - a constant on the live side and a
   false "changed" for any older file still carrying a copy.
 - The graph-background cache key is derived from the identity, so the two cannot
   disagree (the key honoured body.dataset.scenarioName; the identity did not).
@@ -9962,9 +9962,9 @@ Refs:
 
 feat: rewire planner to PlanTracker, add observer turn-feed, name masking, and react phase overhaul
 
-The planner was disconnected from the decide prompt after the PlanTracker migration — `buildPlanContext`, `hasPlan`, and the inspector all read the old `window.VW.agent._plans` store. All three now read `PlanTracker`, so the plan renders in the decide prompt on the same turn it's generated. `trackStep` matching was fixed twice: stop-words are filtered with a real list (the old `length > 2` filter passed "the"), and targeted actions must match a non-verb step word. `shouldReplan` now returns a reason string consumed by the crisis log, and `setPlan` records the turn clock instead of `time_ticks`.
+The planner was disconnected from the decide prompt after the PlanTracker migration - `buildPlanContext`, `hasPlan`, and the inspector all read the old `window.VW.agent._plans` store. All three now read `PlanTracker`, so the plan renders in the decide prompt on the same turn it's generated. `trackStep` matching was fixed twice: stop-words are filtered with a real list (the old `length > 2` filter passed "the"), and targeted actions must match a non-verb step word. `shouldReplan` now returns a reason string consumed by the crisis log, and `setPlan` records the turn clock instead of `time_ticks`.
 
-The turn-feed was rewritten around structured entries (speech/whisper/action/emote/result/system/NPC/recall) with observer-concise as the default — whispers collapse to "X whispered", inner monologues and meta noise are filtered, and stranger names are masked. The react phase gets its own minimal system prompt (~6.2–8.1k → ~2.5–3.5k tokens) with a fresh 2-message conversation, and movement-aware react context replaces the stale "surroundings are unchanged" lie.
+The turn-feed was rewritten around structured entries (speech/whisper/action/emote/result/system/NPC/recall) with observer-concise as the default - whispers collapse to "X whispered", inner monologues and meta noise are filtered, and stranger names are masked. The react phase gets its own minimal system prompt (~6.2–8.1k → ~2.5–3.5k tokens) with a fresh 2-message conversation, and movement-aware react context replaces the stale "surroundings are unchanged" lie.
 
 Name masking (`mask_name_in_text`) scrubs real names and aliases out of stranger appearance handles in both `area_description.py` and `scene_snapshot.py`. The taco_bell_date scenario was rebuilt to open cold (Elm Street, two strangers, zero shared history), and 7 new library tags (coziness, cozy, familiarity, home, mess, sadness, wonder) were added. 6 new PlanTracker unit tests and name-masking tests round out the suite.
 
@@ -10047,7 +10047,7 @@ Refs:
 fix: remove save buttons from character inspector, add diff modal for library save, remove duplicate scenario name in top bar
 
 - agent-view.js: removed 'Save' and 'Save Appearance' buttons from personality
-  and appearance sections — now auto-saves on blur like other entities
+  and appearance sections - now auto-saves on blur like other entities
 - agent-view.js: character 'Save to Library' now checks for existing library
   entries and shows a DiffModal before overwriting (matching items/ways/areas)
 - scenario-status.js: removed duplicate scenario name from status chip
@@ -10209,44 +10209,44 @@ Refs:
 
 **2633 passed, all green.**
 
-Here's the patch note — everything finished since 1.2.0 "Craft & Carry":
+Here's the patch note - everything finished since 1.2.0 "Craft & Carry":
 
 ---
 
-## 1.3.0 — "Weather Eye & Wild Words"
+## 1.3.0 - "Weather Eye & Wild Words"
 
 **2633 passing tests**
 
 ### 🌦 Weather & Sky (engine)
-- **Forecast engine** — authored/state-machine/random/hybrid modes, zero entries = no-op, GM override with countdown auto-revert
-- **Calendar** — `game_day/month/year`, `calendar_config`, `set_game_time`/`set_game_date` effects
-- **Moon phases** — 30-day cycle, outdoor night light bonus, stormy/foggy gating, blood_moon, **moonlight in area descriptions**
-- **Wind** — 6 levels, heat propagation multiplier, wind chill with `wind_resistance%`, Energy drain on exterior moves, extinguishes lit items in gale+
-- **Humidity** — 4 levels, effective_temp mod (hot/cold), Social sap, flooding Energy cost
-- **Sunlight triggers** — `on_dawn/dusk/day/night/full_moon/blood_moon` (one-shot per day), `on_turn_start/end`
-- **Trigger effects** — `set_time/date/weather`, `forecast_override`, `adjust_forecast`; extended `set_environment` with weather/wind/humidity/transparent + cycling
+- **Forecast engine** - authored/state-machine/random/hybrid modes, zero entries = no-op, GM override with countdown auto-revert
+- **Calendar** - `game_day/month/year`, `calendar_config`, `set_game_time`/`set_game_date` effects
+- **Moon phases** - 30-day cycle, outdoor night light bonus, stormy/foggy gating, blood_moon, **moonlight in area descriptions**
+- **Wind** - 6 levels, heat propagation multiplier, wind chill with `wind_resistance%`, Energy drain on exterior moves, extinguishes lit items in gale+
+- **Humidity** - 4 levels, effective_temp mod (hot/cold), Social sap, flooding Energy cost
+- **Sunlight triggers** - `on_dawn/dusk/day/night/full_moon/blood_moon` (one-shot per day), `on_turn_start/end`
+- **Trigger effects** - `set_time/date/weather`, `forecast_override`, `adjust_forecast`; extended `set_environment` with weather/wind/humidity/transparent + cycling
 
 ### 🌠 Sky Widget
 - **Top-bar**: `🕐 09:40 · Jan Day 1 · 🌑 new moon · ☀️ clear · rain in 2h`
 - **World Sky panel**: animated stage driven by engine state, time skips, weather override controls, forecast next-change indicator
 
 ### ✨ NL Editor power-up
-- **Ghost-node canvas** — dashed translucent previews on the graph; update/delete tint live nodes
-- **Selective apply** — per-op checkboxes, Apply Selected (n)
-- **`populate_area(area_id, theme)`** — 9 theme packs, NPC + items + ambience in one call
-- **Smart mechanic inference** — glowing crystal → light_source; roast chicken → eat action
-- **Inline property tweaker** — ✎ expands editable JSON payload on any staged op
-- **Selection-aware prompting** — auto-fills missing ids from graph selection
-- **Lore/style injection** — scenario name, theme, world_lore, and selection into system prompt
-- **`>` palette route** — Ctrl+K → `> make the tavern darker` → NL Editor runs it
+- **Ghost-node canvas** - dashed translucent previews on the graph; update/delete tint live nodes
+- **Selective apply** - per-op checkboxes, Apply Selected (n)
+- **`populate_area(area_id, theme)`** - 9 theme packs, NPC + items + ambience in one call
+- **Smart mechanic inference** - glowing crystal → light_source; roast chicken → eat action
+- **Inline property tweaker** - ✎ expands editable JSON payload on any staged op
+- **Selection-aware prompting** - auto-fills missing ids from graph selection
+- **Lore/style injection** - scenario name, theme, world_lore, and selection into system prompt
+- **`>` palette route** - Ctrl+K → `> make the tavern darker` → NL Editor runs it
 
 ### 🛠 Fixes
-- **Batch route** — Apply now pushes ONE undo snapshot, not N
-- `update_node` flat patch, `link_to_library` template_id, `connect_areas` direction props, `search_library_areas` description search — all fixed
+- **Batch route** - Apply now pushes ONE undo snapshot, not N
+- `update_node` flat patch, `link_to_library` template_id, `connect_areas` direction props, `search_library_areas` description search - all fixed
 
 ### 🧪 Behind the scenes
 - New test file: `test_graph_batch.py` (6 tests)
-- `engine/weather_forecast.py`, `static/js/sky-scape.js`, `engine/effect_handlers/weather.py` — 3 new modules
+- `engine/weather_forecast.py`, `static/js/sky-scape.js`, `engine/effect_handlers/weather.py` - 3 new modules
 - Suite: **2633 → 2633** (all green, no regressions)
 - Version: `1.2.0` → `1.3.0`
 
@@ -10267,7 +10267,7 @@ Also adds area sounds API endpoint (task-173), adjusts time tick rate
 from 5 to 1 minutes, and includes environment roadmap and task-380
 natural-language editor mode documentation.
 
-BREAKING CHANGE: time_per_tick_minutes changed from 5 to 1 — time
+BREAKING CHANGE: time_per_tick_minutes changed from 5 to 1 - time
 progression rate is now 5x faster in existing scenarios.
 
 commit 314d74baf1ac55ecbf99c158450c486eb73aae14
@@ -10275,10 +10275,10 @@ Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
 Date:   2026-08-31T19:21:01+02:00
 Refs:   
 
-## 1.2.0 — "Craft & Carry" (2026-08-31)
+## 1.2.0 - "Craft & Carry" (2026-08-31)
 
 Items stopped being cardboard props. Uses, durability, weight, freshness, stacking, crafting,
-teaching, auto-dressing, gated shortcuts — and a pile of the item/gameplay todo queue landed in
+teaching, auto-dressing, gated shortcuts - and a pile of the item/gameplay todo queue landed in
 one pass, tested with **2615 passing**.
 
 ### 🧰 Items grew up
@@ -10286,35 +10286,35 @@ one pass, tested with **2615 passing**.
 - **`max_uses` + weight reconciliation**: a half-eaten loaf weighs what's left
   (`base_weight × uses/max_uses`); infinite-use items stay static; `combine` merges two
   identical stacks (uses summed, clamped at max, source destroyed), `split <item>` divides one
-  into parts — capacity re-checked, "stackable twins" ignore the auto-renamed copy suffix.
-- **Armor & equipment wear on hit**: outermost armor/clothing decrements uses; at 0 it breaks —
+  into parts - capacity re-checked, "stackable twins" ignore the auto-renamed copy suffix.
+- **Armor & equipment wear on hit**: outermost armor/clothing decrements uses; at 0 it breaks -
   back to carrying + `on_break` trigger. **No raw numbers anywhere**: prompts read
   `[pristine/worn/battered/about to break/broken]`, the HTC chips and paperdoll modal show
   plain words, the item inspector has a durability bar.
-- **`on_use_progressive`** trigger type — fires on every use; gate thresholds with the existing
+- **`on_use_progressive`** trigger type - fires on every use; gate thresholds with the existing
   `uses_reached`/`uses_above` conditions.
-- **Freshness**: `perishable` food decays per tick → `spoiled` (fires `on_spoil`), cooking —
+- **Freshness**: `perishable` food decays per tick → `spoiled` (fires `on_spoil`), cooking -
   use fresh food on an oven/stove/heat source → `cooked`, decay halts. Examine and prompts say
   it in plain words: `(fresh)`, `(cooked)`, `(spoiled)`.
 
 ### 🗺 Gated paths & movement
 
-- **`requires_item` on ways** — a bike lane needs a bike, a fly path needs an item tagged `fly`:
+- **`requires_item` on ways** - a bike lane needs a bike, a fly path needs an item tagged `fly`:
   visible-but-blocked without the gear, open with it. Prompt exit lines show `(needs: bike)`.
-- **Over-encumbrance = one size larger**: ≥50% load bumps your effective size tier — narrow
+- **Over-encumbrance = one size larger**: ≥50% load bumps your effective size tier - narrow
   passages stop fitting.
-- **Chain follow-ups (task-104)**: the dash→go chain generalized — `lead` → go/approach/
+- **Chain follow-ups (task-104)**: the dash→go chain generalized - `lead` → go/approach/
   release, `grab` → approach/release. One same-turn follow-up, agent-decided.
 
 ### ⚒ Crafting & knowledge
 
-- **Full recipe system**: recipe graph nodes + `engine/crafting.py` — inputs (consumed or not),
+- **Full recipe system**: recipe graph nodes + `engine/crafting.py` - inputs (consumed or not),
   conditions (`state_equals`/`has_item`/`random_chance`/`skill_check`), outputs hydrated from the
   library, learning via `global` / `skill:<name>` / `item:<name>` / discover-on-first-craft,
   persisted `crafting_known`. Commands: `craft`/`make`. 🧪 Recipes panel in the agent inspector.
-- **`teach <recipe | skill:NAME> to <character>`** — teacher must know it, student must be
+- **`teach <recipe | skill:NAME> to <character>`** - teacher must know it, student must be
   present; recipes transfer, skills +1.
-- **`use N items on target`** — structured `amount` on use_on (`use 2 eggs on pan`) validates
+- **`use N items on target`** - structured `amount` on use_on (`use 2 eggs on pan`) validates
   against tracked uses and consumes N; prompt shows the syntax.
 
 ### 🧍 Characters dress themselves
@@ -10324,20 +10324,20 @@ one pass, tested with **2615 passing**.
   (hot → skips heavy insulation, cold → wants it), idempotent by construction.
 - **✨ Generate from Personality** (Bio tab): the character's LLM gets the full system tag list
   and answers with JSON/CSV tags → sets `interest_tags` in one click.
-- **🌊 Simultaneous Mode (experimental)** — every autonomous character acts on its own
+- **🌊 Simultaneous Mode (experimental)** - every autonomous character acts on its own
   countdown derived from Social/traits/Energy (high-Social acts more, exhausted slower).
   Chaos by design; sequential mode untouched; off by default.
 
 ### 👁 Senses & health
 
-- **`scry` effect**: a frozen distant-area view (rendered description + ambient light + exits) —
+- **`scry` effect**: a frozen distant-area view (rendered description + ambient light + exits) -
   the shared observer path is untouched. Editor entry with area picker + lead-in/fail text.
-- **`proximity_effect` items** (EMF-style): BFS room-distance readings on examine — sharp when
+- **`proximity_effect` items** (EMF-style): BFS room-distance readings on examine - sharp when
   they're right here, needle-jumps adjacent, faint blip beyond, prose only.
 - **Context-aware vitals**: isolated-wording only when you're actually alone and quiet; company,
   addressed-to-you, noisy rooms, and visible food/drink all change the lines. Sanity is now a
-  neutral stress curve — no more "the shadows seem to watch you" in a bright Taco Bell.
-- **Encumbrance in the prompt + HTC** — natural language ("at the edge of your capacity"),
+  neutral stress curve - no more "the shadows seem to watch you" in a bright Taco Bell.
+- **Encumbrance in the prompt + HTC** - natural language ("at the edge of your capacity"),
   never numbers.
 
 ### 💬 Input & feedback
@@ -10345,17 +10345,17 @@ one pass, tested with **2615 passing**.
 - **Invalid-action auto-retry** (setting, off by default): one same-turn retry with the error
   fed back for rejected and engine-failed actions.
 - **Appearance grammar guardrail**: third-person directives + few-shots, validator catching
-  `you is`/`body is who` leaks, one silent repair pass, safe fallback — broken text never
+  `you is`/`body is who` leaks, one silent repair pass, safe fallback - broken text never
   persists (it re-sends into every prompt forever).
 - **Carried/worn prompt lines**: full untruncated description + allowed actions +
   (known / not yet examined) + durability + freshness.
 - **Gear totals strip** in the Inventory: armor / best weapon / insulation / resistances as
-  pills with "from: …" contributor tooltips — one place, no per-item duplication, same
+  pills with "from: …" contributor tooltips - one place, no per-item duplication, same
   aggregation rules as the engine.
 
 ### 🧪 Trigger-effect templates
 
-- **42 library items** — `template_<effect>` (e.g. `Template: Scry`), each with a wired
+- **42 library items** - `template_<effect>` (e.g. `Template: Scry`), each with a wired
   `on_use` trigger demonstrating that effect; generator at `tools/gen_effect_templates.py`
   (re-run after new effect types, a coverage test guards it) + index in
   `docs/virtualWorld/Templates/trigger-effect-template-items.md`. Scenario-ending/room-spawning
@@ -10364,34 +10364,34 @@ one pass, tested with **2615 passing**.
 ### 🎓 Help, tips & guided tours
 
 - **❓ Help Center** (top bar or **F1**): a coach-tip system that fires *when you touch the
-  thing* — welcome tip on first load, inspector tips per view type (area/item/way/agent),
+  thing* - welcome tip on first load, inspector tips per view type (area/item/way/agent),
   button-triggered tips for Settings, the Game menu, Overlays ▾, More ▾, Triggers, ▶ run,
   auto-dress, crafting, and a ⚠️ warning when Simultaneous Mode flips on.
 - **Spotlights**: "Show me" physically highlights the UI element the tip describes (the card
   stays put; ESC/✕ clears).
-- **Guided tours**: *First five minutes*, *Triggers & effects*, *Scenario workflow* — ordered
+- **Guided tours**: *First five minutes*, *Triggers & effects*, *Scenario workflow* - ordered
   chains with Next steps.
 - **State**: tips remember themselves (localStorage per-id) with session re-shows; the index
-  lists every tip with one-click replay and Reset all. No second system — tips point at the
+  lists every tip with one-click replay and Reset all. No second system - tips point at the
   real UI, and the registry is one easy-to-extend array.
 
 ### 🛠 Fixes
 
-- **⋯ More ▾ and Overlays ▾ dropdowns** were opening *invisibly* — the toolbar's
+- **⋯ More ▾ and Overlays ▾ dropdowns** were opening *invisibly* - the toolbar's
   `overflow-y:hidden` clipped them; now visible.
 - **`take` puts everything in a hand first** (generic held; hands full → one item auto-stowed
   to carrying, then pick up, same turn; `two_handed` needs both hands; intrinsic abilities skip
   to carrying). New **`stow`** verb.
-- **Saved worlds are graph-only** — no more redundant per-room `exits`/`exits_authoring` in
+- **Saved worlds are graph-only** - no more redundant per-room `exits`/`exits_authoring` in
   scenario files (runtime `/api/state` payload still computes exits live).
 
 ### 🧰 Gotchas in this release
 
-- **Restart your server** (`start.bat`) — engine + route changes need the fresh process; static
+- **Restart your server** (`start.bat`) - engine + route changes need the fresh process; static
   JS/UI is reload-only.
 - The **mature-tags → inspection reveal** discussion stays open: newer item mechanics
   (freshness/proximity/max_uses) aren't yet wired into the tag-reveal pattern in the item
-  inspector — say the word and they get the same treatment.
+  inspector - say the word and they get the same treatment.
 
 commit 076b777c167067fd2fadc17635f6a1b34c5423fb
 Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
@@ -10414,7 +10414,7 @@ Massive feature expansion across engine, routes, and UI:
 - **Bug fixes**: path traversal hardening, debug mode gating, error path returns, temperature rounding, tag multiselect duplicates, way menu requires:none normalization, hidden ways in scene snapshots, take/wear no-op messaging, NPC click sets active player, graph toolbar overflow
 - **Data**: new condition/tag library files, scenario name fields, mojibake-free JSON, renumbered task docs
 
-BREAKING CHANGE: Hunger/Thirst flipped from satiation (↓=bad) to drive (↑=bad) — existing content authoring negative amounts as relief now works correctly. Debug mode now requires VW_DEBUG=1.
+BREAKING CHANGE: Hunger/Thirst flipped from satiation (↓=bad) to drive (↑=bad) - existing content authoring negative amounts as relief now works correctly. Debug mode now requires VW_DEBUG=1.
 
 commit c794b318a6eb5069d0aa4310438653473b3cc27a
 Author: Tommy Slaatbraaten <tommy.slaatbraaten@hotmail.com>
@@ -10425,7 +10425,7 @@ refactor: overhaul combat narration, pronoun normalization, and authored knowled
 
 Replace hit-point reporting in combat with narrative-only wound descriptions driven by damage type, region, and severity thresholds. Auto-select the attacker's best carried weapon when none is named, falling back to bare-handed attacks. Normalize emote pronouns from identity tags (female/male/neutral) instead of neutral third person, with a new engine/pronouns.py module.
 
-Introduce an authored `known` registry on Player — entity ids (ways, items, characters, areas) that a character knows from the start, overriding runtime discovery. Propagate this through serialization, library import, and the inspector's new "Known by" section. Rebuild per-viewer exits and item visibility client-side from `exits_authoring` plus each character's knowledge, fixing multi-agent visibility where the server's single active player mis-filtered for others.
+Introduce an authored `known` registry on Player - entity ids (ways, items, characters, areas) that a character knows from the start, overriding runtime discovery. Propagate this through serialization, library import, and the inspector's new "Known by" section. Rebuild per-viewer exits and item visibility client-side from `exits_authoring` plus each character's knowledge, fixing multi-agent visibility where the server's single active player mis-filtered for others.
 
 Add article-aware spawn messages, prose mapping for raw noise descriptors, leading-article stripping in name matching, and room-approach positioning for "go <item>" / "go <character>" commands. Silence near-zero relationship labels and baseline vital reporting in prompts so other characters' claims can genuinely influence agents. Surface JSON repair status so truncated LLM responses are flagged rather than silently dropping fields.
 

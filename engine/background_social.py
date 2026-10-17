@@ -1,4 +1,4 @@
-"""Background social interactions — deterministic NPC <-> NPC (task-423, absorving task-417).
+"""Background social interactions - deterministic NPC <-> NPC (task-423, absorving task-417).
 
 Two co-present background characters pick a social action; rules, the
 relationship band and traits decide which one and how it lands; **each side
@@ -8,7 +8,7 @@ Vekka's is "Rikka teased me" with Social down and closeness down. One event, two
 participants, two asymmetric consequences.
 
 No LLM, no planning: a weighted draw over gated actions, then a computed outcome.
-Deterministic — every roll is seeded from ``(actor, target, tick, action)``, so a
+Deterministic - every roll is seeded from ``(actor, target, tick, action)``, so a
 replay reproduces the same camp history.
 
 The gate (task-417) is a *component* here rather than a separate pass: the
@@ -18,14 +18,14 @@ or the camp becomes a relationship treadmill in the crowded areas. Task-417's
 
 Relationship changes go through `engine/relationships.py` (task-420) so each one
 carries a cause, and the band ladder that decides whether a tease is affectionate
-or hostile is the same one the prompt renders — `closeness_band` / `band_at_least`.
+or hostile is the same one the prompt renders - `closeness_band` / `band_at_least`.
 
 The threat pass (task-552) lives here too, and it runs *before* the social one.
 ``engine/fear.py`` already knows how to find what a character fears
 (``fear_tags`` against co-located tags) and how to apply the source-gated
 ``frightened`` condition, but nothing in the background tier ever asked it. A
 3-day Kraktooth soak recorded **zero** threat actions for exactly that reason:
-there was no substrate, not a low rate. Fear is a direction, not a scalar — a
+there was no substrate, not a low rate. Fear is a direction, not a scalar - a
 farmer fears ``goblin``, a goblin does not list ``goblin``, so a camp can exist
 without panicking at itself.
 """
@@ -63,7 +63,7 @@ SOCIAL_COOLDOWN_MINUTES = 90
 #: short-tick regression.
 MEETINGS_PER_CHARACTER_PER_DAY = 6
 
-#: Bands at or above which `confide` / `flirt` unlock — the Diary's
+#: Bands at or above which `confide` / `flirt` unlock - the Diary's
 #: ``has_relationship: {min_quality}`` gate, expressed with the shared ladder.
 CONFIDE_BAND = "friend"
 FLIRT_BAND = "close_friend"
@@ -125,7 +125,7 @@ NARRATIVE_TAGS = {
 #: entertaining actions (`joke`, `tease`, `flirt`) pay Entertainment, and only a
 #: little. Six conversations a day at the original +2-4 each was ~40/day of
 #: Entertainment on top of what arrival novelty and the recreational fixtures
-#: already give, against 43/day of decay — enough to pin the meter at 100, which
+#: already give, against 43/day of decay - enough to pin the meter at 100, which
 #: made the authored fixtures decorative and the need meaningless. Social is the
 #: primary output of an interaction; amusement is a side effect of the fun ones.
 ACTIONS = {
@@ -196,7 +196,7 @@ ACTIONS = {
 #: `ACTIONS`: it is the *absence* of an interaction (no activity, no memory, no
 #: relationship change) and is handled as a draw result, not an action.
 #:
-#: An `ignore` costs **nothing** — not the daily meeting budget either. Declining
+#: An `ignore` costs **nothing** - not the daily meeting budget either. Declining
 #: to engage is not an interaction, and charging for it would mean an introvert's
 #: budget is spent by the very behaviour that characterises them, which reads as
 #: punishment rather than disposition. They are simply approachable again next
@@ -219,8 +219,8 @@ ENTERTAINMENT_LOW = 50
 # ─────────────────── task-652: feelings steer behaviour ───────────────────
 #
 # The affect map had eleven writers and **one** reader (`derive.py`, for
-# consent). Every system in this file *wrote* a feeling — `TIER_EMOTION`,
-# `TIER_TARGET_EMOTION`, `FEAR_COSTS` — and nothing that *chose* an action read
+# consent). Every system in this file *wrote* a feeling - `TIER_EMOTION`,
+# `TIER_TARGET_EMOTION`, `FEAR_COSTS` - and nothing that *chose* an action read
 # one. A character who had just been frightened and one who had just been
 # complimented drew from the identical table, which is the task's own goal
 # ("that state ... steers behaviour and shapes social interaction") going
@@ -231,7 +231,7 @@ ENTERTAINMENT_LOW = 50
 #
 # * **Opt-in and additive.** A feeling multiplies an existing weight; it never
 #   opens a gate. An action gated out by the relationship band stays gated out
-#   however frightened you are — a frightened character does not suddenly become
+#   however frightened you are - a frightened character does not suddenly become
 #   willing to flirt with a stranger.
 # * **Only a *raised* axis counts.** `emotion.raised_axes` reports movement above
 #   resting, so a character who has never been angry is not biased toward
@@ -241,7 +241,7 @@ ENTERTAINMENT_LOW = 50
 #   not decide it.
 #: Actions are weighted by **dimensions**, never by labels. `afraid` is a
 #: dimension; `terrified` is a label that resolves to it. Naming a label here is a
-#: rule that can never fire — `amused` and `hopeful` were in an early draft of
+#: rule that can never fire - `amused` and `hopeful` were in an early draft of
 #: this table and are neither dimensions nor declared labels anywhere, so those
 #: two affinities were dead on arrival. Pinned by
 #: `test_every_affinity_names_a_real_dimension`.
@@ -329,7 +329,7 @@ def _traits(player) -> dict:
 
 
 def action_weights(actor, target, closeness: Optional[float] = None) -> dict:
-    """Weight per action for *actor* toward *target*. Never argmax — a draw.
+    """Weight per action for *actor* toward *target*. Never argmax - a draw.
 
     Derived from traits, the relationship band and need pressure, so dispositions
     are visible in the *distribution* while any single choice stays surprising.
@@ -390,7 +390,7 @@ def action_weights(actor, target, closeness: Optional[float] = None) -> dict:
             weights[name] = weights.get(name, 0.0) * 1.3
 
     # task-652: what the character is *feeling* tilts the draw, after the band
-    # and the traits and the needs — so a feeling is a modifier on behaviour, not
+    # and the traits and the needs - so a feeling is a modifier on behaviour, not
     # a replacement for it. Gated actions stay gated; this only re-weights what
     # was already on offer.
     weights = _apply_affect(weights, actor)
@@ -446,7 +446,7 @@ def choose_action(actor, target, tick: int) -> str:
 
 
 #: Actions an *approach toward the player* may take (task-468). Hostile `bully`
-#: is excluded — an unprompted attack is not an approach — and `ignore` is not an
+#: is excluded - an unprompted attack is not an approach - and `ignore` is not an
 #: action, so the first touch is always a social bid but its *kind* comes from the
 #: relationship band and the actor's traits (confide unlocks at friend, flirt at
 #: close friend, a cold band mostly jokes and compliments).
@@ -517,7 +517,7 @@ def resolve_tier(actor, target, action: str, tick: int) -> str:
 def _reading(action: str, closeness: float) -> dict:
     """The action's effect on both sides at this closeness.
 
-    A cold band swaps in the hostile reading of an ambiguous action — the sign
+    A cold band swaps in the hostile reading of an ambiguous action - the sign
     rule that keeps a tease affectionate between friends and an attack between
     rivals.
     """
@@ -589,7 +589,7 @@ def perform(gs, actor, target, area_id: str, area_name: str, tick: int,
     Returns a summary dict, or None when the actor draws `ignore` (the absence of
     an interaction: no activity, no memory, no relationship change).
 
-    ``action`` forces a specific action instead of drawing one — for a scripted
+    ``action`` forces a specific action instead of drawing one - for a scripted
     interaction, and so tests can exercise an outcome without depending on the
     seed.
     """
@@ -598,7 +598,7 @@ def perform(gs, actor, target, area_id: str, area_name: str, tick: int,
     if _fear_source_for(gs, actor, target):
         # Fear pre-empts sociability (task-552). A character does not chat with
         # the thing it fears, so the pass has to check before it draws an action
-        # rather than after — otherwise the social roll would still decide.
+        # rather than after - otherwise the social roll would still decide.
         return None
     if action is None:
         action = choose_action(actor, target, tick)
@@ -827,7 +827,7 @@ def pair_for_area(gs, area_id: str, area_name: str, tick: int) -> list:
 def run_social_pass(gs, tick: Optional[int] = None) -> list:
     """One social pass over the world: pair per area, resolve, cap.
 
-    Per area, never globally — there is no distance in this world model, so
+    Per area, never globally - there is no distance in this world model, so
     nothing else would stop two characters on opposite sides of the camp from
     meeting (task-417).
     """
@@ -1197,10 +1197,10 @@ FEAR_COOLDOWN_MINUTES = 45
 #: ``threat:`` why, or it is a silent vital and the soak telemetry cannot tell
 #: "no mechanic exists" from "no fear arose".
 #:
-#: - ``flee``   — backs off; the one that changes where the character is next tick
-#: - ``hide``   — withdraws and goes quiet
-#: - ``freeze`` — stops dead, the prey response
-#: - ``shout``  — calls for help, which is the only one that acts *on* the other
+#: - ``flee``   - backs off; the one that changes where the character is next tick
+#: - ``hide``   - withdraws and goes quiet
+#: - ``freeze`` - stops dead, the prey response
+#: - ``shout``  - calls for help, which is the only one that acts *on* the other
 #:   party rather than on the self
 FEAR_REACTIONS = ("flee", "hide", "freeze", "shout")
 
@@ -1215,7 +1215,7 @@ FEAR_LINES = {
 
 #: Reaction -> (vital, delta) and the ``afraid`` affect spike. Fear costs Social,
 #: because a frightened character is not socially available, and it pushes the
-#: affect map rather than only the legacy single-emotion field — ``afraid`` on
+#: affect map rather than only the legacy single-emotion field - ``afraid`` on
 #: the map is what selects the expression portrait, and the whole point is that
 #: the reaction is visible.
 FEAR_COSTS = {
@@ -1346,7 +1346,7 @@ def run_fear_pass(gs, tick: Optional[int] = None) -> list:
 
     Deliberately character-relative: a fear source is only a threat to someone
     who lists its tag. That is what lets five humans live inside a goblin camp
-    while the goblins go about their business — the humans are the ones who
+    while the goblins go about their business - the humans are the ones who
     should be recorded fleeing, and only once somebody authors a ``fear_tags``
     entry do they. A world where nobody fears anything produces no rows here,
     which is the honest result and exactly what the Kraktooth soak was measuring

@@ -4,7 +4,7 @@
 
 **167 actionable** - todo 123, inprogress 44  ·  **160 in review** (verification queue)
 
-## Now — 66
+## Now - 66
 
 In progress, or startable and high-priority.
 
@@ -20,8 +20,8 @@ In progress, or startable and high-priority.
 - `bug-526` Sync World to Library 'Sync All' ignores the active tab and generated entities, and silently overwrites  _(inprogress, ui; unblocks 0)_
 - `bug-545` WorldPainter paint is seconds-per-cell: every single-cell paint serializes the whole world for undo, then rebuilds the full payload  _(inprogress, world; unblocks 0)_
 - `bug-549` Character definition is blank on the live Player after a scenario load  _(todo, characters; unblocks 0)_
-- `task-587` Executable manual test plan — one scratch world per phase, zero writes to shipped scenarios  _(inprogress, testing; unblocks 0)_
-- `task-591` Structures — an authoring affordance (capture a subgraph from the graph editor)  _(todo, library; unblocks 0)_
+- `task-587` Executable manual test plan - one scratch world per phase, zero writes to shipped scenarios  _(inprogress, testing; unblocks 0)_
+- `task-591` Structures - an authoring affordance (capture a subgraph from the graph editor)  _(todo, library; unblocks 0)_
 - `task-619` Relationships are keyed by display name, not node id  _(todo, characters; unblocks 0)_
 - `task-637` Area scope picker never shows the area's actual scope  _(todo, world; unblocks 0)_
 - `task-665` Kraktooth cast rework is half-migrated in the working tree: 5 staged renames, 4 un-migrated, duplicate Merchant entry, 7 descriptions claiming nonexistent items  _(todo, characters; unblocks 0)_
@@ -35,7 +35,7 @@ In progress, or startable and high-priority.
 - `task-711` Re-evaluate the promoted set every tick: promote on entry, demote on exit  _(todo, world; unblocks 0)_
 - `task-712` A failed scope fetch silently resets the filter to Whole world, which will promote the whole cast  _(todo, ui; unblocks 0)_
 - `task-715` Live-update transport will not scale to multiple clients (SSE per tab + 1.5s full-state poll)  _(todo, refactor; unblocks 0)_
-- `task-716` Fisherman — step-by-step authoring and implementation checklist  _(inprogress, gameplay; unblocks 0)_
+- `task-716` Fisherman - step-by-step authoring and implementation checklist  _(inprogress, gameplay; unblocks 0)_
 - `task-727` Lived log to memory bridge: phrase lived entries into first-person memories  _(inprogress, characters; unblocks 0)_
 - `task-732` Sync World to Library: collapse item instances into templates and default to a meaningful review queue  _(inprogress, ui; unblocks 0)_
 - `task-740` NL editor: fix world issues from the Issues tab via NL  _(inprogress, graph; unblocks 0)_
@@ -48,7 +48,7 @@ In progress, or startable and high-priority.
 - `task-776` WorldPainter polish and performance: soft render, Konva/offscreen paint, palette side-dock, and the cheap workflow wins  _(todo, ui; unblocks 0)_
 - `task-786` Recall transparency: show why a memory was recalled, automatic and action-driven  _(todo, characters; unblocks 0)_
 - `task-816` A scope can hold painted cells outside its own grid, so those cells sit off the map and cannot be touched  _(todo, world; unblocks 0)_
-- `task-352` Action economy — free / minor / major / activity tiers  _(inprogress, gameplay; unblocks 0)_
+- `task-352` Action economy - free / minor / major / activity tiers  _(inprogress, gameplay; unblocks 0)_
 - `task-372` recently-edited-rail  _(inprogress, ui; unblocks 0)_
 - `task-374` scenario-manager-modal  _(inprogress, ui; unblocks 0)_
 - `task-377` duplicate-room-and-item  _(inprogress, graph; unblocks 0)_
@@ -72,18 +72,18 @@ In progress, or startable and high-priority.
 - `task-731` Activities are entered through their object, not a bare verb (bed, chair, bath; actor-chosen duration; dreaming)  _(inprogress, gameplay; unblocks 0)_
 - `task-751` Replace native alert/confirm/prompt popups with a promise-based in-app dialog  _(inprogress, ui; unblocks 0)_
 - `task-774` WorldPainter palette: filter by layer/mode and setting, and offer diagonal exits  _(inprogress, ui; unblocks 0)_
-- `task-544` Soak lab space-time view — swimlanes by area, with condition ribbons  _(inprogress, ui; unblocks 0)_
+- `task-544` Soak lab space-time view - swimlanes by area, with condition ribbons  _(inprogress, ui; unblocks 0)_
 - `task-755` Trigger graph: auto-grow value textareas and stop the inspector triggers header overflowing  _(inprogress, ui; unblocks 0)_
 
-## Next — 80
+## Next - 80
 
 Startable once nothing else is picked up first.
 
 - `bug-538` Placing a way from the Library asks for the target in a window.prompt, with no picker and no way to find the node id  _(todo, library; unblocks 1)_
 - `task-705` Requirement condition leaves: quantity, area-function, knowledge and ownership  _(todo, conditions; unblocks 1)_
 - `task-746` A single-roll hazard effect: one check, branch, forced move, and a sweep guard against cascades  _(todo, triggers; unblocks 1)_
-- `task-83` Code Readability Refactor — Variable Naming & Comments  _(todo, refactor; unblocks 0)_
-- `task-99` Area Grids — Movement Costs, Size/Shape, and Pathfinding  _(todo, gameplay; unblocks 0)_
+- `task-83` Code Readability Refactor - Variable Naming & Comments  _(todo, refactor; unblocks 0)_
+- `task-99` Area Grids - Movement Costs, Size/Shape, and Pathfinding  _(todo, gameplay; unblocks 0)_
 - `task-290` Template Variants & Override Tracking  _(todo, graph; unblocks 0)_
 - `task-299` Long-Distance Communication (Phones, Walkie-Talkies, Radios)  _(todo, gameplay; unblocks 0)_
 - `task-332` Migrate Legacy Item Effect Props to Triggers, Then Remove Support  _(todo, refactor; unblocks 0)_
@@ -95,7 +95,7 @@ Startable once nothing else is picked up first.
 - `task-477` Put combat and grapple on the central check system  _(todo, gameplay; unblocks 0)_
 - `task-482` Timeskip follow-ups: long spans, leisure vendors, explore frontier  _(todo, gameplay; unblocks 0)_
 - `task-491` Single source of truth for action verbs (scoped registry)  _(todo, refactor; unblocks 0)_
-- `task-509` Library — batch-generate triggers for selected items  _(todo, library; unblocks 0)_
+- `task-509` Library - batch-generate triggers for selected items  _(todo, library; unblocks 0)_
 - `task-510` Library browser UI overhaul (items tab and modal)  _(todo, ui; unblocks 0)_
 - `bug-536` GET read paths race mutating requests on the shared graph  _(todo, world; unblocks 0)_
 - `bug-539` NL editor turn can end with a plan and no tool call, so the requested action never runs  _(todo, prompting; unblocks 0)_
@@ -160,14 +160,14 @@ Startable once nothing else is picked up first.
 - `task-782` Retire Connections.md or absorb what it uniquely holds  _(todo, docs; unblocks 0)_
 - `task-798` Rename the weather forecast_schedule key and its identifiers to forecast  _(todo, environment; unblocks 0)_
 
-## Later — 21
+## Later - 21
 
 Blocked by open work, or explicitly deferred.
 
 - `task-800` Disposition score registry: declare the decision-score vocabulary  _(todo, characters; unblocks 6)_
 - `task-401` Chunk persistence, scoped indexes, and gateway ways  _(todo, world; unblocks 5)_
 - `task-702` Short-term plan executor for character pursuits  _(todo, gameplay; unblocks 2)_
-- `task-446` id-first node identity — data by id, names resolve at the boundary  _(inprogress, refactor; unblocks 1)_
+- `task-446` id-first node identity - data by id, names resolve at the boundary  _(inprogress, refactor; unblocks 1)_
 - `task-802` Disposition character weights from traits, plus live modifiers  _(todo, characters; unblocks 1)_
 - `task-589` Library: a WorldPainter category/tab for compiler vocabularies (biomes, floor plans, resource loot tables)  _(inprogress, library; unblocks 0)_
 - `task-402` Large-world projection and indexing benchmark  _(todo, world; unblocks 0)_

@@ -1,12 +1,12 @@
 """Per-character soak orders (task-481).
 
 A timeskip in a shared world is not a table-wide consensus and not a blocking
-server jump — it is an **order attached to one character**, declared on that
+server jump - it is an **order attached to one character**, declared on that
 player's turn ("go west for an hour"). While the order is active the character
 is run by a deterministic policy on every turn of the normal game loop, exactly
 like an agent or a distant NPC, so a turn with a thousand characters in soak
-still finishes in seconds. Everyone else — attended humans, nearby high-fidelity
-NPCs, agents — plays on unaffected.
+still finishes in seconds. Everyone else - attended humans, nearby high-fidelity
+NPCs, agents - plays on unaffected.
 
 The order ends when its span is spent, and it is **promoted back to the player**
 early when something demands their attention: something they fear, a hostile
@@ -116,7 +116,7 @@ def _step_one(gs, sim, player, order) -> None:
     per = timeskip.frame_minutes(gs)
     left = float(order.get("remaining_minutes", per))
 
-    # 1. Anything already demanding attention at the start of the turn — a
+    # 1. Anything already demanding attention at the start of the turn - a
     #    character waking beside something they fear should not walk on.
     reason = _promote_reason(gs, player, order)
     if reason:
@@ -140,7 +140,7 @@ def _step_one(gs, sim, player, order) -> None:
     #    turned up its target is a discovery exactly like it is for a blocking
     #    skip, so hand control back rather than searching past it (the policy
     #    result used to be dropped here). An intent that *cannot* be carried out
-    #    hands control back too — a shared-world order that quietly goes nowhere
+    #    hands control back too - a shared-world order that quietly goes nowhere
     #    for two hours is the same silence task-671 fixed for the blocking path.
     if step is not None and step.found is not None:
         _promote(gs, player, order,

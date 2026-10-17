@@ -1,4 +1,4 @@
-"""Activity system — persistent multi-turn character activities (task-131).
+"""Activity system - persistent multi-turn character activities (task-131).
 
 An activity is what a character is *doing* across turns (sleeping, resting,
 bathing, waiting, meditating, sitting, lying down). It is stored on
@@ -8,7 +8,7 @@ level; mechanical gating comes from ``player.state`` plus the command gate in
 
 Key facts:
 - Activities advance one step per ``tick_turn()`` (once per full turn cycle).
-- ``rest``/``sleep`` are **persistent** — no fast-forward. The clock advances
+- ``rest``/``sleep`` are **persistent** - no fast-forward. The clock advances
   when every character has acted.
 - ``sleep`` wakes on: ``wake`` command, taking damage, loud noise (perception
   save), reaching full Energy, or an optional duration timer.
@@ -213,7 +213,7 @@ class ActivitySystem:
                     pass
             elif action_type == "finish_craft":
                 # Task-840: the recipe ref rides the (already cleared)
-                # activity dict, passed explicitly — player.activity is
+                # activity dict, passed explicitly - player.activity is
                 # None by this point in end_activity.
                 try:
                     finished = self.world.crafting.complete_cooking(
@@ -335,9 +335,9 @@ class ActivitySystem:
         """Sample the current area's biome resource distribution and add a catch.
 
         Generic handler parameterized by the activity JSON definition:
-        - ``container_tag`` — tag used to find the player's container item
-        - ``result_field`` — activity dict field to increment on success
-        - ``item_properties`` — tags/description/plural for the spawned item
+        - ``container_tag`` - tag used to find the player's container item
+        - ``result_field`` - activity dict field to increment on success
+        - ``item_properties`` - tags/description/plural for the spawned item
         """
         entry = self._sample_biome_resource_for_player(player.name)
         if entry is None:
@@ -508,7 +508,7 @@ class ActivitySystem:
     # ─────────────────────────── wake / interrupt ──────────────────────────
 
     def wake(self, player_name: str, waker_name: Optional[str] = None) -> str:
-        """Wake a sleeping character — or stop any other activity (task-339
+        """Wake a sleeping character - or stop any other activity (task-339
         feedback: 'wake' on a resting character said 'isn't sleeping')."""
         player = self.player_manager.players.get(player_name)
         if not player:

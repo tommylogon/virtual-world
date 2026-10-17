@@ -1,7 +1,7 @@
 # Lived Log Format (objective, code-written history)
 
 The **lived log** is a compact, append-only, per-character record of what actually
-happened, written by code — never by the LLM. It is the substrate for:
+happened, written by code - never by the LLM. It is the substrate for:
 
 - first-person **memory** (the LLM summarizes a lived-log window into memory),
 - **"what have you been up to?"** when you click a background character,
@@ -12,8 +12,8 @@ It is deliberately *not* the memory store. Memories are subjective, sparse, and
 LLM-authored. The lived log is objective, mechanical, and free.
 
 > **Renamed from `trace` in task-542.** The old name was the problem, not a
-> detail. "Trace" reads as instrumentation — an auditable objective record you
-> would debug a long run with — and that reading invites merging this store with
+> detail. "Trace" reads as instrumentation - an auditable objective record you
+> would debug a long run with - and that reading invites merging this store with
 > soak telemetry. They are not the same system. See
 > [Not the same system as telemetry](#not-the-same-system-as-telemetry) below.
 
@@ -36,24 +36,24 @@ Each entry is a plain dict (JSON-friendly) on `player.lived_log`:
 
 Field rules:
 
-- `tick` — required, integer world tick (`world.time_ticks`). Was `t` before
+- `tick` - required, integer world tick (`world.time_ticks`). Was `t` before
   task-542; the rename is deliberate, because this was the only cryptic key in an
   otherwise readable format and the cost of a longer name is not measurable.
-- `kind` — required, one of the enumerated kinds below.
-- `what` — required, short third-person objective phrase ("took 2 rations").
-- `why` — a reason tag naming *why this happened* (see reason tags). Optional
+- `kind` - required, one of the enumerated kinds below.
+- `what` - required, short third-person objective phrase ("took 2 rations").
+- `why` - a reason tag naming *why this happened* (see reason tags). Optional
   but strongly preferred; this is what makes background activity explainable.
-- `area` — the area name at the time, when relevant.
-- `tags` — 0–3 single-word labels (`need`, `combat`, `trade`, `travel`).
-- `salient` — set true for things worth remembering (deaths, discoveries,
+- `area` - the area name at the time, when relevant.
+- `tags` - 0–3 single-word labels (`need`, `combat`, `trade`, `travel`).
+- `salient` - set true for things worth remembering (deaths, discoveries,
   conflict, relationship change, first encounters, completed plans).
-- `delta` — optional; only for things a reader may want numerically (HP loss).
+- `delta` - optional; only for things a reader may want numerically (HP loss).
 
 **Back-compat is load-bearing.** `engine/lived_log.py` `load()` accepts both
 `tick` and the legacy `t`, and `engine/serialization.py` accepts both the
 `lived_log` save key and the legacy `trace` key. This is not polish. `load()`
 copies entries verbatim, so without the rewrite every legacy entry keeps `t` and
-every reader falls back to tick 0 — which scrambles `rollup()`'s sort and makes
+every reader falls back to tick 0 - which scrambles `rollup()`'s sort and makes
 `since()` find nothing. That is **silent data corruption, not a load error**:
 nothing raises, a promotion quietly writes no memory, and the only symptom is a
 character who cannot remember their own life. It is one line in `load()` and must
@@ -82,7 +82,7 @@ module, because the declared set and the written set have drifted apart.
 **Declared but with no writer found (2026-10-06):** `condition`, `encounter`,
 `observe`. `condition` and `observe` *do* exist as method names, but on **soak
 telemetry** (`engine/soak_telemetry.py`), which is the deliberately separate
-system below — not on `lived_log`. Treat these three as aspirational until a
+system below - not on `lived_log`. Treat these three as aspirational until a
 call site appears, or remove them from `KINDS`.
 
 ## Reason tags
@@ -90,14 +90,14 @@ call site appears, or remove them from `KINDS`.
 `why` names the layer that decided the action, so the reason survives even when
 the LLM that chose it is long gone:
 
-- `needs:<vital>` — driven by a pressing need (hunger, thirst, rest).
-- `goal:<name>` — serving a chosen goal/plan.
-- `plan:<name>` — executing a standing plan (background rule tier or LLM).
-- `social:<name>` — prompted by another character.
-- `threat:<source>` — reactive to danger.
-- `order:<character>` — following someone's instruction.
-- `env:<factor>` — forced by environment/weather/area status.
-- `llm:<reason>` — an LLM deliberation chose this (foreground only).
+- `needs:<vital>` - driven by a pressing need (hunger, thirst, rest).
+- `goal:<name>` - serving a chosen goal/plan.
+- `plan:<name>` - executing a standing plan (background rule tier or LLM).
+- `social:<name>` - prompted by another character.
+- `threat:<source>` - reactive to danger.
+- `order:<character>` - following someone's instruction.
+- `env:<factor>` - forced by environment/weather/area status.
+- `llm:<reason>` - an LLM deliberation chose this (foreground only).
 
 ## Granularity
 
@@ -118,7 +118,7 @@ is kept for the character's life.
 
 `engine.lived_log.rollup()` still exists and would collapse long runs of the same
 `(kind, why, area)` into one summary entry, but it is **not called anywhere** and
-must not be wired without review — a lossy collapse contradicts the unbounded
+must not be wired without review - a lossy collapse contradicts the unbounded
 policy.
 
 ## Lived log → memory
@@ -127,7 +127,7 @@ Code writes the lived log; code also writes the memory that summarizes it. The
 bridge is `engine/promotion.py` (task-399, v1): on **promotion** (background →
 attended) `promote()` reads the span since the last consolidation and writes
 **one bounded memory** (`source="background"`, tag `background`) via
-`player.add_memory(...)`. It is **deterministic and templated — no LLM call is
+`player.add_memory(...)`. It is **deterministic and templated - no LLM call is
 made** (task-412 non-goals); a later LLM pass may only *read* the trace. The
 idempotence rule matters: the span is `tick > max(last_offload_tick,
 background_consolidated_through)`, so a second promotion of the same span writes
@@ -137,8 +137,8 @@ nothing.
 `engine/timeskip.py` uses it to seed a resume memory across a skip.
 
 **Per-entry bridge (task-727).** `engine/lived_log_memory.py` bridges
-*individual* meaningful entries whose facts have no other memory writer —
-`death`, `relationship`, `pursuit` — into first-person memories with a
+*individual* meaningful entries whose facts have no other memory writer -
+`death`, `relationship`, `pursuit` - into first-person memories with a
 deterministic phrasing pass (no LLM). It runs once per turn from
 `tick_manager.tick_turn` and is idempotent via
 `player.lived_log_memorized_through`. The kinds `social`, `threat`, and `need`
@@ -167,7 +167,7 @@ the fix.
   event itself is still unrecorded.)
 - **The memory bridge only fires on a fidelity change.** A character who stays
   attended (or stays background) does not get the span promoted, so a salient
-  event — e.g. `kind: "death"` — can sit in `lived_log` and never reach
+  event - e.g. `kind: "death"` - can sit in `lived_log` and never reach
   `memories`, which is what the character Mind panel reads. Repro: a character
   died and their Mind showed no reason, no travel, no feelings, no vitals slide,
   and no reaction to resurrection.
@@ -177,7 +177,7 @@ the fix.
   tried to grab me last night").
 
 The fix reuses the existing bridge (extend `engine/promotion.py` to salient life
-events) or has Mind read salient `lived_log` entries — it does **not** merge the
+events) or has Mind read salient `lived_log` entries - it does **not** merge the
 stores.
 
 ## Serialization
@@ -188,7 +188,7 @@ restored in `_deserialize_player`. **Unbounded** (2026-10-06), so save and
 payload size grow with play; the store is deliberately kept for life.
 
 > **Fixed in task-542:** the save path had a *reader* for a `trace` key and **no
-> writer at all**, so the whole store was silently discarded on every reload —
+> writer at all**, so the whole store was silently discarded on every reload -
 > the module docstring's claim that entries "serialize with the save" was false.
 > Scenario payloads (`to_scenario_dict`) drop `lived_log` for the same reason
 > they drop `recent_hearing` and observation-sourced memories: a character does
@@ -211,7 +211,7 @@ deliberately incompatible.
 | if it leaks | an LLM "remembers" a life it never lived | the benchmark becomes fiction |
 
 The rollup that makes the lived log *good* for memory is precisely what destroys
-it for measurement. That is not a tuning difference — the two requirements are
+it for measurement. That is not a tuning difference - the two requirements are
 incompatible, which is why they cannot be one store. Telemetry is built in
 `engine/soak_runner.py` (task-543) and is owned by the run, not the player.
 
@@ -223,10 +223,10 @@ incompatible, which is why they cannot be one store. Telemetry is built in
 
 Rules without reasons get optimised away, which is the whole reason this section
 exists. The reason is in the table above: the two stores ask opposite questions
-of the same data, and a merged store necessarily answers one of them wrongly —
+of the same data, and a merged store necessarily answers one of them wrongly -
 either it forgets too much to be a benchmark, or it remembers too much to be a
 memory.
 
-The other side of the boundary — what telemetry records, how the space-time view
-draws it, and the `why` vocabulary that keeps the two from drifting — is in
+The other side of the boundary - what telemetry records, how the space-time view
+draws it, and the `why` vocabulary that keeps the two from drifting - is in
 [Soak Lab telemetry and the space-time view](soak-lab-telemetry.md).

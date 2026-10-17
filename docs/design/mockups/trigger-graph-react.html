@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Trigger/Behavior Graph Editor — phases 2-4 · React</title>
+<title>Trigger/Behavior Graph Editor - phases 2-4 · React</title>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -78,7 +78,7 @@ select.sel{background:var(--bg-input);border:1px solid var(--border);border-radi
 .lie{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;
   background:rgba(248,81,73,.15);border:1px solid #5c2121;color:var(--red);font-weight:700;cursor:help}
 
-/* sockets — 20px targets with visible labels */
+/* sockets - 20px targets with visible labels */
 .sock{position:absolute;width:20px;height:20px;border-radius:50%;border:3px solid var(--bg-card);
   cursor:crosshair;display:flex;align-items:center;justify-content:center;
   font-size:9px;font-weight:700;color:#06090d;z-index:6}
@@ -188,7 +188,7 @@ const REAL = {
 };
 
 /* Defect #9: one YES wired to two effects. compileToEngine returned 1 effect
-   for 2 authored — the second branch is dropped with no warning. */
+   for 2 authored - the second branch is dropped with no warning. */
 const FANOUT = {
   nodes: [
     {id:'t',type:'trigger',x:40,y:40,props:{trigger_type:['on_use']}},
@@ -204,7 +204,7 @@ const FANOUT = {
 };
 
 /* Defect #11: authored priority 9 and 3 came back as 2 and 1, and both
-   behaviour nodes were laid out at y=40 — so the field is decorative. */
+   behaviour nodes were laid out at y=40 - so the field is decorative. */
 const PRIORITY = {
   nodes: [
     {id:'b0',type:'behavior',x:40,y:40,rank:'1',props:{name:'approach',priority:3}},
@@ -221,7 +221,7 @@ const [pan, setPan] = useState({x:26, y:14});
 
   const BASE = gset === 'real' ? REAL : gset === 'fanout' ? FANOUT : PRIORITY;
 
-  // node positions are state, not a mutated constant — dragging has to re-render
+  // node positions are state, not a mutated constant - dragging has to re-render
   const [pos, setPos] = useState({});
   const [sel, setSel] = useState([]);
   const [selWire, setSelWire] = useState(null);
@@ -298,13 +298,13 @@ const [pan, setPan] = useState({x:26, y:14});
 
   return (
     <div>
-      <h1>Trigger / Behavior Graph Editor — phases 2 to 4</h1>
+      <h1>Trigger / Behavior Graph Editor - phases 2 to 4</h1>
       <p className="lede">
         React design mockup for <code>task-388</code>, which has 432 lines of research and
         <b>one of seven phases shipped</b>. Every remaining phase is a visual decision: left-in /
         right-out sockets, wires you can tell apart and delete, compile-honesty badges,
         left-in/right-out auto-layout, a minimap. This shows them at once, because they
-        conflict — you cannot judge wire colour without seeing the node layout it depends on.
+        conflict - you cannot judge wire colour without seeing the node layout it depends on.
       </p>
       <p className="prov">
         Probes run in Chromium against kraktooth_goblin_camp by calling window.TriggerGraph
@@ -430,7 +430,7 @@ const [pan, setPan] = useState({x:26, y:14});
               <button className="xbtn" onClick={()=>setZoom(100)}>⤢ Fit</button>
             </div>
 
-            {/* minimap — phase 4 */}
+            {/* minimap - phase 4 */}
             <div className="minimap">
               {nodes.map(n=>(
                 <span key={n.id} className="mmn"
@@ -449,7 +449,7 @@ const [pan, setPan] = useState({x:26, y:14});
               <h4>Compile honesty</h4>
               {gset === 'fanout' ? (
                 <div className="issue">
-                  <b>FAN-OUT DROPPED — measured</b>
+                  <b>FAN-OUT DROPPED - measured</b>
                   One ✓ yes socket wired to 2 effect nodes.
                   <span className="fix">
                     <code>compileToEngine</code> returned <b>1</b> effect for <b>2</b> authored.
@@ -461,7 +461,7 @@ const [pan, setPan] = useState({x:26, y:14});
               ) : gset === 'priority' ? (
                 <>
                   <div className="issue gold">
-                    <b>PRIORITY FIELD IS IGNORED — measured</b>
+                    <b>PRIORITY FIELD IS IGNORED - measured</b>
                     Authored priority 9 and 3; <code>compileToBehaviors</code> returned <b>2</b> and <b>1</b>,
                     and both nodes were laid out at y=40.
                     <span className="fix">
@@ -475,7 +475,7 @@ const [pan, setPan] = useState({x:26, y:14});
               ) : (
                 <>
                   <div className="issue">
-                    <b>2 CONDITION KEYS LOST ON ROUND-TRIP — measured</b>
+                    <b>2 CONDITION KEYS LOST ON ROUND-TRIP - measured</b>
                     Re-compiling the real berry trigger through the graph dropped
                     <code>key</code> from <code>parameter_reached</code> and <code>op</code> from
                     <code>contains_count</code>. Both are 5 of the 5 conditioned triggers here.
@@ -484,11 +484,11 @@ const [pan, setPan] = useState({x:26, y:14});
                   <div className="kv"><span className="l">parameter_reached</span>
                     <span className="v">growth = 100</span></div>
                   <div className="kv"><span className="l">→ after round-trip</span>
-                    <span className="v lost">no key — which parameter?</span></div>
+                    <span className="v lost">no key - which parameter?</span></div>
                   <div className="kv"><span className="l">contains_count</span>
                     <span className="v">berries lt 10</span></div>
                   <div className="kv"><span className="l">→ after round-trip</span>
-                    <span className="v lost">no op — lt? gte?</span></div>
+                    <span className="v lost">no op - lt? gte?</span></div>
                 </>
               )}
               <div className="acts" style={{display:'flex',gap:4,marginTop:5}}>
@@ -501,7 +501,7 @@ const [pan, setPan] = useState({x:26, y:14});
               <h4>Selected</h4>
               {sel.length === 0 && !selWire
                 ? <div style={{fontSize:11,color:'var(--text-muted)'}}>
-                    Click a node to drag it, or a wire to select it — the hit path is 14px
+                    Click a node to drag it, or a wire to select it - the hit path is 14px
                     wide, so a wire is as easy to hit as a node.
                   </div>
                 : selWire
@@ -532,13 +532,13 @@ const [pan, setPan] = useState({x:26, y:14});
             <div className="sec">
               <h4>Phases</h4>
               <ol className="steps">
-                <li className="done">1 — viewport: pan/zoom/fit/grid + screenToWorld</li>
-                <li className="now">2 — wires &amp; flow: colours, deletion, honesty badges</li>
-                <li>3 — registry: one catalog, generate node fields from it</li>
-                <li>4 — interop: lossless-or-warned form↔graph</li>
-                <li>5 — editing power: undo, multi-select, collapse</li>
-                <li>6 — test animation along the trace</li>
-                <li>7 — scale: minimap, LOD, culling, touch</li>
+                <li className="done">1 - viewport: pan/zoom/fit/grid + screenToWorld</li>
+                <li className="now">2 - wires &amp; flow: colours, deletion, honesty badges</li>
+                <li>3 - registry: one catalog, generate node fields from it</li>
+                <li>4 - interop: lossless-or-warned form↔graph</li>
+                <li>5 - editing power: undo, multi-select, collapse</li>
+                <li>6 - test animation along the trace</li>
+                <li>7 - scale: minimap, LOD, culling, touch</li>
               </ol>
             </div>
           </div>
@@ -548,9 +548,9 @@ const [pan, setPan] = useState({x:26, y:14});
       <div className="notes">
         <h3>Probe results, run in the live browser against window.TriggerGraph</h3>
         <div className="probe">
-          <b>compileToEngine(fanout)</b> — 2 effect nodes wired to one ✓ socket<br/>
+          <b>compileToEngine(fanout)</b> - 2 effect nodes wired to one ✓ socket<br/>
           &nbsp;&nbsp;→ <i>effects: 1</i>&nbsp; effect 2 (<i>set_state lit=1</i>) silently absent<br/><br/>
-          <b>behaviorsToGraph → compileToBehaviors</b> — authored priorities 9, 3<br/>
+          <b>behaviorsToGraph → compileToBehaviors</b> - authored priorities 9, 3<br/>
           &nbsp;&nbsp;→ <i>both nodes at y=40</i>, compiled priorities <i>2 and 1</i><br/><br/>
           <b>triggerToGraph → compileToEngine</b> on the 5 conditioned triggers<br/>
           &nbsp;&nbsp;→ <i>key</i> dropped from parameter_reached, <i>op</i> dropped from contains_count
@@ -558,27 +558,27 @@ const [pan, setPan] = useState({x:26, y:14});
         <table>
           <thead><tr><th>Defect (# in task-388)</th><th>Now</th><th>Here</th><th>Why it is a design question</th></tr></thead>
           <tbody>
-            <tr><td>5 — wires cannot be deleted</td>
+            <tr><td>5 - wires cannot be deleted</td>
                 <td>Del removes the selected <i>node</i>; the SVG layer has pointer-events:none</td>
                 <td>14px hit path, click to select, Delete in the toolbar and the dock</td>
                 <td>A mis-wire currently forces deleting whole nodes</td></tr>
-            <tr><td>6 — all wires are identical blue</td>
+            <tr><td>6 - all wires are identical blue</td>
                 <td>YES and NO render the same</td>
                 <td>Wire takes its source socket's colour, arrowheads, and a legend up top</td>
                 <td>Left-in/right-out only reads <i>because</i> the colour distinguishes the branch</td></tr>
-            <tr><td>9 / 10 / 11 — compile dishonesty</td>
+            <tr><td>9 / 10 / 11 - compile dishonesty</td>
                 <td>Saves less than it shows, with no warning anywhere</td>
                 <td>A ⚠ dropped badge on the node and a dashed red wire, plus the dock's diff</td>
                 <td>Each of these is a place where the picture and the result disagree</td></tr>
-            <tr><td>11 — priority field is a lie</td>
+            <tr><td>11 - priority field is a lie</td>
                 <td>Field says 9; Y position decides</td>
                 <td>Rank badges, and the dock states authored vs compiled side by side</td>
                 <td>Gameplay order is not a layout detail</td></tr>
-            <tr><td>19 — form→graph is lossy</td>
+            <tr><td>19 - form→graph is lossy</td>
                 <td>Opens and applies, destroying structure</td>
                 <td>Dock names the dropped keys per condition</td>
                 <td>Deciding <i>whether to warn or refuse</i> needs the diff visible</td></tr>
-            <tr><td>17 — ~89% of actions lose params</td>
+            <tr><td>17 - ~89% of actions lose params</td>
                 <td>Dropdown shows “message” for types it does not know</td>
                 <td>Catalog parity panel, and an “open anyway” affordance</td>
                 <td>Whether the graph can hold all ~100 is an architecture call</td></tr>
@@ -603,7 +603,7 @@ const [pan, setPan] = useState({x:26, y:14});
             for the case where the answer is “refuse”.</li>
           <li><b>Phase 4 render strategy.</b> Minimap and LOD are drawn here at 640px to be
             judged; real node culling and zoom-based LOD are not designed.</li>
-          <li><b>The BLUEPRINT dialog</b> (defect #20 — no mode marker, silent overwrite) and the
+          <li><b>The BLUEPRINT dialog</b> (defect #20 - no mode marker, silent overwrite) and the
             unsaved-changes guard are dialogs, not canvas.</li>
         </ul>
       </div>

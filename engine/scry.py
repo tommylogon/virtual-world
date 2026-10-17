@@ -1,7 +1,7 @@
 """Scry / far-sight view (task-320).
 
 Builds a natural-language view of a DISTANT area without touching the shared
-observer pipeline: no walk/meeting registration, no agent-prompt drift — the
+observer pipeline: no walk/meeting registration, no agent-prompt drift - the
 scry output is a frozen narrative glance assembled from the target area's own
 rendered description + ambient light + exit summary.
 """
@@ -10,7 +10,7 @@ rendered description + ambient light + exit summary.
 def scry_view(gs, target_name: str) -> str:
     """Render a distant area as seen through a scrying effect.
 
-    ``gs`` is the VirtualWorld (game_state) — must expose ``graph``,
+    ``gs`` is the VirtualWorld (game_state) - must expose ``graph``,
     ``lighting`` and ``area_description``.
     """
     target_node = None
@@ -38,9 +38,9 @@ def scry_view(gs, target_name: str) -> str:
 
     lines = [f"You catch sight of {target_node.name}."]
     if level == "pitch_black":
-        lines.append("It is pitch black there — nothing can be made out.")
+        lines.append("It is pitch black there - nothing can be made out.")
     elif level == "dim":
-        lines.append("The light there is dim — shapes only, no detail.")
+        lines.append("The light there is dim - shapes only, no detail.")
     else:
         lines.append(desc if desc else "It looks empty.")
 

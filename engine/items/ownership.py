@@ -55,7 +55,7 @@ def is_owned(node) -> bool:
 
 
 def is_personal(node) -> bool:
-    """True when the item is flagged ``personal`` — a treasured thing, however
+    """True when the item is flagged ``personal`` - a treasured thing, however
     it stands. Informational: permission follows ``owner``, not this tag, so an
     author can mark a keepsake that is not yet anybody's."""
     tags = ((getattr(node, "properties", None) or {}).get("tags") or [])
@@ -77,7 +77,7 @@ def owner_player(player_manager, handle: str):
 
 
 def owner_incumbent(owner) -> bool:
-    """False when the owner cannot enforce a claim — absent, or dead,
+    """False when the owner cannot enforce a claim - absent, or dead,
     unconscious or bound.
 
     Being *elsewhere* is not the same as being unable: an owner in another room
@@ -94,7 +94,7 @@ def owner_can_enforce(player_manager, handle: str) -> bool:
     """True when *handle* names an owner whose claim the world still honours.
 
     An owner we have never heard of is assumed to be somewhere real, so an
-    unrecognised handle keeps the refusal — silence is not consent."""
+    unrecognised handle keeps the refusal - silence is not consent."""
     wanted = _norm(handle)
     if not wanted:
         return True
@@ -104,7 +104,7 @@ def owner_can_enforce(player_manager, handle: str) -> bool:
 
 
 def is_owner(node, player_manager, actor_name: str = None) -> bool:
-    """True when *actor_name* is the item's owner. The owner is always allowed —
+    """True when *actor_name* is the item's owner. The owner is always allowed -
     the refusal exists to stop *other* people, never the owner."""
     handle = owner_of(node)
     if not handle:

@@ -141,8 +141,8 @@ class EquipmentSystem:
         if not is_carried:
             raise ValueError(f"You aren't carrying '{item_name}'.")
 
-        # One instance per name: equipping a second copy — or the same node
-        # twice — stacks nonsense ("Earring over Earring", taco_bell
+        # One instance per name: equipping a second copy - or the same node
+        # twice - stacks nonsense ("Earring over Earring", taco_bell
         # 2026-08-24). Refuse; remove first to re-slot.
         wanted = item_node.name.lower().replace('_', ' ').replace('-', ' ').strip()
         for worn_edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
@@ -227,7 +227,7 @@ class EquipmentSystem:
         self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
 
         # task-516: drawing or equipping a concealed item reveals it. This is the
-        # documented choice — concealment is about being kept out of sight, and
+        # documented choice - concealment is about being kept out of sight, and
         # wearing it is the act of bringing it into sight.
         item_node.properties.pop("concealed", None)
 
@@ -276,9 +276,9 @@ class EquipmentSystem:
         """task-654: write an ``equipped`` mapping to BOTH truths, atomically.
 
         ``player.equipped`` and the graph's ``EDGE_EQUIPPED`` edges used to be
-        two independent stores, and every writer outside the equipment verbs —
+        two independent stores, and every writer outside the equipment verbs -
         ``POST /api/players/<name>``, ``/api/players/import``, the library
-        character loader — set only the first. Everything that actually *reads*
+        character loader - set only the first. Everything that actually *reads*
         equipment went the other way: ``combat._best_weapon_node`` (weapon
         selection) and ``equipment_bonuses.get_equipment_nodes`` (defense,
         insulation, resistances) read the **edges**. So an API write returned 200,
@@ -293,13 +293,13 @@ class EquipmentSystem:
         * every real item node in the payload gets an ``equipped`` edge (item ->
           character) carrying its ``slot``;
         * ``equipped`` edges for items no longer in the payload are removed, and
-          the item goes back to ``carrying`` — the state it had before being
+          the item goes back to ``carrying`` - the state it had before being
           worn, so nothing is orphaned and nothing is lost;
         * slot markers (``__multi_slot_<id>``, written by ``equip_item`` for a
           two-handed or full-body item) are dict-side bookkeeping for the same
           item and never become edges of their own;
         * entries that do not resolve to an item node are kept in the dict and
-          reported, not silently dropped — a caller that names an item this
+          reported, not silently dropped - a caller that names an item this
           world does not have deserves to hear about it.
 
         Returns ``{"slots": {...}, "unresolved": [...]}``.
@@ -348,7 +348,7 @@ class EquipmentSystem:
                        self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
                 self.graph.add_edge(Edge(source=item_id, target=player_id,
                                           type=EDGE_EQUIPPED, properties={"slot": slot}))
-            # Wearing something means not merely carrying it — the same edge swap
+            # Wearing something means not merely carrying it - the same edge swap
             # equip_item performs, so the two paths cannot drift.
             self.graph.remove_edge(item_id, player_id, EDGE_CARRYING)
             self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
@@ -357,7 +357,7 @@ class EquipmentSystem:
             # Normalise against the canonical slot set. Every reader that walks
             # `player.equipped` (get_visible_equipment, get_full_equipment,
             # _sync_equipped_from_graph, the appearance prompts) assumes the full
-            # set is present, and a raw payload only names the slots it touches —
+            # set is present, and a raw payload only names the slots it touches -
             # so a partial write used to quietly remove the others. Unknown slot
             # names are kept rather than dropped: they are still real state, and
             # the graph edge carries them.
@@ -369,7 +369,7 @@ class EquipmentSystem:
         # Markers mirror an item that is *already* equipped somewhere else (a
         # two-handed axe fills both hands, a full-body suit covers every declared
         # slot). They have no edge of their own, so a sync from the edges drops
-        # them — carry them across so the payload keeps meaning what it said.
+        # them - carry them across so the payload keeps meaning what it said.
         markers = {
             slot: [m for m in stack if self._is_marker(m)]
             for slot, stack in (payload or {}).items()
@@ -393,7 +393,7 @@ class EquipmentSystem:
         The second half of the same divergence, found while closing this task:
         ``DELETE /api/graph/node/<id>`` removes the node and its edges, but the
         ``player.equipped`` dict is not part of the graph, so the id survives the
-        node. It then lies to every reader that trusts the dict — the equipment
+        node. It then lies to every reader that trusts the dict - the equipment
         readout counts the item as worn, and ``body_parts.is_exposed`` degrades a
         missing node to "this region is uncovered", which silently changes
         coverage maths rather than failing.
@@ -749,7 +749,7 @@ class EquipmentSystem:
         ``clothing`` carrying a positive ``defense``) that tracks uses;
         infinite-use items (``uses`` <= 0) are unaffected. At 0 the item
         breaks: removed from equipped slots (back to carrying), fires
-        ``on_break`` if present, and a natural-language message is returned —
+        ``on_break`` if present, and a natural-language message is returned -
         never a raw use count.
 
         @param player - the character who took the hit (player object)
@@ -774,7 +774,7 @@ class EquipmentSystem:
                 continue
             # task-607: `defense` may be a dice expression ("d8"), so a raw int()
             # would raise. task-604 made `damage_reduction` the canonical name
-            # with `defense` as the alias, so resolve both here — otherwise an
+            # with `defense` as the alias, so resolve both here - otherwise an
             # item authored with the new name is skipped by this scan.
             from engine.equipment_bonuses import parse_damage
             _dr = parse_damage(props.get("damage_reduction", props.get("defense", 0)))
@@ -802,9 +802,9 @@ class EquipmentSystem:
             except Exception:
                 pass
         elif ratio <= 0.25:
-            msgs.append(f"The {node.name} is hanging by a thread — it can't take much more.")
+            msgs.append(f"The {node.name} is hanging by a thread - it can't take much more.")
         elif ratio <= 0.5:
-            msgs.append(f"The {node.name} is badly battered — its protection is failing.")
+            msgs.append(f"The {node.name} is badly battered - its protection is failing.")
         elif ratio <= 0.9:
             msgs.append(f"The {node.name} takes the hit and shows fresh wear.")
         else:
@@ -865,7 +865,7 @@ class EquipmentSystem:
 
         The equip/unequip paths call the description builder directly; this is
         the reconciliation hook for every *other* path that can change how a
-        character looks — conditions applied or expired, ``body_state`` edits,
+        character looks - conditions applied or expired, ``body_state`` edits,
         and conditions mutated through direct ``player.conditions`` dict writes.
         It is called once per character per turn by the tick manager and by the
         conditions system on apply/remove.
@@ -888,7 +888,7 @@ class EquipmentSystem:
         """task-210: visible body-state bullets for the description prompt.
 
         Mature-gated: returns [] unless world.mature_content is on. Only
-        conditions that are outwardly visible belong here — the description
+        conditions that are outwardly visible belong here - the description
         is "how this character looks right now".
         """
         world = getattr(self, 'world', None)
@@ -903,7 +903,7 @@ class EquipmentSystem:
     def _item_description_text(self, node) -> str:
         """Prompt-safe, first-sentence item description (task-215 re-scope).
 
-        Clothing detail — coverage, wetness, comfort, layer visibility — is
+        Clothing detail - coverage, wetness, comfort, layer visibility - is
         carried by the item's own description rather than numeric props, so the
         equipment prompts must include that text. Templates (``{param:x}``) are
         rendered when possible; any unresolved placeholder is stripped so the
@@ -966,7 +966,7 @@ class EquipmentSystem:
 
         task-489. One place answers "how much does this cover", so the description
         and `engine/body_parts.py::COVERAGE_EXPOSED_THRESHOLD` cannot drift apart
-        — the default is deliberately *that same* 0.8, which means an item with no
+        - the default is deliberately *that same* 0.8, which means an item with no
         authored coverage blocks skin contact, like clothing does.
 
         A non-numeric or out-of-range value falls back rather than propagating: a
@@ -990,7 +990,7 @@ class EquipmentSystem:
         Coverage and a live ``current_state`` are numeric facts the engine acts
         on; everything else (layer visibility, comfort, wetness) is carried by
         the item's own description. ``opacity`` and ``friction`` were retired
-        (task-215 re-scope) — no library item authors them.
+        (task-215 re-scope) - no library item authors them.
         """
         lines = []
         for slot, node_ids in (player.equipped or {}).items():
@@ -1006,8 +1006,8 @@ class EquipmentSystem:
                 # task-489: `coverage` defaults to 0.8 when absent, which is the
                 # same threshold `engine/body_parts.py:COVERAGE_EXPOSED_THRESHOLD`
                 # uses to decide whether a layer blocks skin contact. So an item
-                # that says nothing is read as a *covering* garment — which is
-                # what clothing is — rather than as an author who forgot, and the
+                # that says nothing is read as a *covering* garment - which is
+                # what clothing is - rather than as an author who forgot, and the
                 # default is the one number that keeps `is_exposed()` and the
                 # description agreeing with each other.
                 #
@@ -1060,7 +1060,7 @@ class EquipmentSystem:
             "Write a vivid, natural 3rd-person description of how this character looks right now. "
             "Merge their baseline physical traits with what they're wearing into smooth prose. "
             "2-4 sentences. Do not list slots or use bullet points. "
-            "Describe only visible appearance — no backstory, no personality. "
+            "Describe only visible appearance - no backstory, no personality. "
             "If a VISIBLE PHYSICAL STATE section is present, weave it into the prose."
         )
 
@@ -1088,15 +1088,15 @@ class EquipmentSystem:
             if items:
                 fallback_parts.append(f"{items[-1]} in their {slot_labels.get(hand, hand)}")
         # task-489: the fallback used to list slot names only, so a garment that
-        # had just been soaked regenerated to *byte-identical* text — which is
+        # had just been soaked regenerated to *byte-identical* text - which is
         # what made "wet -> description regenerates" look unwired even when it
         # was firing. The item's own live state ("soaked") is the fact that has
         # to survive into the prose, and it is already in `detail_lines`.
         # Rendered as its own sentence rather than appended to the wearing list,
         # which would read "... wearing a dress on their torso, state: soaked".
         #
-        # The detail line packs `coverage` and `state` into one bracketed tail —
-        # `- Rain Coat (torso): Waxed cotton. [coverage 0.8, state: soaked]` — so
+        # The detail line packs `coverage` and `state` into one bracketed tail -
+        # `- Rain Coat (torso): Waxed cotton. [coverage 0.8, state: soaked]` - so
         # `state` is found by locating the label rather than by looking for a
         # bracket that only exists when coverage is absent.
         state_clauses = []

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Library Browser — ideal items pane (task-510) · React</title>
+<title>Library Browser - ideal items pane (task-510) · React</title>
 <!--
   React design mockup for task-510 "Library browser UI overhaul (items tab and modal)".
 
@@ -65,7 +65,7 @@ h1{font-size:22px;margin:0 0 6px}
 
 .body{display:flex;height:660px;min-height:0;align-items:stretch}
 
-/* type + preset filters as horizontal chip bars — no permanent column */
+/* type + preset filters as horizontal chip bars - no permanent column */
 .fbar{padding:7px 10px;border-bottom:1px solid var(--border-light);display:flex;gap:5px;
   align-items:center;flex-wrap:wrap}
 .fbar .glabel{font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);
@@ -163,13 +163,13 @@ const FACETS = [
 ];
 const TABS = ['📦 Items','🧍 Characters','🏠 Areas','🏷️ Traits','💊 Conditions','🤖 Behaviours','🏷️ Tags','🚪 Ways'];
 
-/* Real library entries. dup:true marks an entry whose tag list repeats a tag —
+/* Real library entries. dup:true marks an entry whose tag list repeats a tag -
    294 of 1,999 items (15%) are in that state, e.g. "drink,drink,nut,forage". */
 const ITEMS = [
   { id:'ace_bandage', name:'ace_bandage', tags:['medical','bandage'], trig:1, uses:1, desc:'a rolled elastic bandage. kyrie keeps it in case someone twists an ankle.' },
   { id:'acorn', name:'acorn', tags:['food','nut','forage'], trig:1, uses:-1, desc:'a single acorn, hull still intact' },
   { id:'acorn_coffee', name:'acorn_coffee', tags:['drink','drink','nut','forage'], trig:1, uses:-1, dup:true, desc:'acorns ground and steeped until the water runs brown' },
-  { id:'acorn_flesh', name:'acorn_flesh', tags:['forage','nut','hazard'], trig:0, uses:-1, desc:'the raw flesh of an acorn — do not eat this' },
+  { id:'acorn_flesh', name:'acorn_flesh', tags:['forage','nut','hazard'], trig:0, uses:-1, desc:'the raw flesh of an acorn - do not eat this' },
   { id:'acorn_meal', name:'acorn_meal', tags:['food','food','nut','grain'], trig:1, uses:-1, dup:true, desc:'acorn flour, coarse and pale' },
   { id:'adze', name:'adze', tags:['tool','tool','metal','wooden'], trig:0, uses:-1, dup:true, desc:'a short-handled blade set in a wooden head, for shaping timber' },
   { id:'after_dinner_mint', name:'after_dinner_mint', tags:['herb','culinary','fresh'], trig:0, uses:-1, desc:'broad leaves with a clean smell, good after a heavy meal' },
@@ -219,7 +219,7 @@ function App(){
   const [sort, setSort] = useState('name');
   const [sel, setSel] = useState([]);          // multi-select ids
   const [open, setOpen] = useState('acorn_coffee');
-  const [split, setSplit] = useState(42);      // editor width % — list gets the rest
+  const [split, setSplit] = useState(42);      // editor width % - list gets the rest
   const drag = useRef(null);
 
   const filtered = useMemo(()=>{
@@ -268,7 +268,7 @@ function App(){
   return (
     <Stack>
       <div>
-        <h1>Library Browser — ideal items pane</h1>
+        <h1>Library Browser - ideal items pane</h1>
         <p className="lede">
           React design mockup for <code>task-510</code>. The current items pane is a fixed 800px
           modal with a 300px scrolling list, a 240px editor, inline styles throughout, and
@@ -303,7 +303,7 @@ function App(){
 
         {tab !== '📦 Items' ? (
           <div className="empty">
-            Non-item tabs are out of scope for task-510 — “visual consistency only, no rework”.
+            Non-item tabs are out of scope for task-510 - “visual consistency only, no rework”.
             Shown so the shared header is visible in context.
           </div>
         ) : (
@@ -322,7 +322,7 @@ function App(){
             )}
 
             {/* Type as a horizontal chip bar. Same taxonomy the code already
-                computes and the same live counts the column showed — but as
+                computes and the same live counts the column showed - but as
                 two short rows instead of a permanent 212px column. The colour
                 swatch is the row's type colour, so the chip and the rows below
                 read as one system. */}
@@ -340,7 +340,7 @@ function App(){
                                           : `${f.label}: ${f.n.toLocaleString()} items`}
                         onClick={()=>setFacet(facet===f.id?null:f.id)}>
                   <span className="sw" style={{background:f.c}}/> {f.label}
-                  <span className="n">{f.n===null?'—':f.n}</span>
+                  <span className="n">{f.n===null?'-':f.n}</span>
                 </button>
               ))}
             </div>
@@ -366,7 +366,7 @@ function App(){
                 <button key={p.id} className={'chip qa'+(preset===p.id?' on':'')}
                         aria-pressed={preset===p.id}
                         title={p.id==='dupTags'
-                          ? '294 of 1,999 items repeat a tag — any tag filter must dedupe first'
+                          ? '294 of 1,999 items repeat a tag - any tag filter must dedupe first'
                           : undefined}
                         onClick={()=>setPreset(preset===p.id?null:p.id)}>
                   {p.label}
@@ -391,7 +391,7 @@ function App(){
                            role="option" aria-selected={on}>
                         <span className="cb">{isSel?'✓':''}</span>
                         <span className="ic" style={{background:f.c}}/>
-                        <span className="nm"><b>{i.name}</b><span className="ds">{i.desc||'— no description —'}</span></span>
+                        <span className="nm"><b>{i.name}</b><span className="ds">{i.desc||'- no description -'}</span></span>
                         <span className="badges">
                           {i.dup && <span className="bdg">dup tag</span>}
                           {i.trig>0 && <span className="bdg trg">{i.trig} trig</span>}
@@ -467,7 +467,7 @@ function App(){
                 <td>The editor was 240px; item descriptions alone run longer</td></tr>
             <tr><td>A list that scales to 505+ items</td>
                 <td>Virtualized list, sticky search/sort, count always visible</td>
-                <td>It is 1,999 — roughly 4× the figure in the task</td></tr>
+                <td>It is 1,999 - roughly 4× the figure in the task</td></tr>
             <tr><td>Filtering by type via _getItemType</td>
                 <td>A type chip bar with live counts, reusing the taxonomy the code already computes</td>
                 <td>24% of the library is tagged food; an A–Z list is dominated by it</td></tr>
@@ -493,7 +493,7 @@ function App(){
       <div className="notes">
         <h3>Two things this surfaced that are not in task-510</h3>
         <ul style={{margin:0,paddingLeft:18,color:'var(--text-dim)',lineHeight:1.7}}>
-          <li><b>294 of 1,999 items (15%) repeat a tag</b> — <code>acorn_coffee</code> is
+          <li><b>294 of 1,999 items (15%) repeat a tag</b> - <code>acorn_coffee</code> is
             <code>drink,drink,nut,forage</code>, <code>adze</code> is <code>tool,tool,metal,wooden</code>.
             Any tag filter or badge built on this data has to dedupe first, or counts will
             disagree with the list.</li>

@@ -1,6 +1,6 @@
 """Author the Pines vertical slice: scope manifest + background schedules (task-400).
 
-Data pass only — no new engine behaviour. It writes:
+Data pass only - no new engine behaviour. It writes:
 
 - a `world_scopes` manifest: Millbrook Falls -> Downtown / The Pines -> floors ->
   apartments, with every existing area assigned to its scope (`world_scope_id`);
@@ -186,7 +186,7 @@ def main():
     if not changed:
         return 0
     if not args.write:
-        print("dry run — rerun with --write to save")
+        print("dry run - rerun with --write to save")
         return 1
     with open(args.scenario, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, ensure_ascii=False)

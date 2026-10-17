@@ -2,28 +2,28 @@
 
 @module memory_dynamics
 @contributes ensure_dynamics defaults, effective_importance scoring, reinforcement, activation decay with per-memory resistance, contradiction linking, consolidation
-@powers Memory — what characters remember, and when they reflect on it
+@powers Memory - what characters remember, and when they reflect on it
 @docs docs/virtualWorld/AI & Narration/Memory Dynamics.md
 
-``Player.memories[]`` entries gain optional dynamics fields — ``category``,
+``Player.memories[]`` entries gain optional dynamics fields - ``category``,
 ``activation``, ``confidence``, ``reinforcements``, ``last_recalled_tick``,
-``reflection_depth``, ``source_memory_ids``, ``contradicts`` — and this module
+``reflection_depth``, ``source_memory_ids``, ``contradicts`` - and this module
 owns every mutation of them. The fields are additive and defaulted lazily by
 :func:`ensure_dynamics`, so a save from any era loads, recalls and re-saves
 correctly (serialization round-trips the list verbatim).
 
 What each function is for:
 
-- :func:`ensure_dynamics` — fill missing dynamics fields in place; the only
+- :func:`ensure_dynamics` - fill missing dynamics fields in place; the only
   place defaults live.
-- :func:`effective_importance` — the derived scorer (importance modulated by
+- :func:`effective_importance` - the derived scorer (importance modulated by
   activation and confidence). Computed, never persisted.
-- :func:`reinforce` — stamp recall/re-encounter; bounded and idempotent where
+- :func:`reinforce` - stamp recall/re-encounter; bounded and idempotent where
   the old "+1 importance" ratchet was neither.
-- :func:`decay_resistance` / :func:`apply_decay` — non-uniform decay of
+- :func:`decay_resistance` / :func:`apply_decay` - non-uniform decay of
   ``activation``; removal only for unimportant, unreinforced memories.
-- :func:`detect_contradiction` — link assert/deny pairs; marks, never resolves.
-- :func:`consolidate` — compress stale low-importance same-entity episodes
+- :func:`detect_contradiction` - link assert/deny pairs; marks, never resolves.
+- :func:`consolidate` - compress stale low-importance same-entity episodes
   into one semantic trace memory.
 
 Nothing here calls an LLM and nothing here knows about the graph.
@@ -50,7 +50,7 @@ CATEGORY_FOR_TYPE: Dict[str, str] = {
 }
 
 #: Sources whose memories never decay (authored knowledge the character
-#: was told) — shared with AgentMind, which used to own these constants.
+#: was told) - shared with AgentMind, which used to own these constants.
 NON_DECAYING_SOURCES = ("preconceived",)
 #: Sources that fade at half rate: earned on-screen, summarised off-screen.
 HALF_DECAY_SOURCES = ("background",)
@@ -132,7 +132,7 @@ def ensure_dynamics(memory: Dict[str, Any]) -> Dict[str, Any]:
 def effective_importance(memory: Dict[str, Any]) -> float:
     """Base importance modulated by how available and how sure we are.
 
-    ``importance × (0.6 + 0.4×activation) × (0.75 + 0.25×confidence)`` — a
+    ``importance × (0.6 + 0.4×activation) × (0.75 + 0.25×confidence)`` - a
     faded memory presses less; a doubted memory weighs less. Field-less
     memories (old saves) score exactly their base importance.
     """
@@ -222,7 +222,7 @@ def apply_decay(player, rate: float, tick: Optional[int] = None) -> int:
     :func:`decay_resistance`.
 
     **Activation is a recall signal, not a lifespan.** Decay lowers how likely a
-    memory is to be recalled; it never removes one. Memories are kept for life —
+    memory is to be recalled; it never removes one. Memories are kept for life -
     nothing is forgotten, at any floor. (The former removal-at-floor behaviour
     was removed by request, 2026-10-06; it matches the intent of task-707.)
 
@@ -230,7 +230,7 @@ def apply_decay(player, rate: float, tick: Optional[int] = None) -> int:
     "removed count" keep working.
 
     Note: this deliberately decays ``activation`` and not
-    ``salience_override`` — the turn reset zeroes salience_override every
+    ``salience_override`` - the turn reset zeroes salience_override every
     turn, which used to erase trait-driven decay before it could compound.
     """
     if rate <= 0:
@@ -270,7 +270,7 @@ def _has_negation(text: str) -> bool:
 
 #: First-person affect statements ("I do not trust Anna…") express an
 #: attitude, not a factual claim, so they never take part in factual
-#: contradiction linking — the derive.py sentiment dimensions are what
+#: contradiction linking - the derive.py sentiment dimensions are what
 #: handles conflicting feelings.
 _SENTIMENT_VERBS = {
     "trust", "distrust", "like", "dislike", "love", "hate", "fear",
@@ -300,7 +300,7 @@ def detect_contradiction(new_memory: Dict[str, Any],
                          pool: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Link ``new_memory`` to pool memories it asserts the opposite of.
 
-    Conservative by construction — a link requires ALL of:
+    Conservative by construction - a link requires ALL of:
       * shared entity (``entity_ids`` overlap),
       * shared content (≥ 2 content words in common, or Jaccard ≥ 0.4),
       * negation asymmetry (one side asserts what the other denies).
@@ -330,7 +330,7 @@ def detect_contradiction(new_memory: Dict[str, Any],
             continue
         other_text = str(other.get("text", ""))
         # an attitude never contradicts a fact, and two attitudes have the
-        # sentiment dimensions — not this linker
+        # sentiment dimensions - not this linker
         if new_is_attitude or _is_attitude_statement(other_text):
             continue
         other_tokens = _content_tokens(other_text)
@@ -342,7 +342,7 @@ def detect_contradiction(new_memory: Dict[str, Any],
         if shared < 2 and jaccard < 0.4:
             continue
         if _has_negation(other_text) == new_negated:
-            continue  # both assert or both deny — not a contradiction
+            continue  # both assert or both deny - not a contradiction
         link(new_memory, other)
         other["confidence"] = round(max(0.05, _unit(other.get("confidence")) * 0.9), 4)
         linked.append(other)

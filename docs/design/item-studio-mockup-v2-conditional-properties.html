@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Item Studio v2 — Conditional Properties</title>
+<title>Item Studio v2 - Conditional Properties</title>
 <style>
   :root{
     --bg:#0b0d12; --surface:#121522; --surface-2:#171b2a; --surface-3:#1c2133;
@@ -178,14 +178,14 @@
   <div class="wrap">
     <div class="eyebrow">Item Studio · v2</div>
     <h1>Properties follow the tags</h1>
-    <p>Damage, defense, insulation, light… only appear when the matching mechanic is on. Universal stuff (weight / uses / state) stays. Toggle the chips below — panels appear and disappear.</p>
+    <p>Damage, defense, insulation, light… only appear when the matching mechanic is on. Universal stuff (weight / uses / state) stays. Toggle the chips below - panels appear and disappear.</p>
 
     <div class="studio">
       <div class="studio-top">
         <div class="icon">🧥</div>
         <div>
           <h2>Heavy Fur-Lined Coat</h2>
-          <div class="sub">Clothing · Container · Insulation — loaded from library</div>
+          <div class="sub">Clothing · Container · Insulation - loaded from library</div>
         </div>
         <button class="close">✕</button>
       </div>
@@ -282,7 +282,7 @@
               <div class="prop-card" data-card="resistance">
                 <div class="c-head"><span class="ci">🧿</span><span class="cn">Resistance</span></div>
                 <div class="row"><div class="field"><label>Resistances</label><input class="input" placeholder="fire:5, cold:3"></div></div>
-                <div class="hint">type:amount — 999 ≈ immune.</div>
+                <div class="hint">type:amount - 999 ≈ immune.</div>
               </div>
 
               <div class="prop-card" data-card="container">
@@ -397,7 +397,7 @@
             </div>
           </div>
           <div class="why" id="why-note">
-            The <b>insulation</b> and <b>defense</b> pills only appear here because those mechanics are switched on — same rule as the form.
+            The <b>insulation</b> and <b>defense</b> pills only appear here because those mechanics are switched on - same rule as the form.
           </div>
         </aside>
       </div>
@@ -426,7 +426,7 @@
 
     summary.innerHTML = active.size
       ? 'Active: <b>' + [...active].map(k=>labels[k]).join('</b> · <b>') + '</b>'
-      : 'Nothing selected — only universal fields (weight / uses / state) are shown.';
+      : 'Nothing selected - only universal fields (weight / uses / state) are shown.';
 
     // reflect in preview pills
     const pills = ['<span class="gc-stat">⚖ 3.5 kg</span>'];
@@ -440,7 +440,7 @@
 
     why.innerHTML = active.size
       ? 'Showing fields for <b>' + [...active].map(k=>labels[k]).join('</b>, <b>and</b> <b></b>'.length?'':'' + [...active].map(k=>labels[k]).join(', ') + '. Everything else is hidden.'
-      : 'No mechanics on — the form collapses to just the universal physical fields.';
+      : 'No mechanics on - the form collapses to just the universal physical fields.';
   }
 
   mechs.forEach(m=>m.addEventListener('change', refresh));

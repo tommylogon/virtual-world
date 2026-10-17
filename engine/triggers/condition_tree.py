@@ -161,7 +161,7 @@ class ConditionTreeMixin:
                     except (ValueError, TypeError):
                         return False
 
-                # has_item — check player inventory via graph
+                # has_item - check player inventory via graph
                 item_name = (
                     conditions.get("item")
                     or conditions.get("value")
@@ -198,7 +198,7 @@ class ConditionTreeMixin:
             elif condition_type == "parameter_reached":
                 # Gate on a gauge in the node's `parameters` dict (task-410:
                 # plant growth reaching 100). Counters live in `parameters`
-                # because `uses` is remaining charges/durability — a gauge that
+                # because `uses` is remaining charges/durability - a gauge that
                 # starts at 0 would read as depleted and hit the <=0 removal
                 # paths. `op` defaults to gte.
                 if item_node is None:
@@ -231,7 +231,7 @@ class ConditionTreeMixin:
 
             elif condition_type == "contains_count":
                 # Count what a container holds, optionally filtered to a name/id
-                # substring — the produce cap for a plant ("fewer than 10
+                # substring - the produce cap for a plant ("fewer than 10
                 # berries"). `op` defaults to gte; `contains_count` with op `lt`
                 # is "has room for more".
                 if item_node is None:
@@ -270,7 +270,7 @@ class ConditionTreeMixin:
                 return False
 
             elif condition_type == "tagged_count":
-                # Count live entities carrying a tag — the population cap a
+                # Count live entities carrying a tag - the population cap a
                 # creature spawner needs ("fewer than 4 rabbits here"). Generic
                 # beyond creatures: "how many goblins are in this room".
                 tag = str(
@@ -432,7 +432,7 @@ class ConditionTreeMixin:
                 return success
 
             elif condition_type == "save_throw":
-                # Unified save condition (task-159) — see the flat-condition
+                # Unified save condition (task-159) - see the flat-condition
                 # branch above for semantics.
                 check = conditions.get("stat") or conditions.get("skill") or "DEX"
                 dc = int(conditions.get("dc", 12))

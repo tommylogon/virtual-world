@@ -143,8 +143,8 @@ class SkillSystem:
         """Roll d20 + modifier vs DC for an arbitrary player (active or NPC).
 
         *stat* is either an ability score (``"STR"``, ``"DEX"``, ``"CON"``,
-        ``"INT"``, ``"WIS"``, ``"CHA"`` — rolled via the stat modifier
-        ``(value - 10) // 2``) or a skill name (``"Athletics"``, ... — rolled
+        ``"INT"``, ``"WIS"``, ``"CHA"`` - rolled via the stat modifier
+        ``(value - 10) // 2``) or a skill name (``"Athletics"``, ... - rolled
         via the raw skill value). This is the single unified save primitive
         (task-159): grab, traps, damage effects, and future mechanics all go
         through it.

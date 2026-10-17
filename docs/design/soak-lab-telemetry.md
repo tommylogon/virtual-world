@@ -1,14 +1,14 @@
-# Soak Lab — telemetry and the space-time view
+# Soak Lab - telemetry and the space-time view
 
 Two systems, added by task-542 / 543 / 544, that exist so a long run can answer
-**"who did what, why, where"** — and, in particular, *"did those two ever share a
+**"who did what, why, where"** - and, in particular, *"did those two ever share a
 room?"*
 
-- [`docs/design/lived-log-format.md`](lived-log-format.md) — the per-character
+- [`docs/design/lived-log-format.md`](lived-log-format.md) - the per-character
   objective record, renamed from `trace`, and the boundary that keeps it apart
   from telemetry.
-- `engine/soak_telemetry.py` — the **run-owned** measurement store.
-- `static/js/soak/soak-spacetime.js` — the space-time swimlane renderer.
+- `engine/soak_telemetry.py` - the **run-owned** measurement store.
+- `static/js/soak/soak-spacetime.js` - the space-time swimlane renderer.
 - `/api/soak/runs/<id>/telemetry` (+ `?events=1`, and `telemetry.jsonl`).
 
 ## Two stores, deliberately not one
@@ -38,7 +38,7 @@ camp's twenty-three goblins were on day two.
 ## How the two share a decision without sharing a store
 
 A background decision needs the same `(character, tick, kind, what, why, area)`
-tuple written twice — lossy here for memory, lossless there for measurement — and
+tuple written twice - lossy here for memory, lossless there for measurement - and
 duplicating ~20 call sites guarantees they drift. Instead `engine.lived_log.record`
 *fans out* to an active recorder through `engine.soak_telemetry.active_recorder`,
 the same shape as a logging handler.
@@ -56,7 +56,7 @@ rather than trusted:
 ## Presence intervals, not per-tick samples
 
 Occupancy is knowable only if you record *where a character was between two
-moves* — one line per area change:
+moves* - one line per area change:
 
 ```json
 {"type": "presence", "character": "Jake", "area": "Storehouse",
@@ -77,7 +77,7 @@ by the runner, so "never moved" and "was nowhere" stay distinguishable.
 
 Every event carries the reason tag that decided it, grouped by prefix. The
 accepted prefixes were **measured against the code** with
-`tools/why_vocabulary.py`, not copied from a design document — the first draft
+`tools/why_vocabulary.py`, not copied from a design document - the first draft
 came from task-543's prose and was wrong within a single run, missing
 `traversal:`, `forage:` and `schedule:` entirely. The recorder's rejection counter
 is what surfaced it, which is the argument for keeping the counter.
@@ -97,7 +97,7 @@ is what surfaced it, which is the argument for keeping the counter.
 
 Time on x, area lanes on y, one bar per presence interval. Two overlapping bars
 in the same lane is a collision, and surfacing that is the reason the view exists
-— a heatmap shows where the world is busy but aggregates characters away, and an
+- a heatmap shows where the world is busy but aggregates characters away, and an
 average Energy line hides the one character collapsing while the mean stays flat.
 
 Everything above the renderers is a **pure function**, unit-tested in
@@ -119,7 +119,7 @@ room into two people who appear never to meet.
 - **The default window is 6 game-hours, not the whole run.** Three days of 23
   goblins is 2,700 bands; six hours is 258 and stays readable. "Full run" is one
   click away for when the mass itself is the finding. Past ~900 intervals the view
-  says so rather than pretending to be legible — a cramped view is worse than an
+  says so rather than pretending to be legible - a cramped view is worse than an
   absent one, because it looks like it answered the question.
 - **Condition ribbons are quiet, and skip ambient states.** `awake` and `busy` are
   excluded server-side: they describe a baseline, not an incident, and ribboning
@@ -127,7 +127,7 @@ room into two people who appear never to meet.
   contrast. The ribbon marks the incident; the band carries the data.
 - **Missing layout fields are silent.** A `paddingTop` absent from the layout
   object becomes an `undefined`/`NaN` SVG attribute, which the browser *drops*
-  without error — the grid lines and death rules simply do not appear. Both the
+  without error - the grid lines and death rules simply do not appear. Both the
   field set and the rendered output are asserted.
 - **A gap means unknown, not empty.** The integrity check surfaces gaps and
   overlaps so a hole in the data cannot be misread as "nobody was here".
@@ -138,23 +138,23 @@ Kraktooth goblin camp, 3 days (4,320 ticks at 1 min/tick), 23 characters, all
 background, seed 1234, started from the dashboard's own scenario and horizon
 controls:
 
-- 1,665 presence intervals and 6,422 events — no gaps, no overlaps, and **zero
+- 1,665 presence intervals and 6,422 events - no gaps, no overlaps, and **zero
   rejected `why` tags**, which is what "the vocabulary matches the engine" looks
   like.
 - `needs` drove 82% of decided actions, `social` 16%, `traversal` and `forage`
   under 1% each.
 - The busiest room by shared occupancy was **Waste Disposal** at 45,844 shared
-  ticks across five pairs — a single question the average-vitals charts cannot
+  ticks across five pairs - a single question the average-vitals charts cannot
   ask, let alone answer.
 - The `why`-over-time stack shows a large burst in the first ~45 minutes as the
   whole cast's starting vitals collapse at once, then a settled baseline. A flat
   ranked bar chart would show `needs 82%` and lose the burst entirely.
-- 23 alive, 0 dead over three days with baked decay rates — no casualty finding
+- 23 alive, 0 dead over three days with baked decay rates - no casualty finding
   to investigate, which is itself the result.
 
 ### Drilling into one character
 
-Click any name in the legend — or any pair in the "who shared a room" table — to
+Click any name in the legend - or any pair in the "who shared a room" table - to
 isolate that character. Click again, or "Show everyone", to go back.
 
 The reason this exists: with twenty-three goblins the question is almost never
@@ -172,7 +172,7 @@ Two decisions that are not obvious, and both were wrong in the first version:
   preserved among the kept lanes, so the sequence of rooms is still legible.
 - **The collision list is computed from the *unfiltered* intervals and then
   narrowed by who is in the pair.** Filtering the other people out of the input
-  made an isolated character collide with nobody — precisely backwards, since the
+  made an isolated character collide with nobody - precisely backwards, since the
   reason to drill in is to find out who they were *with*. So the chart narrows
   and the company list does not. See `ST.collisionsFor`.
 
@@ -185,7 +185,7 @@ dropped automatically on the next draw.
 The legend is the cheapest possible drill-down: it is already a list of every
 character, it is already colour-coded to match the bands, and it is already on
 screen. Making it a list of buttons costs one delegated listener and no new
-state beyond a single `ui.stCharacter` — which is deliberately **not** part of the
+state beyond a single `ui.stCharacter` - which is deliberately **not** part of the
 run config, because it is a view choice and must not leak into a saved run or a
 comparison.
 
@@ -197,8 +197,8 @@ they are worth knowing about before the next tall pane is added.
 
 1. **The page could not scroll.** The shared app shell sets
    `html, body { height: 100%; overflow: hidden }` for its fixed three-column
-   editor layout, and the Soak page inherits it. That is correct for the editor —
-   its panels each own a scrollbar — but wrong here: the Soak page is an ordinary
+   editor layout, and the Soak page inherits it. That is correct for the editor -
+   its panels each own a scrollbar - but wrong here: the Soak page is an ordinary
    scrolling document whose sidebar merely *sticks*. Anything taller than the
    viewport was cut off with no way to reach the bottom.
 
@@ -211,7 +211,7 @@ they are worth knowing about before the next tall pane is added.
 
 2. **A wide child stretched the whole grid column.** A flex item defaults to
    `min-width: auto`, so one wide descendant widened the card, then the pane, then
-   the grid track — and the page ended up wider than the viewport with the
+   the grid track - and the page ended up wider than the viewport with the
    left-hand side unreachable. `.soak-pane > *` and `.soak-row-2 > *` now carry
    `min-width: 0`, which lets the card shrink to its column and lets the child's
    own `overflow-x: auto` do its job.

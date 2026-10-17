@@ -1,7 +1,7 @@
 """Zone-driven fidelity and lazy zone materialisation (task-500).
 
-The task's own header says most of it is owned elsewhere — chunk load/evict is
-task-401's — and this task's "only unique delta" is now the **zone as the
+The task's own header says most of it is owned elsewhere - chunk load/evict is
+task-401's - and this task's "only unique delta" is now the **zone as the
 materialisation key**. That is what is built and tested here:
 
 - a released zone keeps its scope record and loses its nodes, and materialising
@@ -368,6 +368,6 @@ def test_the_node_count_stays_bounded_as_the_world_grows():
     # 16x the zones; a bounded store should not come close to 16x the nodes.
     assert counts[32] < counts[2] * 4, counts
     assert counts[32] == counts[8], (
-        f"past a point, adding zones costs nothing resident — that is the "
+        f"past a point, adding zones costs nothing resident - that is the "
         f"point. Got {counts}"
     )

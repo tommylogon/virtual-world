@@ -1,4 +1,4 @@
-"""Delayed event queue — schedule trigger fires N ticks in the future.
+"""Delayed event queue - schedule trigger fires N ticks in the future.
 
 Task-90: the world must be able to remember to do something later on its own
 (curses, poisons, timed doors, summon durations). The LLM handles character

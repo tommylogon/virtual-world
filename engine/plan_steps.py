@@ -34,10 +34,10 @@ from typing import Dict, Tuple
 
 #: Every step kind the vocabulary declares, with its contract.
 #:
-#: ``fields``      — every key a step of this kind may carry.
-#: ``bound``       — keys whose value MUST be a ``{"$binding": name}`` reference.
-#: ``library_refs``— keys whose literal value must resolve in a library.
-#: ``summary``     — what the primitive does, for the index report.
+#: ``fields``      - every key a step of this kind may carry.
+#: ``bound``       - keys whose value MUST be a ``{"$binding": name}`` reference.
+#: ``library_refs``- keys whose literal value must resolve in a library.
+#: ``summary``     - what the primitive does, for the index report.
 STEP_KINDS: Dict[str, dict] = {
     "travel": {
         "summary": "Walk toward a place: a named area, or any area carrying tags.",

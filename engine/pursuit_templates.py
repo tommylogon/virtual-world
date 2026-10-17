@@ -5,8 +5,8 @@ its purpose, the values a pursuit must supply, and the typed steps used by its
 current short-term plan. They do not define ongoing activities or world-recipe
 transformations.
 
-A template is character-agnostic. Everything an instance fills in — the actor,
-the places, the items, the times — arrives as a **binding**, and a step field
+A template is character-agnostic. Everything an instance fills in - the actor,
+the places, the items, the times - arrives as a **binding**, and a step field
 that names a place or an item must be a ``{"$binding": name}`` reference rather
 than a literal (see :mod:`engine.plan_steps`). A template that hardcodes
 ``"area": "Scrap Pile"`` is a character-specific script wearing a template's
@@ -21,7 +21,7 @@ The schema carries the whole undertaking, not only its steps:
                    vocabulary (:data:`engine.trigger_validator.CONDITION_TYPES`).
 ``supplies``       item specs the character is expected to be carrying.
 ``timing``         when the undertaking is timely, read from the world's existing
-                   clock, season, weather and moon — no second calendar.
+                   clock, season, weather and moon - no second calendar.
 ``steps``          the typed short-term plan, in the declared step vocabulary.
 ``progress``       named checks that say what "further along" means.
 ``stop_conditions``leaves that end the undertaking early.

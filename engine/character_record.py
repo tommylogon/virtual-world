@@ -1,4 +1,4 @@
-"""What a character *is*, as a list — the audit half of task-457.
+"""What a character *is*, as a list - the audit half of task-457.
 
 task-457 wants the character graph node to be the single source of truth for a
 character's full definition, with the :class:`Player` as a runtime view synced
@@ -16,7 +16,7 @@ So it is deliberately **read-only**. It answers two questions:
    that is missing from or disagrees with the node.
 
 No projector. A function that writes a definition onto a node, called from
-nowhere, does not make the node canonical — it makes a **second** source of truth
+nowhere, does not make the node canonical - it makes a **second** source of truth
 and invites the exact drift the task is trying to remove. Whoever wires the
 write path into the hubs gets the drift reader to verify the result.
 
@@ -30,11 +30,11 @@ from typing import Dict, List, NamedTuple
 
 #: Where a defining field lives today, and therefore who has to move it.
 #:
-#: ``player``      — only on the :class:`Player`; the node has never seen it.
-#: ``node``        — already on the node's properties.
-#: ``edges``       — already represented as graph edges, so projecting it onto
+#: ``player``      - only on the :class:`Player`; the node has never seen it.
+#: ``node``        - already on the node's properties.
+#: ``edges``       - already represented as graph edges, so projecting it onto
 #:                    the node as well would duplicate the record.
-#: ``derived``     — computed from the above (``Player.state`` reads the
+#: ``derived``     - computed from the above (``Player.state`` reads the
 #:                    condition hierarchy, ``emotions_map`` is a lazy baseline);
 #:                    storing it would cache a value that can go stale.
 ON_PLAYER = "player"
@@ -48,7 +48,7 @@ class DefinitionField(NamedTuple):
 
     name: str
     group: str
-    #: Where the value lives today — see the module-level constants.
+    #: Where the value lives today - see the module-level constants.
     lives_on: str
     #: True when the task's scope says the node must carry it. False for fields
     #: that are genuinely runtime bookkeeping and should stay off the node even
@@ -81,7 +81,7 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
     "state": [
         DefinitionField("vitals", "state", ON_PLAYER, True,
                         "the task lists vitals in scope, though they are runtime "
-                        "state rather than definition — see the module docstring"),
+                        "state rather than definition - see the module docstring"),
         DefinitionField("decay_rates", "state", ON_PLAYER, True),
         DefinitionField("body_state", "state", ON_PLAYER, True),
         DefinitionField("emotion", "state", ON_PLAYER, True),
@@ -101,7 +101,7 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
     "tier": [
         DefinitionField("simple_npc", "tier", ON_PLAYER, True,
                         "the field that separates a simple NPC from an agent or "
-                        "a human — the task's uniformity requirement turns on it"),
+                        "a human - the task's uniformity requirement turns on it"),
         DefinitionField("autonomy", "tier", ON_PLAYER, True),
         DefinitionField("npc_behavior", "tier", ON_PLAYER, True),
         DefinitionField("npc_action_interval", "tier", ON_PLAYER, True),
@@ -116,7 +116,7 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
     "knowledge": [
         DefinitionField("tags", "knowledge", ON_PLAYER, True,
                         "the list every shipped character actually fills "
-                        "(\"goblin\", \"teen\") — see task-552"),
+                        "(\"goblin\", \"teen\") - see task-552"),
         DefinitionField("interest_tags", "knowledge", ON_PLAYER, True),
         DefinitionField("fear_tags", "knowledge", ON_PLAYER, True),
         DefinitionField("known", "knowledge", ON_PLAYER, True),
@@ -140,7 +140,7 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
         DefinitionField("facing", "spatial", ON_PLAYER, False,
                         "cardinal heading of the last crossing (task-313); the "
                         "only thing 'left'/'right'/'forward'/'back' read, and None "
-                        "until the character has moved — runtime, but durable "
+                        "until the character has moved - runtime, but durable "
                         "across a save so a reload does not silently forget it"),
         DefinitionField("entered_from_way", "spatial", ON_PLAYER, False,
                         "the way that crossing used, so the heading can be "
@@ -174,7 +174,7 @@ DEFINITION_FIELDS: List[DefinitionField] = [
 #: The fields the task requires the node to carry, as bare names.
 CANONICAL_FIELDS: List[str] = [f.name for f in DEFINITION_FIELDS if f.canonical]
 
-#: Canonical fields that live ONLY on the Player today — the migration's work
+#: Canonical fields that live ONLY on the Player today - the migration's work
 #: list, and the thing `definition_drift` is expected to shrink to zero.
 PLAYER_ONLY_FIELDS: List[str] = [
     f.name for f in DEFINITION_FIELDS if f.canonical and f.lives_on == ON_PLAYER
@@ -224,7 +224,7 @@ def definition_drift(player, node) -> Dict[str, List[str]]:
     """Which defining fields the Player holds alone.
 
     Returns ``{"missing": [...], "differs": [...]}``, considering only fields
-    that are **canonical** and live **only on the Player** — which is the
+    that are **canonical** and live **only on the Player** - which is the
     migration's work list by construction, so the two cannot drift apart.
 
     Two kinds of field are deliberately excluded:
@@ -233,7 +233,7 @@ def definition_drift(player, node) -> Dict[str, List[str]]:
       them as edges; putting them on the node as well would duplicate the record
       rather than centralise it.
     * *Already-on-node* ones (``name``, ``node_id``). The node **is** the record
-      for these — ``node_definition`` strips the graph's own metadata, so
+      for these - ``node_definition`` strips the graph's own metadata, so
       checking them would report them missing forever.
 
     ``missing`` means the node has never heard of the field. ``differs`` means
@@ -266,7 +266,7 @@ def audit(world) -> Dict[str, object]:
     """Drift for every character in *world*, plus the totals.
 
     ``{"characters": {name: drift}, "totally_canonical": [...],
-    "with_drift": [...]}`` — the one call that answers "how far along is
+    "with_drift": [...]}`` - the one call that answers "how far along is
     task-457?" against a running world instead of against a plan.
     """
     characters: Dict[str, Dict[str, List[str]]] = {}

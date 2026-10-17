@@ -1,5 +1,5 @@
 """
-Item content pass 4 — the trades and the tools that go with each.
+Item content pass 4 - the trades and the tools that go with each.
 
 Authored content. **The tables are the work**; the record shapes come from
 `item_shapes.py`, so a fix to how a consumable is authored lands in one place and

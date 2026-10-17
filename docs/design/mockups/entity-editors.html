@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Full-Surface Entity Editors — UI mockups</title>
+<title>Full-Surface Entity Editors - UI mockups</title>
 <!--
   Mockups for task-673 … task-676 (docs/design/full-entity-editors.md).
   NOT application code. Self-contained: no build, no dependencies, no server.
@@ -223,9 +223,9 @@ table.matrix tbody tr.off td{opacity:.35}
 </nav>
 
 <div class="masthead">
-  <h1>Full-Surface Entity Editors — UI mockups</h1>
+  <h1>Full-Surface Entity Editors - UI mockups</h1>
   <p>Layout proposals for <code>docs/design/full-entity-editors.md</code>, one per dev task.
-     <b>Mockups, not application code</b> — nothing is wired to the engine and no control is functional.</p>
+     <b>Mockups, not application code</b> - nothing is wired to the engine and no control is functional.</p>
   <p>Every number, label, colour and section name comes from a live browser session against the
      <b>Kraktooth Goblin Camp</b> scenario (659 nodes · 207 areas · 361 ways · 34 items · 23 characters)
      at 1600&times;1000, plus the real theme variables in <code>static/css/style.css</code> and the real
@@ -241,18 +241,18 @@ table.matrix tbody tr.off td{opacity:.35}
 <!-- ═════════ task-673 ═════════ -->
 <section class="task" id="t673">
   <div class="task-head"><span class="task-id">task-673</span>
-    <h2>EntityEditor frame — mount/unmount full-surface editors</h2><span class="area">ui · phase 1</span></div>
+    <h2>EntityEditor frame - mount/unmount full-surface editors</h2><span class="area">ui · phase 1</span></div>
   <div class="facts"><b>Measured today.</b> The inspector is a fixed <code>380px</code> column
     (<code>#right-panel</code>, <code>style.css:152</code>). Below a 1200px viewport it drops to 320px;
-    below 900px it becomes <code>max-height:300px</code>. The graph is <code>vis.js</code> — canvas, no DOM —
+    below 900px it becomes <code>max-height:300px</code>. The graph is <code>vis.js</code> - canvas, no DOM -
     so click-a-node-see-it is the primary navigation gesture and has to survive.
     <ul>
-      <li>Character Bio tab: <b>3346px</b> of content in a <b>960px</b> viewport — <b>3.5&times;</b> overflow</li>
-      <li>Item: <b>1665px</b> — <b>3.4&times;</b></li>
+      <li>Character Bio tab: <b>3346px</b> of content in a <b>960px</b> viewport - <b>3.5&times;</b> overflow</li>
+      <li>Item: <b>1665px</b> - <b>3.4&times;</b></li>
       <li>Area: 14 sections in the same 379px column</li>
     </ul></div>
 
-  <h3>The frame — peek stays, editor layers over it</h3>
+  <h3>The frame - peek stays, editor layers over it</h3>
   <div class="compare">
     <div class="pane"><div class="pane-label"><span>Now</span><span class="now">380px column · 3.5&times; scroll</span></div>
       <div class="pane-body">
@@ -308,7 +308,7 @@ table.matrix tbody tr.off td{opacity:.35}
                   <a>Memories <span class="n">14</span></a><a>Tags <span class="n">3</span></a></div>
                 <div class="stack"><div class="blk"><h5>Appearance</h5>
                   <textarea class="ta" style="min-height:40px">broad shoulders, mud-caked coat, a farmhand's hands</textarea>
-                  <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat — he works land</div>
+                  <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat - he works land</div>
                   <div class="note">preview sits next to the field it derives from</div></div></div>
               </div>
             </div>
@@ -320,36 +320,36 @@ table.matrix tbody tr.off td{opacity:.35}
   <div class="ann"><h4>What phase 1 actually delivers</h4>
     <ul>
       <li><b>Two mount points, one set of view modules.</b> <code>#entity-editor</code> is a <i>different element</i> from
-      <code>#inspector-panel</code> — only <code>panel.js</code> may write to the panel, because mixing <code>innerHTML</code>
+      <code>#inspector-panel</code> - only <code>panel.js</code> may write to the panel, because mixing <code>innerHTML</code>
       with lit's <code>render()</code> corrupts lit part tracking. No forked view modules.</li>
-      <li><b>The peek is untouched.</b> Click still opens the panel. Additive, not a replacement — which is why the
+      <li><b>The peek is untouched.</b> Click still opens the panel. Additive, not a replacement - which is why the
       graph is dimmed rather than torn down.</li>
       <li><b>Expand affordance</b> in the inspector header; <b>double-click a canvas node</b> is the second entry point.
       <span class="kbd">Esc</span> or the backdrop closes.</li>
       <li><b>Focus discipline:</b> focus moves to the header name on open, returns to the opening element on close.</li>
-      <li><b>No layout change yet</b> — deliberate. Phase 1 proves the architecture and the lit constraint first.</li>
+      <li><b>No layout change yet</b> - deliberate. Phase 1 proves the architecture and the lit constraint first.</li>
     </ul>
     <div class="why" style="margin-top:11px;padding-top:11px;border-top:1px solid var(--border-light);color:var(--text-dim)">
       <b>Why not a route?</b> <code>/editor/character/&lt;id&gt;</code> would sever canvas context, which is the whole
-      navigation model of a canvas-based graph, and would give one entity two entry points — a second source of truth
+      navigation model of a canvas-based graph, and would give one entity two entry points - a second source of truth
       for &ldquo;what am I editing&rdquo;.</div></div>
 </section>
 
 <!-- ═════════ task-674 ═════════ -->
 <section class="task" id="t674">
   <div class="task-head"><span class="task-id">task-674</span>
-    <h2>Item editor — actions as a 15-row enable/cost matrix</h2><span class="area">ui · phase 2</span></div>
+    <h2>Item editor - actions as a 15-row enable/cost matrix</h2><span class="area">ui · phase 2</span></div>
   <div class="facts"><b>Measured today.</b> <code>ALL_ACTIONS</code> in <code>item-view.js:38</code> holds
     <b>15</b> actions, not the 7 the docs claim. The container is <code>class="checkbox-grid actions-grid"</code>,
     but only <code>.actions-grid</code> is styled and it is <code>display:flex; flex-wrap:wrap</code>
-    (<code>style.css:1515</code>) — not a grid. <code>.checkbox-grid</code> has no rule at all. Meanwhile
+    (<code>style.css:1515</code>) - not a grid. <code>.checkbox-grid</code> has no rule at all. Meanwhile
     <code>action_costs</code> (Energy/Hunger/Thirst/HP) is a <i>separate</i> grid below.
     <ul>
       <li><b>The data is a 15&times;5 matrix</b> presented as two stacked chip piles</li>
       <li>15 icon+label chips wrap in <b>373px</b>, roughly 3–4 per row</li>
-      <li><code>INVERSE_ACTIONS</code> couples take&harr;drop and equip&harr;unequip — invisible until you toggle one</li>
+      <li><code>INVERSE_ACTIONS</code> couples take&harr;drop and equip&harr;unequip - invisible until you toggle one</li>
       <li><code>drop</code> has no entry in <code>ACTION_ICONS</code> or <code>ACTION_COLORS</code>, so it renders as a bare
-      <code>&bull;</code> — a real gap in the data, reproduced below</li>
+      <code>&bull;</code> - a real gap in the data, reproduced below</li>
     </ul></div>
 
   <h3>Two chip piles &rarr; one table</h3>
@@ -422,7 +422,7 @@ table.matrix tbody tr.off td{opacity:.35}
               <span class="k">rows grey when disabled</span>
             </div>
             <div class="note" style="margin-top:7px"><code>drop</code> has no icon or colour because it has no
-              <code>ACTION_ICONS</code>/<code>ACTION_COLORS</code> entry — reproduced faithfully. That is a data gap, not a layout one.</div>
+              <code>ACTION_ICONS</code>/<code>ACTION_COLORS</code> entry - reproduced faithfully. That is a data gap, not a layout one.</div>
           </div>
         </div>
       </div></div>
@@ -431,22 +431,22 @@ table.matrix tbody tr.off td{opacity:.35}
   <div class="ann"><h4>What changes, and what must not</h4>
     <ul>
       <li><b>A real <code>&lt;table&gt;</code></b> with <code>th scope="col"</code> / <code>th scope="row"</code>. This is
-      tabular data and must be navigable and announced as such — a grid of divs would fail that.</li>
+      tabular data and must be navigable and announced as such - a grid of divs would fail that.</li>
       <li><b>Colour is never the only channel.</b> Every row keeps its text label; <code>ACTION_COLORS</code> becomes a
       row accent, not the signal.</li>
-      <li><b><code>INVERSE_ACTIONS</code> becomes visible</b> — the <code>⇄</code> marker. Today the coupling is
+      <li><b><code>INVERSE_ACTIONS</code> becomes visible</b> - the <code>⇄</code> marker. Today the coupling is
       undiscoverable until you toggle one.</li>
       <li><b>Triggers stay a disclosure.</b> A different task, not part of the matrix.</li>
-      <li><b>Save-on-change is unchanged</b> — see the open question on the save model.</li>
+      <li><b>Save-on-change is unchanged</b> - see the open question on the save model.</li>
     </ul></div>
 </section>
 
 <!-- ═════════ task-675 ═════════ -->
 <section class="task" id="t675">
   <div class="task-head"><span class="task-id">task-675</span>
-    <h2>Character editor — three-column body with section rail</h2><span class="area">ui · phase 3</span></div>
+    <h2>Character editor - three-column body with section rail</h2><span class="area">ui · phase 3</span></div>
   <div class="facts"><b>Measured today.</b> The Bio tab is <b>3346px</b> tall in a <b>960px</b> viewport across
-    <b>15 sections</b>, <b>85 buttons</b> and <b>57 fields</b>. Nothing is broken — it is 3.5 screens of scroll with no
+    <b>15 sections</b>, <b>85 buttons</b> and <b>57 fields</b>. Nothing is broken - it is 3.5 screens of scroll with no
     landmarks and no persistent identity header, so you lose your place between Memories and Recipes.
     <ul>
       <li>There are <b>4</b> tabs, not the 7 the docs claim: Inventory · <b>Bio</b> · Images · Advanced</li>
@@ -476,7 +476,7 @@ table.matrix tbody tr.off td{opacity:.35}
       <div class="stack">
         <div class="blk"><h5>Appearance</h5>
           <textarea class="ta" style="min-height:56px">broad shoulders, mud-caked coat, a farmhand's hands. Speaks little.</textarea>
-          <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat — he works land</div>
+          <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat - he works land</div>
           <div class="note">stays adjacent to the field it derives from</div></div>
         <div class="blk"><h5>Personality</h5><textarea class="ta">gruff, protective of strangers, slow to trust</textarea></div>
         <div class="blk"><h5>Emotion <span class="cnt">calm · 0.62</span></h5>
@@ -513,20 +513,20 @@ table.matrix tbody tr.off td{opacity:.35}
           <div class="field"><span class="lbl">Rikka</span><span class="inp">+7</span></div>
           <div class="field"><span class="lbl">Eldenford Elder</span><span class="inp">-4</span></div></div>
         <div class="blk"><h5>Memories <span class="cnt">14</span></h5>
-          <div class="preview solid">⭐ 8 — the tribe's run on the ridge<br>⭐ 5 — Rikka's shoulder wound<br><span style="color:var(--text-muted)">+12 more</span></div></div>
+          <div class="preview solid">⭐ 8 - the tribe's run on the ridge<br>⭐ 5 - Rikka's shoulder wound<br><span style="color:var(--text-muted)">+12 more</span></div></div>
       </div>
     </div>
   </div>
 
   <div class="ann"><h4>Design decisions worth arguing about</h4>
     <ul>
-      <li><b>The tabs move to the header</b> as a segmented control. That is what buys the width — the three-column
+      <li><b>The tabs move to the header</b> as a segmented control. That is what buys the width - the three-column
       body only applies to the active tab.</li>
       <li><b>Images and Inventory stay single-column.</b> Already narrow: Expression Pack is 7 buttons, Inventory is 20.</li>
       <li><b>Appearance's first-impression preview must not move columns.</b> It is a live dependent field; separating
       it breaks the cause-and-effect the user is there to watch.</li>
       <li><b>Relationships gets its own row</b>, not a column cell, so it can scroll independently.</li>
-      <li><b>The rail is generated from rendered sections</b>, not hand-maintained — the same lesson as
+      <li><b>The rail is generated from rendered sections</b>, not hand-maintained - the same lesson as
       <code>tools/way_property_index.py</code>: a vocabulary declared in two places drifts.</li>
     </ul></div>
 </section>
@@ -534,16 +534,16 @@ table.matrix tbody tr.off td{opacity:.35}
 <!-- ═════════ task-676 ═════════ -->
 <section class="task" id="t676">
   <div class="task-head"><span class="task-id">task-676</span>
-    <h2>Area editor — split properties/place with a mini-map</h2><span class="area">ui · phase 4</span></div>
+    <h2>Area editor - split properties/place with a mini-map</h2><span class="area">ui · phase 4</span></div>
   <div class="facts"><b>Measured today.</b> The area editor has <b>14 sections</b> in a 379px column with no map, and its
-    inherently spatial sections — exits, agents present, item visibility, area event log — are stranded as text lists.
+    inherently spatial sections - exits, agents present, item visibility, area event log - are stranded as text lists.
     <ul>
       <li>Environment: light <b>80</b>, temp <b>27.6&nbsp;&deg;C</b>, air <b>fresh</b>, smell
-      <b>"rot, straw, old food"</b>, noise <b>quiet</b> — plus weather, wind, humidity and a presets scope picker the
+      <b>"rot, straw, old food"</b>, noise <b>quiet</b> - plus weather, wind, humidity and a presets scope picker the
       docs never mention</li>
-      <li><b>Zero <code>input[type=range]</code></b> in the whole area view — the "environment sliders" the docs describe
+      <li><b>Zero <code>input[type=range]</code></b> in the whole area view - the "environment sliders" the docs describe
       do not exist; these are text, number and select controls</li>
-      <li>The way view already offers <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> with <b>207 options</b> per side —
+      <li>The way view already offers <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> with <b>207 options</b> per side -
       strong evidence that visibility is spatial and is currently edited as a dropdown</li>
     </ul></div>
 
@@ -568,7 +568,7 @@ table.matrix tbody tr.off td{opacity:.35}
           <div class="field"><span class="lbl">WIND</span><span class="inp sel">breeze</span></div>
           <div class="field"><span class="lbl">HUMIDITY</span><span class="inp sel">dry</span></div>
           <div class="field"><span class="lbl">PRESET</span><span class="inp sel">current</span></div>
-          <div class="note">all nine in one block — they are read together, and none is a range input</div></div>
+          <div class="note">all nine in one block - they are read together, and none is a range input</div></div>
         <div class="blk"><h5>Floor / Scope</h5>
           <div class="field"><span class="lbl">FLOOR</span><span class="inp sel">ground</span></div>
           <div class="field"><span class="lbl">SCOPE</span><span class="inp sel">world</span></div></div>
@@ -618,10 +618,10 @@ table.matrix tbody tr.off td{opacity:.35}
   <div class="ann"><h4>The payoff, and the open dependency</h4>
     <ul>
       <li><b>Spatial sections stop being text.</b> Exits, agents and item visibility gain a map beside them. The
-      <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> selector is the tell — 207 options for a spatial relation.</li>
+      <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> selector is the tell - 207 options for a spatial relation.</li>
       <li><b>All nine environment controls in one block</b>, because they are read together, and labelled by their real
       control types rather than as "sliders".</li>
-      <li><b>The event log is read-only</b> and scroll-locked — context, not a field.</li>
+      <li><b>The event log is read-only</b> and scroll-locked - context, not a field.</li>
       <li><b>Open dependency:</b> whether below 900px is a real target is undecided, so the stacked variant is
       deliberately not drawn. Confirm the responsive story before building one.</li>
     </ul></div>

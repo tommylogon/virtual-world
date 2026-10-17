@@ -34,7 +34,7 @@ def is_stackable(node) -> bool:
     return bool(props.get("stackable"))
 
 #: WorldGraph.add_node appends a hex suffix to duplicate ids AND names
-#: (e.g. ``bread_5e2713ac``) — strip it so copies compare as the same kind.
+#: (e.g. ``bread_5e2713ac``) - strip it so copies compare as the same kind.
 _AUTO_SUFFIX = re.compile(r"_[0-9a-f]{6,8}$")
 
 
@@ -60,7 +60,7 @@ def stackable_twins(node_a, node_b) -> bool:
     # standing for many of a kind in the world; a stack is many copies merged
     # into one carried node. Merging the two would sum a pool's count into a
     # carried copy's `uses` and destroy the pool, so a pool is never a twin of
-    # anything — including another pool at a different size.
+    # anything - including another pool at a different size.
     from engine.room_perception import item_quantity
 
     if item_quantity(node_a) > 1 or item_quantity(node_b) > 1:
@@ -149,7 +149,7 @@ class StackingMixin:
         reconcile_item_weight(twin)
         self._destroy_node(moving_node)
         return (f"You add the {_display_name(moving_node.name)} to the "
-                f"{_display_name(twin.name)} — it now holds {combined} uses.")
+                f"{_display_name(twin.name)} - it now holds {combined} uses.")
 
     def take_from_stack(self, player_manager, item_node, amount: int = 1) -> str:
         """Draw ``amount`` units from a homogeneous world stack (task-473).
@@ -238,9 +238,9 @@ class StackingMixin:
         source = sources[0]
         target = next((t for t in targets if t.id != source.id), None)
         if target is None:
-            raise ValueError(f"There's only one '{target_name}' — find another to combine it with.")
+            raise ValueError(f"There's only one '{target_name}' - find another to combine it with.")
         if not stackable_twins(source, target):
-            raise ValueError(f"The {source.name} and {target.name} can't be combined — they aren't the same kind.")
+            raise ValueError(f"The {source.name} and {target.name} can't be combined - they aren't the same kind.")
 
         from engine.items.carry_weight import reconcile_item_weight
 
@@ -252,7 +252,7 @@ class StackingMixin:
             combined = tgt_uses + src_uses
             overflow = max(0, combined - max_uses)
             target.properties["uses"] = min(max_uses, combined)
-            note = f" Some is wasted — it's completely full." if overflow > 0 else ""
+            note = f" Some is wasted - it's completely full." if overflow > 0 else ""
         else:
             target.properties["uses"] = tgt_uses + src_uses
             note = ""

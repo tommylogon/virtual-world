@@ -1,18 +1,18 @@
-"""Body-part taxonomy — single fixed catalog (task-253, Flat + zoned).
+"""Body-part taxonomy - single fixed catalog (task-253, Flat + zoned).
 
 The engine's body-part system is ONE flat list of region IDs. Coarse injury
 regions (head, torso, arms, ...) also act as parents for nested erogenous
 zones (face, lips, nipple_left, genitals, ...). Every region carries
 metadata consumed by both pipelines:
 
-- ``zone`` — ``"injury"``, ``"erogenous"`` or ``"both"`` (a region that
+- ``zone`` - ``"injury"``, ``"erogenous"`` or ``"both"`` (a region that
   matters for combat AND intimacy).
-- ``parent`` — the enclosing coarse region (``nipple_left`` → ``breast_left``
+- ``parent`` - the enclosing coarse region (``nipple_left`` → ``breast_left``
   → ``torso``). Injury targeting on a zone resolves up to the nearest
   injury-capable ancestor.
-- ``slots`` — the paperdoll equipment slots whose outer layers cover this
+- ``slots`` - the paperdoll equipment slots whose outer layers cover this
   region. Accessibility/coverage checks read these.
-- ``base_sensitivity`` — default erogenous sensitivity (0-1+), the value
+- ``base_sensitivity`` - default erogenous sensitivity (0-1+), the value
   ``body_state[region]["sensitivity"]`` starts from.
 
 Body parts are NOT graph nodes: ``Player.body_state`` (a flat dict keyed by
@@ -181,7 +181,7 @@ def resolve_region(where):
         if text in meta.get("aliases", []):
             return region_id
 
-    # Left/right prefix — "left arm" → arm_left, "right nipple" → nipple_right.
+    # Left/right prefix - "left arm" → arm_left, "right nipple" → nipple_right.
     for side, suffix in (("left ", "_left"), ("right ", "_right")):
         if text.startswith(side):
             base = text[len(side):]
@@ -278,7 +278,7 @@ def default_body_state():
     """Per-region numeric lookup dict for a fresh Player.
 
     Every region gets a ``sensitivity`` seeded from the catalog. Injury state
-    is NOT stored here — it lives as ``body_part``-tagged condition instances
+    is NOT stored here - it lives as ``body_part``-tagged condition instances
     (``injured``/``bleeding``), the single source of truth. Erogenous-only
     state (hardness, wetness, flush, ...) is modeled as conditions
     (``nipple_hard``/``blushing``/``wetness``), not numeric fields here

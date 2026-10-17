@@ -1,7 +1,7 @@
 """Structured appearance and personality (task-507, expanded 828).
 
-Optional structured fields alongside prose, in two modes — prose-only,
-or fully structured — with the structured block as source of truth and
+Optional structured fields alongside prose, in two modes - prose-only,
+or fully structured - with the structured block as source of truth and
 prose as the narrative layer rendered *once* from it via an explicit
 compile step.
 
@@ -24,7 +24,7 @@ the engine can act on them, and a field nobody reads is a field that rots.
 Growth (task-829): every field is mutable at runtime via
 ``set_persona_field`` / ``add_persona_id`` / ``remove_persona_id`` /
 ``advance_age`` so items and trigger effects can change lenses, hair,
-tattoos, prosthetics, kinks, traumas, fears — characters become more
+tattoos, prosthetics, kinks, traumas, fears - characters become more
 than they started.
 """
 
@@ -163,7 +163,7 @@ def get_record(node) -> Dict[str, Any]:
     """The structured block on *node*, or ``{}``.
 
     Prose-only characters simply have no block, and that is the normal case, not
-    a missing feature — hence the empty default rather than a fill-in template.
+    a missing feature - hence the empty default rather than a fill-in template.
     """
     if node is None:
         return {}
@@ -453,7 +453,7 @@ def set_persona_field(node, path: str, value: Any) -> Dict[str, Any]:
     """Write one dotted path inside the structured block (task-829 growth).
 
     ``appearance.eyes.color``, ``identity.age``,
-    ``personality.speech_pattern.style`` — one handler for lenses,
+    ``personality.speech_pattern.style`` - one handler for lenses,
     haircuts, tattoos and prosthetics, so content needs no bespoke
     effect each. Appending to a list uses ``add_persona_id`` instead;
     lists here are replaced whole. Marks compiled prose stale (see
@@ -524,7 +524,7 @@ def advance_age(node, years: float) -> float:
     """Bump authored ``identity.age`` by *years*; returns the new age.
 
     Author override until task-735's birth-tick clock lands, which derives
-    elapsed age — this stays as the manual knob.
+    elapsed age - this stays as the manual knob.
     """
     try:
         delta = float(years)
@@ -543,7 +543,7 @@ def advance_age(node, years: float) -> float:
 
 
 #: Node property flagging compiled prose as older than the block. Set by
-#: every mutator above, cleared when compile is applied — the Persona tab
+#: every mutator above, cleared when compile is applied - the Persona tab
 #: reads it to show "recompile needed". A flag, not a copy: the block is
 #: the state, the prose is the projection.
 PROSE_STALE_KEY = "persona_prose_stale"
@@ -633,7 +633,7 @@ def render_prose(node, resolve=None) -> str:
 
     This is the *narrative* layer: written once, into ``base_description``,
     where the existing equipment/LLM description pipeline picks it up. It is
-    deliberately plain and factual — the LLM's voice owns the prose, this only
+    deliberately plain and factual - the LLM's voice owns the prose, this only
     has to get the facts onto the page in a readable order.
     """
     return render_record_prose(get_record(node), resolve)
@@ -728,7 +728,7 @@ def compile_persona(node, resolve=None) -> Dict[str, Any]:
     appearance facts), ``description`` (base plus narrative situation when
     present), ``personality`` (traits/quirks/habits/speech prose), plus the
     ``interest_tags`` / ``fear_tags`` / ``traits`` projections. Callers
-    decide what to write and never clobber hand prose without ``force`` —
+    decide what to write and never clobber hand prose without ``force`` -
     see the record routes. Pure: reads the node, writes nothing.
     """
     return compile_record(get_record(node), resolve)
@@ -844,7 +844,7 @@ KINK_AXES: Dict[str, Dict[str, float]] = {
 #:
 #: Kept as a separate table rather than one table with a sign flipped. Negating a
 #: shared table turns "disgust up, arousal down" into "disgust down, arousal up"
-#: — the exact opposite of a turn-off — because the sign of an axis is semantic
+#: - the exact opposite of a turn-off - because the sign of an axis is semantic
 #: here, not an arithmetic consequence of which list it came from.
 TURN_OFF_AXES: Dict[str, Dict[str, float]] = {
     "cruelty": {"disgusted": 9.0, "angry": 4.0, "aroused": -6.0},
@@ -870,7 +870,7 @@ def affect_for_stimulus(node, stimulus_id: str) -> Dict[str, float]:
     The mechanic task-507 asks for: a kink raises arousal, a turn-off raises
     disgust and pushes arousal down. Returns ``{}`` for an unknown stimulus, a
     character with no structured record, or a character who is simply neutral
-    about it — never a guess, so an unrelated stimulus cannot nudge a character.
+    about it - never a guess, so an unrelated stimulus cannot nudge a character.
     """
     record = get_record(node)
     if not record:

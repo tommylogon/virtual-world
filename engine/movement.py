@@ -5,7 +5,7 @@
  @docs docs/virtualWorld/World Building/Ways.md
 """
 
-# engine/movement.py — Movement, door management, and area connectivity extracted from VirtualWorld
+# engine/movement.py - Movement, door management, and area connectivity extracted from VirtualWorld
 
 import re
 import time
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Movement kind → flavor line. The `time` part of a way's cost is a DURATION
 # hint for the future stateful-action system (task-131), not per-action clock
-# advancement — the clock advances exactly once per turn for everyone. So
+# advancement - the clock advances exactly once per turn for everyone. So
 # crawl/climb/jump do NOT scale costs today (task-187).
 KIND_MOVE_LINE = {
     "crawl": "You drop to your hands and knees and crawl through the {d}.",
@@ -33,7 +33,7 @@ KIND_MOVE_LINE = {
 }
 
 # Approach phrasing: "go to the door" / "go toward the archway" / "go up to the
-# cellar door" means walk UP TO the way and STOP — not pass through it. Agents
+# cellar door" means walk UP TO the way and STOP - not pass through it. Agents
 # frequently want to reach a doorway to examine/listen/open before crossing, and
 # a plain "go <way>" was silently transporting them through. Crossing stays
 # explicit: "go <handle>", "go <area>", "go <direction>", "go through <X>".
@@ -43,7 +43,7 @@ _APPROACH_PHRASE_RE = re.compile(
     re.IGNORECASE,
 )
 
-# "go to the north" still means pass through — cardinal/direction words are
+# "go to the north" still means pass through - cardinal/direction words are
 # traversal, never a doorway to stand at.
 _APPROACH_CARDINAL_WORDS = frozenset({
     "north", "south", "east", "west", "northeast", "northwest", "southeast",
@@ -66,7 +66,7 @@ class MovementSystem:
 
     def _learn_way_aspect(self, way_node, direction: str, aspect: str) -> None:
         """Record that the active character discovered a way's hidden aspect
-        (locked / blocked / needs_force) — task-333 scene discovery."""
+        (locked / blocked / needs_force) - task-333 scene discovery."""
         player = self.player_manager.get_active_player_obj()
         area = getattr(self.player_manager, "current_area", None)
         if player is not None and area is not None and hasattr(player, "learn_way_aspect"):
@@ -95,7 +95,7 @@ class MovementSystem:
             raise ValueError(f"Area '{area_name}' does not exist.")
         self.name_matcher._set_player_area(self.gs.active_player, area_name)
         try:
-            # task-360: presence window — entrance records when you arrived here.
+            # task-360: presence window - entrance records when you arrived here.
             if hasattr(self.gs, '_record_area_presence'):
                 self.gs._record_area_presence(self.gs.active_player, area_name)
         except Exception:
@@ -169,8 +169,8 @@ class MovementSystem:
     def _grant_arrival_entertainment(self, player, perception):
         """Pay Entertainment for whatever arriving made fresh (task-425).
 
-        Every subject the arrival reported freshness for — the area itself, the
-        things in it, the people standing there — is a discovery, and discovery
+        Every subject the arrival reported freshness for - the area itself, the
+        things in it, the people standing there - is a discovery, and discovery
         is entertainment. Charging per subject rather than a flat "+15 for a new
         area" is what makes a room full of unfamiliar things worth the walk.
 
@@ -181,7 +181,7 @@ class MovementSystem:
         Pays the **freshness `observe_area` reported**, not a recomputed one. That
         distinction is the whole point of it reporting one: observing refreshes the
         tick this would otherwise read, so calling `grant()` here measured 0 for
-        every subject on every arrival — which is exactly what this did, and why
+        every subject on every arrival - which is exactly what this did, and why
         perceived novelty never paid anything until it was caught.
         """
         freshness_map = (perception or {}).get("freshness") or {}
@@ -279,12 +279,12 @@ class MovementSystem:
         """Resolve ``go to the <doorway>`` / ``go toward <way>`` phrasing.
 
         Returns the approach message (character walks over to the way and
-        STOPS, positioned "at" it) — or "" when the phrase is not an approach
+        STOPS, positioned "at" it) - or "" when the phrase is not an approach
         request, names a cardinal direction, or names the destination AREA
         (those all keep crossing normally).
 
         Agents frequently write "go to the door" meaning *reach the doorway*
-        (to examine / listen / open / use a key) — a bare "go <way>" was
+        (to examine / listen / open / use a key) - a bare "go <way>" was
         silently transporting them through it. Crossing stays explicit via
         ``go <handle>``, ``go <room>``, ``go <direction>``, ``go through <X>``.
         """
@@ -316,7 +316,7 @@ class MovementSystem:
                 f"{target_area}\".)"
             )
 
-        # Item / person target ("go to miki", "go to the booth table") — reuse
+        # Item / person target ("go to miki", "go to the booth table") - reuse
         # the room-approach match (which also handles "near"/"to" stripping).
         approach_msg = self._room_approach(area_id, target)
         if approach_msg:
@@ -360,7 +360,7 @@ class MovementSystem:
         Handles door state checks, skill checks for locked/barred ways,
         NPC reactions, area transitions, toggleable item effects, and action costs.
 
-        ``kind`` is the movement mode — ``go`` (default), ``crawl``, ``climb``,
+        ``kind`` is the movement mode - ``go`` (default), ``crawl``, ``climb``,
         or ``jump`` (task-187). Crawl-only or tight ways auto-convert ``go``
         to a crawl; climb/jump ways require the matching verb.
         """
@@ -371,36 +371,36 @@ class MovementSystem:
         if self.gs.player.state == "dead":
             if not self.gs.ghost_mode:
                 raise ValueError("Your body lies still. You can do nothing.")
-            # Ghosts can move freely — no physical cost
+            # Ghosts can move freely - no physical cost
 
         if self.gs.player.has_condition("restrained"):
             raise ValueError("You're restrained and can't move. Try to escape first.")
         if self.gs.player.has_condition("grappled"):
             raise ValueError("You're grappled and can't move. Try to escape first.")
 
-        # Prone — only crawl is allowed (catalog movement_mode: "crawl")
+        # Prone - only crawl is allowed (catalog movement_mode: "crawl")
         if self.gs.player.has_condition("prone"):
             if kind in ("climb", "jump"):
-                raise ValueError("You're prone — you can only crawl.")
+                raise ValueError("You're prone - you can only crawl.")
             kind = "crawl"
 
-        # Hard gates (task-190): no air / stone body — impossible to move.
+        # Hard gates (task-190): no air / stone body - impossible to move.
         if self.gs.player.has_condition("suffocating"):
-            raise ValueError("You can't move — you're suffocating.")
+            raise ValueError("You can't move - you're suffocating.")
         if self.gs.player.has_condition("petrified"):
             raise ValueError("You're petrified. Stone obeys nothing.")
 
-        # Effective speed 0 — too exhausted to move (e.g. exhausted level 6).
+        # Effective speed 0 - too exhausted to move (e.g. exhausted level 6).
         # Dead characters are exempt (ghosts move freely via the check above).
         if self.gs.player.state != "dead" and effective_speed(self.gs.player) <= 0:
             raise ValueError("You're too exhausted to move.")
 
-        # Encumbrance gate — check before area transition so overburdened
+        # Encumbrance gate - check before area transition so overburdened
         # characters never leave their current area.
         if self.gs.player.state != "dead":
             self._get_encumbrance_energy_cost()
 
-        # Blind navigation — the world is pitch black for the blind character
+        # Blind navigation - the world is pitch black for the blind character
         # regardless of any light. A plain "go" risks stumbling (→ prone) unless
         # a cane (sensory_aid) steadies them; climb/jump get a steeper DC reduced
         # by the same cane. Led characters don't self-move here (a cooperative
@@ -416,7 +416,7 @@ class MovementSystem:
         area_id = self.gs._get_current_area_id()
         old_area_name = self.gs.current_area.name if self.gs.current_area else None
 
-        # "go to the <doorway>" / "go toward <way>" — walk up to the way and
+        # "go to the <doorway>" / "go toward <way>" - walk up to the way and
         # STOP (positioned at it) instead of crossing. Agents use this phrasing
         # to reach a door to examine/open/listen; a bare "go <way>" is the
         # explicit crossing verb and keeps its old meaning.
@@ -433,7 +433,7 @@ class MovementSystem:
             way_id = matched_edge.target
             direction = matched_handle
         if not way_id:
-            # Not an exit — but "go X" where X is a room ITEM or CHARACTER
+            # Not an exit - but "go X" where X is a room ITEM or CHARACTER
             # means walk over to it. The spatial system records the "at"
             # relationship ("you're at the booth table"), so agents never
             # have to guess between exit handles and narrative objects.
@@ -465,7 +465,7 @@ class MovementSystem:
 
         # ── Passage requirements + size gate (task-187) ──
         # normalize_requires single-sources the legacy "none" handling
-        # (engine/room_perception.py — same rule the panel uses).
+        # (engine/room_perception.py - same rule the panel uses).
         requires = normalize_requires(way_node.properties.get("requires", ""))
         if requires:
             if kind == "go" and requires == "crawl":
@@ -476,7 +476,7 @@ class MovementSystem:
         max_size = way_node.properties.get("max_size", "") or ""
         if max_size and max_size != "none":
             player_tier = size_tier(self.gs.player)
-            # task-202: over-encumbrance makes you effectively one size larger —
+            # task-202: over-encumbrance makes you effectively one size larger -
             # a heavy load is bulk through narrow passages (>= 50% capacity).
             try:
                 ratio_data = self.gs.item_actions.get_carry_load_ratio(self.gs.player_manager)
@@ -488,13 +488,13 @@ class MovementSystem:
             if player_tier >= max_tier + 2:
                 raise ValueError(f"You don't fit through the {direction}.")
             if player_tier > max_tier:
-                # Tight fit — a crawl is the only way through.
+                # Tight fit - a crawl is the only way through.
                 if kind not in ("go", "crawl"):
-                    raise ValueError(f"You can't {kind} through the {direction} — it's too tight.")
+                    raise ValueError(f"You can't {kind} through the {direction} - it's too tight.")
                 if kind == "go":
                     kind = "crawl"
 
-        # ── task-309: incorporeal characters phase through ways — locked, blocked,
+        # ── task-309: incorporeal characters phase through ways - locked, blocked,
         # closed, one-way, item-gated, and skill-gated passage are all
         # meaningless to them.
         phasing = False
@@ -505,7 +505,7 @@ class MovementSystem:
 
         # ── Item-gated passage (task-243 / task-109) ──
         # "requires_item" on the way: a name/id ("bike"), or a tag gate
-        # ("tag:fly" — any held/area item tagged fly satisfies it). A shortcut
+        # ("tag:fly" - any held/area item tagged fly satisfies it). A shortcut
         # or ability path that stays blocked without the right gear.
         requires_item = way_node.properties.get("requires_item", "")
         if requires_item and not phasing:
@@ -522,7 +522,7 @@ class MovementSystem:
             if not self._holds_item_gate(item_needle, tag_needle):
                 raise ValueError(self._requires_item_message(way_node, direction, item_needle, tag_needle))
 
-        # ── Blind "go" — risk of stumbling and falling prone (unless a cane/guide) ──
+        # ── Blind "go" - risk of stumbling and falling prone (unless a cane/guide) ──
         if blind and kind == "go" and requires not in ("jump", "climb", "crawl") and not phasing:
             p = self.gs.player
             roll = self.gs.roll_dice(1, 20, 0)
@@ -534,11 +534,11 @@ class MovementSystem:
                 except Exception:
                     pass
                 raise ValueError(
-                    "You stumble blindly in the dark and fall — you're now prone. "
+                    "You stumble blindly in the dark and fall - you're now prone. "
                     "Get back up with 'stand' before moving on. A cane or a guide would help."
                 )
 
-        # ── task-309: incorporeal characters phase through ways — locked, blocked,
+        # ── task-309: incorporeal characters phase through ways - locked, blocked,
         # closed, one-way, and skill-gated passage are all meaningless to them.
         phasing = False
         try:
@@ -566,11 +566,11 @@ class MovementSystem:
             source_area = way_endpoint_name(way_node, self.graph, "from")
             if self.gs.current_area and self.gs.current_area.name != source_area:
                 raise ValueError(
-                    f"The {direction} is one-way — you can't go back that way."
+                    f"The {direction} is one-way - you can't go back that way."
                 )
         state = way_node.properties.get("current_state")
         # `refusal_message` is what a way says instead of letting you through, and
-        # it holds until the way is actually `open` — which is what makes a
+        # it holds until the way is actually `open` - which is what makes a
         # compiled building door change its mind when a knock, a key or an author
         # painting the interior opens it (task-563). Checked *before* the state
         # machine so a `closed` way refuses rather than silently auto-opening,
@@ -597,7 +597,7 @@ class MovementSystem:
                 if not success:
                     self._learn_way_aspect(way_node, direction, "needs_force")
                     raise ValueError(f"{msg}\nThe {direction} requires effort to open. ({skill} DC {dc}: roll {total})")
-                # Skill check passed — auto-open
+                # Skill check passed - auto-open
                 skill_check_msg = msg + "\n"
                 way_node.properties["current_state"] = "open"
                 way_node.updated = time.time()
@@ -673,7 +673,7 @@ class MovementSystem:
                 self.gs.player, "area", source_name=target_area_node.name
             )
             if not block:
-                # legacy sources (pre-source_type) were area names — keep blocking
+                # legacy sources (pre-source_type) were area names - keep blocking
                 for inst in self.gs.player.conditions.get("frightened", []):
                     if not inst.get("source_type") and inst.get("source") == target_area_node.name:
                         block = f"You're too afraid to go back into the {target_area_node.name}."
@@ -686,14 +686,14 @@ class MovementSystem:
                 for inst in self.gs.player.conditions.get("frightened", []):
                     if (inst.get("source_type") == "character"
                             and inst.get("source") in feared_here):
-                        block = f"You're too afraid to go into the {target_area_node.name} — {inst['source']} is there."
+                        block = f"You're too afraid to go into the {target_area_node.name} - {inst['source']} is there."
                         break
             if block:
                 raise ValueError(block)
 
         self.name_matcher._set_player_area(self.gs.active_player, target_area_node.name)
 
-        # task-360: presence window — entrance records when you arrived here
+        # task-360: presence window - entrance records when you arrived here
         # (per-area ledger {area: {char: entry_tick}}).
         try:
             if hasattr(self.gs, '_record_area_presence'):
@@ -706,7 +706,7 @@ class MovementSystem:
             pid = self.gs._player_node_id(self.gs.active_player)
             set_character_at_way(self.graph, pid, way_id)
 
-        # Phase 3 — save_on event hooks: enter_area always; crawl/climb/jump by kind
+        # Phase 3 - save_on event hooks: enter_area always; crawl/climb/jump by kind
         try:
             area_tags = target_area_node.properties.get("tags", [])
             for line in self.gs._emit_save_on(
@@ -740,7 +740,7 @@ class MovementSystem:
         except Exception:
             pass
 
-        # Drag grappled targets along with the mover (grapple system) — each
+        # Drag grappled targets along with the mover (grapple system) - each
         # target may resist with a STR save.
         drag_lines = []
         grapple = getattr(self.gs, "grapple", None)
@@ -789,7 +789,7 @@ class MovementSystem:
 
         # Perceive the area just entered (task-403) and pay for the arrival
         # (task-425). Perception runs first because it reports each subject's
-        # freshness as it was *before* refreshing the observation — which is why
+        # freshness as it was *before* refreshing the observation - which is why
         # the curve is computed in observe_area and not re-derived here: reading
         # the tick afterwards would report every arrival as already stale.
         player = self.gs.player
@@ -802,13 +802,13 @@ class MovementSystem:
             perception = {"seen": 0, "novel": [], "freshness": {}}
 
         if player is not None:
-            # visited_areas is still written — spatial memory's known-route
-            # filter reads it — but it no longer decides novelty.
+            # visited_areas is still written - spatial memory's known-route
+            # filter reads it - but it no longer decides novelty.
             player.visited_areas.add(area_name)
             self._grant_arrival_entertainment(player, perception)
 
         # Apply move cost (ghosts get no energy cost). The way's authored cost
-        # applies as-is — crawl/climb/jump don't scale it (see KIND_MOVE_LINE).
+        # applies as-is - crawl/climb/jump don't scale it (see KIND_MOVE_LINE).
         if self.gs.player.state != "dead":
             exit_cost = way_node.properties.get("cost", {})
             self.gs.apply_action("move", exit_cost, player=self.gs.player)
@@ -826,14 +826,14 @@ class MovementSystem:
             if snow_cost:
                 self.gs.apply_action("move", {"energy": snow_cost}, player=self.gs.player)
         # Fire on_enter triggers on the door (e.g., auto-close behind player,
-        # fear saves on "fleshy orifice" doors) — game_state so save gates work
+        # fear saves on "fleshy orifice" doors) - game_state so save gates work
         enter_outputs = self.triggers._execute_triggers(
             way_node, "on_enter", target_name=self.gs.player.name, game_state=self.gs
         )
         for output in enter_outputs:
             self.gs.add_log_entry(output)
         # Fire on_enter triggers on the area itself (rooms reacting to someone
-        # arriving — announcements, atmosphere shifts, encounter gates).
+        # arriving - announcements, atmosphere shifts, encounter gates).
         area_enter_outputs = self.triggers._execute_triggers(
             target_area_node, "on_enter", target_name=self.gs.player.name, game_state=self.gs
         )
@@ -857,7 +857,7 @@ class MovementSystem:
         if pass_msg:
             pass_msg = _GRID_SUFFIX.sub("", pass_msg)
         target_display = display_area_name(target_area_node)
-        arrival_suffix = f" — you're in {target_display}."
+        arrival_suffix = f" - you're in {target_display}."
         move_line = KIND_MOVE_LINE.get(kind, "You head through the {d}.").format(d=direction)
         if pass_msg:
             return f"{skill_check_msg}{pass_msg + arrival_suffix + auto_close_msg + drag_suffix}"
@@ -876,7 +876,7 @@ class MovementSystem:
         return self.move_to_area(direction, kind="jump")
 
     def dash_to_area(self, direction: str) -> str:
-        """Sprint through one exit — a fast ``go``.
+        """Sprint through one exit - a fast ``go``.
 
         Dash is the first hop of a chain: the engine follows it up with one
         immediate second decision and chains a single ``go``, so a dash
@@ -918,7 +918,7 @@ class MovementSystem:
         target = re.sub(r'^(?:the|a|an)\s+', '', str(target_input or "").strip(), flags=re.I)
         if not target:
             raise ValueError("Approach what?")
-        # Way target — position at the way, never pass through.
+        # Way target - position at the way, never pass through.
         hit = self._resolve_approach_way(area_id, target)
         if hit is not None:
             matched_edge, way_node, matched_handle = hit
@@ -950,7 +950,7 @@ class MovementSystem:
         target = str(target_input or "").strip().lower()
         if not target:
             return ""
-        # "go to miki" / "go into the kitchen" / "walk to the table" — strip
+        # "go to miki" / "go into the kitchen" / "walk to the table" - strip
         # direction words + articles before matching
         target = re.sub(r'^(the|a|an|to|into|towards|toward)\s+', '', target)
         target = re.sub(r'^(go|walk|move|head)\s+(to\s+)?', '', target)
@@ -958,7 +958,7 @@ class MovementSystem:
         if not target:
             return ""
 
-        # Pitch black — you can't see where you're going in the room
+        # Pitch black - you can't see where you're going in the room
         try:
             lv = self.gs.lighting.get_ambient_light(area_id, {})
             if lv is not None and lv < 20 and not self.gs.lighting.can_see_in_dark(
@@ -1000,7 +1000,7 @@ class MovementSystem:
         if resolved and not candidates:
             try:
                 approach_character(self.graph, self.gs, resolved)
-                # Stranger display — don't name someone you haven't met
+                # Stranger display - don't name someone you haven't met
                 display = resolved
                 try:
                     player = self.player_manager.players.get(self.gs.active_player)
@@ -1015,7 +1015,7 @@ class MovementSystem:
             except Exception:
                 pass
         if resolved and candidates:
-            return f"You're not sure which one you mean — {', '.join(candidates)} are all here."
+            return f"You're not sure which one you mean - {', '.join(candidates)} are all here."
 
         return ""
 
@@ -1024,7 +1024,7 @@ class MovementSystem:
     def _open_passage_block(self, way_node, action: str, label: str):
         """Reason a way can't be opened/closed by a character, or None.
 
-        Traversal-only ways (requires jump/climb/crawl — task-223) have no
+        Traversal-only ways (requires jump/climb/crawl - task-223) have no
         door to swing: task-187 means they exist to be crossed, not toggled.
         The author-facing ``prevent_close`` flag likewise pins a passage open.
         Triggers/authoring write ``current_state`` directly and never route
@@ -1049,7 +1049,7 @@ class MovementSystem:
         requires = normalize_requires(props.get("requires")).lower()
         if requires in ("jump", "climb", "crawl"):
             return (
-                f"You can't {action} the {label} — it's an open {requires} "
+                f"You can't {action} the {label} - it's an open {requires} "
                 f"passage, not something you open or close."
             )
         if props.get("prevent_close") and action == "close":
@@ -1060,7 +1060,7 @@ class MovementSystem:
                          or props.get("refusal_message") or "").strip()
             if reason:
                 return reason
-            return f"You can't close the {label} — this opening is permanent."
+            return f"You can't close the {label} - this opening is permanent."
         return None
 
     def toggle_way(self, direction: str, action: str = "open") -> str:
@@ -1075,7 +1075,7 @@ class MovementSystem:
             success, _, msg = self.gs.skill_check("Perception", 15)
             if not success:
                 return f"Your ghostly hands pass right through the {direction}. You can't grasp it."
-            # Ghost succeeded — proceed with toggle but note the ethereal nature
+            # Ghost succeeded - proceed with toggle but note the ethereal nature
 
         area_id = self.gs._get_current_area_id()
 
@@ -1096,7 +1096,7 @@ class MovementSystem:
                     state = way_ref.properties.get("current_state", "unknown")
                     exits.append(f"{direction_name} ({state})")
             raise ValueError(
-                f"You can't go to '{direction}' — don't see an exit that way. "
+                f"You can't go to '{direction}' - don't see an exit that way. "
                 f"Available exits: {', '.join(exits) if exits else 'none you can see'}."
             )
         way_node = self.graph.get_node(way_id)

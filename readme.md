@@ -22,7 +22,7 @@ For example, author a village with a road, a tavern, and a few residents. A stor
 
 **Backsim** is the low-cost background layer for characters outside the immediate scene. It handles routine needs, travel, schedules, and social encounters on the same clock and world graph as foreground play. A character can spend a quiet stretch doing nothing if their needs are met; background activity is there to make the world persist, not to generate noise every tick. Its core path is wired, while authored long-term pursuits remain limited.
 
-**Timeskips** let you hand a character an intent and a span—idle, leisure, search, explore, or travel—rather than issuing every small action. Time advances through the ordinary simulation, so needs and environmental consequences still apply. A relevant event or a blocked intent can stop the skip and return control with an explanation. Timeskips are working; follow-up work on intent outcomes and multi-character spans is in review, with longer-span extensions still planned.
+**Timeskips** let you hand a character an intent and a span-idle, leisure, search, explore, or travel-rather than issuing every small action. Time advances through the ordinary simulation, so needs and environmental consequences still apply. A relevant event or a blocked intent can stop the skip and return control with an explanation. Timeskips are working; follow-up work on intent outcomes and multi-character spans is in review, with longer-span extensions still planned.
 
 **Weather, temperature, and light** are interacting parts of that simulation. Forecasts can be authored or rule-driven; a per-area generator in review uses a seed, season, terrain, climate, and neighboring areas to shape local conditions. Weather affects temperature, wind, humidity, snow, daylight, movement, and foraging. Heat sources warm rooms, temperatures flow through open connections, and wind and clothing change how cold or hot a character feels. Light shifts with time, weather, moon, and lamps; it can limit actions in darkness and sustained darkness can affect sanity. The core environment systems are wired; the generated forecast interface is also in review, and a graph heat-overlay issue remains in progress.
 
@@ -38,7 +38,7 @@ For example, author a village with a road, a tavern, and a few residents. A stor
 
 **MOSIAC** is the per-character decision context for the present moment: **Motivation**, **Obligations**, **Schedules**, **Intentions**, **Attention**, and **Choices**. It gathers standing aims and duties alongside immediate signals such as needs, danger, and the actions currently available. In the Mind panel and agent prompt, it helps answer “what is this character weighing right now?” GIMP holds the longer-term wants; MOSIAC assembles the context used to decide what deserves attention now.
 
-These are not yet a finished autonomous-goal loop. Goal records and MOSIAC context assembly exist, and the context is shown in the Mind panel and included in the agent prompt. Goal editing/history and disposition scoring work are in review. The selector that binds goals, needs, memory, and personality to a pursuit—and the generic executor for those plans—remain unfinished. The current implementation should therefore be described as a working goal/context foundation, not as characters already pursuing rich long-term goals end to end. See [GIMP](docs/virtualWorld/Characters/GIMP.md), [MOSIAC](docs/virtualWorld/Characters/MOSIAC.md), and the task cards for [goal selection](docs/virtualWorld/dev_tasks/todo/characters/task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans.md) and [plan execution](docs/virtualWorld/dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md).
+These are not yet a finished autonomous-goal loop. Goal records and MOSIAC context assembly exist, and the context is shown in the Mind panel and included in the agent prompt. Goal editing/history and disposition scoring work are in review. The selector that binds goals, needs, memory, and personality to a pursuit-and the generic executor for those plans-remain unfinished. The current implementation should therefore be described as a working goal/context foundation, not as characters already pursuing rich long-term goals end to end. See [GIMP](docs/virtualWorld/Characters/GIMP.md), [MOSIAC](docs/virtualWorld/Characters/MOSIAC.md), and the task cards for [goal selection](docs/virtualWorld/dev_tasks/todo/characters/task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans.md) and [plan execution](docs/virtualWorld/dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md).
 
 ### Where VirtualWorld fits
 
@@ -149,12 +149,12 @@ The last measured Python suite baseline is **6,446 passed / 12 failed** on a cle
 
 ## Further reading
 
-- [Feature overview](docs/virtualWorld/Features/Features%20Overview.md) — player and editor features with current status.
-- [Feature index](docs/design/feature-index.md) — generated mapping from features to front-end modules.
-- [AGENTS.md](AGENTS.md) — architecture, conventions, testing guidance, and known gotchas.
-- [CHANGELOG.md](CHANGELOG.md) — changes over time.
-- [World vault index](docs/virtualWorld/_Index.md) — system and authoring documentation.
-- [Project history](docs/virtualWorld/History.md) — project origins and major changes.
+- [Feature overview](docs/virtualWorld/Features/Features%20Overview.md) - player and editor features with current status.
+- [Feature index](docs/design/feature-index.md) - generated mapping from features to front-end modules.
+- [AGENTS.md](AGENTS.md) - architecture, conventions, testing guidance, and known gotchas.
+- [CHANGELOG.md](CHANGELOG.md) - changes over time.
+- [World vault index](docs/virtualWorld/_Index.md) - system and authoring documentation.
+- [Project history](docs/virtualWorld/History.md) - project origins and major changes.
 
 ## License
 

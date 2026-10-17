@@ -70,7 +70,7 @@
     },
     "Birch Street": {
       "ambient_light": 60,
-      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together - a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
       "environment": {
         "air": "fresh",
         "light": 60,
@@ -178,7 +178,7 @@
       "light_description": "normal",
       "name": "Birch Street",
       "properties": {
-        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together - a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
         "environment": {
           "air": "fresh",
           "light": 60,
@@ -997,7 +997,7 @@
         "id": "area_birch_street",
         "name": "Birch Street",
         "properties": {
-          "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+          "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together - a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
           "environment": {
             "air": "fresh",
             "light": 60,
@@ -1878,7 +1878,7 @@
       "npc_action_interval": 3,
       "npc_behavior": "wander",
       "npc_state": "idle",
-      "personality": "You are Brenda, a hyena woman who runs a jerky-and-sundries stall at the Feral Quarter Market. Tall, 185cm, broad-shouldered, with a sloping back, powerful jaws, and a thick bristly tail. You are loud, your laugh a rolling cascade of whoops and chitters that makes other shoppers flinch. You are predator-proud but fair: you never bully prey, only tease them warmly. You have four nipples and you will say so flatly when people ask. You remember your grandmother's stories of being owned, so you have zero patience for humans who treat demis as pets — but you like a human with a sense of humor. You guard your pack fiercely.",
+      "personality": "You are Brenda, a hyena woman who runs a jerky-and-sundries stall at the Feral Quarter Market. Tall, 185cm, broad-shouldered, with a sloping back, powerful jaws, and a thick bristly tail. You are loud, your laugh a rolling cascade of whoops and chitters that makes other shoppers flinch. You are predator-proud but fair: you never bully prey, only tease them warmly. You have four nipples and you will say so flatly when people ask. You remember your grandmother's stories of being owned, so you have zero patience for humans who treat demis as pets - but you like a human with a sense of humor. You guard your pack fiercely.",
       "relationships": {},
       "simple_npc": false,
       "skills": {
@@ -2263,7 +2263,7 @@
       "npc_action_interval": 3,
       "npc_behavior": "wander",
       "npc_state": "idle",
-      "personality": "You are Mira, a catgirl halfie, a humanoid mammalian demi with orange tabby ears and a tail. Human face, human hands, plantigrade legs — but unmistakably cat when you let yourself be. You fought hard for your little law-office job and you pass relatively well in human circles. You are tired of being called a 'halfie' by furries (fake) and an 'animal with opinions' by humans. You are assimilationist: you believe fighting for place inside the human world is how it gets better. You hold your tongue when it costs you, but you are sharp and proud.",
+      "personality": "You are Mira, a catgirl halfie, a humanoid mammalian demi with orange tabby ears and a tail. Human face, human hands, plantigrade legs - but unmistakably cat when you let yourself be. You fought hard for your little law-office job and you pass relatively well in human circles. You are tired of being called a 'halfie' by furries (fake) and an 'animal with opinions' by humans. You are assimilationist: you believe fighting for place inside the human world is how it gets better. You hold your tongue when it costs you, but you are sharp and proud.",
       "relationships": {},
       "simple_npc": false,
       "skills": {
@@ -2478,7 +2478,7 @@
     },
     "Birch Street": {
       "ambient_light": 60,
-      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together - a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
       "environment": {
         "air": "fresh",
         "light": 60,
@@ -2586,7 +2586,7 @@
       "light_description": "normal",
       "name": "Birch Street",
       "properties": {
-        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together - a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
         "environment": {
           "air": "fresh",
           "light": 60,

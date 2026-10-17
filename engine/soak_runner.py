@@ -1,4 +1,4 @@
-"""engine/soak_runner.py — reusable headless long-horizon soak engine.
+"""engine/soak_runner.py - reusable headless long-horizon soak engine.
 
 This is the single implementation behind both ``tools/soak_sim.py`` (CLI) and
 the ``/soak`` web UI (``routes/soak_ops.py``). It loads a scenario, drives
@@ -6,9 +6,9 @@ the ``/soak`` web UI (``routes/soak_ops.py``). It loads a scenario, drives
 
 Two ways to use it:
 
-* CLI / tests: ``run = SoakRun(config); run.execute()`` — synchronous, with an
+* CLI / tests: ``run = SoakRun(config); run.execute()`` - synchronous, with an
   optional ``on_tick`` callback for live progress printing.
-* Web: ``run = start_run(config)`` — the same ``execute`` on a daemon thread;
+* Web: ``run = start_run(config)`` - the same ``execute`` on a daemon thread;
   poll ``run.snapshot()`` for live progress and ``run.report()`` when finished.
 
 It deliberately makes no LLM calls: tick processing uses only the deterministic
@@ -22,7 +22,7 @@ run at a time; that also keeps the soak from saturating the box.
 vitals series, a run records an orthogonal stream in ``engine/soak_telemetry.py``:
 one record per **area change** (presence intervals) plus one per action and
 condition crossing, each carrying the ``why`` tag that decided it. That is what
-answers "who did what, why, where" — the average-Energy chart cannot, and the
+answers "who did what, why, where" - the average-Energy chart cannot, and the
 per-character lived log cannot either because it is salience-filtered and capped
 at 200 entries. It lives on the run, never on the player, and never in the save.
 
@@ -170,7 +170,7 @@ def resolve_scenario(path: str) -> Path:
 
 @dataclass
 class SoakConfig:
-    """Everything the headless soak can vary — mirrors tools/soak_sim.py flags."""
+    """Everything the headless soak can vary - mirrors tools/soak_sim.py flags."""
 
     scenario: str = DEFAULT_SCENARIO
     ticks: int = 10080
@@ -188,7 +188,7 @@ class SoakConfig:
     track_vitals: list = field(default_factory=list)  # empty = defaults
     track_characters: bool = True
     # task-543: record presence intervals + an action stream (with `why`) into
-    # the run's own telemetry store. On by default — it is the stream that makes
+    # the run's own telemetry store. On by default - it is the stream that makes
     # "who did what, why, where" answerable, and it costs one dict per *move*,
     # not per tick. Off only for a run explicitly measuring something else.
     telemetry: bool = True
@@ -573,7 +573,7 @@ class SoakRun:
                         break
 
             # Close every open presence interval at the tick the run actually
-            # reached — not at the configured tick count, which a cancelled run
+            # reached - not at the configured tick count, which a cancelled run
             # never reaches. Leaving one open would make the last interval look
             # like it ran to the end of time.
             self._stop_telemetry(self.tick)
@@ -778,7 +778,7 @@ class SoakRun:
     def _collect_telemetry(self, tick: int, players) -> None:
         """task-543: presence and condition crossings, both diffed rather than
         sampled. Called once per tick over the cast, the same order as the death
-        sweep, and it writes a record only on a *change* — so the interval count
+        sweep, and it writes a record only on a *change* - so the interval count
         scales with moves, not with run length.
 
         Presence needs no hook in the decision path because a character's area is

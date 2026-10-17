@@ -3,11 +3,11 @@
 `data/worldpainter/biomes.json` declares, per biome, what a painted area is
 likely to **hold**:
 
-- ``resource_distribution`` — weighted tag sets; this module resolves them to
+- ``resource_distribution`` - weighted tag sets; this module resolves them to
   real library items and stages them into a compiled area. A tag that resolves
   to nothing is reported in :attr:`GenerationReport.unresolved_tags`, never
   silently substituted.
-- ``hostile_distribution`` — base / per-area-from-settlement / capped chances
+- ``hostile_distribution`` - base / per-area-from-settlement / capped chances
   per hostile kind, evaluated at runtime when somebody is in an area.
 
 Both are data-driven: a modder edits the JSON, not this file.
@@ -79,7 +79,7 @@ def spawn_resources(area_nodes: List[Node], index: LibraryIndex, *,
 
     Returns ``(nodes, edges, unresolved_tags)`` where ``unresolved_tags`` counts
     every requested tag (or missing container content) the library could not
-    satisfy. A request that resolves to nothing places no item — it is surfaced,
+    satisfy. A request that resolves to nothing places no item - it is surfaced,
     not substituted.
     """
     rng = rng or random.Random(f"{scope_id}|{seed}|resources")
@@ -126,7 +126,7 @@ def hostile_chance(biome_id: str, distance_from_settlement: float,
 
     ``base_chance + per_area_from_settlement * distance``, capped at
     ``max_chance`` and never above 1. Distance is counted in **areas**, not
-    kilometres — a settlement's own area is 0.
+    kilometres - a settlement's own area is 0.
     """
     entries = entries if entries is not None else (biomes.hostile_distribution().get(str(biome_id)) or [])
     out: Dict[str, float] = {}
@@ -155,7 +155,7 @@ def hostile_character_node(kind: str, node_id: str, *, scope_id: str,
     """A bare hostile character node, tagged and generation-stamped.
 
     The node is the graph anchor; turning it into a live simple NPC (a
-    ``Player`` in the manager) is the population layer's job — this is the same
+    ``Player`` in the manager) is the population layer's job - this is the same
     graph-vs-runtime split every other generated thing follows.
     """
     return Node(

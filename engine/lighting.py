@@ -90,7 +90,7 @@ class LightingSystem:
     def _item_light_stats(self, area_id: str):
         """Return ``(total, max_level)`` for lit items in/around ``area_id``.
 
-        The max is the strongest single source — used as the brightness CEILING
+        The max is the strongest single source - used as the brightness CEILING
         so piling up dim/normal sources can never out-verb their own level
         (50 dim embers read as a warm glow, never a laser).
         """
@@ -149,7 +149,7 @@ class LightingSystem:
         brightest single lit item.
 
         task-407: the effective light is the **brightest source**, never the
-        sum. Four dim torches read as one dim torch, not a laser — so this is
+        sum. Four dim torches read as one dim torch, not a laser - so this is
         ``max(base, best_item)``, and the old ``base + sum`` arithmetic (which
         the ceiling then discarded anyway) is gone.
         """
@@ -171,7 +171,7 @@ class LightingSystem:
             from engine.weather_forecast import weather_light_mult
             curve = int(round(outdoor_light_for_hour(hour) * weather_light_mult(env.get("weather"))))
             own = max(curve, own) if explicit else curve
-            # task-229: the moon adds light to outdoor NIGHT areas — unless
+            # task-229: the moon adds light to outdoor NIGHT areas - unless
             # the sky is obscured (stormy nullifies, foggy halves the bonus).
             if hour >= 19 or hour < 5:
                 bonus = 0
@@ -230,7 +230,7 @@ class LightingSystem:
         """Fingerprint of every way's barrier behaviour, for the cache key.
 
         The graph revision covers nodes and edges appearing or disappearing, but
-        mutating a way's ``current_state`` in place does not bump it — so a door
+        mutating a way's ``current_state`` in place does not bump it - so a door
         closed after the last recompute left the cache reporting a sealed room as
         still spilling. This is the second half of the key that closes that gap
         without a per-call walk of the whole graph.
@@ -243,7 +243,7 @@ class LightingSystem:
         """Compute every area's effective light once per tick (task-407).
 
         Two passes over areas: first each area's own light and brightest item,
-        then spill from neighbours' stored values — so no neighbour is scanned
+        then spill from neighbours' stored values - so no neighbour is scanned
         twice. ``get_ambient_light`` returns this stamp when called without an
         explicit env/hour and neither the graph nor the barriers have changed
         since.

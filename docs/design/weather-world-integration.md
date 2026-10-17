@@ -32,11 +32,11 @@ baseline.
 | Heat sources | `environment_propagation.py:143` | lit `heat_source` items pull an area toward `target_temperature` |
 | Air propagation | `environment_propagation.py:195` | smoke/toxic/stale creep through open ways, arriving `hazy` first |
 | Item drying | `virtual_world_engine.py:1195` | wet items dry faster in wind, slower in humidity, never in flooding |
-| Diurnal light | `engine/lighting.py:19-36` | `outdoor_light_for_hour()` — interpolated anchor table, the pattern to copy. **Gated on the `outdoor` tag, which the compiler never emits** (bug-54) |
+| Diurnal light | `engine/lighting.py:19-36` | `outdoor_light_for_hour()` - interpolated anchor table, the pattern to copy. **Gated on the `outdoor` tag, which the compiler never emits** (bug-54) |
 | Moon | `weather_forecast.py:69` | deterministic 30-day phase driving night light. **Was never narrated: the block that rendered it raised `UnboundLocalError` into a bare `except`** (task-559, fixed) |
 | State container | `area.py:8` | one `environment` dict per area: `light, temperature, air, smell, noise, weather, wind, humidity` |
-| Weather prose | `engine/area_description.py` | added in task-559: one sentence per weather state, one per wind magnitude, and a time-of-day line — all gated on the open sky |
-| Sky-time DC | `weather_forecast.py` | `WEATHER_TIME_DC` + `normalize_weather()` — the guess-time table, collapsed onto one vocabulary (task-559) |
+| Weather prose | `engine/area_description.py` | added in task-559: one sentence per weather state, one per wind magnitude, and a time-of-day line - all gated on the open sky |
+| Sky-time DC | `weather_forecast.py` | `WEATHER_TIME_DC` + `normalize_weather()` - the guess-time table, collapsed onto one vocabulary (task-559) |
 
 This is good infrastructure. The shape is right: one state dict, one compose
 function, one overlay, one propagation rule.
@@ -48,7 +48,7 @@ function, one overlay, one propagation rule.
    `env["temperature"] = round(21.0 + float(temp_mod), 1)`. Every exterior
    area on the map is the same temperature, always. A mountain and a valley
    are both 21 °C.
-2. **No spatial dimension.** `forecast.apply_scope` is a two-way switch —
+2. **No spatial dimension.** `forecast.apply_scope` is a two-way switch -
    `exterior` or `all` (`virtual_world_engine.py:1281`). That is not a field.
    An arctic north beside a tropical south is inexpressible.
 3. **Light has a diurnal curve; temperature does not.** Compare
@@ -70,12 +70,12 @@ function, one overlay, one propagation rule.
    `LightingSystem._own_light` scales the time-of-day curve by it.
 7. **A painted world has no weather at all.** The compiler builds area tags
    from the biome record, and no biome in `data/worldpainter/biomes.json`
-   declares `outdoor` or `exterior` — so for a WorldPainter world the forecast
+   declares `outdoor` or `exterior` - so for a WorldPainter world the forecast
    is skipped (`apply_scope`), the diurnal light curve never applies, and
    exterior areas are not heat reservoirs. `world_compile.py:670` computes the
    answer and discards it. See **bug-54**.
 8. **Humidity has no source.** `HUMIDITY_STATES` is `dry/humid/wet/flooding`,
-   and nothing in the engine ever transitions between them — they are asserted
+   and nothing in the engine ever transitions between them - they are asserted
    by a forecast entry or an override. There is no evaporation, no water
    cycle, no link to rivers or lakes.
 9. **Wind has magnitude but no direction.** `WIND_STATES` is
@@ -86,7 +86,7 @@ function, one overlay, one propagation rule.
 11. **Every tick clobbers authored temperature.** `_apply_forecast_env` runs
     each tick and overwrites `env["temperature"]`, while
     `environment_propagation.py` also writes it. A hand-set value cannot
-    survive, so a **separate** base key is mandatory — not "just stop
+    survive, so a **separate** base key is mandatory - not "just stop
     overwriting".
 12. **Falsy-zero bug.** `if temp_mod:` / `if light_mod:`
     (`virtual_world_engine.py:1299, 1302`) are truthiness tests, so an authored
@@ -116,9 +116,9 @@ Exactly the split already used for `surface` (ground material) vs `floor`
 (storey index) in `engine/world_grid.py`, and for `area.environment` (state) vs
 `area.properties` (authored). One word, one fact:
 
-- `base_temperature` — authored, optional, defaults to 21.0. The world's own
+- `base_temperature` - authored, optional, defaults to 21.0. The world's own
   contribution.
-- `temperature` — simulated. Written by propagation, heat sources, and the
+- `temperature` - simulated. Written by propagation, heat sources, and the
   forecast write.
 
 ## 5. Target model
@@ -140,9 +140,9 @@ Additive, backwards-compatible, no new engine module:
 - **A diurnal + seasonal curve** for the outdoor baseline. The anchor-table
   pattern already exists in `engine/lighting.py:19-36`.
 - **`temperature_mod` as a real delta** (`is not None`, not truthiness).
-- **`wind_direction`** — a compass string alongside the existing magnitude.
+- **`wind_direction`** - a compass string alongside the existing magnitude.
   Purely additive; opens the door to rain shadows later, nothing more.
-- **Accumulating weather** — `snow_depth` (or a boolean) on the area, read by
+- **Accumulating weather** - `snow_depth` (or a boolean) on the area, read by
   movement, `surface` presentation, and forage. Gives `snowy` a consequence.
 - **A WorldPainter `climate` layer** (5 enum values: arctic / temperate /
   arid / tropical / alpine) that the compiler turns into
@@ -151,7 +151,7 @@ Additive, backwards-compatible, no new engine module:
 ## 6. Order of work
 
 Each step is independently shippable, independently testable, and none requires
-migrating an existing world — the default `base_temperature` of 21.0 reproduces
+migrating an existing world - the default `base_temperature` of 21.0 reproduces
 today's numbers exactly.
 
 | # | Step | Area | Unlocks |
@@ -169,11 +169,11 @@ The filed tasks, in order:
 
 | Step | Task |
 |---|---|
-| 1 | task-553 — per-area `base_temperature` + the curve |
-| 2 | task-554 — `season` read in the engine |
-| 3 | task-555 — wind gets a direction |
-| 4 | task-556 — weather reaches the world (snow, movement, forage) |
-| 5 | task-557 — WorldPainter `climate` layer |
+| 1 | task-553 - per-area `base_temperature` + the curve |
+| 2 | task-554 - `season` read in the engine |
+| 3 | task-555 - wind gets a direction |
+| 4 | task-556 - weather reaches the world (snow, movement, forage) |
+| 5 | task-557 - WorldPainter `climate` layer |
 
 ## 7. Open questions
 
@@ -202,7 +202,7 @@ The filed tasks, in order:
 
 That was a **misreading of the intended design, not a decision.** The intent is
 a **seeded, terrain-aware heuristic that generates a dated weather field** over
-a horizon, varying per area, with ordered date/area overrides — the authored
+a horizon, varying per area, with ordered date/area overrides - the authored
 schedule is one *input mode* to that generator, not its ceiling. The generator
 is **task-763** and the view is **task-762**; spatial weather is no longer
 deferred (see §7). The authored modes (`authored`/`deterministic`/`random`/
@@ -210,7 +210,7 @@ deferred (see §7). The authored modes (`authored`/`deterministic`/`random`/
 
 ## 9. Adjacent, not covered here
 
-The biome taxonomy and the environment picker are a separate piece of work —
+The biome taxonomy and the environment picker are a separate piece of work -
 see `docs/design/world-environment-taxonomy.md`. Two dependencies worth noting
 for that work: the 170 categories there are currently **prose**, not data
 (`data/worldpainter/biomes.json` ships 16 biomes + 9 features), and climate fit

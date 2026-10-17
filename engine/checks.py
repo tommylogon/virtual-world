@@ -4,20 +4,20 @@ One place that answers: *what do I roll, what modifies it, and how good is the
 result.* Before this, `roll_dice` lived in the skill system, `skill_check`
 ignored the character's ability scores, saves rolled their own way, and there was
 no advantage/disadvantage, no criticals, no degrees of success and no opposed
-checks — every call site re-invented a piece.
+checks - every call site re-invented a piece.
 
 Contents
 --------
-* **Dice** — `roll_dice`, `parse_dice`, `roll`, `roll_d20` (advantage and
+* **Dice** - `roll_dice`, `parse_dice`, `roll`, `roll_d20` (advantage and
   disadvantage roll two d20 and keep the high/low one; having both cancels).
-* **Modifiers** — `ability_mod` (5e ``(score-10)//2``), `SKILL_ABILITY` (which
+* **Modifiers** - `ability_mod` (5e ``(score-10)//2``), `SKILL_ABILITY` (which
   ability each skill key off), `skill_modifiers` / `save_modifiers` collecting
   the ability modifier, the skill/stat value, trait mods and *condition* effects
   in one auditable breakdown.
-* **Checks** — `resolve` (one d20, a DC, advantage, degrees, a logged
+* **Checks** - `resolve` (one d20, a DC, advantage, degrees, a logged
   breakdown), `opposed` (two resolves compared), and `CheckResult` for callers
   that want the parts rather than a tuple.
-* **Bands** — `DCS` and `dc_band`, so DCs stop being magic numbers at call sites.
+* **Bands** - `DCS` and `dc_band`, so DCs stop being magic numbers at call sites.
 
 The legacy `SkillSystem.skill_check` / `saving_throw` are thin adapters over
 this module and keep their old tuple + message format.
@@ -90,7 +90,7 @@ _DICE_RE = re.compile(r"^\s*(?:(\d*)d(\d+))\s*([+-]\s*\d+)?\s*$", re.IGNORECASE)
 
 def roll_dice(num_dice: int = 1, sides: int = 20, modifier: int = 0,
               rng=None) -> int:
-    """Sum of *num_dice* d*sides* plus *modifier* — the single dice primitive."""
+    """Sum of *num_dice* d*sides* plus *modifier* - the single dice primitive."""
     rng = rng or random
     return sum(rng.randint(1, sides) for _ in range(int(num_dice))) + int(modifier)
 
@@ -244,7 +244,7 @@ def skill_modifiers(player, skill: str):
     """(ability, [Modifier...]) for a skill check.
 
     The ability comes from `SKILL_ABILITY`; the value is the skill's own number
-    plus trait modifiers. Proficiency is not modelled separately — the skill
+    plus trait modifiers. Proficiency is not modelled separately - the skill
     value *is* the trained number.
     """
     ability = SKILL_ABILITY.get(skill)
@@ -275,7 +275,7 @@ def skill_modifiers(player, skill: str):
     except Exception:
         pass
     # Proficiency (task-480): an optional term kept separate from the trained
-    # skill value, so the sheet expresses both. Default 0 — exactly the
+    # skill value, so the sheet expresses both. Default 0 - exactly the
     # pre-task-480 result (task-472 deliberately left it out).
     try:
         from engine import skill_progress as progress_mod
@@ -393,7 +393,7 @@ def resolve(player, *, kind: str, dc=None, advantage: bool = False,
     label = skill or ability or kind
     band = f" ({dc_band(dc)})" if dc is not None else ""
     detail = " + ".join(str(m.value) for m in mods) or "0"
-    # task-479: say WHY the roll was advantaged — a bare [advantage] hides the
+    # task-479: say WHY the roll was advantaged - a bare [advantage] hides the
     # condition that caused it (a blinded archer and a focused one read alike).
     mode = ""
     if rolled.mode == "advantage":
@@ -430,7 +430,7 @@ def opposed(player, defender, *, kind: str, defender_kind: str = None,
             roll_fn=None, defender_roll_fn=None) -> tuple:
     """Compare two checks; ties go to the defender.
 
-    Returns ``(attacker_result, defender_result, attacker_wins)`` — the shape
+    Returns ``(attacker_result, defender_result, attacker_wins)`` - the shape
     theft-vs-Perception and social-vs-Insight need (task-468).
     """
     a = resolve(player, kind=kind, roll_fn=roll_fn)

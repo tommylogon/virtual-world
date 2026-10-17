@@ -4,7 +4,7 @@ Anything a character can legitimately act on counts as reachable:
 
 * carried or equipped,
 * inside a carried/equipped container that isn't closed,
-* anywhere in the current area — directly, placed on/under/beside a
+* anywhere in the current area - directly, placed on/under/beside a
   surface (``get_edges_for_target(area, EDGE_IN)`` expands spatial edges),
 * inside an OPEN container in the area, at any nesting depth,
 
@@ -40,7 +40,7 @@ def _core(s) -> str:
     leading article and a trailing parenthetical qualifier stripped.
 
     Lets "the steamed meal" resolve to "Steamed Meal (Holding Chute)", and
-    "use the warm crunchy taco" to "Warm Crunchy Taco" — so partial / articled /
+    "use the warm crunchy taco" to "Warm Crunchy Taco" - so partial / articled /
     parenthetically-named items match (task: item name resolution).
     """
     s = _norm(s)
@@ -61,7 +61,7 @@ def _props(node) -> dict:
 def _is_hidden(node) -> bool:
     """Hidden per engine convention: current_state == 'hidden'.
 
-    The boolean ``hidden:`` property is deliberately ignored — visibility
+    The boolean ``hidden:`` property is deliberately ignored - visibility
     filters across the engine only honor the state machine."""
     return _norm(_props(node).get("current_state")) == "hidden"
 
@@ -112,7 +112,7 @@ def find_reachable(graph, matcher, player_manager, item_name: str) -> Optional[o
     if not item_name or graph is None:
         return None
 
-    # 0) carried first — preserves existing semantics everywhere.
+    # 0) carried first - preserves existing semantics everywhere.
     getter = getattr(player_manager, "find_item_node", None)
     if callable(getter):
         try:
@@ -193,7 +193,7 @@ def _visible_ordered(graph, player_manager) -> list:
 
 
 def reachable_items(graph, player_manager) -> list:
-    """All visible reachable item nodes — same rule as ``find_reachable``
+    """All visible reachable item nodes - same rule as ``find_reachable``
     without a name filter (carried first, then the area subtree). Used by
     bare eat/drink to auto-pick something consumable."""
     if graph is None:

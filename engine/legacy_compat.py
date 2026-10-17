@@ -36,7 +36,7 @@ class LegacyCompat:
     def areas(self) -> Dict[str, Area]:
         """Build a dict of Area objects from graph nodes.
 
-        This recreates the dict every time it is accessed — do not
+        This recreates the dict every time it is accessed - do not
         rely on object identity.
         """
         result = {}

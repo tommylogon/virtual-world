@@ -5,11 +5,11 @@ simulation: an authored (or state-machine) schedule that `tick_turn()`
 applies each turn as the environmental baseline for exterior areas.
 Forecast modes:
 
-  authored       — explicit entries at offsets in a repeating period
+  authored       - explicit entries at offsets in a repeating period
                    (hourly = 1 day, weekly = 7 days, yearly = 365 days)
-  deterministic  — weighted transition table, no randomness
-  random         — same table, seeded `random`
-  hybrid         — authored base temps/light + state-machine weather on top
+  deterministic  - weighted transition table, no randomness
+  random         - same table, seeded `random`
+  hybrid         - authored base temps/light + state-machine weather on top
 
 A GM/trigger `forecast_override` supersedes the schedule and auto-reverts
 after `duration_ticks`. Moon phases follow a deterministic 30-day cycle
@@ -26,7 +26,7 @@ from typing import Any, Optional
 # guess-time DC, the light multiplier and the sky prose are loaded from
 # ``data/library/weather/*.json`` by :mod:`engine.weather_types`. They are
 # re-exported here so existing imports (``from engine.weather_forecast import
-# WEATHER_STATES`` and friends) keep working — this module is the forecast
+# WEATHER_STATES`` and friends) keep working - this module is the forecast
 # *engine*; the vocabulary's home is the library.
 from engine.weather_types import (  # noqa: F401  (re-export)
     WEATHER_ALIASES, WEATHER_LIGHT_MULT, WEATHER_PROSE, WEATHER_STATES,
@@ -43,7 +43,7 @@ HUMIDITY_STATES = ["dry", "humid", "wet", "flooding"]
 
 #: Wind directions (task-555): 8 points, **the same words** as the compiler's
 #: ``engine.world_compile._COMPASS_BY_SIGN`` so the project keeps one compass
-#: vocabulary, not two. Stored **alongside** the magnitude, not fused into it —
+#: vocabulary, not two. Stored **alongside** the magnitude, not fused into it -
 #: ``wind`` is how hard, ``wind_direction`` is **where the wind blows FROM**
 #: (the meteorological convention: a "north wind" is a cold wind out of the
 #: north). Nothing reads it for an effect yet; it is the additive hook the
@@ -219,13 +219,13 @@ def snow_depth_prose(depth_cm: Any) -> str:
 OUTDOOR_BASE_C = 21.0
 
 #: Outdoor temperature across the day, as **deltas from the base** in °C
-#: (task-553). Same shape as ``lighting._OUTDOOR_ANCHORS`` — ``(hour, delta)``
-#: pairs, linearly interpolated — so the two curves are read the same way and a
+#: (task-553). Same shape as ``lighting._OUTDOOR_ANCHORS`` - ``(hour, delta)``
+#: pairs, linearly interpolated - so the two curves are read the same way and a
 #: new hour is added in one place.
 #:
 #: Deltas rather than absolute values on purpose: the *shape* of a day is the same
 #: whether the base is 21 °C or 5 °C, and a table of absolutes would have to be
-#: rewritten per climate. The numbers are deliberately shallow — a night a few
+#: rewritten per climate. The numbers are deliberately shallow - a night a few
 #: degrees under, an afternoon a few over. A real curve belongs to the forecast
 #: (``temperature_mod``) and to the season, both of which are authored.
 TEMP_CURVE_ANCHORS = [
@@ -234,7 +234,7 @@ TEMP_CURVE_ANCHORS = [
 ]
 
 #: Season → the °C the season pulls the daily curve by (task-554). Signed, and
-#: deliberately not a "temperature" — the season is a *bias on the shape*, so a
+#: deliberately not a "temperature" - the season is a *bias on the shape*, so a
 #: tropical base with a winter bias is still warm and a temperate base in winter
 #: is properly cold. Keyed by the canonical season names the engine resolves.
 SEASON_TEMP_BIAS = {
@@ -250,8 +250,8 @@ SEASONS = ("spring", "summer", "autumn", "winter")
 #: Month → season, 1-12 (task-554).
 #:
 #: **This table used to exist twice in the frontend and nowhere in the engine.**
-#: `static/js/sky-scape.js` had two copies of it — one in `SEASON_BY_MONTH` and
-#: one inline in the iframe `postMessage` — and the backend read a season nowhere,
+#: `static/js/sky-scape.js` had two copies of it - one in `SEASON_BY_MONTH` and
+#: one inline in the iframe `postMessage` - and the backend read a season nowhere,
 #: so `"season": "winter"` in a save was a value no code path ever looked at. The
 #: engine is the only place a month can be read now, and the frontend asks it,
 #: because two copies of a calendar boundary can disagree and there is nothing to
@@ -296,7 +296,7 @@ def resolve_season(world_state: Any) -> str:
     statement about its world and should not have it silently overruled by whatever
     month the clock happens to be on. With no authored season, the clock decides,
     so a world that plays across a season boundary **changes season without a
-    save or a reload** — the whole point of moving this out of the sky widget.
+    save or a reload** - the whole point of moving this out of the sky widget.
 
     A recognised season name is returned as-is (case-insensitively); an
     unrecognised one falls through to the clock rather than becoming a state the
@@ -434,7 +434,7 @@ TERRAIN_WEATHER_BIAS = {
 #: coarse `climate` enum (`arctic`/`alpine`/`temperate`/`arid`/`tropical`) onto an
 #: area and its `base_temperature`; the generator reads that the way it reads a
 #: biome tag, one band coarser, so a painted arctic area produces snow where an
-#: adjacent temperate one does not — the same fact, read for weather.
+#: adjacent temperate one does not - the same fact, read for weather.
 CLIMATE_WEATHER_BIAS = {
     "arctic": {"snowy": 3, "cold_snap": 3, "blizzard": 2, "heatwave": -4, "clear": 1},
     "alpine": {"snowy": 3, "blizzard": 2, "cold_snap": 2, "cloudy": 1, "heatwave": -3},
@@ -447,7 +447,7 @@ CLIMATE_WEATHER_BIAS = {
 #: candidate with at least this weight, so the tails stay reachable; season and
 #: terrain can raise it, but never past :data:`EXTREME_CAP`, so the extraordinary
 #: stays extraordinary. The *set* of extremes is library data (task-772), not a
-#: list here — a world adds a blizzard or an acid rain and it becomes reachable.
+#: list here - a world adds a blizzard or an acid rain and it becomes reachable.
 EXTREME_BASE_WEIGHT = 1.0
 EXTREME_CAP = 6.0
 
@@ -511,7 +511,7 @@ def conditioned_weights(current: Any, table: Any = None, season: Any = None,
         if weather_state_kind(state) == "extreme":
             # Tail tier: a small base on top of the biases, capped. A *negative*
             # season/terrain bias can push it back to zero, so a summer blizzard
-            # or a desert thunderstorm simply never rolls — the cap keeps the
+            # or a desert thunderstorm simply never rolls - the cap keeps the
             # extraordinary extraordinary, and the sign keeps it sensible.
             weights[state] = min(EXTREME_CAP, max(0.0, EXTREME_BASE_WEIGHT + weight))
         else:
@@ -678,7 +678,7 @@ class ForecastSchedule:
         # `deterministic` must be reproducible *and* able to change state: with
         # no authored seed it uses 0, so the same world always rolls the same
         # sequence. (The old `deterministic` picked the first non-zero weight,
-        # which froze every world at `clear` — bug-537.)
+        # which froze every world at `clear` - bug-537.)
         seed = self.seed
         if seed is None and self.mode == "deterministic":
             seed = 0
@@ -710,7 +710,7 @@ class ForecastSchedule:
         if not weights or not isinstance(weights, dict):
             return self.current_state
         # deterministic and random share the weighted pick; the difference is the
-        # seed — `deterministic` is always seeded (see __init__), so its sequence
+        # seed - `deterministic` is always seeded (see __init__), so its sequence
         # is reproducible, while `random` with no seed is not.
         states = list(weights.keys())
         counts = [max(0, int(weights[s])) for s in states]
@@ -747,8 +747,8 @@ class ForecastSchedule:
 
         State-machine modes synthesize the weather word from ``current_state``.
         The per-state wind/humidity/temperature a state implies (:data:`WEATHER_TUNING`)
-        is applied at the *write* point instead — ``VirtualWorld._apply_forecast_env``
-        — because the generated field (task-763) varies weather per area, so the
+        is applied at the *write* point instead - ``VirtualWorld._apply_forecast_env``
+        - because the generated field (task-763) varies weather per area, so the
         tuning has to be per area too, and a single global table here would
         override it.
         """

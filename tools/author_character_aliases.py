@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""author_character_aliases.py — restore the authored ``character_*`` node.
+"""author_character_aliases.py - restore the authored ``character_*`` node.
 
 task-408's dedupe is **one character node per person after load**, not one node
 in the file. ``engine/character_identity.collapse_character_identity`` merges an
@@ -10,7 +10,7 @@ graph alias. That is what ``tests/test_character_identity.py`` asserts.
 A file collapsed *on disk* (``tools/migrate_character_identity.py --write``) has
 the authored nodes removed, so the alias is gone and the identity tests fail
 even though the graph is otherwise clean. This tool puts the authored node back
-from the ``players`` block — which is the single place the prose lives — so the
+from the ``players`` block - which is the single place the prose lives - so the
 file carries identity, not just content.
 
 Idempotent and dry-run by default.

@@ -187,7 +187,7 @@ def test_rename_scope_changes_the_display_name_only():
     m = world_scopes.normalise_manifest(MANIFEST)
     rec = world_scopes.rename_scope(m, "apartment_3b", "Apartment 3C")
     assert rec["name"] == "Apartment 3C"
-    assert "apartment_3b" in m          # the id — and every reference — stays
+    assert "apartment_3b" in m          # the id - and every reference - stays
     with pytest.raises(ValueError):
         world_scopes.rename_scope(m, "ghost", "x")
     with pytest.raises(ValueError):
@@ -381,7 +381,7 @@ def test_promote_makes_the_areas_a_scope_of_the_parent():
     assert record["parent_id"] == "world" and "eldenford_interior" in m["world"]["children"]
     assert record["entry_area_id"] == "area_eldenford_village"
     assert record["entry_area_name"] == "Eldenford"
-    # Authored, not compiled — so Generate and Ungenerate both refuse it.
+    # Authored, not compiled - so Generate and Ungenerate both refuse it.
     assert record["paint_policy"] == "baked"
     # Membership moves at both ends, and the old scope lets go of the cell.
     assert g.get_node("area_eldenford_village").properties["world_scope_id"] == "eldenford_interior"

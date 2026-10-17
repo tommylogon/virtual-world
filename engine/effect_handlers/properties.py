@@ -8,7 +8,7 @@ from vital_rates import tick_minutes
 def handle_set_parameter(self, params, context, item_node=None, target_item_node=None, game_state=None):
     """Set a key in a target node's ``parameters`` dict to an explicit value.
 
-    Targets via node_id / self / target_tag fan-out (any node type — item,
+    Targets via node_id / self / target_tag fan-out (any node type - item,
     way, area, character). Read back with ``{param:<key>}`` in descriptions.
     game_state: unused.
     """
@@ -113,7 +113,7 @@ def handle_rename(self, params, context, item_node=None, game_state=None):
     """Rename a node (used for the "unknown name" discovery flow).
 
     Targets the triggering item by default; pass ``node_id`` (or ``"self"``)
-    to target a different node. The display name lives on ``Node.name`` —
+    to target a different node. The display name lives on ``Node.name`` -
     set there so examine/matching/take all see the new name. ``properties``
     is left untouched except mirroring into ``properties["name"]`` for
     any legacy readers.

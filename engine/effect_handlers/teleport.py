@@ -28,7 +28,7 @@ def handle_unlock_way(
 ):
     """Set a door node to closed state (unlocking doesn't open it).
 
-    ``way_id`` may be an explicit way id, ``"target"``, or blank — the
+    ``way_id`` may be an explicit way id, ``"target"``, or blank - the
     latter two unlock the on_use_on target (the door the item was used
     on), resolved by the trigger system.
 

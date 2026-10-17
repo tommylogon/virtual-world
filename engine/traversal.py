@@ -6,7 +6,7 @@ drink, sleep, wash) already does. Risky ground rolls:
 
 * a way that needs a verb (``crawl`` / ``climb`` / ``jump``) is used with that
   verb instead of stalling on "you need to climb through the north";
-* entering a hazard-tagged area is a skill check — Survival for wild country,
+* entering a hazard-tagged area is a skill check - Survival for wild country,
   Athletics for climb/swim ground, Acrobatics for balance and squeeze, Stealth
   for watched ground;
 * a failure costs the turn (never more), may leave **one** minor condition, and
@@ -47,7 +47,7 @@ HAZARD_SKILLS = {
 #: Soak action -> the skill that carries it, per task-475.
 #: ``SOAK_ACTIONS`` is the full mapping; the ones the soak policy can reach
 #: today are the traversal verbs (`climb`/`jump`/`crawl`) and ground hazards.
-#: The rest are the mapping for actions that need a policy hook first —
+#: The rest are the mapping for actions that need a policy hook first -
 #: calm/ride (task-476 roles), treat/diagnose, read_mood and identify_plant
 #: (task-478 tables), investigate (task-468 agendas).
 SOAK_ACTIONS = {
@@ -82,7 +82,7 @@ def is_routine(action) -> bool:
 #: The DC a hazardous crossing is made against.
 HAZARD_DC = 12
 
-#: The minor condition a failure can leave behind — never anything that spirals.
+#: The minor condition a failure can leave behind - never anything that spirals.
 HAZARD_CONDITION = {
     "river": "wet", "rapids": "wet", "ford": "wet", "flooded": "wet",
     "swamp": "wet", "marsh": "wet", "bog": "wet",
@@ -90,11 +90,11 @@ HAZARD_CONDITION = {
     "rubble": "injured", "debris": "injured", "unsteady": "injured",
 }
 
-#: Way tags that describe the **crossing itself** — water, height, footing — as
+#: Way tags that describe the **crossing itself** - water, height, footing - as
 #: opposed to the ground it runs through. Read off the *way*, so the danger is
 #: where the danger is: a ford is checked as you wade it, not only when you
 #: arrive. The ambient ground tags (`forest`, `swamp`, `snow`) are deliberately
-#: **not** here — the destination area already answers for those, and a path
+#: **not** here - the destination area already answers for those, and a path
 #: through woods must not turn every step into a Survival roll.
 CROSSING_HAZARD_SKILLS = {
     "river": "Athletics", "rapids": "Athletics", "ford": "Athletics",
@@ -201,7 +201,7 @@ def way_hazard(gs, way_id):
 
     The way is where a crossing happens, so a `river`/`cliff`/`flooded` tag on
     it is checked at the hop, not only on arrival. A `bridge` on the same way
-    cancels it — a built crossing is answered, not rolled. Deterministic: the
+    cancels it - a built crossing is answered, not rolled. Deterministic: the
     first matching tag in sorted order.
     """
     tags = _way_tags(gs, way_id)
@@ -277,7 +277,7 @@ def hop(gs, player, direction, *, dest: str = "", kind=None,
         result.blocked = True
         result.detail = str(e) or "the way is blocked"
         if result.condition:
-            # A blocked way is not a hazard injury — the check never happened.
+            # A blocked way is not a hazard injury - the check never happened.
             result.condition = ""
     finally:
         gs.active_player = old_active

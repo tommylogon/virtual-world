@@ -1,22 +1,22 @@
 """Library lint: scan data/library/ JSON files for data-quality problems.
 
 Checks (errors exit 1):
-  1. dead_interests   — character interest_tags matching zero item tags
-  2. missing_slots    — items tagged clothing/armor without equip_slots
-  3. tag_case_drift   — same tag in multiple casings within a registry
-  5. broken_contents  — item contents referencing missing library ids
-  7. unauthored_consumables — edible/drinkable items whose consume trigger
+  1. dead_interests   - character interest_tags matching zero item tags
+  2. missing_slots    - items tagged clothing/armor without equip_slots
+  3. tag_case_drift   - same tag in multiple casings within a registry
+  5. broken_contents  - item contents referencing missing library ids
+  7. unauthored_consumables - edible/drinkable items whose consume trigger
      restores nothing (task-506)
-  8. resource_pools   — pooled-resource nodes authored so they cannot be
+  8. resource_pools   - pooled-resource nodes authored so they cannot be
      harvested correctly (task-504)
 Warnings (exit 0):
-  4. singleton_tags   — item tags appearing on exactly one item
-  6. area_tag_gaps    — library areas with no tags
-  9. dead_fears       — character fear_tags that no item, area, character or
+  4. singleton_tags   - item tags appearing on exactly one item
+  6. area_tag_gaps    - library areas with no tags
+  9. dead_fears       - character fear_tags that no item, area, character or
      trait key carries, so engine/fear.py can never match them
- 10. biome_coverage   — a biome's resource_distribution entry whose tags match
+ 10. biome_coverage   - a biome's resource_distribution entry whose tags match
       no library item, so a search there would turn up nothing (task-573)
- 11. stray_library_dirs — a data/library/ subdirectory that is not a registry
+ 11. stray_library_dirs - a data/library/ subdirectory that is not a registry
       type, so a runtime save parked there is invisible (not read, not reported)
       rather than mistaken for authored content (task-645)
 
@@ -51,7 +51,7 @@ WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_chars
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
-#: *near* food rather than being it — a barrel, a platter, a kettle. They are
+#: *near* food rather than being it - a barrel, a platter, a kettle. They are
 #: fixtures, and the task-506 authoring pass un-tags them instead of authoring a
 #: nonsense `on_eat`. Listed here so the lint does not demand the impossible and
 #: so a new one of these is a deliberate, visible line rather than a silent tag.
@@ -87,7 +87,7 @@ def check_stray_library_dirs(lib_dir, report):
     """A ``data/library/`` subdirectory that is not a registry type (task-645).
 
     ``data/library/`` is the authored tree, but it can accumulate a directory
-    that is not a registry — ``rooms/`` held 526 KB of stale *save state* for a
+    that is not a registry - ``rooms/`` held 526 KB of stale *save state* for a
     while. Nothing reads it, so nothing reports it: the only signal it ever
     produced was a 400 on ``GET /api/library/rooms``. This makes the stray
     directory visible (a warning, exit 0) so the set cannot grow unnoticed, and
@@ -185,13 +185,13 @@ def check_dead_fears(items, characters, areas, report):
     every trait key.
 
     A tag outside that set cannot fire. The character is simply never
-    frightened and nothing says why — bug-552's failure mode ("`fear_tags:
+    frightened and nothing says why - bug-552's failure mode ("`fear_tags:
     ["goblin"]` did nothing") arriving through a different door, and the one the
     inspector's "Generate from Personality" can now walk through, since it is
     deliberately allowed to invent ids.
 
     **A warning, not an error**, unlike its sibling `dead_interests`. A fear for
-    something that does not exist here yet — "afraid of dragons" — is a
+    something that does not exist here yet - "afraid of dragons" - is a
     legitimate authoring intent that the generator is explicitly told it may
     produce. Name it so an author can confirm it was deliberate; do not fail the
     lint over it.
@@ -246,7 +246,7 @@ def _case_drift(entries, get_tags, label, report):
     for low, variants in sorted(casing_map.items()):
         if len(variants) > 1:
             detail = "; ".join(f"'{v}' on {label}/{', '.join(ids)}" for v, ids in sorted(variants.items()))
-            report.error("tag_case_drift", f"{low}: mixed casing — {detail}")
+            report.error("tag_case_drift", f"{low}: mixed casing - {detail}")
 
 
 def check_broken_contents(items, report):
@@ -270,7 +270,7 @@ def check_unauthored_consumables(items, report):
 
     `ConsumeActionsMixin._is_valid_for` accepts a consumable by *tag alone*, and
     `BackgroundSimulation._consume_here` used to fall back to a hardcoded
-    `MEAL_RESTORE`/`DRINK_RESTORE` when an item authored nothing — so a tag was
+    `MEAL_RESTORE`/`DRINK_RESTORE` when an item authored nothing - so a tag was
     enough to make an item edible and a hardcoded number was enough to make it
     nourishing. That fallback is the thing being retired, and this check is what
     stops it creeping back: an item that claims to be food and restores nothing
@@ -279,13 +279,13 @@ def check_unauthored_consumables(items, report):
     Two shapes are accepted, because both exist in the data: the modern
     `effects: [{type, params}]` list and the older flat
     `effect_type`/`effect_params` pair. `trigger_type` may be a string **or a
-    list** (`apple.json` has `["on_eat"]`) — missing that is how 64 items came to
+    list** (`apple.json` has `["on_eat"]`) - missing that is how 64 items came to
     look authored when they were not.
 
     Hunger and Thirst are *drives*: they fill upward, so relief is a **negative**
     `adjust_vital` amount. Checking the sign the other way round reports every
     correctly-authored item as broken. The **stat must match the drive being
-    relieved** — an `on_eat` whose only `adjust_vital` is `Sanity -10` is not a
+    relieved** - an `on_eat` whose only `adjust_vital` is `Sanity -10` is not a
     meal, and accepting it would leave the item starving with a green lint.
     """
     drive_for = {"on_eat": "hunger", "on_drink": "thirst"}
@@ -379,7 +379,7 @@ def check_tag_id_charset(registries, report):
 
 
 def check_singleton_tags(items, report):
-    """Item tags appearing on exactly one item — typo or under-connected."""
+    """Item tags appearing on exactly one item - typo or under-connected."""
     counts = {}
     owner = {}
     for item_id, item in items.items():
@@ -413,7 +413,7 @@ def check_resource_pools(items, report):
                 report.error("resource_pools", f"items/{item_id}: harvest spec names no item")
             elif yield_id == item_id:
                 report.error("resource_pools",
-                             f"items/{item_id}: harvest yields itself — that is an infinite pool")
+                             f"items/{item_id}: harvest yields itself - that is an infinite pool")
             elif yield_id not in items:
                 report.error("resource_pools",
                              f"items/{item_id}: harvest yields '{yield_id}', which is not in the library")
@@ -426,12 +426,12 @@ def check_resource_pools(items, report):
                                  f"items/{item_id}: harvest size must be a positive whole number")
             if "quantity" not in item:
                 report.warn("resource_pools",
-                            f"items/{item_id}: harvest spec but no quantity — it will pool exactly one")
+                            f"items/{item_id}: harvest spec but no quantity - it will pool exactly one")
             continue
 
         if quantity is not None and not isinstance(harvest, dict):
             report.error("resource_pools",
-                         f"items/{item_id}: quantity {quantity!r} with no harvest spec — "
+                         f"items/{item_id}: quantity {quantity!r} with no harvest spec - "
                          f"it would be takeable whole")
         elif quantity is not None:
             report.error("resource_pools",
@@ -441,7 +441,7 @@ def check_resource_pools(items, report):
 def check_duplicate_area_names(areas, report):
     """Library areas sharing a display name (task-439).
 
-    A duplicate name is legal — ids are the identity — but a name-only lookup
+    A duplicate name is legal - ids are the identity - but a name-only lookup
     then resolves by rule rather than by intent, so the author should confirm it
     was deliberate. Seeds the duplicate-name diagnostic the library needs before
     a decomposed world ships many "Hollow"s.
@@ -574,7 +574,7 @@ def main():
         "biomes": load_biomes(lib_dir),
         "lib_dir": lib_dir,
     }
-    print(f"linting {lib_dir} — items={len(ctx['items'])} "
+    print(f"linting {lib_dir} - items={len(ctx['items'])} "
           f"characters={len(ctx['characters'])} areas={len(ctx['areas'])}")
 
     report = Report()

@@ -135,7 +135,7 @@ def handle_clear_area_status(self, params, context, item_node=None, game_state=N
 
 
 def handle_set_wet(self, params, context, item_node=None, game_state=None):
-    """task-231: set/clear the ``wet`` flag on an item — or on everything the
+    """task-231: set/clear the ``wet`` flag on an item - or on everything the
     actor has equipped when no node is named (rain, wading, flooding...)."""
     if game_state is None:
         return []
@@ -179,7 +179,7 @@ def handle_set_wet(self, params, context, item_node=None, game_state=None):
 def _active_player_obj(game_state):
     """The active character as a ``Player``.
 
-    ``world.active_player`` is a **name**, not an object — so the old code in this
+    ``world.active_player`` is a **name**, not an object - so the old code in this
     branch passed a string to a helper, which meant the "soak everything the
     active character has equipped" path (rain, wading, flooding) silently targeted
     nothing. Resolution order is the object first, because
@@ -247,7 +247,7 @@ def _regenerate_wet_descriptions(game_state, targets) -> None:
 
 #: The `current_state` a soaked garment carries. task-215 re-scoped layer
 #: visibility to the item's own description rather than to numeric `opacity`, and
-#: named `current_state` as one of the three things to keep — so this is how a
+#: named `current_state` as one of the three things to keep - so this is how a
 #: wet garment *reads* rather than a number the engine multiplies.
 WET_CURRENT_STATE = "soaked"
 
@@ -288,7 +288,7 @@ def _mark_wet_current_state(nodes, wet: bool) -> None:
     Two rules that only a test found:
 
     * **Soaking does not overwrite a state the author set.** A coat that was
-      already ``"torn"`` reads torn, not soaked — and ``current_state`` is a
+      already ``"torn"`` reads torn, not soaked - and ``current_state`` is a
       single field, so there is no room for both. Wetness still shows up, because
       the ``wet`` property is what the insulation penalty reads.
     * **Drying removes only what a soak wrote.** Removing the field

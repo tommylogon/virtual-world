@@ -46,7 +46,7 @@ _BASE_VERBS = frozenset({
 
 #: How a heard line names its delivery. ``speech_level`` is stamped on every
 #: hearing entry by ``speech.py``, so the ``listen`` report can state how a line
-#: was delivered instead of flattening every level to "said" — which told the
+#: was delivered instead of flattening every level to "said" - which told the
 #: model a scream was small talk. Mirrors ``PromptBuilder.speechVerb`` on the
 #: client; the turn-event description keeps its literal ``said:`` marker, which
 #: is a machine-parsed format rather than prose.
@@ -187,7 +187,7 @@ class NarrationSystem:
         name_lower = actor_name.lower()
         if clean.lower().startswith(name_lower):
             clean = clean[len(actor_name):].strip().lstrip(',.:; ')
-        # The emote is printed as "{actor_name} {clean}." — force the phrase
+        # The emote is printed as "{actor_name} {clean}." - force the phrase
         # into the third person (with the actor's pronoun set from identity
         # tags: she/her, he/him, neutral they/them) so "hugs yourself"/
         # "hug myself" never survive the name stamp.
@@ -212,7 +212,7 @@ class NarrationSystem:
         speech_level: str = "normal",
         whisper_target: Optional[str] = None,
     ):
-        """@deprecated delegate — see engine/speech.py SpeechBroadcaster."""
+        """@deprecated delegate - see engine/speech.py SpeechBroadcaster."""
         return self.speech.broadcast_speech(
             speaker_name, speech_text, area_name, speech_level, whisper_target
         )
@@ -261,7 +261,7 @@ class NarrationSystem:
         player_obj = self.player_manager.get_active_player_obj()
         is_blind = bool(player_obj and player_obj.has_condition("blind"))
 
-        # Characters with dark vision / ghosts don't need to fumble — unless blind,
+        # Characters with dark vision / ghosts don't need to fumble - unless blind,
         # for whom the world is pitch black regardless of light or dark vision.
         if not is_blind and self.lighting.can_see_in_dark(self.player_manager, active_player):
             player_check = self.player_manager.get_player(active_player)
@@ -278,7 +278,7 @@ class NarrationSystem:
             area_id, current_area_obj.environment
         )
         if not is_blind and light > 40:
-            return "You don't need to fumble around — you can see fine."
+            return "You don't need to fumble around - you can see fine."
 
         self.tick_manager.apply_action(
             "look", {"time": 2, "energy": 3}, player=player_obj
@@ -288,7 +288,7 @@ class NarrationSystem:
         roll2 = self.skills.roll_dice(1, 20, 0)
         roll = min(roll1, roll2)
         perception_mod = player_obj.skills.get("Perception", 0)
-        # A guiding cane (sensory_aid) lifts the roll — easier to find the way.
+        # A guiding cane (sensory_aid) lifts the roll - easier to find the way.
         sensory_bonus = self._sensory_aid_bonus(active_player)
         total = roll + perception_mod + sensory_bonus
 
@@ -326,7 +326,7 @@ class NarrationSystem:
                 self.logging_events.add_log_entry(
                     f"[Discovery] You found a hidden exit: {direction}!"
                 )
-                return f"[You fumble through the darkness, feeling along the cold walls. Your hand touches something — a door! You think it might be: {direction}]"
+                return f"[You fumble through the darkness, feeling along the cold walls. Your hand touches something - a door! You think it might be: {direction}]"
             elif visible_items:
                 item_name = visible_items[0]
                 return f"[You stumble around in the dark and bump into something solid. It might be: {item_name}]"
@@ -512,7 +512,7 @@ class NarrationSystem:
         narration_text:
             The narrative text to inject.
         source:
-            ``"player"`` or ``"ai"`` — controls the label prefix.
+            ``"player"`` or ``"ai"`` - controls the label prefix.
         area_name:
             Area where the narration occurs.  Defaults to current area.
         actor_name:

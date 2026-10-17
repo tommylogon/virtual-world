@@ -1,6 +1,6 @@
 """Name masking for stranger descriptions (task-339 companion).
 
-Design contract: a stranger's first sentence is an *appearance* handle —
+Design contract: a stranger's first sentence is an *appearance* handle -
 but character descriptions routinely BEGIN with the character's name
 ("miki doki, mid-twenties american..."), so slicing the first sentence
 still leaks the name. When the viewer doesn't know the name, scrub the

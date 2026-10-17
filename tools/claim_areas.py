@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""claim_areas.py — declare who holds which areas, and who belongs to whom.
+"""claim_areas.py - declare who holds which areas, and who belongs to whom.
 
 task-550: an area with a need-resource and no claimant is a shared resource
 that everybody converges on, which is how 4 of 5 humans ended up living in the
@@ -43,7 +43,7 @@ DEFAULT_TARGET = "data/scenarios/kraktooth_goblin_camp.json"
 #: The Kraktooth camp. `goblin` holds the 21 areas tagged `goblin_camp`;
 #: `human` holds Eldenford, the road and the farm the humans actually live on
 #: or work. The Murk Lake, the Raven River and the wilds are deliberately NOT
-#: claimed: they are commons, and that is the interesting case — a goblin can
+#: claimed: they are commons, and that is the interesting case - a goblin can
 #: drink from the Raven River without anybody minding, and nobody has to author
 #: that anywhere.
 CLAIMS = {

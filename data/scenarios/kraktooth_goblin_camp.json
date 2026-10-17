@@ -35,7 +35,7 @@
     "area_raven_river": {
       "Jake Halloway": 6
     },
-    "area_raven_river_—_farms_reach": {},
+    "area_raven_river_-_farms_reach": {},
     "area_road_(world_10,4)": {},
     "area_road_(world_11,3)": {},
     "area_road_(world_11,4)": {},
@@ -13845,7 +13845,7 @@
           "effects": [
             {
               "params": {
-                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+                "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
               },
               "type": "message"
             }
@@ -14627,7 +14627,7 @@
           "effects": [
             {
               "params": {
-                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+                "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
               },
               "type": "message"
             }
@@ -16868,7 +16868,7 @@
           "effects": [
             {
               "params": {
-                "message": "stiff, dark, and foul. the fabric crackles when it moves — dried into its current shape by years of the same stains."
+                "message": "stiff, dark, and foul. the fabric crackles when it moves - dried into its current shape by years of the same stains."
               },
               "type": "message"
             }
@@ -16933,7 +16933,7 @@
             {
               "params": {
                 "fail_message": "",
-                "success_message": "you open the stove door. inside, you find a charred fragment of a photograph. it shows a woman in a dark dress — her face has been burned away. on the back, in shaky handwriting: 'forgive me, eleanor. i couldn't protect you.'"
+                "success_message": "you open the stove door. inside, you find a charred fragment of a photograph. it shows a woman in a dark dress - her face has been burned away. on the back, in shaky handwriting: 'forgive me, eleanor. i couldn't protect you.'"
               },
               "type": "message"
             }
@@ -59251,7 +59251,7 @@
           "effects": [
             {
               "params": {
-                "message": "The barbs are angled to make withdrawal agonizing — once it bites, it holds. The shaft is wrapped in torn cloth and grease, the grip stained dark with old blood and sweat. Whoever crafted this knew exactly how to make a wound tear wider on the pull out. A crude but effective design — very Kraktooth."
+                "message": "The barbs are angled to make withdrawal agonizing - once it bites, it holds. The shaft is wrapped in torn cloth and grease, the grip stained dark with old blood and sweat. Whoever crafted this knew exactly how to make a wound tear wider on the pull out. A crude but effective design - very Kraktooth."
               },
               "type": "message"
             }
@@ -85565,7 +85565,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A crude arrow with a barbed, splintered head — designed to tear flesh on removal. The shaft is crooked, the fletching ragged.",
+          "description": "A crude arrow with a barbed, splintered head - designed to tear flesh on removal. The shaft is crooked, the fletching ragged.",
           "tags": [
             "weapon",
             "ranged",
@@ -85632,7 +85632,7 @@
           ],
           "affinity": [],
           "current_state": "normal",
-          "description": "a large oak barrel. it smells strongly of vinegar — whatever wine was in here has long since turned. but the barrel itself is solid, and the iron bands are intact.",
+          "description": "a large oak barrel. it smells strongly of vinegar - whatever wine was in here has long since turned. but the barrel itself is solid, and the iron bands are intact.",
           "equip_slots": [],
           "heating_rate": null,
           "image": null,
@@ -85727,7 +85727,7 @@
           ],
           "affinity": [],
           "current_state": "normal",
-          "description": "a grand four-poster bed with moth-eaten velvet curtains. the mattress is surprisingly comfortable despite its age — the feathers have settled into a perfect contour.",
+          "description": "a grand four-poster bed with moth-eaten velvet curtains. the mattress is surprisingly comfortable despite its age - the feathers have settled into a perfect contour.",
           "equip_slots": [],
           "heating_rate": null,
           "image": null,
@@ -86237,7 +86237,7 @@
             "restricted"
           ],
           "triggers": {
-            "examine": "This is Thrazz's platform. The fur is old but clean — Thrazz demands respect even in sleep. A small carved throne sits beside the platform."
+            "examine": "This is Thrazz's platform. The fur is old but clean - Thrazz demands respect even in sleep. A small carved throne sits beside the platform."
           },
           "x": -9441.4,
           "y": 1364.9
@@ -86370,7 +86370,7 @@
             "use"
           ],
           "current_state": "normal",
-          "description": "A massive pile of furs and blankets in the corner — guest sleeping space.",
+          "description": "A massive pile of furs and blankets in the corner - guest sleeping space.",
           "tags": [
             "bed",
             "sleep",
@@ -86627,7 +86627,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A heavy stone or log balanced on a weak trigger stick. Simple, silent, and lethal — a goblin version of the classic deadfall.",
+          "description": "A heavy stone or log balanced on a weak trigger stick. Simple, silent, and lethal - a goblin version of the classic deadfall.",
           "tags": [
             "trap",
             "goblin",
@@ -104118,7 +104118,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Zikka's bunk. The metal scraps are arranged like armor — Zikka never fully unarmors. A training tally is scratched into the stone frame."
+            "examine": "This is Zikka's bunk. The metal scraps are arranged like armor - Zikka never fully unarmors. A training tally is scratched into the stone frame."
           },
           "x": -8502,
           "y": 1552.4
@@ -104272,7 +104272,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A goose-shaft arrow with a barbed, splintered metal head. The barbs angle backward — once embedded, pulling it out tears flesh and worsens the wound. A nightmare to remove.",
+          "description": "A goose-shaft arrow with a barbed, splintered metal head. The barbs angle backward - once embedded, pulling it out tears flesh and worsens the wound. A nightmare to remove.",
           "tags": [
             "weapon",
             "ranged",
@@ -104305,7 +104305,7 @@
           "current_state": "normal",
           "damage": "1d6",
           "damage_type": "slashing",
-          "description": "A spear shaft of gnarled wood tipped with a jagged, barbed metal head. The barbs are angled to make withdrawal agonizing — once it bites, it holds. The shaft is wrapped in torn cloth and grease.",
+          "description": "A spear shaft of gnarled wood tipped with a jagged, barbed metal head. The barbs are angled to make withdrawal agonizing - once it bites, it holds. The shaft is wrapped in torn cloth and grease.",
           "equip_slots": [
             "hands"
           ],
@@ -104338,7 +104338,7 @@
             "unequip"
           ],
           "current_state": "normal",
-          "description": "A heavy club of carved bone and wood, studded with scavenged metal spikes. Crude but brutal — built to break bones and shatter shields.",
+          "description": "A heavy club of carved bone and wood, studded with scavenged metal spikes. Crude but brutal - built to break bones and shatter shields.",
           "tags": [
             "weapon",
             "melee",
@@ -104395,7 +104395,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A short, thick-bladed dagger with a hooked tip and a serrated spine. The grip is wrapped in bone and rawhide. Made for close work — hooking limbs, gouging, and pulling.",
+          "description": "A short, thick-bladed dagger with a hooked tip and a serrated spine. The grip is wrapped in bone and rawhide. Made for close work - hooking limbs, gouging, and pulling.",
           "tags": [
             "weapon",
             "melee",
@@ -104481,7 +104481,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A crude, wide blade hammered from scrap metal and edged with jagged, uneven teeth. The handle is wrapped in cracked leather and cord. It looks brutal rather than balanced — designed to hook, tear, and cause wounds that are agony to clean.",
+          "description": "A crude, wide blade hammered from scrap metal and edged with jagged, uneven teeth. The handle is wrapped in cracked leather and cord. It looks brutal rather than balanced - designed to hook, tear, and cause wounds that are agony to clean.",
           "tags": [
             "weapon",
             "melee",
@@ -104509,7 +104509,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A crude net of twisted rope and wire, weighted with bone beads. Designed to entangle limbs and drag a victim down — part of the swarm's toolkit.",
+          "description": "A crude net of twisted rope and wire, weighted with bone beads. Designed to entangle limbs and drag a victim down - part of the swarm's toolkit.",
           "tags": [
             "weapon",
             "trap",
@@ -104563,7 +104563,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A small, hooked throwing knife with no grip — meant to be hurled in volleys. Barbed, unbalanced, and painful to retrieve.",
+          "description": "A small, hooked throwing knife with no grip - meant to be hurled in volleys. Barbed, unbalanced, and painful to retrieve.",
           "tags": [
             "weapon",
             "thrown",
@@ -104846,7 +104846,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Krikka's nest. It's too high for most goblins to reach — Krikka climbs up even in her sleep. A climbing pick hangs nearby."
+            "examine": "This is Krikka's nest. It's too high for most goblins to reach - Krikka climbs up even in her sleep. A climbing pick hangs nearby."
           },
           "x": -8042,
           "y": 1470.9
@@ -104950,7 +104950,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A scavenged blade with hooked, serrated edges along the whole edge. Made to catch and hold — terrible for dueling, excellent for tearing.",
+          "description": "A scavenged blade with hooked, serrated edges along the whole edge. Made to catch and hold - terrible for dueling, excellent for tearing.",
           "tags": [
             "weapon",
             "melee",
@@ -105005,7 +105005,7 @@
             "use"
           ],
           "current_state": "normal",
-          "description": "A broad lily pad laid over a still pool of water — Croak-Mother's bed.",
+          "description": "A broad lily pad laid over a still pool of water - Croak-Mother's bed.",
           "tags": [
             "bed",
             "sleep",
@@ -105013,7 +105013,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Croak-Mother's lily pad. It floats on a shallow basin — she sleeps soaked and happy. The pad smells faintly of swamp moss."
+            "examine": "This is Croak-Mother's lily pad. It floats on a shallow basin - she sleeps soaked and happy. The pad smells faintly of swamp moss."
           },
           "x": -8502,
           "y": 1766.7
@@ -105040,7 +105040,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Vekka's hammock. It's low to the ground — Vekka needs to be ready to move fast. A spyglass tube is tied to the rope."
+            "examine": "This is Vekka's hammock. It's low to the ground - Vekka needs to be ready to move fast. A spyglass tube is tied to the rope."
           },
           "x": -9353,
           "y": 2044.1
@@ -105060,7 +105060,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A patched clay flask filled with cloudy, bubbling liquid. Mushroom beer — it tastes like earth and regret.",
+          "description": "A patched clay flask filled with cloudy, bubbling liquid. Mushroom beer - it tastes like earth and regret.",
           "tags": [
             "drink",
             "alcohol",
@@ -105108,7 +105108,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Kiala's hammock. The patches tell a story — each scrap from a different raid or trade. Kiala sleeps light, always ready to squire up."
+            "examine": "This is Kiala's hammock. The patches tell a story - each scrap from a different raid or trade. Kiala sleeps light, always ready to squire up."
           },
           "x": -9493.1,
           "y": 2090.3
@@ -105134,7 +105134,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Rikka's perch. The stone is worn smooth from use — Rikka practices rhythms in her sleep. Small bells are wired to the edge for an alarm."
+            "examine": "This is Rikka's perch. The stone is worn smooth from use - Rikka practices rhythms in her sleep. Small bells are wired to the edge for an alarm."
           },
           "x": -9503.2,
           "y": 1938.5
@@ -105272,7 +105272,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A bent iron tripod with three legs — one is a broken spear shaft lashed on with wire. It holds a pot over the fire pit, wobbling but functional.",
+          "description": "A bent iron tripod with three legs - one is a broken spear shaft lashed on with wire. It holds a pot over the fire pit, wobbling but functional.",
           "tags": [
             "kitchen",
             "cooking",
@@ -105477,7 +105477,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Gribba's log bed. The scratches are recipe shorthand — Gribba sleeps while dreaming up new stews. A ladle is tucked under the log."
+            "examine": "This is Gribba's log bed. The scratches are recipe shorthand - Gribba sleeps while dreaming up new stews. A ladle is tucked under the log."
           },
           "x": -9509.6,
           "y": 1819
@@ -105498,7 +105498,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A short dagger with a serrated, hooked edge. Ugly and brutal — made to hook and twist, not to cut cleanly.",
+          "description": "A short dagger with a serrated, hooked edge. Ugly and brutal - made to hook and twist, not to cut cleanly.",
           "tags": [
             "weapon",
             "knife",
@@ -105651,7 +105651,7 @@
           ],
           "current_state": "normal",
           "damage": "1d6",
-          "description": "A hatchet-style axe with a cracked, splintering head. The edge is ragged — it bites deep and shatters on impact, leaving fragments behind.",
+          "description": "A hatchet-style axe with a cracked, splintering head. The edge is ragged - it bites deep and shatters on impact, leaving fragments behind.",
           "tags": [
             "weapon",
             "axe",
@@ -105776,7 +105776,7 @@
           ],
           "affinity": [],
           "current_state": "normal",
-          "description": "a cast-iron stove, still faintly warm to the touch. impossible — there's no fuel, no fire. a kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
+          "description": "a cast-iron stove, still faintly warm to the touch. impossible - there's no fuel, no fire. a kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
           "equip_slots": [],
           "heating_rate": null,
           "image": null,
@@ -105823,7 +105823,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Old Iron-Back's nest. The straw is matted down to nothing — that bear eats a lot of bedding. Claw marks ring the edge."
+            "examine": "This is Old Iron-Back's nest. The straw is matted down to nothing - that bear eats a lot of bedding. Claw marks ring the edge."
           },
           "x": -9520,
           "y": 1707.5
@@ -105850,7 +105850,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Belne's hammock. The ropes are re-knotted every few inches — Belne's paranoid about falling. There's a wanderer's pouch tucked underneath."
+            "examine": "This is Belne's hammock. The ropes are re-knotted every few inches - Belne's paranoid about falling. There's a wanderer's pouch tucked underneath."
           },
           "x": -9481.1,
           "y": 1603.8
@@ -105902,7 +105902,7 @@
             "goblin_camp"
           ],
           "triggers": {
-            "examine": "This is Mikka's pallet. Gears stick out of the straw — Mikka builds in her sleep. The pallet vibrates faintly sometimes."
+            "examine": "This is Mikka's pallet. Gears stick out of the straw - Mikka builds in her sleep. The pallet vibrates faintly sometimes."
           },
           "x": -9468.1,
           "y": 1491.4
@@ -107799,7 +107799,7 @@
           ],
           "contents": [],
           "current_state": "normal",
-          "description": "A pair of delicate gold hoop earrings, inherited from Lyrie's grandmother. One of them is slightly bent out of shape—she snagged it on her tunic and hasn't managed to straighten it yet. They catch the light beautifully, though Lyrie sometimes forgets she's wearing them and tries to put on other earrings too.",
+          "description": "A pair of delicate gold hoop earrings, inherited from Lyrie's grandmother. One of them is slightly bent out of shape-she snagged it on her tunic and hasn't managed to straighten it yet. They catch the light beautifully, though Lyrie sometimes forgets she's wearing them and tries to put on other earrings too.",
           "equip_slots": [
             "ears"
           ],
@@ -110306,7 +110306,7 @@
           "effects": [
             {
               "params": {
-                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+                "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
               },
               "type": "message"
             }
@@ -110870,7 +110870,7 @@
           "effects": [
             {
               "params": {
-                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+                "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
               },
               "type": "message"
             }
@@ -110955,7 +110955,7 @@
           "effects": [
             {
               "params": {
-                "message": "stiff, dark, and foul. the fabric crackles when it moves — dried into its current shape by years of the same stains."
+                "message": "stiff, dark, and foul. the fabric crackles when it moves - dried into its current shape by years of the same stains."
               },
               "type": "message"
             }
@@ -116632,7 +116632,7 @@
           "effects": [
             {
               "params": {
-                "message": "The barbs are angled to make withdrawal agonizing — once it bites, it holds. The shaft is wrapped in torn cloth and grease, the grip stained dark with old blood and sweat. Whoever crafted this knew exactly how to make a wound tear wider on the pull out. A crude but effective design — very Kraktooth."
+                "message": "The barbs are angled to make withdrawal agonizing - once it bites, it holds. The shaft is wrapped in torn cloth and grease, the grip stained dark with old blood and sweat. Whoever crafted this knew exactly how to make a wound tear wider on the pull out. A crude but effective design - very Kraktooth."
               },
               "type": "message"
             }
@@ -116934,7 +116934,7 @@
             {
               "params": {
                 "fail_message": "",
-                "success_message": "you open the stove door. inside, you find a charred fragment of a photograph. it shows a woman in a dark dress — her face has been burned away. on the back, in shaky handwriting: 'forgive me, eleanor. i couldn't protect you.'"
+                "success_message": "you open the stove door. inside, you find a charred fragment of a photograph. it shows a woman in a dark dress - her face has been burned away. on the back, in shaky handwriting: 'forgive me, eleanor. i couldn't protect you.'"
               },
               "type": "message"
             }
@@ -178278,7 +178278,7 @@
             "mystery",
             "unease"
           ],
-          "text": "The deep passage went unanswered — silence where there should be echo. Something feels off about this tunnel.",
+          "text": "The deep passage went unanswered - silence where there should be echo. Something feels off about this tunnel.",
           "tick": 52,
           "timestamp": 1791399064.6916928,
           "type": "reaction"
@@ -180231,7 +180231,7 @@
         "faction:human"
       ],
       "trait_behavior": [
-        "You've been close to death before. You take dangers seriously — and you know what pain costs.",
+        "You've been close to death before. You take dangers seriously - and you know what pain costs.",
         "You need to relieve yourself."
       ],
       "traits": {
@@ -180962,8 +180962,8 @@
         "faction:human"
       ],
       "trait_behavior": [
-        "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
-        "You've been close to death before. You take dangers seriously — and you know what pain costs.",
+        "You trust no one. Watch everyone and everything for threats - assume hidden motives.",
+        "You've been close to death before. You take dangers seriously - and you know what pain costs.",
         "You can wait; you rarely reach for a fight.",
         "You feel lonely."
       ],
@@ -181376,7 +181376,7 @@
             "weariness",
             "hunger"
           ],
-          "text": "I caught myself addressing no one at all — the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
+          "text": "I caught myself addressing no one at all - the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
           "tick": 0,
           "timestamp": 1790027161.4284327,
           "type": "reaction"
@@ -181427,7 +181427,7 @@
             "thirst",
             "recall"
           ],
-          "text": "While thirst, you recall: I caught myself addressing no one at all — the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
+          "text": "While thirst, you recall: I caught myself addressing no one at all - the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
           "tick": 2,
           "timestamp": 1790942616.3281298,
           "type": "observation"
@@ -181486,7 +181486,7 @@
             "thirst",
             "recall"
           ],
-          "text": "While thirst, you recall: I caught myself addressing no one at all — the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
+          "text": "While thirst, you recall: I caught myself addressing no one at all - the road was empty. The hunger and thirst are wearing on me, and I nearly mistook my own worry for company.",
           "tick": 7,
           "timestamp": 1791282891.7259932,
           "type": "observation"
@@ -182415,7 +182415,7 @@
         "faction:human"
       ],
       "trait_behavior": [
-        "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
+        "You trust no one. Watch everyone and everything for threats - assume hidden motives.",
         "You can wait; you rarely reach for a fight.",
         "You need to relieve yourself."
       ],
@@ -183900,7 +183900,7 @@
         "faction:human"
       ],
       "trait_behavior": [
-        "You've been close to death before. You take dangers seriously — and you know what pain costs.",
+        "You've been close to death before. You take dangers seriously - and you know what pain costs.",
         "You can wait; you rarely reach for a fight.",
         "You need to relieve yourself."
       ],
@@ -189187,7 +189187,7 @@
             "performance",
             "need"
           ],
-          "text": "The war drum still answers when I call, and the pit turns to watch — but my belly and throat are screaming louder than any beat. Entertainment won't feed me.",
+          "text": "The war drum still answers when I call, and the pit turns to watch - but my belly and throat are screaming louder than any beat. Entertainment won't feed me.",
           "tick": 0,
           "timestamp": 1790027127.0791776,
           "type": "reaction"
@@ -189240,7 +189240,7 @@
             "hunger",
             "recall"
           ],
-          "text": "While hunger, you recall: The war drum still answers when I call, and the pit turns to watch — but my belly and throat are screaming louder than any beat. Entertainment won't feed me.",
+          "text": "While hunger, you recall: The war drum still answers when I call, and the pit turns to watch - but my belly and throat are screaming louder than any beat. Entertainment won't feed me.",
           "tick": 7,
           "timestamp": 1790942618.150044,
           "type": "observation"
@@ -189450,7 +189450,7 @@
             "hunger",
             "isolation"
           ],
-          "text": "Asking Thrazz for food got me nothing — silence, still no answer. I'm more exposed out here than I thought.",
+          "text": "Asking Thrazz for food got me nothing - silence, still no answer. I'm more exposed out here than I thought.",
           "tick": 53,
           "timestamp": 1791399218.2364614,
           "type": "reaction"
@@ -192697,7 +192697,7 @@
             "secrecy",
             "wariness"
           ],
-          "text": "Came up from the scouting rooms into the Chief's Pit — smoke, meat, noise. The ravine route stays mine for now. I need food and water before I deal with anyone.",
+          "text": "Came up from the scouting rooms into the Chief's Pit - smoke, meat, noise. The ravine route stays mine for now. I need food and water before I deal with anyone.",
           "tick": 0,
           "timestamp": 1790028110.9785411,
           "type": "reaction"
@@ -192763,7 +192763,7 @@
             "frustration",
             "caution"
           ],
-          "text": "The hanging meat I tried to use isn't where I thought it was — someone moved it or I was wrong about the cache.",
+          "text": "The hanging meat I tried to use isn't where I thought it was - someone moved it or I was wrong about the cache.",
           "tick": 1,
           "timestamp": 1791142952.18733,
           "type": "reaction"
@@ -192861,7 +192861,7 @@
             "loneliness",
             "weariness"
           ],
-          "text": "Reached for the frost-crusted berries out of hunger and stopped — they're not worth eating, and stopping made me realize how tired and alone I actually am.",
+          "text": "Reached for the frost-crusted berries out of hunger and stopped - they're not worth eating, and stopping made me realize how tired and alone I actually am.",
           "tick": 58,
           "timestamp": 1792072673.404903,
           "type": "reaction"
@@ -193724,7 +193724,7 @@
             "hunger",
             "secrets"
           ],
-          "text": "Found the Food Storage layout — including hidden secondary chambers. Knowledge of hidden stores could give leverage over the tribe.",
+          "text": "Found the Food Storage layout - including hidden secondary chambers. Knowledge of hidden stores could give leverage over the tribe.",
           "tick": 2,
           "timestamp": 1791143031.1447575,
           "type": "reaction"
@@ -194372,9 +194372,9 @@
         "Storeroom (Fisherman's Hut 4,3)",
         "area_fisherman_s_hut_4_3",
         "area_storeroom_(fisherman's_hut_4,3)",
-        "Raven River — Farms Reach",
+        "Raven River - Farms Reach",
         "area_abandoned_farms_34_22",
-        "area_raven_river_—_farms_reach",
+        "area_raven_river_-_farms_reach",
         "Old Stone Bridge",
         "area_abandoned_farms_80_8",
         "area_old_stone_bridge",
@@ -200470,7 +200470,7 @@
         "10,85": "Blackmarsh Pond",
         "110,65": "Abandoned Farm Fields",
         "150,4": "Mill Pond",
-        "32,20": "Raven River — Farms Reach",
+        "32,20": "Raven River - Farms Reach",
         "68,12": "Old Stone Bridge"
       },
       "parent_id": "world",

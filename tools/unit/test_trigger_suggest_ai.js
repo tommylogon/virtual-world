@@ -1,9 +1,9 @@
 /**
- * test_trigger_suggest_ai.js — Unit tests for the shared trigger-AI prompt (task-396).
+ * test_trigger_suggest_ai.js - Unit tests for the shared trigger-AI prompt (task-396).
  *
  * The LLM's *output* cannot be unit-tested, but the prompt's contract can: the hard
  * rules must be stated, and every WORKED EXAMPLE embedded in the prompt must itself
- * obey them. A rule-violating example is the real regression risk — the model
+ * obey them. A rule-violating example is the real regression risk - the model
  * pattern-matches to the examples, not to the prose rules.
  */
 'use strict';

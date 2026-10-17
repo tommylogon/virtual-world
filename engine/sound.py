@@ -65,13 +65,13 @@ WAY_BARRIERS = _way_barriers()
 def get_way_barrier(way_node: Node) -> float:
     """Get the sound barrier value for a way (door/connection).
 
-    The numbers live in ``engine/barriers.py`` (task-421), which light reads too —
+    The numbers live in ``engine/barriers.py`` (task-421), which light reads too -
     sound's cost and light's transmission are two named tables over one shared
     state ladder, so the two systems can no longer disagree about which states
     exist or about a see-through way.
 
     Per-door override: an optional ``sound_barrier`` float property applies while
-    the way is in a solid state (closed/blocked/locked) — one value covers all
+    the way is in a solid state (closed/blocked/locked) - one value covers all
     three. Without it, per-state Engine Config defaults apply (task-304 chain).
 
     Args:
@@ -173,7 +173,7 @@ def propagate_sound(
     while queue:
         accumulated, _, current_id, direction = heapq.heappop(queue)
         if accumulated > best.get(current_id, float("inf")):
-            continue  # stale heap entry — a cheaper route already won
+            continue  # stale heap entry - a cheaper route already won
 
         # Find ways connected to the current area
         for edge in graph.get_edges_for_source(current_id, EDGE_CONNECTION):

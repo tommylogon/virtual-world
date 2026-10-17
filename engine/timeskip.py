@@ -4,7 +4,7 @@ Declare an intent plus a span of game time; the world advances **minute by
 minute** at maximum speed with the player's own decisions supplied by a
 deterministic policy, and stops the moment something relevant happens to them
 (:mod:`engine.interrupts`). No stasis, no protection: vitals decay and the
-environment applies exactly as in normal play — the skip removes *decisions*,
+environment applies exactly as in normal play - the skip removes *decisions*,
 not *consequences*.
 
 A skip is the controller swap the Simulation Model describes: same Player, same
@@ -59,7 +59,7 @@ class PolicyStep:
     detail: str = ""          #: the sentence to hand back to the player
 
     def __bool__(self):
-        """Truthy when the step found something — the old return contract."""
+        """Truthy when the step found something - the old return contract."""
         return self.found is not None
 
 #: One active skip at a time (task-464 concurrency rule).
@@ -106,13 +106,13 @@ def everyone_soaking(gs, keep=None):
 
     A skip owns the clock for its span, so the rest of the cast must not hold
     focused turns: `process_due` gives a focused character `minutes_in_turn - 1`
-    minutes — zero at a 1-minute tick — so without this a fine-grained skip merely
+    minutes - zero at a 1-minute tick - so without this a fine-grained skip merely
     decays everyone's needs and never serves them (task-436 root cause). It is
     also what makes a one-human skip read like a world advance: the cast soaks
     rather than the nearby characters spending LLM turns nobody is watching.
 
     *keep* is the character whose declared intent is driving the span. They are
-    deliberately left alone: the background pass would move them — an `idle`
+    deliberately left alone: the background pass would move them - an `idle`
     ("wait here") skip walked the character out of the area, which also starved
     every co-located interrupt of its subject. It is the same rule a declared
     soak order runs under, where `process_due` skips the ordered character so
@@ -134,7 +134,7 @@ def everyone_soaking(gs, keep=None):
 
 
 def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
-    """Advance the world with **no** player policy — everyone is soak.
+    """Advance the world with **no** player policy - everyone is soak.
 
     This is what a timeskip means in a scenario with no human player: there is no
     one to stand in for, so the clock simply runs. No policies, no interrupts,
@@ -218,7 +218,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     ``intent`` is one of :data:`INTENTS`. ``minutes`` is clamped to
     ``[MIN_MINUTES, MAX_MINUTES]``. ``target`` is an area name for travel or an
     item name for search; ``target_type`` is an item *tag* (items have no type
-    taxonomy — the library identifies them by tags). ``watch_tags`` are interest
+    taxonomy - the library identifies them by tags). ``watch_tags`` are interest
     tags that end the skip on discovery; Explore defaults them to the
     character's own ``interest_tags``. Returns a :class:`TimeskipResult`; the
     world is left at the exact turn the skip stopped on.
@@ -349,7 +349,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     result.lines += _notable_lines(gs, start_tick, getattr(who, "current_area", ""))
     # A search that spent the whole span without turning its target up has to
     # say so: an hour of looking is otherwise indistinguishable from an hour of
-    # finding. Deliberately weaker than the conclusive sentence — the target is
+    # finding. Deliberately weaker than the conclusive sentence - the target is
     # out there, the span just ran out before the walk did (task-671).
     if (intent == "search" and target and not result.interrupted
             and _areas_holding(gs, target)):
@@ -448,7 +448,7 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
             return PolicyStep(found=found)
         # Nothing here. A *named* target drives a route: the room you are
         # standing in is not the world, and before task-671 a name with no tag
-        # never moved anyone at all — it fell straight through to maintenance
+        # never moved anyone at all - it fell straight through to maintenance
         # and spent the whole span eating and sleeping.
         if target:
             holding = _areas_holding(gs, target)
@@ -700,7 +700,7 @@ def _stamp_trace(gs, player, result, intent, start_tick):
 def _write_memory(gs, player, result, intent, target):
     """Exactly one bounded memory for the skip, so the next prompt knows what
     happened (and that vitals moved). Built from deterministic templates over
-    recorded facts — no LLM (task-412 slice)."""
+    recorded facts - no LLM (task-412 slice)."""
     if result.elapsed_minutes <= 0:
         return
     area = getattr(player, "current_area", "") or "somewhere"

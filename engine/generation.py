@@ -1,9 +1,9 @@
 """Deterministic structure-generation contract (task-398).
 
 A generation recipe never writes a parallel world format. It returns a
-:class:`GenerationPatch` — plain graph nodes/edges in the existing conventions
+:class:`GenerationPatch` - plain graph nodes/edges in the existing conventions
 (``area`` nodes, ``way`` nodes with connection edges, normal item nodes) plus
-provenance and a report — and :func:`apply_patch` commits it to a graph and
+provenance and a report - and :func:`apply_patch` commits it to a graph and
 scope manifest exactly once.
 
 Once-only is the safety property: applying flips the target scope from
@@ -60,18 +60,18 @@ def _merge_regenerated(existing: Node, incoming: Node,
     The one rule, covering both directions:
 
     - the **recipe is authoritative** for the shape it emits, so a genuine
-      recipe revision reaches the node — a key whose current value still equals
+      recipe revision reaches the node - a key whose current value still equals
       what the recipe last emitted is re-stamped to the fresh value;
     - the **author is authoritative** for any key they changed or added since
       the last snapshot, so a hand edit is never silently reverted.
 
     Where both changed the same key, the author's value wins and the key is
-    reported in ``conflicts`` — a re-run must not report success while reverting
+    reported in ``conflicts`` - a re-run must not report success while reverting
     an edit the author did not ask it to revert.
 
     A key whose value is *absent* now is treated as recipe-owned (the fresh
     value is restored): a deletion of a generated property is not an authorship
-    claim on the node — delete or ungenerate the node for that. When no baseline
+    claim on the node - delete or ungenerate the node for that. When no baseline
     exists (a save written before this rule), the author's differing values are
     conservatively kept rather than reverted.
     """
@@ -112,7 +112,7 @@ class GenerationReport:
     area_ids: List[str] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
     #: Requested tag → how many candidates the library could offer. A value of
-    #: 0 means "asked for this and found nothing" — surfaced, never silently
+    #: 0 means "asked for this and found nothing" - surfaced, never silently
     #: substituted (task-398).
     unresolved_tags: Dict[str, int] = field(default_factory=dict)
     #: task-585: node id → the hand-edited keys a regenerate preserved.
@@ -174,13 +174,13 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
     """Commit *patch* to *graph* and the scope *manifest* (once).
 
     Raises ``ValueError`` when the target scope is already ``materialized`` and
-    ``allow_regenerate`` is not set — the once-only guard. With
+    ``allow_regenerate`` is not set - the once-only guard. With
     ``allow_regenerate=True`` an incoming node whose id already exists is only
     replaced when both the existing and incoming node carry generated
     provenance; anything hand-authored is left untouched.
 
     On a regenerate the recipe is authoritative for the keys it emits and the
-    author is authoritative for keys they changed or added — see
+    author is authoritative for keys they changed or added - see
     :func:`_merge_regenerated`. Hand edits that survive are reported in
     ``report.preserved_properties``; a hand edit that blocks a genuine recipe
     change is reported in ``report.conflicts``, so the operator is told what a

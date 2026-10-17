@@ -1,13 +1,13 @@
 ⚙️[Tick 0 | 08:00] ⚙️ 🔄 World reset to initial state.
 ⚙️[Tick 1 | 08:00] ⚙️ Settings saved.
 ▾kyrie johansen[Turn 0 | 08:00]💭[Tick 2 | 08:00] kyrie johansen think observing📤[Tick 3 | 08:00] LLM → nvidia/nemotron-3-nano-30b-a3b:free user: [Tick 0]
-You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet—not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size—real strength, from years of lifting and wrestling—and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury—string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
+You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet-not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size-real strength, from years of lifting and wrestling-and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury-string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
 
 You are currently in the foyer. It is bright and pleasant. The air smells of musty.
 a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier hangs precariously overhead, cobwebs draping from its arms. a sweeping staircase curves upward into darkness. to the east, a heavy oak door leads to the library; to the west, a door opens into the dining room. the massive oak front door is directly ahead, barred by an intricate locking mechanism with a skull-shaped indentation at its center. the air is stale and bitingly cold.
 
 Items that catch your attention:
-- matches: a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.
+- matches: a small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. it rattles - there are several inside.
 - chandelier: a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.
 - coat_rack: a tall mahogany coat rack
 - rug: a faded persian rug covering most of the floor.
@@ -17,11 +17,11 @@ Items that catch your attention:
 - dust: a thick layer of dust covers everything. no one has been here in months
 ...and not much else.
 Carrying: wrench, protein_bar, ace_bandage, faded green tank top, black basketball shorts, compression sports bra, compression shorts, running shoes, fabric bandage
-Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair—clearly self-cut—frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
+Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair-clearly self-cut-frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
 People here:
-  - jake halloway (awake) — the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
-  - kayla jenkins (awake) — a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
-  - sammy lopez (awake) — a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
+  - jake halloway (awake) - the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
+  - kayla jenkins (awake) - a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
+  - sammy lopez (awake) - a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
 From where you stand, you can see the following paths:
 To the dining_room_door, the dining area is visible beyond.
 [front_door] the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it. It is currently closed.
@@ -32,7 +32,7 @@ To the library_door, the library is visible beyond.
 Nothing unusual happened while you were looking.
 
 === YOUR STATE ===
-You feel fine — no pressing needs right now.
+You feel fine - no pressing needs right now.
 kyrie johansen is quite cautious curiosity.
 kyrie johansen considers jake halloway a inseparable friend (81/100)
 kyrie johansen considers kayla jenkins a inseparable friend (81/100)
@@ -40,8 +40,8 @@ kyrie johansen considers sammy lopez a close friend (61/100)
 
 
 === I REMEMBER ===
-[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
-[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
+[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
+[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
 
 
 
@@ -59,13 +59,13 @@ Respond ONLY with a raw JSON array of strings: ["step 1", "step 2"]🤖[Tick 4 |
 
 
 === ACTIONS ===
-Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" — always the FULL multi-word name, never truncated.
+Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" - always the FULL multi-word name, never truncated.
 
 | Verb | What it does | Example |
 |---|---|---|
 | go | Move to an exit | {"action":"go","target":"north"} |
-| dash | Sprint through one exit — you'll immediately get a follow-up choice to chain a second move | {"action":"dash","target":"grand_stairs"} |
-| crawl | Crawl through a tight/low passage (slow — go auto-crawls when you don't fit standing) | {"action":"crawl","target":"crawlspace"} |
+| dash | Sprint through one exit - you'll immediately get a follow-up choice to chain a second move | {"action":"dash","target":"grand_stairs"} |
+| crawl | Crawl through a tight/low passage (slow - go auto-crawls when you don't fit standing) | {"action":"crawl","target":"crawlspace"} |
 | climb | Climb up/down a wall, rope, or ladder (risk of failing) | {"action":"climb","target":"well_rope"} |
 | jump | Jump across a gap (risk of failing) | {"action":"jump","target":"broken_planks"} |
 | open | Open a door/way | {"action":"open","target":"cellar_way"} |
@@ -82,10 +82,10 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 | wear / equip | Wear a carried item | {"action":"wear","item":"backpack"} |
 | remove / unequip | Take off a worn item | {"action":"remove","item":"backpack"} |
 | attack | Fight someone | {"action":"attack","target":"Miki"} |
-| grab | Grab someone — drag them along when you move (they can resist) | {"action":"grab","target":"Jake Halloway"} |
+| grab | Grab someone - drag them along when you move (they can resist) | {"action":"grab","target":"Jake Halloway"} |
 | escape / struggle | Break free of a grapple (STR save) | {"action":"escape"} |
 | rest | Rest to restore energy | {"action":"rest"} |
-| wait | Do nothing — stand still and observe | {"action":"wait"} |
+| wait | Do nothing - stand still and observe | {"action":"wait"} |
 | inventory | Check what you carry | {"action":"inventory"} |
 | stats | Check your condition | {"action":"stats"} |
 | look | Re-read the room description | {"action":"look"} |
@@ -93,10 +93,10 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 | relieve | Empty your bladder | {"action":"relieve"} |
 
 ## Rules
-- **emote is NOT a verb** — it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
-- Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
-- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
-- If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
+- **emote is NOT a verb** - it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
+- Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.
+- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
+- If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.
 - "use" is for self-use items (Create Flame, candles, consumables). Use "use_on" only when the item must be used on something else.
 - "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
 - "give"/"steal" need a target character who is in the same area as you.
@@ -104,24 +104,24 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 - 
 
 ## Rules
-- **emote is NOT a verb** — it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
-- Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
-- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
-- If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
+- **emote is NOT a verb** - it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
+- Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.
+- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
+- If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.
 - "use" is for self-use items (Create Flame, candles, consumables). Use "use_on" only when the item must be used on something else.
 - "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
 - "give"/"steal" need a target character who is in the same area as you.
 - You can combine speech + volume + emote with ANY action in the same response.
-- emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome — the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) — never narrate grabbing another character in your emote. If you are being held, use "escape" to break free.
+- emote is body language - HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome - the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) - never narrate grabbing another character in your emote. If you are being held, use "escape" to break free.
 
 === ITEMS vs FLAVOR ===
-The "The following items stand out to you:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible. Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.
+The "The following items stand out to you:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible. Area descriptions may mention things that are NOT separate items - if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.
 
 === ACTION STRUCTURE ===
-The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, escape, struggle, read, search, look, rest, wait, inventory, stats, relieve, ...). Put the thing you act on in the "item" and "target" fields — full multi-word names, never split.
-Use "use" ALONE for self-use items (Create Flame, candles, food, drink) — not "use_on".
+The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, escape, struggle, read, search, look, rest, wait, inventory, stats, relieve, ...). Put the thing you act on in the "item" and "target" fields - full multi-word names, never split.
+Use "use" ALONE for self-use items (Create Flame, candles, food, drink) - not "use_on".
 If you wait, listen, or hold still, use "action": "wait".
-Targets are matched leniently — by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
+Targets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
 
 Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
@@ -136,28 +136,28 @@ Examples:
 - {"action":"give","item":"rusty_key","target":"Lyrie"}        → hand to someone nearby
 
 === SPEECH & VOLUME ===
-Put speech in the "speech" field and pick its volume in the "volume" field — whisper | say | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
+Put speech in the "speech" field and pick its volume in the "volume" field - whisper | say | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
   WRONG: {"speech":"whisper psst, over here"}
   RIGHT: {"speech":"psst, over here","volume":"whisper"}
 For a speech-only turn, omit "action" and provide speech + volume.
-If you say nothing, OMIT the speech field entirely — never use empty strings.
+If you say nothing, OMIT the speech field entirely - never use empty strings.
 To do nothing at all, respond {"action":"wait"} with no speech and no emote.
 
 
 
 === RESPONSE LENGTH ===
-Keep your response under 512 tokens. Be concise — inner monologue, speech, and action should be brief and natural.
+Keep your response under 512 tokens. Be concise - inner monologue, speech, and action should be brief and natural.
 
 ---
 
 user: [Tick 0]
-You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet—not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size—real strength, from years of lifting and wrestling—and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury—string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
+You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet-not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size-real strength, from years of lifting and wrestling-and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury-string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
 
 You are currently in the foyer. It is bright and pleasant. The air smells of musty.
 a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier hangs precariously overhead, cobwebs draping from its arms. a sweeping staircase curves upward into darkness. to the east, a heavy oak door leads to the library; to the west, a door opens into the dining room. the massive oak front door is directly ahead, barred by an intricate locking mechanism with a skull-shaped indentation at its center. the air is stale and bitingly cold.
 
 Items that catch your attention:
-- matches: a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.
+- matches: a small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. it rattles - there are several inside.
 - chandelier: a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.
 - coat_rack: a tall mahogany coat rack
 - rug: a faded persian rug covering most of the floor.
@@ -167,11 +167,11 @@ Items that catch your attention:
 - dust: a thick layer of dust covers everything. no one has been here in months
 ...and not much else.
 Carrying: wrench, protein_bar, ace_bandage, faded green tank top, black basketball shorts, compression sports bra, compression shorts, running shoes, fabric bandage
-Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair—clearly self-cut—frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
+Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair-clearly self-cut-frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
 People here:
-  - jake halloway (awake) — the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
-  - kayla jenkins (awake) — a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
-  - sammy lopez (awake) — a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
+  - jake halloway (awake) - the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
+  - kayla jenkins (awake) - a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
+  - sammy lopez (awake) - a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
 From where you stand, you can see the following paths:
 To the dining_room_door, the dining area is visible beyond.
 [front_door] the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it. It is currently closed.
@@ -182,26 +182,26 @@ To the library_door, the library is visible beyond.
 Nothing unusual happened while you were looking.
 
 === YOUR STATE ===
-You feel fine — no pressing needs right now.
+You feel fine - no pressing needs right now.
 kyrie johansen is quite cautious curiosity.
 kyrie johansen considers jake halloway a inseparable friend (81/100)
 kyrie johansen considers kayla jenkins a inseparable friend (81/100)
 kyrie johansen considers sammy lopez a close friend (61/100)
 
 === I REMEMBER ===
-[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
-[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
+[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
+[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
 
 === START ===
 This is your first moment in this world. What do you think, say, and do?
 
-First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
-emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it.
+First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.
+emote is body language - HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not - but you cannot claim your action succeeded before the system resolves it.
 
-Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
+Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt - action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
 
 Respond ONLY raw JSON:
-{"inner_monologue":"...","action":"use_on","item":"...","target":"...","speech":"...","volume":"say","emote":"..."}🤖[Tick 6 | 08:00] LLM nvidia/nemotron-3-nano-30b-a3b:free🤖[Tick 7 | 08:00] LLM 🧠thinking...🎯[Tick 8 | 08:00] kyrie johansen decide deciding💭[Tick 9 | 08:00] kyrie johansenThe skull-shaped lock looks like it needs a key or something to fit — maybe a bone? I should see what this door wants before I start fiddling.💬[Tick 10 | 08:00] kyrie johansen says: "Hmm."⚡[Tick 11 | 08:00] kyrie johansen act examine front_door▶️[Tick 12 | 08:00] ⚙️ examine front_door
+{"inner_monologue":"...","action":"use_on","item":"...","target":"...","speech":"...","volume":"say","emote":"..."}🤖[Tick 6 | 08:00] LLM nvidia/nemotron-3-nano-30b-a3b:free🤖[Tick 7 | 08:00] LLM 🧠thinking...🎯[Tick 8 | 08:00] kyrie johansen decide deciding💭[Tick 9 | 08:00] kyrie johansenThe skull-shaped lock looks like it needs a key or something to fit - maybe a bone? I should see what this door wants before I start fiddling.💬[Tick 10 | 08:00] kyrie johansen says: "Hmm."⚡[Tick 11 | 08:00] kyrie johansen act examine front_door▶️[Tick 12 | 08:00] ⚙️ examine front_door
 ⚙️[Tick 13 | 08:00] ⚙️ the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it. It is currently locked.
 🎭[Tick 14 | 08:00] ⚙️ kyrie johansen studies the skull indentation with a narrowed eye.
 ▾kyrie johansen[Turn 0 | 08:00]🔄[Tick 15 | 08:00] kyrie johansen react reacting📤[Tick 16 | 08:00] LLM → nvidia/nemotron-3-nano-30b-a3b:free system: 
@@ -210,13 +210,13 @@ Respond ONLY raw JSON:
 
 
 === ACTIONS ===
-Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" — always the FULL multi-word name, never truncated.
+Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" - always the FULL multi-word name, never truncated.
 
 | Verb | What it does | Example |
 |---|---|---|
 | go | Move to an exit | {"action":"go","target":"north"} |
-| dash | Sprint through one exit — you'll immediately get a follow-up choice to chain a second move | {"action":"dash","target":"grand_stairs"} |
-| crawl | Crawl through a tight/low passage (slow — go auto-crawls when you don't fit standing) | {"action":"crawl","target":"crawlspace"} |
+| dash | Sprint through one exit - you'll immediately get a follow-up choice to chain a second move | {"action":"dash","target":"grand_stairs"} |
+| crawl | Crawl through a tight/low passage (slow - go auto-crawls when you don't fit standing) | {"action":"crawl","target":"crawlspace"} |
 | climb | Climb up/down a wall, rope, or ladder (risk of failing) | {"action":"climb","target":"well_rope"} |
 | jump | Jump across a gap (risk of failing) | {"action":"jump","target":"broken_planks"} |
 | open | Open a door/way | {"action":"open","target":"cellar_way"} |
@@ -233,10 +233,10 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 | wear / equip | Wear a carried item | {"action":"wear","item":"backpack"} |
 | remove / unequip | Take off a worn item | {"action":"remove","item":"backpack"} |
 | attack | Fight someone | {"action":"attack","target":"Miki"} |
-| grab | Grab someone — drag them along when you move (they can resist) | {"action":"grab","target":"Jake Halloway"} |
+| grab | Grab someone - drag them along when you move (they can resist) | {"action":"grab","target":"Jake Halloway"} |
 | escape / struggle | Break free of a grapple (STR save) | {"action":"escape"} |
 | rest | Rest to restore energy | {"action":"rest"} |
-| wait | Do nothing — stand still and observe | {"action":"wait"} |
+| wait | Do nothing - stand still and observe | {"action":"wait"} |
 | inventory | Check what you carry | {"action":"inventory"} |
 | stats | Check your condition | {"action":"stats"} |
 | look | Re-read the room description | {"action":"look"} |
@@ -244,10 +244,10 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 | relieve | Empty your bladder | {"action":"relieve"} |
 
 ## Rules
-- **emote is NOT a verb** — it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
-- Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
-- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
-- If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
+- **emote is NOT a verb** - it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
+- Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.
+- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
+- If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.
 - "use" is for self-use items (Create Flame, candles, consumables). Use "use_on" only when the item must be used on something else.
 - "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
 - "give"/"steal" need a target character who is in the same area as you.
@@ -255,24 +255,24 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 - 
 
 ## Rules
-- **emote is NOT a verb** — it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
-- Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
-- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
-- If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
+- **emote is NOT a verb** - it's a field you add to ANY action above, for body language, facial expression, or a physical gesture toward yourself or someone else. Examples: {"action":"wait","emote":"offers an open hand for a high five"}, {"action":"go","target":"north","emote":"scratches the back of his head"}, {"action":"wait","emote":"winks at the woman"}, {"action":"use_on","item":"rusty_key","target":"front_door","emote":"reaches for the key with a steady hand"}.
+- Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.
+- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
+- If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.
 - "use" is for self-use items (Create Flame, candles, consumables). Use "use_on" only when the item must be used on something else.
 - "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
 - "give"/"steal" need a target character who is in the same area as you.
 - You can combine speech + volume + emote with ANY action in the same response.
-- emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome — the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) — never narrate grabbing another character in your emote. If you are being held, use "escape" to break free.
+- emote is body language - HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome - the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) - never narrate grabbing another character in your emote. If you are being held, use "escape" to break free.
 
 === ITEMS vs FLAVOR ===
-The "The following items stand out to you:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible. Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.
+The "The following items stand out to you:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible. Area descriptions may mention things that are NOT separate items - if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.
 
 === ACTION STRUCTURE ===
-The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, escape, struggle, read, search, look, rest, wait, inventory, stats, relieve, ...). Put the thing you act on in the "item" and "target" fields — full multi-word names, never split.
-Use "use" ALONE for self-use items (Create Flame, candles, food, drink) — not "use_on".
+The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, escape, struggle, read, search, look, rest, wait, inventory, stats, relieve, ...). Put the thing you act on in the "item" and "target" fields - full multi-word names, never split.
+Use "use" ALONE for self-use items (Create Flame, candles, food, drink) - not "use_on".
 If you wait, listen, or hold still, use "action": "wait".
-Targets are matched leniently — by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
+Targets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
 
 Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
@@ -287,28 +287,28 @@ Examples:
 - {"action":"give","item":"rusty_key","target":"Lyrie"}        → hand to someone nearby
 
 === SPEECH & VOLUME ===
-Put speech in the "speech" field and pick its volume in the "volume" field — whisper | say | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
+Put speech in the "speech" field and pick its volume in the "volume" field - whisper | say | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
   WRONG: {"speech":"whisper psst, over here"}
   RIGHT: {"speech":"psst, over here","volume":"whisper"}
 For a speech-only turn, omit "action" and provide speech + volume.
-If you say nothing, OMIT the speech field entirely — never use empty strings.
+If you say nothing, OMIT the speech field entirely - never use empty strings.
 To do nothing at all, respond {"action":"wait"} with no speech and no emote.
 
 
 
 === RESPONSE LENGTH ===
-Keep your response under 512 tokens. Be concise — inner monologue, speech, and action should be brief and natural.
+Keep your response under 512 tokens. Be concise - inner monologue, speech, and action should be brief and natural.
 
 ---
 
 user: [Tick 0]
-You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet—not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size—real strength, from years of lifting and wrestling—and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury—string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
+You are kyrie johansen. Personality: you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet-not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size-real strength, from years of lifting and wrestling-and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury-string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.
 
 You are currently in the foyer. It is bright and pleasant. The air smells of musty.
 a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier hangs precariously overhead, cobwebs draping from its arms. a sweeping staircase curves upward into darkness. to the east, a heavy oak door leads to the library; to the west, a door opens into the dining room. the massive oak front door is directly ahead, barred by an intricate locking mechanism with a skull-shaped indentation at its center. the air is stale and bitingly cold.
 
 Items that catch your attention:
-- matches: a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.
+- matches: a small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. it rattles - there are several inside.
 - chandelier: a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.
 - coat_rack: a tall mahogany coat rack
 - rug: a faded persian rug covering most of the floor.
@@ -318,11 +318,11 @@ Items that catch your attention:
 - dust: a thick layer of dust covers everything. no one has been here in months
 ...and not much else.
 Carrying: wrench, protein_bar, ace_bandage, faded green tank top, black basketball shorts, compression sports bra, compression shorts, running shoes, fabric bandage
-Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair—clearly self-cut—frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
+Your appearance: You stand in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to your compact, muscular frame. your pale skin is dusted with faint freckles across the bridge of a small nose, your round face set with a clenched jaw, while short, messy brown hair-clearly self-cut-frames it. a dark purple bruise mottles your left forearm, and fabric bandages wrap your hands, worn running shoes completing the utilitarian look.
 People here:
-  - jake halloway (awake) — the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
-  - kayla jenkins (awake) — a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
-  - sammy lopez (awake) — a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
+  - jake halloway (awake) - the boy stood at an awkward five-nine, all sharp elbows and knobby knees jutting from a pale, lanky frame that hummed with a restless, unspent energy.
+  - kayla jenkins (awake) - a sixteen-year-old black girl with warm brown skin and a slim, athletic build.
+  - sammy lopez (awake) - a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin.
 From where you stand, you can see the following paths:
 To the dining_room_door, the dining area is visible beyond.
 [front_door] the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it. It is currently closed.
@@ -333,23 +333,23 @@ To the library_door, the library is visible beyond.
 Nothing unusual happened while you were looking.
 
 === YOUR STATE ===
-You feel fine — no pressing needs right now.
+You feel fine - no pressing needs right now.
 kyrie johansen is quite cautious curiosity.
 kyrie johansen considers jake halloway a inseparable friend (81/100)
 kyrie johansen considers kayla jenkins a inseparable friend (81/100)
 kyrie johansen considers sammy lopez a close friend (61/100)
 
 === I REMEMBER ===
-[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
-[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different
+[just now] 👁️ "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
+[just now] 📝 "jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different
 
 === START ===
 This is your first moment in this world. What do you think, say, and do?
 
-First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
-emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it.
+First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.
+emote is body language - HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not - but you cannot claim your action succeeded before the system resolves it.
 
-Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
+Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt - action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
 
 Respond ONLY raw JSON:
 {"inner_monologue":"...","action":"use_on","item":"...","target":"...","speech":"...","volume":"say","emote":"..."}
@@ -357,7 +357,7 @@ Respond ONLY raw JSON:
 ---
 
 assistant: {
-  "inner_monologue": "The skull-shaped lock looks like it needs a key or something to fit — maybe a bone? I should see what this door wants before I start fiddling.",
+  "inner_monologue": "The skull-shaped lock looks like it needs a key or something to fit - maybe a bone? I should see what this door wants before I start fiddling.",
   "action": "examine",
   "target": "front_door",
   "speech": "Hmm.",
@@ -367,10 +367,10 @@ assistant: {
 
 ---
 
-user: [Tick 0] You are still in foyer. Your surroundings are unchanged — see your observation above in this conversation.
+user: [Tick 0] You are still in foyer. Your surroundings are unchanged - see your observation above in this conversation.
 
 === YOUR STATE ===
-You feel fine — no pressing needs right now.
+You feel fine - no pressing needs right now.
 kyrie johansen is quite cautious curiosity.
 kyrie johansen considers jake halloway a inseparable friend (81/100)
 kyrie johansen considers kayla jenkins a inseparable friend (81/100)

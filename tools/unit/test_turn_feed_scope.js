@@ -7,10 +7,10 @@
  * The leak was not the obvious rows: isObserverVisible already drops a parsed
  * `system` type, so "Scenario saved to foo" was already filtered. The rows that
  * escaped were the ones parseEntry re-labels as an action whenever
- * _tryParsePrefixedName matches — any operational line that happened to read
+ * _tryParsePrefixedName matches - any operational line that happened to read
  * "<Name> <verb>". Filtering at the ring push closes the whole class.
  *
- * The one system row that IS a turn row — an NPC doing nothing — must survive.
+ * The one system row that IS a turn row - an NPC doing nothing - must survive.
  */
 
 'use strict';

@@ -179,3 +179,21 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Refactor discipline (applies to this task)
+
+Applies to every refactor in this repo, per the 2026-10-16 card refresh:
+
+1. **Dedup & reuse pass (mandatory).** While working, scan the touched concern and its
+   neighbours for duplicate logic, parallel data homes, and near-identical helpers;
+   consolidate onto one owner instead of copying. Prefer reusing an existing seam over
+   creating a second one. Record any dedup decision in the move table / notes.
+2. **Agent-experience & cleanliness (mandatory).** Name modules/files by concern (not
+   by size), keep each under ~600 lines where the seam allows, add a one-line module
+   docstring stating its owner and public surface, and ensure a fresh agent session can
+   understand it without reading the host. No new abstraction unless an existing seam
+   already represents the concept.
+3. **No behaviour change unless the card says so.** Extraction and consolidation only;
+   keep public imports/API stable and re-export moved members as thin delegates.
+4. **One file/concern at a time**, verified with a targeted test selection (never the
+   full suite by default, never -q).

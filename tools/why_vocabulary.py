@@ -1,6 +1,6 @@
 """One-off: enumerate the `why` prefixes the engine actually writes.
 
-Task-543's spec listed a vocabulary that turned out to be incomplete — the
+Task-543's spec listed a vocabulary that turned out to be incomplete - the
 rejection counter caught `traversal:`, `forage:` and `schedule:` in a real run.
 This measures reality so the accepted set is derived from the code rather than
 copied from a task file (one writer, no drift).

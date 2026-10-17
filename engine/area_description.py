@@ -16,7 +16,7 @@ from engine.room_perception import (
 
 def _is_intrinsic_ability(node) -> bool:
     """True when an item is an intrinsic ability (spell/talent) rather than a
-    physical object — these never appear in what others see."""
+    physical object - these never appear in what others see."""
     if node is None:
         return False
     tags = node.properties.get("tags", [])
@@ -28,10 +28,10 @@ def _is_intrinsic_ability(node) -> bool:
 # ── Authoritative temperature description tables ──
 
 TEMPERATURE_BANDS = [
-    (60, "The heat is infernal — you can't breathe.", "You are burning! Seek shelter or die!"),
-    (50, "Blazing heat — the air shimmers.", "The heat is cooking you alive!"),
+    (60, "The heat is infernal - you can't breathe.", "You are burning! Seek shelter or die!"),
+    (50, "Blazing heat - the air shimmers.", "The heat is cooking you alive!"),
     (40, "Scorching hot.", "The intense heat is draining your energy!"),
-    (35, "Very hot.", "You're overheating — find shade or water."),
+    (35, "Very hot.", "You're overheating - find shade or water."),
     (30, "Hot.", "It's quite hot; you're feeling thirsty."),
     (25, "Warm.", ""),
     (18, "Pleasant.", ""),
@@ -40,7 +40,7 @@ TEMPERATURE_BANDS = [
     (0, "Cold.", "The cold is biting."),
     (-10, "Freezing.", "It's freezing! You need to warm up."),
     (-25, "Bitterly cold.", "The cold is sapping your strength."),
-    (-50, "Arctic — the cold is lethal.", "Hypothermia is imminent — find warmth now!"),
+    (-50, "Arctic - the cold is lethal.", "Hypothermia is imminent - find warmth now!"),
 ]
 
 
@@ -49,7 +49,7 @@ def temperature_description(feels_like: int) -> str:
     for threshold, desc, _ in TEMPERATURE_BANDS:
         if feels_like >= threshold:
             return desc
-    return "Deadly cold — nothing survives."
+    return "Deadly cold - nothing survives."
 
 
 def temperature_warning(feels_like: int) -> str:
@@ -81,7 +81,7 @@ def light_description(ambient_light: int) -> str:
 # Before this, `env["weather"]` was mechanically live (it drove the light
 # multiplier and the guess-time DC) but never narrated: a character standing in
 # a thunderstorm got a temperature sentence, an air sentence and a light level,
-# and not one word about the rain. The sun was worse — daylight was a light
+# and not one word about the rain. The sun was worse - daylight was a light
 # curve plus an hour comparison, so nothing ever said it was dawn.
 
 #: One sentence per weather type, from the library registry (task-772). An empty
@@ -99,12 +99,12 @@ WIND_PROSE = {
     "wind": "The wind is steady and searching.",
     "gale": "The gale tugs at everything not bolted down.",
     "storm": "The wind screams past you.",
-    "hurricane": "The wind is a maelstrom — it is hard to stand.",
+    "hurricane": "The wind is a maelstrom - it is hard to stand.",
 }
 
 #: Time-of-day bands for **outdoor** prose, as ``(start_hour, sentence)``; the
 #: first band at or below the hour wins. The day/night split is deliberately
-#: 05:00 / 19:00 — the same boundary the moon text and the guess-time action
+#: 05:00 / 19:00 - the same boundary the moon text and the guess-time action
 #: already use. A third split here would let the sky disagree with itself
 #: ("the sun is down" while the moon is still being narrated).
 TIME_OF_DAY_BANDS = [
@@ -147,7 +147,7 @@ def weather_description(weather, wind_level, noise, snow_depth=0) -> List[str]:
     ``engine.weather_forecast.normalize_weather``); ``noise`` is the area's raw
     noise descriptor, kept only to avoid saying the same thing twice.
     ``snow_depth`` is the settled depth the forecast has accumulated on the area
-    (task-556) — narrated from the *depth*, not the weather word, so the ground
+    (task-556) - narrated from the *depth*, not the weather word, so the ground
     stays described as snowed over after the sky has cleared.
     """
     from engine.weather_forecast import normalize_weather, snow_depth_prose
@@ -157,7 +157,7 @@ def weather_description(weather, wind_level, noise, snow_depth=0) -> List[str]:
     # ``WEATHER_PROSE["windy"]`` is deliberately empty: a wind-ish *weather*
     # state is narrated from the ``wind`` magnitude below, which is strictly
     # more informative, so no suppression logic is needed here. A ``stormy``
-    # state keeps its own sentence — rain breaking overhead is news the wind
+    # state keeps its own sentence - rain breaking overhead is news the wind
     # sentence does not carry.
     sentence = WEATHER_PROSE.get(weather, "")
     if sentence:
@@ -216,7 +216,7 @@ class AreaDescription:
         """Reconstruct the exits dict for a area from graph connections.
         Filters out hidden exits (undiscovered). Hides back-link directions.
 
-        ``include_hidden=True`` is for AUTHORING views (the area inspector) —
+        ``include_hidden=True`` is for AUTHORING views (the area inspector) -
         it returns every way regardless of the active player's discoveries,
         so the author sees their own hidden passages. Game-facing callers
         (prompts, look, scene) must keep the default filtered view.
@@ -318,25 +318,25 @@ class AreaDescription:
         # task-133: light level flavors what you PERCEIVE. Pitch black still
         # replaces everything (nothing to see); dim now PREFIXES the room text
         # (shapes visible, details lost) instead of hiding it entirely;
-        # bright/blinding add their own flavor for everyone — glare spares
+        # bright/blinding add their own flavor for everyone - glare spares
         # not even darkvision.
         light_prefix = ""
         if not can_see_in_dark:
             if light_level == 'pitch_black':
                 return "It's pitch black. You can't see anything. You should find a way to illuminate this space."
             elif light_level == 'dim':
-                light_prefix = "The light is dim — you can just make out the shapes of things here, details lost in shadow."
+                light_prefix = "The light is dim - you can just make out the shapes of things here, details lost in shadow."
         if light_level == 'bright':
             light_prefix = "Bright light floods the area, illuminating every detail."
         elif light_level == 'blinding':
-            light_prefix = "The light is blinding — you squint against the glare, eyes watering."
+            light_prefix = "The light is blinding - you squint against the glare, eyes watering."
 
         # task-229: moonlight adds flavor to outdoor night areas.
         #
         # This block used to read an undefined local ``node``. Python resolves
         # ``node`` as a local because it is assigned *later* in this method
         # (in the item/people loops), so line 1 of the block raised
-        # UnboundLocalError — and the bare ``except Exception: pass`` below
+        # UnboundLocalError - and the bare ``except Exception: pass`` below
         # swallowed it. The moon has therefore never been narrated anywhere,
         # at any hour, in any world (task-559). The node is looked up properly
         # now, and the except is narrowed to the provider errors it was written
@@ -357,7 +357,7 @@ class AreaDescription:
                         if mname == "full_moon":
                             moon_desc = f" {micon} The full moon hangs bright overhead, casting silver light across the scene."
                         elif mname == "blood_moon":
-                            moon_desc = f" {micon} An eerie red moon stains the sky — the world is bathed in crimson."
+                            moon_desc = f" {micon} An eerie red moon stains the sky - the world is bathed in crimson."
                         elif mname in ("gibbous", "waning"):
                             moon_desc = f" {micon} Moonlight filters through the night sky, softening the shadows."
 
@@ -400,7 +400,7 @@ class AreaDescription:
                 stype = str(st.get("type", ""))
                 severity = int(st.get("severity", 1))
                 if stype == "on_fire":
-                    desc += "\n🔥 Flames" + (" rage through here — the heat is oppressive!" if severity >= 3 else " flicker through here.")
+                    desc += "\n🔥 Flames" + (" rage through here - the heat is oppressive!" if severity >= 3 else " flicker through here.")
                 elif stype == "flooded":
                     desc += "\n💧 Water stands" + (" deep" if severity >= 3 else " in puddles") + " across the floor."
                 elif stype == "poison_gas":
@@ -450,7 +450,7 @@ class AreaDescription:
             env_summary.append(f"The area is noisy with {noise} sounds.")
         elif noise not in ("quiet", "silent", ""):
             # N9: raw descriptor values ("windy") read as grammar errors in
-            # prose — map the common ones to real sentences.
+            # prose - map the common ones to real sentences.
             noise_prose = {
                 "windy": "The wind howls outside.",
                 "howling": "The wind howls.",
@@ -463,7 +463,7 @@ class AreaDescription:
             env_summary.append(noise_prose.get(noise, f"You hear {noise}."))
         # task-559: the sky, if there is one. The weather a forecast writes is
         # only audible/visible outdoors, so this is gated on the same open-sky
-        # test the moon text uses — a storm is not something you hear through a
+        # test the moon text uses - a storm is not something you hear through a
         # stone wall, and an indoor room has no dawn.
         if _is_open_sky(area_node.properties.get("tags", []) if area_node else []):
             env_summary.extend(weather_description(
@@ -493,7 +493,7 @@ class AreaDescription:
                         carried.append(node.name)
                 for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
                     node = self.graph.get_node(edge.source)
-                    # Equipped items are worn, not held — shown as "wearing".
+                    # Equipped items are worn, not held - shown as "wearing".
                     # If an item is on both edges, only count it as worn.
                     if node and node.type == "item" and not _is_intrinsic_ability(node):
                         worn.append(node.name)
@@ -501,7 +501,7 @@ class AreaDescription:
                             carried.remove(node.name)
                 # Task-154: strangers are presented by appearance, not real name.
                 # Task-339: seeing someone again is RECOGNITION, not name
-                # knowledge — the name reveals only once heard spoken (or a
+                # knowledge - the name reveals only once heard spoken (or a
                 # name tag is read). `first_sighting` now means "name unknown".
                 # Authored `known` registry wins over both: a flagged person is
                 # never masked to whoever knows them.
@@ -537,17 +537,17 @@ class AreaDescription:
                         line += f" ({act_text})"
                 pdata_desc = pdata.get("description", "") or ""
                 # First impression: the first sentence is what you see at a
-                # glance, met or not — strangers get it too, so the room reads
-                # "the woman — A tall figure in a green cloak" instead of just
+                # glance, met or not - strangers get it too, so the room reads
+                # "the woman - A tall figure in a green cloak" instead of just
                 # "the woman". The FULL description (which may name them in
                 # prose) is reserved for characters whose name you know.
                 if pdata_desc:
                     first_sentence = pdata_desc.split('.')[0].strip() + ('.' if '.' in pdata_desc else '')
                     if name_known:
-                        line += f" — {pdata_desc}"
+                        line += f" - {pdata_desc}"
                     else:
                         # task-339: scrub the real name (and aliases) out of the
-                        # appearance handle — descriptions may open with the name.
+                        # appearance handle - descriptions may open with the name.
                         try:
                             from engine.matching import node_aliases
 
@@ -560,7 +560,7 @@ class AreaDescription:
                         except Exception:
                             _aliases = ()
                         masked = mask_name_in_text(first_sentence, pname, line, _aliases)
-                        line += f" — {masked}"
+                        line += f" - {masked}"
                 if worn:
                     line += f" [wearing: {', '.join(worn)}]"
                 if carried:
@@ -575,7 +575,7 @@ class AreaDescription:
                 # First time the active character sees this person → register
                 # the relationship (recognition: stable masked label, closeness
                 # anchor). Registered AFTER the line is built; the NAME is
-                # never revealed here — only speech / name tags teach names
+                # never revealed here - only speech / name tags teach names
                 # (task-339).
                 if (
                     active_player_obj
@@ -589,7 +589,7 @@ class AreaDescription:
         # task-653: how full the room is, as a function of the SIZE of what is
         # standing in it rather than a headcount. A throne room holding a dwarf
         # and a hill giant reads differently from one holding four dwarves, and
-        # the names above already say who — this says whether they fit. Empty
+        # the names above already say who - this says whether they fit. Empty
         # rooms say nothing, deliberately.
         try:
             from engine.occupancy import describe_occupancy, occupancy_report
@@ -625,7 +625,7 @@ class AreaDescription:
             if smell in ["mold", "rot", "rotting food", "urine"]:
                 warnings.append("The foul smell is affecting your hygiene.")
         else:
-            warnings.append("(You perceive the world as a spirit — the physical sensations of temperature and smell no longer affect you.)")
+            warnings.append("(You perceive the world as a spirit - the physical sensations of temperature and smell no longer affect you.)")
         if warnings:
             desc += "\n[!] " + " ".join(warnings)
 
@@ -634,7 +634,7 @@ class AreaDescription:
         area_name = self.player_manager.current_area.name if self.player_manager.current_area else ""
         # task-313: the exits list shows the AUTHORED handle, always. The old
         # transit branch rewrote a way's handle to the literal "back"/"forward"
-        # here, which is exactly the behaviour relative facing must not have —
+        # here, which is exactly the behaviour relative facing must not have -
         # the words alias a direction, they never rename the door. So "left"
         # now resolves to the north exit while the room still calls it what the
         # author called it.
@@ -697,20 +697,20 @@ class AreaDescription:
                     if entry_phrase:
                         detail = ""
                         if not way_node.properties.get("see_through"):
-                            detail = f" — {target_name} is on the other side"
+                            detail = f" - {target_name} is on the other side"
                         exits_desc.append(f"You could {entry_phrase}{detail}.")
                         seen_ways.add(way_id)
                         continue
                     vid = edge.properties.get("visible_in_direction", "") or ""
                     # "is clear" for a way under the open sky, "is open" otherwise.
-                    # The single predicate accepts both spellings — `outdoor`, the
+                    # The single predicate accepts both spellings - `outdoor`, the
                     # canonical tag the compiler writes, and `exterior`, the one
                     # hand-authored library areas carry. This used to test the
                     # literal set {"exterior", "natural"}, so a compiled open-air
                     # path never matched and always read "is open" (bug-529).
                     open_word = "is clear" if _is_open_sky(way_node.properties.get("tags", [])) else "is open"
                     if vid:
-                        exits_desc.append(f"[{handle}] {open_word} — on the other side you can see {vid}{beyond_suffix}")
+                        exits_desc.append(f"[{handle}] {open_word} - on the other side you can see {vid}{beyond_suffix}")
                     else:
                         target_area = target_area_node
                         if not target_area:
@@ -736,7 +736,7 @@ class AreaDescription:
                             target_feels = int(effective_temperature(float(tenv.get("temperature", 21)), equip_bonuses,
                                                                     wind_level=tenv.get("wind", "none"),
                                                                     humidity=tenv.get("humidity", "dry")))
-                            # N11: temperature_description ends with a period —
+                            # N11: temperature_description ends with a period -
                             # trim it so the joined clue doesn't read "…cold)."
                             env_clues.append(temperature_description(target_feels).lower().rstrip('.'))
                         clue_str = f" ({', '.join(env_clues)})" if env_clues else ""
@@ -757,14 +757,14 @@ class AreaDescription:
                         continue
                     vid = edge.properties.get("visible_in_direction", "") or ""
                     if vid and way_node.properties.get("see_through"):
-                        exits_desc.append(f"[{handle}] is closed — through it you can see {vid}{beyond_suffix}")
+                        exits_desc.append(f"[{handle}] is closed - through it you can see {vid}{beyond_suffix}")
                     elif beyond_suffix and way_node.properties.get("see_through"):
                         desc_text = self._render_node(way_node) or "A door here."
                         exits_desc.append(f"[{handle}] {desc_text} It is currently closed.{beyond_suffix}")
                     else:
                         desc_text = self._render_node(way_node) or "A door here."
                         if state != "open":
-                            # A closed door reads as closed at a glance — locked/
+                            # A closed door reads as closed at a glance - locked/
                             # blocked/jammed are only learned by examining it.
                             exits_desc.append(f"[{handle}] {desc_text} It is currently closed.")
                         else:

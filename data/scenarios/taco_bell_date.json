@@ -37,7 +37,7 @@
     },
     "Taco Bell": {
       "ambient_light": 55,
-      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors - one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
       "environment": {
         "air": "warm",
         "light": "normal",
@@ -50,7 +50,7 @@
       "light_description": "normal",
       "name": "Taco Bell",
       "properties": {
-        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors - one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
         "environment": {
           "air": "warm",
           "light": "normal",
@@ -69,7 +69,7 @@
     },
     "Taco Bell Dining Room": {
       "ambient_light": 75,
-      "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+      "description": "the main seating area of the store - eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
       "environment": {
         "air": "warm",
         "light": 75,
@@ -82,7 +82,7 @@
       "light_description": "bright",
       "name": "Taco Bell Dining Room",
       "properties": {
-        "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+        "description": "the main seating area of the store - eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
         "environment": {
           "air": "warm",
           "light": 75,
@@ -164,7 +164,7 @@
     },
     "Taco Bell Order Counter": {
       "ambient_light": 70,
-      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps - a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
       "environment": {
         "air": "warm",
         "light": 70,
@@ -177,7 +177,7 @@
       "light_description": "normal",
       "name": "Taco Bell Order Counter",
       "properties": {
-        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps - a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
         "environment": {
           "air": "warm",
           "light": 70,
@@ -1229,7 +1229,7 @@
               "params": {
                 "cooldown": 30,
                 "fallback_message": "The mirror's surface ripples. A voice, cool and pleased: \"You know the words.\"",
-                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken — wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
+                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken - wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
                 "max_words": 40,
                 "name": "The Mirror"
               },
@@ -1315,14 +1315,14 @@
           "effects": [
             {
               "params": {
-                "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air."
+                "success_message": "the alley swallows you back - buzzing bulbs, wet concrete, the diner's oil on the air."
               },
               "type": "message"
             }
           ],
           "fail_message": "",
           "name": "",
-          "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air.",
+          "success_message": "the alley swallows you back - buzzing bulbs, wet concrete, the diner's oil on the air.",
           "target_name": "",
           "target_state": "",
           "trigger_type": [
@@ -1453,7 +1453,7 @@
         "id": "area_taco_bell",
         "name": "Taco Bell",
         "properties": {
-          "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+          "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors - one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
           "environment": {
             "air": "warm",
             "light": "normal",
@@ -1477,7 +1477,7 @@
         "id": "area_taco_bell_dining_room",
         "name": "Taco Bell Dining Room",
         "properties": {
-          "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+          "description": "the main seating area of the store - eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
           "environment": {
             "air": "warm",
             "light": 75,
@@ -1548,7 +1548,7 @@
         "id": "area_taco_bell_order_counter",
         "name": "Taco Bell Order Counter",
         "properties": {
-          "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+          "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps - a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
           "environment": {
             "air": "warm",
             "light": 70,
@@ -2441,7 +2441,7 @@
             "look"
           ],
           "current_state": "normal",
-          "description": "An antique standing mirror with an ornate brass frame. The glass is deep and dark, and you get the feeling it is watching back — maybe waiting for the right words.",
+          "description": "An antique standing mirror with an ornate brass frame. The glass is deep and dark, and you get the feeling it is watching back - maybe waiting for the right words.",
           "tags": [
             "container"
           ],
@@ -2610,14 +2610,14 @@
           "effects": [
             {
               "params": {
-                "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air."
+                "success_message": "the alley swallows you back - buzzing bulbs, wet concrete, the diner's oil on the air."
               },
               "type": "message"
             }
           ],
           "fail_message": "",
           "name": "",
-          "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air.",
+          "success_message": "the alley swallows you back - buzzing bulbs, wet concrete, the diner's oil on the air.",
           "target_name": "",
           "target_state": "",
           "trigger_type": [
@@ -2677,7 +2677,7 @@
           "effects": [
             {
               "params": {
-                "message": "Behind the pedestal of the window booth table, something tiny catches the fluorescent light — a small blue butterfly earring, its clasp bent."
+                "message": "Behind the pedestal of the window booth table, something tiny catches the fluorescent light - a small blue butterfly earring, its clasp bent."
               },
               "type": "message"
             },
@@ -3119,7 +3119,7 @@
               "params": {
                 "cooldown": 30,
                 "fallback_message": "The mirror's surface ripples. A voice, cool and pleased: \"You know the words.\"",
-                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken — wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
+                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken - wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
                 "max_words": 40,
                 "name": "The Mirror"
               },
@@ -3262,7 +3262,7 @@
           "effects": [
             {
               "params": {
-                "message": "the lock screen is a wall of noise — three patreon pledges, eleven discord pings, and one saved draft to a number she still can't delete."
+                "message": "the lock screen is a wall of noise - three patreon pledges, eleven discord pings, and one saved draft to a number she still can't delete."
               },
               "type": "message"
             }
@@ -3360,7 +3360,7 @@
           "area_to": "oak lane",
           "auto_close": false,
           "current_state": "open",
-          "description": "the blind bend where elm street runs into oak street past the pawn shop grate — a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
+          "description": "the blind bend where elm street runs into oak street past the pawn shop grate - a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
           "edge_length": "",
           "max_size": "normal",
           "needs_open": {
@@ -3804,7 +3804,7 @@
             "neon",
             "photo"
           ],
-          "text": "this month's hyperfixation: photographing dying neon signs mid-flicker. the taco bell's 'bell' panel is the white whale — one letter out, buzzing like a wasp in a jar. i will get that shot tonight if it kills me."
+          "text": "this month's hyperfixation: photographing dying neon signs mid-flicker. the taco bell's 'bell' panel is the white whale - one letter out, buzzing like a wasp in a jar. i will get that shot tonight if it kills me."
         },
         {
           "embedding": null,
@@ -3838,7 +3838,7 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts — you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting — a mechanism, a pattern, a person — you lock onto it. you steal food off plates. you find things people lost.",
+      "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts - you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting - a mechanism, a pattern, a person - you lock onto it. you steal food off plates. you find things people lost.",
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -3906,7 +3906,7 @@
       "activity": null,
       "at_way_id": "way_blind_corner",
       "autonomy": true,
-      "base_description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight — you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.",
+      "base_description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight - you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder - she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.",
       "behaviors": [],
       "body_region_names": {
         "arm_left": "Left Arm",
@@ -4018,7 +4018,7 @@
         "Social": 0.02,
         "Thirst": 0.025
       },
-      "description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight — you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.\nmiki doki is wearing Blue Butterfly Earring on their accessory.",
+      "description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight - you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder - she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.\nmiki doki is wearing Blue Butterfly Earring on their accessory.",
       "discovered_exits": [],
       "discovered_items": [],
       "emotion": {
@@ -4156,7 +4156,7 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "personality": "you are miki doki, mid-twenties, a chaotic ASMR artist with anxiety and a heart of gold who calls herself a girlfailure. you ramble when nervous — badly, loudly, and past the point where you want to stop — and narrate your own panic mid-sentence ('stop talking stop talking'). you're self-deprecating, clingy once attached, bratty as a defense, laid back until attention lands on you, then shy and awkward. you cannot take a compliment; you argue with your own inner voice out loud. you never swear much and worry about being yelled at. your ASMR-trained ears catch subtle sounds others miss. you hum when scared and fidget with your syringe necklace. you wear mismatched socks or stockings always, twin tails held by a pink star band, an upside-down cross and hollow star in your bangs, and long nails painted the same pinkish red as your eyes. your blue butterfly earring — your mom's, the only thing you have from her — went missing during tonight's date and you found it after, crumpled in your hoodie pocket with its clasp bent; it's back on your ear, but the hour it spent gone is still quietly wrecking you under the jokes. three dates this month have bailed after finding your patreon — bradley's was an hour ago, ended on a sidewalk over a phone screen. you took the long way home through the alleys to walk it off, and you never got dinner.",
+      "personality": "you are miki doki, mid-twenties, a chaotic ASMR artist with anxiety and a heart of gold who calls herself a girlfailure. you ramble when nervous - badly, loudly, and past the point where you want to stop - and narrate your own panic mid-sentence ('stop talking stop talking'). you're self-deprecating, clingy once attached, bratty as a defense, laid back until attention lands on you, then shy and awkward. you cannot take a compliment; you argue with your own inner voice out loud. you never swear much and worry about being yelled at. your ASMR-trained ears catch subtle sounds others miss. you hum when scared and fidget with your syringe necklace. you wear mismatched socks or stockings always, twin tails held by a pink star band, an upside-down cross and hollow star in your bangs, and long nails painted the same pinkish red as your eyes. your blue butterfly earring - your mom's, the only thing you have from her - went missing during tonight's date and you found it after, crumpled in your hoodie pocket with its clasp bent; it's back on your ear, but the hour it spent gone is still quietly wrecking you under the jokes. three dates this month have bailed after finding your patreon - bradley's was an hour ago, ended on a sidewalk over a phone screen. you took the long way home through the alleys to walk it off, and you never got dinner.",
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -4439,7 +4439,7 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "personality": "you are tyler, sixteen, the taco bell closing cashier. you have seen things tonight — a man shouted 'pegging' at your register and the woman with him turned the color of the hot sauce packets. you process orders with the thousand-yard stare of someone counting the minutes until his ride arrives. you did not choose this. the headset chose you.",
+      "personality": "you are tyler, sixteen, the taco bell closing cashier. you have seen things tonight - a man shouted 'pegging' at your register and the woman with him turned the color of the hot sauce packets. you process orders with the thousand-yard stare of someone counting the minutes until his ride arrives. you did not choose this. the headset chose you.",
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -4535,7 +4535,7 @@
     },
     "Taco Bell": {
       "ambient_light": 55,
-      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors - one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
       "environment": {
         "air": "warm",
         "light": "normal",
@@ -4548,7 +4548,7 @@
       "light_description": "normal",
       "name": "Taco Bell",
       "properties": {
-        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors - one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
         "environment": {
           "air": "warm",
           "light": "normal",
@@ -4567,7 +4567,7 @@
     },
     "Taco Bell Dining Room": {
       "ambient_light": 75,
-      "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+      "description": "the main seating area of the store - eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
       "environment": {
         "air": "warm",
         "light": 75,
@@ -4580,7 +4580,7 @@
       "light_description": "bright",
       "name": "Taco Bell Dining Room",
       "properties": {
-        "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+        "description": "the main seating area of the store - eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
         "environment": {
           "air": "warm",
           "light": 75,
@@ -4662,7 +4662,7 @@
     },
     "Taco Bell Order Counter": {
       "ambient_light": 70,
-      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps - a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
       "environment": {
         "air": "warm",
         "light": 70,
@@ -4675,7 +4675,7 @@
       "light_description": "normal",
       "name": "Taco Bell Order Counter",
       "properties": {
-        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps - a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
         "environment": {
           "air": "warm",
           "light": 70,

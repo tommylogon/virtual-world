@@ -4,7 +4,7 @@ Everything here is gated behind ``world.mature_content``: the caller (the
 ``/api/action`` dispatch) rejects intimacy verbs with a flavor message when
 the toggle is off, and the mechanical pipeline below is a no-op unless the
 target actually carries the pleasure vitals (Arousal/Stimulation/Pleasure,
-which only exist when the toggle is on — task-207).
+which only exist when the toggle is on - task-207).
 
 Pipeline (task-212):
     VERB_BASE → x intensity modifier → x body-part sensitivity (body_state)
@@ -73,7 +73,7 @@ _REACTION_MILD = (
     "{target} goes very still under the touch.",
 )
 _PAIN_LINES = (
-    "{target} yelps — that one stung.",
+    "{target} yelps - that one stung.",
     "{target} flinches away from the sharpness of it.",
 )
 
@@ -95,7 +95,7 @@ def parse_intensity(text: str) -> Tuple[str, str]:
 
 def body_part_multiplier(target, region_id: str) -> float:
     """Product of every trait ``body_part_multipliers`` entry matching the
-    region (exact id, or any ancestor via the region chain — task-212/213)."""
+    region (exact id, or any ancestor via the region chain - task-212/213)."""
     mult = 1.0
     traits = getattr(target, "traits", None) or {}
     if not traits:
@@ -123,7 +123,7 @@ def resolve_body_part(target, where_text: Optional[str], graph,
 
     Returns ``{region, covered, accessible, default}``. ``region`` is None when
     the text names no known region. Coverage comes from the paperdoll layers
-    (``is_exposed``); a covered region is still reachable — the contact just
+    (``is_exposed``); a covered region is still reachable - the contact just
     lands through clothing (damped), so ``accessible`` stays True unless the
     region does not exist.
     """
@@ -200,7 +200,7 @@ def apply_stimulation(actor, target, verb: str, region_id: str,
     # to where it was.
     #
     # Maturity is gated by the same proxy this function already used one screen
-    # ago — the pleasure vitals exist only while `world.mature_content` is on —
+    # ago - the pleasure vitals exist only while `world.mature_content` is on -
     # so with the toggle off this line is unreachable, no path is recorded and no
     # state is created.
     if getattr(target, "record_stimulation_path", None) and stim_gain > 0:
@@ -285,7 +285,7 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     if report["stim"] > 0 or report["pain"] > 0:
         line += " " + _reaction_line(target_name, report["stim"], report["pain"])
     if report.get("overstimulated"):
-        line += f" {target_name} is overwhelmed — it's too much."
+        line += f" {target_name} is overwhelmed - it's too much."
     # task-214: bystander NPCs notice the act (mature-gated inside).
     try:
         watchers = world.npc_behaviors.process_bystander_reactions(
@@ -308,7 +308,7 @@ EXHIBITION_AROUSAL = 4
 EXHIBITION_PLEASURE = 2
 
 #: Sighting classes and what they are worth. A *public* sighting is the whole
-#: trait — being watched by an onlooker, in the open — so it pays most. A covert
+#: trait - being watched by an onlooker, in the open - so it pays most. A covert
 #: one still thrills, less. The non-exposure class covers a touch that was not
 #: seen by anyone at all, which is precisely the case the trait does nothing for:
 #: what thrills an exhibitionist is the being-seen, not the sensation.
@@ -324,7 +324,7 @@ def apply_exhibitionism(world, target, target_name) -> str:
 
     **Mature-gated**: the caller only reaches here on an intimacy action, which
     is itself mature-gated, and the vitals only exist while
-    ``world.mature_content`` is on — so with the toggle off this returns on the
+    ``world.mature_content`` is on - so with the toggle off this returns on the
     first missing vital and creates nothing.
 
     Returns a line for the caller to append, or ``""``.
@@ -360,7 +360,7 @@ def apply_exhibitionism(world, target, target_name) -> str:
     if "Pleasure" in vitals and pleasure_gain:
         vitals["Pleasure"] = min(100, vitals.get("Pleasure", 0) + pleasure_gain)
 
-    # task-545: a sighting is not a path — no region, no verb. Filing it under its
+    # task-545: a sighting is not a path - no region, no verb. Filing it under its
     # own source is what lets a path gate (task-488) tell "you were watched" from
     # "you were touched".
     if hasattr(target, "record_stimulation_path"):

@@ -3,7 +3,7 @@
 Given a character's ``interest_tags``, scan the item library for wearable
 pieces (non-empty ``equip_slots``, not intrinsic abilities) whose tags
 intersect those interests, then equip them through the normal equipment
-stacking rules — innermost→outermost, slot depth respected, one instance
+stacking rules - innermost→outermost, slot depth respected, one instance
 per name. Weather-aware: in a hot area, heavy-insulation pieces are skipped;
 in a cold area, insulated pieces are preferred.
 
@@ -11,7 +11,7 @@ Idempotent by construction: ``equip_item`` refuses already-worn names and
 full slots, so re-running dresses only what's missing. Seeds are optional
 for reproducible runs.
 
-**Two selection paths, one equip loop.** The engine cannot call an LLM — the
+**Two selection paths, one equip loop.** The engine cannot call an LLM - the
 keys live in the browser (``routes/action_handlers.py:195``), so the inspector
 runs the model and posts the picks back. This module owns the candidate list
 (``dress_candidates``) and the equip step (``auto_dress`` with
@@ -85,7 +85,7 @@ def _apply_mature_gate(gs, entries):
     """Drop `mature`-tagged wearables unless the world has opted in (task-660).
 
     The inspector's Auto-Dress button is general-purpose, so a mature item must
-    not reach the model — or the deterministic pool — while `mature_content` is
+    not reach the model - or the deterministic pool - while `mature_content` is
     off. Definitions stay functional for a character already wearing one.
     """
     if getattr(gs, "mature_content", False):

@@ -6,9 +6,9 @@ template can be pushed down into every copy instead of into each copy by hand.
 node is standalone and owns its data.
 
 This module is the *contract*. The four ``_refresh_*`` handlers in
-``routes/library_ops.py`` keep their per-type apply bodies — they genuinely
+``routes/library_ops.py`` keep their per-type apply bodies - they genuinely
 differ, because a character's fields live on the ``Player`` and a way's are
-coerced booleans — but they all read their field list, their template-id
+coerced booleans - but they all read their field list, their template-id
 resolution and their lock rule from here, because that is the part that had
 drifted into four different answers.
 
@@ -43,7 +43,7 @@ from typing import Dict, FrozenSet, Optional, Tuple
 LINK_FIELD = "library_id"
 
 #: The richer link introduced by task-290: the same ``library_id`` plus what a
-#: flat string cannot say — which variant, which fields are linked at all, and
+#: flat string cannot say - which variant, which fields are linked at all, and
 #: which the author has taken over. It is **additive**: a node may carry only the
 #: flat field, only this block, or both, and :func:`template_ref` folds the
 #: shapes together so no other call site has to care.
@@ -65,7 +65,7 @@ BROKEN_FIELD = "template_broken_from"
 #:
 #: ``current_state`` is deliberately **not** here, and that is an open question
 #: rather than a settled one. task-289's design says never sync it, and for a
-#: way it is right — ``open``/``closed``/``locked`` is runtime, so a sync would
+#: way it is right - ``open``/``closed``/``locked`` is runtime, so a sync would
 #: re-open a door an NPC had closed. But on an item ``current_state`` carries
 #: authored content (``"hidden"`` vs ``"normal"``), and both have shipped that
 #: way since the item sync was written. Unifying them changes what an existing
@@ -91,7 +91,7 @@ class TemplateSpec:
     registry: str
     mutable: Tuple[str, ...]
     #: How to guess a template id when the caller did not name one. ``"none"``
-    #: means "do not guess" — an item's id is an opaque library key, so a
+    #: means "do not guess" - an item's id is an opaque library key, so a
     #: name-derived guess would silently attach it to the wrong template.
     guess: str = "none"
     #: A character syncs onto its ``Player``, not onto node properties.
@@ -212,7 +212,7 @@ def link(node, template_id: str, *, variant: Optional[str] = None,
     Writes the **flat** ``library_id`` even when a variant is given, and records
     the rest in ``template_ref``. That asymmetry is deliberate: ~150 call sites
     in 33 files read ``library_id`` directly (26 of them in ``population.py``),
-    and a variant is a *subset* of a template, not a different one — so the flat
+    and a variant is a *subset* of a template, not a different one - so the flat
     field stays the single answer to "which template is this", and ``template_ref``
     only carries what the flat field cannot express.
     """
@@ -234,7 +234,7 @@ def link(node, template_id: str, *, variant: Optional[str] = None,
 
 
 def template_ref(node) -> dict:
-    """The node's link as one normalised dict — the only reader of both shapes.
+    """The node's link as one normalised dict - the only reader of both shapes.
 
     This is the "wrap ``library_id`` on first read" migration, done in the one
     place that reads links. A node written before task-290 has a bare
@@ -262,7 +262,7 @@ def override_fields(node) -> frozenset:
 
     The union of the two ways of saying so: the pre-290 ``locked_fields`` list,
     and the post-290 ``template_ref.overrides`` map. Both exist, both mean the
-    same thing, and a sync has to honour both — otherwise upgrading the authoring
+    same thing, and a sync has to honour both - otherwise upgrading the authoring
     format would quietly unprotect every field a previous author had locked.
     """
     return frozenset(locked_fields(node)) | frozenset(template_ref(node)["overrides"])
@@ -271,8 +271,8 @@ def override_fields(node) -> frozenset:
 def syncable_fields(node) -> frozenset:
     """The fields a sync may write for this node: whitelist minus what is owned.
 
-    ``linked_fields`` narrows further when present — it is the author saying
-    "only these come from the template" — and overrides remove individual fields
+    ``linked_fields`` narrows further when present - it is the author saying
+    "only these come from the template" - and overrides remove individual fields
     from whatever is left.
     """
     ref = template_ref(node)
@@ -306,7 +306,7 @@ def resolve_template(registry: dict, library_id: str,
 
     Resolution is a chain, applied base-first:
 
-    1. ``parent_template``, if the entry declares one — the base space. The
+    1. ``parent_template``, if the entry declares one - the base space. The
        parent's own ``parent_template`` is followed too, so a chain is allowed,
        with a depth cap so a cycle in authored data cannot hang a save.
     2. the entry itself, on top of that base.

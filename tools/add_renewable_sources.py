@@ -2,7 +2,7 @@
 
 Adds the library's plant items to a scenario as standing nodes, wired through the
 **real** library placement path (`_spawn_library_item_node`) so the node's
-properties and its trigger graph are exactly what the app would produce — no
+properties and its trigger graph are exactly what the app would produce - no
 second implementation to drift.
 
 Dry-run by default; `--write` saves the scenario back.
@@ -12,7 +12,7 @@ Dry-run by default; `--write` saves the scenario back.
 
 A plant is a *renewable source*: an untagged standing item that grows a counter,
 and at 100 spawns its produce into itself, capped. It deliberately carries no
-`food` tag — consumption finds targets by tag, and `_consume_here` deletes a node
+`food` tag - consumption finds targets by tag, and `_consume_here` deletes a node
 it consumes, so a tagged bush would simply be eaten.
 """
 import argparse
@@ -34,7 +34,7 @@ DEFAULT_PLANTS = [
     ("bush_of_berries", "Camp Entrance Trail", 1),
 ]
 
-#: Service fixtures — items that provide an action rather than produce anything.
+#: Service fixtures - items that provide an action rather than produce anything.
 #: A wash spot is `use`d to clean up and never depletes (`uses: -1`). Tagged
 #: `bathing`, NOT `water`: `DRINK_TAGS` contains "water" and `_consume_here`
 #: deletes a node it consumes, so a thirsty goblin would drink the fixture and
@@ -50,7 +50,7 @@ DEFAULT_FIXTURES = [
 ]
 
 #: Tags that give a place a service. The camp has an area named "Waste Disposal"
-#: but nothing marked it usable, so `relieve` treated it as open ground — and the
+#: but nothing marked it usable, so `relieve` treated it as open ground - and the
 #: background tier had no relief step at all, which pinned everyone's Hygiene at 0.
 DEFAULT_AREA_TAGS = {
     "Waste Disposal": ["latrine"],
@@ -150,7 +150,7 @@ def main():
     if not placed:
         return 1
     if not args.write:
-        print("dry run — rerun with --write to save")
+        print("dry run - rerun with --write to save")
         return 0
     _save_scenario(app.world, name=stem)   # writes data/scenarios/<stem>.json
     print("wrote", os.path.join("data", "scenarios", stem + ".json"))

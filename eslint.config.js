@@ -4,7 +4,7 @@
  *
  * The codebase is script-tag + `window` global-heavy (156 files, no module
  * system). The single most valuable rule here is `no-undef`: it flags any
- * identifier referenced but not in `globals` — exactly the class of bug that
+ * identifier referenced but not in `globals` - exactly the class of bug that
  * bit us in focus.js (`graphManager is not defined` at load time).
  *
  * `globals` is intentionally large: every cross-file global (window.X,
@@ -12,7 +12,7 @@
  * The browser provides the DOM/visibility/env/session globals via
  * `scriptOptions: { globals: 'browser' }` for script-style files.
  *
- * Rules are deliberately light — the goal is catching undefined references
+ * Rules are deliberately light - the goal is catching undefined references
  * and obvious mistakes, not enforcing an opinionated style on a legacy
  * codebase. `no-unused-vars` is off (many files assign `window.X` used only
  * from other scripts).

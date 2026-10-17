@@ -4,7 +4,7 @@ from graph import Node
 
 
 class ToggleableItems:
-    """Manages toggleable items — items with on/off states that flip
+    """Manages toggleable items - items with on/off states that flip
     the item's current_state between 'unlit' and 'lit' on the graph node.
     Lighting is calculated by scanning the graph for lit items."""
 
@@ -70,7 +70,7 @@ class ToggleableItems:
 
         if new_status == "lit":
             trig_outputs = player_manager._execute_triggers(item_node, "on_toggle_on")
-            # task-396: `on_light` is the semantic "this got lit" hook — a
+            # task-396: `on_light` is the semantic "this got lit" hook - a
             # companion to on_toggle_on so authors can bind lighting flavor
             # without the confusing toggle_on/off dichotomy. Both fire when a
             # toggleable is turned on.

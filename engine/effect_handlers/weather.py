@@ -1,11 +1,11 @@
 """Time & weather effect handlers (task-234).
 
 Adds trigger effects over the forecast/clock:
-  - ``set_time`` / ``set_date`` — move the game clock / calendar
-  - ``set_weather`` — GM-style global weather override for N turns
-  - ``forecast_override`` — full override (weather/wind/humidity/temp/light/
+  - ``set_time`` / ``set_date`` - move the game clock / calendar
+  - ``set_weather`` - GM-style global weather override for N turns
+  - ``forecast_override`` - full override (weather/wind/humidity/temp/light/
     air/blood_moon) with optional countdown
-  - ``adjust_forecast`` — delta-shift the active override
+  - ``adjust_forecast`` - delta-shift the active override
 """
 
 
@@ -33,7 +33,7 @@ def handle_set_time(params, context, item_node=None, game_state=None):
 
 
 def handle_set_date(params, context, item_node=None, game_state=None):
-    """Set the game calendar (day/month/year — each optional)."""
+    """Set the game calendar (day/month/year - each optional)."""
     if game_state is None:
         return []
     day = params.get("day")

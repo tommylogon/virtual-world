@@ -1,4 +1,4 @@
-# Sky Widget — Reconciled Design (A)
+# Sky Widget - Reconciled Design (A)
 
 Reference note reconciling the **qwen/GLM sky-stage mockups** (`docs/design/sky-clock-mockup-v1.html`, `sky-clock-mockup-v2-real-moon.html`) with the **roadmap 3.3** spec (`docs/virtualWorld/dev_tasks/environment-roadmap.md`) and the **implementation** in `static/js/sky-scape.js` + `engine/weather_forecast.py`.
 
@@ -18,9 +18,9 @@ Reference note reconciling the **qwen/GLM sky-stage mockups** (`docs/design/sky-
 
 - **Sky stage gradient** (`skyAt()`): the v1 gradient keyframes ported directly (hour→color pair).
 - **Sun arc**: position/animation logic from v1, with dimming via weather.
-- **Moon arc**: v2's `age = day/30` + `moonrise = sunrise + age × 24h` + `moonset = rise + dayLen` — correct real-lunar behavior. Used in the stage and the readout.
+- **Moon arc**: v2's `age = day/30` + `moonrise = sunrise + age × 24h` + `moonset = rise + dayLen` - correct real-lunar behavior. Used in the stage and the readout.
 - **Season palettes**: v1's `SEASON_STYLE` map (spring/summer/autumn/winter hill colors, sunrise/sunset times).
-- **Weather layers**: clouds, rain streaks, snow flakes, fog overlay, dimming — all ported from the mockup's `WEATHER_LAYER` table.
+- **Weather layers**: clouds, rain streaks, snow flakes, fog overlay, dimming - all ported from the mockup's `WEATHER_LAYER` table.
 - **Reduced-motion** respect: low-OP computing; kept the `transition: opacity .4s` on the stage.
 - **Moon phase chips**: `MOON_CHIP` emoji map from v2.
 
@@ -36,8 +36,8 @@ Reference note reconciling the **qwen/GLM sky-stage mockups** (`docs/design/sky-
 | Mockup feature | Reason |
 |----------------|--------|
 | **Flow** (animated hour-per-0.5s rAF) | Demo affordance; real panel uses clickable time skips that call engine APIs |
-| **Lightning flashes** | Stormy weather layer only — lightning is a visual treat but adds no authoring value in v1 |
-| **Tree silhouettes** | Seasonal tree styling in the hills — low ROI; ground+hill is enough |
+| **Lightning flashes** | Stormy weather layer only - lightning is a visual treat but adds no authoring value in v1 |
+| **Tree silhouettes** | Seasonal tree styling in the hills - low ROI; ground+hill is enough |
 | **Realistic moon terminator** | v2's shadow disc per phase was nice but the emoji + readout is sufficient |
 | **Drag-to-set-time slider** | v1's time slider; replaced by discrete skip buttons (+15m/+1h/+1 day) |
 | **Per-area override** | `forecast_override` is global in v1; per-area is a future extension |
@@ -70,26 +70,26 @@ Reference note reconciling the **qwen/GLM sky-stage mockups** (`docs/design/sky-
 ## Files changed / created (this session)
 
 ### Engine
-- `engine/weather_forecast.py` — NEW: ForecastSchedule, get_moon_phase, wind/humidity tables
-- `virtual_world_engine.py` — calendar_config, forecast_* fields, game_day/month/year properties, `_forecast_tick()`, `_fire_time_triggers()`, `set_game_time()`, `set_game_date()`, `current_moon_phase()` (blood_moon aware)
-- `engine/tick_manager.py` — forecast_tick hook, wind extinguish, wind energy drain, on_turn_start/end hooks, humidity social
-- `engine/lighting.py` — moon_provider + moon night-light bonus (weather-gated)
-- `engine/equipment_bonuses.py` — effective_temperature wind/humidity kwargs, aggregate wind_resistance/water_resistance
-- `engine/environment_propagation.py` — wind multiplier on heat propagation
-- `engine/effects.py` — import WEATHER_HANDLERS
-- `engine/effect_handlers/environment.py` — weather/wind/humidity/transparent keys + adjust cycling
-- `engine/effect_handlers/weather.py` — NEW: set_time, set_date, set_weather, forecast_override, adjust_forecast
-- `engine/runtime_config.py` — forecast.apply_scope key
-- `engine/serialization.py` — save/load calendar_config, forecast_schedule, forecast_override
+- `engine/weather_forecast.py` - NEW: ForecastSchedule, get_moon_phase, wind/humidity tables
+- `virtual_world_engine.py` - calendar_config, forecast_* fields, game_day/month/year properties, `_forecast_tick()`, `_fire_time_triggers()`, `set_game_time()`, `set_game_date()`, `current_moon_phase()` (blood_moon aware)
+- `engine/tick_manager.py` - forecast_tick hook, wind extinguish, wind energy drain, on_turn_start/end hooks, humidity social
+- `engine/lighting.py` - moon_provider + moon night-light bonus (weather-gated)
+- `engine/equipment_bonuses.py` - effective_temperature wind/humidity kwargs, aggregate wind_resistance/water_resistance
+- `engine/environment_propagation.py` - wind multiplier on heat propagation
+- `engine/effects.py` - import WEATHER_HANDLERS
+- `engine/effect_handlers/environment.py` - weather/wind/humidity/transparent keys + adjust cycling
+- `engine/effect_handlers/weather.py` - NEW: set_time, set_date, set_weather, forecast_override, adjust_forecast
+- `engine/runtime_config.py` - forecast.apply_scope key
+- `engine/serialization.py` - save/load calendar_config, forecast_schedule, forecast_override
 
 ### Routes
-- `routes/action_handlers.py` — /api/state exposes game_day/month/year, moon_phase, forecast_schedule, forecast_override
-- `routes/settings.py` — GET/POST /api/settings/forecast, POST /api/settings/forecast-override
+- `routes/action_handlers.py` - /api/state exposes game_day/month/year, moon_phase, forecast_schedule, forecast_override
+- `routes/settings.py` - GET/POST /api/settings/forecast, POST /api/settings/forecast-override
 
 ### Frontend
-- `static/js/sky-scape.js` — NEW: engine-driven sky widget (top-bar + modal stage + controls)
-- `templates/index.html` — script include for sky-scape.js
+- `static/js/sky-scape.js` - NEW: engine-driven sky widget (top-bar + modal stage + controls)
+- `templates/index.html` - script include for sky-scape.js
 
 ### Tests
-- `tests/test_graph_batch.py` — 6 batch tests (from earlier session)
-- `tests/test_engine_config.py` — baseline includes forecast.apply_scope
+- `tests/test_graph_batch.py` - 6 batch tests (from earlier session)
+- `tests/test_engine_config.py` - baseline includes forecast.apply_scope

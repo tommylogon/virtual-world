@@ -47,7 +47,7 @@ class PlaceActionsMixin:
 
         # task-493: a part does not move. Both put verbs reach items through
         # `find_reachable`, which is exactly how a battery inside a carried
-        # phone is found — so without this the one verb most likely to pick a
+        # phone is found - so without this the one verb most likely to pick a
         # part up would be the one nobody gated.
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "put it away"))
@@ -74,7 +74,7 @@ class PlaceActionsMixin:
         # A closed box won't take a sock IN it.
         container_state = (container_node.properties.get("current_state") or "").lower()
         if container_state in ("closed", "locked", "sealed"):
-            raise ValueError(f"The {container_name} is {container_state} — open it first.")
+            raise ValueError(f"The {container_name} is {container_state} - open it first.")
 
         # task-473: a stackable put into a container holding a matching stack
         # merges instead of adding a second node.
@@ -172,11 +172,11 @@ class PlaceActionsMixin:
             if isinstance(container_tags, str):
                 container_tags = [t.strip() for t in container_tags.split(",")]
             if not any(t.lower() == "container" for t in container_tags):
-                raise ValueError(f"The {target_name} isn't a container — try 'on', 'under', 'beside', 'behind', or 'at'.")
-            # A closed box won't take a sock IN it — spatial relations still fine.
+                raise ValueError(f"The {target_name} isn't a container - try 'on', 'under', 'beside', 'behind', or 'at'.")
+            # A closed box won't take a sock IN it - spatial relations still fine.
             target_state = (target_node.properties.get("current_state") or "").lower()
             if target_state in ("closed", "locked", "sealed"):
-                raise ValueError(f"The {target_name} is {target_state} — open it first.")
+                raise ValueError(f"The {target_name} is {target_state} - open it first.")
             cap_error = self._check_container_capacity(target_node_id, item_node.properties.get("weight", 0))
             if cap_error:
                 raise ValueError(cap_error)

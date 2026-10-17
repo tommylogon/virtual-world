@@ -44,7 +44,7 @@ These are not stylistic. Each one broke the page, and each is now a rule.
    files declaring the same name is a parse-time `SyntaxError` that kills the
    whole file.** The original `window.X = …` had no binding, so this collision
    was impossible before the migration. Do not "fix" a typing error by writing
-   `const X = (() => {…})()` — cast the assignment instead:
+   `const X = (() => {…})()` - cast the assignment instead:
 
    ```ts
    (window as unknown as { Thing: unknown }).Thing = (() => { /* … */ })();
@@ -65,7 +65,7 @@ These are not stylistic. Each one broke the page, and each is now a rule.
 
 4. **Declare class fields with `declare`.** `useDefineForClassFields` defaults on
    for target ES2022, so a bare `cache: Record<…>;` emits `cache;` into the
-   class body — an extra property definition at construction that the original
+   class body - an extra property definition at construction that the original
    never had.
 
 5. **Never bulk-rewrite these files with PowerShell `Get-Content`/`Set-Content`.**
@@ -90,16 +90,16 @@ Converted files must **not** use `import`/`export`. Cross-file symbols come from
 ambient declarations in `static/js/types/*.d.ts` (currently `globals.d.ts`).
 
 Two options land in `tsconfig.json` because TypeScript 7 removed them:
-- `module: "esnext"` — `"none"` no longer exists. A file with no imports/exports
+- `module: "esnext"` - `"none"` no longer exists. A file with no imports/exports
   still emits as a classic script, so this is a non-issue in practice.
 - `alwaysStrict` was removed entirely. **Emitted files therefore start with
-  `"use strict";`** — converted files get strict semantics automatically. That is
+  `"use strict";`** - converted files get strict semantics automatically. That is
   a benefit, but it is a real behaviour change for the file, so convert
   deliberately (no sloppy-mode-only constructs).
 
 ## Converting a file
 
-Prefer the tool — it renames header-preservingly, emits, and records the
+Prefer the tool - it renames header-preservingly, emits, and records the
 `window.` usage baseline before the original `.js` disappears from HEAD:
 
 ```powershell
@@ -114,7 +114,7 @@ By hand, the steps are:
 2. Add types; widen globals in `static/js/types/globals.d.ts` if needed. File-local
    `interface`/`type` names must be unique across the corpus, since every file
    shares one global scope.
-3. Keep the `@module/@contributes/@powers/@relates/@docs` header **in the .ts** —
+3. Keep the `@module/@contributes/@powers/@relates/@docs` header **in the .ts** -
    it is emitted into the `.js`, so the module index keeps working. A leading
    type-only statement can make `tsc` drop the header; `check` verifies this.
 4. Delete `foo.js` (the build regenerates it).
@@ -126,7 +126,7 @@ file without the project-wide build, which is what made parallel lanes safe.
 The emitted `.js` carries a header note that it is generated. **Never hand-edit
 a `.js` that has a sibling `.ts`.**
 
-For symbols other code reaches through `window`, keep the assignment — and
+For symbols other code reaches through `window`, keep the assignment - and
 prefer the no-binding form, see hazard 1 above:
 
 ```ts
@@ -147,7 +147,7 @@ thing's name:
 
 A sweep renamed **163** such locals across 11 files (e.g. the prompt builder's
 `describeVital`, which is now readable). Short names are fine only where they are
-idiomatic and local — loop indices (`i`, `j`), coordinates (`x`, `y`).
+idiomatic and local - loop indices (`i`, `j`), coordinates (`x`, `y`).
 
 ## Conversion order (historical)
 
@@ -155,12 +155,12 @@ The migration is finished, so this is a record of how it was sequenced rather
 than a plan. Leaf → core → views, views last because lit-html templates are the
 hardest to type:
 
-1. Leaves with no globals or one — `shared/dom-utils`, `shared/json-utils`,
+1. Leaves with no globals or one - `shared/dom-utils`, `shared/json-utils`,
    `shared/vital-color`, `agent/rate-limiter`.
-2. Logic modules — `agent/action-normalizer`, `agent/response-parser`,
+2. Logic modules - `agent/action-normalizer`, `agent/response-parser`,
    `agent/plan-tracker`.
-3. Services — `config`, `storage`, `world-state`, `api`, `llm-client`.
-4. Views — `inspector/*`, `ui/*`, `worldpainter/editor`, `graph-manager`.
+3. Services - `config`, `storage`, `world-state`, `api`, `llm-client`.
+4. Views - `inspector/*`, `ui/*`, `worldpainter/editor`, `graph-manager`.
 
 `graph/graph-background` was converted out of order on purpose: views-adjacent,
 but freshly rewritten (task-451) and full of geometry and hit-testing, which is
@@ -168,15 +168,15 @@ exactly what benefits from types. It also proved the ambient-globals route.
 
 ## Guarding it
 
-- **`python tools/ts_convert.py check`** — the migration gate. Runs `build:ts`,
+- **`python tools/ts_convert.py check`** - the migration gate. Runs `build:ts`,
   `typecheck`, `lint`, `module:check` and `node tools/unit/run.cjs`; verifies
   every emitted `.js` kept its `@module` header; and fails on an **unreviewed**
   `window.` prefix drop. Run this before committing any front-end change.
-- **`python tools/ts_convert.py audit-window`** — the dropped-prefix report on
+- **`python tools/ts_convert.py audit-window`** - the dropped-prefix report on
   its own, with the reason for each already-signed-off drop.
-- **`python tools/ts_convert.py report` / `list` / `plan`** — error distribution
+- **`python tools/ts_convert.py report` / `list` / `plan`** - error distribution
   and per-file readiness, read out of `tsc` rather than a hand-kept list.
-- **`python tools/ts_convert.py verify-emit`** — proves each per-file emit
+- **`python tools/ts_convert.py verify-emit`** - proves each per-file emit
   matches the project emit.
 - `npm run typecheck`, `npm run lint`, `python tools/js_module_index.py --check`.
 
@@ -189,7 +189,7 @@ Two records that the dropped-prefix check depends on, and both have a trap:
   committed the original `.js` is gone from HEAD.
 - The **reviewed** file maps `"<rel>::<name>"` → why that drop is safe. All 8
   remaining drops are signed off there. Adding a key is a claim that the bare
-  read resolves — check it, do not assume it.
+  read resolves - check it, do not assume it.
 
 ### Refreshing the baseline
 
@@ -200,7 +200,7 @@ counts that later commits had already reduced, and the gate then fails on drops
 nobody made.
 
 To regenerate wholesale, call the tool's own `window_usage` so the regex stays
-in one place — but **only while HEAD still predates the conversions you want
+in one place - but **only while HEAD still predates the conversions you want
 recorded.** The baseline is a point-in-time record: once a conversion is
 committed, HEAD holds the *converted* `.js`, and regenerating against it silently
 overwrites the "before" counts for exactly the files you just converted, which
@@ -213,11 +213,11 @@ python -c "import sys; sys.path.insert(0,'tools'); import ts_convert as t, pathl
 
 Verify with `python tools/ts_convert.py audit-window`. The number it prints
 should match what the **current worktree** changed, not what an earlier commit
-changed — if it is much larger, the baseline is stale, not the code.
+changed - if it is much larger, the baseline is stale, not the code.
 
 ### A note on `interface Window`
 
 `tools/window_members.py` generates `interface Window` from the names modules
 actually assign via `window.X =`, so the correct spelling compiles and hazard 2
 does not arise. When a converted file wants a global that is not declared, the
-fix is to widen `globals.d.ts` — not to drop the prefix.
+fix is to widen `globals.d.ts` - not to drop the prefix.

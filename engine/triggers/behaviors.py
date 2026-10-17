@@ -24,14 +24,14 @@ class BehaviorMixin:
 
         *game_state* must provide:
 
-        * ``game_state.players`` — dict of all Player objects
-        * ``game_state.active_player`` — current active player name (rw)
-        * ``game_state.graph`` — the WorldGraph
+        * ``game_state.players`` - dict of all Player objects
+        * ``game_state.active_player`` - current active player name (rw)
+        * ``game_state.graph`` - the WorldGraph
         * ``game_state.broadcast_speech(speaker, text)``
-        * ``game_state.time_ticks`` — current tick count
+        * ``game_state.time_ticks`` - current tick count
         * ``game_state._get_current_area_id()``
-        * ``game_state.player`` — active Player object
-        * ``game_state.current_area`` — Area object for current area
+        * ``game_state.player`` - active Player object
+        * ``game_state.current_area`` - Area object for current area
         """
         outputs = []
         if game_state is None:
@@ -380,7 +380,7 @@ class BehaviorMixin:
                             if msg:
                                 outputs.append(msg)
                         except Exception as e:
-                            outputs.append(f"[{char_name}] attacks {target_name} — but something goes wrong.")
+                            outputs.append(f"[{char_name}] attacks {target_name} - but something goes wrong.")
 
                 elif action_type == "throw":
                     # task-NPC: throw item at target. Simplified: drop item in target's area.
@@ -1183,7 +1183,7 @@ class BehaviorMixin:
 
                 else:
                     # Not a behaviour-chain action: fall back to the engine's
-                    # effect registry (``engine/effects.py`` ``HANDLERS``) — the
+                    # effect registry (``engine/effects.py`` ``HANDLERS``) - the
                     # SAME vocabulary an item/way trigger runs. This is what makes
                     # ``adjust_vital``, ``apply_condition``, ``start_activity`` and
                     # ``spawn_character`` work on a behaviour exactly as they work

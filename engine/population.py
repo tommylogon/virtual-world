@@ -127,7 +127,7 @@ class LibraryIndex:
 
         # Walk the tag index rather than every entry (task-398). The filter below
         # keeps an entry only when it carries at least one domain tag, so the
-        # union of those postings is exactly the old candidate set — a room in a
+        # union of those postings is exactly the old candidate set - a room in a
         # 2,000-item library no longer costs 2,000 tag reads per placement.
         out: List[str] = []
         seen: set = set()

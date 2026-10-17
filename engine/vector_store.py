@@ -1,4 +1,4 @@
-"""VectorStore — lightweight JSON-file embedding store for semantic memory.
+"""VectorStore - lightweight JSON-file embedding store for semantic memory.
 
 Task-91. Stores memory embeddings as ``{key: [float, ...]}`` in
 ``data/embeddings.json`` and answers cosine-similarity top-k searches.
@@ -15,7 +15,7 @@ File format::
 
 The model/dims header records what produced the stored vectors. A mismatch
 between an incoming upsert and the stored dims is rejected (mixing vector
-spaces makes search meaningless) — callers re-embed or clear instead.
+spaces makes search meaningless) - callers re-embed or clear instead.
 """
 
 import json

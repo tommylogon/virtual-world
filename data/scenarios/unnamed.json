@@ -16,7 +16,7 @@
         "type": "area",
         "name": "Harbourmist Cove",
         "properties": {
-          "description": "A coastal town clinging to cliffs above a grey sea. Salt air, fishing boats, cobblestone lanes. The smell of brine and woodsmoke. Time moves slower here — except during dinner rush.",
+          "description": "A coastal town clinging to cliffs above a grey sea. Salt air, fishing boats, cobblestone lanes. The smell of brine and woodsmoke. Time moves slower here - except during dinner rush.",
           "tags": [
             "settlement",
             "coastal",
@@ -33,7 +33,7 @@
         "type": "area",
         "name": "The Gull & Griddle Kitchen",
         "properties": {
-          "description": "A busy kitchen behind the inn. Fire-gutted range, copper pots, flour dust in the air. Orders call out from the dining room. The cook moves like water — everything in its place, nothing wasted.",
+          "description": "A busy kitchen behind the inn. Fire-gutted range, copper pots, flour dust in the air. Orders call out from the dining room. The cook moves like water - everything in its place, nothing wasted.",
           "tags": [
             "interior",
             "kitchen",
@@ -49,7 +49,7 @@
         "type": "area",
         "name": "Market Square",
         "properties": {
-          "description": "A cobblestone square under awnings. Two vendor stalls face each other across a narrow lane — and the air between them is colder than the sea wind. Gossip travels faster than the fish.",
+          "description": "A cobblestone square under awnings. Two vendor stalls face each other across a narrow lane - and the air between them is colder than the sea wind. Gossip travels faster than the fish.",
           "tags": [
             "exterior",
             "outdoor",
@@ -66,7 +66,7 @@
         "type": "area",
         "name": "The Unopened Door",
         "properties": {
-          "description": "A plain wooden door set into a blank wall. No handle shows. No keyhole. Residents simply know it's there — they've always known. No one opens it. No one asks why.",
+          "description": "A plain wooden door set into a blank wall. No handle shows. No keyhole. Residents simply know it's there - they've always known. No one opens it. No one asks why.",
           "tags": [
             "interior",
             "door",
@@ -83,7 +83,7 @@
         "type": "character",
         "name": "Maren",
         "properties": {
-          "description": "The cook at the Gull & Griddle. Calm hands, sharp tongue, moves like a dance. She doesn't raise her voice — the kitchen does it for her.",
+          "description": "The cook at the Gull & Griddle. Calm hands, sharp tongue, moves like a dance. She doesn't raise her voice - the kitchen does it for her.",
           "tags": [
             "cook",
             "kitchen",
@@ -106,7 +106,7 @@
         "type": "character",
         "name": "Dillon",
         "properties": {
-          "description": "The runner. Fast feet, nervous eyes. Carries orders between kitchen and dining room. He's the only one who can calm Maren — and the only one who knows it.",
+          "description": "The runner. Fast feet, nervous eyes. Carries orders between kitchen and dining room. He's the only one who can calm Maren - and the only one who knows it.",
           "tags": [
             "runner",
             "waiter",
@@ -129,7 +129,7 @@
         "type": "character",
         "name": "Bram",
         "properties": {
-          "description": "Vendor at the market. Sells smoked fish and hard cheese. He believes — with the certainty of the devout — that Yenna stole his sourdough starter three winters ago.",
+          "description": "Vendor at the market. Sells smoked fish and hard cheese. He believes - with the certainty of the devout - that Yenna stole his sourdough starter three winters ago.",
           "tags": [
             "vendor",
             "market",
@@ -152,7 +152,7 @@
         "type": "character",
         "name": "Yenna",
         "properties": {
-          "description": "Vendor at the market. Sells honey and herbs. She maintains, with equal conviction, that Bram's starter was already dead when he gave it to her — and that she revived it.",
+          "description": "Vendor at the market. Sells honey and herbs. She maintains, with equal conviction, that Bram's starter was already dead when he gave it to her - and that she revived it.",
           "tags": [
             "vendor",
             "market",
@@ -247,7 +247,7 @@
         "type": "item",
         "name": "The Unopened Door",
         "properties": {
-          "description": "A plain wooden door set into a blank wall. No handle shows. No keyhole. Residents simply know it's there — they've always known. No one opens it. No one asks why.",
+          "description": "A plain wooden door set into a blank wall. No handle shows. No keyhole. Residents simply know it's there - they've always known. No one opens it. No one asks why.",
           "tags": [
             "door",
             "mystery",

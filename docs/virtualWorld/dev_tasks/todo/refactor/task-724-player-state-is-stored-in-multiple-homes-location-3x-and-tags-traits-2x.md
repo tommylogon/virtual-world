@@ -136,11 +136,26 @@ remain open.
 
 ## Why
 
-TODO
+A character's state is stored in more than one home and the read paths do not all agree,
+so the same fact can drift silently. The character case is the worked example of task-625's
+dual-store class; the personality/description half is already fixed (node authoritative,
+Player projection), leaving location (3 homes) and tags/traits (2 homes) open. Do not merge
+the Player model with the character node — that split is intended (task-463). Coordinate
+with task-446 (id-first identity), which moves these keys.
 
 ## How
 
-TODO
+1. Location: make the graph `in` edge the single positional source. Feed or retire
+   `player.current_area` / `player.current_area_id` (recompute on load). Scope the related
+   positional fields (`at_way_id`, `entered_from_way`, `spatial_position`, `facing`) during
+   investigation before touching them.
+2. tags/traits: decide whether the character node's are authoritative, a mirror, or a leak;
+   make AGENTS.md's invariant statement match reality (it currently claims the opposite).
+   Keep one persisted home; the other becomes a derived projection.
+3. Update `to_scenario_dict` strip list and `_serialize_player` so each fact is stored once.
+4. Update the LLM prompt read path and Mind/Bio read path to agree with the chosen home.
+5. Add a regression test proving the remaining home is the one read; verify with a live
+   prompt containing the "You are <name>. Personality: …" preamble.
 
 ## Steps to verify
 

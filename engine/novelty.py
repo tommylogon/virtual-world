@@ -1,4 +1,4 @@
-"""Novelty — Entertainment from places, things and people (task-425).
+"""Novelty - Entertainment from places, things and people (task-425).
 
 One mechanic for three subjects. A subject that has not been experienced for a
 while is fresh again, and freshness pays:
@@ -13,7 +13,7 @@ the original value and never above it.
 
 **Why the curve is squared, not linear.** A linear ramp pays a little for any gap
 at all: a two-room bounce every 10 minutes earned +1 a hop, which is 6/hour
-against Entertainment's 1.8/hour decay — a treadmill, the exact failure the
+against Entertainment's 1.8/hour decay - a treadmill, the exact failure the
 window was supposed to prevent. Squaring makes a short gap worth almost nothing
 (10 minutes of 120 pays 0, 40 minutes pays 2) while a real absence still pays in
 full, which is also what "rising toward +15" should feel like: a place you left
@@ -21,7 +21,7 @@ five minutes ago is not remotely interesting, and one you have not seen all day
 is.
 
 `last_experienced_tick` is the subject's **live observation memory**
-(``Player.observation_tick``) — task-403 writes one per subject and refreshes it
+(``Player.observation_tick``) - task-403 writes one per subject and refreshes it
 in place, so there is no second structure to keep in step. Absence of a memory
 means "never experienced", which pays full.
 
@@ -49,12 +49,12 @@ DEFAULT_RECOVERY_MINUTES = 120
 #: **This is the bound that actually matters.** The recovery window alone guards
 #: *bouncing* (two rooms, no credit) but not *roaming*: with 31 areas a character
 #: revisits a given one only after about five hours, so every arrival was a fresh
-#: area and every arrival paid — a fresh subject per action against 43/day of
+#: area and every arrival paid - a fresh subject per action against 43/day of
 #: decay is unbounded. Measured with only the area subject paying and social
 #: switched off, a single day still pinned Entertainment at 81 average.
 #:
 #: Deliberately below Entertainment's daily decay (~43), so novelty is a top-up
-#: and *things* — the authored recreational fixtures — are what hold the meter
+#: and *things* - the authored recreational fixtures - are what hold the meter
 #: up. This is task-425's "diminishing returns within a day" option, which the
 #: measurement showed was needed alongside the window, not instead of it.
 NOVELTY_DAILY_BUDGET = 30
@@ -122,10 +122,10 @@ def freshness(player, subject_id: str, tick: int, *, window: float | None = None
     """How fresh ``subject_id`` is to *player* at *tick*, 0.0-1.0.
 
     Never experienced = 1.0 (full novelty). The recovered *fraction* is squared
-    so a short gap is worth almost nothing and only a real absence pays — see the
+    so a short gap is worth almost nothing and only a real absence pays - see the
     module docstring for why a linear ramp was a farm.
 
-    This is the *raw* measure, in ticks — the window argument, and
+    This is the *raw* measure, in ticks - the window argument, and
     ``effective_window`` by default, is already a tick count derived from game
     minutes. Callers that observe and pay in one step must measure before they
     refresh (see ``grant_freshness``).
@@ -158,7 +158,7 @@ def novelty_bonus(player, subject_id: str, tick: int, *, maximum: int = NOVELTY_
 
     Shorthand for measuring freshness and paying it in one step, for callers whose
     subject has **not** just been observed. A caller that observes and pays
-    together — the arrival path — must use ``grant_freshness`` with the value
+    together - the arrival path - must use ``grant_freshness`` with the value
     ``observe_area`` reported instead, because this re-reads the tick that
     observing just wrote and would return 0.
     """
@@ -194,7 +194,7 @@ def novelty_budget_remaining(player, tick) -> float:
 
 
 def _pay(player, maximum, fresh, tick) -> int:
-    """Trait scaling, the daily budget, and the clamp — shared by both paths."""
+    """Trait scaling, the daily budget, and the clamp - shared by both paths."""
     if player is None or fresh is None or fresh <= 0:
         return 0
     if "Entertainment" not in getattr(player, "vitals", {}):
@@ -219,7 +219,7 @@ def grant_freshness(player, fresh, tick, *, maximum: int = NOVELTY_MAX) -> int:
     The arrival path needs this: ``observe_area`` measures each subject's
     freshness *before* refreshing the observation (that is the whole reason it
     reports one), so a caller that instead recomputed it would read the tick the
-    observation had just written and pay 0 — which is exactly what
+    observation had just written and pay 0 - which is exactly what
     ``_grant_arrival_entertainment`` did, silently, so perceived novelty never
     paid anything.
     """

@@ -89,13 +89,23 @@ confirm by reading it — do not treat 1.14% as proof of zero duplication.
 2. **No behaviour change.** Keep `window.Foo` namespaces and re-export moved members as
    thin delegates where call sites use them (the `graph/projector` pattern from task-314
    wave 1).
-3. **Edit the `.ts`, never the `.js`.** Add the new module's `<script>` tag in
+3. **Dedup & reuse pass (mandatory per extraction).** While splitting, scan the extracted
+   concern and its host for duplicate logic and near-identical helpers; consolidate onto
+   one owner instead of copying into the new module. Do not generalise to kill duplication
+   that the measurement says barely exists (see "Why this is not a de-duplication task");
+   only consolidate where a real duplicate is found while reading.
+4. **Agent-experience & cleanliness (mandatory per extraction).** Name modules by
+   concern, keep each under ~600 lines where the seam allows, add a one-line module
+   docstring stating owner and public surface, and ensure a fresh agent session can
+   understand the module without reading the host. No new abstraction unless an existing
+   seam already represents the concept.
+5. **Edit the `.ts`, never the `.js`.** Add the new module's `<script>` tag in
    `templates/index.html` in the same commit (these are classic browser globals). Task-314
    wave 2 left modules unloaded and threw on open — verify with
    `python tools/ts_convert.py check` (build + typecheck + lint + module check) and
    `node tools/unit/run.cjs` on every touched file.
-4. **`node --check` every generated `.js`** before committing.
-5. **Record what moved** as a table in this file, per the task-314 wave-1 shape.
+6. **`node --check` every generated `.js`** before committing.
+7. **Record what moved** as a table in this file, per the task-314 wave-1 shape.
 
 ## Acceptance
 

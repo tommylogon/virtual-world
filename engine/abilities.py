@@ -2,14 +2,14 @@
 
 A leviathan is not STR 9 and a housecat is not CON 20. Until this module
 existed the engine had exactly one number for ability scores on a character that
-is a person — 10, or whatever the stat block said — and the size tiers, new in
+is a person - 10, or whatever the stat block said - and the size tiers, new in
 task-605, had nothing to say about strength. The 5e reference blocks are the
 **baseline curve**, not the ceiling: a starship is `giant`, a ghost is `small`
 and takes no space (task-653), a housecat is `tiny`. The tiers are the spine;
 the values inside a tier are the authoring surface, which is what lets the same
 curve fit fantasy, modern, sci-fi, horror and romance.
 
-Nothing clamps ability scores, so STR 35 has always been storable — and so has
+Nothing clamps ability scores, so STR 35 has always been storable - and so has
 STR 1. This module is therefore about *authoring and flagging*, not about
 enforcement:
 
@@ -86,7 +86,7 @@ SIZE_TIER_DEFAULTS: dict[str, dict] = {
 
 #: Beyond this, a score is treated as unreachable rather than merely extreme.
 #: 5e's creature range tops out at 30 (the Ancient White Dragon); the Tarrasque
-#: is 45. So 30+ is "a monster", and anything under 1 is a data error — a
+#: is 45. So 30+ is "a monster", and anything under 1 is a data error - a
 #: negative strength is not a character, it is a subtraction that leaked.
 PLAUSIBLE_MIN = 1
 PLAUSIBLE_MAX = 50
@@ -94,7 +94,7 @@ PLAUSIBLE_MAX = 50
 
 #: Tags marking something that is not a creature. The ability curve describes
 #: what a body can do, and a straw practice dummy on a wooden frame has a body
-#: without having a strength — it is tagged `giant` and `STR 1` on purpose,
+#: without having a strength - it is tagged `giant` and `STR 1` on purpose,
 #: because the whole point of it is that it cannot fight back. Checking it
 #: against the curve would report a deliberate piece of authoring as a defect.
 INANIMATE_TAGS = ("inanimate", "object", "training", "dummy", "furniture")
@@ -103,7 +103,7 @@ INANIMATE_TAGS = ("inanimate", "object", "training", "dummy", "furniture")
 def is_inanimate(entity=None, *, tags=None) -> bool:
     """True when this is not a creature the ability curve should judge.
 
-    Accepts a ``Player``, a node, or a raw library definition dict — a data file
+    Accepts a ``Player``, a node, or a raw library definition dict - a data file
     is exactly where this question gets asked.
     """
     source = tags
@@ -130,7 +130,7 @@ def normalize_stat_block(raw) -> dict:
     wrote `STR`/`DEX`/... and 31 wrote `str`/`dex`/..., with no overlap in style.
     Every writer did `player.stats = data.get("stats", ...)`, so a lowercase
     block replaced the uppercase defaults and then failed every
-    `stats.get("STR", 10)` in the engine — `the butcher`, authored `str: 18`,
+    `stats.get("STR", 10)` in the engine - `the butcher`, authored `str: 18`,
     fought at STR 10.
 
     That is this task's complaint in shipped data rather than as a hypothetical:
@@ -138,7 +138,7 @@ def normalize_stat_block(raw) -> dict:
 
     Case-insensitive keys fold to the canonical uppercase spelling; anything that
     is not one of the six abilities (`attack_bonus`, and whatever an author adds
-    next) is carried through untouched — this is a normaliser, not a filter.
+    next) is carried through untouched - this is a normaliser, not a filter.
     Where a block states both spellings the canonical one wins, because that is
     the one the engine reads.
 
@@ -172,7 +172,7 @@ def stats_for_size(size=None, *, overrides=None) -> dict:
     ``stats_for_size("huge", overrides={"CON": 16})`` and get an ogre that is
     tougher than average without having to restate the other five.
 
-    An unknown or absent size returns the ``normal`` block — a character with no
+    An unknown or absent size returns the ``normal`` block - a character with no
     authored size is a person, which is what every one of the 70 library
     characters is today.
     """
@@ -203,7 +203,7 @@ def tolerance_band(size, ability) -> tuple | None:
     """The band a stat block of this size may sit in without being reported.
 
     The tier's reference, widened by :data:`TOLERANCE`. Returns ``None`` for an
-    ability that does not scale with mass — the mental abilities have no band,
+    ability that does not scale with mass - the mental abilities have no band,
     because the size of a thing says nothing about its intelligence and a band
     here would be an invitation to author a dragon at INT 3.
     """
@@ -220,7 +220,7 @@ def scale_issues(stats=None, size=None, *, entity=None) -> list:
 
     Returns human-readable strings, because the callers are an editor hint and a
     test assertion and both want a sentence. An empty list means the block is
-    consistent with the size, **or** that no size was authored — absence is not
+    consistent with the size, **or** that no size was authored - absence is not
     a finding, because a character with no size is a person and a person with
     STR 9 is a weedy person, not a bug.
     """

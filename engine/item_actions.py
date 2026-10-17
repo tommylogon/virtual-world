@@ -36,7 +36,7 @@ __all__ = [
     "sum_carry_weight",
 ]
 
-#: Actions that imply their inverse — defining one on an item auto-adds the other.
+#: Actions that imply their inverse - defining one on an item auto-adds the other.
 INVERSE_ACTIONS = {
     "take": "drop",
     "drop": "take",
@@ -144,7 +144,7 @@ class ItemActions(
         if item_weight > remaining:
             container_name = container_node.name
             return (
-                f"The {container_name} can't hold that — it's too heavy "
+                f"The {container_name} can't hold that - it's too heavy "
                 f"(capacity: {current_weight:.1f}/{max_cap} kg)."
             )
         return None

@@ -160,7 +160,7 @@ class WorldGraph:
         Faithful to ``_execute_triggers``: an edge qualifies only when it is a
         ``triggers`` edge carrying a non-empty ``trigger_type`` in its own
         properties (the runtime shape). Legacy shapes that never matched are
-        still not matched — no behaviour change, just no wasted sweep.
+        still not matched - no behaviour change, just no wasted sweep.
         """
         self._ensure_indexes()
         return list(self._trigger_index.get(str(trigger_type), ()))
@@ -226,7 +226,7 @@ class WorldGraph:
         if node.id in self.nodes:
             existing = self.nodes[node.id]
             # Auto-rename items, ways, and characters (task-316: a second
-            # same-named character must never silently overwrite the first —
+            # same-named character must never silently overwrite the first -
             # areas are the only type where collision is a hard error).
             if node.type in ('item', 'door', 'logic_trigger', 'character'):
                 suffix = str(uuid.uuid4())[:8]
@@ -247,7 +247,7 @@ class WorldGraph:
         WorldPainter compiler adding ``properties.cell``), not leave the old
         payload behind. Edges are deliberately untouched: a remove+add would drop
         gateways emitted from the other side of a scope. Raises ``KeyError`` for a
-        missing id — new nodes go through :meth:`add_node`.
+        missing id - new nodes go through :meth:`add_node`.
         """
         stored_id = self._resolve_id(node.id)
         if stored_id is None:
@@ -283,7 +283,7 @@ class WorldGraph:
         self._rebuild_indexes()
 
     def add_edge(self, edge: Edge):
-        # Prevent duplicates (case-insensitive) — only same-source edges can
+        # Prevent duplicates (case-insensitive) - only same-source edges can
         # collide, so the source index makes this O(degree) instead of O(E).
         self._ensure_indexes()
         key_s = str(edge.source).lower()
@@ -326,7 +326,7 @@ class WorldGraph:
         doomed_ids = {id(e) for e in doomed}
         self.edges = [e for e in self.edges if id(e) not in doomed_ids]
         if edge_type == EDGE_TRIGGERS:
-            # Trigger index is a set of sources — rebuild rather than guess.
+            # Trigger index is a set of sources - rebuild rather than guess.
             self._rebuild_indexes()
             return
         for e in doomed:
@@ -498,7 +498,7 @@ class WorldGraph:
         Same save-repair pattern as ``normalize_node_types``: the recipe is
         fixed in ``engine/world_compile.py``, and this keeps an existing save
         loadable and readable instead of showing "Floor dirt" in the picker until
-        the scope is regenerated. Only area/way nodes are touched — an item or
+        the scope is regenerated. Only area/way nodes are touched - an item or
         trigger that happens to carry a string ``floor`` is none of this
         migration's business.
         """
@@ -705,7 +705,7 @@ class WorldGraph:
 
         Nodes owned by another scope, and scope-less nodes (characters, library
         items), are never removed. An edge with one endpoint in the unloaded
-        scope is dropped with it — the cross-scope policy for carried/equipped
+        scope is dropped with it - the cross-scope policy for carried/equipped
         items and delayed events is task-584's, not silently decided here.
         Returns ``{"scope_id", "removed", "edges_removed"}``.
         """
@@ -716,7 +716,7 @@ class WorldGraph:
         if not doomed:
             return {"scope_id": scope_id, "removed": [], "edges_removed": 0}
         doomed_lower = {node_id.lower() for node_id in doomed}
-        # task-584: a trigger node has no independent life — it is owned by
+        # task-584: a trigger node has no independent life - it is owned by
         # whatever triggers it. Remember which triggers this scope's nodes
         # referenced, so one left with no referrer is cleaned up rather than
         # dangling on a removed node.
@@ -782,7 +782,7 @@ class WorldGraph:
         """The id of the area *entity_id* occupies, from its `in` edge.
 
         Returns None when the entity has no location edge, or when its target
-        is not a loaded area — an area in an evicted scope is still recorded by
+        is not a loaded area - an area in an evicted scope is still recorded by
         id in the global index (task-583/584), not here.
         """
         node = self.get_node(entity_id)
@@ -819,7 +819,7 @@ class WorldGraph:
         backwards and must be reversed.
 
         This repairs saves written while ``contains`` was relabelled to ``in``
-        without swapping endpoints (bug-44) — those contents were invisible to
+        without swapping endpoints (bug-44) - those contents were invisible to
         take/examine/search. :meth:`normalize_edges` reverses legacy ``contains``
         edges directly; this catches the already-relabelled ones.
         """
@@ -893,7 +893,7 @@ class WorldGraph:
 
         Edges created before the lowercase-id convention (or that survived a
         node rename) can reference ids whose case differs from the actual
-        node key — e.g. an edge pointing at ``area_Task_18_-_Room_4`` while
+        node key - e.g. an edge pointing at ``area_Task_18_-_Room_4`` while
         the node is stored as ``area_task_18_-_room_4``. Lookups are
         case-insensitive so the game still works, but raw serialization and
         editor edge parsing see phantom endpoints. Rewrite each endpoint to
@@ -929,7 +929,7 @@ EDGE_UNLOCKS = "unlocks"    # item → door
 EDGE_TRIGGERS = "triggers"  # node → logic/action
 EDGE_KNOWN = "known"        # ability/spell/power item → character
 
-# Spatial placement types — items positioned relative to a surface/area rather
+# Spatial placement types - items positioned relative to a surface/area rather
 # than inside it. Treated as present-in-area for room-level discovery.
 SPATIAL_EDGE_TYPES = {EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT}
 
@@ -957,7 +957,7 @@ def normalize_edge_type(edge_type: str) -> str:
 
 def resolve_edge_types(query_type) -> set:
     # Accept a single type or an iterable of types (e.g. (EDGE_CARRYING,
-    # EDGE_EQUIPPED)) — flatten so callers can match several at once.
+    # EDGE_EQUIPPED)) - flatten so callers can match several at once.
     if isinstance(query_type, (tuple, list)):
         types: set = set()
         for part in query_type:

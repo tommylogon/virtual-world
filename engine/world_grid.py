@@ -3,16 +3,16 @@
 A world scope owns a bounded grid at its own resolution. The grid is the
 authoring substrate for a painted world (task-495); the grid→graph compiler
 (task-496) later turns it into areas + ways via task-398's ``GenerationPatch``.
-Nothing here is engine behaviour yet — these are pure helpers over the scope
+Nothing here is engine behaviour yet - these are pure helpers over the scope
 manifest, so the editor, the compiler, and the tests can agree on one shape.
 
 **A compiled cell IS an area.** This is the fact that makes the two layers one
 model rather than two, and it is worth stating here because the grid is an
 *authoring* surface and nothing in this module says what it becomes:
 
-* the compiler mints the area id from the cell — ``area_<scope_id>_<x>_<y>``
+* the compiler mints the area id from the cell - ``area_<scope_id>_<x>_<y>``
   (``world_compile._area_id``);
-* the area's name is derived from the cell — the biome or road label plus the
+* the area's name is derived from the cell - the biome or road label plus the
   scope and coordinate, e.g. ``Sparse Forest (West woods 10, 14)``, unless the
   author named the cell (``_place_name``, task-560);
 * the area carries ``properties.cell`` and ``properties.world_scope_id``, so the
@@ -57,7 +57,7 @@ keys, so a scope with no grid costs nothing and older saves load unchanged::
     record["boundary_overrides"] = {way_id: {"action": ..., ...}}  (task-528)
 
 The ``floor`` layer is a **storey index**, not a height or a material: 0 is the
-ground plane, 1 one storey up, -1 one down, and the scale is *unbounded* — three
+ground plane, 1 one storey up, -1 one down, and the scale is *unbounded* - three
 rooms stacked over each other, the bottom of a lake at -2, an 80-storey tower, a
 hole to hell at -900. It is deliberately not a 0..1 fraction, because the engine
 compares *whole storeys* (a two-storey step reads as a cliff, task-525) and
@@ -67,7 +67,7 @@ cliff does not also have to number every plain cell around it. Ground *material*
 is a separate fact and lives in the biome/road record's ``surface``
 (``engine/biomes.ground_surface``).
 
-Features — a village inside a forest — are **child scopes placed at a cell**, so
+Features - a village inside a forest - are **child scopes placed at a cell**, so
 they live in ``placements`` rather than a separate paint layer;
 :func:`feature_layer` derives the ``feature`` paint view the editor draws.
 An area the author wrote by hand can also be placed on a cell (task-528); those
@@ -88,7 +88,7 @@ Overlap rule (task-495 acceptance)
 Placing or moving a feature onto an occupied cell is **forbidden by default**:
 the caller must move or delete the occupant first, so a placement can never
 silently clobber another child. Passing ``on_overlap="displace"`` opts a call
-into replacing the occupant. "Merge" is deliberately *not* implemented here — it
+into replacing the occupant. "Merge" is deliberately *not* implemented here - it
 would have to redefine child-scope identity, and the design note
 (``docs/design/worldpainter-knowledge-and-fog.md``) leaves grid-canonical vs
 baked handling to the compiler (task-496).
@@ -129,14 +129,14 @@ MODES = ("world", "town", "interior")
 #: ``floor`` holds a **storey index** (see the module docstring), not a height
 #: fraction and not a ground material.
 #:
-#: ``climate`` is a **coarse enum** — arctic / temperate / arid / tropical /
-#: alpine — that compiles to a per-area ``base_temperature`` (task-557). It is an
+#: ``climate`` is a **coarse enum** - arctic / temperate / arid / tropical /
+#: alpine - that compiles to a per-area ``base_temperature`` (task-557). It is an
 #: enum rather than a continuous value for three reasons, each of which cost
 #: something last time: an enum is one brush instead of a value-and-falloff
 #: control, it survives save/reload without a float to drift, and the per-region
 #: aggregation ("which climate is this area, when its cells disagree?") stays a
 #: majority vote instead of a mean that invents a climate nobody painted. It is
-#: **not** part of a region's identity — a climate change across a road does not
+#: **not** part of a region's identity - a climate change across a road does not
 #: split the area, the way a road change does.
 #:
 #: The deleted ``elevation`` layer lived here once and warns against the obvious
@@ -145,14 +145,14 @@ MODES = ("world", "town", "interior")
 PAINT_LAYERS = ("biome", "road", "floor", "climate")
 
 #: The coarse climates a grid may be painted with, and the °C each compiles to
-#: (task-557). The numbers are the **base** — the year's average for a place —
+#: (task-557). The numbers are the **base** - the year's average for a place -
 #: and the diurnal and seasonal curve is added on top by task-553's model, so a
 #: temperate world is 21 °C on an average day and genuinely colder at 04:00 in
 #: winter. Values are the mid-point of each band's real range rather than its
 #: extreme, so a painted arctic is cold without being the coldest thing on earth.
 #:
-#: The key is the taxonomy's, and an unpainted cell is **temperate** (21.0) — the
-#: value the engine has always used — rather than "unknown". A world with no
+#: The key is the taxonomy's, and an unpainted cell is **temperate** (21.0) - the
+#: value the engine has always used - rather than "unknown". A world with no
 #: climate layer must not compile differently from one that paints everything.
 CLIMATE_BASE_C = {
     "arctic": -8.0,
@@ -179,7 +179,7 @@ LEGACY_LAYER_KEYS = {"elevation": "floor"}
 ON_OVERLAP = ("forbid", "displace", "gateway")
 
 #: What an author can decide about a compiler-minted boundary way (see the module
-#: docstring). ``suppress`` — deleted, do not re-mint. ``hand`` — replaced by the
+#: docstring). ``suppress`` - deleted, do not re-mint. ``hand`` - replaced by the
 #: author's own way, named in the entry; the compiler must not mint the pair again
 #: or it would duplicate the seam. There is deliberately no ``force``: handing the
 #: seam *back* to the compiler is "clear the entry", not a third action, because
@@ -191,7 +191,7 @@ OVERRIDE_ACTIONS = ("suppress", "hand")
 
 
 def cell_id(scope_id: str, x: int, y: int) -> str:
-    """Stable global id for a grid cell — the compiler's future area id.
+    """Stable global id for a grid cell - the compiler's future area id.
 
     Stable under unrelated edits: moving a feature or painting another cell does
     not change this string, so a save that referenced the cell still resolves.
@@ -200,7 +200,7 @@ def cell_id(scope_id: str, x: int, y: int) -> str:
 
 
 def parse_cell_id(value: str) -> Optional[Tuple[str, int, int]]:
-    """Inverse of :func:`cell_id` — ``(scope_id, x, y)``, or ``None`` if malformed."""
+    """Inverse of :func:`cell_id` - ``(scope_id, x, y)``, or ``None`` if malformed."""
     try:
         scope_id, coords = str(value).rsplit(":", 1)
         sx, sy = coords.split(",", 1)
@@ -229,7 +229,7 @@ def normalise_grid(record: dict) -> dict:
     """Coerce a scope record's grid fields into the canonical shape (in place).
 
     Tolerates missing/legacy data and leaves a scope that never had a grid
-    untouched — no empty containers are added, so manifests stay small and
+    untouched - no empty containers are added, so manifests stay small and
     older saves load byte-identically. Values that cannot be parsed are dropped
     rather than raising, so one bad save cannot make the whole manifest
     unloadable.
@@ -298,7 +298,7 @@ def normalise_grid(record: dict) -> dict:
         record["placements"] = clean_placements
 
     if "area_placements" in record:
-        # Hand-placed *areas* on cells (task-528) — the mirror of `placements`,
+        # Hand-placed *areas* on cells (task-528) - the mirror of `placements`,
         # keyed by area node id instead of child scope id, because the thing being
         # placed already exists in the graph. Same shape, same leniency.
         record["area_placements"] = _clean_placement_map(record.get("area_placements"))
@@ -488,7 +488,7 @@ def map_offset(record: dict) -> Dict[str, float]:
     The WorldPainter paints each scope on its own local grid anchored at
     ``(0, 0)``. The graph map layout adds this offset to every node of the scope
     (task-523), so the author can arrange zones relative to each other without
-    baking the move into the painter's cell coords — a paint edit must never
+    baking the move into the painter's cell coords - a paint edit must never
     shift the world under it.
     """
     return _clean_offset((record or {}).get("map_offset")) or {"x": 0.0, "y": 0.0}
@@ -527,7 +527,7 @@ def paint(record: dict, layer: str, x: int, y: int, value) -> dict:
     """Set a cell's value on *layer*. ``value`` of ``None``/``""`` erases it.
 
     Raises ``ValueError`` for an unknown layer, a grid-less scope, or a cell
-    outside the grid — painting off-grid would create a cell the compiler cannot
+    outside the grid - painting off-grid would create a cell the compiler cannot
     place, which is exactly the silent-corruption class the schema is for.
     """
     if layer not in PAINT_LAYERS:
@@ -552,7 +552,7 @@ def paint_many(record: dict, edits: List[dict]) -> int:
 
     A route/trail tool paints hundreds of cells at once (a 240-cell road is 240
     edits). Every edit is validated *before* the first write so a bad edit cannot
-    half-paint a route — the same "reject before mutating" rule ``apply_patch``
+    half-paint a route - the same "reject before mutating" rule ``apply_patch``
     uses for generation. Each edit is ``{"layer", "x", "y", "value"}``; a
     ``None``/``""`` value erases, exactly like :func:`paint`.
     """
@@ -592,7 +592,7 @@ def name_at(record: dict, x: int, y: int) -> Optional[str]:
 
     A name is optional and orthogonal to paint: a named cell may be unpainted, and
     a painted cell may be unnamed (it then compiles to a generated name). Nothing
-    else in the grid depends on it — the compiler prefers it for the *display
+    else in the grid depends on it - the compiler prefers it for the *display
     name* only, and ids stay the authoritative key.
     """
     value = ((record or {}).get("names") or {}).get(cell_key(x, y))
@@ -635,7 +635,7 @@ def floor_paint_at(record: dict, x: int, y: int) -> Optional[int]:
     The value is rounded to a whole storey: the engine reasons in storeys
     (a two-storey step is a cliff, task-525) and a save has to be able to say
     "eighty floors up" in one plain integer. Unreadable paint reads as
-    ``None`` — the caller decides whether that means ground.
+    ``None`` - the caller decides whether that means ground.
     """
     value = layer_cells(record, "floor").get(cell_key(x, y))
     if value in (None, ""):
@@ -726,7 +726,7 @@ def set_reference(record: dict, image, opacity=None, visible=None,
     """Set or clear a scope's reference image (a picture to paint over).
 
     Reference-only: it is never compiled into areas/ways, so a huge or stale
-    image cannot affect the world — it just helps the author place cells over
+    image cannot affect the world - it just helps the author place cells over
     known art. ``image`` of ``None``/``""`` clears it.
 
     ``rect`` (cell units) and ``crop`` (normalized source window) are the
@@ -800,7 +800,7 @@ def occupant_at(record: dict, x: int, y: int) -> Optional[str]:
 #
 # Why it lives on the scope record and not only on the node: the node's
 # `properties.cell` says where the area *is*, but only the record can answer "is
-# this cell already taken?" — which is what keeps a hand-placed area and a
+# this cell already taken?" - which is what keeps a hand-placed area and a
 # compiled one from landing on top of each other when the grid is generated.
 
 
@@ -832,7 +832,7 @@ def place_area(manifest: Dict[str, dict], scope_id: str, area_id: str,
     Returns ``"placed"``, ``"moved"`` or ``"displaced"``, matching :func:`place`:
     a cell that already holds a *placed area* is refused unless the caller opts
     into ``on_overlap="displace"``. A cell holding a child-scope placement is left
-    alone — that is a different kind of occupant and the compiler already knows
+    alone - that is a different kind of occupant and the compiler already knows
     how to tag a cell with a child.
 
     This only records the reservation; the caller owns the graph side (the node's
@@ -880,7 +880,7 @@ def unplace_area(manifest: Dict[str, dict], scope_id: str, area_id: str) -> None
 #
 # The compiler mints a way from a hand-placed area to every painted cell touching
 # it. Those ways are a draft the author then owns, and this is how the author's
-# decision outlives a Generate — see the module docstring.
+# decision outlives a Generate - see the module docstring.
 
 
 def boundary_overrides(record: dict) -> Dict[str, dict]:
@@ -908,7 +908,7 @@ def set_boundary_override(record: dict, way_id: str, action: str, *,
     and an unnamed substitute would leave the reader unable to tell a replaced
     seam from a merely deleted one.
 
-    Passing ``action=None`` clears the entry — the way back to "Generate decides",
+    Passing ``action=None`` clears the entry - the way back to "Generate decides",
     which is also what an absent record means.
     """
     if action is None:
@@ -972,7 +972,7 @@ def place(manifest: Dict[str, dict], parent_id: str, child_id: str,
     # A hand-placed *area* (task-528) and a feature cannot share a cell by
     # accident: the compiler has to choose. A feature placement is read as a
     # **region** (``compile_grid`` looks the cell up in ``cell_region``), and an area
-    # placement deletes that cell from the compile set — so a cell holding both
+    # placement deletes that cell from the compile set - so a cell holding both
     # would be in neither, and the gateway would be skipped in silence. Unlike a
     # displaced feature (a record entry), evicting an area also has to clear the
     # *node's* ``cell``/``x``/``y``, which the route owns and this layer does not.
@@ -987,7 +987,7 @@ def place(manifest: Dict[str, dict], parent_id: str, child_id: str,
         # into a scope and putting the scope where the entrance already stands means
         # the hand-placed area becomes the **doorstep** the new gateway opens from.
         # That is a different seam, not a colliding one: the cell is not a region,
-        # so the compiler mints no gateway and the author's own way is the only one —
+        # so the compiler mints no gateway and the author's own way is the only one -
         # which is exactly right, because the author wired it. The occupant is
         # recorded so the generate report can say so rather than leave the author
         # wondering why no gateway appeared.

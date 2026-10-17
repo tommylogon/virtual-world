@@ -1,4 +1,4 @@
-# area.py — Fixed by Yuki
+# area.py - Fixed by Yuki
 class Area:
     def __init__(self, name, description, items, exits=None, environment=None):
         self.name = name
@@ -10,7 +10,7 @@ class Area:
             # `temperature` is the **simulated** value: the engine rewrites it
             # every tick from the forecast, the propagation model and any heat
             # source, and a hand-set value cannot survive a tick. `base_temperature`
-            # is the **authored** baseline — the world's own climate, in °C — and
+            # is the **authored** baseline - the world's own climate, in °C - and
             # the forecast adds its curve and its delta on top of it (task-553).
             # Two keys because they are two different facts: "this is a mountain
             # range" and "right now it is 6°C" are not the same statement, and a

@@ -2,7 +2,7 @@
 
 A character can ``grab`` another in the same area. Two things happen:
 
-1. A **``grappled`` edge** (grappler node → target node) records WHO holds whom —
+1. A **``grappled`` edge** (grappler node → target node) records WHO holds whom -
    the single source of truth for the relationship, queryable in both directions.
 2. The target gets the **``grappled`` condition** for the mechanical effects
    (blocks movement, attack/defense mods, ``ends_on: ["escape"]``).
@@ -14,7 +14,7 @@ target (or all).
 
 Grapplers have hands: they can hold at most one target per hand (two by
 default, one if ``one_armed``/``disable_slot``). Each target already held makes
-grabbing another harder — the resist DC climbs by ``+2`` per extra target.
+grabbing another harder - the resist DC climbs by ``+2`` per extra target.
 
 All resist checks go through ``SkillSystem.saving_throw`` (task-159) and
 surface in the event stream as ``[Save] ... vs DC ...``.
@@ -51,7 +51,7 @@ class GrappleSystem:
         return (player.skills or {}).get("Athletics", 0)
 
     def _best_escape_skill(self, player) -> int:
-        """The player's best escape skill — max of Athletics / Acrobatics."""
+        """The player's best escape skill - max of Athletics / Acrobatics."""
         skills = player.skills or {}
         return max(skills.get("Athletics", 0), skills.get("Acrobatics", 0))
 
@@ -144,7 +144,7 @@ class GrappleSystem:
 
         Source of truth: the ``grappled`` edge (grappler node → target node).
         The edge stores node ids, so resolve each target back to its identity
-        key (task-449) rather than its display name — two same-named characters
+        key (task-449) rather than its display name - two same-named characters
         must not collapse to one.
         """
         grappler_node = self._player_node_id(grappler_name)
@@ -212,7 +212,7 @@ class GrappleSystem:
         - ``grappled`` edge whose target lacks the condition → condition re-added.
         """
         players = self.player_manager.players
-        # Drop legacy grappling conditions entirely — edges are the tracking now.
+        # Drop legacy grappling conditions entirely - edges are the tracking now.
         for player in players.values():
             if "grappling" in player.conditions:
                 del player.conditions["grappling"]
@@ -272,7 +272,7 @@ class GrappleSystem:
         if len(held) >= self._free_hands(grappler_name):
             hands = self._free_hands(grappler_name)
             return (
-                f"Your hands are full — you're already holding {len(held)} "
+                f"Your hands are full - you're already holding {len(held)} "
                 f"people ({hands} hand{'s' if hands != 1 else ''}). "
                 f"Release someone first."
             )
@@ -280,7 +280,7 @@ class GrappleSystem:
         dc = self._grab_dc(grappler_name, target_name)
         success, total, msg = self._grappler_grab_check(grappler_name, dc)
         if not success:
-            return f"Your fingers slip — you miss grabbing {target_name}. ({msg})"
+            return f"Your fingers slip - you miss grabbing {target_name}. ({msg})"
 
         self._add_edge(grappler_name, target_name)
         target.add_condition("grappled")
@@ -292,7 +292,7 @@ class GrappleSystem:
     def lead(self, guide_name: str, target_name: str) -> str:
         """Cooperatively lead *target_name* by the hand (e.g. a blind character).
 
-        Unlike ``grab`` there is no resisted roll — the target consents, so the
+        Unlike ``grab`` there is no resisted roll - the target consents, so the
         grip lands at the minimum DC and always succeeds. The target is grappled
         (edge + condition) and positioned *beside* the guide, which lets
         ``drag_all`` pull them along as the guide moves.
@@ -306,14 +306,14 @@ class GrappleSystem:
             return f"{target_name} is already being held."
         held = self._grappling_targets(guide_name)
         if len(held) >= self._free_hands(guide_name):
-            return "Your hands are full — release someone first."
+            return "Your hands are full - release someone first."
 
         self._add_edge(guide_name, target_name)
         target.add_condition("grappled")
         from engine.character_spatial import approach_character
         approach_character(self.graph, self.gs, target_name, actor_name=guide_name)
         self.gs.add_log_entry(f"{guide_name} takes {target_name}'s hand and leads them.")
-        return f"You take {target_name} by the hand and lead them — they go along willingly. Move to drag them with you."
+        return f"You take {target_name} by the hand and lead them - they go along willingly. Move to drag them with you."
 
     def escape(self, player_name: str) -> str:
         """Attempt to break free of whoever is grappling *player_name*.
@@ -351,7 +351,7 @@ class GrappleSystem:
     ) -> List[str]:
         """Drag grappled targets along when *grappler_name* moves.
 
-        Dragging is mechanical — the grappler physically pulls the target, so
+        Dragging is mechanical - the grappler physically pulls the target, so
         there is no mid-move resist. The struggle is the target's own turn:
         on their next action they can ``escape`` (STR save) or go along.
         """

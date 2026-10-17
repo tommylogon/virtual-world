@@ -3,7 +3,7 @@
   "areas": {
     "apartment 1a": {
       "ambient_light": 55,
-      "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered — floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
+      "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered - floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
       "environment": {
         "air": "stale",
         "light": 55,
@@ -34,7 +34,7 @@
       "light_description": "normal",
       "name": "apartment 1a",
       "properties": {
-        "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered — floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
+        "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered - floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
         "environment": {
           "air": "stale",
           "light": 55,
@@ -46,7 +46,7 @@
     },
     "apartment 1b": {
       "ambient_light": 40,
-      "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner — a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
+      "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner - a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -77,7 +77,7 @@
       "light_description": "dim",
       "name": "apartment 1b",
       "properties": {
-        "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner — a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
+        "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner - a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -132,7 +132,7 @@
     },
     "apartment 1e": {
       "ambient_light": 50,
-      "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner — drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
+      "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner - drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -163,7 +163,7 @@
       "light_description": "normal",
       "name": "apartment 1e",
       "properties": {
-        "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner — drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
+        "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner - drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -218,7 +218,7 @@
     },
     "apartment 2a": {
       "ambient_light": 50,
-      "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf — they both look uncomfortable. the tv is off. everything is exactly where it should be.",
+      "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf - they both look uncomfortable. the tv is off. everything is exactly where it should be.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -249,7 +249,7 @@
       "light_description": "normal",
       "name": "apartment 2a",
       "properties": {
-        "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf — they both look uncomfortable. the tv is off. everything is exactly where it should be.",
+        "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf - they both look uncomfortable. the tv is off. everything is exactly where it should be.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -261,7 +261,7 @@
     },
     "apartment 2b": {
       "ambient_light": 55,
-      "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter — always ready.",
+      "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter - always ready.",
       "environment": {
         "air": "stale",
         "light": 55,
@@ -292,7 +292,7 @@
       "light_description": "normal",
       "name": "apartment 2b",
       "properties": {
-        "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter — always ready.",
+        "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter - always ready.",
         "environment": {
           "air": "stale",
           "light": 55,
@@ -304,7 +304,7 @@
     },
     "apartment 2c": {
       "ambient_light": 45,
-      "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' — she's only here for the summer.",
+      "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' - she's only here for the summer.",
       "environment": {
         "air": "stale",
         "light": 45,
@@ -335,7 +335,7 @@
       "light_description": "normal",
       "name": "apartment 2c",
       "properties": {
-        "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' — she's only here for the summer.",
+        "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' - she's only here for the summer.",
         "environment": {
           "air": "stale",
           "light": 45,
@@ -347,7 +347,7 @@
     },
     "apartment 2d": {
       "ambient_light": 35,
-      "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls — her daughters — is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
+      "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls - her daughters - is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
       "environment": {
         "air": "smoky",
         "light": 35,
@@ -378,7 +378,7 @@
       "light_description": "dim",
       "name": "apartment 2d",
       "properties": {
-        "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls — her daughters — is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
+        "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls - her daughters - is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
         "environment": {
           "air": "smoky",
           "light": 35,
@@ -433,7 +433,7 @@
     },
     "apartment 3a": {
       "ambient_light": 50,
-      "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table — he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
+      "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table - he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -464,7 +464,7 @@
       "light_description": "normal",
       "name": "apartment 3a",
       "properties": {
-        "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table — he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
+        "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table - he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -476,7 +476,7 @@
     },
     "attic": {
       "ambient_light": 30,
-      "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man — his father. the air smells like cedar and old paper. this room is always a little too warm.",
+      "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man - his father. the air smells like cedar and old paper. this room is always a little too warm.",
       "environment": {
         "air": "stale",
         "light": 30,
@@ -507,7 +507,7 @@
       "light_description": "dim",
       "name": "attic",
       "properties": {
-        "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man — his father. the air smells like cedar and old paper. this room is always a little too warm.",
+        "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man - his father. the air smells like cedar and old paper. this room is always a little too warm.",
         "environment": {
           "air": "stale",
           "light": 30,
@@ -519,7 +519,7 @@
     },
     "downtown district": {
       "ambient_light": 60,
-      "description": "the heart of millbrook falls. historic brick buildings house local businesses — the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
+      "description": "the heart of millbrook falls. historic brick buildings house local businesses - the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
       "environment": {
         "air": "fresh",
         "light": 60,
@@ -582,7 +582,7 @@
       "light_description": "normal",
       "name": "downtown district",
       "properties": {
-        "description": "the heart of millbrook falls. historic brick buildings house local businesses — the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
+        "description": "the heart of millbrook falls. historic brick buildings house local businesses - the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
         "environment": {
           "air": "fresh",
           "light": 60,
@@ -733,7 +733,7 @@
     },
     "hallway 2": {
       "ambient_light": 40,
-      "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above — mateo practicing in the attic.",
+      "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above - mateo practicing in the attic.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -860,7 +860,7 @@
       "light_description": "dim",
       "name": "hallway 2",
       "properties": {
-        "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above — mateo practicing in the attic.",
+        "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above - mateo practicing in the attic.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -872,7 +872,7 @@
     },
     "hallway 3": {
       "ambient_light": 40,
-      "description": "the quietest floor. only one apartment is occupied — 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
+      "description": "the quietest floor. only one apartment is occupied - 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -952,7 +952,7 @@
       "light_description": "dim",
       "name": "hallway 3",
       "properties": {
-        "description": "the quietest floor. only one apartment is occupied — 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
+        "description": "the quietest floor. only one apartment is occupied - 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -1039,7 +1039,7 @@
     },
     "rooftop": {
       "ambient_light": 70,
-      "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town — the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
+      "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town - the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
       "environment": {
         "air": "fresh",
         "light": 70,
@@ -1071,7 +1071,7 @@
       "light_description": "normal",
       "name": "rooftop",
       "properties": {
-        "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town — the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
+        "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town - the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
         "environment": {
           "air": "fresh",
           "light": 70,
@@ -1083,7 +1083,7 @@
     },
     "street": {
       "ambient_light": 65,
-      "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk — you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
+      "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk - you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
       "environment": {
         "air": "fresh",
         "light": 65,
@@ -1146,7 +1146,7 @@
       "light_description": "normal",
       "name": "street",
       "properties": {
-        "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk — you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
+        "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk - you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
         "environment": {
           "air": "fresh",
           "light": 65,
@@ -3081,7 +3081,7 @@
         "id": "area_apartment_1a",
         "name": "apartment 1a",
         "properties": {
-          "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered — floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
+          "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered - floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
           "environment": {
             "air": "stale",
             "light": 55,
@@ -3099,7 +3099,7 @@
         "id": "area_apartment_1b",
         "name": "apartment 1b",
         "properties": {
-          "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner — a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
+          "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner - a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
           "environment": {
             "air": "stale",
             "light": 40,
@@ -3135,7 +3135,7 @@
         "id": "area_apartment_1e",
         "name": "apartment 1e",
         "properties": {
-          "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner — drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
+          "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner - drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
           "environment": {
             "air": "stale",
             "light": 50,
@@ -3171,7 +3171,7 @@
         "id": "area_apartment_2a",
         "name": "apartment 2a",
         "properties": {
-          "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf — they both look uncomfortable. the tv is off. everything is exactly where it should be.",
+          "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf - they both look uncomfortable. the tv is off. everything is exactly where it should be.",
           "environment": {
             "air": "stale",
             "light": 50,
@@ -3189,7 +3189,7 @@
         "id": "area_apartment_2b",
         "name": "apartment 2b",
         "properties": {
-          "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter — always ready.",
+          "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter - always ready.",
           "environment": {
             "air": "stale",
             "light": 55,
@@ -3207,7 +3207,7 @@
         "id": "area_apartment_2c",
         "name": "apartment 2c",
         "properties": {
-          "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' — she's only here for the summer.",
+          "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' - she's only here for the summer.",
           "environment": {
             "air": "stale",
             "light": 45,
@@ -3225,7 +3225,7 @@
         "id": "area_apartment_2d",
         "name": "apartment 2d",
         "properties": {
-          "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls — her daughters — is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
+          "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls - her daughters - is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
           "environment": {
             "air": "smoky",
             "light": 35,
@@ -3261,7 +3261,7 @@
         "id": "area_apartment_3a",
         "name": "apartment 3a",
         "properties": {
-          "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table — he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
+          "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table - he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
           "environment": {
             "air": "stale",
             "light": 50,
@@ -3279,7 +3279,7 @@
         "id": "area_attic",
         "name": "attic",
         "properties": {
-          "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man — his father. the air smells like cedar and old paper. this room is always a little too warm.",
+          "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man - his father. the air smells like cedar and old paper. this room is always a little too warm.",
           "environment": {
             "air": "stale",
             "light": 30,
@@ -3297,7 +3297,7 @@
         "id": "area_downtown_district",
         "name": "downtown district",
         "properties": {
-          "description": "the heart of millbrook falls. historic brick buildings house local businesses — the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
+          "description": "the heart of millbrook falls. historic brick buildings house local businesses - the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
           "environment": {
             "air": "fresh",
             "light": 60,
@@ -3333,7 +3333,7 @@
         "id": "area_hallway_2",
         "name": "hallway 2",
         "properties": {
-          "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above — mateo practicing in the attic.",
+          "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above - mateo practicing in the attic.",
           "environment": {
             "air": "stale",
             "light": 40,
@@ -3351,7 +3351,7 @@
         "id": "area_hallway_3",
         "name": "hallway 3",
         "properties": {
-          "description": "the quietest floor. only one apartment is occupied — 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
+          "description": "the quietest floor. only one apartment is occupied - 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
           "environment": {
             "air": "stale",
             "light": 40,
@@ -3387,7 +3387,7 @@
         "id": "area_rooftop",
         "name": "rooftop",
         "properties": {
-          "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town — the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
+          "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town - the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
           "environment": {
             "air": "fresh",
             "light": 70,
@@ -3405,7 +3405,7 @@
         "id": "area_street",
         "name": "street",
         "properties": {
-          "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk — you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
+          "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk - you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
           "environment": {
             "air": "fresh",
             "light": 65,
@@ -4588,7 +4588,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a cork bulletin board covered in flyers: 'lost cat', 'piano lessons', 'tuesday bible study — cancelled', and a sticky note that just says 'gary was here' in shaky handwriting.",
+          "description": "a cork bulletin board covered in flyers: 'lost cat', 'piano lessons', 'tuesday bible study - cancelled', and a sticky note that just says 'gary was here' in shaky handwriting.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4751,7 +4751,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a photo of three little girls — amy, anna, and riley — smiling on a beach. erin's entire world.",
+          "description": "a photo of three little girls - amy, anna, and riley - smiling on a beach. erin's entire world.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4843,7 +4843,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "circuit boards, soldering iron, and tiny screws. kevin's side hobby — fixing things.",
+          "description": "circuit boards, soldering iron, and tiny screws. kevin's side hobby - fixing things.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4891,7 +4891,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "a monster energy can — miki left it here last movie night.",
+          "description": "a monster energy can - miki left it here last movie night.",
           "effect_amount": 20,
           "effect_stat": "energy",
           "effect_target": "player",
@@ -4935,7 +4935,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a small shrine with a candle and a photo of a man in construction gear — mateo's father, who died when he was 12.",
+          "description": "a small shrine with a candle and a photo of a man in construction gear - mateo's father, who died when he was 12.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -4979,7 +4979,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a small flower wreath on 1a's door. fresh flowers — lera must have made it.",
+          "description": "a small flower wreath on 1a's door. fresh flowers - lera must have made it.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5280,7 +5280,7 @@
             "examine"
           ],
           "current_state": "hidden",
-          "description": "a locked folder on the laptop. if opened, it contains songs written about a radio voice at 2 am. each one is signed '— m.s.r.' with a small drawn heart.",
+          "description": "a locked folder on the laptop. if opened, it contains songs written about a radio voice at 2 am. each one is signed '- m.s.r.' with a small drawn heart.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5306,7 +5306,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a single black glove on the floor. probably haruka's — she's always losing things.",
+          "description": "a single black glove on the floor. probably haruka's - she's always losing things.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5512,7 +5512,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a hand-written 'no parking — i will tow you' sign. the handwriting is definitely erin's.",
+          "description": "a hand-written 'no parking - i will tow you' sign. the handwriting is definitely erin's.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5537,7 +5537,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "a cabinet full of instant noodle cups. chicken, beef, shrimp — maya's entire food pyramid.",
+          "description": "a cabinet full of instant noodle cups. chicken, beef, shrimp - maya's entire food pyramid.",
           "effect_amount": 20,
           "effect_stat": "hunger",
           "effect_target": "player",
@@ -5559,7 +5559,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a framed photo of david and maya when she was 8. they're both smiling — she's on his shoulders. it's the only happy photo in the apartment.",
+          "description": "a framed photo of david and maya when she was 8. they're both smiling - she's on his shoulders. it's the only happy photo in the apartment.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -5581,7 +5581,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "your car, parked on the street. you forgot your keys — that's why you're here.",
+          "description": "your car, parked on the street. you forgot your keys - that's why you're here.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6044,7 +6044,7 @@
             "examine"
           ],
           "current_state": "normal",
-          "description": "a worn welcome mat. it says 'come back with a warrant' — someone crossed out 'warrant' and wrote 'snacks'.",
+          "description": "a worn welcome mat. it says 'come back with a warrant' - someone crossed out 'warrant' and wrote 'snacks'.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -11372,7 +11372,7 @@
   "rooms": {
     "apartment 1a": {
       "ambient_light": 55,
-      "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered — floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
+      "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered - floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
       "environment": {
         "air": "stale",
         "light": 55,
@@ -11403,7 +11403,7 @@
       "light_description": "normal",
       "name": "apartment 1a",
       "properties": {
-        "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered — floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
+        "description": "lera, victoria, and jamie's apartment. the living room is cozy but cluttered - floral arrangements on every surface (lera's work), band posters on the walls (victoria's contribution), and a worn couch that smells like clove cigarettes. the kitchen counter has a coffee maker and three mismatched mugs. a sliding glass door leads to the small balcony where clothes hang dry and a cigarette butt collection grows.",
         "environment": {
           "air": "stale",
           "light": 55,
@@ -11415,7 +11415,7 @@
     },
     "apartment 1b": {
       "ambient_light": 40,
-      "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner — a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
+      "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner - a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -11446,7 +11446,7 @@
       "light_description": "dim",
       "name": "apartment 1b",
       "properties": {
-        "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner — a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
+        "description": "miki and rose's apartment. a small, lived-in space with anime posters, a tv playing a paused anime episode, and a coffee table covered in manga volumes and energy drink cans. miki's gaming setup occupies one corner - a monitor, headset, and a collection of plushies. rose's art supplies are scattered on the dining table. the couch has a permanent miki-shaped indent.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -11501,7 +11501,7 @@
     },
     "apartment 1e": {
       "ambient_light": 50,
-      "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner — drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
+      "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner - drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -11532,7 +11532,7 @@
       "light_description": "normal",
       "name": "apartment 1e",
       "properties": {
-        "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner — drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
+        "description": "jordan and taylor's apartment. a basketball leans against the wall. taylor's art setup occupies one corner - drawing tablet, colored pencils, prints taped to the wall. jordan's gym bag is by the door. the tv has a gaming console connected. a shared bookshelf has art books and sports magazines side by side.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -11587,7 +11587,7 @@
     },
     "apartment 2a": {
       "ambient_light": 50,
-      "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf — they both look uncomfortable. the tv is off. everything is exactly where it should be.",
+      "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf - they both look uncomfortable. the tv is off. everything is exactly where it should be.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -11618,7 +11618,7 @@
       "light_description": "normal",
       "name": "apartment 2a",
       "properties": {
-        "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf — they both look uncomfortable. the tv is off. everything is exactly where it should be.",
+        "description": "mila and greg's apartment. neat to the point of being sterile. greg's briefcase sits by the door. mila's wine glasses are hidden in the back of the cabinet. a photo of them at a company dinner sits on the shelf - they both look uncomfortable. the tv is off. everything is exactly where it should be.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -11630,7 +11630,7 @@
     },
     "apartment 2b": {
       "ambient_light": 55,
-      "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter — always ready.",
+      "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter - always ready.",
       "environment": {
         "air": "stale",
         "light": 55,
@@ -11661,7 +11661,7 @@
       "light_description": "normal",
       "name": "apartment 2b",
       "properties": {
-        "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter — always ready.",
+        "description": "kaito and haruka's apartment. minimalist and tidy. two laptops sit on a shared desk. kaito's side has it certifications framed on the wall. haruka's side has volunteer schedules and a small succulent plant. a rice cooker sits on the kitchen counter - always ready.",
         "environment": {
           "air": "stale",
           "light": 55,
@@ -11673,7 +11673,7 @@
     },
     "apartment 2c": {
       "ambient_light": 45,
-      "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' — she's only here for the summer.",
+      "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' - she's only here for the summer.",
       "environment": {
         "air": "stale",
         "light": 45,
@@ -11704,7 +11704,7 @@
       "light_description": "normal",
       "name": "apartment 2c",
       "properties": {
-        "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' — she's only here for the summer.",
+        "description": "valkyrie's apartment. a gym bag by the door, protein shake mix on the counter, and a gaming setup with rgb lights. a wrestling poster is on the wall. dumbbells are tucked under the bed. everything screams 'temporary' - she's only here for the summer.",
         "environment": {
           "air": "stale",
           "light": 45,
@@ -11716,7 +11716,7 @@
     },
     "apartment 2d": {
       "ambient_light": 35,
-      "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls — her daughters — is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
+      "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls - her daughters - is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
       "environment": {
         "air": "smoky",
         "light": 35,
@@ -11747,7 +11747,7 @@
       "light_description": "dim",
       "name": "apartment 2d",
       "properties": {
-        "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls — her daughters — is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
+        "description": "erin's apartment. small, smoky, lived-in. cigarette butts overflow in an ashtray by the window. a conspiracy documentary plays on low volume. cheap whiskey bottles line the kitchen shelf. a photo of three little girls - her daughters - is tucked into the frame of the window. a knife block sits on the counter. the whole place smells like smoke and survival.",
         "environment": {
           "air": "smoky",
           "light": 35,
@@ -11802,7 +11802,7 @@
     },
     "apartment 3a": {
       "ambient_light": 50,
-      "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table — he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
+      "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table - he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
       "environment": {
         "air": "stale",
         "light": 50,
@@ -11833,7 +11833,7 @@
       "light_description": "normal",
       "name": "apartment 3a",
       "properties": {
-        "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table — he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
+        "description": "kevin's apartment. neat, practical, a little lonely. a gaming setup sits next to a small tv. electronics parts are scattered on the kitchen table - he's always fixing something. a shoebox under his bed contains... letters. unsent letters. all addressed to lera hayes in 1a.",
         "environment": {
           "air": "stale",
           "light": 50,
@@ -11845,7 +11845,7 @@
     },
     "attic": {
       "ambient_light": 30,
-      "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man — his father. the air smells like cedar and old paper. this room is always a little too warm.",
+      "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man - his father. the air smells like cedar and old paper. this room is always a little too warm.",
       "environment": {
         "air": "stale",
         "light": 30,
@@ -11876,7 +11876,7 @@
       "light_description": "dim",
       "name": "attic",
       "properties": {
-        "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man — his father. the air smells like cedar and old paper. this room is always a little too warm.",
+        "description": "a converted studio apartment at the top of the pines. sloped ceilings, a single skylight showing the night sky. mateo's guitar sits on a stand. sheet music is scattered everywhere. a laptop plays a lo-fi beat on repeat. a small shrine with a candle and a photo of a man - his father. the air smells like cedar and old paper. this room is always a little too warm.",
         "environment": {
           "air": "stale",
           "light": 30,
@@ -11888,7 +11888,7 @@
     },
     "downtown district": {
       "ambient_light": 60,
-      "description": "the heart of millbrook falls. historic brick buildings house local businesses — the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
+      "description": "the heart of millbrook falls. historic brick buildings house local businesses - the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
       "environment": {
         "air": "fresh",
         "light": 60,
@@ -11951,7 +11951,7 @@
       "light_description": "normal",
       "name": "downtown district",
       "properties": {
-        "description": "the heart of millbrook falls. historic brick buildings house local businesses — the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
+        "description": "the heart of millbrook falls. historic brick buildings house local businesses - the daily grind's warm glow, petal & stem's flower displays, the hardware store, the family diner. town square sits in the centre with a small fountain. the streets are mostly empty this time of night.",
         "environment": {
           "air": "fresh",
           "light": 60,
@@ -12102,7 +12102,7 @@
     },
     "hallway 2": {
       "ambient_light": 40,
-      "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above — mateo practicing in the attic.",
+      "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above - mateo practicing in the attic.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -12229,7 +12229,7 @@
       "light_description": "dim",
       "name": "hallway 2",
       "properties": {
-        "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above — mateo practicing in the attic.",
+        "description": "similar to the first floor but quieter. five apartment ways. a window overlooks the back alley. someone has taped a 'no parking' sign to the wall. you can hear faint guitar from the floor above - mateo practicing in the attic.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -12241,7 +12241,7 @@
     },
     "hallway 3": {
       "ambient_light": 40,
-      "description": "the quietest floor. only one apartment is occupied — 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
+      "description": "the quietest floor. only one apartment is occupied - 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
       "environment": {
         "air": "stale",
         "light": 40,
@@ -12321,7 +12321,7 @@
       "light_description": "dim",
       "name": "hallway 3",
       "properties": {
-        "description": "the quietest floor. only one apartment is occupied — 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
+        "description": "the quietest floor. only one apartment is occupied - 3a. the other ways have 'vacant' notices. a window at the end shows the rooftop access ladder. the hallway smells like kevin's subtle cologne.",
         "environment": {
           "air": "stale",
           "light": 40,
@@ -12408,7 +12408,7 @@
     },
     "rooftop": {
       "ambient_light": 70,
-      "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town — the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
+      "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town - the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
       "environment": {
         "air": "fresh",
         "light": 70,
@@ -12440,7 +12440,7 @@
       "light_description": "normal",
       "name": "rooftop",
       "properties": {
-        "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town — the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
+        "description": "the rooftop of the pines. technically off-limits, but everyone comes here. a cracked view of the town - the lights of downtown, the dark shape of oakwood heights, the distant glow of the millbrook river. stolen lawn chairs sit in a corner. cigarette butts litter the ground. someone has spray-painted 'the pines sucks' with a smiley face. the night air is cool.",
         "environment": {
           "air": "fresh",
           "light": 70,
@@ -12452,7 +12452,7 @@
     },
     "street": {
       "ambient_light": 65,
-      "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk — you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
+      "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk - you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
       "environment": {
         "air": "fresh",
         "light": 65,
@@ -12515,7 +12515,7 @@
       "light_description": "normal",
       "name": "street",
       "properties": {
-        "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk — you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
+        "description": "the street outside the pines. streetlights cast orange light on cracked sidewalks. suds & duds glows across the way. downtown is a short walk - you can see the lights of the daily grind and the dark shape of the town square. a car passes occasionally. the night air is cool.",
         "environment": {
           "air": "fresh",
           "light": 65,

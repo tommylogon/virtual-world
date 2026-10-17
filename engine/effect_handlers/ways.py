@@ -48,16 +48,16 @@ def handle_spawn_way(self, params, context, item_node=None, game_state=None):
     """Materialize a way node + connection edges at runtime.
 
     params:
-      area_from / from_area — area name the door is IN (required)
-      target / area_to / to_area — area name the door leads TO (required)
-      direction — exit direction on the from side (default "north")
-      reverse_direction — direction on the target side (defaults to the
+      area_from / from_area - area name the door is IN (required)
+      target / area_to / to_area - area name the door leads TO (required)
+      direction - exit direction on the from side (default "north")
+      reverse_direction - direction on the target side (defaults to the
                           opposite cardinal)
-      way_id — explicit node id (defaults to ``way_<from>_<direction>``)
-      state — open / locked / hidden / closed (default "open")
+      way_id - explicit node id (defaults to ``way_<from>_<direction>``)
+      state - open / locked / hidden / closed (default "open")
       description, pass_message, cost, see_through, tags, insulation,
       prevent_close, max_size, requires, one_way
-      message — narration; ``{target_name}`` supported
+      message - narration; ``{target_name}`` supported
 
     Idempotent: an existing way_id is a no-op (returns the default message).
     """
@@ -122,10 +122,10 @@ def handle_spawn_area(self, params, context, item_node=None, game_state=None):
     """Create a whole new area node (with environment) at runtime.
 
     params:
-      name — area name (required; node id = ``area_<slug>``)
+      name - area name (required; node id = ``area_<slug>``)
       description, environment {light, temperature, air, smell, noise},
       tags, floor
-      message — narration
+      message - narration
     Also useful as the partner of ``spawn_way`` to add reachable space.
     """
     name = str(params.get("name") or "").strip()
@@ -158,10 +158,10 @@ def handle_set_way_target(self, params, context, item_node=None, game_state=None
     """Rewire where a way's connection leads (elevators, portals, cars).
 
     params:
-      way_id / node_id — the way to repoint (item_node may be the way)
-      target / area_to — the NEW area name the way leads to
-      direction — from-side exit direction (defaults to the way's current)
-      reverse_direction — target-side direction (defaults to the opposite)
+      way_id / node_id - the way to repoint (item_node may be the way)
+      target / area_to - the NEW area name the way leads to
+      direction - from-side exit direction (defaults to the way's current)
+      reverse_direction - target-side direction (defaults to the opposite)
 
     The way keeps its identity/state/description and the from-side edge;
     all other connection edges are rebuilt toward the new target.
@@ -223,11 +223,11 @@ def handle_set_way_view(self, params, context, item_node=None, game_state=None):
     """Mutate the way metadata that drives what you see through it.
 
     params:
-      way_id / node_id — the way (item_node may be the way)
-      description — view text shown when looking through
-      see_through — bool: light/vision pass through
-      state — current_state (open/locked/hidden/closed)
-      message — narration
+      way_id / node_id - the way (item_node may be the way)
+      description - view text shown when looking through
+      see_through - bool: light/vision pass through
+      state - current_state (open/locked/hidden/closed)
+      message - narration
 
     Coordinates with task-192: both mutate the way node so prompts and
     area descriptions pick up the change immediately (they read the way

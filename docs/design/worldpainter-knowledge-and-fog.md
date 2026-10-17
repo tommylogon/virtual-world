@@ -9,14 +9,14 @@
 ## The insight
 
 Once WorldPainter has **filled the world grid**, the grid is not just an
-authoring surface — it is the spatial substrate the runtime reasons over:
+authoring surface - it is the spatial substrate the runtime reasons over:
 
 1. A **target location** or a **path** can be attached to an item or a character
    by a **trigger** (a map names a place; a note names a road; a rumour names a
    direction).
 2. The character **moves by selecting grid cells/edges**, so its route is a walk
    over the painted lattice rather than a hand-authored chain of rooms.
-3. As the character walks, it **reveals fog of war** — the known set grows cell
+3. As the character walks, it **reveals fog of war** - the known set grows cell
    by cell, and that known set is what the map view draws and what the agent's
    prompt is allowed to contain.
 
@@ -51,10 +51,10 @@ runtime graph
 
 The arrow above is not a translation between two kinds of thing. The compiler mints the area id
 **from the cell** (`area_<scope_id>_<x>_<y>`, `world_compile._area_id`), derives its name from the
-cell (`Sparse Forest (West woods 10, 14)` — biome or road label plus scope and coordinate, unless
+cell (`Sparse Forest (West woods 10, 14)` - biome or road label plus scope and coordinate, unless
 the author named the cell, task-560), and gives it `properties.cell` + `properties.world_scope_id` so
 the cell stays a stable frame. Measured on `kraktooth_goblin_camp`: **205 of 206 areas carry a cell**,
-and manifest coverage is exact for every compiled scope — `eldenford_interior` 70 cells → 70 areas,
+and manifest coverage is exact for every compiled scope - `eldenford_interior` 70 cells → 70 areas,
 `world` 61 → 61, `goblin_camp` 21 → 21.
 
 So **a biome cell, a road cell, a feature placement and a hand-placed room are one kind of thing at
@@ -63,7 +63,7 @@ the graph has to know which of the four it is looking at. `Road (world 10, 4)` �
 painted *road* cell that came out an area, which is the case that makes the point.
 
 This was worth writing down because the grid is an *authoring* surface and nothing in `world_grid.py`
-said what it becomes — a reader reasonably comes away thinking cells and areas are parallel models that
+said what it becomes - a reader reasonably comes away thinking cells and areas are parallel models that
 have to be kept in step. They are not; one is the other's identity.
 
 Three places the correspondence is deliberately not one-to-one, all of which a cell-walking reader
@@ -73,7 +73,7 @@ would otherwise trip on:
   **anchor** cell, so a merged area's `cell` is where it was minted, not its footprint
   (`west_woods`: 81 painted cells → 53 areas);
 - a cell occupied by a hand-placed area is **skipped**, so it holds the author's area instead of a
-  compiled one (`world` 18,6 is `area_human_road`) — the documented collision rule, working;
+  compiled one (`world` 18,6 is `area_human_road`) - the documented collision rule, working;
 - a scope can have a grid that was **never compiled** (`deep_woods`: 404 painted cells, 0 areas), so a
   cell in the manifest is not guaranteed to be an area anywhere.
 
@@ -104,7 +104,7 @@ would otherwise trip on:
   promoted set. The earlier attended-set model built on awareness channels
   (task-411 / task-418) is cancelled; the channel seam survives unwired in
   `engine/awareness.py`. Fog of war is the *knowledge* dimension; attendance is
-  the *simulation* dimension — both read the same grid but neither is the other.
+  the *simulation* dimension - both read the same grid but neither is the other.
 
 ## Scope hierarchy: root then zone
 
@@ -128,8 +128,8 @@ The authoring sequence is therefore:
 
 **Generation is per scope.** Generating a parent compiles only the parent's own
 painted grid; the child's grid is **not** compiled as a side effect, so generate
-the zone separately. Keep the root coarse — at world scale a town is a single
-cell — and put the detail in the child grid, so no level mints thousands of area
+the zone separately. Keep the root coarse - at world scale a town is a single
+cell - and put the detail in the child grid, so no level mints thousands of area
 nodes at once (the node-count blow-up that freezes the graph view, task-400).
 
 **Linking a zone to its cell (task-496).** Once *both* a parent and a placed
@@ -142,7 +142,7 @@ exactly once; a placement on an unpainted cell links nothing.
 
 **Painted positions.** Generated nodes carry `properties.x`/`y` from their cell
 (`cell * CELL_CANVAS_UNITS`, ways at the midpoint), so the graph view with
-physics off lays a compiled scope out in the shape it was painted — the point of
+physics off lays a compiled scope out in the shape it was painted - the point of
 painting over a reference map. This is layout only: travel stays one turn per
 cell.
 
@@ -165,8 +165,8 @@ auto-fit. Storing cells (not pixels) is what lets the painter (22px/cell) and th
 graph map layout (`mapSpacing` px/cell) draw the same picture at their own scale
 and still agree. Corner handles scale the whole image (crop unchanged); edge
 handles cut it (the source window shrinks proportionally, so content keeps its
-scale). Pure geometry — `fitReferenceRect`, `referenceHandlePoints`,
-`referenceHandleDrag` — lives in `static/js/worldpainter/grid-model.js` and is
+scale). Pure geometry - `fitReferenceRect`, `referenceHandlePoints`,
+`referenceHandleDrag` - lives in `static/js/worldpainter/grid-model.js` and is
 unit-tested.
 
 **Map layout is relative, not absolute.** Stored coords are engine units
@@ -185,14 +185,14 @@ painted map.
 zone's areas/ways; **🧹 Ungenerate** deletes exactly those nodes (provenance
 `generated.scope_id`, plus any parent gateway whose `child_scope_id` is the zone)
 and resets the scope to `unmade`, keeping the painted grid, reference, map offset
-and placements — a clean slate without repainting. A plain re-run
+and placements - a clean slate without repainting. A plain re-run
 (`allow_regenerate`) now re-stamps existing nodes in place, but it never removes
 orphans the new recipe no longer emits; ungenerate is the way to drop those.
 
 **Dense maps hide labels until a cell is big enough.** Node names are drawn by a
 zoom-level policy (`graphManager._showNodeLabels` in
 `GraphNetwork._nodeLabelPolicy`): a name is drawn when a **cell** is large enough
-on screen to hold it — `mapSpacing × zoom ≥ graphLabelMinCellPx` (default 14px).
+on screen to hold it - `mapSpacing × zoom ≥ graphLabelMinCellPx` (default 14px).
 The old rule keyed on the raw network scale, which on a high-pitch map sat near
 zero however large the cells were, so names never came back while zooming
 (bug-528); `graphLabelMaxNodes` / `graphLabelMinScale` are no longer read. The
@@ -210,7 +210,7 @@ canvas → **✥ Move zone** drags the whole zone: nodes re-place live
 (`GraphLayoutEngine.refreshGridLayout`, no camera refit) and the active map art
 is nudged with it; releasing persists the offset via
 `POST /api/world/scopes/<id>/offset` (`{x, y}` cells, or `{reset: true}`).
-Moving a zone moves **only that scope's own lattice** — a child keeps its own
+Moving a zone moves **only that scope's own lattice** - a child keeps its own
 offset (the level-scoped model: a placed child is one feature cell, and its
 interior is authored separately). `▦ Fit to painted grid` fits the reference to
 the *offset* grid, so the art follows the moved zone.
@@ -218,13 +218,13 @@ the *offset* grid, so the art follows the moved zone.
 **Map mode reads the grid (not the compass).** `applyCardinalLayout` prefers the
 painted lattice whenever the loaded nodes carry `properties.cell`
 (`hasPaintedGrid`); the compass BFS is only the fallback for hand-authored worlds
-with no painted coords. A painted map is *read*, so physics stays off — the
+with no painted coords. A painted map is *read*, so physics stays off - the
 loader must not re-enable it after a grid layout (it used to, which dragged the
 lattice into a force blob).
 
 **Map layout reads the grid (task-496 follow-up).** The `🗺️ Map` layout has two
 modes: when the loaded areas carry `properties.cell` (i.e. they were painted),
-it places areas and ways at those exact coordinates and leaves physics off —
+it places areas and ways at those exact coordinates and leaves physics off -
 the map is *read*, not simulated. Hand-authored worlds with no painted coords
 fall back to the original cardinal BFS over exits + a force settle. So "Map"
 means "as painted" for painted worlds, and "as best derived" otherwise.
@@ -240,7 +240,7 @@ One consequence worth stating: because a scope is the load boundary, the graph
 view can load **one scope's subgraph** (`world_scopes.project_subgraph`, giving
 the areas, interior ways, and present characters/items of that scope only)
 instead of the whole world. That is what keeps a densely painted world from
-freezing the canvas — the browser is never sent nodes outside the selected
+freezing the canvas - the browser is never sent nodes outside the selected
 scope, so the node count is per zone, not per world.
 
 ## Description and direction model (2026-09-26)
@@ -248,7 +248,7 @@ scope, so the node count is per zone, not per world.
 Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)**.
 
 - **Every painted cell is a place, roads included.** A road cell *replaces* its
-  biome — one node per cell, the biome is description *context*, not a second
+  biome - one node per cell, the biome is description *context*, not a second
   area. A road-only cell now compiles instead of being dropped by
   `cells = sorted(biome_of)`.
 - **The road is the cell's identity, not a coat of paint.** Region merging groups
@@ -262,7 +262,7 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
   rockface rising on one side and dropping away on the other" (cliff neighbours,
   read from the floor layer). It may look one hop further to say where a road
   *leads* ("the road west leads back into the sparse woods"). Deterministic, no
-  LLM — the fragment catalogue is the hook.
+  LLM - the fragment catalogue is the hook.
 - **A neighbour is named for what its place is.** Where a cell carries both a road
   and a biome, the prose neighbour line uses the road, because the neighbouring
   *place* is a road area; a biome cell beside a road instead gets "A track runs
@@ -277,11 +277,11 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
   working.
 - **A floor is a storey index, not a floor material** (corrected with the author,
   2026-09-27). `properties.floor` is *which storey* the place is on: `0` is the
-  ground plane, `1` one up, `-1` one down, and the scale is **unbounded** — three
+  ground plane, `1` one up, `-1` one down, and the scale is **unbounded** - three
   rooms stacked over each other, the space around a spaceship, the bottom of a
   lake at `-2`, an 80-storey tower, a hole to hell at `-900`. It is rounded to a
   whole storey because the engine compares whole storeys, not heights. What you
-  *stand on* — dirt, grass, stone, pine needles — is a different fact and lands
+  *stand on* - dirt, grass, stone, pine needles - is a different fact and lands
   on `properties.surface`, read from the biome/road record
   (`engine.biomes.ground_surface`).
   The earlier revision of this design called the WorldPainter's third paint layer
@@ -291,7 +291,7 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
   `properties.elevation` is gone.
 - **Floors inform prose now, gate movement later.** The floor layer feeds the
   cliff phrasing (`CLIFF_FLOOR_DELTA = 2` storeys by default, and only for a
-  `world` scope — a storey step inside a town or interior is a staircase, not a
+  `world` scope - a storey step inside a town or interior is a staircase, not a
   rockface); a step past ~3 storeys requiring a climb (and potentially blocking
   the step) is deferred to **task-525**.
 
@@ -300,13 +300,13 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
 Three things the author asked for, and the distinction that makes them coherent:
 
 - **Membership ≠ placement.** `world_scope_id` on an area node *is* scope
-  membership — the scope views read nothing else — and it is edited **on the
+  membership - the scope views read nothing else - and it is edited **on the
   node**: the area inspector has a **🗺️ Scope** section with a dropdown of every
   scope, so a child scope's whole interior can be moved into it in one go
   (`POST /api/world/scopes/<id>/areas` with `{add, remove}` lists, one undo step,
   both ends of the manifest mirror moved together). A cell on a painted grid is
   *placement*, which stays with the 📍 Area tool. That is why the goblin camp's
-  rooms belong to the camp without being parked as cells on the world's grid —
+  rooms belong to the camp without being parked as cells on the world's grid -
   which is also why they stop showing up in the world scope's own view. Leaving a
   scope releases any cell the area held there; a cell it holds in the target
   scope is kept, so re-assigning an area to the scope it already sits on is a
@@ -318,15 +318,15 @@ Three things the author asked for, and the distinction that makes them coherent:
   placement). An area with no scope counts as this scope's. The payload already
   carried each candidate's `scope_id`/`scope_name`; it just was not used.
 - **Every cell can be read** (task-540): hovering the grid shows the cell's paint
-  layers, its placed area and its sub-zone in the HUD; the 🔍 Inspect tool — or a
-  right-click on *any* tool — opens a panel with the same facts plus the actions
+  layers, its placed area and its sub-zone in the HUD; the 🔍 Inspect tool - or a
+  right-click on *any* tool - opens a panel with the same facts plus the actions
   that apply to that cell (move/unplace the area, open the area in the graph,
   open or remove the sub-zone, clear the paint). A placed area on a 200×133 map
   is a ~5px marker with no name, so this was the only way to tell what was where.
 
 Noted gap: `world_scopes.project()` (the scope *summary card*) lists
 `boundary_ways` only, so an interior's internal doors are missing from that card.
-The graph view is fine — `project_subgraph` includes ways with both endpoints
+The graph view is fine - `project_subgraph` includes ways with both endpoints
 inside. Whether the summary should list internal ways is still open.
 
 ## How a big painted map reads (task-526; reworked 2026-10-08, task-748)
@@ -395,14 +395,14 @@ missing.
 
 **A cell can have a name.** Without it every place is `<label> (<scope> x,y)`, so
 a 19-location town is 19 coordinate names and `go inn` has nothing to match. A
-name lives in a `names` map on the scope record — *beside* `layers`, not on one,
+name lives in a `names` map on the scope record - *beside* `layers`, not on one,
 because a name is metadata **about** a cell rather than paint on it: there is no
 name vocabulary, the eraser must not wipe it, and "clear this cell" must not
 silently unname a place. The compiler prefers it for the display name and keeps
 the fallback. Two rules that are easy to get wrong:
 
 - A name repeated **inside one scope** falls back to the generated form, so no
-  single area offers two exits with the same name — which is all `go <name>` needs,
+  single area offers two exits with the same name - which is all `go <name>` needs,
   since `NameMatching.resolve_exit` collects the current area's exits first. Two
   *scopes* may reuse a name, exactly as two hand-authored areas may: ids are the
   key, names are labels resolved to it.
@@ -410,7 +410,7 @@ the fallback. Two rules that are easy to get wrong:
   Naming the middle of a High Street is the natural thing to do; making the author
   know that the anchor is the top-left-most cell would be a rule with no purpose.
 
-**A cell can have a type.** Building types are **biomes**, not features — a
+**A cell can have a type.** Building types are **biomes**, not features - a
 building is a *place*, while a feature is something painted on the road layer that
 *replaces* the cell's biome. (The file had `town`/`village`/`building` as features,
 which meant painting "building" produced a cell the compiler read as a *road*: a
@@ -418,7 +418,7 @@ house that merged with the street and described itself as a thoroughfare.) 31
 types across nine categories, each carrying three tag families so a later task can
 ask the question an author actually has: `building`+`settlement`, a category
 (residential / religious / commercial / civic / craft / industrial / military /
-rural / transport), and **purposes** — `sleeps`, `food`, `drink`, `hygiene`,
+rural / transport), and **purposes** - `sleeps`, `food`, `drink`, `hygiene`,
 `trade`, `craft`, `worship`, `medical`, `storage`, `transport`. Those purpose tags
 are what task-566 will ask for when a tired traveller looks for a bed.
 
@@ -428,14 +428,14 @@ Two consequences worth stating:
   validator demands a forage tag and resource/hostile distribution for every
   biome; nobody forages berries off a smithy's wall and no wildlife spawns in a
   bank, so `biomes.validate` skips those checks for a record tagged `building`. It
-  is a documented exemption, not an omission — a building is still a biome, and it
+  is a documented exemption, not an omission - a building is still a biome, and it
   still owes a name, a surface and description fragments.
 - **`terrain: "urban"` is currently a no-op.** The prose classifier has classes for
   forest/rock/water/farm and falls through to `open`; a new class for buildings
   would apply to wilderness cells too, so that waits for a settlement register.
 
 A town is then a bounded set of **named, typed** cells, and a district is a child
-scope on a cell of it — the same mechanism a building's interior uses, one rung up
+scope on a cell of it - the same mechanism a building's interior uses, one rung up
 (the world already nests three deep). What is still missing is everything between
 the cell and the door: edge semantics (task-562), entering a building (task-563)
 and per-kind merging (task-564).
@@ -445,7 +445,7 @@ and per-kind merging (task-564).
 A painted cell used to be either a place or nothing, which is enough for
 wilderness and not enough for a floor plan. A Japanese high-school plan needs
 blanks you cannot walk through, windows you can see through but not through, and
-a door you can — and all three *occupy a cell* while not being places. So a biome
+a door you can - and all three *occupy a cell* while not being places. So a biome
 record may declare what its cell is to movement, and **the vocabulary decides**:
 `engine.biomes.cell_kind` reads a `not_a_place` tag plus a namespaced
 `cell_kind:` tag, and the compiler asks that rather than knowing that `wall` is
@@ -454,14 +454,14 @@ special. Adding a `hedge` or a `turnstile` later needs no code.
 | value | kind | what it does |
 |---|---|---|
 | `wall` | `solid` | nothing passes it, nothing sees through it |
-| `void` | `solid` | nothing there at all — a courtyard, a gap, an unwalkable hole |
+| `void` | `solid` | nothing there at all - a courtyard, a gap, an unwalkable hole |
 | `window` | `see_through` | you can look through it; you cannot walk through it |
 | `door` | `passable` | not a place, but a way may cross it |
 
 Four rules, each of which is a decision rather than an implementation detail:
 
 - **A wall works by occupying a cell.** The two rooms either side of it are no
-  longer adjacent, so no way is minted — the wall *is* the absence of a route.
+  longer adjacent, so no way is minted - the wall *is* the absence of a route.
   A door occupies the same cell, so the route it stands for has to be built
   explicitly: it joins the two places on **opposite** sides, which is the only
   reading available (any three of four cardinal neighbours contain an opposite
@@ -472,14 +472,14 @@ Four rules, each of which is a decision rather than an implementation detail:
   climbed a floor would be a lie in the pass message.
 - **A window is not a route**, so it mints no way; the place it faces records it in
   `properties.windows`, so the description can say there is a window in that wall.
-  A window with a place on two sides is a passage in disguise — that is a door —
+  A window with a place on two sides is a passage in disguise - that is a door -
   and one with none is a window onto nothing, which is still a window.
 - **The storey is part of a region's identity.** Merging is 8-neighbour and was
   storey-blind, so a classroom above a classroom of the same kind became one place
   with a staircase inside it. A region is one storey's worth of one thing.
 
 Every way now carries `kind` (`open` / `door` / `stairs` / `entrance`) and
-`floor_step`, the number of storeys the edge crosses — so task-525's gate and
+`floor_step`, the number of storeys the edge crosses - so task-525's gate and
 task-563's `in` have a value to read rather than to re-derive. **A sealed room is
 still rescued** by `link_islands`, which is a deliberate reachability guarantee
 rather than something the author painted; making a sealed room genuinely
@@ -489,15 +489,15 @@ unreachable belongs with task-525 and task-564, not here.
 
 A building cell is a place you go **into**, not a cell you step sideways onto.
 Standing in the street, `in` enters the inn; you do not first walk east onto the
-doorstep and then go in. The building-ness comes from the vocabulary again — a
-`building` tag on the biome record (`engine.biomes.is_building`) — so a modder's
+doorstep and then go in. The building-ness comes from the vocabulary again - a
+`building` tag on the biome record (`engine.biomes.is_building`) - so a modder's
 `watermill` is a building without a line of compiler changes.
 
 **Where the doors are.** One `in` way per **cardinal** side that already has a
 way. Cardinal, because a door is on a wall and a diagonal neighbour is a corner
 of the plot. "Already has a way" is read from the pairs the compiler actually
 connected, not from adjacency, so a side sealed by a wall gets no door and a
-side reached *through* a painted doorway does — the doorway is what connected the
+side reached *through* a painted doorway does - the doorway is what connected the
 pair.
 
 **Where the `in` leads.**
@@ -505,7 +505,7 @@ pair.
 | the cell has | the way | state | `out` from the other side |
 |---|---|---|---|
 | an interior (a materialized child scope) | to the interior's entry area | `open` | the doorstep, via the child gateway |
-| no interior | to the building's own cell — the plot | `closed` + `refusal_message` | n/a: the plot's exits are compass |
+| no interior | to the building's own cell - the plot | `closed` + `refusal_message` | n/a: the plot's exits are compass |
 
 The interior case is **one-way on purpose**. Inside, `out` has to keep meaning
 one thing, or the word is ambiguous; so coming out of the inn lands you on the
@@ -514,13 +514,13 @@ makes `dash_to_area`'s chained second hop work.
 
 The shut door is one-way for a sharper reason. The street already has a compass
 way onto the plot, so a way *back* would be a second connection for the same pair
-— and two ways both answering to `out` on the plot means a bare "out" picks one
+- and two ways both answering to `out` on the plot means a bare "out" picks one
 at random. That is not hypothetical: it is what the first version did, and
 walking in through the street door and typing "out" got you shut out by the
 alley door you had not used. One way in; the plot keeps its compass exits and says
 so plainly (`Visible exits: west, east`).
 
-A building with no interior is not a hole in the world — it is a building that
+A building with no interior is not a hole in the world - it is a building that
 owes an interior, and it says so: the way is `closed` and carries a
 `refusal_message` drawn from the building's category (a watch house is barred, an
 inn is shut, a smithy's bench is cold). `refusal_message` is a **way property
@@ -539,7 +539,7 @@ even though their provenance names the parent.
 
 The editor knows all of this before anything is generated: the vocabulary payload
 carries each building's `refusal`, and the cell inspector's `enter` row shows
-`in → The Inn` or `in → The inn's door is shut.` — from the same
+`in → The Inn` or `in → The inn's door is shut.` - from the same
 `world_compile.building_refusal` the compiler uses, so the preview cannot drift
 from the world.
 
@@ -552,17 +552,17 @@ two refusals that actually cost an author a session were:
 - **`paint_policy: "baked"`.** A scope made with **🪜 Make this a scope…** is
   promoted from areas the author had already written, so it is *authored* rather
   than painted and carries no paint at all. It fails with a sentence that explains
-  neither how it got that way nor how to get out of it — and `paint_policy` was
+  neither how it got that way nor how to get out of it - and `paint_policy` was
   not in the grid payload, so the editor could not show it either. The only place
   the field was readable was the save file.
 - **A placement on an unpainted parent cell.** The scope sits on world cell (17,3)
   and the parent's paint has a gap there, so `_gateway` skips it
   (`world_compile.py`, the placement loop) and **no gateway is ever minted**. No
-  error, no warning, no report line — the scope is simply unreachable, forever.
+  error, no warning, no report line - the scope is simply unreachable, forever.
 
 So there are three distinct layers of guidance, and only the first was ever filed:
 
-### 1. Preflight — the refusals, as advice
+### 1. Preflight - the refusals, as advice
 
 `engine.world_compile.preflight(manifest, scope_id)` returns
 `[{code, severity, text, remedy}]`, and `_grid_payload` ships it as `blockers`. The
@@ -572,7 +572,7 @@ button's own tooltip, so the reason is never more than one hover away.
 **`block` is a condition `compile_grid` refuses; `warn` is advice.** The two must
 not drift, and `test_preflight_and_the_compiler_refuse_the_same_baked_scope` holds
 the seam. A `block` may also be a condition the compiler *starts* refusing once the
-author carries out the remedy — the un-painted-placement case is that kind: it is
+author carries out the remedy - the un-painted-placement case is that kind: it is
 not refused at all, it is silently ineffective.
 
 The area count in the `node-cap` warning reuses `_regions` rather than counting
@@ -601,7 +601,7 @@ Progress is **derived from the payload, not remembered in `localStorage`**. A
 checkbox the author can tick without doing the thing is worse than no checklist,
 and the state that decides "done" already exists on the record. The panel opens
 itself for an empty scope and gets out of the way once there is paint, until the
-author clicks it — after which their choice sticks.
+author clicks it - after which their choice sticks.
 
 ### 3. Tips
 
@@ -609,7 +609,7 @@ author clicks it — after which their choice sticks.
 `paint-a-town` tour. `tools/unit/test_help_center.js` guards the registry: unique
 ids, a group and a body on every tip, every tour step naming a real tip, every
 tour reachable from a tip, and **every `data-help` key the app emits having a tip
-behind it** — a control hooked to nothing is a button that does nothing when
+behind it** - a control hooked to nothing is a button that does nothing when
 clicked, and nothing about that throws.
 
 The dead-hook check reads the *sources* rather than a DOM, matching both
@@ -623,7 +623,7 @@ behind it.
 
 
 
-- ~~Grid-canonical vs baked (task-496) — blocking; must be decided before the
+- ~~Grid-canonical vs baked (task-496) - blocking; must be decided before the
   compiler is written.~~ **Decided 2026-09-24: per-zone `paint_policy`
   (`canonical` default, `baked` opt-in); see above.**
 - Whether fog is tracked per cell, per area, or per scope (start at area/scope,

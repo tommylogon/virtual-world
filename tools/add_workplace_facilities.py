@@ -2,17 +2,17 @@
 
 Measured first: 16 scheduled characters produced 388 hops of schedule travel and
 only 53 work blocks over three days, and their Hygiene/Social/Entertainment
-collapsed (48.8 vs 69.2 off). The diagnosis at the time was arithmetic — that a
+collapsed (48.8 vs 69.2 off). The diagnosis at the time was arithmetic - that a
 background character takes one action per 10 game minutes, leaving ~96 actions a
 day, and that a working day of twelve 30-minute blocks cannot fit alongside the
 survival errands.
 
 **That diagnosis was wrong, and this tool is kept with the caveat rather than
 used.** The real cause was that the background tier was on a different clock from
-the live one (see `ACTIONS_PER_TURN` in engine/background_simulation.py — it is now
+the live one (see `ACTIONS_PER_TURN` in engine/background_simulation.py - it is now
 one action per turn, matching live play). Worse, this pass *made things worse* and
 was reverted: tagging work areas `latrine`/`water` broke the no-schedule baseline
-too (Hygiene 69.2 → 24.4), because **area tags are not neutral** — they are what
+too (Hygiene 69.2 → 24.4), because **area tags are not neutral** - they are what
 `_areas_with` consults for *every* need search, so tagging the work areas
 redirected where the whole camp travelled for every need. Any future use of this
 must be measured against a schedule-less baseline, not just the scheduled run.
@@ -23,10 +23,10 @@ corner. It just cannot be applied as a local data tweak.
 
 Two mechanisms, chosen because neither consumes anything:
 
-- **Area tags** — `latrine` and `water` are already how the engine models "you can
+- **Area tags** - `latrine` and `water` are already how the engine models "you can
   relieve/drink here" (`_in_water_area`, `RELIEF_TAGS`). `recreation` likewise
   works as an area tag through `_service_here`.
-- **`wash_spot` fixtures** — the existing library item, used by `_wash` and never
+- **`wash_spot` fixtures** - the existing library item, used by `_wash` and never
   consumed.
 
 Deliberately NOT tagged `water` on the fixtures: a drinkable *item* is destroyed by
@@ -164,7 +164,7 @@ def main():
 
     print(f"\n{changed_tags} area(s) tagged, {placed} wash basin(s) to place")
     if not args.apply:
-        print("\n(dry run — pass --apply to write)")
+        print("\n(dry run - pass --apply to write)")
         return 0
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nwrote {path.relative_to(ROOT)}")

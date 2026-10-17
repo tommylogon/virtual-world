@@ -1,13 +1,13 @@
-# Lanes — parallel dev-task worktrees
+# Lanes - parallel dev-task worktrees
 
 Four worktrees, branched from `master`. One is a **serial spine**, three are
 **parallel arms**. Do not run the arms and the spine in the same files.
 
-> **Status 2026-09-28 — round 1 landed.** All four lanes merged to `master` with
+> **Status 2026-09-28 - round 1 landed.** All four lanes merged to `master` with
 > no conflicts: WT-A `6868120`, WT-B `479a2c7`, WT-C `3dd4b68`, then the spine
 > `fbe36fa` (task-416, 397, 418, 419, 398). 29 tasks went `todo` → `review` and
 > were promoted to `done` on the merged tree. The rules below are unchanged and
-> were the reason it worked — in particular **no arm touched a hub file**, and the
+> were the reason it worked - in particular **no arm touched a hub file**, and the
 > two files two arms both touched merged without a hand. What the round cost was
 > not the merge but the gate: a dirty `master` baseline means every lane diffs
 > failure *names* against a clean worktree. Before cutting the next round, re-derive
@@ -24,7 +24,7 @@ Four worktrees, branched from `master`. One is a **serial spine**, three are
 
 Read `docs/design/worktree-parallelisation-plan.md` for the analysis behind this split.
 
-## Hub files — one owner
+## Hub files - one owner
 
 These eight are the merge magnets. **Only WT-0 edits them.** An arm that needs a hub
 change must not make it inline; it should finish everything else, note the hub change,
@@ -41,14 +41,14 @@ and hand it to WT-0.
 | `routes/action.py` | 1 | 15 |
 | `app.py` | 1 | 6 |
 
-## Shared append-only files — anyone may append
+## Shared append-only files - anyone may append
 
 These are touched constantly but are lists, so concurrent edits merge cleanly. Append,
 do not reorganise.
 
-- `templates/index.html` — the `<script>` tag list
-- `tools/unit/run.cjs` — the module list at the top of the runner
-- `tools/js_module_index.py` — generated; run `--write`, never hand-edit
+- `templates/index.html` - the `<script>` tag list
+- `tools/unit/run.cjs` - the module list at the top of the runner
+- `tools/js_module_index.py` - generated; run `--write`, never hand-edit
 
 ## Rules that apply to every lane
 
@@ -82,15 +82,15 @@ do not reorganise.
 | task-414 (batch time advance) | task-409, task-411 | WT-A → WT-0 |
 | task-426 (plan archetypes) | task-409 | WT-C |
 | task-569 (biome distribution) | task-504 (item quantity) | WT-B |
-| task-556 (snow accumulation) | task-553 (per-area temperature, in `review`) | — promote 553 first |
+| task-556 (snow accumulation) | task-553 (per-area temperature, in `review`) | - promote 553 first |
 
 ## Merge order
 
-1. WT-A, WT-B, WT-C — one at a time, rebase each onto `master` first.
+1. WT-A, WT-B, WT-C - one at a time, rebase each onto `master` first.
 2. WT-0 last. It reabsorbs the arms' hub requests and re-resolves in its own worktree.
 
 ## Do not parallelise these
 
-- **397 → 398 → 400 → 401 → 402** — strictly ordered, all WT-0.
-- **416 → 418, 416 → 419** — same, all WT-0.
+- **397 → 398 → 400 → 401 → 402** - strictly ordered, all WT-0.
+- **416 → 418, 416 → 419** - same, all WT-0.
 - Anything that edits `engine/tick_manager.py` or `engine/serialization.py`.

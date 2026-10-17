@@ -1,15 +1,15 @@
 """Venues: a character that needs something walks to the place that has it (task-566).
 
 A painted town is a service directory. The Stag Inn has beds, the Crooked Mug has
-drink, the smithy has a forge, and a bathhouse has hot water — and before this
+drink, the smithy has a forge, and a bathhouse has hot water - and before this
 module **nothing in the simulation asked where any of that was**. There was no
 venue concept at all: a tired traveller walked the streets, because the only
 lookup the background sim had was by *item* tag, and a bed is not an item.
 
 So the lookup is by **place tag**, and it needs no new vocabulary. Task-561's
-building types already carry the tags this module reads — `sleeps` on an inn and
+building types already carry the tags this module reads - `sleeps` on an inn and
 a cottage, `food` and `drink` on a tavern, `craft` on a smithy, `worship` on a
-temple — and task-568's rooms carry `sleeps`, `washroom`'s own tag, and so on. A
+temple - and task-568's rooms carry `sleeps`, `washroom`'s own tag, and so on. A
 venue is therefore *a set of tags plus a preference order*, and a building type
 becomes a venue for free by being tagged.
 
@@ -36,7 +36,7 @@ in the city because it is better. The tiers are a preference among equals, not a
 shopping list.
 
 The reachability walk is the one the rest of the sim already uses
-(``build_exits_for_area``), so a venue step is a step the engine can take — a
+(``build_exits_for_area``), so a venue step is a step the engine can take - a
 venue is never somewhere a character can be routed that the player could not.
 """
 
@@ -160,7 +160,7 @@ def find_venues(gs, p, name: str) -> List[Tuple[str, int, int]]:
     Ranked the way :func:`choose_venue` wants to read it: hops first, then
     preference. Reachable means "there is a path along the engine's own exits
     from where the character stands", found by the same BFS the rest of the sim
-    uses — including hidden authoring-only passages, so a venue behind a
+    uses - including hidden authoring-only passages, so a venue behind a
     GM-only door is still found by a character who can get there.
     """
     spec = venue(name)
@@ -227,14 +227,14 @@ def choose_venue(gs, p, name: str) -> Optional[str]:
 
     The four tiers, in order, and why each is where it is:
 
-    1. **fewest hops** — a character with a bed next door does not cross town for
+    1. **fewest hops** - a character with a bed next door does not cross town for
        a better one;
-    2. **familiarity** — among equally near places, one this character has used
+    2. **familiarity** - among equally near places, one this character has used
        before, and more-used first. This is what makes a regular go back to their
        inn and a stranger go to the nearest;
-    3. **preference tier** — among those still equal, the nicer kind (an inn
+    3. **preference tier** - among those still equal, the nicer kind (an inn
        before a barn), as declared by the venue;
-    4. **node name** — a total order, so the same world picks the same place
+    4. **node name** - a total order, so the same world picks the same place
        twice. Without this a tie is resolved by dictionary order and a character
        re-picks its destination every turn, which reads as a bug in a soak.
 
@@ -256,7 +256,7 @@ def choose_venue(gs, p, name: str) -> Optional[str]:
 def describe(gs, p, name: str) -> str:
     """A one-line reason for the log, naming where it is going and why.
 
-    "Ari walks to The Stag Inn — is looking for a bed" is a line a player reads
+    "Ari walks to The Stag Inn - is looking for a bed" is a line a player reads
     and understands. The alternative, a silent hop, is the difference between a
     living town and a character teleporting for unexplained reasons.
     """
@@ -264,4 +264,4 @@ def describe(gs, p, name: str) -> str:
     target = choose_venue(gs, p, name)
     if not spec or not target:
         return ""
-    return f"{p.name} walks to {target} — {spec['why']}"
+    return f"{p.name} walks to {target} - {spec['why']}"

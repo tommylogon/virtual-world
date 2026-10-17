@@ -13,7 +13,7 @@ Checks (errors, exit 1):
   * light_mult is a number, time_dc an int, tags a list, description a string
 
 Warnings (not fatal):
-  * a type no path can *enter* — the snowy bug: it multiplied cleanly but no row
+  * a type no path can *enter* - the snowy bug: it multiplied cleanly but no row
     ever transitioned into it, so a winter world could not produce snow. A type
     is reachable via the base table, a **season** edge, a **terrain** edge, or
     the extreme tail (task-763); if none of those enter it, it can never occur.

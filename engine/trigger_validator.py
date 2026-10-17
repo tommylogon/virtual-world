@@ -1,4 +1,4 @@
-"""Trigger validation — find broken trigger references in the world graph.
+"""Trigger validation - find broken trigger references in the world graph.
 
 Scans every ``triggers`` edge plus the ``logic_trigger`` nodes they point
 at and reports issues that would silently break at runtime:
@@ -118,7 +118,7 @@ CHARACTER_EFFECTS = {
 SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
 
 # Mechanical tags the engine reads and the properties they require to work.
-# Backend truth — see engine/lighting.py (light_source→light_level),
+# Backend truth - see engine/lighting.py (light_source→light_level),
 # environment_propagation.py (heat_source→target_temperature/heating_rate),
 # sound.py (sound_source→sound_level/sound_pattern), toggleable_items.py
 # (toggleable→current_state, electric), equipment_bonuses.py (weapon→damage,
@@ -139,7 +139,7 @@ MECHANICAL_REQUIREMENTS = {
     "magic": (),
 }
 
-# Mechanical props the engine silently defaults when missing — see
+# Mechanical props the engine silently defaults when missing - see
 # lighting.py (light_level→"dim") and environment_propagation.py
 # (target_temperature→30, heating_rate→0.5). Missing these is an authoring
 # nudge (info), not a broken tag: the engine still applies the effect at the
@@ -155,7 +155,7 @@ DEFAULTED_MECHANICAL_DEFAULTS = {
 WAY_NODE_FIELDS = ("description", "pass_message")
 
 # Item properties that should stay in sync with the library entry after
-# placement (bug_14 — refresh-to-world resyncs these).
+# placement (bug_14 - refresh-to-world resyncs these).
 LIBRARY_SYNC_PROPS = (
     "name", "description", "tags", "actions", "uses", "weight",
     "equip_slots", "current_state", "light_level", "target_temperature",
@@ -165,12 +165,12 @@ LIBRARY_SYNC_PROPS = (
 # LIBRARY_SYNC_PROPS whose drift is the NORMAL authoring flow rather than a bug
 # (task-443). The engine either owns the value or it is per-instance state, so
 # reporting it as a hard `library_mismatch` warning buried the real drift:
-# * light_level / target_temperature / heating_rate — engine defaults
+# * light_level / target_temperature / heating_rate - engine defaults
 #   (`DEFAULTED_MECHANICAL_DEFAULTS`), an authoring nudge at most;
-# * current_state / contents — runtime state (a lamp toggled on, a chest that
+# * current_state / contents - runtime state (a lamp toggled on, a chest that
 #   has been filled), exactly what an instance is *for*;
-# * description — free text the library supplies as a starting point;
-# * aliases — subjective per-observer names, so instances legitimately differ.
+# * description - free text the library supplies as a starting point;
+# * aliases - subjective per-observer names, so instances legitimately differ.
 # Everything else (name/tags/actions/uses/weight/equip_slots) changes what the
 # item *is* and still warns.
 LIBRARY_MISMATCH_TRIVIAL_PROPS = frozenset(DEFAULTED_MECHANICAL_DEFAULTS) | {
@@ -236,7 +236,7 @@ class TriggerValidator:
         A node nothing connects to is unreachable: a leftover from a
         deleted neighbour, a duplicate, or a node the author forgot to
         wire up. Every endpoint of every edge counts, so a node is only
-        orphaned when it appears nowhere — not on a connection, a
+        orphaned when it appears nowhere - not on a connection, a
         trigger, a carrying edge, anything.
         """
         issues: List[dict] = []
@@ -253,7 +253,7 @@ class TriggerValidator:
                 continue
             issues.append(self._issue(
                 "warning", "orphaned_node",
-                f"{node.type} {self._label(node)} has no connections — "
+                f"{node.type} {self._label(node)} has no connections - "
                 f"nothing in the world links to or from it, so it is "
                 f"unreachable. Wire it up or delete it.",
                 source_node_id=node.id,
@@ -264,7 +264,7 @@ class TriggerValidator:
     def _filter_ignored(self, issues: List[dict]) -> List[dict]:
         """Drop issues a node's author dismissed (task-393).
 
-        A node carries ``ignored_issues`` — a list of validation codes the
+        A node carries ``ignored_issues`` - a list of validation codes the
         author explicitly dismissed (work-in-progress state, deliberate
         deviation, etc.). A dismissal carries ``_ignored_at`` (epoch when it
         was written); if the node was edited AFTER that (``node.updated >
@@ -314,7 +314,7 @@ class TriggerValidator:
         if not any(True for _ in self._iter_effects(trigger_props)):
             issues.append(self._issue(
                 "warning", "empty_trigger",
-                "Trigger has no effects — it will do nothing.",
+                "Trigger has no effects - it will do nothing.",
                 source_node_id=source_id,
                 trigger_node_id=trigger_node_id,
             ))
@@ -366,7 +366,7 @@ class TriggerValidator:
         self._check_stale_trigger(source_node, trigger_node, issues)
 
         props = trigger_node.properties or {}
-        # Runtime prefers edge properties, then the node copy — validate the
+        # Runtime prefers edge properties, then the node copy - validate the
         # union so a stale edge copy is caught even when the node is current.
         edge_props = edge.properties or {}
         merged = {**props, **edge_props}
@@ -396,7 +396,7 @@ class TriggerValidator:
                 "warning", "stale_trigger_copy",
                 f"Trigger '{trigger_node.id}' looks like a stale copy from a "
                 f"renamed/duplicated node (id embeds '{embedded}' or similar) "
-                f"but is attached to {self._label(source_node)} — it may fire "
+                f"but is attached to {self._label(source_node)} - it may fire "
                 f"on the wrong object.",
                 source_node_id=source_node.id,
                 trigger_node_id=trigger_node.id,
@@ -479,7 +479,7 @@ class TriggerValidator:
                 if not self._tag_exists(tag):
                     issues.append(self._issue(
                         "warning", "tag_not_in_world",
-                        f"No node in the world has the tag '{tag}' — this "
+                        f"No node in the world has the tag '{tag}' - this "
                         f"has_tag condition can never fire.",
                         source_node_id=source_id,
                         trigger_node_id=trigger_id,
@@ -552,7 +552,7 @@ class TriggerValidator:
         if etype not in EFFECT_TYPES:
             issues.append(self._issue(
                 "warning", "unknown_effect_type",
-                f"Effect type '{etype}' is not a known engine effect type — "
+                f"Effect type '{etype}' is not a known engine effect type - "
                 f"it will do nothing.",
                 source_node_id=source_id,
                 trigger_node_id=trigger_id,
@@ -567,7 +567,7 @@ class TriggerValidator:
                     "warning", "empty_effect_message",
                     f"Trigger {trigger_id} on {source_id} has a message effect "
                     f"with no text (message/success_message/fail_message all "
-                    f"empty) — nothing will be narrated.",
+                    f"empty) - nothing will be narrated.",
                     source_node_id=source_id,
                     trigger_node_id=trigger_id,
                 ))
@@ -578,7 +578,7 @@ class TriggerValidator:
             if node_id and node_id != "self" and not self.graph.get_node(node_id):
                 issues.append(self._issue(
                     "error", "missing_effect_node",
-                    f"Effect '{etype}' points to missing node '{node_id}' — "
+                    f"Effect '{etype}' points to missing node '{node_id}' - "
                     f"it will silently do nothing.",
                     source_node_id=source_id,
                     trigger_node_id=trigger_id,
@@ -593,7 +593,7 @@ class TriggerValidator:
             if node_id and node_id != "self" and not self.graph.get_node(node_id):
                 issues.append(self._issue(
                     "error", "missing_effect_node",
-                    f"Effect '{etype}' points to missing node '{node_id}' — "
+                    f"Effect '{etype}' points to missing node '{node_id}' - "
                     f"it will silently do nothing.",
                     source_node_id=source_id,
                     trigger_node_id=trigger_id,
@@ -606,7 +606,7 @@ class TriggerValidator:
                 issues.append(self._issue(
                     "warning", "teleport_missing_area",
                     f"Teleports to area '{area_name}' but no area with that "
-                    f"name exists — the player won't move.",
+                    f"name exists - the player won't move.",
                     source_node_id=source_id,
                     trigger_node_id=trigger_id,
                 ))
@@ -627,7 +627,7 @@ class TriggerValidator:
             issues.append(self._issue(
                 severity, "missing_effect_item",
                 f"{verb} item '{item_id}' which is neither in the world graph "
-                f"nor the item library — "
+                f"nor the item library - "
                 f"{'nothing will be removed' if etype == 'remove_item' else 'the effect will no-op'}.",
                 source_node_id=source_id,
                 trigger_node_id=trigger_id,
@@ -644,7 +644,7 @@ class TriggerValidator:
             issues.append(self._issue(
                 "error", "missing_effect_character",
                 f"Spawns character '{char_id}' which is neither in the world graph "
-                f"nor the character library — the effect will no-op.",
+                f"nor the character library - the effect will no-op.",
                 source_node_id=source_id,
                 trigger_node_id=trigger_id,
                 target_node_id=char_id,
@@ -677,7 +677,7 @@ class TriggerValidator:
 
     def _validate_way_authoring(self, node_id: Optional[str] = None) -> List[dict]:
         """Report on ways missing description / pass message / cardinal / view
-        direction — the fields the map editor and narration use.
+        direction - the fields the map editor and narration use.
 
         These are OPTIONAL helpers (the engine has runtime defaults for
         pass_message and visible_in_direction, and cardinal only seeds map
@@ -710,7 +710,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "info", "way_missing_cardinal",
                         f"Way {label} side '{edge.source}->{node.id}' has no "
-                        f"cardinal direction — the map falls back to a layout "
+                        f"cardinal direction - the map falls back to a layout "
                         f"without a compass bearing.",
                         source_node_id=node.id,
                     ))
@@ -718,7 +718,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "info", "way_missing_view_direction",
                         f"Way {label} side '{edge.source}->{node.id}' has no "
-                        f"view direction (visible_in_direction) — the engine "
+                        f"view direction (visible_in_direction) - the engine "
                         f"just names the room beyond.",
                         source_node_id=node.id,
                     ))
@@ -747,7 +747,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "warning", "mechanical_tag_missing_props",
                         f"Item {self._label(node)} has mechanical tag "
-                        f"'{mech_tag}' but no {', '.join(strict)} — the "
+                        f"'{mech_tag}' but no {', '.join(strict)} - the "
                         f"engine can't apply its effect.",
                         source_node_id=node.id,
                     ))
@@ -757,7 +757,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "info", "mechanical_tag_missing_props",
                         f"Item {self._label(node)} has mechanical tag "
-                        f"'{mech_tag}' but no {', '.join(defaulted)} — "
+                        f"'{mech_tag}' but no {', '.join(defaulted)} - "
                         f"the engine uses {defaults}; set it explicitly "
                         f"for clarity.",
                         source_node_id=node.id,
@@ -766,7 +766,7 @@ class TriggerValidator:
 
     def _validate_library_sync(self, node_id: Optional[str] = None) -> List[dict]:
         """Warn on instanced items drifted from their library template
-        (bug_14 — refresh-to-world resyncs)."""
+        (bug_14 - refresh-to-world resyncs)."""
         issues: List[dict] = []
         for node in list(self.graph.nodes.values()):
             if node.type != "item":
@@ -812,8 +812,8 @@ class TriggerValidator:
                 rest = [k for k in trivial if k not in DEFAULTED_MECHANICAL_DEFAULTS]
                 if strict:
                     mechanical = [k for k in strict if k in LIBRARY_MECHANICAL_PROPS]
-                    note = (" — mechanical fields determine behaviour"
-                            if mechanical else " — these change what the item is")
+                    note = (" - mechanical fields determine behaviour"
+                            if mechanical else " - these change what the item is")
                     issues.append(self._issue(
                         "warning", "library_mismatch",
                         f"Item {self._label(node)} differs from its library "
@@ -827,7 +827,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "info", "mechanical_tag_missing_props",
                         f"Item {self._label(node)} differs from its library "
-                        f"entry '{lib_id}' at {', '.join(defaulted)} — a field "
+                        f"entry '{lib_id}' at {', '.join(defaulted)} - a field "
                         f"the engine defaults ({defaults}); set it explicitly "
                         f"or leave the default.",
                         source_node_id=node.id,
@@ -836,7 +836,7 @@ class TriggerValidator:
                     issues.append(self._issue(
                         "info", "library_mismatch",
                         f"Item {self._label(node)} differs from its library "
-                        f"entry '{lib_id}' at {', '.join(rest)} — normal "
+                        f"entry '{lib_id}' at {', '.join(rest)} - normal "
                         f"instance state, not a defect.",
                         source_node_id=node.id,
                     ))

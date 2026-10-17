@@ -5,8 +5,8 @@ happened (and why) that the LLM later summarizes into subjective memory, and
 that makes a backgrounded character's history recoverable on promotion.
 
 Named ``lived_log`` rather than ``trace`` because of what it is *not* (task-542).
-A trace sounds like instrumentation — an auditable objective record you would
-debug a long run with — and that reading is what invites merging it with soak
+A trace sounds like instrumentation - an auditable objective record you would
+debug a long run with - and that reading is what invites merging it with soak
 telemetry. They are not the same system and cannot be: this one is
 salience-filtered, capped at 200 entries, rolled up, and stored **in the save on
 the player**, because the question it answers is "would a person remember this?".
@@ -76,7 +76,7 @@ def _tap(character, tick, kind, what, why, area) -> None:
     """Fan this decision out to an active soak telemetry recorder, if any.
 
     One-way and one reason: a background decision needs the same tuple written
-    twice — lossy here for memory, lossless there for measurement — and
+    twice - lossy here for memory, lossless there for measurement - and
     duplicating ~20 call sites guarantees they drift. The tap fires at write
     time, *before* any rollup can collapse the entry, so a lossy store can never
     become the source of a lossless one.
@@ -101,7 +101,7 @@ def _tick_of(entry) -> int:
     """Read an entry's tick, accepting the pre-task-542 ``t`` key.
 
     ``load()`` normalises ``t`` to ``tick`` on the way in, so this is belt and
-    braces — but a missing fallback here would read every legacy entry as tick 0,
+    braces - but a missing fallback here would read every legacy entry as tick 0,
     which scrambles ``_trim``'s sort and makes ``since()`` find nothing. That is
     silent corruption rather than a load error, so the fallback stays.
     """
@@ -129,7 +129,7 @@ def load(player, data) -> None:
 
     Old saves carry the tick under ``t`` and entries under ``trace_log``.
     ``load()`` copies entries verbatim, so without the rewrite below a legacy
-    entry would keep its old key and every reader would see tick 0 — silent
+    entry would keep its old key and every reader would see tick 0 - silent
     corruption, not a load error. The rename is therefore only safe while this
     function normalises both keys in the same change.
     """

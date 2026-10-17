@@ -1,16 +1,16 @@
 """Per-agent fog of war, and what a character is told (task-499).
 
 `player.known` already exists and `engine/room_perception.py` already gates on it
-— a way or area in the viewer's known set is visible even when hidden. **Nothing
+- a way or area in the viewer's known set is visible even when hidden. **Nothing
 ever wrote to it.** That is the whole gap: the gate is sound and has no key.
 
 So this module supplies the three halves the task names:
 
-* **reveal** — walking into a place, examining it, or seeing down a sightline
+* **reveal** - walking into a place, examining it, or seeing down a sightline
   (:mod:`engine.beyond_visibility`) teaches the area;
-* **teach** — a map's use/read teaches the known entries through that same
+* **teach** - a map's use/read teaches the known entries through that same
   ``known`` registry, so a map and a walk end up in one place rather than two;
-* **fog** — what a character may be *told*, which is the part that is easy to get
+* **fog** - what a character may be *told*, which is the part that is easy to get
   wrong. :func:`only_known` is the filter agent prompts and map views go through,
   and it is a filter on names, not a redaction of a prompt string.
 
@@ -22,7 +22,7 @@ every form it can derive and :meth:`Known.has` accepts any of them. One
 authoritative store, no second copy to drift.
 
 **Unknown is not the same as absent.** :meth:`Known.has` returning False means
-"not known", not "does not exist" — so a prompt filter can only ever *withhold*,
+"not known", not "does not exist" - so a prompt filter can only ever *withhold*,
 never assert. That is the honest bound: a character can be told less than the
 player knows, and never more.
 
@@ -124,7 +124,7 @@ class Known:
         """Drop what is known about these forms. For a rewrite, not a mechanic.
 
         A **string** drops exactly that string. A **node** drops every form
-        derived from it, which is the only way to remove a place completely —
+        derived from it, which is the only way to remove a place completely -
         knowing the id and the name are two entries, and removing one leaves the
         perception gate still matching on the other.
         """
@@ -233,7 +233,7 @@ def teach_from_map(player, map_item, *, graph=None, areas=None) -> Dict[str, Any
     """A map's use/read teaches the areas it charts.
 
     The task's wording is "via the existing teach path", and the existing teach
-    path is ``player.known`` — the same registry a walk writes. Two paths would
+    path is ``player.known`` - the same registry a walk writes. Two paths would
     mean two places to look and one of them would be forgotten.
 
     *areas* is the chart's own list when the item declares one, and otherwise
@@ -312,7 +312,7 @@ def fog_view(player, area_ids: Iterable[str], *, zones: bool = False) -> Dict[st
 
     Unknown entries are **present but marked**, not omitted. An omitted cell is
     indistinguishable from a cell that was never painted, so the map could not
-    tell "you have not been there" from "there is nothing there" — and fog of war
+    tell "you have not been there" from "there is nothing there" - and fog of war
     that looks like empty space is a fog of war nobody explores.
     """
     known = Known(player)
@@ -322,7 +322,7 @@ def fog_view(player, area_ids: Iterable[str], *, zones: bool = False) -> Dict[st
         text = str(area_id)
         if not text:
             continue
-        # A set, so a duplicated cell in the world list is drawn once — a map
+        # A set, so a duplicated cell in the world list is drawn once - a map
         # that lists the same cell twice is a map with a bug in it, and a caller
         # counting `known_count` to draw a legend would be off.
         (seen if known.has(text) else fog).add(text)

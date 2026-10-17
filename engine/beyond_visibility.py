@@ -267,7 +267,7 @@ def build_beyond_suffix(graph, player_manager, target_area_id, target_area_name,
 #: depth-1 behaviour task-201 established and would make a corridor report *less*
 #: the further you could see, which is backwards. Exits and descriptions are
 #: excluded because those are the parts that would let a character navigate a
-#: floor they have not walked — which is task-499's fog of war, and a sightline
+#: floor they have not walked - which is task-499's fog of war, and a sightline
 #: that hands over the exits undoes it without anyone deciding that it should.
 #: A third step's contents are one step further from the eye than the first's, but
 #: they are still in a straight line of sight, so they are reported; the depth cap
@@ -284,7 +284,7 @@ def chained_sightline_summary(graph, player_manager, run: List[Dict[str, Any]],
     seen_people: List[str] = []
     seen_items: List[str] = []
     # The room that produced the most recent sighting, so the clause can say
-    # *where* down the line rather than naming the far room on its own — the
+    # *where* down the line rather than naming the far room on its own - the
     # content is what matters and the room is only useful as a pointer to it.
     content_room = ""
     for step in run:

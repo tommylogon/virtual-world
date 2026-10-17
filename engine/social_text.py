@@ -3,7 +3,7 @@
 The background tier never calls an LLM, so a memory has to be written from a
 template. Keeping the templates here rather than inline in
 `engine/background_social.py` means the same phrasing serves both participants
-without the resolution logic growing a pile of strings — and when the LLM
+without the resolution logic growing a pile of strings - and when the LLM
 enriches a background span on promotion (the trace -> memory direction), these
 are the lines it is enriching.
 
@@ -36,7 +36,7 @@ DEFAULT_PHRASES = ("spent time with {other}", "failed to reach {other}")
 def phrase(action: str, tier: str, other: str, landed: bool) -> str:
     """The phrase for ``action``, from the ``other`` participant's view.
 
-    ``other`` is whatever the memory needs in that slot — the actor passes the
+    ``other`` is whatever the memory needs in that slot - the actor passes the
     target's name, the target passes "me".
     """
     landed_text, failed_text = PHRASES.get(action, DEFAULT_PHRASES)

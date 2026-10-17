@@ -1,9 +1,9 @@
 """Scry effect handler (task-320): far-sight vision of a distant area.
 
 params:
-  target (str) — area name to view.
-  message (str) — narrative lead-in (default "You peer into the distance...").
-  fail_message (str) — used when the target can't be resolved.
+  target (str) - area name to view.
+  message (str) - narrative lead-in (default "You peer into the distance...").
+  fail_message (str) - used when the target can't be resolved.
 
 game_state (the world) must provide: graph, lighting, area_description.
 """

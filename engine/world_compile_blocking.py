@@ -2,7 +2,7 @@ BLOCKED_WAY_PERCENT = 12
 
 #: What a blocked way reads as, keyed by the terrain class either side of it
 #: (:func:`terrain_class`). Prose is a full sentence because it is what the
-#: refusal and the description both quote — a blocked way must say *why*, or the
+#: refusal and the description both quote - a blocked way must say *why*, or the
 #: character meets a wall of nothing.
 #:
 #: Keyed by terrain class rather than by biome id so a new biome joins by

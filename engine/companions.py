@@ -7,7 +7,7 @@ passage of time is handled here, once per turn.
 This lives in its own module rather than inside the effect handlers because the
 handlers run *inside* an action, and these effects are all duration-based: the
 cast has to be over long before the thing expires. Keeping the sweep here also
-means a spell author never has to think about the tick loop — they set a
+means a spell author never has to think about the tick loop - they set a
 ``duration`` and it happens.
 
 Called from ``engine/tick_manager.py`` on every turn, alongside the other
@@ -82,7 +82,7 @@ def expire_illusory_companions(gs) -> int:
     """Drop conjured companions whose duration ran out, or whose caster left.
 
     A conjured thing belongs to the moment it was made. It goes when its time is
-    up, and — unless the author opted out — when the caster walks out of the
+    up, and - unless the author opted out - when the caster walks out of the
     area, because the fiction is that it exists only where they are paying
     attention to it.
     """
@@ -116,7 +116,7 @@ def follow_bound_companions(gs) -> int:
 
     A bound familiar trails its caster: whenever the owner is somewhere the
     companion is not, the companion is moved there. This is what makes the
-    Ember Companion worth casting — a light that stays with you.
+    Ember Companion worth casting - a light that stays with you.
     """
     graph = getattr(gs, "graph", None)
     if graph is None:
@@ -172,7 +172,7 @@ def follow_bound_companions(gs) -> int:
 def expire_reveals(gs) -> int:
     """Re-hide things ``reveal_hidden`` uncovered once the duration lapses.
 
-    Restores the state each node was recorded in, not a blanket ``hidden`` — a
+    Restores the state each node was recorded in, not a blanket ``hidden`` - a
     door that was ``open`` when the spell found it must go back to ``open``.
     """
     graph = getattr(gs, "graph", None)

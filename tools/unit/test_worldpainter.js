@@ -214,7 +214,7 @@ test('areaAt finds the area on a cell, and areaMap keys them by cell', () => {
 
 test('placeableAreas lists every area the picker offers, and never drops the picked one', () => {
     // task-541: the picker is grouped by scope, so the flat list is now the areas
-    // on this grid plus every candidate — the already-placed one leads.
+    // on this grid plus every candidate - the already-placed one leads.
     assertEq(GM.placeableAreas(PLACED).map((a) => a.id),
         ['area_hills', 'area_lake', 'area_river'], 'placed first, then candidates');
     // A picked area that already sits on this map stays in the list (so it can
@@ -253,7 +253,7 @@ test('gridForImageAspect makes the grid the picture (the match button)', () => {
 
 test('strandedCount says what a shrink would prune', () => {
     // `▦ match` shrinks the grid, and `ensure_grid` prunes out-of-bounds paint
-    // and placements — so the count is shown and confirmed before that happens.
+    // and placements - so the count is shown and confirmed before that happens.
     const payload = {
         layers: { biome: { '0,0': 'hills', '19,9': 'hills' }, road: { '20,0': 'road' } },
         area_placements: [{ id: 'a1', x: 1, y: 1 }, { id: 'a2', x: 30, y: 2 }],
@@ -262,7 +262,7 @@ test('strandedCount says what a shrink would prune', () => {
     // Shrinking to 10x10: (19,9) and (20,0) both fall outside, as do a2 and child2.
     assertEq(GM.strandedCount(payload, 10, 10), 4, 'four things would be pruned');
     assertEq(GM.strandedCount(payload, 40, 50), 0, 'growing strands nothing');
-    // 20x10 keeps the cell at (19,9) — the edge is inclusive — and prunes the rest.
+    // 20x10 keeps the cell at (19,9) - the edge is inclusive - and prunes the rest.
     assertEq(GM.strandedCount(payload, 20, 10), 3, 'exactly on the edge survives');
     assertEq(GM.strandedCount(null, 10, 10), 0, 'no payload');
     assertEq(GM.strandedCount(payload, 0, 0), 0, 'no grid');
@@ -270,7 +270,7 @@ test('strandedCount says what a shrink would prune', () => {
 
 test('areaGroups keeps a child scope out of the parent map picker (task-541)', () => {
     // Painting the world map: the camp's rooms are members of the camp, so they
-    // must not read as this map's areas — only as an explicit "elsewhere" group.
+    // must not read as this map's areas - only as an explicit "elsewhere" group.
     const payload = {
         scope: { id: 'world', name: 'World' },
         area_placements: [{ id: 'area_gate', name: 'The Gate', x: 4, y: 4 }],
@@ -386,7 +386,7 @@ test('cellNeighbours names the exits around a cell (task-596)', () => {
     assertEq(n.W.biome, null, 'west is empty');
 
     // A solid neighbour is reported with its kind, so the inspector says "wall"
-    // rather than "empty" — otherwise the author cannot see the room's exits.
+    // rather than "empty" - otherwise the author cannot see the room's exits.
     const walled = GM.cellNeighbours({
         grid: { w: 3, h: 3 }, layers: { biome: { '2,1': 'wall' } },
     }, 1, 1, vocab);
@@ -398,7 +398,7 @@ test('a cell can carry a name, which is not paint (task-560)', () => {
     const payload = {
         scope: { id: 'downtown' },
         // A name is metadata *about* a cell, so it lives in its own map beside
-        // the layers — the eraser must not wipe it, and there is no vocabulary.
+        // the layers - the eraser must not wipe it, and there is no vocabulary.
         names: { '3,1': 'The Stag Inn' },
         layers: { biome: { '3,1': 'tavern' } },
         placements: [], area_placements: [],
@@ -422,7 +422,7 @@ test('a cell can carry a name, which is not paint (task-560)', () => {
 
 test('a structure cell says what it is to movement (task-562)', () => {
     // The vocabulary carries the tags, so it is passed to cellInfo rather than read
-    // from state — which keeps cellInfo a pure function of its arguments.
+    // from state - which keeps cellInfo a pure function of its arguments.
     const vocab = { biomes: [
         { id: 'classroom', name: 'Classroom', tags: [] },
         { id: 'wall', name: 'Wall', tags: ['structure', 'not_a_place', 'cell_kind:solid'] },
@@ -437,7 +437,7 @@ test('a structure cell says what it is to movement (task-562)', () => {
     assertEq(at('wall').kind, 'solid');
     assertEq(at('window').kind, 'see_through');
     assertEq(at('door').kind, 'passable');
-    // A structure cell is still *painted* — the author drew it on purpose, and
+    // A structure cell is still *painted* - the author drew it on purpose, and
     // "not a place" is a different statement from "nothing here".
     assertEq(at('wall').painted, true);
     assertEq(at('wall').empty, false);
@@ -470,7 +470,7 @@ test('a building cell is entered with in, and says so when shut (task-563)', () 
     assertEq(GM.cellEnter(vocab, 'sparse_forest', null), '', 'not a building');
     assertEq(GM.cellEnter(vocab, null, null), '', 'no cell, no door');
 
-    // With an interior on the cell, `in` goes there instead — and the refusal is
+    // With an interior on the cell, `in` goes there instead - and the refusal is
     // not shown, because there is something on the other side of the door.
     const withChild = at('inn', {
         feature: { '2,1': 'inn' },
@@ -478,7 +478,7 @@ test('a building cell is entered with in, and says so when shut (task-563)', () 
     });
     assertEq(withChild.enter, 'in → The Inn', 'into the interior');
 
-    // A road painted over a building cell makes it a street, not a building —
+    // A road painted over a building cell makes it a street, not a building -
     // which is what the compiler does with the same cell.
     const roaded = at('inn', { layers: { biome: { '2,1': 'inn' },
                                      road: { '2,1': 'road' } } });
@@ -501,7 +501,7 @@ test('the floor layer is a storey index, unbounded and whole', () => {
     assertEq(GM.floorNumber(null), null, 'unpainted');
     assertEq(GM.floorNumber('dirt'), null, 'a material is not a storey');
 
-    // 0 must survive as 0 — a storey of ground is painted, not absent.
+    // 0 must survive as 0 - a storey of ground is painted, not absent.
     const ground = GM.cellInfo({ layers: { floor: { '4,4': '0' } } }, 4, 4);
     assertEq(ground.floor, 0, 'ground storey');
     assertEq(ground.painted, true, 'a painted ground storey is still painted');
@@ -510,7 +510,7 @@ test('the floor layer is a storey index, unbounded and whole', () => {
     assertEq(GM.floorLabel(0), 'ground (0)', 'ground reads as ground');
     assertEq(GM.floorLabel(3), 'floor 3', 'above');
     assertEq(GM.floorLabel(-3), '3 below ground (-3)', 'below');
-    assertEq(GM.floorLabel(null), '—', 'unpainted reads as a dash');
+    assertEq(GM.floorLabel(null), '-', 'unpainted reads as a dash');
 
     // The colour is a tint, not a value: any far-off storey must not blow up.
     ['-900', '80', '0'].forEach((v) => assertTrue(
@@ -555,12 +555,12 @@ test('estimateCompile counts road cells as places, and the road as identity (tas
     // Merged, the road cell stays its own place: the road *is* the cell's
     // identity, so it never merges into forest. The forest is cut in two by the
     // road, and the stubs are two cells apart, so 8-neighbour merging cannot join
-    // them either — two forest regions plus the road.
+    // them either - two forest regions plus the road.
     const merged = GM.estimateCompile(p, true);
     assertEq(merged.areas, 3, 'two forest stubs + the road region');
     assertEq(merged.ways, 2, 'each forest stub touches the road once');
 
-    // Three distinct identities in a row: forest, road, hills — three places.
+    // Three distinct identities in a row: forest, road, hills - three places.
     const beside = {
         layers: {
             biome: { '0,0': 'sparse_forest', '2,0': 'hills' },

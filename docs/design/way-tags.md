@@ -2,7 +2,7 @@
 
 Node tags are a generic, tag-driven seam: a system reads `properties.tags` off
 whatever node it holds. A way is a node, so a tag on a way reaches every system
-that already keys on tags — matching, plans, observation, hazards, fear,
+that already keys on tags - matching, plans, observation, hazards, fear,
 foraging, triggers, search. This document is the design for what a compiled way
 carries and who reads it.
 
@@ -47,7 +47,7 @@ Three tiers. Only the first two are compiler output; the third is written by
 triggers.
 
 - **Route** (from the feature cell): `road`, `bridge`, `ford`, `tunnel`, `gate`,
-  `underground`. The identity tier — what matching, plans and recall want.
+  `underground`. The identity tier - what matching, plans and recall want.
 - **Ground** (union of both cells' biome tags): `forest`, `woods`, `dense`,
   `marsh`, `river`, `stream`, `lake`, `rocky`, `cliff`, `ravine`, `hills`,
   `mountain`, `field`, `farmland`, `beach`, `shore`. The hazard / fear / forage
@@ -55,7 +55,7 @@ triggers.
 - **Structure + sky**: `door`, `stairs` (from `kind`), `outdoor` (canonical,
   world mode).
 - **Condition** (trigger-written, not compiler output): `flooded`, `broken`,
-  `overgrown`, `snowbound`, `cleared` — mutable route state, written by
+  `overgrown`, `snowbound`, `cleared` - mutable route state, written by
   `add_tag` / `remove_tag` effects (see below).
 
 ## How the systems read way tags
@@ -77,26 +77,26 @@ triggers.
 
 ## Implemented
 
-### Writer — `engine/world_compile.py::emit_passage`
+### Writer - `engine/world_compile.py::emit_passage`
 
 A way's tags are the **union of both cells' feature tags and biome tags**, plus
 `outdoor` when the scope is world mode, plus `door` / `stairs` from `kind`. This
 mirrors the area writer exactly, so a road through forest reads as `road` +
 `forest` and an open-sky path also carries `outdoor`.
 
-### Reader — `engine/area_description.py`
+### Reader - `engine/area_description.py`
 
 The exit list's open-word test used the literal set `{"exterior", "natural"}`,
 which never matched the canonical `outdoor`, so a compiled open-air path always
 read "is open". It now uses `area_tags.is_open_sky`, the single predicate that
 accepts both spellings.
 
-### Crossing hazard — `engine/traversal.py`
+### Crossing hazard - `engine/traversal.py`
 
 `attempt` checks the **way's** tags before the destination area's ground
 (`way_hazard(gs, way_id) or hazard(gs, dest)`). `CROSSING_HAZARD_SKILLS` is a
 deliberately *narrower* set than `HAZARD_SKILLS`: only tags about the crossing
-itself — `river`, `ford`, `flooded`, `cliff`, `rubble`, … The ambient ground
+itself - `river`, `ford`, `flooded`, `cliff`, `rubble`, … The ambient ground
 tags (`forest`, `swamp`, `snow`) stay the destination area's business, so a path
 through woods does not turn every step into a Survival roll. A `bridge` on the
 way cancels the check: a built crossing is answered, not rolled.
@@ -105,7 +105,7 @@ This is also the reader for **condition tags**: a trigger that writes `flooded`
 onto a named way (via `add_tag`) makes that crossing an Athletics check with no
 further code.
 
-### Route-word exits — `engine/matching.py`
+### Route-word exits - `engine/matching.py`
 
 A way's physical route tag is an addressable name: a new tier matches `road` /
 `bridge` / `ford` / `gate` / `tunnel` against a way's tags, so `go over the
@@ -114,11 +114,11 @@ resolves, so a road network does not swallow a plain `go road`.
 
 ## Follow-ups (planned, not in this change)
 
-- **Plans toward a route** — let a plan step target a way (patrol the road). The
+- **Plans toward a route** - let a plan step target a way (patrol the road). The
   plan engine moves toward *areas* (`current_area`), so this needs a "route via
   a tagged way" semantics and a path that prefers such ways, not just a new tag
   read.
-- **Fear of the passage** — `fear` matches co-located character/item/area tags;
+- **Fear of the passage** - `fear` matches co-located character/item/area tags;
   a way is not co-located, so a `dense`/`dark`/`cliff` crossing needs a hook on
   the traversal path, not a tag read.
 

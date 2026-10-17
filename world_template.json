@@ -4,7 +4,7 @@
     {
       "name": "Kaelen Voss",
       "state": "awake",
-      "description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.\nBackpack is closed stovepipe leather boots is normal reinforced wool trousers is normal wool blend undershirt & drawers is normal clockwork prosthetic is normal galser office of justice brooch is normal lightweight linen shirt is normal waxed canvas vest is normal heavy fur-lined coat is normal.\nKaelen Voss is wearing Galser Office of Justice Brooch on their neck, Heavy Fur-Lined Coat over Lightweight Linen Shirt/Waxed Canvas Vest on their torso, Clockwork Prosthetic (Left Leg) over Reinforced Wool Trousers/Wool Blend Undershirt & Drawers on their legs, Stovepipe Leather Boots (Pair) on their feet, Backpack on their back.",
+      "description": "A gaunt man in his late thirties with sharp, weathered features - high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry - the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles - old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.\nBackpack is closed stovepipe leather boots is normal reinforced wool trousers is normal wool blend undershirt & drawers is normal clockwork prosthetic is normal galser office of justice brooch is normal lightweight linen shirt is normal waxed canvas vest is normal heavy fur-lined coat is normal.\nKaelen Voss is wearing Galser Office of Justice Brooch on their neck, Heavy Fur-Lined Coat over Lightweight Linen Shirt/Waxed Canvas Vest on their torso, Clockwork Prosthetic (Left Leg) over Reinforced Wool Trousers/Wool Blend Undershirt & Drawers on their legs, Stovepipe Leather Boots (Pair) on their feet, Backpack on their back.",
       "activity": null,
       "at_way_id": "way_swinging_door",
       "spatial_position": {
@@ -271,7 +271,7 @@
           "location": "",
           "source": "auto",
           "tags": [],
-          "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
+          "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family-scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
           "tick": 20,
           "timestamp": 1785853798.512617,
           "type": "observation",
@@ -629,7 +629,7 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
+          "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better-it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
           "tick": 20,
           "timestamp": 1785422871.5809138,
           "type": "observation",
@@ -2511,7 +2511,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
+          "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off-it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
           "equip_slots": [
             "head"
           ],
@@ -2669,7 +2669,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice—a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
+          "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice-a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
           "equip_slots": [
             "neck"
           ],
@@ -2833,7 +2833,7 @@
           ],
           "current_state": "normal",
           "defense": 3,
-          "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
+          "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric-currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
           "equip_slots": [
             "torso",
             "arms"
@@ -4951,7 +4951,7 @@
             {
               "params": {
                 "message": "",
-                "success_message": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the  new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks."
+                "success_message": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the  new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family-scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks."
               },
               "type": "message"
             }
@@ -5831,7 +5831,7 @@
         "name": "on_examine → message",
         "properties": {
           "effect_params": {
-            "message": "The well's masonry is ancient, covered in frost and moss. The crank groans when you touch it, and the broken bucket rests in pieces. Tied to the crank handle is a single, faded ribbon—perhaps a forgotten token."
+            "message": "The well's masonry is ancient, covered in frost and moss. The crank groans when you touch it, and the broken bucket rests in pieces. Tied to the crank handle is a single, faded ribbon-perhaps a forgotten token."
           },
           "effect_type": "message",
           "target_name": "",
@@ -5861,7 +5861,7 @@
         "name": "on_examine → message",
         "properties": {
           "effect_params": {
-            "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye—perhaps the trees are moving?"
+            "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye-perhaps the trees are moving?"
           },
           "effect_type": "message",
           "target_name": "",
@@ -6462,7 +6462,7 @@
             {
               "params": {
                 "message": "",
-                "success_message": "The Nature of the Cycle Scholars have identified that catastrophes strike approximately every 105 to 120 years. This pattern has been documented for over a thousand years, revealing that whenever peace begins to prosper, a new \"horror\" manifests to reset the progress of mortal nations. The Recorded Catastrophes An academic text would provide the following detailed timeline of events:      793 – The Burning Rain: Yellow-green clouds rained concentrated acid over the Kingdom of Galt for five years. Historical records note that forests blackened and collapsed, and the toxic remnants, now known as \"the Witch’s Spit,\" still blister the skin of travelers today.     869 – The Catastrophic Experiment: This era marks the rise and fall of Petr Zeman, a founding member of the Ulus of Galser. Academics record the march of the Warforged Titan toward Dawwal and its subsequent fall, which triggered a death pulse that killed 10,000 Warforged instantly and left the survivors in a \"feebleminded,\" droid-like state.     976 – The Draconic Plague: Also known as The Petrification, this magical sickness caused dragons to turn into grey granite while still aware. The academic record focuses on the loss of the Whadowian Empire’s power and the preservation of Tormy the Eternal in a magical field.     1084 – The Fey Surge: A two-year eruption of wild magic from the Feywild transformed the Kingdom of Vald into a dangerous \"fairy tale\" landscape. Scholars note that cities were crushed by walking forests and carnivorous plants reached massive sizes.     1189 – Hells Gate: Portals to the Boundless Expanse opened across Kethaino, leading to a year of slaughter. The academic interest here often lies in the \"red sigil\" that appeared on the ears of the royal bloodline following the closing of the gates.     1296 – The Elrethian Flood: Gigantic watery serpents swam up the Fetheas River, drowning the city of Symmardorta and fracturing the elven royal line.     1393 – The Symlalonese Fault: A ten-year earthquake where massive burrowing worms consumed the dwarven capital of Sellaladress. Academics document the eventual collapse of the mountain peak that buried both the worms and the city.     1502 – The Elemental Conjunction: Four years where the planes aligned and elements went mad—spawn of hellfire in summer and freezing deaths in winter. This is a pivotal chapter in academic texts because it highlights the triumph of Galser magi-tech, as artificers built arcane machines to stabilize the elemental frequencies.  Ancient Historical Evidence You would also find references to The Book of the Old World, a literary text describing a highly advanced magical city that existed over 4,000 years ago. This suggests that the cycle of growth and destruction has been resetting the world's progress since long before current recorded history began."
+                "success_message": "The Nature of the Cycle Scholars have identified that catastrophes strike approximately every 105 to 120 years. This pattern has been documented for over a thousand years, revealing that whenever peace begins to prosper, a new \"horror\" manifests to reset the progress of mortal nations. The Recorded Catastrophes An academic text would provide the following detailed timeline of events:      793 – The Burning Rain: Yellow-green clouds rained concentrated acid over the Kingdom of Galt for five years. Historical records note that forests blackened and collapsed, and the toxic remnants, now known as \"the Witch’s Spit,\" still blister the skin of travelers today.     869 – The Catastrophic Experiment: This era marks the rise and fall of Petr Zeman, a founding member of the Ulus of Galser. Academics record the march of the Warforged Titan toward Dawwal and its subsequent fall, which triggered a death pulse that killed 10,000 Warforged instantly and left the survivors in a \"feebleminded,\" droid-like state.     976 – The Draconic Plague: Also known as The Petrification, this magical sickness caused dragons to turn into grey granite while still aware. The academic record focuses on the loss of the Whadowian Empire’s power and the preservation of Tormy the Eternal in a magical field.     1084 – The Fey Surge: A two-year eruption of wild magic from the Feywild transformed the Kingdom of Vald into a dangerous \"fairy tale\" landscape. Scholars note that cities were crushed by walking forests and carnivorous plants reached massive sizes.     1189 – Hells Gate: Portals to the Boundless Expanse opened across Kethaino, leading to a year of slaughter. The academic interest here often lies in the \"red sigil\" that appeared on the ears of the royal bloodline following the closing of the gates.     1296 – The Elrethian Flood: Gigantic watery serpents swam up the Fetheas River, drowning the city of Symmardorta and fracturing the elven royal line.     1393 – The Symlalonese Fault: A ten-year earthquake where massive burrowing worms consumed the dwarven capital of Sellaladress. Academics document the eventual collapse of the mountain peak that buried both the worms and the city.     1502 – The Elemental Conjunction: Four years where the planes aligned and elements went mad-spawn of hellfire in summer and freezing deaths in winter. This is a pivotal chapter in academic texts because it highlights the triumph of Galser magi-tech, as artificers built arcane machines to stabilize the elemental frequencies.  Ancient Historical Evidence You would also find references to The Book of the Old World, a literary text describing a highly advanced magical city that existed over 4,000 years ago. This suggests that the cycle of growth and destruction has been resetting the world's progress since long before current recorded history began."
               },
               "type": "message"
             }
@@ -6523,7 +6523,7 @@
         "name": "on_examine → message",
         "properties": {
           "effect_params": {
-            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+            "message": "The desk is covered in papers - shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
           },
           "effect_type": "message",
           "target_name": "",
@@ -6845,7 +6845,7 @@
         "name": "on_use → message",
         "properties": {
           "effect_params": {
-            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry - this machine hasn't been used in decades."
           },
           "effect_type": "message",
           "target_name": "",
@@ -7378,7 +7378,7 @@
         "type": "item",
         "name": "Ice Fishing Auger",
         "properties": {
-          "description": "A heavy iron auger with a spiral blade and a worn wooden T-handle. The cutting edge is nicked but serviceable. Used to bore holes through the thick lake ice for fishing — or for checking just how thick the ice really is.",
+          "description": "A heavy iron auger with a spiral blade and a worn wooden T-handle. The cutting edge is nicked but serviceable. Used to bore holes through the thick lake ice for fishing - or for checking just how thick the ice really is.",
           "tags": [
             "tool",
             "metal",
@@ -7404,7 +7404,7 @@
         "type": "item",
         "name": "Ice Pick",
         "properties": {
-          "description": "A short, pointed steel pick with a leather-wrapped grip and a small notch for hanging from a belt. The point is sharp and cold to the touch. Meant for breaking ice crusts and testing frozen surfaces — and for any hunter who slips through.",
+          "description": "A short, pointed steel pick with a leather-wrapped grip and a small notch for hanging from a belt. The point is sharp and cold to the touch. Meant for breaking ice crusts and testing frozen surfaces - and for any hunter who slips through.",
           "tags": [
             "tool",
             "metal",
@@ -7508,7 +7508,7 @@
         "type": "item",
         "name": "Frost Shelf Mushrooms",
         "properties": {
-          "description": "A cluster of pale, fan-shaped shelf mushrooms clinging to the willow's trunk at knee height. Their caps are frost-white with delicate brown banding, and they glow faintly in the dim — not with light, but with an unnatural pallor. A few are broken, exposing dark, damp flesh that smells of deep earth.",
+          "description": "A cluster of pale, fan-shaped shelf mushrooms clinging to the willow's trunk at knee height. Their caps are frost-white with delicate brown banding, and they glow faintly in the dim - not with light, but with an unnatural pallor. A few are broken, exposing dark, damp flesh that smells of deep earth.",
           "tags": [
             "plant",
             "organic",
@@ -7694,7 +7694,7 @@
             {
               "type": "message",
               "params": {
-                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
+                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse-long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
               }
             }
           ],
@@ -7704,7 +7704,7 @@
           ],
           "name": "",
           "target_state": "",
-          "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care.",
+          "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse-long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care.",
           "fail_message": ""
         },
         "created": 1788367045.9756746,
@@ -7716,7 +7716,7 @@
         "name": "Weathered Trail Sign",
         "properties": {
           "description": "A crooked post of blackened pinewood, planted where the thicket's paths fork. Its board is split and rimed with frost, the letters gouged deep with a knife and darkened with soot so they might be read through snow-glare. The carver's hand was steady once; the lower lines waver, as though written in haste or cold.\n\nwest  - the valarius mansion\nnorth - lake\nsouth - weeping willows hollow",
-          "read_text": "A rough board of blackened pine, its letters gouged deep and darkened with soot:\n\n  ↑ ROCKY SLOPE — FROZEN HOLLOW\n     \"dead-end. old well. do not linger.\"\n\n  ↑ WILLOW GAP — WEEPING WILLOW HOLLOW\n     \"warm. sheltered. mind the roots.\"\n\n  ↑ ICY ARCH — SNOWBOUND HOLLOW\n     \"low passage. duck your head.\"\n\n  ↗ FROSTED ARCHWAY — FROZEN LAKE CLEARING\n     \"ice is thin near the reeds.\"\n\n  → ICE BRIDGE — FROZEN STREAM CROSSING\n     \"then the stream bank to the lake.\"\n\n  ← [scratched out] — THE HOUSE\n     \"the magistrate's keep. north, past the clearing.\"\n     beneath it, in a hurried hand: \"ask at the house. ask about Valerious.\"",
+          "read_text": "A rough board of blackened pine, its letters gouged deep and darkened with soot:\n\n  ↑ ROCKY SLOPE - FROZEN HOLLOW\n     \"dead-end. old well. do not linger.\"\n\n  ↑ WILLOW GAP - WEEPING WILLOW HOLLOW\n     \"warm. sheltered. mind the roots.\"\n\n  ↑ ICY ARCH - SNOWBOUND HOLLOW\n     \"low passage. duck your head.\"\n\n  ↗ FROSTED ARCHWAY - FROZEN LAKE CLEARING\n     \"ice is thin near the reeds.\"\n\n  → ICE BRIDGE - FROZEN STREAM CROSSING\n     \"then the stream bank to the lake.\"\n\n  ← [scratched out] - THE HOUSE\n     \"the magistrate's keep. north, past the clearing.\"\n     beneath it, in a hurried hand: \"ask at the house. ask about Valerious.\"",
           "current_state": "normal",
           "actions": [
             "examine",
@@ -7762,7 +7762,7 @@
             {
               "type": "message",
               "params": {
-                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines — as if the hand that wrote them was shaking, or hurrying out of the cold."
+                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines - as if the hand that wrote them was shaking, or hurrying out of the cold."
               }
             }
           ],
@@ -7785,7 +7785,7 @@
             {
               "type": "message",
               "params": {
-                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  —  the Valarius mansion\n  NORTH —  the lake\n  SOUTH —  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
+                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  -  the Valarius mansion\n  NORTH -  the lake\n  SOUTH -  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
               }
             }
           ],
@@ -8074,7 +8074,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+            "message": "The desk is covered in papers - shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
           },
           "effect_type": "message",
           "target_name": "",
@@ -8099,7 +8099,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry - this machine hasn't been used in decades."
           },
           "effect_type": "message",
           "target_name": "",
@@ -8642,7 +8642,7 @@
             {
               "params": {
                 "message": "",
-                "success_message": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the  new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks."
+                "success_message": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the  new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family-scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks."
               },
               "type": "message"
             }
@@ -8718,7 +8718,7 @@
             {
               "params": {
                 "message": "",
-                "success_message": "The Nature of the Cycle Scholars have identified that catastrophes strike approximately every 105 to 120 years. This pattern has been documented for over a thousand years, revealing that whenever peace begins to prosper, a new \"horror\" manifests to reset the progress of mortal nations. The Recorded Catastrophes An academic text would provide the following detailed timeline of events:      793 – The Burning Rain: Yellow-green clouds rained concentrated acid over the Kingdom of Galt for five years. Historical records note that forests blackened and collapsed, and the toxic remnants, now known as \"the Witch’s Spit,\" still blister the skin of travelers today.     869 – The Catastrophic Experiment: This era marks the rise and fall of Petr Zeman, a founding member of the Ulus of Galser. Academics record the march of the Warforged Titan toward Dawwal and its subsequent fall, which triggered a death pulse that killed 10,000 Warforged instantly and left the survivors in a \"feebleminded,\" droid-like state.     976 – The Draconic Plague: Also known as The Petrification, this magical sickness caused dragons to turn into grey granite while still aware. The academic record focuses on the loss of the Whadowian Empire’s power and the preservation of Tormy the Eternal in a magical field.     1084 – The Fey Surge: A two-year eruption of wild magic from the Feywild transformed the Kingdom of Vald into a dangerous \"fairy tale\" landscape. Scholars note that cities were crushed by walking forests and carnivorous plants reached massive sizes.     1189 – Hells Gate: Portals to the Boundless Expanse opened across Kethaino, leading to a year of slaughter. The academic interest here often lies in the \"red sigil\" that appeared on the ears of the royal bloodline following the closing of the gates.     1296 – The Elrethian Flood: Gigantic watery serpents swam up the Fetheas River, drowning the city of Symmardorta and fracturing the elven royal line.     1393 – The Symlalonese Fault: A ten-year earthquake where massive burrowing worms consumed the dwarven capital of Sellaladress. Academics document the eventual collapse of the mountain peak that buried both the worms and the city.     1502 – The Elemental Conjunction: Four years where the planes aligned and elements went mad—spawn of hellfire in summer and freezing deaths in winter. This is a pivotal chapter in academic texts because it highlights the triumph of Galser magi-tech, as artificers built arcane machines to stabilize the elemental frequencies.  Ancient Historical Evidence You would also find references to The Book of the Old World, a literary text describing a highly advanced magical city that existed over 4,000 years ago. This suggests that the cycle of growth and destruction has been resetting the world's progress since long before current recorded history began."
+                "success_message": "The Nature of the Cycle Scholars have identified that catastrophes strike approximately every 105 to 120 years. This pattern has been documented for over a thousand years, revealing that whenever peace begins to prosper, a new \"horror\" manifests to reset the progress of mortal nations. The Recorded Catastrophes An academic text would provide the following detailed timeline of events:      793 – The Burning Rain: Yellow-green clouds rained concentrated acid over the Kingdom of Galt for five years. Historical records note that forests blackened and collapsed, and the toxic remnants, now known as \"the Witch’s Spit,\" still blister the skin of travelers today.     869 – The Catastrophic Experiment: This era marks the rise and fall of Petr Zeman, a founding member of the Ulus of Galser. Academics record the march of the Warforged Titan toward Dawwal and its subsequent fall, which triggered a death pulse that killed 10,000 Warforged instantly and left the survivors in a \"feebleminded,\" droid-like state.     976 – The Draconic Plague: Also known as The Petrification, this magical sickness caused dragons to turn into grey granite while still aware. The academic record focuses on the loss of the Whadowian Empire’s power and the preservation of Tormy the Eternal in a magical field.     1084 – The Fey Surge: A two-year eruption of wild magic from the Feywild transformed the Kingdom of Vald into a dangerous \"fairy tale\" landscape. Scholars note that cities were crushed by walking forests and carnivorous plants reached massive sizes.     1189 – Hells Gate: Portals to the Boundless Expanse opened across Kethaino, leading to a year of slaughter. The academic interest here often lies in the \"red sigil\" that appeared on the ears of the royal bloodline following the closing of the gates.     1296 – The Elrethian Flood: Gigantic watery serpents swam up the Fetheas River, drowning the city of Symmardorta and fracturing the elven royal line.     1393 – The Symlalonese Fault: A ten-year earthquake where massive burrowing worms consumed the dwarven capital of Sellaladress. Academics document the eventual collapse of the mountain peak that buried both the worms and the city.     1502 – The Elemental Conjunction: Four years where the planes aligned and elements went mad-spawn of hellfire in summer and freezing deaths in winter. This is a pivotal chapter in academic texts because it highlights the triumph of Galser magi-tech, as artificers built arcane machines to stabilize the elemental frequencies.  Ancient Historical Evidence You would also find references to The Book of the Old World, a literary text describing a highly advanced magical city that existed over 4,000 years ago. This suggests that the cycle of growth and destruction has been resetting the world's progress since long before current recorded history began."
               },
               "type": "message"
             }
@@ -9477,7 +9477,7 @@
             {
               "params": {
                 "message": "",
-                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
+                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse-long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
               },
               "type": "message"
             }
@@ -9498,7 +9498,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye—perhaps the trees are moving?"
+            "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye-perhaps the trees are moving?"
           },
           "effect_type": "message",
           "target_name": "",
@@ -10315,7 +10315,7 @@
         "properties": {
           "cardinal": "southwest",
           "direction": "cabin door",
-          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway—shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath."
+          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway-shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath."
         }
       },
       {
@@ -10683,7 +10683,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "The well's masonry is ancient, covered in frost and moss. The crank groans when you touch it, and the broken bucket rests in pieces. Tied to the crank handle is a single, faded ribbon—perhaps a forgotten token."
+            "message": "The well's masonry is ancient, covered in frost and moss. The crank groans when you touch it, and the broken bucket rests in pieces. Tied to the crank handle is a single, faded ribbon-perhaps a forgotten token."
           },
           "effect_type": "message",
           "target_name": "",
@@ -11155,7 +11155,7 @@
             {
               "type": "message",
               "params": {
-                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines — as if the hand that wrote them was shaking, or hurrying out of the cold."
+                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines - as if the hand that wrote them was shaking, or hurrying out of the cold."
               }
             }
           ],
@@ -11176,7 +11176,7 @@
             {
               "type": "message",
               "params": {
-                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  —  the Valarius mansion\n  NORTH —  the lake\n  SOUTH —  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
+                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  -  the Valarius mansion\n  NORTH -  the lake\n  SOUTH -  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
               }
             }
           ],
@@ -11278,7 +11278,7 @@
   "world_lore": [
     {
       "category": "general",
-      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron — but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
+      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron - but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
       "id": "lore_valerious_case",
       "importance": 3,
       "source": "manual",

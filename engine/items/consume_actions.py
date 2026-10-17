@@ -28,7 +28,7 @@ def _is_valid_for(node, trigger_type: str) -> bool:
 
 
 def _pick_consumable(graph, player_manager, trigger_type: str):
-    """First reachable item valid for this consume verb — carried items
+    """First reachable item valid for this consume verb - carried items
     come first via reachable_items' ordering; deterministic pick."""
     from engine.item_reach import reachable_items
     for node in reachable_items(graph, player_manager):
@@ -53,7 +53,7 @@ class ConsumeActionsMixin:
 
         if not str(item_name or "").strip():
             # Bare eat/drink (task-335): auto-pick the first consumable in
-            # reach — carried items first, then the area subtree. A blank
+            # reach - carried items first, then the area subtree. A blank
             # name must NOT fall through to find_item_node: its containment
             # match ('' in anything) would grab the first carried object,
             # edible or not.
@@ -64,7 +64,7 @@ class ConsumeActionsMixin:
         else:
             item_node = player_manager.find_item_node(item_name)
             if not item_node:
-                # Not carried — food/drink anywhere reachable counts (room,
+                # Not carried - food/drink anywhere reachable counts (room,
                 # surfaces, open containers, equipped backpack contents).
                 from engine.item_reach import find_reachable
                 item_node = find_reachable(self.graph, self.matching, player_manager, item_name)
@@ -140,7 +140,7 @@ class ConsumeActionsMixin:
         """Spend one charge on consume (task-508), mirroring the `use` path.
 
         ``uses`` is charges/durability (task-155): a positive count is spent
-        down to 0, and ``-1`` (or absent) means "no charge model" — a permanent
+        down to 0, and ``-1`` (or absent) means "no charge model" - a permanent
         item. The ``on_depleted`` hook and removal are handled by
         ``_deplete_if_spent`` on the transition to 0.
         """
@@ -166,12 +166,12 @@ class ConsumeActionsMixin:
         """The task-424 empty-state teardown, for any route that empties a node.
 
         Fires ``on_depleted``, then keeps the node if it marked itself with a
-        persistent empty state (an empty glass) and removes it otherwise — which
+        persistent empty state (an empty glass) and removes it otherwise - which
         is what makes authored bread disappear where a hardcoded path used to.
 
         Split out of ``_deplete_if_spent`` so a caller that empties a node by
-        some counter *other* than ``uses`` — task-504's ``quantity`` pool going
-        to zero — reuses this hook instead of inventing a second teardown.
+        some counter *other* than ``uses`` - task-504's ``quantity`` pool going
+        to zero - reuses this hook instead of inventing a second teardown.
         """
         dep_outputs = self._exec_triggers(item_node, "on_depleted")
         if dep_outputs:

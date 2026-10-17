@@ -1,5 +1,5 @@
 /**
- * tools/unit/test_turn_prompts.js — prompt surfacing of dice/skill checks
+ * tools/unit/test_turn_prompts.js - prompt surfacing of dice/skill checks
  * (task-479).
  *
  * `summaryLine` condenses a previous action result into the one-line RECENTLY
@@ -25,16 +25,16 @@ test('summaryLine keeps a check line that is the first line', () => {
 test('summaryLine surfaces a check line that is NOT the first line', () => {
     const text = 'You search the debris.\n[Skill Check] Investigation vs DC 12 (medium): roll=18 + 2 = 20 => success';
     assertEq(promptBuilder479.summaryLine(text),
-        '[Skill Check] Investigation vs DC 12 (medium): roll=18 + 2 = 20 => success — You search the debris.');
+        '[Skill Check] Investigation vs DC 12 (medium): roll=18 + 2 = 20 => success - You search the debris.');
 });
 
 test('summaryLine recognises saves, generic checks and grabs', () => {
     assertEq(promptBuilder479.summaryLine('nothing happened\n[Save] DEX vs DC 12: roll 4 + 1 = 5 => failure'),
-        '[Save] DEX vs DC 12: roll 4 + 1 = 5 => failure — nothing happened');
+        '[Save] DEX vs DC 12: roll 4 + 1 = 5 => failure - nothing happened');
     assertEq(promptBuilder479.summaryLine('nothing happened\n[Check] attack vs DC 5 (very easy): roll=9 + 2 = 11 => success'),
-        '[Check] attack vs DC 5 (very easy): roll=9 + 2 = 11 => success — nothing happened');
+        '[Check] attack vs DC 5 (very easy): roll=9 + 2 = 11 => success - nothing happened');
     assertEq(promptBuilder479.summaryLine('nothing happened\n[Grab] Athletics vs DC 14: roll 10 + 6 = 16 => success'),
-        '[Grab] Athletics vs DC 14: roll 10 + 6 = 16 => success — nothing happened');
+        '[Grab] Athletics vs DC 14: roll 10 + 6 = 16 => success - nothing happened');
 });
 
 test('summaryLine on empty text is empty', () => {

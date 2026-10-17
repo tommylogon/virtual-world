@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The canonical way-property declaration.
 
-Four axes of behaviour live on a `way` node, and they are independent — a way can be
+Four axes of behaviour live on a `way` node, and they are independent - a way can be
 passable and opaque, or solid and glazed, or open and climb-gated, or narrow and
 see-through. Any of them can be set from three unrelated directions (a trigger, the
 library, a hand-authored save), and the three directions historically copied the
@@ -36,7 +36,7 @@ AXES = {
     "transparency": "Whether you can see or hear through",
     "verb": "Which movement verb the passage demands",
     "size": "Who physically fits",
-    "identity": "Naming, layout and rendering — no traversal effect",
+    "identity": "Naming, layout and rendering - no traversal effect",
     "authoring": "Editor-facing metadata that changes how something is authored",
 }
 
@@ -189,7 +189,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         notes="{enabled, skill, dc}. On a successful roll the way auto-sets "
               "current_state to 'open' and fires on_open triggers "
               "(engine/movement.py:582-600). This is how a closed, see-through wall "
-              "becomes walkable — the 'break the glass' case.",
+              "becomes walkable - the 'break the glass' case.",
     ),
     WayProperty(
         name="requires",
@@ -198,7 +198,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         reads=(
             ("engine/movement.py", 462, "verb gate; 'go' auto-converts to crawl"),
             ("engine/movement.py", 542, "Athletics roll against <requires>_dc"),
-            ("engine/movement.py", 1021, "open/close refused — an open passage"),
+            ("engine/movement.py", 1021, "open/close refused - an open passage"),
         ),
         notes="crawl/climb/jump ways are always uncloseable. Failed climb and jump "
               "rolls fire on_fail_climb / on_fail_jump triggers.",
@@ -217,7 +217,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         name="cost",
         axis="passage",
         notes="{time, energy}. 'time' is a DURATION HINT for a future stateful-action "
-              "system, not per-action clock advancement — crawl/climb/jump do NOT "
+              "system, not per-action clock advancement - crawl/climb/jump do NOT "
               "scale costs today (task-187).",
     ),
 
@@ -273,7 +273,7 @@ PROPERTIES: Tuple[WayProperty, ...] = (
         axis="size",
         values=("tiny", "small", "normal", "huge", "giant", "titanic"),
         reads=(("engine/movement.py", 469, "two tiers over is blocked; one over crawls"),),
-        notes="SIZE_TIERS is the whole model — engine/size.py:10 states there is no "
+        notes="SIZE_TIERS is the whole model - engine/size.py:10 states there is no "
               "height or girth property. Carrying at >= 50% capacity adds one tier "
               "before the comparison (task-202), so a loaded character can be locked "
               "out of a gap they walked through unloaded.",
@@ -326,7 +326,7 @@ SPAWN_LISTS = (
     ("engine/effect_handlers/ways.py (trigger spawn)",
      "engine/effect_handlers/ways.py", 'for key in ("see_through", "tags"',
      "if one_way:", None),
-    # `prop_map = {` occurs twice — items (line ~808, carrying `uses`/`weight`/`equip_slots`)
+    # `prop_map = {` occurs twice - items (line ~808, carrying `uses`/`weight`/`equip_slots`)
     # and ways (line ~911). The start marker includes the map's own first line so the
     # way one is selected deterministically rather than by whichever comes first.
     ("routes/library_ops.py (refresh)",

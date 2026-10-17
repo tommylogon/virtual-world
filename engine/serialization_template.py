@@ -1,5 +1,5 @@
-# engine/serialization_template.py — Load from world_template.json format.
-# (Single-player, areas with items/exits — authorial content.)
+# engine/serialization_template.py - Load from world_template.json format.
+# (Single-player, areas with items/exits - authorial content.)
 
 import random
 import time
@@ -40,7 +40,7 @@ def _connection_edge_props(direction, exit_data):
 
 
 class TemplateLoader:
-    """Loads world_template.json — authorial content with areas/items/exits."""
+    """Loads world_template.json - authorial content with areas/items/exits."""
 
     def __init__(self, graph, player_manager, legacy):
         self.graph = graph

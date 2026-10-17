@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: refactor
 priority: medium
 ---
@@ -58,9 +58,19 @@ family first — clearest operation-family seams.
    proof of pattern, then move up. Do not batch.
 2. **No behaviour change.** Extraction only. Keep public imports/API stable, move public
    API re-exports up to the host module.
-3. **Record what moved** in the task file as a table (module → lines → what moved), the
+3. **Dedup & reuse pass (mandatory per extraction).** While splitting, scan the extracted
+   concern and its host for duplicate logic, parallel data homes, and near-identical
+   helpers; consolidate onto one owner instead of copying into the new module. Prefer
+   reusing an existing seam (e.g. `serialization_template`/`serialization_legacy`) over
+   creating a second one. Record any dedup decision in the move table.
+4. **Agent-experience & cleanliness (mandatory per extraction).** Name modules by
+   concern (not by size), keep each under ~600 lines where the seam allows, add a
+   one-line module docstring stating its owner and its public surface, and ensure a fresh
+   agent session can understand the module without reading the host. No new abstraction
+   unless an existing seam already represents the concept.
+5. **Record what moved** in the task file as a table (module → lines → what moved), the
    shape task-314's wave-1 table used.
-4. Verify per extraction with a **targeted** selection (never the full suite by default;
+6. Verify per extraction with a **targeted** selection (never the full suite by default;
    never `-q`): e.g. `python -m pytest tests/test_<touched>.py` plus any module that
    patches the moved symbol.
 
@@ -88,8 +98,8 @@ Backend hosts above ~1.5k lines hold multiple operation families in one module, 
      public import paths stable.
    - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.
 2. Run the focused test module(s) that exercise the extracted behaviour (no `-q`).
-   - expected: same behaviour passes; any changed `mock.patch` target is recorded.
-   - observed: not run this update (measurement-only card refresh).
+    - expected: same behaviour passes; any changed `mock.patch` target is recorded.
+    - observed: 2026-10-16 extraction #3 — `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.
 3. Import the package and the extracted module in a clean process.
    - expected: no cycle / import-time side effect; stable public API still exposed.
    - observed: not applicable until an extraction lands.
@@ -118,3 +128,5 @@ Alternative verification steps:
    - expected: imports have no cycle or import-time side effect and the package still exposes the stable public API.
 
 This section is not a claim that planned UI exists or works today.
+
+

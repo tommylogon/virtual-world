@@ -1,9 +1,9 @@
-"""Conditions system — manages character status effects with MULTIPLE concurrent
+"""Conditions system - manages character status effects with MULTIPLE concurrent
 instances per condition (Phase 1 + follow-up, task-trait-condition-system-v2).
 
 The catalog (``CONDITION_DEFINITIONS``, defined in ``player``) is the single
 source of truth: each condition has ONE canonical definition. Conditions are
-stored per-character as ``{condition_id: [instance, instance, ...]}`` — five
+stored per-character as ``{condition_id: [instance, instance, ...]}`` - five
 vials of poison are five ``poisoned`` instances. Each instance carries optional
 overrides: ``periodic`` (drain), ``ends_on`` (how it ends), ``symptoms``/``known``
 (agent perception). Drains sum across instances; gates/mods are presence-based.
@@ -118,12 +118,12 @@ def frightened_block(player, source_type: str, source_id=None, source_name=None)
     """Return an in-world explanation if *player* fears something of
     *source_type* matching *source_id* or *source_name*; ``None`` otherwise.
 
-    The frightened instance's ``source`` may be a node id or a display name —
+    The frightened instance's ``source`` may be a node id or a display name -
     callers pass both. Gate semantics per source type:
-      way        — won't use that passage again
-      area       — won't re-enter the area
-      item       — won't touch the item
-      character  — won't approach or attack the character
+      way        - won't use that passage again
+      area       - won't re-enter the area
+      item       - won't touch the item
+      character  - won't approach or attack the character
     """
     for inst in (player.conditions.get("frightened") or []):
         src = inst.get("source")
@@ -146,7 +146,7 @@ def perceived_conditions(player) -> list:
 
     Known conditions render their physical description (instance override wins,
     personalized with the source); hidden conditions render the symptom line for
-    the current stage — or nothing yet. Raw condition ids are never exposed.
+    the current stage - or nothing yet. Raw condition ids are never exposed.
     Stacked instances each contribute (and identical lines are deduped).
     """
     lines = []
@@ -186,7 +186,7 @@ def get_condition_mods(player) -> dict:
 
     Presence-based: one mod per condition regardless of how many instances it
     has (4 poisons don't multiply attack/defense). ``attack_mod`` applies to the
-    character's own rolls; ``defense_mod`` is the character's defense —
+    character's own rolls; ``defense_mod`` is the character's defense -
     combat applies ``attack + attack_mod - target_defense_mod``, so a NEGATIVE
     defense (helpless conditions) means the attacker effectively gets +X.
     """
@@ -253,7 +253,7 @@ class ConditionsSystem:
                         allow_immune: bool = False):
         """Apply a condition instance. Duration in ticks (None = permanent).
 
-        task-490: an undead identity can refuse a condition outright — a ghost has
+        task-490: an undead identity can refuse a condition outright - a ghost has
         no body to hold, twist or tire. Returns False when it refused, which is
         the only way a caller can tell a refusal from a silent no-op on a missing
         player. ``allow_immune=True`` bypasses the check for a caller that has
@@ -278,7 +278,7 @@ class ConditionsSystem:
                              periodic=periodic, extra_conditions=extra_conditions,
                              ends_on=ends_on, symptoms=symptoms, known=known,
                              source_type=source_type)
-        # drops_held_items — the character lets go of what's in their hands
+        # drops_held_items - the character lets go of what's in their hands
         if self._effective_drops(player, condition):
             try:
                 self.gs.item_actions.drop_held_items(self.gs, player_name)
@@ -293,7 +293,7 @@ class ConditionsSystem:
         """Best-effort appearance-description refresh after a condition change.
 
         Skills/locks/combat apply conditions on many paths, so this must never
-        raise into them — the per-turn tick reconciliation is the safety net.
+        raise into them - the per-turn tick reconciliation is the safety net.
         """
         equipment = getattr(self.gs, "equipment", None)
         if equipment is None or not hasattr(equipment, "_update_state_description"):
@@ -378,7 +378,7 @@ class ConditionsSystem:
             if not player.conditions:
                 continue
 
-            # Apply periodic effects — instance override first, then level-scaled
+            # Apply periodic effects - instance override first, then level-scaled
             # (exhausted 1→6), then catalog, summed across every instance.
             for cid, instances in list(player.conditions.items()):
                 if cid in engine_managed:

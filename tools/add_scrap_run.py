@@ -1,13 +1,13 @@
 """Author Mikka's scrap pursuit into kraktooth (task-426, updated by task-818).
 
-Adds the one inert prop the run needs — a Scrap item at the Scrap Pile — and the
+Adds the one inert prop the run needs - a Scrap item at the Scrap Pile - and the
 pursuit **assignment on Mikka herself** (``Player.active_pursuit``): Scrap Pile ->
 take scrap -> Workshop -> drop. A pursuit is character data, not a world node
 (task-818), so this writes the player block, not a graph node.
 
 Idempotent; dry-run by default, ``--write`` saves. The scrap item carries no
 food/water/recreation tag, so it cannot change which areas any survival need
-travels to — the failure mode that made the 2026 task-409 co-location pass
+travels to - the failure mode that made the 2026 task-409 co-location pass
 degrade the camp. This adds one pursuit for a single character and nothing else.
 
     python tools/add_scrap_run.py            # show what would change
@@ -76,7 +76,7 @@ def main():
         added.append(f"active_pursuit on {ACTOR} ({LABEL})")
 
     if not added:
-        print("nothing to do — the scrap run is already authored")
+        print("nothing to do - the scrap run is already authored")
         return
     for item in added:
         print("add:", item)
@@ -88,7 +88,7 @@ def main():
         SCENARIO.write_bytes(text.encode("utf-8"))
         print(f"written to {SCENARIO}")
     else:
-        print("(dry run — pass --write to save)")
+        print("(dry run - pass --write to save)")
 
 
 if __name__ == "__main__":

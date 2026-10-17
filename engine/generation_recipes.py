@@ -1,8 +1,8 @@
-"""Scoped generation recipes (task-398) — the first one is `apartment.v1`.
+"""Scoped generation recipes (task-398) - the first one is `apartment.v1`.
 
 A recipe is a pure function from a scope record to a :class:`GenerationPatch`:
 no graph, no manifest, no Flask, no clock. That is what makes the task's
-determinism claim testable — the same ``(scope record, library, recipe
+determinism claim testable - the same ``(scope record, library, recipe
 version)`` must yield a byte-identical patch, and the only randomness allowed is
 a ``random.Random`` seeded from the scope's own stable seed.
 
@@ -47,7 +47,7 @@ def get_recipe(recipe_id: str) -> Optional[Callable[..., GenerationPatch]]:
 # Three areas and four ways: an external door in from the parent area, and one
 # internal door between the living space and the bedroom and the bathroom. Room
 # archetype + domain tags are the *only* thing that decides what furniture a
-# room gets — a raw tag intersection would put plausible-but-wrong things in
+# room gets - a raw tag intersection would put plausible-but-wrong things in
 # rooms, which the task calls out explicitly.
 
 _APARTMENT_ROOMS = [
@@ -98,7 +98,7 @@ def apartment_v1(scope_id: str, *, seed: str, index: LibraryIndex,
                  tick: int = 0) -> GenerationPatch:
     """One small apartment: entry/living, bedroom, bathroom.
 
-    `entry_area_id` is the area the apartment's front door opens off — for
+    `entry_area_id` is the area the apartment's front door opens off - for
     Pines 3B that is Hallway 3. It is an *argument* rather than a lookup so the
     recipe stays a pure function and the caller decides what "the hall" is.
     """

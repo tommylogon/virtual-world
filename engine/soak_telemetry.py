@@ -1,4 +1,4 @@
-"""Soak telemetry — the measurement store for a soak run (task-543).
+"""Soak telemetry - the measurement store for a soak run (task-543).
 
 This is deliberately **not** the lived log. The two look alike and answer
 opposite questions, so the boundary is load-bearing and worth restating:
@@ -23,7 +23,7 @@ for measurement, so the two cannot be one store. See
 decisions are recorded through :func:`engine.lived_log.record`, and every soak
 action needs the same ``(character, tick, kind, what, why, area)`` tuple. Rather
 than duplicate ~20 call sites and risk the copies drifting, ``record()`` fans out
-to an *active* recorder through :func:`active_recorder` — a one-way tap, the same
+to an *active* recorder through :func:`active_recorder` - a one-way tap, the same
 pattern as a logging handler. Three properties keep the boundary honest, and all
 three are asserted by tests rather than trusted:
 
@@ -46,7 +46,7 @@ moves*. One line per area change, not one line per tick:
      "from_tick": 41200, "to_tick": 41480}
 
 The cost is therefore bounded by **moves**, not ticks, and the same records render
-at any zoom — a swimlane at one-minute resolution and a whole week at hourly
+at any zoom - a swimlane at one-minute resolution and a whole week at hourly
 resolution are the same data. Per-tick sampling cannot do that: a 7-day soak at
 1 min/tick is 10,080 samples per character on the tick axis, and any stored
 subsample is a permanent loss of resolution. A character sitting in a room for
@@ -54,7 +54,7 @@ six hours produces **one** interval and no further events, which is the whole
 point: presence is *state*, and only a state change is worth writing down.
 
 For calibration, a ``lived_log`` entry is 189 B as JSON but ~1,106 B as a Python
-object — a ~5.8x object-graph overhead that makes raw volume the thing people
+object - a ~5.8x object-graph overhead that makes raw volume the thing people
 intuit wrongly. At 120 moves/day/char x 7 days x 20 characters that is 16,800
 intervals, roughly 1.9 MB: the same order as a 30-day lived log, and ~11,000x
 smaller than the "record everything every tick" proposal. **Memory is not the
@@ -74,7 +74,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 #: The closed set of ``why`` prefixes telemetry accepts, as the code actually
 #: writes them. Measured 2026-09-27 with ``tools/why_vocabulary.py`` against a
-#: 240-tick Kraktooth goblin camp run, not copied from a design doc — the first
+#: 240-tick Kraktooth goblin camp run, not copied from a design doc - the first
 #: draft of this list came from task-543's prose and was wrong within one run,
 #: missing ``traversal:``/``forage:``/``schedule:`` entirely. The rejection
 #: counter is what surfaced it, which is the argument for keeping the counter.
@@ -83,9 +83,9 @@ from typing import Any, Dict, Iterable, List, Optional
 #: drift: telemetry reuses tags, it does not invent them.
 #:
 #: ``llm:`` is excluded **structurally**, not by frequency. A soak makes no LLM
-#: calls by construction — ``engine/soak_runner.py`` says so in its own
+#: calls by construction - ``engine/soak_runner.py`` says so in its own
 #: docstring and ``background_all`` forces every character to
-#: ``simulation_mode = "background"`` — so an LLM reason is impossible, not merely
+#: ``simulation_mode = "background"`` - so an LLM reason is impossible, not merely
 #: rare. Carrying the prefix would leave a permanently empty category that invites
 #: "why is this always zero?" every time someone reads the breakdown.
 WHY_PREFIXES = (
@@ -112,8 +112,8 @@ WHY_PREFIXES = (
 #: Prefixes that are valid in a lived log but must never appear in telemetry.
 EXCLUDED_PREFIXES = ("llm:",)
 
-#: A record with no ``why`` at all. Common and not an error — plenty of
-#: bookkeeping records are not a decision — but it must be *counted*, because a
+#: A record with no ``why`` at all. Common and not an error - plenty of
+#: bookkeeping records are not a decision - but it must be *counted*, because a
 #: breakdown that silently drops the unattributed share reports a distribution
 #: that does not add up to the run. Counted as its own group rather than
 #: rejected, so the numbers stay honest without failing the run.
@@ -193,13 +193,13 @@ def recording(recorder: "TelemetryRecorder") -> _ActiveScope:
 #: incident, and are therefore excluded from the space-time ribbons.
 #:
 #: This is a judgement about meaning, not about frequency. `awake` and `busy` are
-#: on a character for most of a run and describe nothing — "conscious and alert"
+#: on a character for most of a run and describe nothing - "conscious and alert"
 #: is not a finding. Ribbons that mark them turn the chart into a solid orange
 #: field, which is worse than no ribbons: it looks like everybody is perpetually
 #: unwell, and a real illness loses its contrast against the background.
 #:
 #: Excluded here rather than in the renderer so the exclusion is part of the data
-#: contract — the counts stay reconcilable, and a caller cannot accidentally
+#: contract - the counts stay reconcilable, and a caller cannot accidentally
 #: re-introduce the noise by forgetting a filter.
 AMBIENT_CONDITIONS = frozenset({"awake", "busy"})
 
@@ -243,7 +243,7 @@ class TelemetryRecorder:
     def observe_area(self, character: str, area: Optional[str], tick: int) -> None:
         """Note where *character* is at *tick*. Emits an interval on change.
 
-        Called once per character per tick, which is O(cast) — the same order as
+        Called once per character per tick, which is O(cast) - the same order as
         the runner's existing death sweep. Only a *change* writes a record, so the
         interval count scales with moves and not with run length.
         """
@@ -296,7 +296,7 @@ class TelemetryRecorder:
         ``engine.lived_log.record``; see the module docstring for why these share
         a decision without sharing a store.
 
-        An *empty* ``why`` is kept and bucketed as ``unattributed`` — many
+        An *empty* ``why`` is kept and bucketed as ``unattributed`` - many
         bookkeeping records are not decisions, and dropping them would make the
         breakdown's shares not add up to the run. A *wrong* ``why`` is rejected
         and counted, because silently accepting an unknown tag is how a
@@ -321,7 +321,7 @@ class TelemetryRecorder:
 
     def condition(self, character: str, tick: int, condition: str,
                   gained: bool, area: str = "") -> Dict[str, Any]:
-        """Record a condition gained or lost — a state crossing, so it is
+        """Record a condition gained or lost - a state crossing, so it is
         event-driven rather than sampled."""
         return self._push({
             "type": "condition",
@@ -370,9 +370,9 @@ class TelemetryRecorder:
         a finding. Grouped by prefix so the background rules compete on one axis
         (``plan:provision`` and ``plan:patrol`` both count as ``plan``).
 
-        **Only decided records are ranked.** A record with no ``why`` — the
+        **Only decided records are ranked.** A record with no ``why`` - the
         mechanical cost-application entry ``apply_action`` writes for every verb,
-        or a condition crossing — has no deciding rule, and counting it as one
+        or a condition crossing - has no deciding rule, and counting it as one
         would drag every real rule's share down and make the distribution answer a
         question nobody asked. Those are reported separately as
         :attr:`unattributed_count`, so the panel's shares still add up to the
@@ -400,7 +400,7 @@ class TelemetryRecorder:
                        if not e.get("why_group") or e.get("why_group") == UNATTRIBUTED)
 
     def kind_breakdown(self) -> List[Dict[str, Any]]:
-        """``kind`` distribution — *what* they spent time on. Coarser than
+        """``kind`` distribution - *what* they spent time on. Coarser than
         ``why``; the two are not interchangeable. Unlike :meth:`why_breakdown`
         this counts every event, because "what" is a fair question to ask of a
         condition crossing."""
@@ -418,7 +418,7 @@ class TelemetryRecorder:
         events. Pairing them server-side keeps the client from re-deriving state
         and keeps the pairing next to the state it comes from. An unmatched gain
         (still active at the end of the run) is closed at *end_tick* rather than
-        dropped — "they were ill from here to the end" is a real reading, and
+        dropped - "they were ill from here to the end" is a real reading, and
         dropping it would understate a long illness.
         """
         with self._lock:
@@ -448,7 +448,7 @@ class TelemetryRecorder:
         return sorted(spans, key=lambda s: (s["character"] or "", s["from_tick"]))
 
     def conditions(self) -> List[str]:
-        """Every condition seen, ambient ones included — this is the roster a
+        """Every condition seen, ambient ones included - this is the roster a
         reader may want to filter by. The *ribbons* exclude the ambient set; see
         :func:`is_ambient`."""
         with self._lock:
@@ -470,7 +470,7 @@ class TelemetryRecorder:
                    end_tick: Optional[int] = None) -> Dict[str, Any]:
         """Everything the dashboard needs, in one response.
 
-        Intervals are always included — they are the bounded half (one per move)
+        Intervals are always included - they are the bounded half (one per move)
         and they are what the swimlane draws. Events are the unbounded half, so
         they are opt-in. Condition *spans* (not raw crossings) are included,
         because a ribbon draws durations and the pairing belongs next to the
@@ -533,7 +533,7 @@ def summarise(intervals: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
     """Cheap integrity check over an interval set: gaps, overlaps, coverage.
 
     Exposed because "the intervals tile the run with no gaps" is a property worth
-    asserting rather than assuming — a gap means presence is unknown for that
+    asserting rather than assuming - a gap means presence is unknown for that
     window, and a swimlane that silently omits it reads as "nobody was here".
     """
     by_character: Dict[str, List[Dict[str, Any]]] = {}
