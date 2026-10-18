@@ -48,6 +48,13 @@ logger = logging.getLogger(__name__)
 
 TRAVEL_MINUTES = 1
 TAKE_MINUTES = 2
+#: Consecutive refused travel actions before an approach admits failure. One
+#: refused way is routed around for 30 game minutes (`traversal.AVOID_MINUTES`);
+#: a refused action serves no time itself, so the clock between attempts is
+#: driven by the other layers, and 36 attempts therefore span well over one
+#: full avoid window at any tick granularity - enough to re-route, not enough
+#: to sit at a wall forever.
+_STALL_ACTIONS = 36
 
 #: Spatial relations an item can sit in, for "is it already here" checks.
 _SPATIAL = ("in", "on", "under", "behind", "beside", "at")
@@ -224,12 +231,23 @@ def _run(sim, p, plan, step):
         else:
             moved = sim._travel_toward(p, step["tags"], why)
         if moved:
+            plan.pop("_stall", None)
             return TRAVEL_MINUTES
-        # No route this action: not a failure, the plan waits. But if we are
-        # already at a tags-source, the satisfied check above handles it.
+        # No route this action: not a failure, the plan waits. A refused
+        # crossing - a failed hazard roll ("the forest turns you back"), a
+        # blocked way, every exit being avoided - is the traversal retry
+        # queue's business (task-475 fronts it at the way level), not the
+        # end of an undertaking. Run 9 killed a pursuit on its first bad
+        # roll; the stall counter instead lets the retry machinery work
+        # and fails the approach only after _STALL_ACTIONS consecutive
+        # refused actions - well over one avoid window.
         if _satisfied(sim, p, step):
             return None
-        return "failed"
+        plan["_stall"] = int(plan.get("_stall", 0) or 0) + 1
+        if int(plan.get("_stall", 0)) >= _STALL_ACTIONS:
+            plan.pop("_stall", None)
+            return "failed"
+        return None
 
     if kind == "take":
         node = _in_area_matching(sim, p, step["spec"])
@@ -356,6 +374,7 @@ def _finish(sim, p, plan, outcome):
     if isinstance(active, dict) and \
             active.get("assignment_id") == plan.get("assignment_id"):
         p.active_pursuit = None
+    plan.pop("_stall", None)
     p.plan = None
 
 

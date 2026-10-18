@@ -993,3 +993,111 @@ def test_a_mid_run_approach_is_not_stopped_by_a_closing_window():
         from routes.library_ops import delete_library_entry
         delete_library_entry(app, "pursuit_templates", "timed_probe")
         pt_mod.reload(app.config["DATA_DIR"])
+
+
+# ─────────────────── opposed crossings: stall, do not fail ─────────────────
+
+def test_a_refused_crossing_stalls_the_plan_instead_of_failing_it():
+    """One refused hop is the traversal retry queue's business, not the plan's.
+
+    A failed hazard roll ("the forest turns you back") used to return
+    ``"failed"`` from ``_run``, which ended the whole assignment on the first
+    bad roll. The retry machinery (``traversal.note_refusal`` plus the
+    re-route on the next action) is exactly what should answer it, so a
+    refused action now stalls the plan and leaves the assignment mounted.
+    """
+    from engine.background_plans import advance
+
+    class _FakeGS:
+        time_ticks = 1234
+
+        def total_game_minutes(self):
+            return 1234.0
+
+    class StallSim:
+        """Minimal sim: every travel attempt is refused, nothing more."""
+        gs = _FakeGS()
+
+        def _travel_to_area(self, p, area_name, reason):
+            return False
+
+        def _travel_toward(self, p, tags, reason):
+            return False
+
+    sim = StallSim()
+    vekka = type("P", (), {})()
+    vekka.lived_log = []
+    vekka.current_area = "Water Source"
+    vekka.active_pursuit = {"assignment_id": "pursuit_stall_probe",
+                            "label": "stall_probe", "step_index": 0,
+                            "status": "active",
+                            "progress": {"report_delivered": {"status": "pending"}}}
+    plan = {"label": "stall_probe", "assignment_id": "pursuit_stall_probe",
+            "pursuit_template": "scout-and-report", "index": 0,
+            "steps": [{"kind": "travel", "area": "Human Road"}]}
+    vekka.plan = plan
+
+    outcome = advance(sim, vekka)
+
+    assert outcome is None, f"a refused hop ended the plan: {outcome!r}"
+    assert vekka.plan is not None, "the plan was torn down on the first refusal"
+    assert vekka.plan.get("_stall") == 1, \
+        f"the refusal was not counted: {vekka.plan.get('_stall')!r}"
+    assert vekka.active_pursuit is not None and \
+        vekka.active_pursuit["status"] == "active", \
+        "the assignment was unmounted by one refused crossing"
+
+
+def test_a_stalled_plan_fails_only_after_the_retry_window():
+    """N refusals are retried; _STALL_ACTIONS consecutive ones fail the plan.
+
+    The limit is the anti-livelock guard: one avoid window is 30 game
+    minutes (6 travel actions), so slightly over one window of standing at
+    a wall means the approach has genuinely no route and admits it.
+    """
+    from engine.background_plans import advance, _STALL_ACTIONS
+
+    class _FakeGS:
+        time_ticks = 1234
+
+        def total_game_minutes(self):
+            return 1234.0
+
+    class StallSim:
+        gs = _FakeGS()
+
+        def _travel_to_area(self, p, area_name, reason):
+            return False
+
+        def _travel_toward(self, p, tags, reason):
+            return False
+
+    sim = StallSim()
+    vekka = type("P", (), {})()
+    vekka.lived_log = []
+    vekka.completed_pursuits = []
+    vekka.current_area = "Water Source"
+
+    vekka.active_pursuit = {"assignment_id": "pursuit_stall_probe",
+                            "label": "stall_probe", "step_index": 0,
+                            "status": "active",
+                            "progress": {"report_delivered": {"status": "pending"}}}
+    plan = {"label": "stall_probe", "assignment_id": "pursuit_stall_probe",
+            "pursuit_template": "scout-and-report", "index": 0,
+            "steps": [{"kind": "travel", "area": "Human Road"}]}
+    vekka.plan = plan
+
+    for _ in range(_STALL_ACTIONS - 1):
+        assert advance(sim, vekka) is None
+        assert vekka.plan is not None, "the plan died before the retry window"
+
+    outcome = advance(sim, vekka)
+
+    assert outcome is None, "the failure is surfaced through the finish path"
+    assert vekka.plan is None, "the stalled plan was never torn down"
+    assert vekka.active_pursuit is None, "the pursuit stayed mounted"
+    assert "pursuit_stall_probe" in vekka.completed_pursuits, \
+        "the terminal record was not written"
+    whys = {e.get("why") for e in vekka.lived_log}
+    assert "plan:stall_probe:failed" in whys and \
+        "pursuit:stall_probe:failed" in whys, f"the loud trace is missing: {whys}"

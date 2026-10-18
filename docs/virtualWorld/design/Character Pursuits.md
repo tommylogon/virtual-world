@@ -216,7 +216,7 @@ This design refines the existing seams; it does not claim the complete system is
 
 - `engine/schedule.py` is the clock-based HH:MM routine and remains the **Schedule** layer.
 - `engine/activities.py` and `Player.activity` provide ongoing activities such as sleeping and bathing, with state effects, interruption, and visible descriptions.
-- `engine/background_plans.py` currently resumes a small set of assigned pursuit templates (`haul`, `gather`, and `rally`) from the character's own `Player.active_pursuit`, keeping current steps in `Player.plan`. The assignment is **character data, not a graph node** (task-818); these are partial background pursuits, not the full LLM or general NPC system.
+- `engine/background_plans.py` resumes assigned pursuit templates from the character's own `Player.active_pursuit`, keeping current steps in `Player.plan`. The registry (`data/library/pursuit_templates/`) holds seven versioned templates including scout-and-report; the resume path handles typed steps, template-declared progress leaves (the report receipt through the shared `met_character` condition), a timing gate on the window, and meal routing through the existing recipe machinery. The assignment is **character data, not a graph node** (task-818); these are partial background pursuits, not the full LLM or general NPC system.
 - `engine/pursuit_templates.py` and `data/library/pursuit_templates/` hold the current generic template slice.
 - `engine/serialization.py` no longer coerces legacy `type: "plan"` / `type: "pursuit"` nodes: the `pursuit` node type is retired (task-818) because a pursuit assignment is character data (`Player.active_pursuit`).
 - The active pursuit is not yet supplied as a separate structured block to LLMs. Pursuit steps do not yet start a persistent Activity such as sleeping, and the specific-bed spatial relation is not yet represented by this slice.
@@ -652,7 +652,7 @@ the scalar is read, not whether it exists.
 
 **Features** — [[background-simulation|Background simulation]] (#28)
 
-**Dev tasks** — [[dev_tasks/review/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/review/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/review/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]], [[dev_tasks/review/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions|task]], [[dev_tasks/review/characters/task-804-disposition-pick-argmax-with-a-stable-tie-break|task]], [[dev_tasks/review/characters/task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm|task]] … +14 more
+**Dev tasks** — [[dev_tasks/done/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[dev_tasks/inprogress/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop|task]], [[dev_tasks/inprogress/library/task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries|task]], [[dev_tasks/review/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/review/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/review/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]] … +17 more
 
 **Neighbouring notes** — [[MOSIAC Character Profiles]]
 
