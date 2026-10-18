@@ -2204,6 +2204,8 @@ tracked as tasks 327/328.
 
 **Features** — [[scenario-creation|Scenario creation]] (#57)
 
+**Dev tasks** — [[dev_tasks/inprogress/ui/task-383-wizard-append-mode|task]]
+
 **Neighbouring notes** — [[Commands]], [[Emotion & Mood — Whole-System Analysis]], [[Feature Ledger]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]]
 
 <!-- connected:end -->

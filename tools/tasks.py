@@ -143,20 +143,20 @@ EFFORTS = ("S", "M", "L")
 # path explicit. They distinguish a planned UI from a UI that exists and has
 # actually been checked. Replace the placeholders; do not delete the sections.
 BROWSER_UI_STUB = (
-    "Intended UI home: TODO — name the page, panel, tab, or control where this "
+    "Intended UI home: TODO - name the page, panel, tab, or control where this "
     "behavior belongs. If no browser UI is appropriate, write 'Not applicable' "
     "here, explain why below, and give an observable alternative.\n\n"
-    "Current availability: TODO — for example, planned/not implemented, "
+    "Current availability: TODO - for example, planned/not implemented, "
     "present but not live-checked, or live-checked with date and evidence.\n\n"
     "Live steps when available:\n"
-    "1. TODO — describe how to reach the surface and the interaction to perform.\n"
-    "   - expected: TODO — describe what the user can see or do.\n\n"
-    "Why no browser UI: (only when Intended UI home is Not applicable) TODO — "
+    "1. TODO - describe how to reach the surface and the interaction to perform.\n"
+    "   - expected: TODO - describe what the user can see or do.\n\n"
+    "Why no browser UI: (only when Intended UI home is Not applicable) TODO - "
     "explain why browser interaction is not appropriate.\n\n"
     "Alternative verification steps: (only when Intended UI home is Not "
     "applicable)\n"
-    "1. TODO — describe an observable alternative.\n"
-    "   - expected: TODO — describe the result.\n\n"
+    "1. TODO - describe an observable alternative.\n"
+    "   - expected: TODO - describe the result.\n\n"
     "This section defines intended access and live acceptance. It is not a claim "
     "that planned UI exists or works today. Current availability says what is "
     "implemented and verified now; the numbered steps say how to reach and test "
@@ -1231,6 +1231,11 @@ def cmd_set(args) -> int:
     if len(entries) > 1:
         print(f"error: {args.kind}-{args.id} is ambiguous", file=sys.stderr)
         return 1
+    if getattr(args, "status", None) is not None:
+        print("error: use move to change status, not set "
+              f"({args.kind}-{args.id}); status lives in the folder, "
+              "frontmatter is advisory", file=sys.stderr)
+        return 1
     entry = entries[0]
     text = read_text(entry.path)
 
@@ -1852,8 +1857,8 @@ def cmd_validate(args) -> int:
 
         fm_status = e.frontmatter().get("status")
         if fm_status is not None and e.status and _norm(str(fm_status)) != _norm(e.status):
-            warnings.append(
-                f"frontmatter status '{fm_status}' != folder '{e.status}': {e.path}")
+            errors.append(
+                f"frontmatter status '{fm_status}' != folder '{e.status}': {e.path} (run move, never hand-edit status)")
 
         # Referenced ids. Prose lines and frontmatter lists both count.
         text = try_read_text(e.path)

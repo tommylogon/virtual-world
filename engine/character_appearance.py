@@ -957,10 +957,22 @@ def schema_for_llm() -> Dict[str, Any]:
                 "items": {"type": "string", "pattern": _ID_RE.pattern},
                 "description": f"ids of {mechanic}",
             }
-    identity_block = {
-        field: ({"type": "number"} if field == "age" else {"type": "string"})
-        for field in IDENTITY_FIELDS
-    }
+    identity_block: Dict[str, Any] = {}
+    for field in IDENTITY_FIELDS:
+        if field == "age":
+            identity_block[field] = {"type": "number",
+                                     "description": "age in years; integer"}
+        elif field == "occupation":
+            # No declared vocabulary: any string is fine.
+            identity_block[field] = {"type": "string",
+                                     "description": "job / role in town; free text"}
+        else:
+            voc = IDENTITY_SUGGESTIONS.get(field)
+            vals = ", ".join(voc) if voc else "free text"
+            identity_block[field] = {
+                "type": "string",
+                "description": f"{field}: {vals}",
+            }
     narrative_block: Dict[str, Any] = {}
     for field, (kind, subfields) in NARRATIVE_FIELDS.items():
         if kind == "group":

@@ -173,7 +173,19 @@ single POST, so each is a single undo step.
 - **Zoom is capped** —
   [[task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out|task-595]].
 - **Grid sizing is by cell size (`px / cell`), not a `width × height` count** —
-  [[task-597-worldpainter-grid-sizing-by-cell-size-not-a-cell-count|task-597]].
+  [[task-597-worldpainter-grid-sizing-by-cell-size-not-a-cell-count|task-597]]. With a
+  reference image loaded, a slider beside **▦ match** sets how many pixels of the image one
+  cell covers; the count is the readout (`20×13 · 1 cell ≈ 77px`), and the HUD's size button
+  gains the same `≈ Npx`. Both axes come from the one unit, so the aspect is the image's by
+  construction (`gridForCellSize`, `grid-model.js`), and the stops are clamped to the grid
+  limits the compiler accepts: at least 1 cell per axis, at most 400 columns, at most
+  `MAX_GRID_CELLS`. Dragging previews on the canvas - the frame and lattice at the candidate
+  extent, and the painted or placed cells the shrink would strand, in red; letting go commits
+  through the same path and the same prune prompt the frame handles use. The control is absent
+  without a reference image and **disabled once the scope is generated**, because the cells are
+  then the world's areas. Two things still size by count and duplicate it: the `w` / `h` fields
+  in **▦ Grid…** and the E/S/SE frame handles. A stranded cell outside the current viewport is
+  counted but not highlighted - the fitted view can clip a large grid's far edge.
 - **Preflight must be kept in step with the compiler.** `preflight()` says so in its own
   docstring: a `block` must be a condition `compile_grid()` refuses, or one it will refuse
   once the stated remedy is applied; anything advisory belongs at `warn`
@@ -227,6 +239,8 @@ single POST, so each is a single undo step.
 **Read next** — [[Grid to Graph#The pipeline]]
 
 **Features** — [[worldpainter|WorldPainter]] (#47)
+
+**Dev tasks** — [[dev_tasks/inprogress/world/task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table|task]], [[dev_tasks/todo/world/task-747-worldpainter-compiler-emits-terrain-hazards-river-cliff-thorn-fall-from-the-painted-layers|task]]
 
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 

@@ -259,7 +259,7 @@ disagreement between them as a bug without checking
 
 **Features** — [[timeskip|Timeskip]] (#15), [[turn-queue|Turn queue]] (#30), [[the-human-turn|The human turn]] (#31), [[where-you-ve-been|Where you've been]] (#43), [[the-human-turn-composer|The human turn composer]] (#67), [[turn-based-modes|Turn-based modes]] (#68)
 
-**Dev tasks** — [[dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness|task]]
+**Dev tasks** — [[dev_tasks/todo/gameplay/task-728-directed-control-mode-a-director-reviews-and-edits-an-llm-character-s-turn-before-it-acts|task]], [[dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness|task]], [[dev_tasks/todo/ui/task-679-react-phase-result-is-one-wall-of-text-ending-in-a-raw-way-listing|task]]
 
 **Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[The Commons]]
 

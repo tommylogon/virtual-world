@@ -900,6 +900,19 @@ def handle_library_import_character(app, char_id):
     player.sync_vitals_with_tags()
     player.known = list(cdata.get('known', []) or [])
     player.interest_tags = cdata.get('interest_tags', player.interest_tags)
+    # task-874: `size` (task-605) and `species` (task-549) are authored character
+    # properties, and every library card carries them, but this import set
+    # neither - so a library round-trip reset size to None and species to
+    # unspecified. Same normalisation as the PATCH route (routes/player_ops.py):
+    # an unknown size is rejected to None so the `size_*` trait fallback holds.
+    from engine.size import SIZE_TIERS as _SIZE_TIERS
+    _raw_size = cdata.get('size')
+    _size = str(_raw_size).strip().lower() if _raw_size is not None else ""
+    player.size = _size if _size in _SIZE_TIERS else None
+    _raw_species = cdata.get('species')
+    if isinstance(_raw_species, (list, tuple)):
+        _raw_species = _raw_species[0] if _raw_species else None
+    player.species = str(_raw_species).strip().lower() or None if _raw_species else None
     player.personality = cdata.get('personality', '')
     player.description = cdata.get('description', '')
     player.base_description = cdata.get('base_description', '')
@@ -949,12 +962,15 @@ def handle_library_import_character(app, char_id):
             pre_key, player_name, getattr(player, "id", None),
             " (uniqued)" if pre_key != player_name else "")
 
-    # Expression pack: carry the library character's art onto its node.
+    # Expression pack and the structured Persona block: carry the library
+    # character's art and sheet onto its node. task-874 added `appearance` (the
+    # engine/character_appearance RECORD_KEY): it was in neither the card nor
+    # this import, so a library round-trip lost the sheet entirely.
     try:
         node = app.world.graph.get_node(
             app.world.player_manager.get_player_node_id(player_name))
         if node is not None:
-            for key in ("image", "profile_image", "expressions"):
+            for key in ("image", "profile_image", "expressions", "appearance"):
                 value = cdata.get(key)
                 if value:
                     node.properties[key] = value

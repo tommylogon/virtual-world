@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: ['"\'task-507\'"', '"\'task-828\'"', '"\'task-830\'"', '"\'task-844\'"', '\'"\\'task-507\\'"\'', '\'"\\'task-828\\'"\'', '\'"\\'task-829\\'"\'', '\'"\\'task-830\\'"\'', '\'"\\'task-844\\'"\'', '\'"\\'task-849\\'"\'', "'task-507'", "'task-828'", "'task-830'", "'task-844'", 'task-850']
+related: [task-507, task-828, task-830, task-844, task-829, task-849, task-850, task-619, task-742]
 blocked_by: [task-457]
 ---
 
@@ -14,7 +14,7 @@ blocked_by: [task-457]
 
 <!-- deps:start -->
 **Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
-**Related:** [[task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable]], [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]], [[task-850-identity-additions-mbti-alignment-birthday-each-with-a-named-reader]]
+**Related:** [[task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable]], [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]], [[task-850-identity-additions-mbti-alignment-birthday-each-with-a-named-reader]], [[task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name]], [[task-742-faction-scoped-hostility-and-group-aware-fear-wire-or-retire-the-hostile-trait]]
 <!-- deps:end -->
 
 ## What
@@ -59,6 +59,14 @@ excluded `media` / `mbti` / `alignment` (`engine/character_appearance.py` docstr
 | `narrative.role_in_town`, `arc` | plans/goals | task-702/704 |
 | `example_dialogues`, `voice`, `scent` | prompt voice / perception | prompts |
 | `mbti`, `alignment`, `media` | **none — left out** | — |
+
+## Folded deltas (2026-10-18)
+
+Three points folded in from cancelled cards (866, 867, 869). They are corrections to the projection above, not new scope.
+
+- **Relationships need a machine-readable role.** The source vocabulary is already here, but the projection maps `relationships.*` to `relationships` (label + closeness), and `label` is free text. Add a controlled `relation` type (parent / child / sibling / partner / friend / rival / enemy, plus `other` with a note) alongside `label`, and allow a relation target that is a group or faction tag, not only a character. The store is `task-619`; the group relation and its authoring UI are [[task-742-faction-scoped-hostility-and-group-aware-fear-wire-or-retire-the-hostile-trait]].
+- **`languages` is not `skills`.** The table maps `capabilities.languages -> skills, traits`. If a language is to gate dialogue or perception it needs its own field with a proficiency and a named reader; folding it into `skills` loses the proficiency and the reader.
+- **Region prose composes, it is not typed.** `appearance` includes `genitalia` and other per-region detail; it must render through `render_record_prose` into `base_description`, never be written there directly, or the next Compile treats it as stale. See [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]] and [[task-744-equipment-and-body-one-edge-truth-for-worn-gear-layered-coverage-body-marks-body-centric-ui]].
 
 ## New fields needed
 

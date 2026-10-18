@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -94,7 +94,7 @@ per-scope and assumes nothing about scope size.
 
 Intended UI home: Build → WorldPainter → grid controls for a scope with a reference image.
 
-Current availability: The px/cell sizing control and live redraw behavior are still in progress.
+Current availability: implemented and live-verified 2026-10-18 on `raven_river`; see the observed lines under Steps to verify for the measurements.
 
 Live steps when available:
 
@@ -109,26 +109,28 @@ This section defines the intended access point and acceptance path. It is not a 
 
 1. Open an empty scope with a reference image; move the `px / cell` slider.
    - expected: the grid redraws live; larger `px / cell` → fewer, larger cells; the count readout tracks it; the aspect stays the image's (no bands).
-   - observed: TODO
+   - observed: scope `raven_river` (state `unmade`, grid `168×112`, reference `raven river.webp`, natural size `1536×1024`). Slider `min 9, max 1024, step 1`, opened at 9 (the node's own grid implies 9.14). Readout tracks: `9px → 171×114 · 1 cell ≈ 9px`, `77px → 20×13 · 1 cell ≈ 77px`, and the HUD dims button reads `168×112 · 1 cell = 1 turn ≈ 9px`. The grid layer's drawn extent, measured as the alpha bounding box of the Konva grid canvas, went 1885px → 224px wide for the `20×13` preview at an unchanged stage scale (0.509 both ways), so the redraw is live and the screen zoom did not move. Aspect is the image's by construction (`gridForCellSize` derives both axes from one unit); the unit test asserts `aspect === imgW / imgH`.
 2. Reproduce the three-shot case: `1536×1024` image, drag the slider until the count reads ~`168×112`, ~`80×53`, ~`20×13`.
    - expected: the same counts are reachable by size alone, without typing a width or hitting `▦ match`.
-   - observed: TODO
+   - observed: reachable by size alone, measured live: `77px → 20×13` (exact), `19px → 81×54`, `9px → 171×114`. `168×112` is **not** exactly reachable with a whole-pixel cell: `1536 / 168 = 9.14`, so the neighbouring stops are `9px → 171×114` and `10px → 154×102`. Every stop keeps aspect `1.5`, the image's.
 3. Paint a few cells, then move the slider to shrink the grid.
    - expected: the existing prune count is shown before anything is lost; confirming drops the out-of-bounds cells.
-   - observed: TODO
+   - observed: painted a fixture cell at `(30,50)` on the `168×112` grid, then previewed `20×13`. The prompt read `Resize the grid to 20×13 (1 cell ≈ 77px)? 1 painted cell(s) or placement(s) outside it will be removed. This can be undone.` Declining wrote nothing (the grid stayed `168×112` and the paint stayed put). The highlight was measured on the grid layer at the fixture's screen rect: **0** reddish pixels with no preview live, **156** with the `20×13` preview live, **0** again once the preview was cleared. A clean resize (`171×114`, nothing stranded) committed with no prompt.
+   - limitation: a second fixture at `(167,111)`, the grid's far corner, drew **nothing visible** - the fitted view clips the grid's bottom edge (it shows rows ~6..99), so a stranded cell outside the viewport is counted but not shown. The count in the prompt still protects the author; see the work log.
 4. Generate the scope, then return to the control.
    - expected: the cell-size control is disabled (the grid is now a live world).
-   - observed: TODO
+   - observed: `world` (state `materialized`, grid `20×7`) → slider `disabled: true`, `title: "The grid is generated - ungenerate to re-key it"`, and it still shows the derived readout (`20×7 · 1 cell ≈ 77px`). `raven_river` (`unmade`) → enabled.
 
 ## Acceptance
 
-- [ ] A per-scope `px / cell` control sizes the grid; `w` / `h` are derived from the reference image's natural size, aspect locked, the count shown as a readout.
-- [ ] The grid redraws live while the control moves.
-- [ ] The control is available while the scope is ungenerated and disabled once generated.
-- [ ] If the grid is painted, a resize shows the prune count first (reuse existing machinery) and highlights the cells a shrink would drop, before commit.
+- [x] A per-scope `px / cell` control sizes the grid; `w` / `h` are derived from the reference image's natural size, aspect locked, the count shown as a readout.
+- [x] The grid redraws live while the control moves.
+- [x] The control is available while the scope is ungenerated and disabled once generated.
+- [x] If the grid is painted, a resize shows the prune count first (reuse existing machinery) and highlights the cells a shrink would drop, before commit.
 - [ ] `▦ match` is subsumed (aspect always matches); no empty bands.
-- [ ] Screen view zoom remains independent and unaffected.
-- [ ] The unit → `w/h` maths is unit-tested; live browser check on a real reference image.
+  - aspect is locked by construction and `▦ match` is now redundant, but the button is **kept**: the How section asks for confirmation before deleting it and none was available. Removing it is the remaining half.
+- [x] Screen view zoom remains independent and unaffected.
+- [x] The unit → `w/h` maths is unit-tested; live browser check on a real reference image.
 
 ## Files
 
@@ -136,6 +138,54 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/worldpainter/grid-model.ts` — `pxPerCell → {w, h}` (generalise `gridForImageAspect`), clamps.
 - `tools/unit/test_worldpainter.js` — the new derivation.
 - `engine/world_grid.py`, `routes/world_grid_ops.py` — the grid-set route keeps its `{w, h}` shape (the px unit is derived client-side).
+
+## Work log (2026-10-18)
+
+**What shipped.** `grid-model.ts` gains three pure functions: `gridForCellSize(imgW, imgH, pxPerCell)`
+→ `{w, h, cells, aspect, pxPerCell}` with `gridForImageAspect`'s clamps (1 cell minimum, width
+≤ 400, `MAX_GRID_CELLS`), `cellSizeForGrid(imgW, gridW)` for the slider's opening position, and
+`cellSizeRange(imgW, imgH)` so the control cannot offer a stop the clamps would then silently
+override. `strandedCount` was split into `strandedCells` (the set, with each entry's kind) plus a
+`length` call, so the canvas highlight and the prompt's count are one definition rather than two
+matching loops.
+
+`editor.ts` adds the slider to the reference-image row (it needs a reference image to measure
+against; absent without one). Dragging sets `state.cellSizePreview` and redraws through the
+existing `_gridExtent` seam - the same candidate path the E/S/SE handle drag uses - so the frame,
+the lattice (now drawn at the *candidate* extent, which it was not before) and the stranded
+highlight all follow the drag. Releasing commits via `_commitGridSize`, factored out of
+`_gridMouseUp`'s release so the slider and the handles share one commit path, one prompt and one
+prune. The HUD dims readout gained the size half it never had (`168×112 · 1 cell = 1 turn ≈ 9px`),
+filled in by the same sync hook that arms the slider once the reference image decodes.
+
+**Decisions taken without confirmation, and why.**
+
+- **`w` / `h` entry and the E/S/SE resize handles are kept.** The How section says "confirm before
+  deleting either" and no confirmation was available, so nothing was deleted. They now duplicate the
+  slider (aspect included) and are the obvious next cleanup.
+- **No wheel binding.** The How section's wheel note says to confirm Konva is not already consuming
+  it first; it was not verified, so the slider was not overlapped onto the wheel.
+- **`▦ match` kept** for the same reason (see the acceptance box).
+
+**Limitations found live, not fixed.**
+
+- The stranded highlight draws at the stranded cells' own positions, so a cell outside the current
+  viewport is counted but invisible. On `raven_river` the fitted view clips the grid's bottom edge
+  (rows ~6..99 of 112), so a fixture at `(167,111)` highlighted nothing while one at `(30,50)`
+  highlighted normally. Worth a follow-up only if it bites: an edge indicator or a fit to the union
+  of both extents would fix it, and the prompt's count remains the guard.
+- `168×112` from the card's own example is unreachable with a whole-pixel cell size (`9.14 px/cell`);
+  the control's stops are `171×114` and `154×102`. If exact counts matter, the step would need
+  sub-pixel cells.
+
+**Verification.** `build:ts`, `typecheck`, `lint`, header survival and window guards all clean.
+`node tools/unit/run.cjs`: 739 passed / 4 failed, and the 4 are the same 4 that fail on a clean
+`master` worktree at `cb297187` (`test_graph_tuning.js` node size, `test_turn_prompts.js` × 2,
+`test_worldpainter.js` floor layer) - all four are em-dash-versus-hyphen assertions in files this
+change does not touch. `python tools/js_module_index.py --check` fails identically at HEAD (7
+`engine/` modules missing the `@module` contract), so it is unrelated. The scratch scope
+`raven_river` was restored to its exact original payload afterwards (grid `168×112`, every layer
+empty, `map_offset {x:0, y:0}`, reference untouched) and `data/` has no changes.
 
 ## Audit note (2026-10-16)
 

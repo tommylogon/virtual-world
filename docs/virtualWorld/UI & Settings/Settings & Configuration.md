@@ -224,6 +224,8 @@ Game state (areas, players, items, etc.) is persisted via:
 
 **Features** — [[save-load|Save / load]] (#58), [[settings|Settings]] (#59)
 
+**Dev tasks** — [[dev_tasks/todo/ui/task-455-save-load-dialog-ux-in-modal-rename-and-confirms-autosave-row-actions|task]]
+
 **Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[Inspector Panels]], [[NL Editor]], [[Recent Edits & Undo]]
 
 <!-- connected:end -->

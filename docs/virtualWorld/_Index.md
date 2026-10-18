@@ -70,6 +70,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Character Images & Expression Packs\|Character Images & Expression Packs]] | Profile + full-body art per emotion or action (SillyTavern-style pack), upload/remove API, resolver, library round-trip, avatar-by-emotion |
 | [[Characters/Activities & States\|Activities & States]] | Multi-tick activities; busy, unconscious, asleep |
 | [[Characters/Background Simulation\|Background Simulation]] | What everyone off-screen does, and the coarse social layer over it |
+| [[Characters/Animals\|Animals]] | Animals as characters: species, fear, packs, spawners, carcasses |
 
 ## [[Gameplay/Turn Queue & Human Turns|🎲 Gameplay]]
 

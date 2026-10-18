@@ -72,6 +72,8 @@ interface PersonaState {
     bodyNav?: string | null;
     /** task-852 P2: which face of the doll is shown (no extra artwork). */
     dollFacing?: 'front' | 'back';
+    /** task-843: dotted paths the importer invented; drives the ✨ marker. */
+    inferred?: string[];
 }
 
 let _state: MindState | null = null;
@@ -1162,11 +1164,31 @@ const InspectorMindView = (() => {
         return `<div class="pf-chips">${chips}<input class="pf-chip-new" data-chip-new="${esc(path)}" placeholder="add…" style="flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;"><input type="hidden" data-persona-path="${esc(path)}" value="${joined}"></div>`;
     }
 
+    // task-843: the model's provenance. A field the converter invented (rather
+    // than read from the source) is marked so the author can tell guess from
+    // fact at a glance. A parent path marks its children and a child marks its
+    // group, so an inferred whole reads as one cluster. Cleared by the next
+    // `_fetchPersona` (save, compile, or reopening the tab).
+    function _sparkle(path: string): string {
+        const arr = _state?.persona?.inferred;
+        const set = new Set(Array.isArray(arr) ? arr : []);
+        if (!set.size) return '';
+        let hit = set.has(path);
+        if (!hit) {
+            for (const p of set) {
+                if (p.startsWith(path + '.') || path.startsWith(p + '.')) { hit = true; break; }
+            }
+        }
+        return hit
+            ? ` <span class="pf-inferred" style="color:var(--yellow);" title="inferred by the model - not stated in the source; review or clear it">✨</span>`
+            : '';
+    }
+
     function _personaFieldHtml(section: string, field: string, decl: any): { html: string; wide: boolean } {
         const path = `${section}.${field}`;
         const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
         const hintIco = hint ? ` <span class="pf-hint" title="${esc(hint)}">ⓘ</span>` : '';
-        const label = `<div class="pf-label"><span>${esc(field)}</span>${hintIco}</div>`;
+        const label = `<div class="pf-label"><span>${esc(field)}${_sparkle(path)}</span>${hintIco}</div>`;
         const val = _personaVal(path);
         const tone = _PERSONA_TONES[field] || '';
         if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
@@ -1199,10 +1221,10 @@ const InspectorMindView = (() => {
                 const subVal = _personaVal(subPath);
                 if (subDecl?.type === 'array') {
                     const values = Array.isArray(subVal) ? (subVal as unknown[]).map((v) => String(v)) : [];
-                    return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}</div>${_personaChipBox(subPath, values, tone)}</div>`;
+                    return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}${_sparkle(subPath)}</div>${_personaChipBox(subPath, values, tone)}</div>`;
                 }
                 const str = subVal === undefined || subVal === null ? '' : String(subVal);
-                return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}</div><input class="pf-in" data-persona-path="${esc(subPath)}" value="${esc(str)}"></div>`;
+                return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}${_sparkle(subPath)}</div><input class="pf-in" data-persona-path="${esc(subPath)}" value="${esc(str)}"></div>`;
             }).join('');
             const markHidden = path === 'appearance.body'
                 ? (() => {
@@ -1902,15 +1924,22 @@ const InspectorMindView = (() => {
                     const converted = CI.extractJsonBlock(text);
                     if (!_state?.persona) return;
                     // The form IS the preview: load the conversion for
-                    // review, store nothing. Save validates server-side.
-                    _state.persona.record = converted;
+                    // review, store nothing. Save validates server-side. The
+                    // answer is split so the record stays the exact shape
+                    // `PUT /record` validates and the model's provenance
+                    // drives the ✨ marker instead of riding inside the record.
+                    const split = CI.splitConvertAnswer(converted);
+                    _state.persona.record = split.record;
+                    _state.persona.inferred = split.inferred;
                     _state.persona.preview = null;
                     _state.persona.dirty = true;
                     const notes = [...(parsed.warnings || [])];
                     if (parsed.deterministic?.lorebook?.length) {
                         notes.push(`${parsed.deterministic.lorebook.length} lorebook entries belong in memories, not here`);
                     }
-                    _state.persona.msg = `imported ${parsed.kind} — review, then save.${notes.length ? ' ' + notes.join(' ') : ''}`;
+                    const infNote = split.inferred.length
+                        ? ` ${split.inferred.length} field(s) inferred - marked ✨, review them.` : '';
+                    _state.persona.msg = `imported ${parsed.kind}: review, then save.${infNote}${notes.length ? ' ' + notes.join(' ') : ''}`;
                     _personaRepaint(false);
                 } catch (e) {
                     _personaMsg(`import failed: ${e instanceof Error ? e.message : String(e)} — nothing stored.`);

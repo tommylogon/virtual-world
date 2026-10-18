@@ -55,15 +55,30 @@ test('a JSON file with no card fields reads as prose', () => {
     assertTrue(parsed.warnings.length > 0, 'fallback is announced');
 });
 
-test('the prompt carries the schema as the contract', () => {
+test('the prompt carries the schema as the contract, with maximal fill', () => {
     const schema = { type: 'object', properties: { identity: {} } };
     const messages = CharacterImport.buildConvertPrompt('someone', schema);
     assertEq(messages.length, 2, 'system + user');
     assertEq(messages[0].role, 'system', 'system first');
-    assertTrue(messages[0].content.includes('ONLY the JSON object'), 'output rule present');
-    assertTrue(messages[0].content.includes('never invent'), 'no-invention rule present');
+    assertTrue(messages[0].content.includes('ONLY that JSON object'), 'output rule present');
+    assertTrue(messages[0].content.includes('INVENT a value'), 'maximal-fill rule present');
+    assertTrue(messages[0].content.includes('"inferred"'), 'provenance key demanded');
     assertTrue(messages[1].content.includes('"identity"'), 'schema inlined');
     assertTrue(messages[1].content.includes('someone'), 'material inlined');
+});
+
+test('the answer splits into record and provenance', () => {
+    const wrapped = CharacterImport.splitConvertAnswer({
+        record: { identity: { age: 12 } },
+        inferred: ['identity.age', ' appearance.hair.color ', ''],
+    });
+    assertEq(wrapped.record.identity.age, 12, 'record unwrapped');
+    assertFalse('record' in wrapped.record, 'the wrapper key does not leak into the record');
+    assertEq(wrapped.inferred.length, 2, 'blank provenance entries dropped');
+    // A bare record (a model ignoring the wrapper) still imports, no provenance.
+    const bare = CharacterImport.splitConvertAnswer({ identity: { age: 3 } });
+    assertEq(bare.record.identity.age, 3, 'bare record tolerated');
+    assertEq(bare.inferred.length, 0, 'no provenance rather than a failure');
 });
 
 test('answer extraction tolerates fences, never fragments', () => {

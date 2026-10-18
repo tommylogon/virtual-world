@@ -403,8 +403,17 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-reference',
             group: 'WorldPainter',
             title: 'The reference image is a guide, not data',
-            body: 'The art never reaches the graph — only your painted cells do. Load one, then <b>▦ match</b> so the grid takes the image\'s aspect and a cell means the same place in both. The slider next to <b>match</b> is the <i>paint</i> opacity, so the art reads through your colour; the slider after it dims the art itself. Changing the image later resets the adjust rect, so re-match it.',
+            body: 'The art never reaches the graph — only your painted cells do. Load one, then set the cell size: one cell is about a clearing, or about a room, and the count follows from the cell rather than the other way round. <b>▦ match</b> takes the image\'s aspect in one click. The unlabelled slider on the left of the grid bar is <i>paint</i> opacity, so the art reads through your colour; the one after it dims the art itself. Changing the image later resets the adjust rect, so re-match it.',
             target: '[data-help="wp-reference"]',
+        },
+        {
+            id: 'wp-cell-size',
+            event: 'data-help',
+            match: d => d === 'wp-cell-size',
+            group: 'WorldPainter',
+            title: 'px / cell - size the grid by the cell',
+            body: 'Drag to change how many pixels of the reference image one cell covers. Smaller cells mean more of them; the count beside the slider is the <i>result</i>, not the input. The grid redraws as you drag, and any painted or placed cell that the new extent would leave outside is highlighted red before you let go. One cell is one minute of walking, so cell size is also how long the place takes to cross. Cells larger than the image\'s shorter side are one cell, and 400 columns is the widest grid. Disabled once the scope is generated: the cells have become areas, and re-keying them would move every place.',
+            target: '[data-help="wp-cell-size"]',
         },
         {
             id: 'wp-reference-adjust',

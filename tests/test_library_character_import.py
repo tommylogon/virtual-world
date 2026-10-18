@@ -139,3 +139,48 @@ def test_delete_registry_entry_removes_only_that_file(tmp_path):
 
     reg = load_registry(data_dir, 'items.json')
     assert set(reg.keys()) == {'torch'}
+
+
+def _import_card(client, app, card_id, card):
+    """Seed a library card and import it. Returns the imported Player."""
+    r = client.post('/api/library/characters', json={'id': card_id, 'data': card})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    r = client.post(f'/api/library/import/character/{card_id}', json={'active': False})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    return app.world.player_manager.players.get(card['name'])
+
+
+def test_import_character_restores_size_species_and_persona(tmp_path):
+    """task-874: size (task-605), species (task-549) and the Persona block (the
+    node property `properties.appearance`) were set by neither the card nor this
+    import, so a library round-trip silently reset the character. Assert each is
+    read, not just present in the seeded file."""
+    client, app, data_dir = _fresh_app(tmp_path)
+    card = dict(CANONICAL_CARD)
+    card['name'] = 'Sized Char'
+    card['size'] = 'huge'
+    card['species'] = 'troll'
+    card['appearance'] = {'identity': {'pronouns': 'they/them'},
+                          'appearance': {'height_cm': 240}}
+
+    p = _import_card(client, app, 'SizedChar', card)
+    assert p is not None
+    assert p.size == 'huge'
+    assert p.species == 'troll'
+
+    node = app.world.graph.get_node('player_Sized_Char')
+    assert node is not None, "the import placed no character node"
+    assert node.properties['appearance'] == card['appearance']
+
+
+def test_import_character_unknown_size_becomes_none(tmp_path):
+    """An unrecognised size must not be stored: None is what lets the engine
+    fall back to a hand-authored `size_*` trait (engine/size.py)."""
+    client, app, data_dir = _fresh_app(tmp_path)
+    card = dict(CANONICAL_CARD)
+    card['name'] = 'Bogus Size'
+    card['size'] = 'enormous'
+
+    p = _import_card(client, app, 'BogusSize', card)
+    assert p is not None
+    assert p.size is None

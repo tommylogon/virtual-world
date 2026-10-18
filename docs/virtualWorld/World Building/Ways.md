@@ -428,6 +428,8 @@ least three-eighths as bright.
 
 **Features** — [[way-authoring|Way authoring]] (#51)
 
+**Dev tasks** — [[dev_tasks/inprogress/refactor/task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[dev_tasks/todo/world/bug-547-broken-way-state-is-half-implemented|bug]]
+
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

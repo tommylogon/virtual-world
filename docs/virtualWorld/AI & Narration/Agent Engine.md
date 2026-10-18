@@ -391,7 +391,7 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 
 **Read next** — [[Memory System#Memory dynamics (task-685)]], [[Narration System#Integration with Agent Engine]]
 
-**Dev tasks** — [[dev_tasks/done/triggers/task-90-delayed_event_queue|task]]
+**Dev tasks** — [[dev_tasks/done/triggers/task-90-delayed_event_queue|task]], [[dev_tasks/todo/prompting/bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed|bug]], [[dev_tasks/todo/refactor/task-491-single-source-of-truth-for-action-verbs-scoped-registry|task]], [[dev_tasks/todo/testing/task-845-llm-benchmark-harness-run-turn-prompt-across-models|task]]
 
 **Neighbouring notes** — [[LLM Providers]], [[Memory Dynamics]], [[Memory System]], [[Narration System]], [[Turn-Based System]]
 

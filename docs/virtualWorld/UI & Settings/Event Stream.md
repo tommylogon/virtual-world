@@ -127,7 +127,7 @@ wrapped).
 
 **Features** — [[event-stream|Event stream]] (#64)
 
-**Dev tasks** — [[task-861-world-advance-should-stream-a-per-tick-delta-so-the-event-stream-fills-while-the-request-runs|task]]
+**Dev tasks** — [[dev_tasks/review/ui/task-861-world-advance-should-stream-a-per-tick-delta-so-the-event-stream-fills-while-the-request-runs|task]]
 
 **Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Inspector Panels]], [[NL Editor]], [[Recent Edits & Undo]], [[Rendering & UI Modules]]
 

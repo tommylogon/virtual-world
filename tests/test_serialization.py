@@ -328,3 +328,45 @@ def test_a_scenario_save_carries_no_runtime_perception():
     savegame = world.to_dict()["players"][pname]
     assert len(savegame["memories"]) == 2
     assert savegame["memory_index"]["area_pantry"]
+
+
+def test_player_size_survives_save_load_roundtrip():
+    """task-874: size is a property (task-605), written by `_serialize_player`
+    and kept by `to_scenario_dict`, but nothing read it back - so a save
+    silently reset the tier to None on the next load."""
+    world = VirtualWorld()
+    pname = world.active_player
+    world.player_manager.get_player(pname).size = "huge"
+
+    data = world.to_scenario_dict()
+    assert data["players"][pname]["size"] == "huge"
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    assert world2.player_manager.get_player(pname).size == "huge"
+
+
+def test_an_unauthored_size_stays_none_across_a_roundtrip():
+    """None means "not authored" and must survive as None: it is what lets an
+    un-authored character fall through to its `size_*` trait (engine/size.py),
+    so replacing it with a default here would shadow a hand-authored trait."""
+    world = VirtualWorld()
+    pname = world.active_player
+    assert world.player_manager.get_player(pname).size is None
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(world.to_scenario_dict())
+    assert world2.player_manager.get_player(pname).size is None
+
+
+def test_an_unknown_size_loads_as_none():
+    """A hand-edited or legacy value outside the six tiers is dropped rather
+    than stored, so a bad value cannot outrank a `size_*` trait."""
+    world = VirtualWorld()
+    pname = world.active_player
+    data = world.to_scenario_dict()
+    data["players"][pname]["size"] = "enormous"
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    assert world2.player_manager.get_player(pname).size is None

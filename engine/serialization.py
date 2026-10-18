@@ -390,6 +390,17 @@ class WorldSerializer:
         # it None, which means "unspecified" and permits every service - the
         # backward-compatible default that makes adding the field safe.
         p.species = pdata.get("species")
+        # task-874: `size` is a property (task-605), not a `size_*` trait.
+        # `_serialize_player` writes it and `to_scenario_dict` keeps it, so the
+        # key is in the file - but nothing read it back, so a save silently reset
+        # the tier to None on the next load. None must stay None: that is what
+        # lets an un-authored character fall through to its `size_*` trait
+        # (engine/size.py). An unrecognised value (a hand-edited or legacy save)
+        # is dropped rather than kept, so the six tiers stay the whole model.
+        from engine.size import SIZE_TIERS as _SIZE_TIERS
+        _raw_size = pdata.get("size")
+        _size = str(_raw_size).strip().lower() if _raw_size is not None else ""
+        p.size = _size if _size in _SIZE_TIERS else None
         p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
         # task-538: `hit_dice` derives Max_HP when the save does not carry one
         # explicitly; an authored Max_HP always wins. Then clamp to *this*

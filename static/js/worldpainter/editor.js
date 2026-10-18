@@ -94,6 +94,11 @@
         gridEdit: false,
         gridDrag: null, // {kind, key, start, w, h, offset} during a grid edit
         gridDragRelease: null,
+        // Set by the `px / cell` slider while it is being dragged (task-597); the
+        // canvas draws the candidate extent and the cells it would strand.
+        cellSizePreview: null,
+        cellSizeSync: null,
+        dimsBtn: null,
         selectedChild: null,
         selectedArea: null, // area picked by the 📍 Area place tool (task-528)
         // Cell selection and the marquee being dragged (task-536). Keyed by scope
@@ -447,6 +452,10 @@
     function close() {
         _unbindKeys();
         _gridDragRelease();
+        // The cell-size hook points at HUD elements that are about to be removed.
+        state.cellSizeSync = null;
+        state.dimsBtn = null;
+        state.cellSizePreview = null;
         if (state.resizeObs) {
             state.resizeObs.disconnect();
             state.resizeObs = null;
@@ -654,6 +663,7 @@
         state.route = [];
         state.refEdit = false; // reference adjust is per-scope
         state.refDrag = null;
+        state.cellSizePreview = null; // a candidate belongs to one scope only
         const box = _renderShell('🗺️ WorldPainter');
         box.appendChild(_el('div', 'color:var(--text-muted,#999);', 'Loading grid…'));
         try {
@@ -1544,6 +1554,10 @@
             'gap:6px;align-items:center;flex-wrap:wrap;background:rgba(13,17,23,0.85);' +
             'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:4px 6px;' +
             'pointer-events:auto;');
+        // The HUD is rebuilt on every render, so any sync hook from the previous
+        // one points at a detached element. Cleared here and re-armed below.
+        state.cellSizeSync = null;
+        state.dimsBtn = null;
         // Keep references so the controls can reflect the clamp (task-595): at
         // the floor the − button is disabled rather than silently doing nothing.
         const zoomIn = _btn('＋', () => _zoomBy(p, 1.25), 'padding:1px 7px;');
@@ -1557,7 +1571,15 @@
         // task-717: the dims readout is also the exact-size control — clicking it
         // opens the ▦ Grid… dialog, so precise resize is discoverable from the
         // canvas instead of only from the toolbar.
-        hud.appendChild(_btn(`${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`, () => _openGridDialog(p), 'font-size:11px;color:var(--text-muted,#999);padding:2px 6px;', 'Set the exact grid size…'));
+        // task-597: the count is the *output* here, with the cell size beside it.
+        // The author measures cells against the reference art, so "1 cell ≈ 77px"
+        // is the number that means something; the count follows from it.
+        const pxCell = (state.refImage && state.refImage.naturalWidth)
+            ? GM().cellSizeForGrid(state.refImage.naturalWidth, p.grid.w) : null;
+        const dimsBtn = _btn(`${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`
+            + (pxCell ? ` ≈ ${Math.round(pxCell)}px` : ''), () => _openGridDialog(p), 'font-size:11px;color:var(--text-muted,#999);padding:2px 6px;', 'Set the exact grid size…');
+        state.dimsBtn = dimsBtn;
+        hud.appendChild(dimsBtn);
         // The scope's reference (map) image — pick an uploaded background, or
         // upload/point at one. Its `appendChild` was dropped in 0dc60c48, which
         // left `_referenceControl` orphaned and the picker gone from the HUD.
@@ -1671,6 +1693,11 @@
             // One click: make the grid the image's aspect, so painted cells and
             // the reference share geometry instead of fighting at different ratios.
             wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p), 'padding:1px 6px;font-size:11px;'), 'wp-reference'));
+            // The grid framed by cell *size* (task-597): the number an author can
+            // measure against the art, with the count as its readout.
+            const pxControl = _cellSizeControl(p);
+            if (pxControl)
+                wrap.appendChild(pxControl);
             // Move/resize/crop the picture (task-524). The rect is stored in cell
             // units, so the graph map layout draws the same geometry.
             const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
@@ -1687,6 +1714,89 @@
             resetBtn.title = 'Fit the whole image to the grid again (clears move/resize/crop)';
             wrap.appendChild(resetBtn);
         }
+        return wrap;
+    }
+    /**
+     * The `px / cell` slider (task-597): frame the grid by the size of a cell,
+     * with the count as a readout instead of an input.
+     *
+     * `px / cell` is the one number an author can measure against the reference
+     * art ("one cell is about a clearing"), where a `w`/`h` count is its inverse
+     * and has to be guessed and re-guessed. Dragging previews the candidate extent
+     * and the cells it would strand on the canvas; releasing commits through the
+     * same path a handle drag uses.
+     *
+     * Absent without a reference image to measure against, and disabled once the
+     * scope is generated: at that point the cells *are* the world's areas, and
+     * re-keying them would move every place.
+     */
+    function _cellSizeControl(p) {
+        if (!(p.reference && p.reference.image))
+            return null;
+        const generated = p.scope.state === 'materialized';
+        const wrap = _el('span', 'display:flex;align-items:center;gap:4px;');
+        const slider = _el('input', 'width:110px;');
+        slider.type = 'range';
+        slider.step = '1';
+        slider.disabled = true; // until the image's pixel size is known
+        slider.setAttribute('data-role', 'wp-cell-size');
+        const readout = _el('span', 'font-size:11px;color:var(--text-muted,#999);');
+        readout.setAttribute('data-role', 'wp-cell-size-readout');
+        const imgW = () => (state.refImage && state.refImage.naturalWidth) || 0;
+        const imgH = () => (state.refImage && state.refImage.naturalHeight) || 0;
+        const show = (px) => {
+            const next = GM().gridForCellSize(imgW(), imgH(), px);
+            readout.textContent = next ? `${next.w}×${next.h} · 1 cell ≈ ${px}px`
+                : 'cell size: reading image…';
+        };
+        // The image decodes after the HUD is built, so the bounds and the current
+        // value are learned here rather than at construction. A drag in progress
+        // owns the slider, so a sync must not snap it back mid-gesture.
+        const sync = () => {
+            if (state.cellSizePreview)
+                return;
+            const range = GM().cellSizeRange(imgW(), imgH());
+            if (!range) {
+                slider.disabled = true;
+                show(0);
+                return;
+            }
+            slider.min = String(range.min);
+            slider.max = String(range.max);
+            const px = GM().cellSizeForGrid(imgW(), p.grid.w) || range.min;
+            slider.value = String(Math.min(range.max, Math.max(range.min, Math.round(px))));
+            slider.disabled = generated;
+            // The dims readout is built before the image is decoded, so its px
+            // half is filled in here rather than at construction.
+            if (state.dimsBtn) {
+                state.dimsBtn.textContent = `${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`
+                    + ` ≈ ${Math.round(px)}px`;
+            }
+            show(parseFloat(slider.value));
+        };
+        state.cellSizeSync = sync;
+        sync();
+        slider.addEventListener('input', () => {
+            const px = parseFloat(slider.value);
+            const next = GM().gridForCellSize(imgW(), imgH(), px);
+            state.cellSizePreview = next ? { w: next.w, h: next.h, pxPerCell: px } : null;
+            show(px);
+            _redrawGrid(); // the frame, the lattice and the stranded set follow
+        });
+        slider.addEventListener('change', () => {
+            const preview = state.cellSizePreview;
+            state.cellSizePreview = null;
+            if (!preview)
+                return;
+            _commitGridSize(p, preview.w, preview.h, `1 cell ≈ ${preview.pxPerCell}px`)
+                .then(() => render())
+                .catch((e) => _status(`Grid failed: ${errText(e)}`, true));
+        });
+        if (generated)
+            slider.title = 'The grid is generated - ungenerate to re-key it';
+        wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'px / cell'));
+        _help(wrap.appendChild(slider), 'wp-cell-size');
+        wrap.appendChild(readout);
         return wrap;
     }
     /**
@@ -1844,6 +1954,11 @@
     function _redrawGrid() {
         if (state.stage)
             state.stage.batchDraw();
+        // The reference image decodes after the HUD is built, so the `px / cell`
+        // control learns the image's real pixel size here rather than on a full
+        // re-render (which would discard a slider the author is holding).
+        if (state.cellSizeSync)
+            state.cellSizeSync();
     }
     /**
      * Redraw only the decor + selection layers (in-progress paint stroke, feature
@@ -2062,12 +2177,18 @@
  * The drawing reads the payload, and a resize drag only updates
  * `state.gridDrag` — so without this the frame and its handles were redrawn at
  * the *old* extent and the drag showed nothing but the size label ticking over.
+ *
+ * A `px / cell` preview (task-597) takes the same path: the slider is a resize
+ * the author has not committed yet, so it must look exactly like one.
  */
     function _gridExtent(p) {
         const drag = state.gridDrag;
         if (drag && drag.kind !== 'move' && drag.w && drag.h) {
             return { w: drag.w, h: drag.h };
         }
+        const preview = state.cellSizePreview;
+        if (preview)
+            return { w: preview.w, h: preview.h };
         return { w: p.grid.w, h: p.grid.h };
     }
     /** Resize handles on the grid frame; only meaningful in adjust mode. */
@@ -2239,19 +2360,7 @@
                 _status(`Grid offset set to ${offset.x}, ${offset.y} cells.`, false);
             }
             else if (drag.w !== p.grid.w || drag.h !== p.grid.h) {
-                const stranded = GM().strandedCount(p, drag.w, drag.h);
-                if (stranded > 0 && !window.confirm(`Resize the grid to ${drag.w}×${drag.h}?\n\n`
-                    + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
-                    + 'This can be undone.')) {
-                    render();
-                    return;
-                }
-                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, {
-                    w: drag.w, h: drag.h,
-                    mode: p.mode,
-                });
-                _status(`Grid resized to ${drag.w}×${drag.h}` +
-                    (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
+                await _commitGridSize(p, drag.w, drag.h, 'frame resize');
             }
             _notify(true);
         }
@@ -2259,6 +2368,27 @@
             _status(`Grid adjust failed: ${errText(e)}`, true);
         }
         render();
+    }
+    /**
+     * Commit a grid extent, offering the count of what the shrink would strand
+     * before it does it.
+     *
+     * One path for the handle drag and the `px / cell` slider, so every resize
+     * loses the same cells to the same rule, and the count in the warning is
+     * exactly the set the canvas highlighted while the author was dragging.
+     * Server-side the shrink *prunes* out-of-bounds paint and placements
+     * (`world_grid.ensure_grid`) rather than leaving them dangling.
+     */
+    async function _commitGridSize(p, w, h, why) {
+        const stranded = GM().strandedCount(p, w, h);
+        if (stranded > 0 && !window.confirm(`Resize the grid to ${w}×${h} (${why})?\n\n`
+            + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
+            + 'This can be undone.')) {
+            return;
+        }
+        state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, { w, h, mode: p.mode });
+        _status(`Grid set to ${w}×${h} (${why})`
+            + (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
     }
     function _drawGridLines(ctx, p) {
         const ext = _gridExtent(p);
@@ -2296,15 +2426,33 @@
             ctx.strokeStyle = 'rgba(255,255,255,0.07)';
             ctx.lineWidth = 1 / scale;
             ctx.beginPath();
-            for (let x = 0; x <= p.grid.w; x += 1) {
+            // The lattice follows the *extent being drawn*, not the saved grid:
+            // during a resize (a handle drag or the `px / cell` slider) the frame
+            // moved and the lines did not, so the preview showed a boundary with
+            // the old lattice inside it.
+            for (let x = 0; x <= ext.w; x += 1) {
                 ctx.moveTo(x * CELL, 0);
                 ctx.lineTo(x * CELL, h);
             }
-            for (let y = 0; y <= p.grid.h; y += 1) {
+            for (let y = 0; y <= ext.h; y += 1) {
                 ctx.moveTo(0, y * CELL);
                 ctx.lineTo(w, y * CELL);
             }
             ctx.stroke();
+        }
+        // The cells a shrink would strand (task-597), drawn on the candidate
+        // extent so the author sees *which* cells go and not only how many. They
+        // sit outside the new frame by definition, and the confirm dialog that
+        // will remove them names the same count `strandedCells` produced.
+        const preview = state.cellSizePreview;
+        if (preview) {
+            ctx.fillStyle = 'rgba(247,119,119,0.30)';
+            ctx.strokeStyle = '#f77';
+            ctx.lineWidth = 1 / scale;
+            GM().strandedCells(p, preview.w, preview.h).forEach((c) => {
+                ctx.fillRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
+                ctx.strokeRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
+            });
         }
         ctx.restore();
     }

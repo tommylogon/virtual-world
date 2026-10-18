@@ -2241,6 +2241,16 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             traits: player.traits || {},
             tags: player.tags || [],
             interest_tags: player.interest_tags || [],
+            // task-874: `size` (task-605) and `species` (task-549) are authored
+            // properties the library card must carry, or Save to Library
+            // silently drops them.
+            size: player.size ?? null,
+            species: player.species || null,
+            // task-874: the structured Persona block (the character node's
+            // `properties.appearance`, engine/character_appearance RECORD_KEY)
+            // is authored definition; carry it or a library round-trip loses
+            // the whole sheet.
+            appearance: charProps.appearance || {},
             // Expression pack (profile/full body per emotion or action).
             image: charProps.image || null,
             profile_image: charProps.profile_image || null,

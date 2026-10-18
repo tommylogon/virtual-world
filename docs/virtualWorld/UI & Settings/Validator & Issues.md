@@ -216,6 +216,8 @@ correction of task-393's own claim:
 
 **Features** — [[validator-issues|Validator & issues]] (#63)
 
+**Dev tasks** — [[dev_tasks/inprogress/conditions/task-705-requirement-condition-leaves-quantity-area-function-knowledge-and-ownership|task]], [[dev_tasks/todo/world/bug-536-get-read-paths-race-mutating-requests-on-the-shared-graph|bug]]
+
 **Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[Inspector Panels]], [[NL Editor]], [[Recent Edits & Undo]]
 
 <!-- connected:end -->

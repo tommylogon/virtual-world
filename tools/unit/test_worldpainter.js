@@ -268,6 +268,64 @@ test('strandedCount says what a shrink would prune', () => {
     assertEq(GM.strandedCount(payload, 0, 0), 0, 'no grid');
 });
 
+test('gridForCellSize frames the grid by px/cell, not by a count (task-597)', () => {
+    // The card's worked case: a 1536x1024 reference, sized three ways by cell
+    // size alone. Every count below is the image's dimensions over one unit.
+    assertEq(GM.gridForCellSize(1536, 1024, 77),
+        { w: 20, h: 13, cells: 260, aspect: 1.5, pxPerCell: 77 },
+        '1 cell = 77px is the card\'s 20x13');
+    assertEq(GM.gridForCellSize(1536, 1024, 19).w, 81, 'a smaller cell is more of them');
+    assertEq(GM.gridForCellSize(1536, 1024, 9).w, 171, 'and smaller again');
+    // Aspect is the image's by construction: both axes come from one unit, so
+    // there are no empty bands to remove with a separate `match` step.
+    assertEq(GM.gridForCellSize(1536, 1024, 30).aspect, 1536 / 1024, 'aspect is the image\'s');
+    // Clamps are gridForImageAspect's, so a 1px cell on a big map cannot ask the
+    // compiler for a hundred thousand areas.
+    const capped = GM.gridForCellSize(4000, 4000, 1);
+    assertEq(capped.w, 400, 'width capped at 400 columns');
+    assertTrue(capped.cells <= 20000, `cells capped (${capped.cells})`);
+    assertEq(GM.gridForCellSize(1536, 1024, 0), null, 'no cell size, no grid');
+    assertEq(GM.gridForCellSize(0, 0, 20), null, 'no readable image, no grid');
+});
+
+test('cellSizeForGrid and cellSizeRange agree with gridForCellSize', () => {
+    // The slider opens where the author left it: the cell size the grid implies.
+    assertEq(GM.cellSizeForGrid(1536, 20), 76.8, 'the px/cell a 20-wide grid implies');
+    assertEq(GM.cellSizeForGrid(1536, 0), null, 'no grid, no unit');
+    assertEq(GM.cellSizeRange(1536, 0), null, 'no image, no range');
+    const range = GM.cellSizeRange(1536, 1024);
+    // Every value the control can produce is a grid the clamps already accept -
+    // otherwise the slider could be dragged to a value silently clamped beneath.
+    const small = GM.gridForCellSize(1536, 1024, range.min);
+    assertTrue(small.w <= 400 && small.cells <= 20000,
+        `the smallest cell is still within the clamps (${small.w}x${small.h})`);
+    assertEq(GM.gridForCellSize(1536, 1024, range.max).h, 1,
+        'a cell larger than the shorter side is one cell on that axis');
+    assertTrue(range.min <= 77 && 77 <= range.max, 'the card\'s 77px is reachable');
+});
+
+test('strandedCells is one definition of "outside", and strandedCount its length', () => {
+    // The canvas highlights this set and the confirm dialog counts it, so the two
+    // must be the same answer by construction, not by two matching loops.
+    const payload = {
+        layers: { biome: { '0,0': 'hills', '19,9': 'hills' }, road: { '20,0': 'road' } },
+        area_placements: [{ id: 'a1', x: 1, y: 1 }, { id: 'a2', x: 30, y: 2 }],
+        placements: [{ id: 'child', x: 3, y: 3 }, { id: 'child2', x: 0, y: 40 }],
+    };
+    assertEq(GM.strandedCells(payload, 10, 10), [
+        { x: 19, y: 9, kind: 'paint' },
+        { x: 20, y: 0, kind: 'paint' },
+        { x: 30, y: 2, kind: 'area' },
+        { x: 0, y: 40, kind: 'feature' },
+    ], 'every stranded thing, with what it is');
+    [[10, 10], [20, 10], [40, 50]].forEach(([w, h]) => {
+        assertEq(GM.strandedCells(payload, w, h).length, GM.strandedCount(payload, w, h),
+            `the highlight and the count agree at ${w}x${h}`);
+    });
+    assertEq(GM.strandedCells(null, 10, 10), [], 'no payload strands nothing');
+    assertEq(GM.strandedCells(payload, 0, 0), [], 'no candidate grid strands nothing');
+});
+
 test('areaGroups keeps a child scope out of the parent map picker (task-541)', () => {
     // Painting the world map: the camp's rooms are members of the camp, so they
     // must not read as this map's areas - only as an explicit "elsewhere" group.

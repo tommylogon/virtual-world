@@ -268,7 +268,7 @@ The generic registry handler at `library_routes.py:58` accepts either nested `{i
 
 **Features** — [[library|Library]] (#55), [[library-sync|Library sync]] (#73)
 
-**Dev tasks** — [[dev_tasks/done/items/task-106-tag-library-and-multiselect|task]], [[dev_tasks/done/items/task-44-remove_add_from_library|task]], [[dev_tasks/done/items/task-95-idempotent-sync-to-library|task]]
+**Dev tasks** — [[dev_tasks/done/items/task-106-tag-library-and-multiselect|task]], [[dev_tasks/done/items/task-44-remove_add_from_library|task]], [[dev_tasks/done/items/task-95-idempotent-sync-to-library|task]], [[dev_tasks/done/refactor/task-696-server-log-file-option-and-mutating-routes-log-the-identity-they-actually-resolved|task]], [[dev_tasks/todo/characters/task-665-kraktooth-cast-rework-is-half-migrated-in-the-working-tree-5-staged-renames-4-un-migrated-duplicate-merchant-entry-7-descriptions-claiming-nonexistent-items|task]], [[dev_tasks/todo/library/task-667-library-entries-are-keyed-by-filename-so-a-display-string-is-the-primary-key|task]]
 
 **Neighbouring notes** — [[Domain & Role Tags]], [[Library 2.0 - Unified Library Design]], [[Tags System]], [[diff-modal]]
 

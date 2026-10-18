@@ -228,7 +228,7 @@ The Butcher attacks Kyrie Johansen with cleaver!
 
 **Features** — [[attack-grapple|Attack / grapple]] (#9)
 
-**Dev tasks** — [[dev_tasks/done/gameplay/task-4-grapple_restrain_system|task]], [[dev_tasks/done/items/task-54-weapon_system|task]]
+**Dev tasks** — [[dev_tasks/done/gameplay/task-4-grapple_restrain_system|task]], [[dev_tasks/done/items/task-54-weapon_system|task]], [[dev_tasks/todo/gameplay/task-477-put-combat-and-grapple-on-the-central-check-system|task]]
 
 **Neighbouring notes** — [[Conditions System]], [[Temperature System (redirect)]], [[Trait & Condition System (Design)]], [[Triggers & Effects]]
 

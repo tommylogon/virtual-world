@@ -239,7 +239,7 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 
 **Features** — [[scopes|Scopes]] (#49)
 
-**Dev tasks** — [[task-583-global-scope-index-gateway-ways-and-load-before-you-move|task]], [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]], [[task-855-character-focused-runtime-state-scales-by-scope-not-world-size|task]]
+**Dev tasks** — [[dev_tasks/inprogress/world/task-855-character-focused-runtime-state-scales-by-scope-not-world-size|task]], [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]], [[dev_tasks/review/world/task-583-global-scope-index-gateway-ways-and-load-before-you-move|task]]
 
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 

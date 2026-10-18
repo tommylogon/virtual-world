@@ -3,11 +3,11 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: ['"\'task-316\'"', '"\'task-507\'"', "'task-316'", "'task-507'", 'task-733']
+related: [task-316, task-507, task-733]
 wiki: "[[Characters/Persona]]"
 ---
 
-# task-850: Identity additions: mbti, alignment, birthday — each with a named reader
+# task-850: Identity additions: mbti, alignment, birthday, media - each with a named reader
 
 **Filed:** 2026-10-16
 **Related:** 
@@ -19,6 +19,8 @@ wiki: "[[Characters/Persona]]"
 ## What
 
 Add mbti, alignment, birthday to identity only with wired consumers (mbti prompt voice, alignment disposition-or-prompt reader, birthday calendar semantics vs age); no dead fields.
+
+Extended 2026-10-18 (folded in from the cancelled task-870): also add `media` (favourite films / music / books) and keep `potential_storylines`. `engine/character_appearance.py:21` excludes `media` / `mbti` / `alignment` on purpose, and `tests/test_character_appearance.py` enforces the ban (`:427`; a `media` key is rejected at `:140`), so this card must remove that exclusion and its test assertions deliberately. `media` and `potential_storylines` need a named reader too (agent prompt context is the obvious one); `potential_storylines` may ship authored-but-unread if recorded as such.
 
 ## Why
 

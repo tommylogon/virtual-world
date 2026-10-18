@@ -770,30 +770,110 @@ type Vocabulary = any;
     }
 
     /**
+     * A grid framed by the *size of a cell* rather than by a count (task-597).
+     *
+     * `px / cell` is the one number the author can actually see on the reference
+     * image: its width divided by the number of columns. A count is the *inverse*
+     * of that, so asking for one makes the author solve for the thing they care
+     * about backwards. Both axes come from the same unit, so the grid's aspect is
+     * the image's by construction and `▦ match` becomes this function's
+     * degenerate case ("keep the width I already have").
+     *
+     * Returns `null` for an unreadable image or a non-positive cell size, so a
+     * caller can say why instead of posting a nonsense grid. The clamps are
+     * :func:`gridForImageAspect`'s: at least one cell per axis, at most 400
+     * columns, and at most `MAX_GRID_CELLS` cells, so a 1px cell on a large map
+     * cannot ask the compiler for a hundred thousand areas.
+     */
+    function gridForCellSize(imgW: number, imgH: number, pxPerCell: number):
+        { w: number; h: number; cells: number; aspect: number; pxPerCell: number } | null {
+        const iw = Number(imgW) || 0;
+        const ih = Number(imgH) || 0;
+        const px = Number(pxPerCell) || 0;
+        if (iw <= 0 || ih <= 0 || px <= 0) return null;
+        const w = Math.max(1, Math.min(400, Math.round(iw / px)));
+        const h = Math.max(1, Math.min(MAX_GRID_CELLS, Math.floor(MAX_GRID_CELLS / w),
+            Math.round(ih / px)));
+        return { w, h, cells: w * h, aspect: iw / ih, pxPerCell: px };
+    }
+
+    /**
+     * The `px / cell` the current grid already implies for this image, so a
+     * control can open where the author left it instead of jumping to a default.
+     * `null` when either number is missing.
+     *
+     * The unit is derived client-side and deliberately **not** persisted: the
+     * stored grid stays `{w, h}`, and a scope whose reference image is swapped
+     * gets a new cell size rather than a stale one baked into the save.
+     */
+    function cellSizeForGrid(imgW: number, gridW: number): number | null {
+        const iw = Number(imgW) || 0;
+        const gw = Number(gridW) || 0;
+        if (iw <= 0 || gw <= 0) return null;
+        return iw / gw;
+    }
+
+    /**
+     * The `px / cell` range a control should offer: the smallest cell the clamps
+     * permit through the largest that still changes anything.
+     *
+     * Both ends come from the same limits :func:`gridForCellSize` enforces, so a
+     * slider cannot be dragged to a value whose grid is then silently clamped
+     * underneath it. `null` for an unreadable image.
+     */
+    function cellSizeRange(imgW: number, imgH: number): { min: number; max: number } | null {
+        const iw = Number(imgW) || 0;
+        const ih = Number(imgH) || 0;
+        if (iw <= 0 || ih <= 0) return null;
+        // 400 columns is the widest grid; `MAX_GRID_CELLS` is the area cap, which
+        // for a large image is the stricter of the two on the small end.
+        const byWidth = iw / 400;
+        const byArea = Math.sqrt((iw * ih) / MAX_GRID_CELLS);
+        const min = Math.max(1, Math.ceil(Math.max(byWidth, byArea)));
+        // A cell bigger than the shorter side is already one cell on that axis,
+        // and nothing above it changes the grid.
+        const max = Math.max(min + 1, Math.floor(Math.min(iw, ih)));
+        return { min, max };
+    }
+
+    /**
+     * Every painted cell, area placement and feature placement that a grid of
+     * `{w, h}` would leave **outside** it (task-597): the author-facing answer to
+     * "what would this shrink cost me?".
+     *
+     * One definition of "outside", so the number a warning shows and the cells the
+     * canvas highlights cannot disagree. Entries are counted, not deduplicated: a
+     * cell that is both painted and holds a feature loses two things when it goes.
+     */
+    function strandedCells(payload: GridPayload, w: number, h: number): { x: number; y: number; kind: string }[] {
+        const nw = Number(w) || 0;
+        const nh = Number(h) || 0;
+        if (!payload || nw < 1 || nh < 1) return [];
+        const out: { x: number; y: number; kind: string }[] = [];
+        const outside = (x: number, y: number): boolean => x < 0 || y < 0 || x >= nw || y >= nh;
+        Object.keys((payload.layers) || {}).forEach((layer) => {
+            Object.keys(payload.layers[layer] || {}).forEach((key) => {
+                const cell = parseCellKey(key);
+                if (cell && outside(cell.x, cell.y)) out.push({ x: cell.x, y: cell.y, kind: 'paint' });
+            });
+        });
+        ((payload.area_placements) || []).forEach((a: any) => {
+            if (outside(a.x, a.y)) out.push({ x: a.x, y: a.y, kind: 'area' });
+        });
+        ((payload.placements) || []).forEach((a: any) => {
+            if (outside(a.x, a.y)) out.push({ x: a.x, y: a.y, kind: 'feature' });
+        });
+        return out;
+    }
+
+    /**
      * How much of a grid's content would fall outside it if it were resized to
      * `{w, h}` — the number the `▦ match` button shows before it acts, because a
      * shrink *prunes* out-of-bounds paint and placements server-side
      * (`world_grid.ensure_grid`) rather than leaving them dangling.
      */
     function strandedCount(payload: GridPayload, w: number, h: number): number {
-        const nw = Number(w) || 0;
-        const nh = Number(h) || 0;
-        if (!payload || nw < 1 || nh < 1) return 0;
-        let count = 0;
-        Object.keys((payload.layers) || {}).forEach((layer) => {
-            Object.keys(payload.layers[layer] || {}).forEach((key) => {
-                const cell = parseCellKey(key);
-                if (!cell) return;
-                if (cell.x < 0 || cell.y < 0 || cell.x >= nw || cell.y >= nh) count += 1;
-            });
-        });
-        ((payload.area_placements) || []).forEach((a: any) => {
-            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
-        });
-        ((payload.placements) || []).forEach((a: any) => {
-            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
-        });
-        return count;
+        return strandedCells(payload, w, h).length;
     }
 
     /**
@@ -1077,7 +1157,8 @@ type Vocabulary = any;
         buildRows, featureMap,
         pruneGrid, childrenAvailable,
         areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,
-        fitReferenceRect, gridForImageAspect, strandedCount,
+        fitReferenceRect, gridForImageAspect, gridForCellSize, cellSizeForGrid,
+        cellSizeRange, strandedCount, strandedCells,
         referenceHandlePoints, referenceHandleDrag,
         tileKind, tileDetail, detailRows,
         paletteSections, filterPalette, flattenPalette, paletteTile,
