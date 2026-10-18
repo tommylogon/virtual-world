@@ -3,7 +3,7 @@
  * Fetches world state from the backend and notifies listeners
  *
  * @module world-state — reactive cache of the server's `/api/state` payload
- * @contributes the `worldState` singleton: data, fetch/poll, getNode/players/areas helpers
+ * @contributes the `worldState` singleton: data, fetch/poll, getNode/players/areas helpers; the `/api/events` live feed (external edits + streamed world-advance ticks)
  * @powers every panel's view of the world (graph, inspector, agent list, turn panel)
  * @relates fetches via api.js and the `/api/events` SSE stream; emits `state:updated`
  * @docs none
@@ -554,12 +554,44 @@ class WorldState {
     }
     void window.worldState.fetch();
   }
+  // task-861: a world advance streams one frame per tick while its own POST is
+  // still in flight. Those rows go to the event stream and NOWHERE else: there is
+  // deliberately no state fetch on this path, because a refresh costs ~9 MB and
+  // ~5 s (measured), and clock and graph must keep their single source of truth in
+  // the authoritative `world_changed` fetch below.
+  let streaming = false;
+
+  function onWorldTick(ev: any): void {
+    if (typeof events === 'undefined' || !Array.isArray(ev.events)) return;
+    if (!streaming) {
+      streaming = true;
+      events.log('⏩ Fast-forwarding the world - everyone soaks, nobody acts...', 'system-msg');
+    }
+    for (const e of ev.events) {
+      const text = String(e.description || '').trim();
+      if (!text) continue;
+      // `__system__` is engine chatter, not a character's act: leave it unattributed
+      // so it lands in the World lane instead of whoever's card is open.
+      const actor = e.actor && e.actor !== '__system__' ? String(e.actor) : undefined;
+      events.log(text, 'msg-action', {}, actor);
+    }
+    if (ev.truncated) {
+      events.log(`⏩ tick ${ev.tick}: more happened than this frame carried; the rest lands with the world state.`, 'system-msg');
+    }
+  }
+
   try {
     es = new EventSource('/api/events');
     es.onmessage = function (msg) {
       let ev;
       try { ev = JSON.parse(msg.data); } catch (e) { return; }
-      if (!ev || ev.type !== 'world_changed') return;
+      if (!ev) return;
+      if (ev.type === 'world_tick') { onWorldTick(ev); return; }
+      if (ev.type !== 'world_changed') return;
+      if (streaming) {
+        streaming = false;
+        if (typeof events !== 'undefined') events.log('⏩ Fast-forward complete.', 'system-msg');
+      }
       refresh();
       // task-384: re-emit on the event bus so the per-edit undo feed
       // (EditFeed) can render without opening its own EventSource.

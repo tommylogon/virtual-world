@@ -61,6 +61,21 @@ def _requested_minutes(world, data):
     return None
 
 
+def _publish_tick(frame):
+    """Put one tick of a world advance on the live hub (task-861).
+
+    A world advance owns the clock inside a single POST, so without this the GUI's
+    only signal is the `world_changed` that fires *after* the response returns: an
+    hour of game time measured at 30 s of dead air, then one 9 MB fetch. These
+    frames are a projection of `turn_events`, not a second ledger, and `hub.publish`
+    is non-blocking and drops for a subscriber whose queue is full - so a stalled
+    browser cannot hold the world. The end-of-request `world_changed` is still what
+    settles the clock and the graph from authoritative state.
+    """
+    from engine.world_events import hub
+    hub.publish(dict(frame, type="world_tick"))
+
+
 def handle_timeskip(app):
     data = request.get_json(silent=True) or {}
     intent = str(data.get("intent", "idle")).lower()
@@ -116,7 +131,7 @@ def handle_timeskip(app):
             results, remaining = [], total
             while remaining > 0:
                 chunk = min(MAX_REQUEST_MINUTES, remaining)
-                outcome = timeskip.advance_world(world, chunk)
+                outcome = timeskip.advance_world(world, chunk, on_tick=_publish_tick)
                 results.append(outcome)
                 remaining -= chunk
                 if not outcome.ok:

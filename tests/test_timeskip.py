@@ -563,6 +563,74 @@ def test_the_world_flag_forces_a_world_advance_with_an_active_character():
     assert hero.soak_order is None, "a world advance declares no order"
 
 
+def test_a_world_advance_reports_one_frame_per_tick_to_a_listener():
+    """task-861: the live feed is one frame per tick, and only this span's rows.
+
+    A 60-minute advance costs ~30 s inside one POST and a state refresh costs ~9 MB,
+    so the GUI can only fill its event stream DURING the span if the engine reports
+    the span as it goes. The contract: one call per tick, the tick it belongs to, a
+    clock string, and no replay of what the ledger already held.
+    """
+    w = _world()
+    _safe(_hero(w))
+    w.record_turn_event("Before", "move", "a row from before the advance",
+                        area_name="A")
+    frames = []
+    res = timeskip.advance_world(w, 3, on_tick=frames.append)
+
+    assert res.ok and res.ticks == 3
+    assert len(frames) == 3, "one frame per tick, no more and no less"
+    assert all(isinstance(f["clock"], str) and f["clock"] for f in frames)
+    assert len({f["clock"] for f in frames}) == 3, "each frame carries its own clock"
+    assert frames[-1]["tick"] == w.time_ticks
+    assert all(isinstance(f["truncated"], bool) for f in frames)
+
+    flat = [e["description"] for f in frames for e in f["events"]]
+    assert "a row from before the advance" not in flat, "history must not replay"
+
+
+def test_a_failing_tick_listener_cannot_break_a_world_advance():
+    """A dead subscriber is the listener's problem, not the clock's (task-861)."""
+    w = _world()
+    _safe(_hero(w))
+
+    def boom(frame):
+        raise RuntimeError("no SSE queue on this side")
+
+    res = timeskip.advance_world(w, 2, on_tick=boom)
+    assert res.ok and res.ticks == 2
+
+
+def test_the_tick_frame_projects_only_new_ledger_rows_and_caps_itself():
+    """`_tick_delta` projects `turn_events`; it is never a second store.
+
+    Two behaviours the feed depends on. A buffer that SHRANK under the cursor (the
+    per-turn prune or the hard cap dropped rows) is handed over whole instead of
+    read from a stale offset, which would silently skip a fact. And a violent tick
+    is capped, because a frame rides an SSE queue that is 256 deep per subscriber.
+    """
+    w = _world()
+    w.record_turn_event("A", "move", "first", area_name="X")
+    w.record_turn_event("B", "act", "second", area_name="X")
+
+    frame, cursor = timeskip._tick_delta(w, 1)
+    assert [e["description"] for e in frame["events"]] == ["second"]
+    assert cursor == 2 and frame["truncated"] is False
+    assert frame["events"][0]["area"] == "X"
+
+    w.clear_turn_events()
+    w.record_turn_event("C", "act", "third", area_name="X")
+    frame, _ = timeskip._tick_delta(w, 99)
+    assert [e["description"] for e in frame["events"]] == ["third"], \
+        "a pruned buffer must not be skipped by a stale cursor"
+
+    for i in range(timeskip.TICK_FRAME_MAX_EVENTS + 1):
+        w.record_turn_event("D", "act", f"row {i}", area_name="X")
+    frame, _ = timeskip._tick_delta(w, 0)
+    assert frame["truncated"] is True
+    assert len(frame["events"]) == timeskip.TICK_FRAME_MAX_EVENTS
+
+
 # ───────────── one human: the whole cast soaks for the span (task-670) ─────
 
 def test_a_character_skip_soaks_the_rest_of_the_cast_while_it_runs():

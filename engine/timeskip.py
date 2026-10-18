@@ -37,6 +37,10 @@ logger = logging.getLogger(__name__)
 INTENTS = ("idle", "leisure", "search", "explore", "travel")
 MIN_MINUTES = 1
 MAX_MINUTES = 10080  # one in-game week
+#: Max `turn_events` in one streamed tick frame (task-861). A frame rides an SSE
+#: queue that is 256 deep per subscriber, so one violent tick must not be able to
+#: flood it; the rest of the span still lands in the end-of-request state fetch.
+TICK_FRAME_MAX_EVENTS = 60
 HEADING_WORDS = {
     "n": "north", "north": "north", "s": "south", "south": "south",
     "e": "east", "east": "east", "w": "west", "west": "west",
@@ -133,13 +137,57 @@ def everyone_soaking(gs, keep=None):
             player.simulation_mode = mode
 
 
-def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
+def _tick_delta(gs, cursor):
+    """What has happened in the ledger since *cursor*, as one compact frame.
+
+    A **projection, never a store**: :attr:`game_logger.turn_events` is the per-turn
+    ledger and this only slices past what the caller has already been shown. When
+    the buffer has *shrunk* under the cursor (the per-turn prune or the hard cap
+    dropped rows, or a turn was cleared) the whole buffer is handed over rather
+    than read from a stale offset, so a prune cannot silently skip a fact.
+    Entries are copied field by field so a frame cannot carry a future ledger key
+    to a client that does not know what it means.
+
+    Returns ``(frame, new_cursor)``.
+    """
+    events = list(getattr(gs, "turn_events", None) or [])
+    fresh = events[cursor:] if len(events) >= cursor else events
+    try:
+        clock = gs.tick_manager.get_current_time()
+    except Exception:  # a display string is never worth losing the frame over
+        clock = ""
+    frame = {
+        "tick": int(getattr(gs, "time_ticks", 0) or 0),
+        "clock": clock,
+        "events": [
+            {
+                "tick": e.get("tick"),
+                "actor": e.get("actor"),
+                "action": e.get("action"),
+                "description": e.get("description"),
+                "area": e.get("area"),
+            }
+            for e in fresh[:TICK_FRAME_MAX_EVENTS]
+        ],
+        # Says the frame was cut, so a reader can tell "nothing else happened"
+        # from "the rest is in the state fetch".
+        "truncated": len(fresh) > TICK_FRAME_MAX_EVENTS,
+    }
+    return frame, len(events)
+
+
+def advance_world(gs, minutes, *, rng=None, on_tick=None) -> TimeskipResult:
     """Advance the world with **no** player policy - everyone is soak.
 
     This is what a timeskip means in a scenario with no human player: there is no
     one to stand in for, so the clock simply runs. No policies, no interrupts,
     no resume memory: just ``tick_turn`` until the span is spent, with every
     character driven by the background tier.
+
+    *on_tick* receives one compact frame per tick (see :func:`_tick_delta`) so a
+    caller can stream the span while its own request is still in flight - the GUI
+    cannot refetch ``/api/state`` per tick, because that costs 9 MB and about 5 s
+    (task-861). The callback is optional and its failure cannot break the advance.
     """
     global _ACTIVE
 
@@ -160,12 +208,23 @@ def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
     start_tick = getattr(gs, "time_ticks", 0)
     per_tick = _frame_minutes(gs)
     steps = max(1, int(round(requested / per_tick)))
+    # A listener only ever sees what the span ITSELF produced: the ledger already
+    # holds earlier turns, and a chunked request (routes/timeskip_ops.py) starts a
+    # fresh advance per chunk, so the cursor is seeded to the buffer's size rather
+    # than 0. Without this every chunk of a long span would replay the last one.
+    cursor = len(list(getattr(gs, "turn_events", None) or []))
     try:
         with everyone_soaking(gs):
             for _ in range(steps):
                 gs.tick_turn()
                 result.ticks += 1
                 result.elapsed_minutes = int(round(result.ticks * per_tick))
+                if on_tick is not None:
+                    frame, cursor = _tick_delta(gs, cursor)
+                    try:
+                        on_tick(frame)
+                    except Exception as e:  # a dead listener must not kill a skip
+                        logger.warning("[timeskip] tick listener: %s", e)
     finally:
         _ACTIVE = False
 
