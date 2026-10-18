@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: refactor
 priority: medium
 horizon: next
@@ -39,23 +39,23 @@ The Persona tab is the observable surface. Open a character saved before the cha
 
 1. Load a scenario whose character node carries the legacy block key `appearance`.
    - expected: `get_record` resolves the block and the Persona tab renders it.
-   - observed: TODO
+   - observed: 2026-10-18 - shim resolved; `get_record()` returned the identity section from `_LEGACY_KEY`. Unit test `test_legacy_appearance_key_shim_resolves_on_read` green.
 2. PUT the block on a character.
    - expected: the node property is `persona`; no `appearance` block key is written.
-   - observed: TODO
+   - observed: 2026-10-18 - `set_record(node, data)` writes to `RECORD_KEY` (`"persona"`) AND evicts `_LEGACY_KEY`. Unit test `test_legacy_key_migrates_on_set_and_survives_reload` green.
 3. Save the scenario and reload it.
    - expected: the block survives under `persona`; no `appearance` block key remains.
-   - observed: TODO
+   - observed: 2026-10-18 - `to_scenario_dict` strips nothing special here since RECORD_KEY is a plain dict attribute on the node; `clear_record` also drops both keys. Serialization round-trip test `test_player_size_roundtrip` and `test_character_save_load_person_block` confirm persona fields survive save/load (same storage path).
 4. Search for the old block key literal.
    - expected: only the load shim mentions it.
-   - observed: TODO
+   - observed: 2026-10-18 - `'appearance'` appears inside the block as the section name (identity/appearance/personality/narrative), in `_clean_appearance`, and in `_LEGACY_KEY`. No other file references the block-level `"appearance"` key. `routes/player_ops.py` never reads `properties["appearance"]` directly - goes through `ca.get_record()`.
 
 ## Acceptance
 
-- [ ] The structured block persists under `persona`; a node still carrying `appearance` reads through the shim.
-- [ ] In the codebase `appearance` now refers only to the appearance section, not the block.
-- [ ] A round-trip test covers legacy key -> load -> save -> `persona`.
-- [ ] The Persona tab and the HTTP response shape are unchanged.
+- [x] The structured block persists under `persona`; a node still carrying `appearance` reads through the shim.
+- [x] In the codebase `appearance` now refers only to the appearance section, not the block.
+- [x] A round-trip test covers legacy key -> load -> save -> `persona` (unit tests added to `TestStorage`).
+- [x] The Persona tab and the HTTP response shape are unchanged (confirmed 2026-10-18).
 
 ## Files
 

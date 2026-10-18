@@ -145,7 +145,17 @@
 
     /** One scope's grid manifest: `GET /api/world/scopes/<id>/grid`. */
     interface WpPayload {
-        scope: { id: string; name?: string; has_grid?: boolean; mode?: string; state?: string };
+        scope: {
+            id: string;
+            name?: string;
+            has_grid?: boolean;
+            mode?: string;
+            state?: string;
+            sibling_traversal?: boolean;
+            sibling_traversal_effective?: boolean;
+        };
+        sibling_traversal?: boolean;
+        sibling_traversal_effective?: boolean;
         grid?: { w: number; h: number };
         mode?: string;
         layers?: Record<string, Record<string, string>>;
@@ -202,7 +212,7 @@
         crop: Partial<WpRect>;
     }
 
-    /** In-progress grid-frame drag (task-597): move the scope, or resize it. */
+    /** In-progress grid-frame drag (task-597): move the scope, resize the frame, or resize a cell corner. */
     interface WpGridDrag {
         kind: string;
         key: string | null;
@@ -214,6 +224,8 @@
         w: number;
         h: number;
         offset: WpCell;
+        anchorScreen?: { x: number; y: number; w: number; h: number } | null;
+        pxPerCell?: number | null;
     }
 
     /** The marquee being dragged, task-536. */
@@ -326,17 +338,11 @@
         /** Detaches the document-level grid-drag listeners, if any are attached. */
         gridDragRelease: (() => void) | null;
         /**
-         * A cell-size candidate being previewed by the `px / cell` slider
-         * (task-597): the grid it would set, drawn on the canvas before anything
-         * is committed. Null unless a slider drag is in progress.
+         * A cell-size candidate being previewed by dragging the cell (0,0) corner
+         * handle (task-597): the grid it would set, drawn on the canvas before
+         * anything is committed. Null unless a cell-size drag is in progress.
          */
         cellSizePreview: { w: number; h: number; pxPerCell: number } | null;
-        /**
-         * Re-syncs the cell-size control from the loaded reference image. The
-         * image decodes after the HUD is built, so the control is refreshed from
-         * `_redrawGrid` once its real pixel size is known.
-         */
-        cellSizeSync: (() => void) | null;
         /** The HUD's size readout, relabelled once the reference size is known. */
         dimsBtn: HTMLButtonElement | null;
         selectedChild: string | null;
@@ -413,7 +419,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     // 5.5px — lines still drawn, a 160-cell world still fits an 880px pane — so
     // zooming out to the floor leaves a readable map rather than a blank one.
     const MIN_SCALE = 0.25;
-    const MAX_SCALE = 6;
+    const MAX_SCALE = 20;
     // main.js reloads the VW namespace last, so prefer the bare global it keeps.
     const GM = () => window.gridModel || window.VW.gridModel;
 
@@ -447,10 +453,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         gridEdit: false,
         gridDrag: null,       // {kind, key, start, w, h, offset} during a grid edit
         gridDragRelease: null,
-        // Set by the `px / cell` slider while it is being dragged (task-597); the
-        // canvas draws the candidate extent and the cells it would strand.
+        // Set while dragging the cell (0,0) corner handle (task-597); the canvas
+        // draws the candidate extent and the cells it would strand.
         cellSizePreview: null,
-        cellSizeSync: null,
         dimsBtn: null,
         selectedChild: null,
         selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
@@ -818,8 +823,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     function close(): void {
         _unbindKeys();
         _gridDragRelease();
-        // The cell-size hook points at HUD elements that are about to be removed.
-        state.cellSizeSync = null;
         state.dimsBtn = null;
         state.cellSizePreview = null;
         if (state.resizeObs) { state.resizeObs.disconnect(); state.resizeObs = null; }
@@ -1537,12 +1540,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             _gridDragRelease();
             render();
             _status(state.gridEdit
-                ? 'Grid adjust: drag the frame to move the scope on the graph map, '
-                  + 'drag the E/S/SE handles to resize; click the size (or ▦ Grid…) '
-                  + 'to type exact numbers.'
+                ? 'Grid adjust: drag the green handle on cell (0,0) to resize cells inside the image, '
+                  + 'drag the frame to move the scope on the graph map, or drag the E/S/SE handles '
+                  + 'to resize the frame.'
                 : 'Grid adjust off.', false);
         }, 'padding:1px 6px;font-size:11px;');
-        gridAdjust.title = 'Move the grid on the graph map (drag the frame) or resize it (drag a handle)';
+        gridAdjust.setAttribute('data-role', 'wp-grid-adjust');
+        gridAdjust.title = 'Resize cells (drag the green corner on cell 0,0), move the grid on the graph map, or resize the frame';
         wrap.appendChild(gridAdjust);
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
 
@@ -1574,6 +1578,37 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         _help(wrap.appendChild(merge), 'wp-merge');
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
             'merge same-biome'));
+
+        // Sibling-scope border traversal (task-775): stitch facing border cells
+        // directly across adjacent child scopes placed on a parent chunk grid.
+        const sib = _el('input');
+        sib.type = 'checkbox';
+        const sibOwn = !!(p.sibling_traversal || (p.scope && p.scope.sibling_traversal));
+        const sibEff = !!(p.sibling_traversal_effective || (p.scope && p.scope.sibling_traversal_effective));
+        sib.checked = sibOwn || sibEff;
+        sib.setAttribute('data-role', 'wp-sibling-traversal');
+        sib.title = sibEff && !sibOwn
+            ? 'Inherited from parent scope - click to set explicitly on this scope'
+            : 'Stitch facing passable border cells directly between adjacent sibling scopes (task-775)';
+        sib.addEventListener('change', async () => {
+            try {
+                state.payload = await _post(
+                    `/${encodeURIComponent(p.scope.id)}/grid/sibling_traversal`,
+                    { enabled: sib.checked });
+                _notify(true);
+                render();
+                _status(sib.checked
+                    ? 'Sibling border traversal enabled.'
+                    : 'Sibling border traversal disabled.', false);
+            } catch (e) {
+                _status(`Sibling traversal failed: ${errText(e)}`, true);
+            }
+        });
+        wrap.appendChild(sib);
+        const sibLabel = _el('span', 'font-size:12px;color:var(--text-muted,#999);',
+            'sibling traversal');
+        sibLabel.title = sib.title;
+        wrap.appendChild(sibLabel);
 
         // Node-cost estimate, so painting 5,000 cells can't surprise the author
         // with a 15,000-node graph ("the laptop killer").
@@ -1978,9 +2013,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'gap:6px;align-items:center;flex-wrap:wrap;background:rgba(13,17,23,0.85);' +
             'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:4px 6px;' +
             'pointer-events:auto;');
-        // The HUD is rebuilt on every render, so any sync hook from the previous
-        // one points at a detached element. Cleared here and re-armed below.
-        state.cellSizeSync = null;
         state.dimsBtn = null;
         // Keep references so the controls can reflect the clamp (task-595): at
         // the floor the − button is disabled rather than silently doing nothing.
@@ -2122,10 +2154,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             // the reference share geometry instead of fighting at different ratios.
             wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p),
                 'padding:1px 6px;font-size:11px;'), 'wp-reference')!);
-            // The grid framed by cell *size* (task-597): the number an author can
-            // measure against the art, with the count as its readout.
-            const pxControl = _cellSizeControl(p);
-            if (pxControl) wrap.appendChild(pxControl);
             // Move/resize/crop the picture (task-524). The rect is stored in cell
             // units, so the graph map layout draws the same geometry.
             const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
@@ -2147,79 +2175,65 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     /**
-     * The `px / cell` slider (task-597): frame the grid by the size of a cell,
-     * with the count as a readout instead of an input.
-     *
-     * `px / cell` is the one number an author can measure against the reference
-     * art ("one cell is about a clearing"), where a `w`/`h` count is its inverse
-     * and has to be guessed and re-guessed. Dragging previews the candidate extent
-     * and the cells it would strand on the canvas; releasing commits through the
-     * same path a handle drag uses.
-     *
-     * Absent without a reference image to measure against, and disabled once the
-     * scope is generated: at that point the cells *are* the world's areas, and
-     * re-keying them would move every place.
+     * Rescale a stored reference rect (in cell units) proportionally when the
+     * grid extent changes from `oldGrid` to `newGrid`, so a custom-positioned
+     * or cropped background image stays aligned with the grid borders.
      */
-    function _cellSizeControl(p: WpPayload): HTMLElement | null {
-        if (!(p.reference && p.reference.image)) return null;
-        const generated = p.scope.state === 'materialized';
-        const wrap = _el('span', 'display:flex;align-items:center;gap:4px;');
-        const slider = _el('input', 'width:110px;');
-        slider.type = 'range';
-        slider.step = '1';
-        slider.disabled = true;           // until the image's pixel size is known
-        slider.setAttribute('data-role', 'wp-cell-size');
-        const readout = _el('span', 'font-size:11px;color:var(--text-muted,#999);');
-        readout.setAttribute('data-role', 'wp-cell-size-readout');
-        const imgW = (): number => (state.refImage && state.refImage.naturalWidth) || 0;
-        const imgH = (): number => (state.refImage && state.refImage.naturalHeight) || 0;
-        const show = (px: number): void => {
-            const next = GM().gridForCellSize(imgW(), imgH(), px);
-            readout.textContent = next ? `${next.w}×${next.h} · 1 cell ≈ ${px}px`
-                : 'cell size: reading image…';
+    function _scaleRefRect(rect: WpRect, oldGrid: { w: number; h: number },
+        newGrid: { w: number; h: number }): WpRect {
+        const sx = (oldGrid.w > 0 && newGrid.w > 0) ? (newGrid.w / oldGrid.w) : 1;
+        const sy = (oldGrid.h > 0 && newGrid.h > 0) ? (newGrid.h / oldGrid.h) : 1;
+        return {
+            x: rect.x * sx,
+            y: rect.y * sy,
+            w: rect.w * sx,
+            h: rect.h * sy,
         };
-        // The image decodes after the HUD is built, so the bounds and the current
-        // value are learned here rather than at construction. A drag in progress
-        // owns the slider, so a sync must not snap it back mid-gesture.
-        const sync = (): void => {
-            if (state.cellSizePreview) return;
-            const range = GM().cellSizeRange(imgW(), imgH());
-            if (!range) { slider.disabled = true; show(0); return; }
-            slider.min = String(range.min);
-            slider.max = String(range.max);
-            const px = GM().cellSizeForGrid(imgW(), p.grid!.w) || range.min;
-            slider.value = String(Math.min(range.max, Math.max(range.min, Math.round(px))));
-            slider.disabled = generated;
-            // The dims readout is built before the image is decoded, so its px
-            // half is filled in here rather than at construction.
-            if (state.dimsBtn) {
-                state.dimsBtn.textContent = `${p.grid!.w}×${p.grid!.h} · 1 cell = 1 turn`
-                    + ` ≈ ${Math.round(px)}px`;
-            }
-            show(parseFloat(slider.value));
+    }
+
+    /**
+     * Adjust `state.stage` (and `state.view`) so the reference image rect
+     * occupies the exact same screen-space box as `beforeScreen`.
+     *
+     * When the author drags the cell `(0,0)` corner handle, the grid cell count
+     * (`w*h`) changes while `CELL` (22 stage units) stays constant. Without
+     * counter-scaling the stage camera, changing `w` from 20 to 80 makes the stage
+     * 4x larger on screen. Anchoring the screen rect of the reference image keeps
+     * the background art fixed in the viewport while the grid cells visibly grow
+     * or shrink inside its borders.
+     */
+    function _anchorStageToRefScreen(
+        beforeScreen: { x: number; y: number; w: number; h: number } | null,
+        afterCells: WpRect,
+    ): void {
+        const stage = state.stage;
+        if (!stage || !beforeScreen || beforeScreen.w <= 0 || beforeScreen.h <= 0
+                || afterCells.w <= 0 || afterCells.h <= 0) return;
+        const scaleW = beforeScreen.w / (afterCells.w * CELL);
+        const scaleH = beforeScreen.h / (afterCells.h * CELL);
+        const nextScale = Math.max(0.05, Math.min(MAX_SCALE, Math.max(scaleW, scaleH)));
+        const cx = beforeScreen.x + beforeScreen.w / 2;
+        const cy = beforeScreen.y + beforeScreen.h / 2;
+        const nextX = cx - (afterCells.x + afterCells.w / 2) * CELL * nextScale;
+        const nextY = cy - (afterCells.y + afterCells.h / 2) * CELL * nextScale;
+        stage.scale({ x: nextScale, y: nextScale });
+        stage.position({ x: nextX, y: nextY });
+        _captureView();
+        _syncZoomButtons();
+    }
+
+    function _refScreenBox(p: WpPayload, extOverride?: { w: number; h: number }):
+        { x: number; y: number; w: number; h: number } | null {
+        const stage = state.stage;
+        if (!stage) return null;
+        const rect = _refRectCells(p, state.refImage, extOverride);
+        const scale = stage.scaleX() || 1;
+        return {
+            x: stage.x() + rect.x * CELL * scale,
+            y: stage.y() + rect.y * CELL * scale,
+            w: rect.w * CELL * scale,
+            h: rect.h * CELL * scale,
         };
-        state.cellSizeSync = sync;
-        sync();
-        slider.addEventListener('input', () => {
-            const px = parseFloat(slider.value);
-            const next = GM().gridForCellSize(imgW(), imgH(), px);
-            state.cellSizePreview = next ? { w: next.w, h: next.h, pxPerCell: px } : null;
-            show(px);
-            _redrawGrid();   // the frame, the lattice and the stranded set follow
-        });
-        slider.addEventListener('change', () => {
-            const preview = state.cellSizePreview;
-            state.cellSizePreview = null;
-            if (!preview) return;
-            _commitGridSize(p, preview.w, preview.h, `1 cell ≈ ${preview.pxPerCell}px`)
-                .then(() => render())
-                .catch((e) => _status(`Grid failed: ${errText(e)}`, true));
-        });
-        if (generated) slider.title = 'The grid is generated - ungenerate to re-key it';
-        wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'px / cell'));
-        _help(wrap.appendChild(slider), 'wp-cell-size');
-        wrap.appendChild(readout);
-        return wrap;
     }
 
     /**
@@ -2291,12 +2305,21 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // The panel fills the viewport, so the canvas has to follow a window
         // resize instead of keeping its mount size — Konva sizes a stage once
         // and never tracks its container.
+        const hadViewOnMount = Boolean(state.view);
+        let fittedRealSize = holder.clientWidth > 0 && holder.clientHeight > 0;
         if (state.resizeObs) state.resizeObs.disconnect();
         state.resizeObs = null;
         if (typeof ResizeObserver !== 'undefined') {
             const ro = new ResizeObserver(() => {
                 stage.width(holder.clientWidth || 900);
                 stage.height(holder.clientHeight || 480);
+                if (!fittedRealSize && holder.clientWidth > 0 && holder.clientHeight > 0) {
+                    fittedRealSize = true;
+                    if (!hadViewOnMount && !state.cellSizePreview && !state.gridDrag) {
+                        _fitGrid(p);
+                        return;
+                    }
+                }
                 stage.batchDraw();
             });
             ro.observe(holder);
@@ -2370,10 +2393,14 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     function _redrawGrid(): void {
         if (state.stage) state.stage.batchDraw();
-        // The reference image decodes after the HUD is built, so the `px / cell`
-        // control learns the image's real pixel size here rather than on a full
-        // re-render (which would discard a slider the author is holding).
-        if (state.cellSizeSync) state.cellSizeSync();
+        // The reference image decodes after the HUD is built, so the dims button
+        // learns the image's real pixel size here rather than on a full re-render.
+        if (state.dimsBtn && state.payload && state.payload.grid && !state.cellSizePreview) {
+            const iw = (state.refImage && state.refImage.naturalWidth) || 0;
+            const px = iw > 0 ? GM().cellSizeForGrid(iw, state.payload.grid.w) : null;
+            state.dimsBtn.textContent = `${state.payload.grid.w}×${state.payload.grid.h} · 1 cell = 1 turn`
+                + (px ? ` ≈ ${Math.round(px)}px` : '');
+        }
     }
 
     /**
@@ -2447,18 +2474,32 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * author's move/resize) wins; otherwise fit the whole image into the grid,
      * preserving aspect ratio and centring it. Cell units (not px) so the graph
      * map layout can draw the same picture at its own spacing (task-524).
+     *
+     * During a `px / cell` preview or grid resize drag (`_gridExtent(p)`), the
+     * reference rect scales with the candidate extent so the background image and
+     * the grid stay bounded together instead of the lattice detaching from the art.
      */
-    function _refRectCells(p: WpPayload, img: WpTrackedImage | null): WpRect {
+    function _refRectCells(p: WpPayload, img: WpTrackedImage | null,
+        extOverride?: { w: number; h: number; pxPerCell?: number }): WpRect {
+        const savedGrid = p.grid || { w: 1, h: 1 };
+        const preview = extOverride || state.cellSizePreview;
+        const ext = preview || savedGrid;
         const stored = (p.reference || {}).rect;
+        const iw = (img && img.naturalWidth) || ext.w || 1;
+        const ih = (img && img.naturalHeight) || ext.h || 1;
+        if (preview && preview.pxPerCell && preview.pxPerCell > 0 && iw > 1 && ih > 1) {
+            return { x: 0, y: 0, w: iw / preview.pxPerCell, h: ih / preview.pxPerCell };
+        }
         if (stored && typeof stored.x === 'number' && typeof stored.y === 'number'
                 && typeof stored.w === 'number' && typeof stored.h === 'number'
                 && stored.w > 0 && stored.h > 0) {
+            if (ext.w !== savedGrid.w || ext.h !== savedGrid.h) {
+                return _scaleRefRect(stored, savedGrid, ext);
+            }
             return { x: stored.x, y: stored.y, w: stored.w, h: stored.h };
         }
-        const gw = (p.grid && p.grid.w) || 0;
-        const gh = (p.grid && p.grid.h) || 0;
-        const iw = (img && img.naturalWidth) || gw || 1;
-        const ih = (img && img.naturalHeight) || gh || 1;
+        const gw = ext.w || 0;
+        const gh = ext.h || 0;
         return GM().fitReferenceRect(gw, gh, iw, ih);
     }
 
@@ -2579,24 +2620,40 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     // ───────────────── grid frame adjust (task-597) ───────────────
 
     /**
- * The grid size to *draw*, which is the in-progress drag size while a resize is
- * running and the saved size otherwise.
- *
- * The drawing reads the payload, and a resize drag only updates
- * `state.gridDrag` — so without this the frame and its handles were redrawn at
- * the *old* extent and the drag showed nothing but the size label ticking over.
- *
- * A `px / cell` preview (task-597) takes the same path: the slider is a resize
- * the author has not committed yet, so it must look exactly like one.
- */
-function _gridExtent(p: WpPayload): { w: number; h: number } {
+     * The grid size to *draw*, which is the in-progress drag size while a resize is
+     * running and the saved size otherwise.
+     *
+     * The drawing reads the payload, and a resize drag only updates
+     * `state.gridDrag` - so without this the frame and its handles were redrawn at
+     * the *old* extent and the drag showed nothing but the size label ticking over.
+     *
+     * A `px / cell` preview (task-597) takes the same path: the slider is a resize
+     * the author has not committed yet, so it must look exactly like one.
+     */
+    function _gridExtent(p: WpPayload): { w: number; h: number } {
         const drag = state.gridDrag;
-        if (drag && drag.kind !== 'move' && drag.w && drag.h) {
+        if (drag && drag.kind === 'resize' && drag.w && drag.h) {
             return { w: drag.w, h: drag.h };
         }
         const preview = state.cellSizePreview;
         if (preview) return { w: preview.w, h: preview.h };
         return { w: p.grid!.w, h: p.grid!.h };
+    }
+
+    /**
+     * Where the draggable cell-size corner handle sits on the canvas (in cell units).
+     * Placed at the bottom-right corner of the top-left cell of the reference image
+     * (`(rect.x + 1, rect.y + 1)`), so the author can grab the corner of that cell,
+     * drag it smaller or larger over the background art, and release to snap to the
+     * closest `{w, h}` grid (task-597).
+     */
+    function _cellCornerHandlePoint(p: WpPayload): WpCell | null {
+        if (!state.refImage || !state.refImage.naturalWidth || !(p.reference && p.reference.image)) {
+            return null;
+        }
+        if (p.scope.state === 'materialized') return null;
+        const rect = _refRectCells(p, state.refImage);
+        return { x: rect.x + 1, y: rect.y + 1 };
     }
 
     /** Resize handles on the grid frame; only meaningful in adjust mode. */
@@ -2613,24 +2670,56 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             ctx.fillStyle = key.length === 2 ? '#e3b341' : '#58a6ff';
             ctx.fill();
         });
+        // Cell-size corner handle on cell (0,0) of the reference image (task-597):
+        // highlights the first cell and puts a green diamond/circle at its corner
+        // so you can grab the cell corner itself and shrink/grow all cells inside
+        // the background image borders.
+        const cellCorner = _cellCornerHandlePoint(p);
+        if (cellCorner) {
+            const rx = (cellCorner.x - 1) * CELL;
+            const ry = (cellCorner.y - 1) * CELL;
+            ctx.strokeStyle = '#3fb950';
+            ctx.lineWidth = 1.75 / scale;
+            ctx.setLineDash([4 / scale, 3 / scale]);
+            ctx.strokeRect(rx, ry, CELL, CELL);
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(cellCorner.x * CELL, cellCorner.y * CELL, 6.5 / scale, 0, Math.PI * 2);
+            ctx.fillStyle = '#3fb950';
+            ctx.fill();
+            ctx.strokeStyle = '#0d1117';
+            ctx.lineWidth = 1.5 / scale;
+            ctx.stroke();
+        }
         const drag = state.gridDrag;
         if (drag && drag.kind === 'move') {
             const off = drag.offset;
             ctx.fillStyle = '#e3b341';
-            ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
+            ctx.font = `${12 / scale}px sans-serif`;
             ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (ext.h * CELL) + 14 / scale);
+        } else if (drag && drag.kind === 'cell-size' && state.cellSizePreview) {
+            const pr = state.cellSizePreview;
+            ctx.fillStyle = '#3fb950';
+            ctx.font = `${12 / scale}px sans-serif`;
+            ctx.fillText(`1 cell ≈ ${Math.round(pr.pxPerCell)}px -> snaps to ${pr.w}×${pr.h}`,
+                8 / scale, (ext.h * CELL) + 14 / scale);
         } else if (drag && drag.w && drag.h) {
             ctx.fillStyle = '#e3b341';
-            ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
+            ctx.font = `${12 / scale}px sans-serif`;
             ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (ext.h * CELL) + 14 / scale);
         }
         ctx.restore();
     }
 
-    /** What a pointer press grabs in grid-adjust mode: a handle or the frame. */
+    /** What a pointer press grabs in grid-adjust mode: a cell corner, a frame handle, or the frame. */
     function _gridHit(p: WpPayload, pos: WpCell): { kind: string; key: string | null } | null {
         const scale = (state.stage && state.stage.scaleX()) || 1;
-        const tol = 9 / scale;
+        const tol = 10 / scale;
+        const cellCorner = _cellCornerHandlePoint(p);
+        if (cellCorner && Math.abs(pos.x - cellCorner.x * CELL) <= tol
+                && Math.abs(pos.y - cellCorner.y * CELL) <= tol) {
+            return { kind: 'cell-size', key: 'cell' };
+        }
         const pts = GM().gridHandlePoints(p.grid!.w, p.grid!.h);
         for (const key of Object.keys(pts)) {
             if (Math.abs(pos.x - pts[key].x * CELL) <= tol
@@ -2654,6 +2743,11 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
         if (!pos) return;
         const target = _gridHit(p, pos);
         if (!target) return;
+        const anchorScreen = target.kind === 'cell-size' ? _refScreenBox(p, p.grid) : null;
+        const imgW = (state.refImage && state.refImage.naturalWidth) || 0;
+        const startPx = (target.kind === 'cell-size' && imgW > 0)
+            ? (GM().cellSizeForGrid(imgW, p.grid!.w) || 32)
+            : null;
         state.gridDrag = {
             kind: target.kind,
             key: target.key,
@@ -2663,6 +2757,8 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             w: p.grid!.w,
             h: p.grid!.h,
             offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
+            anchorScreen,
+            pxPerCell: startPx,
         };
         _gridDragWatch(p);
     }
@@ -2671,7 +2767,7 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
      * Track the drag on the document, not the stage.
      *
      * Konva's stage `mousemove` only fires while the pointer is over the canvas,
-     * and its `mouseleave` *committed* the resize — so dragging a handle outward
+     * and its `mouseleave` *committed* the resize - so dragging a handle outward
      * ended the drag the instant it left the frame, and growing the grid took a
      * series of separate drags. Listening on the document also lets the pointer
      * travel beyond the frame, which is what dragging an edge handle implies.
@@ -2681,6 +2777,10 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
         const onMove = (ev: MouseEvent): void => {
             if (!state.gridDrag) return;
             if (ev.cancelable) ev.preventDefault();
+            if (state.gridDrag.kind === 'cell-size') {
+                _gridDragCellCornerScreen(p, ev.clientX, ev.clientY);
+                return;
+            }
             const cell = _gridPointerCell(ev.clientX, ev.clientY);
             if (cell) _gridDragTo(p, cell.x, cell.y);
         };
@@ -2701,6 +2801,45 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             state.gridDragRelease();
             state.gridDragRelease = null;
         }
+    }
+
+    /**
+     * Dragging the cell `(0,0)` corner handle in screen coordinates:
+     * measures the pointer distance from the top-left corner of the fixed
+     * reference image on screen, converts that directly into `pxPerCell` in
+     * reference-image pixels, and updates `state.cellSizePreview` so all cells
+     * grow or shrink continuously under the cursor inside the background image!
+     */
+    function _gridDragCellCornerScreen(p: WpPayload, clientX: number, clientY: number): void {
+        const drag = state.gridDrag;
+        const stage = state.stage;
+        const img = state.refImage;
+        if (!drag || !stage || !img || !img.naturalWidth || !drag.anchorScreen) return;
+        const holderRect = state.gridHolder ? state.gridHolder.getBoundingClientRect() : null;
+        if (!holderRect) return;
+        const sx = clientX - holderRect.left - drag.anchorScreen.x;
+        const sy = clientY - holderRect.top - drag.anchorScreen.y;
+        // Take the larger axis from the cell's top-left origin so dragging
+        // diagonally, horizontally, or vertically feels natural.
+        const screenCellPx = Math.max(4, Math.max(sx, sy));
+        const imgPxPerScreenPx = img.naturalWidth / Math.max(1, drag.anchorScreen.w);
+        const range = GM().cellSizeRange(img.naturalWidth, img.naturalHeight);
+        if (!range) return;
+        const px = Math.min(range.max, Math.max(range.min,
+            Math.round(screenCellPx * imgPxPerScreenPx)));
+        const next = GM().gridForCellSize(img.naturalWidth, img.naturalHeight, px);
+        if (!next) return;
+        drag.w = next.w;
+        drag.h = next.h;
+        drag.pxPerCell = px;
+        state.cellSizePreview = { w: next.w, h: next.h, pxPerCell: px };
+        _applyRefTransform(p);
+        const afterCells = _refRectCells(p, img, state.cellSizePreview);
+        _anchorStageToRefScreen(drag.anchorScreen, afterCells);
+        if (state.dimsBtn) {
+            state.dimsBtn.textContent = `${next.w}×${next.h} · 1 cell = 1 turn ≈ ${px}px`;
+        }
+        if (state.stage) state.stage.batchDraw();
     }
 
     /**
@@ -2750,6 +2889,9 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
         const drag = state.gridDrag;
         if (!drag) return;
         state.gridDrag = null;
+        const savedAnchor = drag.anchorScreen;
+        const oldGrid = { w: p.grid!.w, h: p.grid!.h };
+        state.cellSizePreview = null;
         try {
             if (drag.kind === 'move') {
                 const offset = {
@@ -2761,6 +2903,18 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
                 const resp = await _post(`/${encodeURIComponent(p.scope.id)}/offset`, offset);
                 p.map_offset = (resp && resp.map_offset) || offset;
                 _status(`Grid offset set to ${offset.x}, ${offset.y} cells.`, false);
+            } else if (drag.kind === 'cell-size' && (drag.w !== p.grid!.w || drag.h !== p.grid!.h)) {
+                const why = drag.pxPerCell ? `1 cell ≈ ${Math.round(drag.pxPerCell)}px` : 'cell resize';
+                const committed = await _commitGridSize(p, drag.w, drag.h, why, oldGrid);
+                if (!committed) {
+                    _applyRefTransform(p);
+                    if (savedAnchor) {
+                        const origCells = _refRectCells(p, state.refImage, oldGrid);
+                        _anchorStageToRefScreen(savedAnchor, origCells);
+                    }
+                    _redrawGrid();
+                    return;
+                }
             } else if (drag.w !== p.grid!.w || drag.h !== p.grid!.h) {
                 await _commitGridSize(p, drag.w, drag.h, 'frame resize');
             }
@@ -2769,6 +2923,11 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             _status(`Grid adjust failed: ${errText(e)}`, true);
         }
         render();
+        if (drag.kind === 'cell-size' && state.payload && savedAnchor) {
+            const afterCells = _refRectCells(state.payload, state.refImage);
+            _anchorStageToRefScreen(savedAnchor, afterCells);
+            _redrawGrid();
+        }
     }
 
     /**
@@ -2781,24 +2940,51 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
      * Server-side the shrink *prunes* out-of-bounds paint and placements
      * (`world_grid.ensure_grid`) rather than leaving them dangling.
      */
-    async function _commitGridSize(p: WpPayload, w: number, h: number, why: string): Promise<void> {
+    async function _commitGridSize(
+        p: WpPayload, w: number, h: number, why: string,
+        rescaleRefFrom?: { w: number; h: number },
+    ): Promise<boolean> {
         const stranded = GM().strandedCount(p, w, h);
         if (stranded > 0 && !window.confirm(
             `Resize the grid to ${w}×${h} (${why})?\n\n`
             + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
             + 'This can be undone.')) {
-            return;
+            return false;
         }
+        const storedRect = (p.reference || {}).rect;
         state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`,
             { w, h, mode: p.mode });
+        if (rescaleRefFrom && storedRect && typeof storedRect.w === 'number' && storedRect.w > 0
+                && (rescaleRefFrom.w !== w || rescaleRefFrom.h !== h) && state.payload) {
+            const scaledRect = _scaleRefRect(storedRect, rescaleRefFrom, { w, h });
+            const ref = state.payload.reference || {};
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/reference`, {
+                image: ref.image || null,
+                opacity: ref.opacity,
+                visible: ref.visible,
+                crop: ref.crop,
+                rect: scaledRect,
+            });
+        }
         _status(`Grid set to ${w}×${h} (${why})`
             + (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
+        return true;
     }
 
     function _drawGridLines(ctx: CanvasRenderingContext2D, p: WpPayload): void {
         const ext = _gridExtent(p);
-        const w = ext.w * CELL;
-        const h = ext.h * CELL;
+        const preview = state.cellSizePreview;
+        const hasRefImg = Boolean(state.refImage && state.refImage.naturalWidth
+            && p.reference && p.reference.image);
+        const refRect = (preview && hasRefImg) ? _refRectCells(p, state.refImage, preview) : null;
+        // During a `px / cell` preview (slider or cell-corner drag), bind the
+        // outer frame and the cell lattice strictly to the borders of the
+        // background reference image so cells visibly grow or shrink inside the
+        // image borders without ever overhanging into empty space outside the art.
+        const w = refRect ? (refRect.w * CELL) : (ext.w * CELL);
+        const h = refRect ? (refRect.h * CELL) : (ext.h * CELL);
+        const maxCols = refRect ? Math.ceil(refRect.w) : ext.w;
+        const maxRows = refRect ? Math.ceil(refRect.h) : ext.h;
         ctx.save();
         // No opaque fill: the reference image (a layer beneath) must show through.
         const scale = state.stage ? state.stage.scaleX() : 1;
@@ -2806,7 +2992,7 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
         // around the grid, a marker at cell (0,0), and a faint box around the
         // painted content so an author can see at a glance how much of the grid
         // is used and which corner is the origin.
-        ctx.strokeStyle = state.gridEdit ? '#e3b341' : 'rgba(255,255,255,0.35)';
+        ctx.strokeStyle = state.gridEdit ? '#e3b341' : 'rgba(255,255,255,0.45)';
         ctx.lineWidth = 2 / scale;
         ctx.strokeRect(0, 0, w, h);
         const bounds = GM().paintedBounds(p);
@@ -2824,32 +3010,39 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
         ctx.beginPath();
         ctx.arc(0, 0, 4 / scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.font = `${Math.max(9, 11 / scale)}px sans-serif`;
-        ctx.fillText(`0,0 · ${ext.w}×${ext.h}`, 6 / scale, -5 / scale);
-        // Below ~4px per cell the lines become moiré — paint only.
+        ctx.font = `${11 / scale}px sans-serif`;
+        ctx.fillText(preview
+            ? `0,0 · snaps to ${ext.w}×${ext.h} (1 cell ≈ ${Math.round(preview.pxPerCell)}px)`
+            : `0,0 · ${ext.w}×${ext.h}`, 6 / scale, -5 / scale);
+        // Below ~4px per cell the lines become moire - paint only.
         if (CELL * scale >= 4) {
-            ctx.strokeStyle = 'rgba(255,255,255,0.07)';
-            ctx.lineWidth = 1 / scale;
+            ctx.save();
+            // Clip the lattice strictly to the frame/image box so partial cells at
+            // the right or bottom edge of the reference image never stick out.
             ctx.beginPath();
-            // The lattice follows the *extent being drawn*, not the saved grid:
-            // during a resize (a handle drag or the `px / cell` slider) the frame
-            // moved and the lines did not, so the preview showed a boundary with
-            // the old lattice inside it.
-            for (let x = 0; x <= ext.w; x += 1) {
+            ctx.rect(0, 0, w, h);
+            ctx.clip();
+            const hasRef = Boolean(p.reference && p.reference.image && p.reference.visible);
+            ctx.strokeStyle = preview
+                ? 'rgba(255,230,140,0.60)'
+                : (hasRef ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.09)');
+            ctx.lineWidth = (preview ? 1.25 : 1) / scale;
+            ctx.beginPath();
+            for (let x = 0; x <= maxCols; x += 1) {
                 ctx.moveTo(x * CELL, 0);
                 ctx.lineTo(x * CELL, h);
             }
-            for (let y = 0; y <= ext.h; y += 1) {
+            for (let y = 0; y <= maxRows; y += 1) {
                 ctx.moveTo(0, y * CELL);
                 ctx.lineTo(w, y * CELL);
             }
             ctx.stroke();
+            ctx.restore();
         }
         // The cells a shrink would strand (task-597), drawn on the candidate
         // extent so the author sees *which* cells go and not only how many. They
         // sit outside the new frame by definition, and the confirm dialog that
         // will remove them names the same count `strandedCells` produced.
-        const preview = state.cellSizePreview;
         if (preview) {
             ctx.fillStyle = 'rgba(247,119,119,0.30)';
             ctx.strokeStyle = '#f77';
@@ -3603,8 +3796,11 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
     function _fitGrid(p: WpPayload): void {
         const stage = state.stage;
         if (!stage) return;
-        const scale = Math.max(MIN_SCALE, Math.min(1.5,
-            Math.min(stage.width() / (p.grid!.w * CELL), stage.height() / (p.grid!.h * CELL))));
+        const scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE,
+            Math.min(
+                (stage.width() * 0.88) / (p.grid!.w * CELL),
+                (stage.height() * 0.88) / (p.grid!.h * CELL),
+            )));
         stage.scale({ x: scale, y: scale });
         stage.position({
             x: (stage.width() - p.grid!.w * CELL * scale) / 2,

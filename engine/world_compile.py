@@ -1169,6 +1169,165 @@ def _painted_cells(record: Dict[str, dict]) -> Set[Tuple[int, int]]:
     return out
 
 
+def _sibling_way_id(scope_a: str, scope_b: str,
+                    area_a: str, area_b: str) -> str:
+    """Deterministic id for a border seam way between two sibling scopes (task-775).
+
+    Canonicalised by sorting the ``(scope_id, area_id)`` endpoint pairs so
+    whichever sibling compiles second mints the exact same way id.
+    """
+    (s1, a1), (s2, a2) = sorted(((str(scope_a), str(area_a)),
+                                 (str(scope_b), str(area_b))))
+    return f"way_seam_{s1}_{s2}_{a1}_{a2}"
+
+
+def _border_line(width: int, height: int, direction: str) -> List[Tuple[int, int]]:
+    """The ordered edge cells of a ``width x height`` grid along *direction*.
+
+    Ordered north-to-south on ``east``/``west`` borders and west-to-east on
+    ``north``/``south`` borders so two facing borders share the same axis
+    orientation.
+    """
+    if width <= 0 or height <= 0:
+        return []
+    if direction == "north":
+        return [(x, 0) for x in range(width)]
+    if direction == "south":
+        return [(x, height - 1) for x in range(width)]
+    if direction == "west":
+        return [(0, y) for y in range(height)]
+    if direction == "east":
+        return [(width - 1, y) for y in range(height)]
+    return []
+
+
+def _pair_border_cells(line_a: List[Tuple[int, int]],
+                       line_b: List[Tuple[int, int]]
+                       ) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    """Pair facing border cells across two sibling grids by center-point fraction (task-775).
+
+    Evaluated from the finer edge (``len >= other``) so every cell on the finer
+    border maps its center ``(i + 0.5) / N`` into ``[0, M)`` on the coarser
+    border. Symmetric by construction: swapping ``line_a`` and ``line_b`` yields
+    the exact reversed pairs, and equal-length borders pair 1-to-1.
+    """
+    na, nb = len(line_a), len(line_b)
+    if na == 0 or nb == 0:
+        return []
+    if na >= nb:
+        return [
+            (line_a[i], line_b[min(nb - 1, int(((i + 0.5) * nb) // na))])
+            for i in range(na)
+        ]
+    return [
+        (line_a[min(na - 1, int(((j + 0.5) * na) // nb))], line_b[j])
+        for j in range(nb)
+    ]
+
+
+def _scope_cell_areas(manifest: Dict[str, dict], scope_id: str,
+                      graph=None) -> Dict[Tuple[int, int], Dict[str, object]]:
+    """Map every passable cell ``(x, y)`` of *scope_id* to its area id, name and paint.
+
+    Used by sibling border stitching and preflight (task-775) to inspect a
+    neighbouring scope's border cells without requiring a live graph in unit
+    tests, while respecting hand-placed areas and ``region_merge`` when present.
+    """
+    rec = (manifest or {}).get(str(scope_id))
+    if not isinstance(rec, dict) or not wg.has_grid(rec):
+        return {}
+    width, height = wg.grid_size(rec)
+    layers = rec.get("layers") or {}
+    biome_layer = layers.get("biome") or {}
+    road_layer = layers.get("road") or {}
+    biome_of: Dict[Tuple[int, int], str] = {}
+    road_of: Dict[Tuple[int, int], str] = {}
+    for y in range(height):
+        for x in range(width):
+            key = wg.cell_key(x, y)
+            bval = biome_layer.get(key)
+            if bval not in (None, ""):
+                biome_of[(x, y)] = str(bval)
+            rval = road_layer.get(key)
+            if rval not in (None, ""):
+                road_of[(x, y)] = str(rval)
+
+    all_painted = sorted(set(biome_of) | set(road_of), key=lambda c: (c[1], c[0]))
+
+    def is_structure(cell: Tuple[int, int]) -> bool:
+        if road_of.get(cell):
+            return False
+        return biomes_mod.cell_kind(biome_of.get(cell)) != "place"
+
+    cells = [c for c in all_painted if not is_structure(c)]
+    placed = wg.area_placements(rec)
+    out: Dict[Tuple[int, int], Dict[str, object]] = {}
+    if placed:
+        occupied = {wg.cell_key(pos["x"], pos["y"]) for pos in placed.values()}
+        cells = [c for c in cells if wg.cell_key(*c) not in occupied]
+        for area_id, pos in sorted(placed.items()):
+            try:
+                c = (int(pos["x"]), int(pos["y"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not (0 <= c[0] < width and 0 <= c[1] < height):
+                continue
+            placed_name = _placed_area_name(graph, area_id) or str(area_id)
+            out[c] = {
+                "area_id": str(area_id),
+                "area_name": placed_name,
+                "biome": biome_of.get(c),
+                "road": road_of.get(c),
+                "floor": wg.floor_at(rec, *c),
+            }
+
+    if not cells:
+        return out
+
+    # Infer region_merge from the scope record if stored, else from its compiled
+    # area_ids (if fewer compiled areas than painted cells exist, it was merged).
+    if "region_merge" in rec:
+        merge = bool(rec.get("region_merge"))
+    else:
+        existing_ids = set(rec.get("area_ids") or ())
+        placed_ids = set(placed)
+        compiled_count = len(existing_ids - placed_ids)
+        merge = bool(compiled_count and compiled_count < len(cells))
+
+    def identity(cell: Tuple[int, int]) -> str:
+        road = road_of.get(cell)
+        kind = f"road:{road}" if road else f"biome:{biome_of.get(cell)}"
+        return f"{kind}|floor:{wg.floor_at(rec, *cell)}"
+
+    always_merge = _merge_always_cells(cells, biome_of.get, road_of.get)
+    never_merge = _merge_never_cells(cells, biome_of.get, road_of.get)
+    regions = _regions(cells, identity, default_merge=merge,
+                       always_merge=always_merge, never_merge=never_merge)
+    scope_label = str(rec.get("name") or scope_id)
+    cell_names = dict(rec.get("names") or {})
+    used_names: Set[str] = set()
+    for region in regions:
+        anchor = region[0]
+        area_id = _area_id(scope_id, anchor)
+        node = graph.get_node(area_id) if graph is not None else None
+        if node is not None and getattr(node, "name", None):
+            area_name = str(node.name)
+            used_names.add(area_name)
+        else:
+            area_name = _place_name(
+                scope_label, anchor, biome_of, road_of,
+                _region_authored_name(region, cell_names), used_names)
+        for cell in region:
+            out[cell] = {
+                "area_id": area_id,
+                "area_name": area_name,
+                "biome": biome_of.get(cell),
+                "road": road_of.get(cell),
+                "floor": wg.floor_at(rec, *cell),
+            }
+    return out
+
+
 def preflight(manifest: Dict[str, dict], scope_id: str, *,
               region_merge: bool = False,
               max_nodes: int = 20_000) -> List[Dict[str, str]]:
@@ -1289,6 +1448,46 @@ def preflight(manifest: Dict[str, dict], scope_id: str, *,
                     f"is skipped.",
                     "Move the scope to a painted cell with no hand-placed area "
                     "on it, or promote that area into the scope instead.")
+
+    # ── sibling-scope border alignment (task-775) ──
+    if placement is not None and isinstance(parent, dict) and wg.sibling_traversal_enabled(manifest, scope_id):
+        w_here, h_here = wg.grid_size(record)
+        passable_here = set(cells) | {
+            (int(pos["x"]), int(pos["y"])) for pos in placed.values()
+            if isinstance(pos, dict) and "x" in pos and "y" in pos
+        }
+        px, py = placement
+        dead_ends: List[str] = []
+        for direction in ("north", "east", "south", "west"):
+            dx, dy = DIRECTIONS[direction]
+            nb_scope_id = wg.occupant_at(parent, px + dx, py + dy)
+            if not nb_scope_id or nb_scope_id == scope_id:
+                continue
+            nb_rec = manifest.get(nb_scope_id)
+            if not isinstance(nb_rec, dict) or not wg.has_grid(nb_rec):
+                continue
+            if not (nb_rec.get("area_ids") or _painted_cells(nb_rec) or wg.area_placements(nb_rec)):
+                continue
+            nb_w, nb_h = wg.grid_size(nb_rec)
+            nb_cells = _scope_cell_areas(manifest, nb_scope_id)
+            line_here = _border_line(w_here, h_here, direction)
+            line_there = _border_line(nb_w, nb_h, OPPOSITE[direction])
+            for cell_a, cell_b in _pair_border_cells(line_here, line_there):
+                if cell_a in passable_here and cell_b not in nb_cells:
+                    nb_label = str(nb_rec.get("name") or nb_scope_id)
+                    dead_ends.append(
+                        f"{direction} cell ({cell_a[0]},{cell_a[1]}) faces "
+                        f"unpainted/solid ({cell_b[0]},{cell_b[1]}) in “{nb_label}”"
+                    )
+        if dead_ends:
+            shown = "; ".join(dead_ends[:4])
+            if len(dead_ends) > 4:
+                shown += f" (+{len(dead_ends) - 4} more)"
+            add("sibling-dead-end", WARN,
+                f"{len(dead_ends)} border cell(s) on “{label}” face an unpainted "
+                f"or solid cell in an adjacent sibling scope: {shown}.",
+                "Paint the matching border cell in the neighbouring scope if "
+                "those cells should connect across the seam.")
 
     # ── what will it actually produce? ──
     regions: List[List[Tuple[int, int]]] = []
@@ -2405,6 +2604,125 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                 entered += 1
         break
 
+    # ── sibling-scope border seams (task-775) ──
+    # When this scope (or the parent chunk grid it sits on) opts into sibling
+    # traversal, adjacent child scopes placed on neighbouring parent cells stitch
+    # their facing borders directly without stepping back up to the parent scope.
+    sibling_seams = 0
+    if wg.sibling_traversal_enabled(manifest, scope_id):
+        parent_id_str = str(record.get("parent_id") or "")
+        parent_rec = manifest.get(parent_id_str) if parent_id_str else None
+        my_parent_cell = wg.cell_of(parent_rec, scope_id) if isinstance(parent_rec, dict) else None
+        if my_parent_cell is not None:
+            px, py = my_parent_cell
+            seen_seam_ids: Set[str] = set()
+            for direction in ("north", "east", "south", "west"):
+                dx, dy = DIRECTIONS[direction]
+                nb_scope_id = wg.occupant_at(parent_rec, px + dx, py + dy)
+                if not nb_scope_id or nb_scope_id == scope_id:
+                    continue
+                nb_rec = manifest.get(nb_scope_id) or {}
+                if not nb_rec.get("area_ids") or not wg.has_grid(nb_rec):
+                    continue  # sibling not materialized yet; it will stitch when it compiles
+                nb_w, nb_h = wg.grid_size(nb_rec)
+                nb_cells = _scope_cell_areas(manifest, nb_scope_id, graph=graph)
+                if not nb_cells:
+                    continue
+                line_here = _border_line(width, height, direction)
+                line_there = _border_line(nb_w, nb_h, OPPOSITE[direction])
+                for cell_a, cell_b in _pair_border_cells(line_here, line_there):
+                    nb_info = nb_cells.get(cell_b)
+                    if nb_info is None:
+                        continue
+                    region_a = cell_region.get(cell_a)
+                    if region_a is not None:
+                        area_a = area_id_of_region[region_a]
+                        name_a = region_area_name[region_a]
+                    else:
+                        area_a = placed_areas.get(cell_a)
+                        if not area_a:
+                            continue
+                        name_a = _placed_area_name(graph, area_a) or str(area_a)
+                    area_b = str(nb_info["area_id"])
+                    name_b = str(nb_info["area_name"])
+                    seam_id = _sibling_way_id(scope_id, nb_scope_id, area_a, area_b)
+                    if seam_id in seen_seam_ids:
+                        continue  # one way per connected region pair across the seam
+                    seen_seam_ids.add(seam_id)
+                    if (wg.is_boundary_overridden(record, seam_id)
+                            or wg.is_boundary_overridden(nb_rec, seam_id)):
+                        boundary_suppressed += 1
+                        continue
+                    road_a = cell_road(cell_a)
+                    road_b = nb_info.get("road")
+                    biome_a = cell_biome(cell_a)
+                    biome_b = nb_info.get("biome")
+                    floor_a = wg.floor_at(record, *cell_a)
+                    floor_b = int(nb_info.get("floor") or 0)
+                    storey_delta = abs(floor_a - floor_b)
+                    kind = "stairs" if storey_delta >= 1 else "open"
+                    road_id = road_a or road_b
+                    floor_biome = biome_a or biome_b or ""
+                    way_tags: List[str] = []
+                    for side_road, side_biome in ((road_a, biome_a), (road_b, biome_b)):
+                        side_road_rec = (biomes_mod.features() or {}).get(str(side_road)) or {} if side_road else {}
+                        for tag in (side_road_rec.get("tags") or []):
+                            if str(tag) not in way_tags:
+                                way_tags.append(str(tag))
+                        for tag in biomes_mod.area_tags(side_biome):
+                            if str(tag) not in way_tags:
+                                way_tags.append(str(tag))
+                    if outdoor and "outdoor" not in way_tags:
+                        way_tags.append("outdoor")
+                    if kind == "stairs" and "stairs" not in way_tags:
+                        way_tags.append("stairs")
+                    border_x = cell_a[0] + 0.5 * dx
+                    border_y = cell_a[1] + 0.5 * dy
+                    seam_props: Dict[str, object] = {
+                        "area_from": name_a,
+                        "area_to": name_b,
+                        "area_from_id": area_a,
+                        "area_to_id": area_b,
+                        "source_area_id": area_a,
+                        "source_scope_id": scope_id,
+                        "target_area_id": area_b,
+                        "target_scope_id": nb_scope_id,
+                        "sibling_scope_id": nb_scope_id,
+                        "direction": direction,
+                        "return_direction": OPPOSITE[direction],
+                        "current_state": "open",
+                        "see_through": True,
+                        "prevent_close": True,
+                        "kind": kind,
+                        "floor_step": storey_delta,
+                        "floor": min(floor_a, floor_b),
+                        "surface": biomes_mod.ground_surface(
+                            (biomes_mod.features() or {}).get(str(road_id or "")),
+                            biomes_mod.biome(floor_biome)),
+                        "pass_message": (
+                            f"You climb {storey_delta} storey"
+                            f"{'s' if storey_delta != 1 else ''} to {name_b}."
+                            if kind == "stairs" and storey_delta
+                            else f"You follow the path {direction} toward {name_b}."
+                        ),
+                        "world_scope_id": scope_id,
+                        "x": border_x * CELL_CANVAS_UNITS,
+                        "y": border_y * CELL_CANVAS_UNITS,
+                        "cell": {"x": border_x, "y": border_y},
+                        "tags": way_tags,
+                        "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
+                    }
+                    if kind == "stairs":
+                        seam_props["handle"] = "stairs"
+                        seam_props["aliases"] = ["stairs", "stairway", "up", "down", "in", "out"]
+                    nodes.append(Node(
+                        id=seam_id, type="way",
+                        name=f"{name_a} to {name_b}",
+                        properties=seam_props,
+                    ))
+                    edges.extend(_way_edges(area_a, area_b, seam_id, direction))
+                    sibling_seams += 1
+
     # ── block a deterministic subset of the outdoor ways (task-522) ──
     blocked_ways = _apply_way_blocking(nodes, outdoor_ways, seed)
 
@@ -2464,6 +2782,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                      f"{' …' if len(unknown_ids) > 6 else ''}")
     if gateways:
         notes.append(f"{gateways} child gateway(s)")
+    if sibling_seams:
+        notes.append(f"{sibling_seams} sibling border seam(s)")
     if linked:
         notes.append(f"{linked} island(s) linked to the nearest region")
     if isolated:
@@ -2503,7 +2823,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             f"{len(blocked_ways)} outdoor way(s) blocked at compile time "
             f"({summary}); they need clearing, not opening"
         )
-    if boundary_unnamed:        notes.append(f"WARNING: {len(boundary_unnamed)} hand-placed area(s) could "
+    if boundary_unnamed:
+        notes.append(f"WARNING: {len(boundary_unnamed)} hand-placed area(s) could "
                      f"not be named, so no boundary way was minted for them: "
                      f"{', '.join(sorted(boundary_unnamed)[:6])}"
                      f"{' …' if len(boundary_unnamed) > 6 else ''}")
@@ -2534,6 +2855,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         unresolved_tags=unresolved_tags,
     )
     updates: Dict = {"state": "materialized",
+                     "region_merge": bool(region_merge),
                      "entry_area_id": entry_area_id,
                      "entry_area_name": entry_area_name,
                      # The entry *cell*, so a parent compiling later can read the

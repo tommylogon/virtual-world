@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: world
 priority: medium
 ---
@@ -140,21 +140,31 @@ hazard roll (`engine/traversal.py`) reaches the backsim and timeskip but not the
 human/LLM command path (**task-863**), and the slasher bypasses `move_to_area`
 entirely (`engine/npc_behaviors.py:800`; legacy, not wanted, **task-864**).
 
-## Proposed decisions (not ratified)
+## Ratified decisions (2026-10-18)
 
-1. **Strict**, per the author's leaning, and for a second reason: forgiving makes
-   the flag dead. If any passable cell snaps to the nearest passable cell, nothing
-   ever leads nowhere, so the preflight item the card wants can never fire. The
-   aid's flavour (warn, or offer to mirror) is separate, and whether it may write
-   into the neighbour's grid is the author's call.
-2. **Seam owner: to be decided**, but it must not depend on the world scope being
-   loaded.
-3. **Split the multi-cell footprint out of this card.** The card already says the
-   settlement-gate angle (task-401) is a distinct problem, and for adjacent
-   wilderness siblings the seam needs only the facing-area target, not a footprint.
-   Footprints drag `placements` / `occupant_at` / `area_placement_at` /
-   `feature_layer` / `_gateway_id` off their single-cell assumption, which is the
-   settlement case.
+1. **Opt-in toggle (`sibling_traversal`):** WorldPainter exposes a `sibling traversal`
+   checkbox in the toolbar (`POST /api/world/scopes/<id>/grid/sibling_traversal`).
+   Setting it on a parent chunk grid (e.g. `world`) enables border stitching for
+   every child chunk placed on it; setting it on an individual child scope enables
+   it for that scope's borders with its siblings.
+2. **Strict alignment across every passable border cell:** Connect only when **both**
+   facing border cells are passable (`is_place` or a hand-placed area). Unpainted
+   cells and structure cells (`wall`, `void`, `window`, `door`) do not connect.
+   When a passable border cell faces an unpainted or solid cell on an adjacent
+   sibling scope, `world_compile.preflight` emits a `sibling-dead-end` warning.
+3. **One way per connected region pair:** Facing passable border cells are paired
+   by symmetric center-point fraction (`_pair_border_cells`, evaluated from the
+   finer edge `N >= M` via `min(M - 1, int(((i + 0.5) * M) // N))`), and deduplicated
+   by sorted endpoint pair `way_seam_{s1}_{s2}_{a1}_{a2}` so merged regions emit
+   one way per region pair and unmerged `8x7` grids emit 7 ways across 7 passable rows.
+4. **Seam ownership and bidirectional chunk loading:** Emitted by whichever sibling
+   compiles second, stamped with `source_area_id`, `source_scope_id`, `target_area_id`,
+   `target_scope_id`, and `sibling_scope_id`. `GlobalScopeIndex.ensure_destination_loaded`
+   loads whichever endpoint scope is currently unloaded, and `ungenerate_scope`
+   cleans up compiled ways where `sibling_scope_id == scope_id`.
+5. **Multi-cell parent footprints retired:** Under the chunk-grid workflow each chunk
+   occupies a single parent cell and has its own internal grid resolution; multi-cell
+   parent footprints are obsolete.
 
 ## Non-goals
 
@@ -174,23 +184,23 @@ entirely (`engine/npc_behaviors.py:800`; legacy, not wanted, **task-864**).
 
 1. Two adjacent chunks, a road painted across the seam on both sides.
    - expected: walking out A's east edge arrives at B's facing west-edge cell.
-   - observed: TODO
+   - observed: verified in `test_sibling_traversal_stitches_every_passable_border_cell_between_8x7_chunks` and `test_sibling_seam_way_loads_unloaded_sibling_in_both_directions` (`way_seam_chunk_e_chunk_w_...` connects `(7,4)` east to `(0,4)` and west back).
 2. Same, but B's facing edge is empty.
    - expected: the painter flags "exit leads nowhere"; the world makes it a dead end, not a teleport.
-   - observed: TODO
+   - observed: verified in `test_sibling_traversal_skips_unpainted_and_wall_cells_and_warns_in_preflight` (`sibling-dead-end` warning fired for `(3,1)` facing wall and `(3,2)` facing unpainted; only row `0` connected).
 3. Chunks of different widths; a road at ~50% of A's edge.
    - expected: it maps to ~50% of B's edge (proportional), connecting only if that cell is passable.
-   - observed: TODO
+   - observed: verified in `test_sibling_traversal_handles_unequal_grid_resolutions_symmetrically` (`4x4` border paired symmetrically against `2x2` border via center-point fraction).
 
 ## Acceptance
 
-- [ ] Feature placement supports a footprint (multiple parent cells), reusing the child-scope-at-a-cell model.
-- [ ] The seam is per passable edge cell; it reuses the compiler's adjacency and task-401's gateway ways.
-- [ ] Unequal resolutions map by position (proportional), connecting only when both facing cells are passable.
-- [ ] "Leads nowhere" is flagged by the painter and treated as a dead end, never a silent drop.
-- [ ] The strict-vs-forgiving fork is decided here, with the no-empty-borders aid specified.
-- [ ] The settlement-gate angle (task-401) is not conflated with the wilderness-sibling case.
-- [ ] Variable cell size within a scope is explicitly out of scope.
+- [x] Single-cell chunk placement on the parent grid connects adjacent sibling chunks directly across their shared border (multi-cell parent footprints retired as obsolete).
+- [x] The seam connects facing passable edge cells and deduplicates to one way per region pair (`way_seam_{s1}_{s2}_{a1}_{a2}`).
+- [x] Unequal resolutions map by position (symmetric center-point fraction), connecting only when both facing cells are passable.
+- [x] "Leads nowhere" is flagged by `world_compile.preflight` (`sibling-dead-end`) and treated as a dead end, never a silent drop.
+- [x] The strict-vs-forgiving fork is decided (strict alignment + preflight warning), gated by the `sibling_traversal` toggle in WorldPainter.
+- [x] The settlement-gate angle (task-401) is not conflated with the wilderness-sibling case.
+- [x] Variable cell size within a scope is explicitly out of scope.
 
 ## Files
 

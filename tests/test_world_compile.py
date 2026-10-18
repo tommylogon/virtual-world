@@ -1806,3 +1806,188 @@ def test_preflight_reports_an_unknown_scope():
     m = _painted(FOUR)
     assert _codes(m, "nope")["no-scope"]["severity"] == world_compile.BLOCK
 
+
+# ── sibling-scope border seams (task-775) ───────────────────────────────────
+
+
+def _two_chunk_world(*, w_a=8, h_a=7, w_b=8, h_b=7, enable_on="world"):
+    """Two child chunks placed side-by-side at (0,0) and (1,0) on a parent world grid."""
+    m = {
+        "world": {
+            "id": "world", "name": "World", "kind": "scope", "mode": "world",
+            "parent_id": None, "children": ["chunk_w", "chunk_e"],
+            "area_ids": [], "state": "unmade",
+        },
+        "chunk_w": {
+            "id": "chunk_w", "name": "West Chunk", "kind": "scope", "mode": "world",
+            "parent_id": "world", "children": [],
+            "area_ids": [], "state": "unmade",
+        },
+        "chunk_e": {
+            "id": "chunk_e", "name": "East Chunk", "kind": "scope", "mode": "world",
+            "parent_id": "world", "children": [],
+            "area_ids": [], "state": "unmade",
+        },
+    }
+    wg.ensure_grid(m["world"], 4, 4, mode="world")
+    wg.paint(m["world"], "biome", 0, 0, "grass")
+    wg.paint(m["world"], "biome", 1, 0, "grass")
+    wg.place(m, "world", "chunk_w", 0, 0)
+    wg.place(m, "world", "chunk_e", 1, 0)
+    wg.ensure_grid(m["chunk_w"], w_a, h_a, mode="world")
+    wg.ensure_grid(m["chunk_e"], w_b, h_b, mode="world")
+    if enable_on:
+        wg.set_sibling_traversal(m[enable_on], True)
+    return m, WorldGraph()
+
+
+def test_sibling_traversal_stitches_every_passable_border_cell_between_8x7_chunks():
+    """Two 8x7 chunks side-by-side with unmerged regions connect all 7 facing border rows."""
+    m, g = _two_chunk_world(w_a=8, h_a=7, w_b=8, h_b=7)
+    # Paint east border of chunk_w (x=7, y=0..6) and west border of chunk_e (x=0, y=0..6)
+    for y in range(7):
+        wg.paint(m["chunk_w"], "biome", 7, y, "forest")
+        wg.paint(m["chunk_e"], "biome", 0, y, "forest")
+    # Paint a road across row y=4
+    wg.paint(m["chunk_w"], "road", 7, 4, "road")
+    wg.paint(m["chunk_e"], "road", 0, 4, "road")
+
+    patch_w = world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g)
+    generation.apply_patch(g, m, patch_w)
+    patch_e = world_compile.compile_grid(m, "chunk_e", region_merge=False, graph=g)
+    generation.apply_patch(g, m, patch_e)
+
+    seam_ways = [n for n in g.nodes.values()
+                 if n.type == "way" and n.id.startswith("way_seam_")]
+    assert len(seam_ways) == 7
+    assert any("7 sibling border seam(s)" in note for note in patch_e.report.notes)
+
+    # Check row y=4 road seam way connects (7,4) in chunk_w and (0,4) in chunk_e
+    expected_id = world_compile._sibling_way_id(
+        "chunk_w", "chunk_e", "area_chunk_w_7_4", "area_chunk_e_0_4")
+    seam = g.get_node(expected_id)
+    assert seam is not None
+    # Bidirectional connection edges exist (east from chunk_w -> chunk_e, west from chunk_e -> chunk_w)
+    edges_from_w = [e for e in g.get_edges_for_source("area_chunk_w_7_4") if e.target == expected_id]
+    edges_from_e = [e for e in g.get_edges_for_source("area_chunk_e_0_4") if e.target == expected_id]
+    assert len(edges_from_w) == 1 and edges_from_w[0].properties["direction"] == "east"
+    assert len(edges_from_e) == 1 and edges_from_e[0].properties["direction"] == "west"
+
+
+def test_sibling_traversal_deduplicates_merged_regions_to_one_way_per_pair():
+    """When region_merge=True merges forest border cells, only one way is minted per merged region pair."""
+    m, g = _two_chunk_world(w_a=4, h_a=4, w_b=4, h_b=4)
+    for y in range(4):
+        wg.paint(m["chunk_w"], "biome", 3, y, "forest")
+        wg.paint(m["chunk_e"], "biome", 0, y, "forest")
+    # Row y=2 is a road on both sides, splitting the forest into top (0..1) and bottom (3)
+    wg.paint(m["chunk_w"], "road", 3, 2, "road")
+    wg.paint(m["chunk_e"], "road", 0, 2, "road")
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=True, graph=g))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_e", region_merge=True, graph=g))
+
+    seam_ways = [n for n in g.nodes.values()
+                 if n.type == "way" and n.id.startswith("way_seam_")]
+    # 3 region pairs across the border: top forest (y=0..1), road (y=2), bottom forest (y=3)
+    assert len(seam_ways) == 3
+
+
+def test_sibling_traversal_handles_unequal_grid_resolutions_symmetrically():
+    """Center-point fraction mapping pairs a 4-tall border with a 2-tall border symmetrically."""
+    m, g = _two_chunk_world(w_a=4, h_a=4, w_b=2, h_b=2)
+    for y in range(4):
+        wg.paint(m["chunk_w"], "biome", 3, y, "grass")
+    for y in range(2):
+        wg.paint(m["chunk_e"], "biome", 0, y, "grass")
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_e", region_merge=False, graph=g))
+
+    seam_ids = sorted(n.id for n in g.nodes.values()
+                      if n.type == "way" and n.id.startswith("way_seam_"))
+    # y=0,1 on chunk_w map to y=0 on chunk_e; y=2,3 on chunk_w map to y=1 on chunk_e -> 4 distinct area pairs
+    assert seam_ids == sorted([
+        world_compile._sibling_way_id("chunk_w", "chunk_e", "area_chunk_w_3_0", "area_chunk_e_0_0"),
+        world_compile._sibling_way_id("chunk_w", "chunk_e", "area_chunk_w_3_1", "area_chunk_e_0_0"),
+        world_compile._sibling_way_id("chunk_w", "chunk_e", "area_chunk_w_3_2", "area_chunk_e_0_1"),
+        world_compile._sibling_way_id("chunk_w", "chunk_e", "area_chunk_w_3_3", "area_chunk_e_0_1"),
+    ])
+
+
+def test_sibling_traversal_skips_unpainted_and_wall_cells_and_warns_in_preflight():
+    """Unpainted or wall cells on the border do not connect, and preflight warns about the dead end."""
+    m, g = _two_chunk_world(w_a=4, h_a=3, w_b=4, h_b=3)
+    # chunk_w has passable cells at y=0, y=1, y=2 on its east edge (x=3)
+    for y in range(3):
+        wg.paint(m["chunk_w"], "biome", 3, y, "grass")
+    # chunk_e has grass at (0,0), a wall at (0,1), and unpainted at (0,2)
+    wg.paint(m["chunk_e"], "biome", 0, 0, "grass")
+    wg.paint(m["chunk_e"], "biome", 0, 1, "wall")
+
+    codes = _codes(m, "chunk_w")
+    assert "sibling-dead-end" in codes
+    assert codes["sibling-dead-end"]["severity"] == world_compile.WARN
+    assert "(3,1)" in codes["sibling-dead-end"]["text"]
+    assert "(3,2)" in codes["sibling-dead-end"]["text"]
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_e", region_merge=False, graph=g))
+
+    seam_ways = [n for n in g.nodes.values()
+                 if n.type == "way" and n.id.startswith("way_seam_")]
+    # Only row y=0 connects
+    assert len(seam_ways) == 1
+    assert seam_ways[0].id == world_compile._sibling_way_id(
+        "chunk_w", "chunk_e", "area_chunk_w_3_0", "area_chunk_e_0_0")
+
+
+def test_ungenerating_one_sibling_removes_border_seam_ways_and_regenerating_restores_them():
+    """Ungenerating either sibling cleans up the shared seam ways so no dangling edges remain."""
+    m, g = _two_chunk_world(w_a=3, h_a=2, w_b=3, h_b=2)
+    for y in range(2):
+        wg.paint(m["chunk_w"], "biome", 2, y, "grass")
+        wg.paint(m["chunk_e"], "biome", 0, y, "grass")
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_e", region_merge=False, graph=g))
+    assert len([n for n in g.nodes.values() if n.id.startswith("way_seam_")]) == 2
+
+    # Ungenerate chunk_w (which compiled first; chunk_e emitted the seam ways)
+    world_scopes.ungenerate_scope(m, g, "chunk_w")
+    assert [n for n in g.nodes.values() if n.id.startswith("way_seam_")] == []
+
+    # Re-compile chunk_w (now chunk_w compiles second and re-emits the 2 seam ways)
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g))
+    assert len([n for n in g.nodes.values() if n.id.startswith("way_seam_")]) == 2
+
+
+def test_sibling_seam_way_loads_unloaded_sibling_in_both_directions():
+    """GlobalScopeIndex.ensure_destination_loaded loads whichever side of a sibling seam is unloaded."""
+    from engine.world.index import GlobalScopeIndex
+
+    m, g = _two_chunk_world(w_a=2, h_a=2, w_b=2, h_b=2)
+    wg.paint(m["chunk_w"], "road", 1, 0, "road")
+    wg.paint(m["chunk_e"], "road", 0, 0, "road")
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_w", region_merge=False, graph=g))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "chunk_e", region_merge=False, graph=g))
+
+    seam_id = world_compile._sibling_way_id(
+        "chunk_w", "chunk_e", "area_chunk_w_1_0", "area_chunk_e_0_0")
+    assert g.get_node(seam_id) is not None
+
+    slices = {}
+    idx = GlobalScopeIndex().reindex(g, m)
+    idx.register_loader(lambda sid: slices.get(sid),
+                        saver=lambda sid, data: slices.__setitem__(sid, data))
+
+    # Case 1: unload chunk_w (the source scope), then traverse from chunk_e -> chunk_w
+    idx.unload(g, "chunk_w")
+    assert g.get_node("area_chunk_w_1_0") is None
+    loaded_area = idx.ensure_destination_loaded(g, seam_id)
+    assert loaded_area == "area_chunk_w_1_0"
+    assert g.get_node("area_chunk_w_1_0") is not None
+
+
+

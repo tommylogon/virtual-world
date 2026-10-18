@@ -499,6 +499,9 @@ backlog lie about its own size.
 
 - **Verify before filing.** A finding names the interaction or measurement that
   produced it.
+- **Never file placeholders or TODO stubs.** `tools/tasks.py new` enforces this at creation time: every card must have complete `what`, `why`, `how`, `acceptance`, `files`, and `browser_ui` sections. A creation containing `TODO`, `TBD`, or empty sections exits 1 unless `--allow-stubs` is explicitly passed.
+- **Pass structured task data via JSON.** The cleanest way to create tasks without bash/powershell quoting pitfalls is `python tools/tasks.py new --area <area> --title "<title>" --wiki "<note>" --json @task.json` (or inline JSON). Supply sections (`what`, `why`, `how`, `acceptance`, `files`), `browser_ui` (`home`, `availability`, `steps` or `reason` + `alt_steps`), and `linked` task relations.
+- **Linked tasks must exist.** Task references (`related`, `blocks`, `blocked_by`, `depends_on`, `supersedes`, `parent`, `children`) are verified against the real `dev_tasks` tree on creation. Referencing a nonexistent task ID fails creation immediately.
 - **Retract in place, and say why.** Move the task to `cancelled` and append what
   disproved it. Don't delete it, don't quietly leave it.
 - **Retracting is a success.** Four of eight audit findings were retracted. What

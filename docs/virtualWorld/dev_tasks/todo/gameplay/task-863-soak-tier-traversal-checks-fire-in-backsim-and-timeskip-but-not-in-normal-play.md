@@ -18,7 +18,12 @@ related: [task-775]
 
 ## What
 
-The soak-tier hazard check (`attempt` in `engine/traversal.py`) is reached only through `traversal.hop`, and `hop` is called only from `engine/background_simulation.py:1235` and `engine/timeskip.py:694`. The human and LLM command path (`/api/action` -> `world.move_to_area` -> `movement.move_to_area`) never calls it. So the same character crossing the same hazard (a ford, a cliff, a watched path) rolls the hazard skill check under backsim or timeskip, and does not under normal play.
+The soak-tier hazard check (`attempt` in `engine/traversal.py`) is reached only through `traversal.hop`, and `hop` is called only from `engine/background_simulation.py:1235` and `engine/timeskip.py:694`. The human and LLM command path (`/api/action` -> `world.move_to_area` -> `movement.move_to_area`) never calls it.
+
+Specifically, the difference consists of three runtime behaviors present in soak/timeskip that normal play completely ignores:
+1. **D20 Skill Check vs DC 12 (`checks.resolve`):** When crossing a way or entering an area with hazard tags (`ford`, `river`, `cliff`, `swamp`, `guarded`, etc.), `traversal.attempt` resolves a DC 12 skill check against `Athletics`, `Survival`, `Acrobatics`, or `Stealth`. Normal play performs no roll.
+2. **Turn Refusal & Hazard Avoidance (`note_refusal`):** Failing the DC 12 roll blocks the move (`ok=False`), prevents entry into the target area, consumes the turn action, and records the refusal in `player.traversal_avoid` so pathfinding routes around it for `AVOID_MINUTES` (30 mins). In normal play, any character can step directly into a `cliff` or `rapids` area without check or refusal unless a hard gate (like `requires: climb` or locked door) is attached to the way.
+3. **Minor Condition Infliction (`HAZARD_CONDITION`):** On check failure, `traversal.attempt` can inflict minor conditions (e.g. `wet` from `ford`/`river`/`swamp`, or `injured` from `cliff`/`steep`/`rubble`). Normal play never inflicts hazard conditions on entry unless authored custom `save_on` triggers exist.
 
 ## Why
 
@@ -30,7 +35,16 @@ Decide first, implement only if the answer is "unify". Options: (a) intended tie
 
 ## Browser UI and intended live verification
 
-Observable in the game view: move into a hazard-tagged area from the command line or a turn action and read the resulting log line. There is no authoring surface for this; the check is a live outcome, so verify it on a loaded scenario rather than by reading the code.
+Intended UI home: The command line / Game Action Log (event stream) in the main game view.
+
+Current availability: Present for deterministic gates (doors, locks, climb/crawl requirements); hazard dice checks and condition penalties are planned / missing for interactive player commands.
+
+Live steps when available:
+1. Position a player character next to an area or way with hazard tags (e.g., `river` or `cliff`).
+2. Issue a move command into that area via the command line (`go north` or click exit).
+   - expected: If unified, an event log entry shows the skill check roll (e.g. `Athletics DC 12 vs ...`), resulting in success (entry allowed) or failure (turned back, turn spent, minor condition applied like `wet` or `injured`). If tiered by design, movement proceeds without a roll as documented.
+3. Check character vitals and conditions in the Inspector.
+   - expected: Condition reflects hazard outcome if check failed.
 
 ## Steps to verify
 

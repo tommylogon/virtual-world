@@ -814,3 +814,14 @@ test('the palette surface is wired into the editor and uses the view-model (task
     assertTrue(/appendChild\(palette\)/.test(src), 'and it is appended, so the panel renders');
     assertTrue(/_paletteSections/.test(src), 'the panel groups via the shared view-model');
 });
+
+test('the px/cell slider anchors the reference image on screen while resizing cells inside it', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/function _anchorStageToRefScreen\s*\(/.test(src),
+        'stage screen-box anchor helper is defined');
+    assertTrue(/_anchorStageToRefScreen\(anchorScreen,\s*afterCells\)/.test(src),
+        'slider input anchors the stage to the reference image screen bounds');
+    assertTrue(/_anchorStageToRefScreen\(savedAnchor,\s*afterCells\)/.test(src),
+        'slider commit preserves the reference image screen bounds');
+});
+

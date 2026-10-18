@@ -6,9 +6,10 @@ prose as the narrative layer rendered *once* from it via an explicit
 compile step.
 
 Storage: ONE block on the character graph node
-``properties["appearance"]`` with four sections nested underneath::
+``properties["persona"]`` with four sections nested underneath::
 
-    identity     pronouns, age, gender, species, occupation, sexuality
+    identity     pronouns, age, gender, species, occupation, sexuality, mbti,
+                 alignment, birthday, media, potential_storylines
     appearance   overview, height_cm, weight_kg, build, hair{}, eyes{},
                  skin{}, face{}, body{+modifications[]}, voice{}, scent,
                  style{}
@@ -18,8 +19,6 @@ Storage: ONE block on the character graph node
     narrative    biography{}, secrets{}, example_dialogues[],
                  role_in_town, arc
 
-``media`` / ``mbti`` / ``alignment`` are deliberately absent: nothing in
-the engine can act on them, and a field nobody reads is a field that rots.
 
 Growth (task-829): every field is mutable at runtime via
 ``set_persona_field`` / ``add_persona_id`` / ``remove_persona_id`` /
@@ -35,7 +34,10 @@ from typing import Any, Callable, Dict, List, Optional
 
 #: Node property holding the structured block. One key, not two, so "is this
 #: character structured?" is a single membership test.
-RECORD_KEY = "appearance"
+RECORD_KEY = "persona"
+#: Legacy block key, carried by old scenarios and library saves. The load shim
+#: in ``get_record`` resolves it when the new key is absent.
+_LEGACY_KEY = "appearance"
 
 #: The curated appearance schema: field -> (kind, subfields).
 #: ``kind`` is "number" | "text" | "enum" | "idlist" | "proselist", and
@@ -57,7 +59,8 @@ APPEARANCE_FIELDS: Dict[str, Any] = {
 }
 
 #: Identity fields: who this person is on paper. pronouns/age are the
-#: two task-733 prose gates; sexuality feeds prompt voice.
+#: two task-733 prose gates; sexuality feeds prompt voice. mbti and alignment
+#: feed disposition / prompt voice; birthday is calendar metadata vs age.
 IDENTITY_FIELDS: Dict[str, Any] = {
     "pronouns": ("text", None),
     "age": ("number", None),
@@ -65,6 +68,11 @@ IDENTITY_FIELDS: Dict[str, Any] = {
     "species": ("text", None),
     "occupation": ("text", None),
     "sexuality": ("text", None),
+    "mbti": ("text", None),
+    "alignment": ("text", None),
+    "birthday": ("text", None),
+    "media": ("proselist", None),
+    "potential_storylines": ("proselist", None),
 }
 
 #: Suggested values for identity text fields, offered by the Persona tab as a
@@ -164,11 +172,17 @@ def get_record(node) -> Dict[str, Any]:
 
     Prose-only characters simply have no block, and that is the normal case, not
     a missing feature - hence the empty default rather than a fill-in template.
+
+    Load shim (task-865): resolves the old ``appearance`` block key when the new
+    ``persona`` key is absent.  The value is returned through the new key without
+    mutating the node here - mutation happens at the next write (set_record).
     """
     if node is None:
         return {}
     props = getattr(node, "properties", None) or {}
     record = props.get(RECORD_KEY)
+    if record is None:
+        record = props.get(_LEGACY_KEY)
     return dict(record) if isinstance(record, dict) else {}
 
 
@@ -434,6 +448,8 @@ def set_record(node, record: Any) -> Dict[str, Any]:
         props[RECORD_KEY] = cleaned
     else:
         props.pop(RECORD_KEY, None)
+    # task-865: always evict the legacy key on write so we do not carry two copies.
+    props.pop(_LEGACY_KEY, None)
     return cleaned
 
 
@@ -441,6 +457,7 @@ def clear_record(node) -> None:
     """Drop the structured block. Prose-only authoring, restored."""
     if node is not None and getattr(node, "properties", None) is not None:
         node.properties.pop(RECORD_KEY, None)
+        node.properties.pop(_LEGACY_KEY, None)
 
 
 #: Dotted paths ``set_persona_field`` may write, as section -> allowed keys.
@@ -566,8 +583,7 @@ def prose_is_stale(node) -> bool:
 
 #: Every structured field names its consumer (task-828 acceptance), as
 #: dotted-path -> hint. Served by GET /record so the Persona tab renders
-#: each field with its reader beside it; mbti/alignment/media are absent
-#: because nothing reads them.
+#: each field with its reader beside it.
 CONSUMER_HINTS: Dict[str, str] = {
     "identity.pronouns": "narration pronouns (explicit first, tags fallback)",
     "identity.age": "lifecycle gate (task-735 clock)",
@@ -575,6 +591,11 @@ CONSUMER_HINTS: Dict[str, str] = {
     "identity.species": "compiled prose + prompts",
     "identity.occupation": "compiled prose + background behaviour",
     "identity.sexuality": "prompt voice + intimacy context",
+    "identity.mbti": "prompt voice (personality type)",
+    "identity.alignment": "disposition reader + prompts",
+    "identity.birthday": "calendar semantics vs age field",
+    "identity.media": "agent prompt context",
+    "identity.potential_storylines": "storyline authoring (currently unwired; see task-849)",
     "appearance.overview": "compiled prose",
     "appearance.height_cm": "compiled prose (ft/in)",
     "appearance.weight_kg": "compiled prose",

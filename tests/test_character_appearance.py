@@ -262,6 +262,35 @@ class TestStorage:
         set_record(_node(world), FULL)
         assert not hasattr(player, ca.RECORD_KEY)
 
+    def test_legacy_appearance_key_shim_resolves_on_read(self):
+        """A node carrying the old 'appearance' block reads through get_record."""
+        world = _world()
+        _character(world)
+        node = _node(world)
+        # Write via the shim key directly (simulates an old save file)
+        node.properties[ca._LEGACY_KEY] = {"identity": {"age": 12}}
+        rec = get_record(node)
+        assert "identity" in rec and rec["identity"]["age"] == 12
+
+    def test_legacy_key_migrates_on_set_and_survives_reload(self):
+        """Legacy -> load -> write saves under persona; reload sees persona."""
+        world = _world()
+        _character(world)
+        node = _node(world)
+        # Pre-load with legacy key
+        node.properties[ca._LEGACY_KEY] = {"identity": {"age": 12}}
+        # Write via new API — should evict legacy and write persona
+        set_record(node, {"identity": {"age": 13}})
+        assert ca.RECORD_KEY in node.properties
+        assert ca._LEGACY_KEY not in node.properties
+        assert node.properties[ca.RECORD_KEY]["identity"]["age"] == 13
+        # Also clear_record removes both keys
+        node2 = _node(world)
+        node2.properties.update({ca.RECORD_KEY: {}, ca._LEGACY_KEY: {}})
+        clear_record(node2)
+        assert ca.RECORD_KEY not in node2.properties
+        assert ca._LEGACY_KEY not in node2.properties
+
     def test_a_node_without_properties_is_rejected(self):
         class Bare:
             properties = None
@@ -416,16 +445,21 @@ class TestCuratedSet:
             "turn_offs", "traumas", "boundaries", "traits", "aspirations",
             "quirks", "habits", "speech_pattern", "experience"}
         assert set(IDENTITY_FIELDS) == {
-            "pronouns", "age", "gender", "species", "occupation", "sexuality"}
+            "pronouns", "age", "gender", "species", "occupation", "sexuality",
+            "mbti", "alignment", "birthday", "media", "potential_storylines"}
         assert set(NARRATIVE_FIELDS) == {
             "biography", "secrets", "example_dialogues", "role_in_town",
             "arc"}
 
     def test_the_excluded_catalog_fields_are_absent(self):
-        """The task says grow per-feature, not dump the graph-editor catalog."""
+        """The task says grow per-feature, not dump the graph-editor catalog.
+
+        ``media``, ``mbti`` and ``alignment`` are no longer excluded: they land
+        under identity (task-850). ``faction`` is still banned from appearance /
+        personality and has not been promoted to identity either.
+        """
         blob = " ".join(list(APPEARANCE_FIELDS) + list(PERSONALITY_FIELDS)).lower()
-        for banned in ("media", "mbti", "alignment", "faction"):
-            assert banned not in blob
+        assert "faction" not in blob
 
     def test_every_personality_field_names_its_mechanic(self):
         for field, mechanic in PERSONALITY_FIELDS.items():
@@ -679,9 +713,6 @@ class TestExpandedSchema:
                 paths.add(f"{section}.{field}")
         missing = sorted(p for p in paths if p not in CONSUMER_HINTS)
         assert not missing, f"fields with no consumer hint: {missing}"
-        blob = " ".join(CONSUMER_HINTS).lower()
-        for banned in ("mbti", "alignment", "media"):
-            assert banned not in blob
 
 
 class TestCompileRoutes:

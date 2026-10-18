@@ -238,7 +238,8 @@ def normalise_grid(record: dict) -> dict:
         return record
     if not any(key in record for key in ("grid", "layers", "placements",
                                          "area_placements", "boundary_overrides",
-                                         "mode", "map_offset", "names")):
+                                         "mode", "map_offset", "names",
+                                         "sibling_traversal")):
         return record
 
     grid = record.get("grid")
@@ -316,6 +317,12 @@ def normalise_grid(record: dict) -> dict:
             record["map_offset"] = clean_offset
         else:
             record.pop("map_offset", None)
+
+    if "sibling_traversal" in record:
+        if bool(record.get("sibling_traversal")):
+            record["sibling_traversal"] = True
+        else:
+            record.pop("sibling_traversal", None)
 
     mode = record.get("mode")
     if mode is not None and str(mode) not in MODES:
@@ -790,6 +797,41 @@ def occupant_at(record: dict, x: int, y: int) -> Optional[str]:
         if pos["x"] == int(x) and pos["y"] == int(y):
             return child
     return None
+
+
+def sibling_traversal(record: dict) -> bool:
+    """Whether *record* explicitly turns on sibling-scope border seams (task-775)."""
+    return bool((record or {}).get("sibling_traversal"))
+
+
+def set_sibling_traversal(record: dict, enabled: bool) -> bool:
+    """Set or clear the sibling-traversal switch on a scope record (task-775).
+
+    Absent when False so existing saves stay byte-identical.
+    """
+    if bool(enabled):
+        record["sibling_traversal"] = True
+        return True
+    record.pop("sibling_traversal", None)
+    return False
+
+
+def sibling_traversal_enabled(manifest: Dict[str, dict], scope_id: str) -> bool:
+    """True when *scope_id* (or the parent grid it sits on) allows sibling seams (task-775).
+
+    Toggling ``sibling_traversal`` on a parent chunk grid (e.g. ``world``) enables
+    border stitching for every child chunk placed on it; toggling it on an
+    individual child scope enables it for that scope's borders with its siblings.
+    """
+    rec = (manifest or {}).get(str(scope_id))
+    if not isinstance(rec, dict):
+        return False
+    if sibling_traversal(rec):
+        return True
+    parent_id = rec.get("parent_id")
+    if parent_id and parent_id in (manifest or {}):
+        return sibling_traversal(manifest[parent_id])
+    return False
 
 
 # ─────────────────────── placed areas (task-528) ───────────────────────────

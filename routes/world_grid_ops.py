@@ -249,7 +249,11 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
             # a scope promoted from existing areas can never be compiled, and it
             # used to be readable only in the save file.
             "paint_policy": rec.get("paint_policy") or world_compile.PAINT_POLICY_CANONICAL,
+            "sibling_traversal": world_grid.sibling_traversal(rec),
+            "sibling_traversal_effective": world_grid.sibling_traversal_enabled(manifest, scope_id),
         },
+        "sibling_traversal": world_grid.sibling_traversal(rec),
+        "sibling_traversal_effective": world_grid.sibling_traversal_enabled(manifest, scope_id),
         "grid": ({"w": w, "h": h}
                  if world_grid.has_grid(rec) else None),
         "mode": rec.get("mode"),
@@ -458,10 +462,31 @@ def handle_set_scope_grid(app, scope_id):
     try:
         _snapshot(app, label=f"set grid {record.get('name', scope_id)}")
         world_grid.ensure_grid(record, w, h, mode=mode)
+        if "sibling_traversal" in data:
+            world_grid.set_sibling_traversal(record, bool(data.get("sibling_traversal")))
     except (TypeError, ValueError) as exc:
         return _error(str(exc))
     _commit(app, manifest)
     return jsonify({"status": "saved", **_grid_payload(manifest, scope_id, app.world.graph)})
+
+
+def handle_set_sibling_traversal(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/sibling_traversal - toggle sibling border seams (task-775).
+
+    Body: ``{enabled: bool}`` (or ``{sibling_traversal: bool}``).
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    record = manifest[scope_id]
+    raw = data.get("enabled") if "enabled" in data else data.get("sibling_traversal")
+    enabled = bool(raw)
+    _snapshot(app, label=f"{'enable' if enabled else 'disable'} sibling traversal on {record.get('name', scope_id)}")
+    world_grid.set_sibling_traversal(record, enabled)
+    _commit(app, manifest)
+    return jsonify({"status": "saved", "sibling_traversal": enabled,
+                    **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def _snapshot_paint(app, record, scope_id: str, edits, label: str) -> None:

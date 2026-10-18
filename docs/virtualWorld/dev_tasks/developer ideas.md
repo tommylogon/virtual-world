@@ -1,4 +1,6 @@
-﻿possible bugs that need fixing. selecing map mode for the grpah does not save, and nodes are not correctly placed and spaced out on the backgorundimages and needs to be manually adjsued every time.
+See also: [Near-Term Project Focus (Q4 2026)](../../design/near-term-focus-2026-q4.md) for macro pillars and strategic focus.
+
+possible bugs that need fixing. selecing map mode for the grpah does not save, and nodes are not correctly placed and spaced out on the backgorundimages and needs to be manually adjsued every time.
 
 swimming as a navigatin type over and into water, diving into deep water,  lmited air supply vital.
 

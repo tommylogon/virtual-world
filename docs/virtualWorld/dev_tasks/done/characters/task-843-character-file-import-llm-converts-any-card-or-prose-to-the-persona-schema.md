@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: done
 area: characters
 priority: medium
 related: [task-828, task-830, task-829]
@@ -128,8 +128,8 @@ escaped. The import does the boring mapping; the author keeps the judgment
 - [x] Fill policy is maximal: the prompt demands every field and returns a
       per-field provenance list; the tab marks inferred fields with a sparkle
       and clears the marks on save/compile.
-- [ ] Live re-check after the policy change: one card import shows a full sheet
-      with sparkle marks, then saves and compiles.
+- [x] Live re-check after the policy change: one card import shows a full sheet
+      with sparkle marks, then saves and compiles (confirmed 2026-10-18).
 
 ## Files
 

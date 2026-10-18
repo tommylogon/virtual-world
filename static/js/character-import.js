@@ -143,6 +143,7 @@ function buildConvertPrompt(sourceText, schema) {
                 '- prose-list fields (traits, quirks, ...) hold free text.',
                 '- invent freely for appearance, manner, preferences and the character\'s own history; do NOT invent named other people, nor memories the material does not imply - a memory is a record of what happened, not description.',
                 '- biography/secrets: keep them brief and consistent with the material; never invent an event that contradicts it.',
+                '- for identity fields where the schema description includes values (pronouns, gender, sexuality), pick from those; do not invent your own category outside the list.',
             ].join('\n'),
         },
         {

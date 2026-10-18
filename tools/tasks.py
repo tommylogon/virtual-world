@@ -759,6 +759,81 @@ def _load_json_payload(spec: str) -> Dict:
     return data
 
 
+def validate_task_payload(payload: Dict, root: Path, *, allow_stubs: bool = False) -> List[str]:
+    """Validate task creation payload against required fields, placeholders, and linked tasks."""
+    if allow_stubs:
+        return []
+
+    errors: List[str] = []
+
+    # 1. Content completeness (ban TODO / placeholder stubs)
+    required_sections = ["what", "why", "how", "acceptance", "files"]
+    for sec in required_sections:
+        val = payload.get(sec)
+        if val is None or (isinstance(val, (str, list, tuple)) and len(val) == 0):
+            errors.append(f"missing required section '{sec}'")
+        elif isinstance(val, str) and _is_stub(val):
+            errors.append(f"section '{sec}' cannot be a placeholder or TODO")
+        elif isinstance(val, (list, tuple)):
+            clean = [str(x).strip() for x in val if str(x).strip()]
+            if not clean:
+                errors.append(f"section '{sec}' list cannot be empty")
+            elif all(_is_stub(str(x)) for x in clean):
+                errors.append(f"section '{sec}' items cannot all be TODOs")
+
+    # 2. Browser UI verification
+    bui = payload.get("browser_ui")
+    if bui is None:
+        errors.append("missing 'browser_ui' specification (must provide dict or text)")
+    elif isinstance(bui, dict):
+        home = str(bui.get("home") or "").strip()
+        avail = str(bui.get("availability") or "").strip()
+        if not home or _is_stub(home):
+            errors.append("browser_ui.home is missing or a placeholder")
+        if not avail or _is_stub(avail):
+            errors.append("browser_ui.availability is missing or a placeholder")
+
+        is_na = bool(re.match(r"(?i)^(?:not applicable|n/a|no browser ui|none)\b", home))
+        if is_na:
+            reason = str(bui.get("reason") or "").strip()
+            alt = bui.get("alt_steps") or bui.get("alternative_steps")
+            if not reason or _is_stub(reason):
+                errors.append("browser_ui with N/A home must provide a valid 'reason'")
+            if not alt:
+                errors.append("browser_ui with N/A home must provide 'alt_steps'")
+        else:
+            steps = bui.get("steps") or bui.get("live_steps")
+            if not steps:
+                errors.append("browser_ui needs 'steps' (live verification steps)")
+    elif isinstance(bui, str):
+        if _is_stub(bui):
+            errors.append("browser_ui cannot be a TODO stub")
+        else:
+            issue = browser_ui_issue(f"## Browser UI and intended live verification\n\n{bui}")
+            if issue:
+                errors.append(f"browser_ui issue: {issue}")
+
+    # 3. Linked task validation
+    # Keys can be in payload directly or under a 'linked' dict
+    linked_dict = payload.get("linked", {}) if isinstance(payload.get("linked"), dict) else {}
+    for key in DEPENDENCY_KEYS:
+        val = payload.get(key) or linked_dict.get(key)
+        if not val:
+            continue
+        refs = _as_refs(val)
+        for ref in refs:
+            m = REF_RE.match(ref)
+            if not m:
+                errors.append(f"invalid task reference format: '{ref}'")
+                continue
+            r_kind, r_num = m.group(1).lower(), int(m.group(2))
+            found = find_by_id(iter_entries(root), r_kind, r_num)
+            if not found:
+                errors.append(f"linked {r_kind}-{r_num} does not exist in dev_tasks")
+
+    return errors
+
+
 # --- local LLM client (LM Studio / any OpenAI-compatible endpoint) --------
 #
 # The content backfill authors with the LOCAL model so the pass costs no API
@@ -869,6 +944,45 @@ def _section_md(key: str, value) -> str:
     empty value falls back to the canonical stub."""
     if value is None or value == "":
         return SECTION_STUBS.get(key, "TODO")
+    if key == "browser_ui" and isinstance(value, dict):
+        home = str(value.get("home") or "").strip()
+        avail = str(value.get("availability") or "").strip()
+        lines = [
+            f"Intended UI home: {home}",
+            "",
+            f"Current availability: {avail}",
+            "",
+        ]
+        is_na = bool(re.match(r"(?i)^(?:not applicable|n/a|no browser ui|none)\b", home))
+        if is_na:
+            reason = str(value.get("reason") or "").strip()
+            lines.extend([
+                f"Why no browser UI: {reason}",
+                "",
+                "Alternative verification steps:",
+            ])
+            alt_steps = value.get("alt_steps") or value.get("alternative_steps") or []
+            if isinstance(alt_steps, str):
+                lines.append(alt_steps.strip())
+            else:
+                for i, s in enumerate(alt_steps, 1):
+                    lines.append(f"{i}. {str(s).strip()}")
+        else:
+            lines.append("Live steps when available:")
+            steps = value.get("steps") or value.get("live_steps") or []
+            if isinstance(steps, str):
+                lines.append(steps.strip())
+            else:
+                for i, s in enumerate(steps, 1):
+                    lines.append(f"{i}. {str(s).strip()}")
+        lines.extend([
+            "",
+            "This section defines intended access and live acceptance. It is not a claim "
+            "that planned UI exists or works today. Current availability says what is "
+            "implemented and verified now; the numbered steps say how to reach and test "
+            "the intended surface once it is available.",
+        ])
+        return "\n".join(lines).strip()
     if isinstance(value, (list, tuple)):
         items = [str(v).strip() for v in value if str(v).strip()]
         if not items:
@@ -884,7 +998,8 @@ def _section_md(key: str, value) -> str:
 def _payload_dep_block(payload: Dict, related: str,
                        stems: Optional[Dict[str, str]]) -> str:
     """The dependency block for a card ``new``/``add_task`` is about to write."""
-    dep_fm = {k: payload[k] for k in DEPENDENCY_KEYS if payload.get(k)}
+    linked_dict = payload.get("linked", {}) if isinstance(payload.get("linked"), dict) else {}
+    dep_fm = {k: payload.get(k) or linked_dict.get(k) for k in DEPENDENCY_KEYS if payload.get(k) or linked_dict.get(k)}
     if related and "related" not in dep_fm:
         dep_fm["related"] = related
     if not dep_fm:
@@ -923,12 +1038,13 @@ def render_card(*, kind: str, num: int, title: str, status: str, area: str,
     w = str(payload.get("wiki") or wiki or "").strip()
     if w:
         fm.append(f'wiki: "{w}"')
+    linked_dict = payload.get("linked", {}) if isinstance(payload.get("linked"), dict) else {}
     for key in DEPENDENCY_KEYS:
-        val = payload.get(key)
+        val = payload.get(key) or linked_dict.get(key)
         if val:
             fm.append(f"{key}: [{_fmt_refs(val)}]")
 
-    rel = _fmt_refs(payload.get("related") or related)
+    rel = _fmt_refs(payload.get("related") or linked_dict.get("related") or related)
     out = ["---", *fm, "---", "",
            f"# {kind}-{num}: {title}", "",
            f"**Filed:** {filed}",
@@ -1107,6 +1223,14 @@ def cmd_new(args) -> int:
         print("error: --wiki is required — name the note this card concerns, "
               'e.g. "[[Feature Map]]" or "[[World Building/Movement|Movement]]".',
               file=sys.stderr)
+        return 1
+
+    allow_stubs = getattr(args, "allow_stubs", False) or getattr(args, "scaffold", False)
+    val_errors = validate_task_payload(payload, args.root, allow_stubs=allow_stubs)
+    if val_errors:
+        print("error: task payload validation failed (pass complete fields or use --allow-stubs):", file=sys.stderr)
+        for err in val_errors:
+            print(f"  - {err}", file=sys.stderr)
         return 1
 
     area_dir.mkdir(parents=True, exist_ok=True)
@@ -2071,23 +2195,27 @@ under the dev_tasks root. Does not create or modify anything.
   python tools/tasks.py next-id --kind bug
 """,
     "new": """\
-new --area AREA --title TITLE [--kind task|bug] [--priority medium]
-    [--status todo] [--related "..."] [--goal "..."] [--force]
+new --area AREA --title TITLE --wiki NOTE [--json PAYLOAD] [--kind task|bug]
+    [--priority medium] [--status todo] [--related "..."] [--goal "..."]
+    [--allow-stubs] [--force]
 
-Scaffold a new file at <root>/<status>/<area>/<kind>-<num>-<slug>.md with the
-frontmatter and Goal/Acceptance template filled in. The id comes from
-`next-id`; the slug is derived from the title.
+Create a new file at <root>/<status>/<area>/<kind>-<num>-<slug>.md. By default,
+cards must be fully specified (What, Why, How, Browser UI intent, Acceptance, Files)
+and cannot contain TODO placeholders. Pass full card content via --json (@file or string).
 
-  --area      topic folder, e.g. gameplay, ui, graph (required)
-  --title     human title; also sets the H1 and slug (required)
-  --kind      task (default) or bug
-  --priority  free text, default medium
-  --status    starting folder, default todo
-  --related   value for the **Related:** line, e.g. task-409
-  --goal      text under ## Goal (defaults to TODO)
-  --force     overwrite if the target path already exists
+  --area        topic folder, e.g. gameplay, ui, graph (required)
+  --title       human title; also sets the H1 and slug (required)
+  --wiki        Obsidian note this concerns, e.g. "[[Feature Map]]" (required)
+  --json        JSON object containing section bodies, browser_ui, and linked tasks
+  --allow-stubs permit placeholder/TODO stubs (default: rejected)
+  --kind        task (default) or bug
+  --priority    free text, default medium
+  --status      starting folder, default todo
+  --related     value for the Related line, e.g. task-409
+  --goal        text under What / Goal
+  --force       overwrite if the target path already exists
 
-  python tools/tasks.py new --area ui --title "Compass polish" --kind task
+  python tools/tasks.py new --area ui --title "Compass polish" --wiki "[[Feature Map]]" --json @task.json
 """,
     "move": """\
 move --id N [--kind task|bug] --status STATUS
@@ -2383,7 +2511,8 @@ def cmd_interactive(args) -> int:
             goal = _menu_input("goal (blank = TODO): ")
             cmd_new(argparse.Namespace(
                 root=args.root, kind=kind, area=area, title=title, status=status,
-                priority=priority, related=related, goal=goal, force=False))
+                priority=priority, related=related, goal=goal, force=False,
+                wiki="[[Feature Map]]", allow_stubs=True))
         elif choice in ("3", "move"):
             kind = _menu_choice("kind", KINDS, "task")
             num = _menu_int(f"{kind} id: ")
@@ -2425,6 +2554,8 @@ def build_parser() -> argparse.ArgumentParser:
     nw.add_argument("--goal", default="")
     nw.add_argument("--json", help="JSON payload: section bodies + frontmatter (or @file)")
     nw.add_argument("--wiki", default="", help='Obsidian link, e.g. "[[Feature Map]]"')
+    nw.add_argument("--allow-stubs", "--scaffold", dest="allow_stubs", action="store_true",
+                    help="permit placeholder/TODO stubs (default: rejected)")
     nw.add_argument("--force", action="store_true")
     nw.set_defaults(func=cmd_new)
 

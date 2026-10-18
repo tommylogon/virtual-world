@@ -248,11 +248,17 @@ def test_new_json_payload_writes_canonical_card(tmp_path):
     payload = json.dumps({
         "what": "w", "why": "y", "how": "h",
         "acceptance": ["a1", "a2"], "files": ["f.py"],
+        "browser_ui": {
+            "home": "Character Inspector -> Bio",
+            "availability": "Planned; bio view needs a compass link",
+            "steps": ["1. Open bio\n   - expected: Compass link visible"]
+        },
         "horizon": "now", "wiki": "[[Feature Map]]", "priority": "high",
     })
     args = tasks.argparse.Namespace(
         root=root, area="ui", title="Compass", kind="task", priority="medium",
-        status="todo", related="", goal="", json=payload, wiki="", force=False)
+        status="todo", related="", goal="", json=payload, wiki="", force=False,
+        allow_stubs=False)
     assert tasks.cmd_new(args) == 0
     text = next(root.rglob("*.md")).read_text(encoding="utf-8")
     fm, err = tasks.parse_frontmatter(text)
@@ -263,11 +269,45 @@ def test_new_json_payload_writes_canonical_card(tmp_path):
     assert "- [ ] a1" in text and "- [ ] a2" in text
     assert "`f.py`" in text
     assert "## Browser UI and intended live verification" in text
-    assert "Intended UI home: TODO" in text
-    assert "Current availability: TODO" in text
-    assert "Live steps when available" in text
+    assert "Intended UI home: Character Inspector -> Bio" in text
+    assert "Current availability: Planned; bio view needs a compass link" in text
+    assert "Live steps when available:" in text
     assert "not a claim that planned UI exists or works today" in text
     assert "## Steps to verify" in text
+
+
+def test_new_json_rejects_incomplete_payload_without_allow_stubs(tmp_path):
+    root = tmp_path / "dev_tasks"
+    payload = json.dumps({
+        "what": "w", "why": "TODO",
+        "wiki": "[[Feature Map]]",
+    })
+    args = tasks.argparse.Namespace(
+        root=root, area="ui", title="Incomplete", kind="task", priority="medium",
+        status="todo", related="", goal="", json=payload, wiki="", force=False,
+        allow_stubs=False)
+    assert tasks.cmd_new(args) == 1
+
+
+def test_new_json_rejects_nonexistent_linked_task(tmp_path):
+    root = tmp_path / "dev_tasks"
+    payload = json.dumps({
+        "what": "w", "why": "y", "how": "h",
+        "acceptance": ["a1"], "files": ["f.py"],
+        "browser_ui": {
+            "home": "Not applicable",
+            "reason": "CLI only tool",
+            "availability": "Verified via CLI",
+            "alt_steps": ["1. Run command\n   - expected: Output ok"]
+        },
+        "wiki": "[[Feature Map]]",
+        "linked": {"blocks": ["task-99999"]}
+    })
+    args = tasks.argparse.Namespace(
+        root=root, area="ui", title="BadLink", kind="task", priority="medium",
+        status="todo", related="", goal="", json=payload, wiki="", force=False,
+        allow_stubs=False)
+    assert tasks.cmd_new(args) == 1
 
 
 def test_new_json_at_file_is_bom_tolerant(tmp_path):
@@ -279,7 +319,7 @@ def test_new_json_at_file_is_bom_tolerant(tmp_path):
     args = tasks.argparse.Namespace(
         root=root, area="ui", title="BOM", kind="task", priority="medium",
         status="todo", related="", goal="", json="@" + str(payload),
-        wiki="", force=False)
+        wiki="", force=False, allow_stubs=True)
     assert tasks.cmd_new(args) == 0
 
 

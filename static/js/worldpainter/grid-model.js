@@ -186,7 +186,7 @@
     function floorLabel(value) {
         const n = floorNumber(value);
         if (n === null)
-            return '—';
+            return '-';
         if (n === 0)
             return 'ground (0)';
         return n > 0 ? `floor ${n}` : `${-n} below ground (${n})`;

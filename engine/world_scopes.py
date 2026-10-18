@@ -774,14 +774,15 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
         props = getattr(node, "properties", {}) or {}
         generated = props.get("generated") or {}
         into_scope = (getattr(node, "type", None) == "way"
-                      and str(props.get("child_scope_id") or "") == scope_id)
+                      and (str(props.get("child_scope_id") or "") == scope_id
+                           or str(props.get("sibling_scope_id") or "") == scope_id))
         if not into_scope:
             if generated.get("scope_id") == scope_id:
                 graph.remove_node(node_id)
                 deleted += 1
             continue
-        # A parent's *compiled* gateway into this scope dies with it, even though
-        # its provenance names the parent.
+        # A parent's *compiled* gateway into this scope (or a sibling's compiled
+        # border seam) dies with it, even though its provenance names the other scope.
         if generated:
             graph.remove_node(node_id)
             deleted += 1
@@ -801,6 +802,7 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     record["area_ids"] = []
     record.pop("entry_area_id", None)
     record.pop("entry_area_name", None)
+    record.pop("region_merge", None)
     return {"scope_id": scope_id, "deleted_nodes": deleted, "kept_ways": kept_ways}
 
 

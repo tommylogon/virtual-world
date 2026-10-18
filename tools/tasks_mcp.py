@@ -175,8 +175,9 @@ def _fm_updates_from_fields(fields: Optional[Dict]) -> Dict[str, str]:
 @mcp.tool()
 def add_task(area: str, title: str, kind: str = "task",
              priority: str = "medium", status: str = "todo",
-             goal: str = "", related: str = "",
-             sections: Optional[Dict] = None, dry_run: bool = True) -> str:
+             goal: str = "", related: str = "", wiki: str = "",
+             sections: Optional[Dict] = None, allow_stubs: bool = False,
+             dry_run: bool = True) -> str:
     """Scaffold a new card. Returns the path written, or (dry_run, the default)
     the exact card text it would write.
 
@@ -188,9 +189,11 @@ def add_task(area: str, title: str, kind: str = "task",
         status: starting folder (default todo).
         goal: text for the What section.
         related: value for the **Related:** line, e.g. "task-409".
+        wiki: Obsidian note link, e.g. "[[Feature Map]]" (required).
         sections: mapping of canonical keys (what/why/how/verify/acceptance/
-            files) plus frontmatter fields (horizon/effort/wiki/dependency keys)
+            files/browser_ui) plus frontmatter fields (horizon/effort/dependency keys/linked)
             to their bodies.
+        allow_stubs: True permits TODO/placeholder stubs; False (default) enforces completeness.
         dry_run: True (default) previews; False writes the file.
     """
     if status not in tasks.STATUSES:
@@ -200,16 +203,24 @@ def add_task(area: str, title: str, kind: str = "task",
     payload = dict(sections or {})
     if goal and "what" not in payload:
         payload["what"] = goal
+    w = wiki or str(payload.get("wiki") or "")
+    if not w:
+        return "error: wiki is required — name the note this card concerns, e.g. '[[Feature Map]]'"
+    payload["wiki"] = w
+
     num = tasks.next_id(_root(), kind)
     if dry_run:
+        val_errors = tasks.validate_task_payload(payload, _root(), allow_stubs=allow_stubs)
+        if val_errors:
+            return "error: task payload validation failed:\n" + "\n".join(f"  - {e}" for e in val_errors)
         return tasks.render_card(
             kind=kind, num=num, title=title, status=status, area=area,
             priority=priority, filed=tasks._dt.date.today().isoformat(),
-            related=related, payload=payload)
+            related=related, wiki=w, payload=payload)
     _, out = _run(tasks.cmd_new, area=area, title=title, kind=kind,
                   priority=priority, status=status, related=related,
-                  goal=goal, json=json.dumps(payload) if payload else None,
-                  wiki="", force=False)
+                  goal=goal, json=json.dumps(payload),
+                  wiki=w, allow_stubs=allow_stubs, force=False)
     return out
 
 

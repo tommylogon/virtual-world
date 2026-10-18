@@ -132,6 +132,7 @@ class GlobalScopeIndex:
                 if target_area or target_scope:
                     self._gateways[node.id] = {
                         "source_area_id": _first(props, _SOURCE_AREA_KEYS),
+                        "source_scope_id": props.get("source_scope_id") or owner,
                         "target_area_id": target_area,
                         "target_scope_id": target_scope,
                         "world_scope_id": owner,
@@ -277,9 +278,11 @@ class GlobalScopeIndex:
     def add_gateway(self, way_id: str, *, target_area_id: Optional[str],
                     target_scope_id: Optional[str] = None,
                     source_area_id: Optional[str] = None,
+                    source_scope_id: Optional[str] = None,
                     world_scope_id: Optional[str] = None):
         self._gateways[str(way_id)] = {
             "source_area_id": source_area_id,
+            "source_scope_id": source_scope_id or world_scope_id,
             "target_area_id": target_area_id,
             "target_scope_id": target_scope_id,
             "world_scope_id": world_scope_id,
@@ -342,19 +345,30 @@ class GlobalScopeIndex:
     def ensure_destination_loaded(self, graph, way_id: str) -> Optional[str]:
         """The remote area a gateway leads to, loading its scope first.
 
-        Returns the ``target_area_id`` when the way is a loadable gateway and
-        its destination is available, else None (a non-gateway way, or a scope
-        with no loader). The caller then resolves the node normally.
+        Returns the destination ``area_id`` when the way is a loadable gateway
+        and its destination is available, else None (a non-gateway way, or a
+        scope with no loader). For a bidirectional cross-scope way (e.g. a
+        sibling seam, task-775), if ``target_area_id`` is already in the loaded
+        graph and ``source_area_id`` is not, loads ``source_scope_id`` instead.
         """
         record = self.gateway(way_id)
         if not record:
             return None
         target_scope = record.get("target_scope_id")
+        target_area = record.get("target_area_id")
+        source_scope = record.get("source_scope_id") or record.get("world_scope_id")
+        source_area = record.get("source_area_id")
+        if (target_area and graph.get_node(target_area) is not None
+                and source_area and graph.get_node(source_area) is None
+                and source_scope):
+            if not self.ensure_scope_loaded(source_scope, graph):
+                return None
+            return source_area
         if not target_scope:
             return None
         if not self.ensure_scope_loaded(target_scope, graph):
             return None
-        return record.get("target_area_id")
+        return target_area
 
     # ── persistence ─────────────────────────────────────────────────────
 

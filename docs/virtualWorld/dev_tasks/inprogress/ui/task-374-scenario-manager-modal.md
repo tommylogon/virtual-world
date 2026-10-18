@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: ui
 priority: medium
 wiki: "[[Scenario Workflows & UI Audit]]"
@@ -9,8 +9,8 @@ wiki: "[[Scenario Workflows & UI Audit]]"
 # task-374: scenario-manager-modal
 
 **Filed**: 2026-08-30
-**Status**: Not started (card complete; no implementation yet).
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P2 — Scenario Manager modal: list data/scenarios/* (stats, age), open with preview, Audit (validator on throwaway load), rename/duplicate/delete, 'Clone current world into new scenario'.
+**Status**: In progress (~85% implemented in static/js/ui/scenario-manager.ts; active gaps: open-with-preview and clone-current-world).
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P2 - Scenario Manager modal: list data/scenarios/* (stats, age), open with preview, Audit (validator on throwaway load), rename/duplicate/delete, 'Clone current world into new scenario'.
 
 ## Notes
 
@@ -39,8 +39,8 @@ surface over the scenario library.
   `VirtualWorld().load_from_dict(...)`).
 - Open-with-preview reuses the task-369 import preview dialog; Apply stays
   undo-safe.
-- Audit reuses `TriggerValidator` on a throwaway load — the same pass as
-  task-369 / task-375 — so it has no side effects on the live world.
+- Audit reuses `TriggerValidator` on a throwaway load - the same pass as
+  task-369 / task-375 - so it has no side effects on the live world.
 - Rename / duplicate / delete are file operations on the directory.
 - "Clone current world" writes `to_scenario_dict()` of the live world as a new
   scenario file (the same serialization `/api/load` uses); undo-safe where it
@@ -93,8 +93,8 @@ This section defines the intended access point and acceptance path. It is not a 
 
 ## Files
 
-- `routes/saveload.py` — list / stats / audit / rename / duplicate / delete.
-- `static/js/ui/` — the modal (new).
+- `routes/saveload.py` - list / stats / audit / rename / duplicate / delete.
+- `static/js/ui/` - the modal (new).
 - `templates/index.html`.
 - `tests/`.
 

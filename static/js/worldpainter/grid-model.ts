@@ -201,7 +201,7 @@ type Vocabulary = any;
     /** How a storey index reads out loud: "ground", "floor 3", "3 below ground". */
     function floorLabel(value: unknown): string {
         const n = floorNumber(value);
-        if (n === null) return '—';
+        if (n === null) return '-';
         if (n === 0) return 'ground (0)';
         return n > 0 ? `floor ${n}` : `${-n} below ground (${n})`;
     }
