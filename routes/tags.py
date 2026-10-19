@@ -63,7 +63,7 @@ def register_tag_routes(app):
         try:
             from virtual_world_engine import VirtualWorld
             world = VirtualWorld()
-            for nid, node in (world.graph.nodes or {}).items():
+            for node_id, node in (world.graph.nodes or {}).items():
                 if not node.properties: continue
                 node_tags = node.properties.get("tags", [])
                 if isinstance(node_tags, str): node_tags = [t.strip() for t in node_tags.split(",")]

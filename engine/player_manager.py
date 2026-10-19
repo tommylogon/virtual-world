@@ -57,9 +57,9 @@ class PlayerManager:
         if key:
             return key
         lowered = str(node_id).lower()
-        for nid, k in self._players_by_node_id.items():
-            if nid.lower() == lowered:
-                return k
+        for candidate_node_id, player_key in self._players_by_node_id.items():
+            if candidate_node_id.lower() == lowered:
+                return player_key
         return None
 
     def relationship_key(self, ref) -> str:
