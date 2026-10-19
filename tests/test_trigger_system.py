@@ -1,4 +1,4 @@
-﻿"""Tests for the TriggerSystem: conditions, effects, and template rendering."""
+"""Tests for the TriggerSystem: conditions, effects, and template rendering."""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -3026,4 +3026,65 @@ class TestTask705Leaves:
         from engine.trigger_validator import CONDITION_TYPES
         assert "owns" in CONDITION_TYPES
         assert "known" in CONDITION_TYPES
+
+
+class TestPropertyBasedTriggers:
+    """task-886: Triggers stored directly in node.properties['triggers']."""
+
+    def test_property_trigger_fires_without_graph_nodes(self, graph, trigger_system, sample_item):
+        sample_item.properties["triggers"] = [
+            {
+                "id": "trig_eat_apple",
+                "trigger_type": "on_eat",
+                "effects": [
+                    {"type": "message", "params": {"message": "Crisp and juicy."}},
+                ],
+            }
+        ]
+        # Assert no logic_trigger nodes or triggers edges exist
+        assert not any(n.type == "logic_trigger" for n in graph.nodes.values())
+        assert not graph.get_edges_by_type(EDGE_TRIGGERS)
+
+        outputs = trigger_system._execute_triggers(sample_item, "on_eat")
+        assert any("Crisp and juicy" in o for o in outputs)
+
+    def test_property_trigger_once_marks_fired(self, graph, trigger_system, sample_item):
+        sample_item.properties["triggers"] = [
+            {
+                "id": "trig_secret_note",
+                "trigger_type": "on_examine",
+                "once": True,
+                "effects": [
+                    {"type": "message", "params": {"message": "A hidden glyph is revealed."}},
+                ],
+            }
+        ]
+        outputs1 = trigger_system._execute_triggers(sample_item, "on_examine")
+        assert any("hidden glyph" in o for o in outputs1)
+        assert sample_item.properties["triggers"][0]["fired"] is True
+
+        # Second examination: once prevents re-firing
+        outputs2 = trigger_system._execute_triggers(sample_item, "on_examine")
+        assert not any("hidden glyph" in o for o in outputs2)
+
+    def test_property_trigger_condition_gating(self, graph, trigger_system, sample_item):
+        sample_item.properties["uses"] = 0
+        sample_item.properties["triggers"] = [
+            {
+                "id": "trig_empty_flask",
+                "trigger_type": "on_use",
+                "conditions": [{"type": "uses_reached", "value": "0"}],
+                "effects": [
+                    {"type": "message", "params": {"message": "It is completely dry."}},
+                ],
+            }
+        ]
+        outputs = trigger_system._execute_triggers(sample_item, "on_use")
+        assert any("completely dry" in o for o in outputs)
+
+        # Uses reset to 5 -> condition fails -> does not fire
+        sample_item.properties["uses"] = 5
+        outputs2 = trigger_system._execute_triggers(sample_item, "on_use")
+        assert not any("completely dry" in o for o in outputs2)
+
 

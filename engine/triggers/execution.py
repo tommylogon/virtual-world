@@ -19,6 +19,14 @@ from graph import (
 )
 
 
+class _TriggerAdapter:
+    __slots__ = ("properties", "target")
+
+    def __init__(self, properties: dict, target: Optional[str] = None):
+        self.properties = properties
+        self.target = target
+
+
 class ExecutionMixin:
     """Trigger walking, effect fan-out, and item/target lookup."""
 
@@ -310,10 +318,25 @@ class ExecutionMixin:
             return []
         outputs = []
 
-        # ── Walk trigger edges (task-406: fetch before building context) ──
-        triggers = self.graph.get_edges_for_source(
-            item_node.id, EDGE_TRIGGERS
-        )
+        # Collect triggers: first-class from item_node.properties["triggers"],
+        # plus backward-compatible legacy EDGE_TRIGGERS edges from graph.
+        triggers = []
+        seen_ids = set()
+
+        prop_triggers = (item_node.properties or {}).get("triggers")
+        if isinstance(prop_triggers, list):
+            for t in prop_triggers:
+                if isinstance(t, dict):
+                    tid = t.get("id")
+                    triggers.append(_TriggerAdapter(t, tid))
+                    if tid:
+                        seen_ids.add(tid)
+
+        if hasattr(self, "graph") and self.graph is not None:
+            for edge in self.graph.get_edges_for_source(item_node.id, EDGE_TRIGGERS):
+                if edge.target not in seen_ids:
+                    triggers.append(edge)
+
         if not triggers:
             return []
 
@@ -515,11 +538,13 @@ class ExecutionMixin:
             # ── Fire-once triggers (legacy `once`) ──
             # A discovery trigger must not re-fire on every examine - that
             # would repeat its message and duplicate its spawned items.
-            once_node = self.graph.get_node(trigger_edge.target)
+            once_node = self.graph.get_node(trigger_edge.target) if (getattr(trigger_edge, "target", None) and hasattr(self, "graph") and self.graph is not None) else None
             if once_node is not None:
                 once_props = once_node.properties or {}
                 if once_props.get("once") and once_props.get("fired"):
                     continue
+            elif (getattr(trigger_edge, "properties", None) or {}).get("once") and (getattr(trigger_edge, "properties", None) or {}).get("fired"):
+                continue
 
             # ── Execute all effects in order ──
             for effect in effects_list:
@@ -584,6 +609,8 @@ class ExecutionMixin:
                 )
 
             # Mark a `once` trigger as spent after it actually ran.
+            if hasattr(trigger_edge, "properties") and trigger_edge.properties.get("once"):
+                trigger_edge.properties["fired"] = True
             if once_node is not None and (once_node.properties or {}).get("once"):
                 once_node.properties["fired"] = True
 

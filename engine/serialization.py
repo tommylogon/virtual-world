@@ -94,6 +94,53 @@ class WorldSerializer:
                 continue
             node.properties["actions"] = normalize_item_actions(raw)
 
+    def _migrate_triggers_from_nodes_to_properties(self):
+        """task-886: Migrate legacy logic_trigger nodes and triggers edges to node.properties['triggers']."""
+        from graph import EDGE_TRIGGERS
+        from engine.triggers.effect_resolution import _effects_list_from_properties
+
+        trigger_edges = [e for e in list(self.graph.edges) if e.type == EDGE_TRIGGERS]
+        if not trigger_edges:
+            return
+
+        to_remove_edges = []
+        to_remove_nodes = set()
+
+        for edge in trigger_edges:
+            owner = self.graph.get_node(edge.source)
+            if not owner:
+                to_remove_edges.append(edge)
+                continue
+
+            trig_node = self.graph.get_node(edge.target)
+            if trig_node and trig_node.type == "logic_trigger":
+                to_remove_nodes.add(trig_node.id)
+
+            props = dict(trig_node.properties if trig_node else {})
+            props.update(edge.properties or {})
+
+            if "id" not in props:
+                props["id"] = trig_node.id if trig_node else f"trigger_{owner.id}_{props.get('trigger_type', 'trig')}"
+
+            resolved_effects = _effects_list_from_properties(props)
+            if resolved_effects:
+                props["effects"] = resolved_effects
+
+            existing = owner.properties.setdefault("triggers", [])
+            if not any(isinstance(t, dict) and t.get("id") == props["id"] for t in existing):
+                existing.append(props)
+
+            to_remove_edges.append(edge)
+
+        for edge in to_remove_edges:
+            try:
+                self.graph.remove_edge(edge.source, edge.target, EDGE_TRIGGERS)
+            except Exception:
+                pass
+
+        for nid in to_remove_nodes:
+            self.graph.nodes.pop(nid, None)
+
     def _serialize_area(self, area_id):
         node = self.graph.get_node(area_id)
         if node is None or node.type != "area":
@@ -688,6 +735,7 @@ class WorldSerializer:
             self.graph.load_from_dict(data["graph"])
             self.graph.register_aliases(aliases)
             self._normalize_item_node_actions()
+            self._migrate_triggers_from_nodes_to_properties()
         else:
             self._legacy_loader.load(data)
 

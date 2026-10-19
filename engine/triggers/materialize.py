@@ -131,6 +131,18 @@ def materialize_trigger(
         trigger_id = (
             f"trigger_{owner_id}_{tt}_{int(time.time() * 1000)}_{random.randint(0, 999)}"
         )
+    # Store directly in owner's properties['triggers'] (task-886)
+    owner_node = graph.get_node(owner_id)
+    if owner_node is not None:
+        trig_entry = dict(props)
+        trig_entry["id"] = trigger_id
+        current_trigs = owner_node.properties.setdefault("triggers", [])
+        idx = next((i for i, t in enumerate(current_trigs) if isinstance(t, dict) and t.get("id") == trigger_id), None)
+        if idx is not None:
+            current_trigs[idx] = trig_entry
+        else:
+            current_trigs.append(trig_entry)
+
     graph.add_node(
         Node(id=trigger_id, type="logic_trigger", name=_default_name(props),
              properties=dict(props))

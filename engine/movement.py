@@ -606,21 +606,26 @@ class MovementSystem:
                 for output in trigger_outputs:
                     self.gs.add_log_entry(output)
             else:
-                # Check for requires_open trigger edges (conditions that can block passage)
-                req_open_triggers = [
-                    e for e in self.graph.get_edges_for_source(way_id, EDGE_TRIGGERS)
-                    if e.properties.get("trigger_type") == "requires_open"
-                ]
+                # Check for requires_open triggers (conditions that can block passage)
+                req_open_triggers = []
+                if way_node and isinstance(way_node.properties.get("triggers"), list):
+                    for t in way_node.properties["triggers"]:
+                        if isinstance(t, dict) and t.get("trigger_type") == "requires_open":
+                            req_open_triggers.append(t)
+                for e in self.graph.get_edges_for_source(way_id, EDGE_TRIGGERS):
+                    if e.properties.get("trigger_type") == "requires_open":
+                        req_open_triggers.append(e.properties)
+
                 if req_open_triggers:
                     all_pass = True
-                    for edge in req_open_triggers:
-                        conds = edge.properties.get("conditions", [])
+                    for trig_props in req_open_triggers:
+                        conds = trig_props.get("conditions", [])
                         for cond in conds:
                             if cond and not self.triggers._evaluate_trigger_condition(cond, way_node):
                                 all_pass = False
                                 break
                         if not all_pass:
-                            fail_msg = edge.properties.get("effect_params", {}).get(
+                            fail_msg = trig_props.get("effect_params", {}).get(
                                 "fail_message",
                                 f"The {direction} is barred. Something prevents it from opening."
                             )

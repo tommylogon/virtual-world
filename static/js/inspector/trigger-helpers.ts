@@ -34,6 +34,13 @@ const _InspectorTriggers = (() => {
      */
     api.removeTriggerFromNode = async function(nodeId: string, source: string, target: string) {
         if (!confirm('Remove this trigger?')) return;
+        const node = worldState.getNode(nodeId);
+        if (node && Array.isArray(node.properties?.triggers)) {
+            const updated = node.properties.triggers.filter((t: any) => t && t.id !== target);
+            if (updated.length !== node.properties.triggers.length) {
+                await _api().updateNode(nodeId, { properties: { ...node.properties, triggers: updated } });
+            }
+        }
         await _api().deleteEdge(source, target, 'triggers');
         const triggerNode = worldState.getNode(target);
         if (triggerNode && triggerNode.type === 'logic_trigger') {
@@ -143,10 +150,32 @@ const _InspectorTriggers = (() => {
         const triggers: TriggerHelpersGraphEdge[] = [];
         const locked = lockedFields || [];
         const nodeIdLower = String(nodeId).toLowerCase();
+        const node = worldState.getNode(nodeId);
+        const seenIds = new Set<string>();
+
+        // 1. Property-based triggers on the node itself (task-886)
+        if (node && Array.isArray((node.properties as any)?.triggers)) {
+            for (const t of (node.properties as any).triggers) {
+                if (t && typeof t === 'object') {
+                    const tid = t.id || `trig_${triggers.length}`;
+                    seenIds.add(tid);
+                    triggers.push({
+                        source: nodeId,
+                        target: tid,
+                        type: 'triggers',
+                        properties: t
+                    } as TriggerHelpersGraphEdge);
+                }
+            }
+        }
+
+        // 2. Legacy graph edges
         if (worldState.graph?.edges) {
             for (const edge of worldState.graph.edges as TriggerHelpersGraphEdge[]) {
                 if (String(edge.source).toLowerCase() === nodeIdLower && edge.type === 'triggers') {
-                    triggers.push(edge);
+                    if (!seenIds.has(edge.target)) {
+                        triggers.push(edge);
+                    }
                 }
             }
         }

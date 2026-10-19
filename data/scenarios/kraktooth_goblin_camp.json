@@ -62632,7 +62632,7 @@
             "drop"
           ],
           "current_state": "normal",
-          "description": "A rat skeleton perched on a shelf, watching the food preparation. It's been there so long it's become part of the décor.",
+          "description": "A rat skeleton perched on a shelf, watching the food preparation. It's been there so long it's become part of the d\u00e9cor.",
           "tags": [
             "decor",
             "creature",
@@ -64419,7 +64419,7 @@
               ],
               "speech_pattern": {
                 "catchphrases": [
-                  "R-really? I… I did okay?"
+                  "R-really? I\u2026 I did okay?"
                 ]
               },
               "traits": [
@@ -64534,7 +64534,7 @@
               "profile": "/static/images/nodes/player_Belne-profile-worried-1791154795033.webp"
             }
           },
-          "personality": "Shy, clumsy, talkative, curious, socially awkward, kind-hearted, loyal and eager to learn. hides food. keeps small discarded items. blurts out awkward questions. rambles when comfortable. relieves herself openly in nature. eats loudly. relaxed about hygiene. rummages through trash when desperate. sets simple goblin traps. avoid_being_kicked_out_of_guild. complete_guild_quests. find_a_mentor. own_a_cottage_in_the_countryside. prove_herself. form_real_friendships. Speaks, fond of \"R-really? I… I did okay?\".",
+          "personality": "Shy, clumsy, talkative, curious, socially awkward, kind-hearted, loyal and eager to learn. hides food. keeps small discarded items. blurts out awkward questions. rambles when comfortable. relieves herself openly in nature. eats loudly. relaxed about hygiene. rummages through trash when desperate. sets simple goblin traps. avoid_being_kicked_out_of_guild. complete_guild_quests. find_a_mentor. own_a_cottage_in_the_countryside. prove_herself. form_real_friendships. Speaks, fond of \"R-really? I\u2026 I did okay?\".",
           "profile_image": "/static/images/nodes/player_Belne-profile-neutral-1791154779983.webp",
           "tags": [
             "female",
@@ -66673,7 +66673,7 @@
       "trigger_belt_leather_on_use_1791548346731_170": {
         "id": "trigger_belt_leather_on_use_1791548346731_170",
         "type": "logic_trigger",
-        "name": "on_use → message",
+        "name": "on_use \u2192 message",
         "properties": {
           "effects": [
             {
@@ -66693,7 +66693,7 @@
       "trigger_black_short_shorts_on_examine_1790895756513_131": {
         "id": "trigger_black_short_shorts_on_examine_1790895756513_131",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -66717,7 +66717,7 @@
       "trigger_blue_butterfly_earring_on_examine_1790895756512_678": {
         "id": "trigger_blue_butterfly_earring_on_examine_1790895756512_678",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -66741,7 +66741,7 @@
       "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717": {
         "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717",
         "type": "logic_trigger",
-        "name": "on_tick → adjust_parameter",
+        "name": "on_tick \u2192 adjust_parameter",
         "properties": {
           "condition": {
             "key": "growth",
@@ -66766,7 +66766,7 @@
       "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891": {
         "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891",
         "type": "logic_trigger",
-        "name": "on_tick → spawn_item",
+        "name": "on_tick \u2192 spawn_item",
         "properties": {
           "conditions": [
             {
@@ -66809,7 +66809,7 @@
       "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468": {
         "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468",
         "type": "logic_trigger",
-        "name": "on_tick → adjust_parameter",
+        "name": "on_tick \u2192 adjust_parameter",
         "properties": {
           "condition": {
             "key": "growth",
@@ -66834,7 +66834,7 @@
       "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631": {
         "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631",
         "type": "logic_trigger",
-        "name": "on_tick → spawn_item",
+        "name": "on_tick \u2192 spawn_item",
         "properties": {
           "conditions": [
             {
@@ -66877,7 +66877,7 @@
       "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337": {
         "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337",
         "type": "logic_trigger",
-        "name": "on_tick → spawn_item",
+        "name": "on_tick \u2192 spawn_item",
         "properties": {
           "conditions": [
             {
@@ -66920,7 +66920,7 @@
       "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40": {
         "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40",
         "type": "logic_trigger",
-        "name": "on_tick → adjust_parameter",
+        "name": "on_tick \u2192 adjust_parameter",
         "properties": {
           "condition": {
             "key": "growth",
@@ -66945,7 +66945,7 @@
       "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775": {
         "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775",
         "type": "logic_trigger",
-        "name": "on_tick → spawn_item",
+        "name": "on_tick \u2192 spawn_item",
         "properties": {
           "conditions": [
             {
@@ -66988,7 +66988,7 @@
       "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926": {
         "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926",
         "type": "logic_trigger",
-        "name": "on_tick → adjust_parameter",
+        "name": "on_tick \u2192 adjust_parameter",
         "properties": {
           "condition": {
             "key": "growth",
@@ -67013,7 +67013,7 @@
       "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203": {
         "id": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203",
         "type": "logic_trigger",
-        "name": "on_tick → adjust_parameter",
+        "name": "on_tick \u2192 adjust_parameter",
         "properties": {
           "condition": {
             "key": "growth",
@@ -67038,7 +67038,7 @@
       "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833": {
         "id": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833",
         "type": "logic_trigger",
-        "name": "on_tick → spawn_item",
+        "name": "on_tick \u2192 spawn_item",
         "properties": {
           "conditions": [
             {
@@ -67081,7 +67081,7 @@
       "trigger_camp_drum_chiefs_pit_1_on_use_1789994199552_407": {
         "id": "trigger_camp_drum_chiefs_pit_1_on_use_1789994199552_407",
         "type": "logic_trigger",
-        "name": "on_use → adjust_vital",
+        "name": "on_use \u2192 adjust_vital",
         "properties": {
           "effect_params": {
             "amount": 18,
@@ -67100,7 +67100,7 @@
       "trigger_item_acorn_meal_1791213345268_610_['on_eat']_1791213345269_964": {
         "id": "trigger_item_acorn_meal_1791213345268_610_['on_eat']_1791213345269_964",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67132,7 +67132,7 @@
       "trigger_item_apple_1791213344906_964_['on_eat']_1791213344906_204": {
         "id": "trigger_item_apple_1791213344906_964_['on_eat']_1791213344906_204",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67163,7 +67163,7 @@
       "trigger_item_apple_1791213344906_964_on_examine_1791213344906_504": {
         "id": "trigger_item_apple_1791213344906_964_on_examine_1791213344906_504",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67185,7 +67185,7 @@
       "trigger_item_bacon_rasher_1791213342775_651_['on_eat']_1791213342775_390": {
         "id": "trigger_item_bacon_rasher_1791213342775_651_['on_eat']_1791213342775_390",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67217,7 +67217,7 @@
       "trigger_item_bean_stew_1791213345939_76_['on_eat']_1791213345940_886": {
         "id": "trigger_item_bean_stew_1791213345939_76_['on_eat']_1791213345940_886",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67249,7 +67249,7 @@
       "trigger_item_beef_roast_1791213345584_50_['on_eat']_1791213345585_852": {
         "id": "trigger_item_beef_roast_1791213345584_50_['on_eat']_1791213345585_852",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67281,7 +67281,7 @@
       "trigger_item_blue butterfly earring_1791213729349_380_on_examine_1791213729350_495": {
         "id": "trigger_item_blue butterfly earring_1791213729349_380_on_examine_1791213729350_495",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67302,7 +67302,7 @@
       "trigger_item_cheddar_cheese_1791213343477_187_['on_eat']_1791213343477_135": {
         "id": "trigger_item_cheddar_cheese_1791213343477_187_['on_eat']_1791213343477_135",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67334,7 +67334,7 @@
       "trigger_item_cod_1791213344573_647_['on_eat']_1791213344574_976": {
         "id": "trigger_item_cod_1791213344573_647_['on_eat']_1791213344574_976",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67366,7 +67366,7 @@
       "trigger_item_dark trousers_1791227834528_865_on_examine_1791227834529_349": {
         "id": "trigger_item_dark trousers_1791227834528_865_on_examine_1791227834529_349",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67387,7 +67387,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67416,7 +67416,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67454,7 +67454,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_21_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_21_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67483,7 +67483,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_11_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_11_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67521,7 +67521,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -67559,7 +67559,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67588,7 +67588,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67617,7 +67617,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_21_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_21_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -67655,7 +67655,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67693,7 +67693,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -67731,7 +67731,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_13_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_13_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -67769,7 +67769,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -67798,7 +67798,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67836,7 +67836,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -67874,7 +67874,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67903,7 +67903,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67932,7 +67932,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -67970,7 +67970,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -67999,7 +67999,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_11_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_11_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68028,7 +68028,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68057,7 +68057,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68086,7 +68086,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68115,7 +68115,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68144,7 +68144,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68173,7 +68173,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_25_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_25_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68211,7 +68211,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68240,7 +68240,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68278,7 +68278,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_13_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_13_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68316,7 +68316,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_15_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_15_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68354,7 +68354,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68392,7 +68392,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68421,7 +68421,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68450,7 +68450,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_25_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_25_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68488,7 +68488,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_14_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_14_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68526,7 +68526,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_15_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_15_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68564,7 +68564,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68593,7 +68593,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68622,7 +68622,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_25_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_25_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68651,7 +68651,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_0_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_0_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68689,7 +68689,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_10_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_10_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68727,7 +68727,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_11_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_11_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68756,7 +68756,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -68785,7 +68785,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_21_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_21_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68814,7 +68814,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68852,7 +68852,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_11_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_11_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68881,7 +68881,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_12_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_12_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -68910,7 +68910,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_15_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_15_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -68948,7 +68948,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -68986,7 +68986,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -69015,7 +69015,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_21_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_21_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69044,7 +69044,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -69082,7 +69082,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_4_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_4_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69120,7 +69120,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69149,7 +69149,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_17_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_17_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -69187,7 +69187,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69216,7 +69216,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -69245,7 +69245,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69274,7 +69274,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_4_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_4_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69303,7 +69303,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_6_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_6_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69332,7 +69332,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_8_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_8_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69370,7 +69370,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_14_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_14_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69408,7 +69408,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -69446,7 +69446,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -69484,7 +69484,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69513,7 +69513,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_7_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_7_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69551,7 +69551,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69580,7 +69580,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69609,7 +69609,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -69638,7 +69638,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -69667,7 +69667,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -69705,7 +69705,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_2_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_2_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69743,7 +69743,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_3_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_3_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69781,7 +69781,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_4_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_4_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69819,7 +69819,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_7_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_7_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69857,7 +69857,7 @@
       "trigger_item_deep_woods_area_deep_woods_21_8_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_21_8_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69895,7 +69895,7 @@
       "trigger_item_deep_woods_area_deep_woods_22_15_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_22_15_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69924,7 +69924,7 @@
       "trigger_item_deep_woods_area_deep_woods_22_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_22_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -69953,7 +69953,7 @@
       "trigger_item_deep_woods_area_deep_woods_22_7_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_22_7_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -69991,7 +69991,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_15_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_15_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70020,7 +70020,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_21_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_21_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -70058,7 +70058,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_3_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_3_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70087,7 +70087,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_6_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_6_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70125,7 +70125,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -70154,7 +70154,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_14_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_14_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70192,7 +70192,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_15_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_15_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70221,7 +70221,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_4_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_4_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70250,7 +70250,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70279,7 +70279,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -70308,7 +70308,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_11_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_11_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70346,7 +70346,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70375,7 +70375,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_15_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_15_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70413,7 +70413,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70442,7 +70442,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -70480,7 +70480,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_4_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_4_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70509,7 +70509,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_6_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_6_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70538,7 +70538,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70567,7 +70567,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_11_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_11_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70605,7 +70605,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -70634,7 +70634,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_21_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_21_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -70672,7 +70672,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_4_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_4_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70701,7 +70701,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_6_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_6_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70739,7 +70739,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_7_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_7_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70768,7 +70768,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_11_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_11_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70797,7 +70797,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70835,7 +70835,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70864,7 +70864,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -70893,7 +70893,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_4_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_4_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70922,7 +70922,7 @@
       "trigger_item_deep_woods_area_deep_woods_27_7_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_27_7_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -70951,7 +70951,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_14_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_14_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -70989,7 +70989,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_15_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_15_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71018,7 +71018,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71056,7 +71056,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_25_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_25_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71094,7 +71094,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_7_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_7_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71132,7 +71132,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_12_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_12_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71161,7 +71161,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71199,7 +71199,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_22_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_22_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71237,7 +71237,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71266,7 +71266,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_25_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_25_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71304,7 +71304,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71342,7 +71342,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_11_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_11_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71380,7 +71380,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71418,7 +71418,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -71456,7 +71456,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71494,7 +71494,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_6_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_6_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71523,7 +71523,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_7_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_7_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71552,7 +71552,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71581,7 +71581,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71610,7 +71610,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_17_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_17_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71648,7 +71648,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71677,7 +71677,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -71715,7 +71715,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_7_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_7_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71744,7 +71744,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71773,7 +71773,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71802,7 +71802,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71831,7 +71831,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_7_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_7_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71860,7 +71860,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71889,7 +71889,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71918,7 +71918,7 @@
       "trigger_item_deep_woods_area_deep_woods_34_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_34_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -71947,7 +71947,7 @@
       "trigger_item_deep_woods_area_deep_woods_34_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_34_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -71976,7 +71976,7 @@
       "trigger_item_deep_woods_area_deep_woods_35_13_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_35_13_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72014,7 +72014,7 @@
       "trigger_item_deep_woods_area_deep_woods_35_14_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_35_14_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72052,7 +72052,7 @@
       "trigger_item_deep_woods_area_deep_woods_35_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_35_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72090,7 +72090,7 @@
       "trigger_item_deep_woods_area_deep_woods_35_7_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_35_7_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72128,7 +72128,7 @@
       "trigger_item_deep_woods_area_deep_woods_35_8_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_35_8_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72166,7 +72166,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_11_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_11_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72204,7 +72204,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_12_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_12_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72242,7 +72242,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72280,7 +72280,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_20_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_20_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72318,7 +72318,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_27_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_27_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72356,7 +72356,7 @@
       "trigger_item_deep_woods_area_deep_woods_37_10_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_37_10_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72394,7 +72394,7 @@
       "trigger_item_deep_woods_area_deep_woods_37_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_37_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72432,7 +72432,7 @@
       "trigger_item_deep_woods_area_deep_woods_37_22_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_37_22_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72470,7 +72470,7 @@
       "trigger_item_deep_woods_area_deep_woods_3_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_3_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -72499,7 +72499,7 @@
       "trigger_item_deep_woods_area_deep_woods_4_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_4_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72528,7 +72528,7 @@
       "trigger_item_deep_woods_area_deep_woods_5_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_5_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72557,7 +72557,7 @@
       "trigger_item_deep_woods_area_deep_woods_5_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_5_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72586,7 +72586,7 @@
       "trigger_item_deep_woods_area_deep_woods_6_13_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_6_13_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -72624,7 +72624,7 @@
       "trigger_item_deep_woods_area_deep_woods_6_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_6_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72653,7 +72653,7 @@
       "trigger_item_deep_woods_area_deep_woods_6_15_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_6_15_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72682,7 +72682,7 @@
       "trigger_item_deep_woods_area_deep_woods_7_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_7_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -72711,7 +72711,7 @@
       "trigger_item_deep_woods_area_deep_woods_7_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_7_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72740,7 +72740,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_14_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_14_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72769,7 +72769,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72807,7 +72807,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -72845,7 +72845,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72874,7 +72874,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72903,7 +72903,7 @@
       "trigger_item_deep_woods_area_deep_woods_9_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_9_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -72932,7 +72932,7 @@
       "trigger_item_deep_woods_area_deep_woods_9_21_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_9_21_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -72961,7 +72961,7 @@
       "trigger_item_deep_woods_area_deep_woods_9_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_9_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -72990,7 +72990,7 @@
       "trigger_item_deep_woods_area_deep_woods_9_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_9_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -73042,7 +73042,7 @@
       "trigger_item_goblin_barbed_spear_twmn_on_examine_1791562965052_448": {
         "id": "trigger_item_goblin_barbed_spear_twmn_on_examine_1791562965052_448",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "conditions": {},
           "effects": [
@@ -73065,7 +73065,7 @@
       "trigger_item_green tunic_1791227833606_293_on_equip_1791227833935_572": {
         "id": "trigger_item_green tunic_1791227833606_293_on_equip_1791227833935_572",
         "type": "logic_trigger",
-        "name": "on_equip → adjust_vital",
+        "name": "on_equip \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -73088,7 +73088,7 @@
       "trigger_item_green tunic_1791227833606_293_on_examine_1791227833935_761": {
         "id": "trigger_item_green tunic_1791227833606_293_on_examine_1791227833935_761",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73109,7 +73109,7 @@
       "trigger_item_green tunic_1791227833606_293_on_unequip_1791227833935_489": {
         "id": "trigger_item_green tunic_1791227833606_293_on_unequip_1791227833935_489",
         "type": "logic_trigger",
-        "name": "on_unequip → adjust_vital",
+        "name": "on_unequip \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -73132,7 +73132,7 @@
       "trigger_item_hanging dried meats_1791213343149_490_on_eat_1791213343149_515": {
         "id": "trigger_item_hanging dried meats_1791213343149_490_on_eat_1791213343149_515",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -73155,7 +73155,7 @@
       "trigger_item_hanging dried meats_1791213343149_490_on_examine_1791213343149_592": {
         "id": "trigger_item_hanging dried meats_1791213343149_490_on_examine_1791213343149_592",
         "type": "logic_trigger",
-        "name": "on_examine → message",
+        "name": "on_examine \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73176,7 +73176,7 @@
       "trigger_item_hanging dried meats_1791213343149_490_on_take_1791213343149_123": {
         "id": "trigger_item_hanging dried meats_1791213343149_490_on_take_1791213343149_123",
         "type": "logic_trigger",
-        "name": "on_take → message",
+        "name": "on_take \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73197,7 +73197,7 @@
       "trigger_item_heather_honey_1791213343820_107_['on_eat']_1791213343821_452": {
         "id": "trigger_item_heather_honey_1791213343820_107_['on_eat']_1791213343821_452",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73229,7 +73229,7 @@
       "trigger_item_hiking boots_1791227835601_380_on_equip_1791227835602_470": {
         "id": "trigger_item_hiking boots_1791227835601_380_on_equip_1791227835602_470",
         "type": "logic_trigger",
-        "name": "on_equip → message",
+        "name": "on_equip \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73250,7 +73250,7 @@
       "trigger_item_honeycomb_1791213344173_240_['on_eat']_1791213344174_293": {
         "id": "trigger_item_honeycomb_1791213344173_240_['on_eat']_1791213344174_293",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73282,7 +73282,7 @@
       "trigger_item_porridge_1791213346288_565_['on_eat']_1791213346288_485": {
         "id": "trigger_item_porridge_1791213346288_565_['on_eat']_1791213346288_485",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73314,7 +73314,7 @@
       "trigger_item_stale_bread_1792150692450_141_['on_eat']_1792150692451_169": {
         "id": "trigger_item_stale_bread_1792150692450_141_['on_eat']_1792150692451_169",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73344,7 +73344,7 @@
       "trigger_item_stove_1791229270814_639_['on_examine']_1791229270815_104": {
         "id": "trigger_item_stove_1791229270814_639_['on_examine']_1791229270815_104",
         "type": "logic_trigger",
-        "name": "['on_examine'] → message",
+        "name": "['on_examine'] \u2192 message",
         "properties": {
           "effects": [
             {
@@ -73390,7 +73390,7 @@
       "trigger_knucklebones_camp_entrance_1_on_use_1789994202537_817": {
         "id": "trigger_knucklebones_camp_entrance_1_on_use_1789994202537_817",
         "type": "logic_trigger",
-        "name": "on_use → adjust_vital",
+        "name": "on_use \u2192 adjust_vital",
         "properties": {
           "effect_params": {
             "amount": 15,
@@ -73409,7 +73409,7 @@
       "trigger_story_fire_cooking_area_1_on_use_1789994205847_944": {
         "id": "trigger_story_fire_cooking_area_1_on_use_1789994205847_944",
         "type": "logic_trigger",
-        "name": "on_use → adjust_vital",
+        "name": "on_use \u2192 adjust_vital",
         "properties": {
           "effect_params": {
             "amount": 12,
@@ -73428,7 +73428,7 @@
       "trigger_wash_spot_raven_river_1_on_use_1789989626740_748": {
         "id": "trigger_wash_spot_raven_river_1_on_use_1789989626740_748",
         "type": "logic_trigger",
-        "name": "on_use → adjust_vital",
+        "name": "on_use \u2192 adjust_vital",
         "properties": {
           "effect_params": {
             "amount": 70,
@@ -73447,7 +73447,7 @@
       "trigger_wash_spot_water_source_1_on_use_1789989626159_452": {
         "id": "trigger_wash_spot_water_source_1_on_use_1789989626159_452",
         "type": "logic_trigger",
-        "name": "on_use → adjust_vital",
+        "name": "on_use \u2192 adjust_vital",
         "properties": {
           "effect_params": {
             "amount": 70,
@@ -73466,7 +73466,7 @@
       "trigger_wild_berries_on_eat_1791282894281_196": {
         "id": "trigger_wild_berries_on_eat_1791282894281_196",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "effects": [
             {
@@ -123788,7 +123788,7 @@
       "trigger_item_world_area_world_4_0_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_4_0_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -123869,7 +123869,7 @@
       "trigger_item_world_area_world_5_0_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_5_0_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -123948,7 +123948,7 @@
       "trigger_item_world_area_world_6_0_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_6_0_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -124144,7 +124144,7 @@
       "trigger_item_world_area_world_3_1_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_3_1_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -124329,7 +124329,7 @@
       "trigger_item_world_area_world_1_2_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_1_2_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -124411,7 +124411,7 @@
       "trigger_item_world_area_world_3_2_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_3_2_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -124498,7 +124498,7 @@
       "trigger_item_world_area_world_4_2_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_4_2_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -124588,7 +124588,7 @@
       "trigger_item_world_area_world_5_2_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_5_2_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -124791,7 +124791,7 @@
       "trigger_item_world_area_world_6_0_res0_on_eat_0": {
         "id": "trigger_item_world_area_world_6_0_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -124818,7 +124818,7 @@
       "trigger_item_world_area_world_1_1_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_1_1_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -124854,7 +124854,7 @@
       "trigger_item_world_area_world_2_1_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_2_1_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -124890,7 +124890,7 @@
       "trigger_item_world_area_world_6_2_res0_['on_eat']_0": {
         "id": "trigger_item_world_area_world_6_2_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125356,7 +125356,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_8_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_8_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125392,7 +125392,7 @@
       "trigger_item_deep_woods_area_deep_woods_33_8_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_33_8_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125419,7 +125419,7 @@
       "trigger_item_deep_woods_area_deep_woods_11_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_11_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125446,7 +125446,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125482,7 +125482,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_9_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_9_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125509,7 +125509,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125545,7 +125545,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_9_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_9_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125581,7 +125581,7 @@
       "trigger_item_deep_woods_area_deep_woods_5_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_5_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125608,7 +125608,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125635,7 +125635,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_10_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_10_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125671,7 +125671,7 @@
       "trigger_item_deep_woods_area_deep_woods_25_10_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_25_10_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125707,7 +125707,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_10_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_10_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125734,7 +125734,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_11_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_11_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125761,7 +125761,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_13_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_13_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125840,7 +125840,7 @@
       "trigger_item_deep_woods_area_deep_woods_4_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_4_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125876,7 +125876,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125903,7 +125903,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125930,7 +125930,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -125966,7 +125966,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_16_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_16_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -125993,7 +125993,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_16_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_16_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126080,7 +126080,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126107,7 +126107,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_17_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_17_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126134,7 +126134,7 @@
       "trigger_item_deep_woods_area_deep_woods_20_17_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_20_17_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126170,7 +126170,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_17_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_17_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126260,7 +126260,7 @@
       "trigger_item_deep_woods_area_deep_woods_4_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_4_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126287,7 +126287,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126314,7 +126314,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126341,7 +126341,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126368,7 +126368,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126404,7 +126404,7 @@
       "trigger_item_deep_woods_area_deep_woods_24_18_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_24_18_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126440,7 +126440,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126467,7 +126467,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_18_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_18_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126494,7 +126494,7 @@
       "trigger_item_deep_woods_area_deep_woods_8_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_8_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126521,7 +126521,7 @@
       "trigger_item_deep_woods_area_deep_woods_13_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_13_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126548,7 +126548,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126584,7 +126584,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_19_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_19_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126620,7 +126620,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126647,7 +126647,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126674,7 +126674,7 @@
       "trigger_item_deep_woods_area_deep_woods_29_19_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_29_19_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126701,7 +126701,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126728,7 +126728,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_20_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_20_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126755,7 +126755,7 @@
       "trigger_item_deep_woods_area_deep_woods_18_20_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_18_20_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126791,7 +126791,7 @@
       "trigger_item_deep_woods_area_deep_woods_19_20_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_19_20_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126827,7 +126827,7 @@
       "trigger_item_deep_woods_area_deep_woods_23_20_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_23_20_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126917,7 +126917,7 @@
       "trigger_item_deep_woods_area_deep_woods_16_21_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_16_21_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -126944,7 +126944,7 @@
       "trigger_item_deep_woods_area_deep_woods_36_21_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_36_21_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -126980,7 +126980,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127007,7 +127007,7 @@
       "trigger_item_deep_woods_area_deep_woods_26_22_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_26_22_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127034,7 +127034,7 @@
       "trigger_item_deep_woods_area_deep_woods_7_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_7_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127061,7 +127061,7 @@
       "trigger_item_deep_woods_area_deep_woods_10_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_10_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127097,7 +127097,7 @@
       "trigger_item_deep_woods_area_deep_woods_12_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_12_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127124,7 +127124,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127160,7 +127160,7 @@
       "trigger_item_deep_woods_area_deep_woods_28_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_28_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127187,7 +127187,7 @@
       "trigger_item_deep_woods_area_deep_woods_30_23_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_30_23_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127214,7 +127214,7 @@
       "trigger_item_deep_woods_area_deep_woods_31_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_31_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127250,7 +127250,7 @@
       "trigger_item_deep_woods_area_deep_woods_37_23_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_37_23_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127286,7 +127286,7 @@
       "trigger_item_deep_woods_area_deep_woods_6_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_6_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127313,7 +127313,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127340,7 +127340,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127376,7 +127376,7 @@
       "trigger_item_deep_woods_area_deep_woods_17_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_17_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127403,7 +127403,7 @@
       "trigger_item_deep_woods_area_deep_woods_32_24_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_32_24_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127430,7 +127430,7 @@
       "trigger_item_deep_woods_area_deep_woods_33_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_33_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127466,7 +127466,7 @@
       "trigger_item_deep_woods_area_deep_woods_34_24_res0_['on_eat']_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_34_24_res0_['on_eat']_0",
         "type": "logic_trigger",
-        "name": "['on_eat'] → message",
+        "name": "['on_eat'] \u2192 message",
         "properties": {
           "trigger_type": [
             "on_eat"
@@ -127502,7 +127502,7 @@
       "trigger_item_deep_woods_area_deep_woods_14_25_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_14_25_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -127529,7 +127529,7 @@
       "trigger_item_deep_woods_area_deep_woods_15_25_res0_on_eat_0": {
         "id": "trigger_item_deep_woods_area_deep_woods_15_25_res0_on_eat_0",
         "type": "logic_trigger",
-        "name": "on_eat → adjust_vital",
+        "name": "on_eat \u2192 adjust_vital",
         "properties": {
           "trigger_type": "on_eat",
           "target_name": "",
@@ -185371,6 +185371,54 @@
             "seed": "deep_woods:grid.v2",
             "generated_at_tick": 1
           }
+        }
+      },
+      {
+        "source": "wild_berries",
+        "target": "trigger_wild_berries_on_eat_1791282894281_196",
+        "type": "triggers",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -45,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "fail_message": "",
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_eat"
+        }
+      },
+      {
+        "source": "item_stale_bread_1792150692450_141",
+        "target": "trigger_item_stale_bread_1792150692450_141_['on_eat']_1792150692451_169",
+        "type": "triggers",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "Hard enough to hurt. Still calories."
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "amount": -5,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_eat"
         }
       }
     ]

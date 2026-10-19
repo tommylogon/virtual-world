@@ -520,19 +520,14 @@ class Inspector {
             ...this._triggerEditorOptions(nodeId),
             onSave: async (data: any) => {
                 const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
-                const triggerName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
-                const nodeRes = await inspectorGraphApi.createNode({
-                    id: triggerId,
-                    type: 'logic_trigger',
-                    name: triggerName,
-                    properties: data
+                const triggerData = { ...data, id: triggerId };
+                const currentTriggers = Array.isArray((graphNode.properties as any)?.triggers)
+                    ? [...(graphNode.properties as any).triggers]
+                    : [];
+                currentTriggers.push(triggerData);
+                await ApiClient.updateNode(nodeId, {
+                    properties: { ...graphNode.properties, triggers: currentTriggers }
                 });
-                if (nodeRes?.error) {
-                    console.warn('[_addTriggerToNode] trigger node create failed:', nodeRes.error);
-                    return;
-                }
-                await inspectorGraphApi.createEdge(nodeId, triggerId, 'triggers', data);
                 worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector.showNode(nodeId); });
             }
         });
@@ -594,6 +589,16 @@ class Inspector {
                 // Keep node + edge in sync: the runtime reads edge properties first.
                 try {
                     let targetId = triggerEdge ? triggerEdge.target : (triggerNode ? triggerNode.id : null);
+                    const currentTriggers = Array.isArray((graphNode.properties as any)?.triggers)
+                        ? [...(graphNode.properties as any).triggers]
+                        : [];
+                    const trigIdx = currentTriggers.findIndex((t: any) => t && (t.id === targetId || t.id === triggerEdge?.target));
+                    if (trigIdx >= 0) {
+                        currentTriggers[trigIdx] = { ...updatedProps, id: targetId || currentTriggers[trigIdx].id };
+                        await ApiClient.updateNode(nodeId, {
+                            properties: { ...graphNode.properties, triggers: currentTriggers }
+                        });
+                    }
 
                     // If the trigger ID embeds a different parent node name (stale copy
                     // pattern), regenerate a clean ID so the stale-copy validator stays
@@ -620,7 +625,7 @@ class Inspector {
                     }
 
                     // Update edge properties
-                    if (triggerEdge) {
+                    if (triggerEdge && triggerNode) {
                         await inspectorGraphApi.updateEdge(nodeId, triggerEdge.target, {
                             old_type: 'triggers',
                             properties: updatedProps

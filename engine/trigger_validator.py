@@ -211,6 +211,18 @@ class TriggerValidator:
         when the node is of the type.
         """
         issues: List[dict] = []
+        # Validate property-based triggers (task-886)
+        for node in list(self.graph.nodes.values()):
+            if node_id and node.id.lower() != node_id.lower():
+                continue
+            if node_type and node.type != node_type:
+                continue
+            prop_triggers = (node.properties or {}).get("triggers")
+            if isinstance(prop_triggers, list):
+                for trig in prop_triggers:
+                    if isinstance(trig, dict):
+                        issues.extend(self.validate_trigger_props(trig, source_node_id=node.id, trigger_node_id=trig.get("id", "")))
+
         trigger_edges = self.graph.get_edges_by_type(EDGE_TRIGGERS)
         for edge in trigger_edges:
             if node_id and edge.source.lower() != node_id.lower():

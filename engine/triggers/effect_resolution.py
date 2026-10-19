@@ -51,11 +51,19 @@ def _effects_list_from_properties(props: Optional[dict]) -> Optional[List[dict]]
 
 
 def _resolve_trigger_effects(trigger_edge, graph) -> List[dict]:
-    """Resolve trigger effects from edge props, then linked trigger node, then legacy fields."""
-    sources = [trigger_edge.properties]
-    target_node = graph.get_node(trigger_edge.target)
-    if target_node:
-        sources.append(target_node.properties)
+    """Resolve trigger effects from property dict, edge props, or linked trigger node."""
+    if isinstance(trigger_edge, dict):
+        sources = [trigger_edge]
+    elif hasattr(trigger_edge, "properties"):
+        sources = [trigger_edge.properties]
+    else:
+        sources = []
+
+    target = getattr(trigger_edge, "target", None)
+    if target and graph is not None:
+        target_node = graph.get_node(target)
+        if target_node:
+            sources.append(target_node.properties)
 
     for props in sources:
         resolved = _effects_list_from_properties(props)

@@ -1085,6 +1085,15 @@ class BackgroundSimulation:
         destroyed, a glass empties and persists). When it does, the background
         tier must run *that* path rather than the hardcoded count/uses/remove.
         """
+        if node and isinstance(node.properties.get("triggers"), list):
+            for t in node.properties["triggers"]:
+                if isinstance(t, dict):
+                    tt = t.get("trigger_type", "")
+                    if isinstance(tt, (list, tuple)):
+                        if trigger_type in tt:
+                            return True
+                    elif tt == trigger_type:
+                        return True
         try:
             edges = self.gs.graph.get_edges_for_source(node.id, EDGE_TRIGGERS)
         except Exception:
