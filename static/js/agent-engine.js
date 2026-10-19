@@ -1,11 +1,11 @@
 "use strict";
 /**
- * AgentEngine — Character agent loop, turn management, and LLM orchestration
+ * AgentEngine - Character agent loop, turn management, and LLM orchestration
  * With thought->act->react, rest-skip, rate limiter, planning, and memory reflection
  *
- * @module agent-engine — the character agent loop and turn management
+ * @module agent-engine - the character agent loop and turn management
  * @contributes AgentEngine: per-character step pipeline, phases, planning, reflection, abort
- * @powers Turn queue, NPC behaviour — autonomous character turns and the Run / Step once / Cancel controls
+ * @powers Turn queue, NPC behaviour - autonomous character turns and the Run / Step once / Cancel controls
  * @relates uses llm-client + api + agent/prompt-builder; supports human-turn-composer
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -18,7 +18,7 @@ const CHAIN_RULES = {
     dash: ['go', 'wait'],
     lead: ['go', 'approach', 'release', 'wait'],
     // A grab buys a same-turn *single* move, so a character can seize someone and
-    // drag them one area (out of danger, or into the dark) — `movement.py` drags
+    // drag them one area (out of danger, or into the dark) - `movement.py` drags
     // grappled targets via `grapple.drag_all`. `dash` is deliberately NOT here:
     // grab + two-area dash is overpowered. Matches `lead`, which allows `go` only.
     grab: ['go', 'approach', 'release', 'wait'],
@@ -184,8 +184,8 @@ class AgentEngine {
      *
      * The 👾 lines are the SOLE surfacing mechanism for simple NPCs (they have
      * no dedicated thought/speech/action logging). LLM agents + humans already
-     * surface everything through their own paths — thoughts, speech, action
-     * results, emotes — and the backend ALSO records speak/emote as turn_events
+     * surface everything through their own paths - thoughts, speech, action
+     * results, emotes - and the backend ALSO records speak/emote as turn_events
      * for them, so re-logging here would double-post. Therefore only simple
      * NPCs ever get 👾 output.
      */
@@ -212,7 +212,7 @@ class AgentEngine {
         const spokenVolume = volume || 'say';
         events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target });
         events.trackAction(charName, null, speech, null, '');
-        // task-166: involuntary interruptions (hiccups, stutters, coughs) —
+        // task-166: involuntary interruptions (hiccups, stutters, coughs) -
         // flavor only, never replaces the intended line. Runs BEFORE the text
         // is sent so the room and event stream both see the injected moment.
         // A sudden loud sound this turn raises a yelp (startle).
@@ -367,7 +367,7 @@ class AgentEngine {
                 return;
             }
             const results = [];
-            // task-352: the human turn is a CONTINUOUS loop in one panel — act, the
+            // task-352: the human turn is a CONTINUOUS loop in one panel - act, the
             // world answers, act again, until the player Ends or the budget empties.
             // Stop on the first failed action. The turn ends with ONE applyTurn
             // (TurnQueue.advance below), never one per step.
@@ -413,7 +413,7 @@ class AgentEngine {
                 events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
             }
             else if (!endedByPlayer) {
-                // task-334 lane 1: one closing react beat — the player's answer to
+                // task-334 lane 1: one closing react beat - the player's answer to
                 // what actually happened, and where outcome-grounded memory lands.
                 const reaction = await HumanTurnComposer.react(charName, results);
                 if (reaction && !reaction.endTurn) {
@@ -431,7 +431,7 @@ class AgentEngine {
             }
             HumanTurnComposer.closeTurn();
             // Turn handoff is a turn-based concept (task-333 browser-test fix):
-            // outside turn-based mode the human keeps control — no roster
+            // outside turn-based mode the human keeps control - no roster
             // rotation, the run loop just continues from here.
             if (config.running && config.turnBased && this.turnQueue.length > 0) {
                 await TurnQueue.advance();
@@ -455,7 +455,7 @@ class AgentEngine {
      */
     async _executeHumanReply(charName, player, reply) {
         // bug-33: a human turn has no agent phase marker to open the card, so
-        // open it here before speech/emote rows are emitted — otherwise they
+        // open it here before speech/emote rows are emitted - otherwise they
         // land in the bare stream above the next `act` phase marker.
         events.beginActorTurn(charName);
         if (reply.speech) {
@@ -522,7 +522,7 @@ class AgentEngine {
             return;
         config.busy = true;
         // config.controllingPlayer is client-only and not persisted, but the
-        // header's "Active:" comes from the server's active_player — so after a
+        // header's "Active:" comes from the server's active_player - so after a
         // refresh they disagree. Fall back to the server's active player rather
         // than refusing to run with "no agent selected".
         let charName = config.controllingPlayer || worldState.data?.active_player || null;
@@ -639,7 +639,7 @@ class AgentEngine {
                 return;
             }
             const player = state.players?.[charName];
-            // NPC turns: simple NPCs act via backend tick_turn — surface what
+            // NPC turns: simple NPCs act via backend tick_turn - surface what
             // they did from the turn_events (or report they did nothing).
             if (player?.simple_npc) {
                 config.busy = false;
@@ -661,21 +661,21 @@ class AgentEngine {
                 let detail = '';
                 if (act && act.duration_ticks != null) {
                     const remaining = Math.max(0, (act.duration_ticks || 0) - (act.elapsed_ticks || 0));
-                    detail = ` — ${remaining} tick${remaining === 1 ? '' : 's'} left`;
+                    detail = ` - ${remaining} tick${remaining === 1 ? '' : 's'} left`;
                 }
                 else if (act) {
-                    detail = " — no set end ('wake' stops it)";
+                    detail = " - no set end ('wake' stops it)";
                 }
                 return this._endTurnEarly(`⏳ ${charName} is ${busyAct}${detail}...`, 'system-msg');
             }
-            // Unconscious check — skip actions, character cannot think or act
+            // Unconscious check - skip actions, character cannot think or act
             if (player.state === 'unconscious') {
                 const { message: unconsciousMsg } = window.AgentState.markUnconscious(charName, player, worldState.data, worldState);
                 if (unconsciousMsg)
                     events.log(unconsciousMsg, 'system-msg');
                 return this._endTurnEarly(null);
             }
-            // Just woke up from unconsciousness — skip this turn to let Energy stabilize
+            // Just woke up from unconsciousness - skip this turn to let Energy stabilize
             const wakeMsg = window.AgentState.clearUnconscious(charName, player);
             if (wakeMsg) {
                 events.log(wakeMsg, 'system-msg');
@@ -700,19 +700,19 @@ class AgentEngine {
                 events.logPhase(charName, 'think', 'observing');
                 VW?.ui?.setStatus("Thinking...", "info");
                 const turnEvents = state.turn_events || [];
-                // Threat check before OBSERVE — so the character naturally notices the threat
+                // Threat check before OBSERVE - so the character naturally notices the threat
                 const preObserveThreat = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
                 const threatNames = preObserveThreat
                     ? (preObserveThreat.match(/⚠️ IMMEDIATE DANGER: ([^.]+)/)?.[1]?.trim() || '')
                     : '';
                 const threatObservationNote = threatNames
-                    ? `\n⚠️ ${threatNames} — something about this person sets every instinct on edge. The blood, the emptiness in their eyes, the way they move. They are not here to help you.`
+                    ? `\n⚠️ ${threatNames} - something about this person sets every instinct on edge. The blood, the emptiness in their eyes, the way they move. They are not here to help you.`
                     : '';
                 // Observe uses the SAME full room context as decide/react, so the
                 // agent always sees items, people, exits, and a WITNESSED section
                 // (with fallback).
                 let observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
-                // Threat-aware replan check — before deciding so the plan is fresh.
+                // Threat-aware replan check - before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
                 const threatAlert = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
@@ -721,8 +721,8 @@ class AgentEngine {
                     const plan = await window.PlanManager.generate(charName);
                     if (plan && plan.length > 0) {
                         PlanTracker.setPlan(charName, plan, this.turnNumber);
-                        events.log(`⚠️ ${charName} replanned — ${needsReplanReason}: ${plan.join(' → ')}`, 'msg-crisis');
-                        // task-185: the decide prompt reuses this snapshot — refresh
+                        events.log(`⚠️ ${charName} replanned - ${needsReplanReason}: ${plan.join(' → ')}`, 'msg-crisis');
+                        // task-185: the decide prompt reuses this snapshot - refresh
                         // the plan part so a plan generated THIS turn is visible
                         // THIS turn instead of next turn.
                         observeParts.plan = PromptBuilder.buildPlanContext(charName);
@@ -736,8 +736,8 @@ class AgentEngine {
                 // fresh state so spent slots hide the verbs the character can no
                 // longer afford (room-context feeds turn_slots to the brackets;
                 // `wait` is exempt, it is the turn's exit). The budget is a CEILING
-                // not a quota: the loop exits on "done" — wait, nothing worth doing,
-                // or nothing left affordable — so a character who is fine takes one
+                // not a quota: the loop exits on "done" - wait, nothing worth doing,
+                // or nothing left affordable - so a character who is fine takes one
                 // action and stops, exactly as before. Hard cap = the budget total.
                 const MAX_ACTIONS_PER_TURN = 5;
                 let actionStep = 0;
@@ -767,7 +767,7 @@ class AgentEngine {
                     // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
                     // prompt + response are pushed into the per-character history
                     // ([system, user, assistant, ...]) so the agent remembers its own
-                    // earlier words across phases and turns — no more self-contradiction
+                    // earlier words across phases and turns - no more self-contradiction
                     // between decide and react (e.g. changing a favorite color).
                     const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
                     const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
@@ -775,7 +775,7 @@ class AgentEngine {
                     const combinedResponse = await this._callLLMMessages(history, 'think-decide');
                     history.push({ role: 'assistant', content: combinedResponse || '' });
                     if (combinedResponse === null) {
-                        events.log(`❌ LLM call failed for ${charName} (think/decide phase) — stopping agent`, 'error-msg');
+                        events.log(`❌ LLM call failed for ${charName} (think/decide phase) - stopping agent`, 'error-msg');
                         VW?.ui?.setStatus("LLM Error - Stopped", "error");
                         config.running = false;
                         return;
@@ -799,7 +799,7 @@ class AgentEngine {
                         agentConfig.lastRoom[charName] = player.current_area;
                     let actionRejected = '';
                     if (finalAction && !ActionNormalizer.isValidAction(finalAction, charName)) {
-                        events.log(`⚠️ ${charName} invalid action: "${finalAction}" — skipping`, 'error-msg');
+                        events.log(`⚠️ ${charName} invalid action: "${finalAction}" - skipping`, 'error-msg');
                         actionRejected = finalAction;
                         finalAction = '';
                     }
@@ -867,7 +867,7 @@ class AgentEngine {
                                         outputText = narratedText;
                                 }
                                 agentConfig.lastActionResult[charName] = outputText;
-                                // task-340: results are first-class rows — outcome-tinted,
+                                // task-340: results are first-class rows - outcome-tinted,
                                 // never card-breaking; AI-narrated substitutions are marked.
                                 if (!outputText.includes('says:')) {
                                     if (narratedText)
@@ -927,22 +927,22 @@ class AgentEngine {
                             const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
                             const tickNum = worldState.data?.time_ticks ?? 0;
                             const areaName = freshRoom?.name || freshState?.current_area || '';
-                            // task-185: currentArea is the turn-start (pre-action) room —
+                            // task-185: currentArea is the turn-start (pre-action) room -
                             // if it differs from the fresh room the character MOVED this
                             // action, and "surroundings are unchanged" was lying while
                             // pointing the model at a stale observation of the old room.
                             const areaBefore = currentArea?.name || player?.current_area || '';
                             const areaChanged = !movedViaDash && !!areaName && areaName !== areaBefore;
                             const reactContext = movedViaDash
-                                ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} — react to arriving here.`
+                                ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} - react to arriving here.`
                                 : areaChanged
-                                    ? `[Tick ${tickNum}] You just moved — you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
+                                    ? `[Tick ${tickNum}] You just moved - you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
                                     : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
                             const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, vitalsNL, emotionNL, relationshipNL, inner, finalAction || '', actionResult, memoryNL, decisionSpeech);
                             // task-XXX: dedicated minimal react call. The react phase cannot
                             // act, so replaying the full decide exchange (~2-3k of persona/
                             // room/plan/available-actions) plus the action-law system was
-                            // pure weight — and the cached system even said "Emit ONE action"
+                            // pure weight - and the cached system even said "Emit ONE action"
                             // while the react user message said the opposite. Fresh 2-message
                             // conversation instead: react-specific system + ONE user message;
                             // WHAT HAPPENED carries the outcome. The exchange is still
@@ -953,7 +953,7 @@ class AgentEngine {
                             ];
                             let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction');
                             if (reactResponse === null) {
-                                events.log(`❌ LLM call failed for ${charName} (reaction phase) — stopping agent`, 'error-msg');
+                                events.log(`❌ LLM call failed for ${charName} (reaction phase) - stopping agent`, 'error-msg');
                                 VW?.ui?.setStatus("LLM Error - Stopped", "error");
                                 config.running = false;
                                 return;
@@ -962,12 +962,12 @@ class AgentEngine {
                             if (parsedReact.parseError && reactResponse) {
                                 // one same-conversation retry (repaired/truncated JSON):
                                 // show the broken reply, ask for a complete one.
-                                events.log(`⚠️ ${charName}: result-reaction response was repaired (truncated JSON) — retrying once.`, 'error-msg');
+                                events.log(`⚠️ ${charName}: result-reaction response was repaired (truncated JSON) - retrying once.`, 'error-msg');
                                 const retryMessages = [
                                     reactMessages[0],
                                     reactMessages[1],
                                     { role: 'assistant', content: reactResponse || '' },
-                                    { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON — same schema, and finish every field you start.' },
+                                    { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON - same schema, and finish every field you start.' },
                                 ];
                                 const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
                                 if (retried) {
@@ -981,7 +981,7 @@ class AgentEngine {
                             history.push({ role: 'user', content: reactPrompt });
                             history.push({ role: 'assistant', content: reactResponse || '' });
                             if (!reactResponse || !String(reactResponse).trim()) {
-                                events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
+                                events.log(`⚠️ ${charName}: result-reaction returned empty - skipping react`, 'error-msg');
                             }
                             const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
                             if (reactionInner) {
@@ -1015,7 +1015,7 @@ class AgentEngine {
                         // real gate; this is only the "budget is empty" stop.
                         const slotsNow = (worldState.data?.players?.[charName]?.turn_slots);
                         // bug-544: an empty `{}` is "no budget published" (the
-                        // engine lazily fills it), not "budget empty" — only a
+                        // engine lazily fills it), not "budget empty" - only a
                         // published-and-spent budget ends the turn, otherwise a
                         // fresh character's loop exited before acting once.
                         const spentOut = !!slotsNow && Object.keys(slotsNow).length > 0
@@ -1033,7 +1033,7 @@ class AgentEngine {
                 const reactionResponse = await this._callLLMMessages(history, 'combined');
                 history.push({ role: 'assistant', content: reactionResponse || '' });
                 if (reactionResponse === null) {
-                    events.log(`❌ LLM call failed for ${charName} — stopping agent`, 'error-msg');
+                    events.log(`❌ LLM call failed for ${charName} - stopping agent`, 'error-msg');
                     VW?.ui?.setStatus("LLM Error - Stopped", "error");
                     config.running = false;
                     return;
@@ -1132,7 +1132,7 @@ class AgentEngine {
             }
             else if (!config.turnBased && config.controllingPlayer) {
                 // No turn-based mode: the stepped character's turn is one full
-                // turn — end it so the clock advances and new-turn effects run
+                // turn - end it so the clock advances and new-turn effects run
                 // (behave like turn-based with a single-character queue).
                 await TurnQueue.endTurn();
                 this._logActorTurnEvents(config.controllingPlayer);
@@ -1225,7 +1225,7 @@ class AgentEngine {
                 const turnsRun = config.turnBased ? Math.floor(agentConfig.stepsRun / Math.max(1, this.turnQueue.length)) : agentConfig.stepsRun;
                 VW?.ui?.updateMaxStepsDisplay();
                 if (agentConfig.maxSteps > 0 && turnsRun >= agentConfig.maxSteps) {
-                    this.stop(`⏹️ Run complete — ${agentConfig.maxSteps} turns done. Press ▶ to continue.`);
+                    this.stop(`⏹️ Run complete - ${agentConfig.maxSteps} turns done. Press ▶ to continue.`);
                     break;
                 }
                 await new Promise(resolve => setTimeout(resolve, config.simultaneousMode === 'simultaneous' ? 250 : (config.simultaneousMode ? 800 : 2000)));
@@ -1240,7 +1240,7 @@ class AgentEngine {
      *
      * The human is never *auto-acted*, but they are a participant in the round
      * (task-533): once every autonomous character has taken their turn, the
-     * human is prompted at their own cadence. That ordering is the point — the
+     * human is prompted at their own cadence. That ordering is the point - the
      * human is the one the round is waiting on, so they are asked last. They can
      * also pass with the "End round" control, which resolves them without acting
      * so a round can never hang on an idle player.
@@ -1324,7 +1324,7 @@ class AgentEngine {
         if (hidden) {
             this._resumeAfterVisibility = !!config.running && !this._paused;
             if (this._resumeAfterVisibility)
-                this.pause('Tab unfocused — paused.');
+                this.pause('Tab unfocused - paused.');
             return;
         }
         const shouldResume = this._resumeAfterVisibility;
@@ -1409,7 +1409,7 @@ class AgentEngine {
     }
     /**
      * Everyone whose turn counts toward a round: every living character, human
-     * included. The human is a participant, not an exemption — a slow player
+     * included. The human is a participant, not an exemption - a slow player
      * stalls the world, which is the same contract turn-based mode already has.
      * @returns {string[]}
      */
@@ -1445,7 +1445,7 @@ class AgentEngine {
      * so a round can never hang on an idle player.
      *
      * Deliberately no timeout. The world advances only because the player said
-     * so — it does not quietly run on while someone is reading. Autonomics are
+     * so - it does not quietly run on while someone is reading. Autonomics are
      * not touched; only the human's own turn is surrendered, and only if they
      * have not already taken it.
      */
@@ -1454,7 +1454,7 @@ class AgentEngine {
         if (!human)
             return false;
         if (!(this._simRound || new Set()).has(human)) {
-            events.log(`⏭️ ${human} passes — round closed.`, 'system-msg');
+            events.log(`⏭️ ${human} passes - round closed.`, 'system-msg');
             this.markSimResolved(human);
         }
         return this._closeSimRoundIfComplete();
@@ -1496,7 +1496,7 @@ class AgentEngine {
     /**
      * Give the agent feedback when its chosen action is rejected, instead of
      * silently dropping it. The rejection lands in lastActionResult (so DECIDE
-     * sees it next turn) — no memory write: the hint is transient system
+     * sees it next turn) - no memory write: the hint is transient system
      * feedback, not something the character remembers.
      */
     _surfaceRejectedAction(charName, rejectedAction) {
@@ -1529,7 +1529,7 @@ class AgentEngine {
         history.push({ role: 'user', content: prompt });
         const response = await this._callLLMMessages(history, 'auto-retry');
         if (response === null) {
-            history.pop(); // LLM call failed — drop the retry prompt, keep history as before
+            history.pop(); // LLM call failed - drop the retry prompt, keep history as before
             return null;
         }
         history.push({ role: 'assistant', content: response });
@@ -1543,7 +1543,7 @@ class AgentEngine {
         }
         const retryAction = String(parsed?.action || '').trim();
         if (!retryAction || !ActionNormalizer.isValidAction(retryAction, charName)) {
-            events.log(`⚠️ ${charName} retry chose an invalid action: "${retryAction || '(none)'}" — giving up`, 'error-msg');
+            events.log(`⚠️ ${charName} retry chose an invalid action: "${retryAction || '(none)'}" - giving up`, 'error-msg');
             return null;
         }
         events.logPhase(charName, 'act', retryAction);
@@ -1648,7 +1648,7 @@ class AgentEngine {
     async _retryOnceOnParseError(charName, history, stepName, parser, parsed) {
         if (!parsed?.parseError || !history?.length)
             return parsed;
-        events.log(`⚠️ ${charName}: ${stepName} response was repaired (truncated JSON) — retrying once.`, 'error-msg');
+        events.log(`⚠️ ${charName}: ${stepName} response was repaired (truncated JSON) - retrying once.`, 'error-msg');
         history.pop(); // drop the broken assistant message so the retry isn't seeded by it
         const retried = await this._callLLMMessages(history, stepName);
         if (!retried) {
@@ -1704,7 +1704,7 @@ class AgentEngine {
             this._lastPruneSig = null;
         }
         if (config.manualMode) {
-            events.log(`✋ Manual mode — waiting for your response (${stepName})`, 'system-msg');
+            events.log(`✋ Manual mode - waiting for your response (${stepName})`, 'system-msg');
             return await this._showManualPrompt(final, stepName);
         }
         this._abortController = new AbortController();
@@ -1738,7 +1738,7 @@ class AgentEngine {
 // redeclaration and fail the build. Assigning the singleton onto the global
 // object instead gives those readers the same bare `agent` binding: a
 // global-object property resolves as a bare identifier in every classic script.
-// The only difference is binding kind — the name is now an own property of
+// The only difference is binding kind - the name is now an own property of
 // `window` rather than a script-scoped lexical binding. The documented access
 // path is `VW.agent` (main.ts assigns `VW.agent = agent`).
 window.agent = new AgentEngine();
