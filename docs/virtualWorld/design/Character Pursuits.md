@@ -652,7 +652,7 @@ the scalar is read, not whether it exists.
 
 **Features** — [[background-simulation|Background simulation]] (#28)
 
-**Dev tasks** — [[dev_tasks/done/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop|task]], [[dev_tasks/inprogress/library/task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries|task]], [[dev_tasks/review/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/review/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/review/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]] … +17 more
+**Dev tasks** — [[dev_tasks/done/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop|task]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries|task]], [[dev_tasks/review/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/review/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/review/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]] … +17 more
 
 **Neighbouring notes** — [[MOSIAC Character Profiles]]
 
