@@ -9,6 +9,7 @@
     "survival"
   ],
   "surface": "stone",
+  "hazard_id": "cliff",
   "descriptions": [
     "The ground ends at a sheer drop.",
     "A rock face falls away, wind pulling at the edge."

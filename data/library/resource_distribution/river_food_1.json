@@ -2,7 +2,11 @@
   "id": "river_food_1",
   "name": "river resource 2",
   "biome_tags": [
-    "river"
+    "river",
+    "river_calm",
+    "river_swift",
+    "river_rapids",
+    "waterfall"
   ],
   "location_tags": [],
   "item_tags": [

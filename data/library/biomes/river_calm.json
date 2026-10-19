@@ -1,0 +1,17 @@
+{
+  "name": "Calm River",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "water",
+    "shallow_water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "descriptions": [
+    "A slow, wide river winds gently between soft banks.",
+    "Placid water glides past with barely a ripple."
+  ]
+}

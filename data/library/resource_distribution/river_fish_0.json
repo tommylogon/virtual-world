@@ -2,7 +2,11 @@
   "id": "river_fish_0",
   "name": "river fish",
   "biome_tags": [
-    "river"
+    "river",
+    "river_calm",
+    "river_swift",
+    "river_rapids",
+    "waterfall"
   ],
   "location_tags": [],
   "item_tags": [

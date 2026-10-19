@@ -11,5 +11,7 @@
     "Solid wall. Nothing passes it and nothing sees through it.",
     "A blank of masonry, thick enough to be a room's own boundary."
   ],
-  "surface": "stone"
+  "surface": "stone",
+  "height": 2.0,
+  "obscurity": 1.0
 }

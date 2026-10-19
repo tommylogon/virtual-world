@@ -2,7 +2,11 @@
   "id": "river_herb_medicinal_0",
   "name": "river resource 1",
   "biome_tags": [
-    "river"
+    "river",
+    "river_calm",
+    "river_swift",
+    "river_rapids",
+    "waterfall"
   ],
   "location_tags": [],
   "item_tags": [

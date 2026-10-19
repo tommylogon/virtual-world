@@ -10,6 +10,8 @@
     "survival"
   ],
   "surface": "dirt",
+  "height": 3.0,
+  "obscurity": 0.8,
   "descriptions": [
     "Close-set trunks swallow the light a few steps in.",
     "Underbrush claws at the legs with every stride."

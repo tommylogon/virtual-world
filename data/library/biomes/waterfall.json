@@ -1,0 +1,19 @@
+{
+  "name": "Waterfall",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "waterfall",
+    "water",
+    "cliff"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "deep_water",
+  "hazard_id": "fall",
+  "descriptions": [
+    "A roaring torrent plunges off a sheer stone precipice.",
+    "Thundering water crashes down in a cloud of mist."
+  ]
+}

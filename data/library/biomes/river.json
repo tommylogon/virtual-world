@@ -9,6 +9,7 @@
     "survival"
   ],
   "surface": "shallow_water",
+  "hazard_id": "river",
   "descriptions": [
     "A current runs steadily between its banks.",
     "Water hurries over a stony bed."

@@ -1,0 +1,18 @@
+{
+  "name": "River Rapids",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "water",
+    "rapids"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "hazard_id": "rapids",
+  "descriptions": [
+    "White spray erupts as water crashes through jagged rocks.",
+    "Foaming chutes race violently down a rocky shelf."
+  ]
+}

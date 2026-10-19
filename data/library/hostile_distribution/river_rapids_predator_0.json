@@ -1,0 +1,13 @@
+{
+  "id": "river_rapids_predator_0",
+  "name": "river rapids predator 1",
+  "biome_tags": [
+    "river_rapids"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.02,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.2,
+  "conditions": {}
+}

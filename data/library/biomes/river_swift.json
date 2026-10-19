@@ -1,0 +1,18 @@
+{
+  "name": "Swift River",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "water",
+    "current"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "hazard_id": "river",
+  "descriptions": [
+    "A powerful current pulls firmly against your legs.",
+    "The river surges past, churning around gravel bars."
+  ]
+}

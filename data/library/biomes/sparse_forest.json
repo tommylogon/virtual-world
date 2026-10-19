@@ -10,6 +10,8 @@
     "perception"
   ],
   "surface": "dirt",
+  "height": 2.0,
+  "obscurity": 0.4,
   "descriptions": [
     "Scattered trees open onto patches of grass.",
     "Thin woodland, easy to walk and hard to hide in."
