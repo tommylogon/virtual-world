@@ -6,15 +6,16 @@ status: todo
 priority: low
 ---
 
-# Task 99: Area Grids — Movement Costs, Size/Shape, and Pathfinding
+# Task 99: Area Grids - Movement Costs, Size/Shape, and Pathfinding
 
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-24
+**Architectural Note (2026-10-20):** This early proposal assumed areas would internally own 2D grids (`room.grid`). WorldPainter inverted this hierarchy: world scopes own the 2D grid (`engine/world_grid.py`), and the compiler (`engine/world_compile.py`) compiles those cells *into* area and way nodes (`properties.cell = "<scope>:<x>,<y>"`). Intra-area micro-positioning and within-room movement costs remain an open question, but the spatial grid substrate now lives at the scope level. See `docs/design/procedural-generation-and-dungeon-biomes.md` and `task-884`.
 
 ## What
 
-Currently areas are dimensionless nodes — you're either *in* a room or you're not. This task adds a 2D grid to areas, allowing movement costs, item positioning, and NPC pathfinding within areas.
+Currently areas are dimensionless nodes - you're either *in* a room or you're not. This task adds a 2D grid to areas, allowing movement costs, item positioning, and NPC pathfinding within areas.
 
 ## What Already Exists
 
@@ -60,15 +61,15 @@ room.grid = {
 
 ### 2. Movement Within Rooms
 
-- `move_to [x] [y]` — move to specific grid coordinate within current room
-- `move_to [item]` — move adjacent to specified item
+- `move_to [x] [y]` - move to specific grid coordinate within current room
+- `move_to [item]` - move adjacent to specified item
 - Movement cost depends on tile type (walking on rubble costs 3 AP)
 - Items/characters have positions within the grid
 
 ### 3. Pathfinding (A*)
 
 - NPCs can pathfind across room grids to reach exits, items, or other characters
-- `engine/pathfinding.py` — A* implementation using tile costs
+- `engine/pathfinding.py` - A* implementation using tile costs
 - Consider diagonal movement (optional, user-configurable)
 
 ### 4. Area Size/Shape
@@ -93,14 +94,14 @@ room.grid = {
 
 ## Files
 
-- `room.py` — add grid field with tile data, item/character positions, exit coords
-- `engine/movement.py` — `move_to` coordinate handler, add movement cost calculation
-- `engine/pathfinding.py` — new A* module
-- `engine/npc_behaviors.py` — use pathfinding for NPC movement
-- `virtual_world_engine.py` — wire new movement costs
-- `static/js/inspector/room-view.js` — grid visualization
-- `static/js/graph/` — optional grid overlay on areas
-- `world_template.json` / library areas — grid data
+- `room.py` - add grid field with tile data, item/character positions, exit coords
+- `engine/movement.py` - `move_to` coordinate handler, add movement cost calculation
+- `engine/pathfinding.py` - new A* module
+- `engine/npc_behaviors.py` - use pathfinding for NPC movement
+- `virtual_world_engine.py` - wire new movement costs
+- `static/js/inspector/room-view.js` - grid visualization
+- `static/js/graph/` - optional grid overlay on areas
+- `world_template.json` / library areas - grid data
 
 ## Steps to verify
 
