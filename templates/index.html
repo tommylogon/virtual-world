@@ -54,6 +54,7 @@
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/bench'" role="menuitem">📊 Benchmark Lab…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/commons'" role="menuitem">💬 The Commons…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
@@ -159,7 +160,11 @@
                 <div id="validation-section" class="validation-section">
                     <h4 class="panel-heading">🛠 World Issues
                         <span id="validator-count" class="section-hint"></span>
-                        <button class="btn btn-sm" onclick="ValidatorPanel.refresh()" style="margin-left:auto;font-size:10px;padding:1px 6px;" title="Re-scan the world for trigger, way, item and library issues">🔄</button>
+                        <div style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;">
+                            <button class="btn btn-sm" onclick="ValidatorPanel.exportMarkdown()" style="font-size:10px;padding:1px 6px;" title="Export issues to Markdown (.md)">📄 MD</button>
+                            <button class="btn btn-sm" onclick="ValidatorPanel.exportJson()" style="font-size:10px;padding:1px 6px;" title="Export issues to JSON (.json)">💾 JSON</button>
+                            <button class="btn btn-sm" onclick="ValidatorPanel.refresh()" style="font-size:10px;padding:1px 6px;" title="Re-scan the world for trigger, way, item and library issues">🔄</button>
+                        </div>
                     </h4>
                     <div id="validator-list" class="validator-list">
                         <div class="alert-empty">Scanning…</div>

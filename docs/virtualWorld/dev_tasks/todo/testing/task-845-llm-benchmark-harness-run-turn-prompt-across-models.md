@@ -6,52 +6,57 @@ priority: medium
 wiki: "[[AI & Narration/Agent Engine]]"
 ---
 
-# task-845: LLM benchmark harness: run a single character's turn prompt across all models of a selected provider (primarily LM Studio), with metrics + hallucination detection + dashboard
+# task-845: Frontend LLM benchmark page: run a character's turn prompt across selectable providers and models with metrics, hallucination checks, and side-by-side comparison
 
-**Filed:** 2026-10-15
+**Filed:** 2026-10-15  
+**Updated:** 2026-10-19 (re-scoped from headless CLI to dedicated frontend tool page)
 
 ## What
 
-A Python tool `tools/model_bench.py` that, for one scenario and one controlled character, captures the exact turn prompt the frontend assembles (never a reimplementation), then sends it to every model exposed by a selected provider (default LM Studio via `GET /v1/models` + OpenAI-compatible `/v1/chat/completions`), measures TTFT/TPS/total time/context usage, validates JSON output format, runs a hallucination check against room ground truth (items, people, exits, actions), and writes JSONL runs plus an HTML dashboard under `data/model_bench/`.
+A dedicated in-app benchmarking page (e.g. `/bench` or `/tools/benchmark`) that takes a character's live turn prompt, lets the author select any reachable provider and check off specific models, runs the identical prompt across all selected models, and displays live streaming cards, latency/throughput metrics, schema validity, fuzzy hallucination checks against ground truth, and side-by-side prose comparison.
 
 ## Acceptance
 
-- [ ] `python tools/model_bench.py --scenario <name> --character <id> --provider lmstudio` runs from the repo root and exits 0 when the provider is reachable.
-- [ ] The prompt sent is the exact assembled turn prompt from `static/js/agent/prompt-builder/turn-prompts.ts` (`buildReactionPrompt` / `assembleMessageHead`), captured via a driven browser or an exported snapshot — never reimplemented in Python.
-- [ ] Models are enumerated from `GET /v1/models` (LM Studio) and each model receives the same prompt once.
-- [ ] Metrics recorded per model: time-to-first-token, tokens-per-second, total latency, input/output token counts, context-window usage, JSON validity of the model's reply.
-- [ ] Hallucination check: model output claims about the room (items present, people present, exits, available actions) are compared against `/api/state` ground truth for that character's cell; mismatches flagged in the run record.
-- [ ] Outputs: one JSONL run file per provider run under `data/model_bench/runs/`, plus an HTML dashboard under `data/model_bench/dashboard/` comparing models across runs.
-- [ ] Fails fast with a clear message when the provider is unreachable; does not mutate world state or consume a turn slot.
+- [ ] Dedicated UI page accessible via route (e.g. `/bench`) with a clean link/button from the main editor navigation.
+- [ ] Provider selector supporting configurable endpoints (LM Studio, Ollama, OpenRouter, custom OpenAI-compatible API base).
+- [ ] Dynamic model multiselect: fetches available models via `GET /v1/models` (or provider equivalent) and lets the user select/unselect any combination.
+- [ ] Turn prompt capture: loads or pulls the exact prompt assembled by `static/js/agent/prompt-builder/turn-prompts.ts` for the selected scenario character (same context as play mode).
+- [ ] Safe execution: benchmark runs do not mutate world state, advance turns, or dirty persisted saves.
+- [ ] Cancellation: an active benchmark sweep or single model run can be stopped immediately via a Cancel button (reusing standard `AbortController` / `agent.cancel()` patterns).
+- [ ] Output verification:
+  - Valid output check: validates JSON structure, action schema, and required turn fields.
+  - Fuzzy hallucination detection: matches declared items, targets, people, and exits against room ground truth from `/api/state`. Valid entities pass (fuzzy matching allowed); invalid entities/exits/actions receive clear red flags.
+  - Prose inspection: displays internal monologue, reasoning, and roleplay dialogue side-by-side for human qualitative review.
+- [ ] Metrics reported per model: TTFT (time-to-first-token), TPS (tokens-per-second), total latency, token count, JSON status.
 
 ## Why
 
-Turn-prompt quality drives NPC behavior, but there is no way to compare how different models render the same prompt. The frontend prompt builder is the source of truth; benchmarking against it requires the exact assembled prompt, not a Python approximation.
+Prompt quality and model behavior cannot be effectively tuned through headless scripts and static terminal logs. Authors need a dedicated visual tool to evaluate prose style, check spatial compliance, and compare multiple models side-by-side on the exact prompt their characters see in live play.
 
 ## How
 
-1. Decide the capture path: driven browser (Playwright, reusing task-693 patterns) to read the assembled prompt from the turn card / composer, or a lightweight server-side export snapshot. Do not duplicate `turn-prompts.ts` logic in Python.
-2. Implement `tools/model_bench.py` with: provider discovery (`GET /v1/models`), per-model `POST /v1/chat/completions` streaming reads, metric collection, JSON-format validation, hallucination diff vs `/api/state`, JSONL + HTML dashboard writers.
-3. Author one minimal fixture scenario/character if none exists that exercises a full turn prompt with room contents, exits, and available actions.
-4. Run against a local LM Studio instance (or stubbed provider for CI) and confirm the dashboard renders per-model metrics and hallucination flags.
+1. Route & View: Add a dedicated template (`templates/benchmark.html`) and route (`routes/tools.py` or `routes/benchmark.py`), linked from the app menu.
+2. Client Logic: Create `static/js/benchmark/` to handle provider discovery, model checklist selection, queueing calls, and rendering live streaming responses.
+3. Proxy Endpoint: Provide a lightweight backend proxy (`/api/bench/proxy` or `/api/bench/models`) to avoid browser CORS issues when reaching local/remote provider endpoints.
+4. Prompt Bridge: Reuse client-side `PromptBuilder` directly on the loaded scenario state to extract the real turn prompt for any selected character.
+5. Hallucination Evaluator: Implement fuzzy entity matching against the active area nodes (items, occupants, exits) and flag unrecognized claims.
+6. Result Matrix: Render interactive comparison cards with metrics badges, schema pass/fail indicators, and full expandable prompt/reply logs.
 
 ## Steps to verify
 
-1. `python tools/model_bench.py --scenario <fixture> --character <id> --provider lmstudio` with LM Studio running.
-   - expected: enumerates models from `GET /v1/models`, sends the exact turn prompt to each, writes JSONL + dashboard, exits 0.
-2. With LM Studio stopped, same command exits non-zero with a clear "provider unreachable" message.
-3. Inspect `data/model_bench/dashboard/index.html`: one row per model, TTFT/TPS/total-latency columns, hallucination-flag column.
-4. Confirm `/api/state` and world state are unchanged after a run (no turn committed, no autosave mutation).
+1. Navigate to the benchmark page in the browser.
+2. Select a scenario and character; confirm the previewed prompt matches the character's live turn prompt.
+3. Pick a provider (e.g. LM Studio); confirm the model list populates from `GET /v1/models`.
+4. Select 2 or more models and click Run.
+5. Verify tokens stream into their respective panels and latency/TPS metrics update live.
+6. Verify Cancel immediately halts pending and in-flight requests.
+7. Verify fuzzy matching correctly tags valid room items/exits green and flags non-existent ones with red badges.
+8. Verify scenario state on `/api/state` remains untouched after runs.
 
 ## Files
 
-- `tools/model_bench.py` — new benchmark harness (to be created)
-- `static/js/agent/prompt-builder/turn-prompts.ts` — source of truth for prompt assembly (read-only reference)
-- `data/model_bench/runs/*.jsonl` — run records (generated)
-- `data/model_bench/dashboard/*.html` — comparison dashboard (generated)
-
-## Browser UI and intended live verification
-
-No new UI surfaces. Verification is CLI-driven against a running app instance; the prompt capture may use a Playwright-driven browser tab (task-693 pattern) reading the turn composer's assembled message, never mutating state.
-
-This section is not a claim that the harness is implemented today.
+- `templates/benchmark.html` - Dedicated benchmark interface
+- `static/js/benchmark/` - Frontend controller, provider client, and comparison view
+- `routes/benchmark.py` - Route definition, model discovery proxy, and runner endpoints
+- `static/js/agent/prompt-builder/turn-prompts.ts` - Shared prompt assembly source of truth
+- `tools/model_bench.py` - Legacy/headless CLI script (retained for headless test suites)

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" class="bench-doc">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Lab — VirtualWorld</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/benchmark.css">
+</head>
+<body class="bench-body" data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}">
+
+<header class="bench-topbar">
+    <div class="bench-brand">
+        <span class="bench-brand-icon">📊</span>
+        <span class="bench-brand-title">Benchmark Lab</span>
+        <span class="bench-brand-sub">LLM turn prompt evaluation</span>
+    </div>
+    <div class="bench-top-actions">
+        <a class="bench-btn" href="/" title="Back to World Editor">← Editor</a>
+    </div>
+</header>
+
+<main class="bench-layout">
+    <!-- Sidebar: Configuration -->
+    <aside class="bench-sidebar">
+        <section class="bench-panel">
+            <h2 class="bench-panel-title">Provider &amp; Endpoint</h2>
+            <div class="bench-field">
+                <label for="bench-provider">Provider</label>
+                <select id="bench-provider" class="bench-select">
+                    <option value="lmstudio" selected>LM Studio (Local)</option>
+                    <option value="ollama">Ollama (Local)</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="custom">Custom (OpenAI-compatible)</option>
+                </select>
+            </div>
+            <div class="bench-field">
+                <label for="bench-api-base">API Base URL</label>
+                <input type="text" id="bench-api-base" class="bench-input" value="http://localhost:1234/v1">
+            </div>
+            <div class="bench-field">
+                <label for="bench-api-key">API Key (optional)</label>
+                <input type="password" id="bench-api-key" class="bench-input" placeholder="not-needed">
+            </div>
+        </section>
+
+        <section class="bench-panel">
+            <div class="bench-panel-title">
+                <span>Select Models</span>
+                <button type="button" id="bench-refresh-models" class="bench-btn" style="padding:2px 8px;font-size:11px;">⟳ Refresh</button>
+            </div>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                    <input type="checkbox" id="bench-select-all">
+                    <span>Select / Deselect All</span>
+                </label>
+            </div>
+            <div class="bench-models-box" id="bench-model-list">
+                <div style="color:var(--b-dim);padding:8px;">Loading models...</div>
+            </div>
+        </section>
+
+        <section class="bench-panel">
+            <h2 class="bench-panel-title">Turn Context</h2>
+            <div class="bench-field">
+                <label for="bench-character">Character to Benchmark</label>
+                <select id="bench-character" class="bench-select"></select>
+            </div>
+            <div class="bench-grid-2">
+                <div class="bench-field">
+                    <label for="bench-temperature">Temperature</label>
+                    <input type="number" id="bench-temperature" class="bench-input" value="0.7" step="0.1" min="0" max="2">
+                </div>
+                <div class="bench-field">
+                    <label for="bench-max-tokens">Max Tokens</label>
+                    <input type="number" id="bench-max-tokens" class="bench-input" value="512" step="64" min="64" max="4096">
+                </div>
+            </div>
+            <div class="bench-prompt-summary" id="bench-prompt-summary">
+                Prompt not assembled.
+            </div>
+            <details class="bench-prompt-details">
+                <summary>Inspect Assembled Prompt</summary>
+                <div class="bench-section-label" style="margin-top:8px;">System Prompt</div>
+                <div class="bench-prompt-box" id="bench-prompt-system"></div>
+                <div class="bench-section-label" style="margin-top:8px;">User Prompt</div>
+                <div class="bench-prompt-box" id="bench-prompt-user"></div>
+            </details>
+        </section>
+
+        <div style="display:flex;gap:8px;">
+            <button type="button" id="bench-run-btn" class="bench-btn bench-btn-primary" style="flex:1;">▶ Run Benchmark</button>
+            <button type="button" id="bench-cancel-btn" class="bench-btn bench-btn-danger" disabled>✕ Cancel</button>
+        </div>
+
+        <section class="bench-panel">
+            <div class="bench-panel-title">
+                <span>Past Benchmark Runs</span>
+                <button type="button" id="bench-refresh-runs" class="bench-btn" style="padding:2px 8px;font-size:11px;">⟳</button>
+            </div>
+            <div class="bench-history-list" id="bench-history-list">
+                <div style="color:var(--b-dim);padding:6px;font-size:11px;">Loading past runs...</div>
+            </div>
+        </section>
+    </aside>
+
+    <!-- Main Content: Comparison Matrix -->
+    <section class="bench-main">
+        <div class="bench-status-bar">
+            <span id="bench-status-badge" class="bench-status-badge bench-status-idle">Idle</span>
+            <span id="bench-status-text" style="color:var(--b-text);font-size:12px;">Select models and click Run Benchmark to compare.</span>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                <button type="button" id="bench-open-diff" class="bench-btn" style="display:none;" title="Compare prose diff between two models">⚖️ Diff Compare</button>
+            </div>
+        </div>
+
+        <div class="bench-cards-grid" id="bench-cards-grid">
+            <!-- Comparison cards dynamically injected here -->
+        </div>
+    </section>
+</main>
+
+<!-- Side-by-side Prose Diff Modal -->
+<div id="bench-diff-overlay" class="bench-diff-overlay" style="display:none;">
+    <div class="bench-diff-modal">
+        <div class="bench-diff-header">
+            <div class="bench-diff-title">Prose Comparison &amp; Diff</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <select id="bench-diff-select-a" class="bench-select" style="width:200px;font-size:11px;"></select>
+                <span style="font-weight:700;color:var(--b-dim);">vs</span>
+                <select id="bench-diff-select-b" class="bench-select" style="width:200px;font-size:11px;"></select>
+                <button type="button" id="bench-diff-close" class="bench-btn" style="padding:4px 10px;">✕ Close</button>
+            </div>
+        </div>
+        <div class="bench-diff-body">
+            <div class="bench-diff-col">
+                <div class="bench-diff-col-title" id="bench-diff-title-a">Model A</div>
+                <div class="bench-diff-box" id="bench-diff-box-a"></div>
+            </div>
+            <div class="bench-diff-col">
+                <div class="bench-diff-col-title" id="bench-diff-title-b">Model B</div>
+                <div class="bench-diff-box" id="bench-diff-box-b"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shared prompt builder dependencies -->
+<script src="/static/js/agent/prompt-builder/helpers.js"></script>
+<script src="/static/js/agent/prompt-builder/character-state.js"></script>
+<script src="/static/js/agent/prompt-builder/memory-context.js"></script>
+<script src="/static/js/agent/prompt-builder/room-context.js"></script>
+<script src="/static/js/agent/prompt-builder/contextual-actions.js"></script>
+<script src="/static/js/agent/prompt-builder/conversation-context.js"></script>
+<script src="/static/js/agent/prompt-builder/context-sections.js"></script>
+<script src="/static/js/agent/prompt-builder/schema-fragments.js"></script>
+<script src="/static/js/agent/prompt-builder/system-prompt.js"></script>
+<script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
+<script src="/static/js/agent/prompt-builder/index.js"></script>
+
+<!-- Benchmark controller -->
+<script src="/static/js/benchmark/benchmark.js"></script>
+
+</body>
+</html>
