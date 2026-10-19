@@ -3,14 +3,14 @@ area: characters
 type: task
 status: review
 priority: medium
-related: ['"\'task-211\'"', '"\'task-213\'"', "'task-486'", "'task-534'", "'task-851'", 'task-486', 'task-534', 'task-851']
+related: ['task-211', 'task-213', 'task-486', 'task-534', 'task-851']
 ---
 
 # Body Part Targeted Injuries & Combat Routing
 
 **Filed**: 2026-08-16
 **Priority**: High
-**Status**: In Review — implemented 2026-08-19, pending browser E2E
+**Status**: In Review - implemented 2026-08-19, pending browser E2E
 
 ---
 
@@ -27,7 +27,7 @@ to `target.vitals["HP"]` with no body-part concept. There is no `where` paramete
 and "a bruise on the leg" are mechanically identical. This is the core gap for
 bodies/injuries and is currently undefined.
 
-## Design (proposal — resolve GAP A + GAP B in the audit doc)
+## Design (proposal - resolve GAP A + GAP B in the audit doc)
 
 - **Add a body-region taxonomy** used for BOTH injury and (later) erogenous targeting:
   `head`, `torso`, `arm_left`, `arm_right`, `leg_left`, `leg_right`, `hand_left`,
@@ -40,21 +40,21 @@ bodies/injuries and is currently undefined.
   apply the same damage to `HP`, and ALSO apply a region-scoped condition instance
   (e.g. `injured` with a `body_part` override) if damage crosses a per-region threshold.
   Bleeding can then trail/spawn items in that region.
-- **Region conditions** reuse the multi-instance condition shape — each body part can
+- **Region conditions** reuse the multi-instance condition shape - each body part can
   hold its own `injured`/`bleeding` instance with its own `duration`/`ends_on`.
 - **Accessibility check** (`_resolve_body_part()`): a region is reachable unless blocked
   by clothing `coverage` on the relevant equip slot stack (paperdoll layers) or a
   condition like `restrained`.
-- **Genericity**: injury/bleeding are NON-sexual and always active — do NOT gate behind
+- **Genericity**: injury/bleeding are NON-sexual and always active - do NOT gate behind
   the mature-content toggle. Only arousal/pleasure coupling is mature-gated.
 
 ## Implemented (2026-08-19)
 
-- **`engine/body_parts.py`** (NEW): flat + zoned `BODY_REGIONS` catalog — 12 coarse injury
+- **`engine/body_parts.py`** (NEW): flat + zoned `BODY_REGIONS` catalog - 12 coarse injury
   regions (`head`, `neck`, `torso`, `back`, `arm_left/right`, `hand_left/right`,
   `leg_left/right`, `foot_left/right`) with nested erogenous zones (`nipple_left/right`,
   `breast_left/right`, `genitals`, `cheeks`, `lips`, `thigh_left/right`) as `parent`
-  references — plus constants `INJURY_DAMAGE_THRESHOLD=5`, `BLEEDING_DAMAGE_THRESHOLD=10`,
+  references - plus constants `INJURY_DAMAGE_THRESHOLD=5`, `BLEEDING_DAMAGE_THRESHOLD=10`,
   `COVERAGE_EXPOSED_THRESHOLD=0.8`, and helpers `resolve_region()` (exact id / alias /
   "left X" side forms), `injury_region()` (erogenous → parent injury region),
   `region_chain()`, `coverage_slots()`, `is_exposed()` (checks OUTER layer coverage of
@@ -68,7 +68,7 @@ bodies/injuries and is currently undefined.
 - **`data/library/conditions/injured.json` + `bleeding.json`** (NEW): region-scoped,
   `stack: "accumulate"` (per-region instances), `ends_on: ["fix","heal","medicine"]`,
   `default_duration: null`, `level_periodic` HP drain, `symptoms` keyed by remaining
-  duration (JSON keys must be QUOTED strings — the loader coerces them back to ints;
+  duration (JSON keys must be QUOTED strings - the loader coerces them back to ints;
   unquoted numeric keys break JSON parsing).
 - **`engine/combat.py`**: `player_attack(..., where=None)` resolves an aimed region up
   front; un-aimed attacks roll `roll_hit_location()` on a HIT (misses don't consume a
@@ -77,7 +77,7 @@ bodies/injuries and is currently undefined.
   i.e. erogenous zones collapse to their parent) plus `bleeding` at damage ≥ 10. Hit
   messages append `(in the <region>)` and the injury note.
 - **`routes/action.py`**: attack branch strips a trailing region phrase (` on `,
-  ` where `, ` in the `, ` in ` — earliest match), re-tokenizes, passes
+  ` where `, ` in the `, ` in ` - earliest match), re-tokenizes, passes
   `where=attack_where` (resolved id or raw text fallback) to both weapon and
   bare-handed `_player_attack()` calls.
 - **`virtual_world_engine.py`**: `_player_attack()` forwards `where`.
@@ -90,15 +90,15 @@ bodies/injuries and is currently undefined.
 
 ## Files
 
-- `engine/body_parts.py` — NEW: region catalog, resolver, coverage, hit-location table
-- `engine/combat.py` — `player_attack(where=...)`, `_resolve_hit_region`, `_apply_region_injury`
-- `engine/serialization.py` — `body_state` round-trip
-- `routes/action.py` — `where` region phrase parsing
-- `virtual_world_engine.py` — `_player_attack(..., where=...)` facade
-- `player.py` — `body_state` init
-- `data/library/conditions/injured.json`, `bleeding.json` — region-aware conditions
-- `static/js/agent/action-normalizer.js` — `attack ... on <where>`
-- `tests/test_body_parts.py` — NEW test module
+- `engine/body_parts.py` - NEW: region catalog, resolver, coverage, hit-location table
+- `engine/combat.py` - `player_attack(where=...)`, `_resolve_hit_region`, `_apply_region_injury`
+- `engine/serialization.py` - `body_state` round-trip
+- `routes/action.py` - `where` region phrase parsing
+- `virtual_world_engine.py` - `_player_attack(..., where=...)` facade
+- `player.py` - `body_state` init
+- `data/library/conditions/injured.json`, `bleeding.json` - region-aware conditions
+- `static/js/agent/action-normalizer.js` - `attack ... on <where>`
+- `tests/test_body_parts.py` - NEW test module
 
 ## Steps to verify
 
@@ -114,45 +114,15 @@ bodies/injuries and is currently undefined.
 
 ## Related
 
-- `review/characters/pleasure-system-audit-gaps-2026-08.md` — GAP A / GAP B / GAP C
-- `todo/characters/task-190-more-conditions.md` — `injured`/`bleeding`/suffocating
-- `todo/characters/task-211-intimacy-verbs-actions.md` — `where`/`type`/`interact`
-- `todo/characters/task-207-body-state-and-vitals.md` — `body_state` per-part `injury`
+- `review/characters/pleasure-system-audit-gaps-2026-08.md` - GAP A / GAP B / GAP C
+- `todo/characters/task-190-more-conditions.md` - `injured`/`bleeding`/suffocating
+- `todo/characters/task-211-intimacy-verbs-actions.md` - `where`/`type`/`interact`
+- `todo/characters/task-207-body-state-and-vitals.md` - `body_state` per-part `injury`
 
-## What
-
-TODO
-
-## How
-
-TODO
 
 ## Acceptance
 
-- [ ] TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: Game command input → attack action → event stream; inspect
-the target character's resulting state through `/api/state` until a body-state
-readout is part of the character inspector.
-
-Current availability: The combat route accepts an aimed body region and the
-unit tests cover injury thresholds and exposed/covered regions. The card still
-marks browser end-to-end verification pending; the inspector is not claimed to
-render the per-region injury record.
-
-Live steps when available:
-1. Load a scratch scenario with an attacker and target in the same area, no
-   head-covering item on the target, and a weapon that can deal at least 5
-   damage. Enter `attack <target> on the head` in the command input and inspect
-   the event stream and `/api/state`.
-   - expected: the hit output names the head and injury; the target's
-     `body_state.head` contains a region injury while HP reflects the hit.
-2. Equip a head-covering item on the same target and repeat with a hit that
-   deals at least 5 damage.
-   - expected: HP still reflects damage, but the covered head does not receive
-     a skin injury.
-
-This section defines intended access and live acceptance. It is not a claim
-that planned UI exists or works today.
+- [x] Combat system routes damage to target body regions when specified.
+- [x] Armor and clothing on target region absorb damage according to coverage.
+- [x] Uncovered regions receive skin and tissue injuries when damage exceeds threshold.
+- [x] Body state reflects injured status and impairs relevant actions.

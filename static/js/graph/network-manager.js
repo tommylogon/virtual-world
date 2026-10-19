@@ -245,6 +245,12 @@ window.GraphNetwork = {
             : (gm && gm._levelsMode && gm._levelsMode() ? 'levels' : (gm && gm._cardinalLayout ? 'map' : 'graph')));
         if (current === 'map' || current === 'levels')
             return 0;
+        // task-771: A painted scope has pinned areas across a multi-thousand px canvas;
+        // applying central gravity in graph mode pulls unpinned content nodes towards (0,0),
+        // collapsing children away from their pinned parents.
+        if (gm && (gm._paintedGridLayout || (gm._graphNodesObj && typeof window.GraphLayoutEngine?.hasPaintedGrid === 'function' && window.GraphLayoutEngine.hasPaintedGrid(gm._graphNodesObj)))) {
+            return 0;
+        }
         // Per solver, because the two formulations are not on the same scale
         // (barnesHut's historical default is 0.3, forceAtlas2's is 0.005).
         return ((config || {}).graphSolver || 'forceAtlas2Based') === 'barnesHut' ? 0.3 : 0.05;
@@ -1987,11 +1993,11 @@ window.GraphNetwork = {
         else if (mode === 'sound') {
             title = '🔊 Sound Overlay';
             rows = `
-                <div class="legend-row"><span class="legend-swatch" style="background:#0a0a0a;border:1px solid #333;"></span> silent</div>
-                <div class="legend-row"><span class="legend-swatch" style="background:#121220;border:1px solid #4a4a7e;"></span> quiet</div>
-                <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:1px solid #58a6ff;"></span> moderate</div>
-                <div class="legend-row"><span class="legend-swatch" style="background:#3a2a18;border:1px solid #e3b341;"></span> loud</div>
-                <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> deafening</div>`;
+                <div class="legend-row"><span class="legend-swatch" style="background:#0a100d;border:1px solid #238636;"></span> silent</div>
+                <div class="legend-row"><span class="legend-swatch" style="background:#0f241d;border:1px solid #2ea043;"></span> quiet</div>
+                <div class="legend-row"><span class="legend-swatch" style="background:#13382c;border:1px solid #3fb950;"></span> moderate / normal</div>
+                <div class="legend-row"><span class="legend-swatch" style="background:#1b4b52;border:1px solid #38bdf8;"></span> busy / loud</div>
+                <div class="legend-row"><span class="legend-swatch" style="background:#3b1d42;border:1px solid #d946ef;"></span> chaotic / deafening</div>`;
         }
         else if (mode === 'trigger') {
             title = '⚡ Trigger Overlay';

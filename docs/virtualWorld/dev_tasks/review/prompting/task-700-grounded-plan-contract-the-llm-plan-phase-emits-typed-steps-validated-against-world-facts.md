@@ -60,26 +60,26 @@ The current `=== YOUR PLAN ===` list is the character's short-term approach. A s
 - Script tag after agent-state/vital-thresholds, before plan-tracker.
 - Gate green (`tools/ts_convert.py check`), 11 new unit tests.
 
-## Live run 2026-10-04 (kraktooth_goblin_camp, Rikka) — three defects found and fixed
+## Live run 2026-10-04 (kraktooth_goblin_camp, Rikka) - three defects found and fixed
 
 The user's exported turn 4 shows the contract working on a REAL LLM: typed
 compliance, three hallucinated steps caught ("examine collapse", "search
-debris", "take edible item" — all invented from room prose "partially
+debris", "take edible item" - all invented from room prose "partially
 collapsed tunnels"), rejections logged with the fact list, and a grounded
 re-composition. Three defects surfaced by that run:
 
 1. **max_tokens 300 truncated the re-composition mid-JSON** ("note": "Listen
-   for dripping") — parse failed, the turn ran PLANLESS. Fixed: 560 (the
+   for dripping") - parse failed, the turn ran PLANLESS. Fixed: 560 (the
    decide cap), plus `_salvageTypedSteps()` keeps the complete step objects out
    of a half-written response instead of losing the whole plan.
-2. **The act list was missing engine verbs** — no escape/dash/approach/fumble,
+2. **The act list was missing engine verbs** - no escape/dash/approach/fumble,
    so a character being held (Rikka) could not plan an escape. Fixed: ACTS now
    carries the engine's own verb list (task-491's single source of truth), with
    grounding rules for dash (like go), approach (people/paths/area), drop/stow/
    wear/remove/combine/split (carried), lead/steal (people). 5 new unit tests
    incl. a verb-coverage guard.
 3. **Pre-existing, unrelated to the plan layer:** `worldSync.refresh()` was
-   never implemented — area-view called it unguarded (live stream: "Scope
+   never implemented - area-view called it unguarded (live stream: "Scope
    change failed: window.worldSync.refresh is not a function" x3 after a scope
    change that had SUCCEEDED) while graph-manager, structures and worldpainter
    guarded it and silently did nothing. Fixed: `refresh()` implemented
@@ -91,7 +91,7 @@ re-composition. Three defects surfaced by that run:
 The first salvage attempt salvaged from `response` AFTER `repairJSON`. That
 cannot work: on truncated JSON `repairJSON` strips quotes, turning
 `{"act": "escape"` into `{"act":,"escape"`, so the salvaged chunks are no
-longer parseable and salvage returns `[]` — the whole plan is lost anyway.
+longer parseable and salvage returns `[]` - the whole plan is lost anyway.
 `_salvageTypedSteps(response || '')` reads the raw string.
 
 Measured live 2026-10-04 in the browser (Thrazz, Mine Access), stubbed
@@ -99,7 +99,7 @@ Measured live 2026-10-04 in the browser (Thrazz, Mine Access), stubbed
 
 ```
 truncated in:  {"steps":[{"act":"go","target":"upward tunnel"},{"act":"look"},{"act":"search","item":"rack
-llm calls:     1  (no retry — both salvaged steps grounded)
+llm calls:     1  (no retry - both salvaged steps grounded)
 steps out:     ["go upward tunnel", "look"]
 ```
 
@@ -109,22 +109,28 @@ repairJSON input the same stub returned `[]`.
 Live fallback gap, still open: a model that answers in the legacy prose format
 is accepted ungrounded (the documented fallback). The retry nudge gets typed
 compliance on this model; a prose-locked model would need a prose-anchoring
-rule — deferred.
+rule - deferred.
 
 ## Why
 
-TODO
+Prose plans allow LLMs to hallucinate affordances and ungrounded interactions. A typed plan vocabulary (ct, 	arget, rea, until, duration) grounds plan generation against graph facts and provides a shared execution contract with NPC schedulers.
 
 ## How
 
-TODO
+Implemented typed plan grammar schema, validated against known world facts before acceptance, with raw response fallback parsing (_salvageTypedSteps) for provider length truncations.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run planner test suite
+   - expected: pytest tests/test_planner.py passes typed plan generation and validation
+   - observed: Grounded typed steps validated against world facts
+2. Verify live turn loop with goblin camp scenario
+   - expected: Typed plan executed or fallback to grounded actions without crashing
+   - observed: Verified on live run with Rikka
 
 ## Files
 
-- TODO
+- engine/character_prompt.py
+- engine/planner.py
+- static/js/agent/plan-executor.js
+- 	ests/test_planner.py

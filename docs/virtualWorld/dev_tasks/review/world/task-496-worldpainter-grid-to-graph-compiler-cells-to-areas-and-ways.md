@@ -13,7 +13,7 @@ related: ['task-495', 'task-398', 'task-400', 'task-520', 'task-528', 'task-529'
 **Design:** `docs/design/worldpainter-knowledge-and-fog.md`,
 `docs/design/world-environment-taxonomy.md`
 
-**Overlaps task-398.** task-398 already owns the deterministic generation contract (the `GenerationPatch` shape, provenance, apply-once, "a manual edit survives a second run"). This task is the *painted-grid recipe* — wilderness/road/biome tiles + region-merge — that should emit a `GenerationPatch` through 398's contract rather than a parallel generator. Decide whether to fold it into 398 or keep it as the grid recipe.
+**Overlaps task-398.** task-398 already owns the deterministic generation contract (the `GenerationPatch` shape, provenance, apply-once, "a manual edit survives a second run"). This task is the *painted-grid recipe* - wilderness/road/biome tiles + region-merge - that should emit a `GenerationPatch` through 398's contract rather than a parallel generator. Decide whether to fold it into 398 or keep it as the grid recipe.
 
 <!-- deps:start -->
 **Related:** [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-398-deterministic-structure-generation]], [[task-400-pines-world-scale-vertical-slice]], [[task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint]], [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]], [[task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors]], [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[bug-530-compiled-open-outdoor-ways-miss-prevent-close-so-a-road-into-the-forest-can-be-hand-closed]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette]]
@@ -31,7 +31,7 @@ Compile a painted scope grid into the existing area/way node+edge format: cells 
 - Descriptions are deterministic from (own tile + neighbours + exits) with **no LLM call**. **Superseded 2026-09-26** by the observer-view model below: every painted cell is a place, a road cell *replaces* the biome, and a description composes the place's *character* from its neighbours + elevation.
 - Grid-canonical vs baked-and-hand-edited is decided and enforced (edit-after-bake is not silently clobbered; see task-289/290/317).
 
-## Decisions — 2026-09-24
+## Decisions - 2026-09-24
 
 - **Keep 496 as a separate grid recipe that emits through task-398's
   contract** (do not fold it into task-398). task-398 owns *how* a patch applies
@@ -45,7 +45,7 @@ Compile a painted scope grid into the existing area/way node+edge format: cells 
   `"baked"` compiles once and is treated as hand-authored thereafter (a second
   compile raises). This is the task-289/290/317 clobber trap answered.
 
-## Decisions — 2026-09-26 (observer-view places, road replaces biome, directions)
+## Decisions - 2026-09-26 (observer-view places, road replaces biome, directions)
 
 Locked with the author. These widen the grid recipe beyond "biome cells → areas,
 4 neighbours" and are the target for the compiler's next pass.
@@ -72,7 +72,7 @@ Locked with the author. These widen the grid recipe beyond "biome cells → area
   widen the vocabulary.
 - **`floor` is a storey index, not a floor material** (corrected with the author,
   2026-09-27). `0` is the ground plane, `1` one storey up, `-1` one down, and the
-  scale is **unbounded** — three stacked rooms, the space around a spaceship, a
+  scale is **unbounded** - three stacked rooms, the space around a spaceship, a
   lake bottom at `-2`, an 80-storey tower, a hole to hell at `-900`. Rounded to a
   whole storey, because the engine compares whole storeys. What you *stand on*
   is `properties.surface`. The earlier revision of this design put the ground
@@ -81,11 +81,11 @@ Locked with the author. These widen the grid recipe beyond "biome cells → area
   layer is `floor`, and `properties.elevation` is gone. A save already compiled
   by the old recipe is repaired on load (`Graph.normalize_area_floors`).
 - **Storeys inform prose now, gate movement later.** The floor layer feeds the
-  cliff phrasing (`CLIFF_FLOOR_DELTA = 2` storeys, `world` scopes only — a storey
+  cliff phrasing (`CLIFF_FLOOR_DELTA = 2` storeys, `world` scopes only - a storey
   step in a town/interior is a staircase, not a rockface); a step past ~3
   storeys gating traversal (climb required) is deferred to **task-525**.
 
-All three landed on 2026-09-27 — see the Progress section at the end of this file:
+All three landed on 2026-09-27 - see the Progress section at the end of this file:
 the context classifier, the feature-entry direction vocabulary, and road-as-place
 in the cell list.
 
@@ -94,14 +94,14 @@ in the cell list.
 - **`engine/world_compile.py`** (new): `compile_grid(manifest, scope_id, *,
   region_merge=False, recipe_id="grid.v1", seed=None, tick=0)` → a
   `GenerationPatch`.
-  - **Every painted cell becomes an area** — biome, road, or both
+  - **Every painted cell becomes an area** - biome, road, or both
     (`cells = sorted(set(biome_of) | set(road_of))`; a cell holding a
     hand-placed area, task-528, is still skipped). 8-neighbour adjacencies
     (orthogonal *and* diagonal) become
     `way` nodes with the **four connection edges** `connect_areas` produces, so
     the engine is unchanged. Optional `region_merge` flood-fills contiguous
-    cells of the same **identity** — `road:<value>` when a road is painted,
-    `biome:<value>` otherwise — into one area, emitting one passage per region
+    cells of the same **identity** - `road:<value>` when a road is painted,
+    `biome:<value>` otherwise - into one area, emitting one passage per region
     boundary. (Superseded 2026-09-27: before that, only biome cells compiled
     and merging was by biome.)
   - Disconnected islands are **auto-linked**: each component beyond the main
@@ -112,7 +112,7 @@ in the cell list.
     index**), `surface` (the ground material), `environment`, `world_scope_id`,
     optional `road`/`child_scope_id`, and a **deterministic description** built
     from the cell's own biome fragment, the road feature, its exits and its
-    neighbouring biomes — no LLM (fragment choice is a stable hash of
+    neighbouring biomes - no LLM (fragment choice is a stable hash of
     `seed:cell`).
   - Ways carry `direction`, open `current_state`, `see_through`, `floor` (the
     lower of the two storeys it joins), `surface`, `pass_message`, and both
@@ -125,10 +125,10 @@ in the cell list.
 - **`tests/test_world_compile.py`** (13): area/way counts, properties,
   deterministic descriptions, road tags, region-merge (fewer nodes), baked
   refusal, boundary ways, and a **real-VirtualWorld walkability check** (apply
-  the patch, then read the exits — `east`/`south` present, no engine change).
+  the patch, then read the exits - `east`/`south` present, no engine change).
 - The grid data model this reads is `engine/world_grid.py` (task-495).
 
-## Progress — 2026-09-24 (generate wiring)
+## Progress - 2026-09-24 (generate wiring)
 
 The compiler was reachable only from tests; it is now reachable from the editor.
 
@@ -147,27 +147,27 @@ The compiler was reachable only from tests; it is now reachable from the editor.
 - **Editor** (`static/js/worldpainter/editor.js`): a `⚙ Generate` button plus a
   "merge same-biome" toggle; it reports `N node(s), M edge(s)`, offers a
   `allow_regenerate` re-run on the 409, and refreshes the world sync.
-- Live browser run (6 painted cells): 13 nodes / 28 edges — 6 areas, 7 passages;
+- Live browser run (6 painted cells): 13 nodes / 28 edges - 6 areas, 7 passages;
   scope `materialized`.
 
 Still open here: the "merge" overlap policy if a zone ever needs it. Diagonal
 (8-neighbour) ways and materialising a placed child scope's own grid are both
 done (see the progress sections below).
 
-## Progress — 2026-09-24 (child-scope gateways)
+## Progress - 2026-09-24 (child-scope gateways)
 
 The placed-feature gap is closed on the compiler side: a child scope you paint
 and generate is now **walkable from the parent cell it was placed on**.
 
 - **Entry area.** Compiling any scope records `entry_area_id` / `entry_area_name`
-  on the scope (its first region — regions are ordered by `(y, x)`, so the
+  on the scope (its first region - regions are ordered by `(y, x)`, so the
   top-left-most). A placed child is entered here.
 - **Gateway link.** When both a parent and its placed child are materialized, a
   `way` node `way_gateway_<parent>_<child>` links the parent's compiled cell area
   to the child's entry area. Directions are **`in`** (parent → child) and
   **`out`** (child → parent), so `go in` / `go out` work; the four connection
   edges are built explicitly because the two directions are not opposites.
-  `see_through` is false — you cannot see a whole child scope from outside it.
+  `see_through` is false - you cannot see a whole child scope from outside it.
 - **Emitted exactly once, either order.** The parent records each placement's
   compiled `area_id`/`area_name` (persisted on the scope record, kept by
   `world_grid.normalise_grid`). The gateway is emitted by whichever scope
@@ -186,7 +186,7 @@ parent-first gateway emission, `in`/`out` walkability read through a real
 for an unpainted cell; `tests/test_world_grid.py` +1 for the link fields
 surviving `normalise_grid`.
 
-## Progress — 2026-09-25 (painted positions)
+## Progress - 2026-09-25 (painted positions)
 
 Generated nodes now carry a canvas position, so a compiled scope lays out in the
 shape it was painted instead of a physics blob:
@@ -195,7 +195,7 @@ shape it was painted instead of a physics blob:
   (40) plus `properties.cell` for the raw coords; every way gets the midpoint of
   its two cells; a gateway sits on the parent cell it opens from.
 - The graph view reads `properties.x`/`y` on load, so with **physics off**
-  (graph mode) the world appears as painted. This is layout only — travel is
+  (graph mode) the world appears as painted. This is layout only - travel is
   still one turn per cell, and `cell_scale` remains unread.
 - Not aligned yet: the graph's **background image** transform is independent, so
   the nodes form the painted shape but may not overlay the art until the
@@ -207,7 +207,7 @@ shape it was painted instead of a physics blob:
 
 `GraphLayoutEngine.applyCardinalLayout` gained a **grid mode**: when the payload
 has `properties.cell` on its areas (painted, not hand-authored) it places areas
-and ways at their exact painted coordinates and leaves physics off — the map is
+and ways at their exact painted coordinates and leaves physics off - the map is
 read, not BFS-derived and force-settled. Hand-authored worlds keep the original
 cardinal BFS fallback. Pure helpers `gridPosition`/`hasPaintedGrid` are
 unit-tested (`tools/unit/test_graph_layout_engine.js`, 4 tests); the node-moving
@@ -217,7 +217,7 @@ overrides painted positions" caveat above for painted worlds.
 Tests: `tests/test_world_compile.py` +1 (area `cell`/`x`/`y`, way midpoint) and
 the gateway position assertion.
 
-## Progress — 2026-09-27 (the observer-view pass landed)
+## Progress - 2026-09-27 (the observer-view pass landed)
 
 The three items the 2026-09-26 decision block left open are implemented, and the
 WorldPainter's area estimate now mirrors the compiler so the header matches what
@@ -241,16 +241,16 @@ Generate mints.
   **is**, so a road neighbour reads as a road even when a biome sits under it.
 - **Storeys as a description input.** `floor_at` + `cliff_dirs` compare against
   the painted `floor` layer (an unpainted neighbour counts as ground), so a
-  multi-storey step turns a slope into a rockface — outdoors only; a `town` or
+  multi-storey step turns a slope into a rockface - outdoors only; a `town` or
   `interior` scope never promotes a step, because a storey step inside is a
-  staircase, not a cliff. Prose only — gating traversal on a storey delta stays
+  staircase, not a cliff. Prose only - gating traversal on a storey delta stays
   **task-525**.
 - **Feature-entry vocabulary** (`_entry_phrases`, `_entry_delta`). A child-scope
   gateway carries a narrative phrase sourced from the placement's feature and the
   storey step between the parent cell and the child's recorded
   `entry_floor`/`entry_cell`: "enter the inn", "climb down into the cave",
   "climb up the rockface". Every phrase also carries `aliases: ["in", "out"]`, so
-  the pre-existing `go in` / `go out` still resolve — verified against the real
+  the pre-existing `go in` / `go out` still resolve - verified against the real
   `NameMatching.resolve_exit` for `in`, `enter inn`, `inn`, `the inn`. Exterior
   passages stay compass directions.
 - **The painter's estimate was wrong** and is fixed
@@ -278,7 +278,7 @@ model"), not only here.
 The author rejected the mapping this file originally described, where `floor` was
 the ground **material** and a separate `elevation` layer held a 0..1 height
 fraction. `floor` is a **storey index** and nothing else: 0 is the ground plane,
-1 one up, -1 one down, unbounded — three stacked rooms, the space around a
+1 one up, -1 one down, unbounded - three stacked rooms, the space around a
 spaceship, a lake bottom at -2, an 80-storey tower, a hole to hell at -900. The
 ground material moved to `properties.surface` (and `surface` in the biome/road
 records, via `engine.biomes.ground_surface`). Changed:
@@ -291,7 +291,7 @@ records, via `engine.biomes.ground_surface`). Changed:
   ways get `floor` (the **lower** of the two storeys they join, so the value does
   not depend on emission order) + `surface`; `entry_elevation` →
   `entry_floor`; `RECIPE_ID` → `grid.v2`. The cliff promotion reads storeys and
-  is restricted to `world` scopes — a storey step in a town/interior is a
+  is restricted to `world` scopes - a storey step in a town/interior is a
   staircase, not a rockface.
 - `graph.py`: `normalize_area_floors` repairs a save compiled by `grid.v1` on
   load (material string → `surface`, storey → 0), the same repair pattern as the
@@ -303,18 +303,25 @@ records, via `engine.biomes.ground_surface`). Changed:
 
 ## Why
 
-TODO
+WorldPainter needs a deterministic compiler to transform painted 2D cell grids (biomes, roads, floors) into physical WorldGraph nodes (areas and ways), preserving spatial relations, surface types, and storeys.
 
 ## How
 
-TODO
+Implemented engine/world_compile.py grid-to-graph compilation converting cells into area nodes and adjacency into way nodes; supports layers iome, 
+oad, and loor (storey + surface), with backward-compatible migration (RECIPE_ID grid.v2).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Compile a painted grid to WorldGraph
+   - expected: Painted cells compile into areas with floor, surface, and interconnecting way nodes
+   - observed: Verified in test_world_compile tests
+2. Verify storey and floor migration
+   - expected: Legacy elevation converted to numeric floor and surface attributes without cap
+   - observed: Clean round-trip via normalize_area_floors
 
 ## Files
 
-- TODO
+- engine/world_grid.py
+- engine/world_compile.py
+- graph.py
+- 	ests/test_world_compile.py

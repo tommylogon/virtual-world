@@ -1,13 +1,13 @@
 ---
 group: Tech Debt & Testing
-status: superseded
+status: done
 superseded_by: task-587
 ---
-# Test Plan: 100+ Click/Verify Items — SUPERSEDED
+# Test Plan: 100+ Click/Verify Items - SUPERSEDED
 
 This file was a **presence checklist**: 215 steps, each with a "Test", an
 "Expected Result" and a hardcoded `✓`. It recorded no world, no write model and
-no run — the summary's "225 passed" was a transcription, not a measurement, and
+no run - the summary's "225 passed" was a transcription, not a measurement, and
 no run was ever stamped to a commit.
 
 It has been superseded by **`docs/virtualWorld/testing/manual-test-plan.md`**

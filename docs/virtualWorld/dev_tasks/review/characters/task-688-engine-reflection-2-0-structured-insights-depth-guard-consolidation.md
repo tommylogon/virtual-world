@@ -7,7 +7,7 @@ related: ["'task-685'", "'task-686'", "'task-687'", "'task-689'", "'task-690'", 
 parent: task-685
 ---
 
-# task-688: Engine: reflection 2.0 — structured insights, depth guard, consolidation
+# task-688: Engine: reflection 2.0 - structured insights, depth guard, consolidation
 
 **Filed:** 2026-10-04
 **Related:** task-685, task-350, task-96
@@ -31,13 +31,13 @@ can no longer eat itself:
   `belief`-category memory (or `procedural` for `behavior`) with
   `reflection_depth: 1`, `source_memory_ids` (inputs), `confidence`,
   `entity_ids` resolved through `engine/matching.py` (never names-as-keys),
-  and `rel:<name>` tags for relationship insights — which is exactly what
+  and `rel:<name>` tags for relationship insights - which is exactly what
   `derive.py` folds into the per-person profile. One writer, no second store.
 - **Depth guard, twice**: client excludes depth ≥ 1 inputs; backend rejects an
   insight whose source memories all carry `reflection_depth ≥ 1` unless
   `force: true`. Ladder: episodic → depth 1 → STOP.
 - **Consolidation** (`memory_dynamics.consolidate`): deterministic,
-  server-side, from the same tick hook as decay — when a retention cap or
+  server-side, from the same tick hook as decay - when a retention cap or
   `memory.consolidate` config pressures the store, groups of ≥ 3 old
   low-importance episodic memories sharing an entity compress into one
   `semantic` trace memory whose `source_memory_ids` records exactly what was
@@ -62,21 +62,35 @@ can no longer eat itself:
 
 ## Why
 
-TODO
+Legacy reflection was merely a text summarizer that concatenated unstructured thoughts into loose notes, with no ability to extract behavioral rules, update relationship models, or prevent reflection on reflections (hallucinatory self-referential loops). Reflection 2.0 structures insights into typed beliefs, procedural behaviors, and relationship adjustments while introducing a strict depth guard (reflection_depth: 1) to prevent recursive feedback loops, plus deterministic consolidation of trivial episodic memories into semantic summaries.
 
 ## How
 
-TODO
+1. In static/js/agent/memory-manager.ts, query candidates with importance >= 6 or reinforcements >= 2 and reflection_depth == 0. Prompt for structured JSON containing insights: [{belief, about[], confidence, emotional, behavior, relationship}].
+2. In routes/memories.py (/memories/reflect), accept both legacy string lists and structured insight JSON. Store insights as belief or procedural category memories carrying reflection_depth: 1, source_memory_ids, confidence, and rel:<name> tags.
+3. Enforce depth guard: reject insights whose sources are all depth >= 1 unless force: true.
+4. In engine/memory_dynamics.py, implement deterministic consolidate(): merge 3+ old, low-importance episodic memories sharing an entity into a single semantic trace memory, recording source IDs and removing the originals.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Trigger structured reflection on a character with qualified memories via POST /api/players/<name>/memories/reflect.
+   - expected: Stored memories receive category: belief, reflection_depth: 1, source ID links, and update derived person profiles.
+   - observed: Tested in tests/test_reflection.py.
+2. Attempt reflection where all input memory IDs have reflection_depth >= 1 without force: true.
+   - expected: Request rejected with HTTP 400 Bad Request.
+   - observed: Depth guard rejection verified in unit test.
+3. Run episodic consolidation pass on character memories.
+   - expected: Three or more low-importance episodes compress into one semantic trace memory listing source IDs.
+   - observed: Consolidation verified via memory_dynamics.consolidate unit test.
 
 ## Files
 
-- TODO
+- static/js/agent/memory-manager.ts
+- 
+outes/memories.py
+- engine/memory_dynamics.py (consolidate)
+- engine/reflection.py
+- 	ests/test_reflection.py
 
 ## Browser UI and intended live verification
 

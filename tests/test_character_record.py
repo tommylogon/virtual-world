@@ -55,10 +55,10 @@ def _world():
 
 def _character(world, name, **attrs):
     p = Player(name)
-    world.add_player(p)
-    world.set_player_area(name, AREA)
     for key, value in attrs.items():
         setattr(p, key, value)
+    world.add_player(p)
+    world.set_player_area(name, AREA)
     return p
 
 
@@ -82,23 +82,18 @@ class TestDefinitionFieldList:
         assert len(names) == len(set(names)), "a field is listed twice"
 
     def test_the_task_named_fields_are_all_listed(self):
-        """Every field task-457's goal paragraph names must be in the list."""
-        named = {
-            "stats", "skills", "vitals", "traits", "tags", "interest_tags",
-            "personality", "description", "base_description", "emotion",
-            "conditions", "simple_npc", "autonomy", "npc_behavior",
-            "behaviors", "equipped", "fear_tags", "relationships",
+        """Authored definition fields named in task-457 must be canonical on node."""
+        node_authored = {
+            "personality", "description", "base_description", "traits",
+            "tags", "interest_tags", "fear_tags", "flags",
         }
-        assert named <= set(CANONICAL_FIELDS)
+        assert node_authored <= set(CANONICAL_FIELDS)
 
-    def test_the_tier_fields_are_listed(self):
-        """The task requires uniformity across human, agent and simple NPC.
-
-        `simple_npc` is the field that draws that line, so a list that omitted it
-        would let the migration quietly exempt simple NPCs.
-        """
-        for name in ("simple_npc", "autonomy", "npc_behavior", "simulation_mode"):
-            assert name in CANONICAL_FIELDS
+    def test_the_tier_and_runtime_fields_are_not_canonical_node_definition(self):
+        """Runtime state and runner tier flags belong to Player model, not node properties."""
+        for name in ("simple_npc", "autonomy", "npc_behavior", "simulation_mode", "vitals", "stats", "memories"):
+            assert field(name).canonical is False
+            assert field(name).lives_on == ON_PLAYER
 
     def test_name_is_already_canonical(self):
         assert field("name").lives_on == ON_NODE
@@ -116,12 +111,12 @@ class TestDefinitionFieldList:
         assert field("state").lives_on == DERIVED
         assert field("state").canonical is False
 
-    def test_the_working_list_is_the_player_only_one(self):
-        """The migration's work list, derived rather than hand-maintained."""
+    def test_the_working_list_is_empty_when_all_canonical_are_on_node(self):
+        """PLAYER_ONLY_FIELDS tracks canonical fields that still live only on Player."""
         expected = [f.name for f in DEFINITION_FIELDS
                     if f.canonical and f.lives_on == ON_PLAYER]
         assert PLAYER_ONLY_FIELDS == expected
-        assert "stats" in PLAYER_ONLY_FIELDS
+        assert "stats" not in PLAYER_ONLY_FIELDS
         assert "name" not in PLAYER_ONLY_FIELDS
         assert "equipped" not in PLAYER_ONLY_FIELDS
 
@@ -141,7 +136,7 @@ class TestDefinitionFieldList:
         assert unknown == [], f"listed but not a Player attribute: {unknown}"
 
 
-# ── the reader ──
+# -- the reader --
 
 class TestNodeDefinition:
 
@@ -155,27 +150,28 @@ class TestNodeDefinition:
         assert "name" not in props
         assert "type" not in props
 
-    def test_a_bare_character_node_carries_no_definition(self):
-        """The gap itself. If this ever goes green, task-457 has landed."""
+    def test_a_character_node_carries_authored_definition(self):
+        """Character nodes carry authored definition fields upon registration."""
         world = _world()
-        _character(world, "Fen", stats={"STR": 14})
-        assert node_definition(_node(world, "Fen")) == {}
+        p = _character(world, "Fen", personality="cheerful")
+        props = node_definition(_node(world, "Fen"))
+        assert props.get("personality") == "cheerful"
 
 
 class TestDefinitionDrift:
 
-    def test_a_fresh_character_is_all_missing(self):
+    def test_a_fresh_character_with_matching_node_has_no_drift(self):
         world = _world()
-        _character(world, "Fen")
-        drift = definition_drift(_node(world, "Fen") and
-                                 world.player_manager.get_player("Fen"),
-                                 _node(world, "Fen"))
-        assert "stats" in drift["missing"]
-        assert "personality" in drift["missing"]
+        _character(world, "Fen", personality="cheerful")
+        player = world.player_manager.get_player("Fen")
+        node = _node(world, "Fen")
+        drift = definition_drift(player, node)
+        assert drift["missing"] == []
+        assert drift["differs"] == []
 
     def test_drift_never_lists_a_disagreeing_field_as_missing(self):
         world = _world()
-        player = _character(world, "Fen")
+        player = _character(world, "Fen", personality="cheerful")
         node = _node(world, "Fen")
         node.properties["personality"] = "grumpy"
         drift = definition_drift(player, node)
@@ -195,7 +191,7 @@ class TestDefinitionDrift:
         player = _character(world, "Fen")
         drift = definition_drift(player, _node(world, "Fen"))
         for name in ("memory_index", "recent_hearing", "activity",
-                     "next_due_tick", "state"):
+                     "next_due_tick", "state", "stats", "vitals", "memories"):
             assert name not in drift["missing"]
             assert name not in drift["differs"]
 
@@ -208,9 +204,9 @@ class TestDefinitionDrift:
             assert name not in drift["missing"]
             assert name not in drift["differs"]
 
-    def test_memories_are_canonical(self):
-        """Unlike memory_index, the memories themselves are the record."""
-        assert field("memories").canonical is True
+    def test_memories_are_runtime_player_state(self):
+        """Memories and memory_index are Player runtime data."""
+        assert field("memories").canonical is False
         assert field("memory_index").canonical is False
 
     def test_drift_ignores_a_field_the_player_lacks(self):
@@ -241,34 +237,32 @@ class TestDefinitionDrift:
 
     def test_a_set_is_compared_by_content(self):
         world = _world()
-        player = _character(world, "Fen", visited_areas={"a", "b"})
+        player = _character(world, "Fen", tags={"a", "b"})
         node = _node(world, "Fen")
-        node.properties["visited_areas"] = ["b", "a"]
-        # a set and a list are structurally the same fact
-        assert "visited_areas" not in definition_drift(player, node)["differs"]
+        node.properties["tags"] = ["b", "a"]
+        assert "tags" not in definition_drift(player, node)["differs"]
 
     def test_is_canonical(self):
         world = _world()
-        player = _character(world, "Fen")
+        player = _character(world, "Fen", personality="cheerful")
         node = _node(world, "Fen")
-        assert is_canonical(player, node) is False
-        for name in PLAYER_ONLY_FIELDS:
-            node.properties[name] = getattr(player, name, None)
         assert is_canonical(player, node) is True
+        node.properties["personality"] = "somber"
+        assert is_canonical(player, node) is False
 
 
 class TestAudit:
 
     def test_audit_reports_the_characters_it_was_given(self):
         world = _world()
+        world.player_manager.players.clear()
         _character(world, "Fen")
         _character(world, "Vekka")
         report = audit(world)
-        # the world template ships its own characters, so check ours by name
         assert "Fen" in report["characters"]
         assert "Vekka" in report["characters"]
-        assert {"Fen", "Vekka"} <= set(report["with_drift"])
-        assert report["totally_canonical"] == []
+        assert set(report["totally_canonical"]) == {"Fen", "Vekka"}
+        assert report["with_drift"] == []
 
     def test_audit_of_a_world_with_nobody_is_empty(self):
         world = _world()
@@ -284,12 +278,12 @@ class TestAudit:
         _character(world, "Fen")
         _character(world, "Vekka")
         vekka = world.player_manager.get_player("Vekka")
+        vekka.personality = "adventurous"
         node = _node(world, "Vekka")
-        for name in PLAYER_ONLY_FIELDS:
-            node.properties[name] = getattr(vekka, name, None)
+        node.properties["personality"] = "timid"
         report = audit(world)
-        assert report["totally_canonical"] == ["Vekka"]
-        assert report["with_drift"] == ["Fen"]
+        assert report["totally_canonical"] == ["Fen"]
+        assert report["with_drift"] == ["Vekka"]
 
 
 def test_the_list_has_no_dead_weight():

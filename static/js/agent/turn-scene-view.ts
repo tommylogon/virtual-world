@@ -416,12 +416,16 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         }
         if (kind === 'person') {
             let body = obj.desc as string;
+            const aliases = Array.isArray(obj.aliases) && (obj.aliases as string[]).length
+                ? (obj.aliases as string[]).join(', ')
+                : '';
+            if (aliases) body = `Also known as: ${aliases}\n\n` + body;
             if ((obj.tags as string[]).length) body += `\n\n(${(obj.tags as string[]).join(', ')})`;
             let foot = 'free look · no turn cost';
             if (!obj.name) {
                 foot = obj.met
-                    ? 'recognized — but you don\'t know their name yet'
-                    : 'a stranger — you don\'t know their name yet';
+                    ? 'recognized - but you don\'t know their name yet'
+                    : 'a stranger - you don\'t know their name yet';
             }
             return { title: obj.display_name as string, body, foot };
         }

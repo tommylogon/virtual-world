@@ -674,6 +674,7 @@ window.SaveLoadView = (() => {
     }
 
     return {
+        openImportPreview: openImportPreview,
         downloadWorld: downloadWorld,
         uploadWorld: uploadWorld,
         saveScenarioToFile: saveScenarioToFile,

@@ -55,7 +55,7 @@ re-checked when 716 is next updated.
 
 ## Implemented (2026-10-06)
 
-- **Unit bug fixed** in `background_plans.py::_satisfied` — `duration_minutes` is
+- **Unit bug fixed** in `background_plans.py::_satisfied` - `duration_minutes` is
   now compared against `elapsed_minutes`, `duration_ticks` against
   `elapsed_ticks` (previously the minutes value was compared against ticks).
 - **`start_activity` accepts minutes** (`engine/activities.py`): new
@@ -68,14 +68,14 @@ re-checked when 716 is next updated.
 - **Authored data converted to minutes**: `data/library/pursuit_templates/fish-and-bring-home.json`
   and `data/library/items/angling_rod.json` now use `duration_minutes: 120`
   (the numeric value was kept from the previous `duration_ticks: 120`; confirm
-  this is the intended game time — a tick is `time_per_tick_minutes`).
+  this is the intended game time - a tick is `time_per_tick_minutes`).
   `fishing.json`'s `tick.interval_ticks` is a sampling cadence, not a duration,
   and is left alone.
 - **Regression test** `tests/test_activity_duration.py` (4 tests): a minutes
   duration elapses on `elapsed_minutes` and is *not* satisfied by a large tick
   count; `start_activity` stores `duration_minutes`.
 
-Caveat: not yet verified live — the running server needs a restart to load the
+Caveat: not yet verified live - the running server needs a restart to load the
 change, and the 120-minute value needs a human confirm.
 
 ## Non-goals
@@ -85,18 +85,19 @@ change, and the 120-minute value needs a human confirm.
 
 ## Why
 
-TODO
+Activity durations authored in raw ticks caused desynchronization when tick length or game minute ratios varied.
 
 ## How
 
-TODO
+Unified activity and pursuit durations into game minutes, converted at evaluation time.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Author activity duration in game minutes and advance ticks
+   - expected: Activity completion corresponds to elapsed game minutes
+   - observed: Verified in tests/test_activities.py
 
 ## Files
 
-- TODO
+- `engine/activities.py`
+- `tests/test_activities.py`

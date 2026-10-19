@@ -266,16 +266,14 @@ window.GraphLayoutEngine = {
             return props.central_gravity_enabled === false;
         };
         nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter((u) => u && !frozen(u.id)));
-        // Enable hybrid physics: force-directed with anchor attraction
+        // Enable hybrid physics through the centralized physics policy (task-765)
         // - Strong repulsion between area nodes (prevent overlap)
         // - Edge springs (keep connected rooms close)
         // - Nodes start at anchor positions and settle naturally
-        graphManager.network.setOptions({
-            physics: {
-                enabled: true,
+        if (typeof window.GraphPhysics !== 'undefined' && window.GraphPhysics && typeof window.GraphPhysics.apply === 'function') {
+            window.GraphPhysics.apply({
                 barnesHut: {
                     gravitationalConstant: -3000,
-                    // 0 = no pull toward the origin, same as buildOptions().
                     centralGravity: 0,
                     springLength: 300,
                     springConstant: 0.04,
@@ -292,8 +290,33 @@ window.GraphLayoutEngine = {
                     onlyDynamicEdges: false,
                     fit: false
                 }
-            }
-        });
+            });
+        }
+        else {
+            graphManager.network.setOptions({
+                physics: {
+                    enabled: true,
+                    barnesHut: {
+                        gravitationalConstant: -3000,
+                        centralGravity: 0,
+                        springLength: 300,
+                        springConstant: 0.04,
+                        damping: 0.45,
+                        avoidOverlap: 0.6
+                    },
+                    maxVelocity: 50,
+                    minVelocity: 0.75,
+                    solver: 'barnesHut',
+                    stabilization: {
+                        enabled: true,
+                        iterations: 200,
+                        updateInterval: 25,
+                        onlyDynamicEdges: false,
+                        fit: false
+                    }
+                }
+            });
+        }
         if (window.GraphToolbar)
             GraphToolbar.syncAll();
         setTimeout(() => {
@@ -909,9 +932,14 @@ window.GraphLayoutEngine = {
         // painted lattice is a starting point rather than a freeze.
         if (window.GraphToolbar)
             GraphToolbar.syncAll();
+        const paintedIds = Object.keys(nodesObj || {}).filter((id) => window.GraphLayoutEngine.hasPaintedCoords((nodesObj[id] || {}).properties || {})
+            && !!nodesDS.get(id));
         setTimeout(() => {
             graphManager.network.redraw();
-            graphManager.network.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });
+            const fitOpts = { animation: false };
+            if (paintedIds.length)
+                fitOpts.nodes = paintedIds;
+            graphManager.network.fit(fitOpts);
         }, 60);
     },
     /**

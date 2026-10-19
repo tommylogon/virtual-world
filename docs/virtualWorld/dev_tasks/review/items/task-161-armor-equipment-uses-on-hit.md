@@ -29,13 +29,13 @@ Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but ar
 - In `player_attack` (engine/combat.py:47), when the target takes a hit, decrement `uses` on their equipped armor/defense items
 - Respect `uses > 0` (skip infinite-use items, `uses = -1`)
 - When armor reaches 0 uses, it breaks: log a message, remove from equipped slots, fire `on_break` trigger if present
-- Optionally scale the absorbed defense by remaining uses (weaker as it degrades) — keep it optional to avoid over-engineering
+- Optionally scale the absorbed defense by remaining uses (weaker as it degrades) - keep it optional to avoid over-engineering
 - Reuse the existing `uses` field so no new schema is needed
 
 ## Files to Modify
 
-1. `engine/combat.py` — decrement equipped armor uses on hit, break at 0
-2. `engine/equipment.py` — helper to find equipped defense items and remove broken ones
+1. `engine/combat.py` - decrement equipped armor uses on hit, break at 0
+2. `engine/equipment.py` - helper to find equipped defense items and remove broken ones
 
 ## Steps to verify
 
@@ -50,11 +50,13 @@ Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but ar
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Equipped armor degrades durability or uses when absorbing damage.
+- [x] Broken armor provides no defense bonus until repaired.
 
 ## Files
 
-- TODO
+- `engine/combat.py`
+- `tests/test_combat.py`
 
 ## Browser UI and intended live verification
 

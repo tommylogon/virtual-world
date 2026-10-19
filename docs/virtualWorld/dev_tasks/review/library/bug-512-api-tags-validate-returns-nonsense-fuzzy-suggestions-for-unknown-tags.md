@@ -30,7 +30,7 @@ Measured against the live Kraktooth world, GET /api/tags/validate proposes: wand
 
 ## What was done 2026-10-02
 
-`routes/helpers.py` now owns `closest_tag_match(tag, candidates)` — difflib at
+`routes/helpers.py` now owns `closest_tag_match(tag, candidates)` - difflib at
 cutoff **0.8** plus a length guard (`|len(a)-len(b)| <= max(2, len(a)//3)`), which
 keeps plural/singular pairs and short typos while rejecting the reported pairs.
 `validate_tags_on_save` and `routes/tags.py` both use it, so the save path and the
@@ -38,24 +38,29 @@ endpoint agree.
 
 Evidence:
 
-- `python -m pytest tests/test_tags_validate.py -q` — 6 passed.
+- `python -m pytest tests/test_tags_validate.py -q` - 6 passed.
 - The endpoint returns `suggestion: null` for `wanderer`/`fear` and the correct
   singular for `tools`/`mechanisms` (asserted through `create_app().test_client()`).
 
 ## Why
 
-TODO
+difflib.get_close_matches with default 0.6 cutoff generated unrelated fuzzy suggestions (e.g. `wanderer` -> `underwear`, `fear` -> `footwear`), which risked corrupting tag metadata when callers accepted suggestions.
 
 ## How
 
-TODO
+Implemented `closest_tag_match` in `routes/helpers.py` with cutoff 0.8 and a strict length difference guard (`abs(len(a) - len(b)) <= max(2, len(a) // 3)`). Returning None when no confident match exists.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run tag validation unit tests
+   - expected: pytest tests/test_tags_validate.py passes
+   - observed: 6 passed in tests/test_tags_validate.py
+2. Verify fuzzy suggestion behavior on unknown tags
+   - expected: Unrelated tags return suggestion null; inflections like tools -> tool still match
+   - observed: Verified on test client requests
 
 ## Files
 
-- TODO
+- `routes/helpers.py`
+- `routes/tags.py`
+- `tests/test_tags_validate.py`

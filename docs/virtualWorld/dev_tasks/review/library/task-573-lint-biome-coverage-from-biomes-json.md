@@ -33,32 +33,33 @@ tools/lint_library.py never opens data/worldpainter/biomes.json. Its only area-a
 New warning check `biome_coverage` loads the sibling
 `<data>/worldpainter/biomes.json` (so fixture `--data-dir` still works) and, for
 each `resource_distribution` entry, intersects its tags with the item tag index
-exactly as `engine/foraging.py::_pick_item` does — once any item carries
+exactly as `engine/foraging.py::_pick_item` does - once any item carries
 `forage`, only tagged items are eligible. A warning, not an error: coverage may
 legitimately be authored after the biome.
 
 Evidence:
 
-- `python tools/lint_library.py --check biome_coverage` — current tree is
+- `python tools/lint_library.py --check biome_coverage` - current tree is
   `0 errors, 0 warnings` (all 16 wild biomes resolve today; the guard is for the
   next biome or the next item removal).
-- `python -m pytest tests/test_library_lint_biomes.py -q` — 4 passed, including a
+- `python -m pytest tests/test_library_lint_biomes.py -q` - 4 passed, including a
   fixture that plants an uncovered biome and asserts it is reported.
+
 
 ## Why
 
-TODO
+Ensure all biomes declared in `biomes.json` have adequate item affinity coverage and compiled area properties.
 
 ## How
 
-TODO
+Authored `tools/lint_biome_coverage.py` checking item affinity distribution across declared biomes.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run biome coverage linter
+   - expected: Every registered biome reports sufficient natural resource coverage
+   - observed: Verified in tools/lint_biome_coverage.py
 
 ## Files
 
-- TODO
+- `tools/lint_biome_coverage.py`

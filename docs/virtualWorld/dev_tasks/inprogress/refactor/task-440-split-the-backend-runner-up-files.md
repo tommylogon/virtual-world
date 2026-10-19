@@ -14,7 +14,7 @@ priority: medium
 ## What
 
 Extract focused modules from the backend files that outgrew single-file ergonomics.
-**One file per commit, no behaviour change** — extraction only, public imports and APIs
+**One file per commit, no behaviour change** - extraction only, public imports and APIs
 stable, suite green after each.
 
 ## Measured targets (2026-10-16 remeasure)
@@ -33,24 +33,24 @@ original list and now sit above several of the tracked targets.
 | `routes/action_handlers.py` | 1632 | +331 | second pass: split by verb family |
 | `routes/library_ops.py` | 1628 | +544 | second pass |
 | `engine/tick_manager.py` | 1595 | +494 | extract tick phases (vitals / environment / triggers / activities) from the orchestrator |
-| `player.py` | 1450 | **NEW** (root model) | only if a clean concern separates; Player already projects from node props — do not invent a second store |
+| `player.py` | 1450 | **NEW** (root model) | only if a clean concern separates; Player already projects from node props - do not invent a second store |
 | `engine/background_social.py` | 1389 | **NEW** | keep paired with `background_simulation` decisions |
 | `engine/traits.py` | 1247 | +151 | definition catalog vs event dispatch |
 | `engine/movement.py` | 1197 | +99 | traversal rules vs area/way construction |
-| `engine/equipment.py` | 1144 | +390 | was lower priority; now above 1k — inventory/equip rules vs coverage/body |
+| `engine/equipment.py` | 1144 | +390 | was lower priority; now above 1k - inventory/equip rules vs coverage/body |
 | `engine/player_conditions.py` | 969 | +128 | was "tracked not to split"; re-evaluate if it keeps growing |
 | `engine/serialization.py` | 940 | +431 | already imports `serialization_template` + `serialization_legacy`; prefer extending that split over a new cut |
 | `engine/trigger_validator.py` | 930 | +109 | lower priority (also touched by task-393 family) |
-| `engine/matching.py` | 924 | +227 | lower priority — resolve only if it keeps growing |
+| `engine/matching.py` | 924 | +227 | lower priority - resolve only if it keeps growing |
 
 Also carried over from task-314's wave reports: `triggers/testing.py` (205) still
-shares template-context shape with `triggers/execution.py` (629) — de-duplicate
+shares template-context shape with `triggers/execution.py` (629) - de-duplicate
 while splitting if that seam is touched.
 
 **Still not a linecount chase:** a cohesive ~900-line file may stay. New entrants
 are listed because they outgrew the old list, not because every one must be cut
 this wave. Prefer `world_compile.py`, `graph_ops.py`, and the `routes/*_ops.py`
-family first — clearest operation-family seams.
+family first - clearest operation-family seams.
 
 ## How
 
@@ -84,12 +84,12 @@ family first — clearest operation-family seams.
 ## Non-goals
 
 - Behaviour changes, renames of public APIs, or architectural redesign.
-- Chasing a line-count target — a file that is cohesive at 900 lines stays 900 lines.
+- Chasing a line-count target - a file that is cohesive at 900 lines stays 900 lines.
 - The frontend/JS and test splits (task-441).
 
 ## Why
 
-Backend hosts above ~1.5k lines hold multiple operation families in one module, so callers and tests depend on an opaque file — and an agent session that touches one route family pulls the whole host into context. Remeasured 2026-10-16, the original 2026-09-21 list understates it: `world_compile.py` is 2,724 lines and was untracked; `routes/graph_ops.py` is 2,016 (+661); `virtual_world_engine.py` (1,926), `routes/player_ops.py` (1,668), `engine/background_simulation.py` (1,668), `routes/action_handlers.py` (1,632, +331), `routes/library_ops.py` (1,628, +544), `engine/tick_manager.py` (1,595, +494) are all new entrants. Prefer `world_compile.py`, `graph_ops.py` and the `routes/*_ops.py` family first — clearest operation-family seams. A cohesive ~900-line file may stay; this is not a linecount chase.
+Backend hosts above ~1.5k lines hold multiple operation families in one module, so callers and tests depend on an opaque file - and an agent session that touches one route family pulls the whole host into context. Remeasured 2026-10-16, the original 2026-09-21 list understates it: `world_compile.py` is 2,724 lines and was untracked; `routes/graph_ops.py` is 2,016 (+661); `virtual_world_engine.py` (1,926), `routes/player_ops.py` (1,668), `engine/background_simulation.py` (1,668), `routes/action_handlers.py` (1,632, +331), `routes/library_ops.py` (1,628, +544), `engine/tick_manager.py` (1,595, +494) are all new entrants. Prefer `world_compile.py`, `graph_ops.py` and the `routes/*_ops.py` family first - clearest operation-family seams. A cohesive ~900-line file may stay; this is not a linecount chase.
 
 ## Steps to verify
 
@@ -99,14 +99,14 @@ Backend hosts above ~1.5k lines hold multiple operation families in one module, 
    - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.
 2. Run the focused test module(s) that exercise the extracted behaviour (no `-q`).
      - expected: same behaviour passes; any changed `mock.patch` target is recorded.
-     - observed: 2026-10-16 extraction #3 — `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.
-     - observed: 2026-10-16 extraction #4 — `engine/world_compile_stable.py` (43 lines) from `engine/world_compile.py`. Deterministic primitives extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
-     - observed: 2026-10-16 extraction #5 — `engine/world_compile_directions.py` (51 lines) from `engine/world_compile.py`. Direction constants/helpers extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
-     - observed: 2026-10-16 extraction #6 — `engine/world_compile_blocking.py` (55 lines) from `engine/world_compile.py` (committed 4ac63acc). Way-blocking helpers extracted: `BLOCKED_WAY_PERCENT`, `BLOCKERS_BY_TERRAIN`, `DEFAULT_BLOCKER`, `_blocker_for`, `_is_blocked_way`, `_reachable_areas`, `_apply_way_blocking`; re-exported. Combined verification `tests/test_disposition.py tests/test_traits.py tests/test_trigger_system.py tests/test_world_compile.py` 387/387 pass; `import app` clean.
-     - observed: 2026-10-17 extraction #7 — `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 → 2552 (−172).
+     - observed: 2026-10-16 extraction #3 - `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #4 - `engine/world_compile_stable.py` (43 lines) from `engine/world_compile.py`. Deterministic primitives extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #5 - `engine/world_compile_directions.py` (51 lines) from `engine/world_compile.py`. Direction constants/helpers extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #6 - `engine/world_compile_blocking.py` (55 lines) from `engine/world_compile.py` (committed 4ac63acc). Way-blocking helpers extracted: `BLOCKED_WAY_PERCENT`, `BLOCKERS_BY_TERRAIN`, `DEFAULT_BLOCKER`, `_blocker_for`, `_is_blocked_way`, `_reachable_areas`, `_apply_way_blocking`; re-exported. Combined verification `tests/test_disposition.py tests/test_traits.py tests/test_trigger_system.py tests/test_world_compile.py` 387/387 pass; `import app` clean.
+     - observed: 2026-10-17 extraction #7 - `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 → 2552 (−172).
 3. Import the package and the extracted module in a clean process.
     - expected: no cycle / import-time side effect; stable public API still exposed.
-    - observed: 2026-10-17 — `import app` clean after extraction #7; `engine.world_compile_regions` imports cleanly in isolation and re-exports resolve through `world_compile.py` with no cycle.
+    - observed: 2026-10-17 - `import app` clean after extraction #7; `engine.world_compile_regions` imports cleanly in isolation and re-exports resolve through `world_compile.py` with no cycle.
 
 ## Files
 
@@ -117,7 +117,7 @@ Backend hosts above ~1.5k lines hold multiple operation families in one module, 
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this is a one-file-at-a-time Python module extraction with an explicit no-behavior-change contract; no new browser surface is intended.
+Intended UI home: Not applicable - this is a one-file-at-a-time Python module extraction with an explicit no-behavior-change contract; no new browser surface is intended.
 
 Current availability: the task requires smaller host modules while keeping public imports/APIs stable. The extraction sequence is not claimed as complete.
 
@@ -134,3 +134,11 @@ Alternative verification steps:
 This section is not a claim that planned UI exists or works today.
 
 
+
+
+## Current Status Note (2026-10-19)
+- Standing refactor tracking card across backend runner-up modules.
+- Extraction #7 completed in world_compile.py (world_compile_regions.py).
+- Further single-file extractions (e.g. 
+outes/graph_ops.py, 
+outes/player_ops.py) are queued sequentially as isolated refactor passes per the Refactor Discipline.

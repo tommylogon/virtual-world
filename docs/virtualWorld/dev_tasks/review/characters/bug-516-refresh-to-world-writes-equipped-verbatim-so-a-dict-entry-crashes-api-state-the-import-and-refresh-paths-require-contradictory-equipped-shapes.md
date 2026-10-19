@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-01
 **Related:** task-519, task-654, task-659
 
-## Relationship to task-519 — read this first
+## Relationship to task-519 - read this first
 
 **This overlaps task-519 substantially and was filed without checking it.**
 task-519 ("Character starting loadouts from the item library", high, todo)
@@ -57,21 +57,35 @@ Make the library character equipped field have ONE defined shape that both handl
 
 ## Why
 
-TODO
+When importing a character from the library, handle_library_import_character instantiates item nodes and sets player.equipped[slot] = item_id (a string node ID). However, _refresh_character copies the raw library template equipped field verbatim into the runtime Player.equipped dict. If the library template authored equipped as a nested dictionary or template object (e.g. {'item_id': '...', 'name': '...'}), _refresh_character writes that dict directly into player.equipped. Later, /api/state calls _region_exposure_map -> is_exposed(graph, player) -> graph.get_node(outer_id), which assumes outer_id is a hashable string node ID and crashes with TypeError: unhashable type: 'dict'.
 
 ## How
 
-TODO
+1. Standardize library template equipped schema: define whether slots point to library item IDs or item definitions, and document it canonically in data/library/characters/.
+2. In routes/library_ops.py:1029 (_refresh_character), route equipment updates through the same item resolution logic as handle_library_import_character, or exclude equipped from the naive editable_map overwrite so runtime equipment is not clobbered with raw template structures.
+3. In engine/equipment.py and engine/body_parts.py, guard get_node(outer_id): verify isinstance(outer_id, str) and ignore non-string entries safely instead of raising TypeError.
+4. Migrate or validate existing library templates (data/library/characters/Lyrie.json, miki doki.json, standalone_test.json).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Import a library character with equipped items and trigger a refresh (POST /api/library/characters/<id>/refresh).
+   - expected: Refresh preserves valid node ID references in player.equipped without injecting raw dict structures.
+   - observed: Tested via regression tests; refresh honors resolved item IDs.
+2. Request /api/state when player.equipped contains non-string or legacy template values.
+   - expected: /api/state returns HTTP 200 without crashing in _region_exposure_map or is_exposed.
+   - observed: 200 OK returned; non-string entries safely tolerated.
+3. Verify character inventory and equipment inspection in UI.
+   - expected: Character Inspector shows correctly attached equipment nodes without orphaned or duplicate items.
+   - observed: Verified in live character inventory view.
 
 ## Files
 
-- TODO
+- 
+outes/library_ops.py (handle_library_import_character, _refresh_character)
+- engine/equipment.py (is_exposed, _region_exposure_map)
+- engine/body_parts.py
+- 	ests/test_library.py
+- 	ests/test_equipment.py
 
 ## Browser UI and intended live verification
 

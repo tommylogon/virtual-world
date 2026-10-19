@@ -6,9 +6,9 @@ area: gameplay
 priority: medium
 ---
 
-# Task-244: Structured Human Turn Composer — Reply Like an Agent
+# Task-244: Structured Human Turn Composer - Reply Like an Agent
 
-**Status:** In Review — implemented 2026-08-16.
+**Status:** In Review - implemented 2026-08-16.
 **Source:** `dev_tasks/developer ideas.md` (improved human player in turn with parameters like agents get) + clarifying discussion 2026-08-16.
 
 <!-- deps:start -->
@@ -17,24 +17,24 @@ priority: medium
 
 ## Implementation (2026-08-16)
 
-- `static/js/agent/human-turn-composer.js` — new `HumanTurnComposer.request(charName, roomContext)`
+- `static/js/agent/human-turn-composer.js` - new `HumanTurnComposer.request(charName, roomContext)`
   returns a Promise resolving to a normalized structured reply. Builds a modal with a
   form (action + item + target + relation + speech/volume + emote + optional memory) and a
   toggle to a raw-JSON textarea, with a live parse preview. Submits through the existing
   pipeline: `ActionNormalizer.normalizeStructuredAction` + `extractSpeechVolume`,
-  `ResponseParser.extractMemory` — identical contract to an agent reply.
-- `static/js/agent-engine.js` — `step()` no longer silently skips human characters; it now
+  `ResponseParser.extractMemory` - identical contract to an agent reply.
+- `static/js/agent-engine.js` - `step()` no longer silently skips human characters; it now
   `await`s `_humanTurn(charName)`. The run loop pauses on the human's turn. `_humanTurn`
   fetches the character, shows the composer, then executes speech → action → emote → memory
   via the same helpers agents use (`_speakLine`, `ApiClient.action`, `_performEmote`,
   `_storeReactionMemory`), and advances the queue once the human acts (or passes).
-- `templates/index.html` — composer script loaded after `response-parser.js`.
-- `static/js/main.js` — `VW.humanTurnComposer` registered.
+- `templates/index.html` - composer script loaded after `response-parser.js`.
+- `static/js/main.js` - `VW.humanTurnComposer` registered.
 
 ## What
 
 On a human player's turn, prompt the human with a **structured action composer** instead of
-the plain free-text command box — a form (or raw-JSON text area) to fill in the SAME
+the plain free-text command box - a form (or raw-JSON text area) to fill in the SAME
 structured reply schema an LLM agent emits, then parse and execute it through the exact same
 agent pipeline. The human gets the agents' structured power: combine an action with
 `speech`+`volume`+`emote`+`memory` in one turn, with proper validation.
@@ -86,7 +86,7 @@ work to solve later. This task is only the reply interface + parsing.
 - Reuse, don't duplicate: drive everything through the existing
   `ResponseParser` + `ActionNormalizer` so the contract stays identical to agents.
 
-## FIXED (2026-08-16) — control-mode toggle did nothing visible
+## FIXED (2026-08-16) - control-mode toggle did nothing visible
 
 Bug: clicking the mode badge logged "→ NPC-controlled" every click with no visible change.
 
@@ -107,27 +107,16 @@ Fix:
 - `engine/serialization.py`: serialize `autonomy` out/in.
 - `routes/players.py` `api_update_player`: handle `"autonomy" in data`.
 
-Verified: `tools/test_control_mode.cjs` E2E — mode cycles llm → npc → human → llm with
+Verified: `tools/test_control_mode.cjs` E2E - mode cycles llm → npc → human → llm with
 `autonomy` + `simple_npc` persisted through the backend each click; 942 pytest pass.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Control mode toggle allows switching character autonomy between human and automated NPC.
+- [x] Turn parameters persist across scenario saves.
 
 ## Files
 
-- TODO
+- `models/player.py`
+- `static/js/agent/turn-queue.js`

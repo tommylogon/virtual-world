@@ -24,25 +24,21 @@ Only `{game_time}` and a few template parameters exist. Template authors want `{
 
 ## How
 
-- Pure templating done in `_render_template` context building — no engine logic change, just more context keys.
+- Pure templating done in `_render_template` context building - no engine logic change, just more context keys.
 - The `{condition_*}` parameters only make sense once conditions are rich (task-190), so they should gate behind that work.
 - Composes with aliases in labels, so template text stays readable.
 
 ## Files
 
-- engine/trigger_system.py — extend context building (lines 1652-1704) with new template parameters
-- engine/item_actions.py — expose item `uses` and `weight` to the template context
+- engine/trigger_system.py - extend context building (lines 1652-1704) with new template parameters
+- engine/item_actions.py - expose item `uses` and `weight` to the template context
 
-## What
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Trigger editor parameter inputs display contextual placeholder text and descriptive labels.
+- [x] Parameter schemas define validation constraints and human-readable tooltips.
+
+## Files
+
+- `static/js/shared/trigger-editor.js`

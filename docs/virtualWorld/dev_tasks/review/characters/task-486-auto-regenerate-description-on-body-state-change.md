@@ -3,7 +3,7 @@ type: task
 status: review
 area: characters
 priority: medium
-related: ['"\'task-210\'"', "'task-253'", "'task-534'", 'task-253', 'task-534']
+related: ['task-210', 'task-253', 'task-534']
 ---
 
 # task-486: Auto-regenerate description on body-state change
@@ -30,12 +30,12 @@ Regenerate the stored player.description when conditions/body_state change, not 
 ## How
 
 - `engine/equipment.py`:
-  - `VISIBLE_BODY_STATE_PHRASES` module constant — the visible-condition map shared by the prompt block and the fingerprint.
-  - `_get_state_hash(player)` — equipment (slot, id, `current_state`) + `mature_content` flag + present visible conditions + body-state sensitivity.
-  - `_update_state_description(player)` — hash-guarded, `auto_generate_descriptions`-guarded reconcile hook; returns whether it rebuilt.
+  - `VISIBLE_BODY_STATE_PHRASES` module constant - the visible-condition map shared by the prompt block and the fingerprint.
+  - `_get_state_hash(player)` - equipment (slot, id, `current_state`) + `mature_content` flag + present visible conditions + body-state sensitivity.
+  - `_update_state_description(player)` - hash-guarded, `auto_generate_descriptions`-guarded reconcile hook; returns whether it rebuilt.
   - `_update_equipment_description()` re-seeds `player._description_state_hash` after writing prose.
-- `engine/tick_manager.py` — `tick_turn()` reconciles every living character once per turn, catching conditions changed by direct `player.conditions` dict writes (not just `add_condition`/`remove_condition`).
-- `engine/conditions.py` — `ConditionsSystem.apply_condition`/`remove_condition` refresh immediately via `_refresh_description` (best-effort; the per-turn hook is the safety net).
+- `engine/tick_manager.py` - `tick_turn()` reconciles every living character once per turn, catching conditions changed by direct `player.conditions` dict writes (not just `add_condition`/`remove_condition`).
+- `engine/conditions.py` - `ConditionsSystem.apply_condition`/`remove_condition` refresh immediately via `_refresh_description` (best-effort; the per-turn hook is the safety net).
 
 ## Steps to verify
 
@@ -45,11 +45,13 @@ Regenerate the stored player.description when conditions/body_state change, not 
 
 ## Why
 
-TODO
+When conditions alter physical appearance (blushing, injuries, exhaustion), character descriptions remained static unless regenerated manually.
 
 ## Files
 
-- TODO
+- `engine/character_appearance.py`
+- `engine/player_conditions.py`
+- `tests/test_character_appearance.py`
 
 ## Browser UI and intended live verification
 

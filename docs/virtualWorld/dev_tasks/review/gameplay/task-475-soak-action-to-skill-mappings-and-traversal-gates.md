@@ -25,7 +25,7 @@ Give the soak tier real checks on risky actions instead of only forage: hazard t
 
 ## Remaining
 
-- [ ] `engine/npc_behaviors.py` still calls `movement.move_to_area` directly (the simple-NPC tier) — the same verb choice and refusal handling is not applied there.
+- [ ] `engine/npc_behaviors.py` still calls `movement.move_to_area` directly (the simple-NPC tier) - the same verb choice and refusal handling is not applied there.
 - [ ] Actions in `SOAK_ACTIONS` that need a policy hook before they can roll: calm/ride (task-476), treat/diagnose/identify_plant (task-478), read_mood and investigate (task-468).
 - [ ] Swim/force have no verb yet: `move_to_area` understands crawl/climb/jump only, so water is modelled as an Athletics hazard on the area rather than a swim verb.
 
@@ -35,12 +35,18 @@ Give the soak tier real checks on risky actions instead of only forage: hazard t
 
 ## Why
 
-TODO
+During long-horizon soak simulations, characters previously bypassed skill checks for risky maneuvers or repeatedly slammed into obstacles (e.g. attempting to walk through a cliff face), causing infinite loops, unrealistic pathing, or starvation. Mapping risky traversal actions to relevant D&D skills (Survival, Athletics, Acrobatics, Stealth) with refusal routing (avoiding failed hops for 30 minutes) and take-10 for routine paths makes soak simulation realistic, safe from deadlock, and mechanically aligned with active play.
 
 ## How
 
-TODO
+1. In engine/traversal.py, define SOAK_ACTIONS, ROUTINE_ACTIONS, and HAZARD_SKILLS (e.g. Survival for wild country, Athletics for height/water, Acrobatics for balance/squeeze).
+2. Implement traversal.hop(): take 10 on routine terrain; roll skill check on hazard terrain with DC HAZARD_DC.
+3. On failure, apply minor conditions (wet, injured) and call note_refusal(way_id) so characters detour around failed passages for 30 minutes rather than looping.
+4. Wire traversal.hop() into BackgroundSimulation._travel_toward / _travel_to_area and timeskip._move.
 
 ## Files
 
-- TODO
+- engine/traversal.py
+- engine/background_simulation.py (_travel_toward, _travel_to_area, _hop)
+- engine/timeskip.py (_move)
+- 	ests/test_traversal.py

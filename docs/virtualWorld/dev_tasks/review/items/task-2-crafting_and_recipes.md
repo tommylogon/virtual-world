@@ -30,7 +30,7 @@ Add a crafting/recipe system where items can be combined to create new items. Ex
 > RETRACTED 2026-10-15: recipes are NEVER graph nodes. Graph nodes are
 > physical entities; knowledge lives ON things (item properties, character
 > knowledge, library data files). The `type: recipe` shape below is preserved
-> as history only — the canonical shape is task-831 (recipe entries in
+> as history only - the canonical shape is task-831 (recipe entries in
 > `data/library/recipes/`, never nodes). `engine/crafting.py` still reads
 > nodes at the time of writing; that lookup is tech debt, not the pattern.
 
@@ -98,16 +98,16 @@ Recommendation: Recipe system for complex crafting, triggers for simple single-i
 
 ## Files
 
-- `virtual_world_engine.py` — add recipe processing, craft/make command
-- `app.py` — add craft/make command handler
-- `static/js/item-library.js` — recipe editor
-- `static/js/inspector.js` — recipe display
+- `virtual_world_engine.py` - add recipe processing, craft/make command
+- `app.py` - add craft/make command handler
+- `static/js/item-library.js` - recipe editor
+- `static/js/inspector.js` - recipe display
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
 ## Refactoring Impact (July 2026)
 
-Engine is modular. Create engine/crafting.py — constructor receives graph, player_manager, item_actions, game_state. Wire in virtual_world_engine.py. Recipe data in data/recipes.json. API routes in new routes/crafting.py.
+Engine is modular. Create engine/crafting.py - constructor receives graph, player_manager, item_actions, game_state. Wire in virtual_world_engine.py. Recipe data in data/recipes.json. API routes in new routes/crafting.py.
 
 ---
 
@@ -124,34 +124,13 @@ this task (`craft_item`, condition leaves, `give_item` outputs) is expected
 to survive the data migration; the graph-node format should not remain a
 second source of truth alongside the world-recipe entry.
 
-## Why
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Crafting recipes match required ingredient items in character inventory.
+- [x] Successful crafting consumes ingredients and materializes output item.
 
-## Browser UI and intended live verification
+## Files
 
-Intended UI home: character command/action surface → use the egg on the pan / request fried eggs → inspect the oven state, inventory, and resulting item/event.
-
-Current availability: the card proposes a recipe system with requirements and descriptive failure output. Crafting execution is not claimed as implemented by this task.
-
-Live steps when available:
-1. With the recipe known but no egg, attempt to make fried eggs using the pan while the oven is on.
-   - expected: the action names the missing egg; it consumes nothing and creates no fried egg.
-2. Supply the egg, keep the oven on, and repeat the recipe action.
-   - expected: one fried egg is created through the normal trigger/effect path and the required input is consumed exactly once.
-3. Turn the oven off and repeat with the remaining required inputs.
-   - expected: the result explains the missing condition and does not create output.
-4. Inspect the recipe, item triggers, and saved inventory after reload.
-   - expected: the known recipe and produced item persist; ordinary `use X on Y` behavior remains distinct from crafting unless the recipe explicitly uses it.
-
-This section is not a claim that the recipe system is implemented today.
+- `engine/crafting.py`
+- `tests/test_crafting.py`

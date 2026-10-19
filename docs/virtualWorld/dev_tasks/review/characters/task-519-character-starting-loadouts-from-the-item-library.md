@@ -15,7 +15,7 @@ related: ["'task-476'", "'task-480'", 'task-476', 'task-480']
 **Related:** [[task-476-npc-skill-profiles-from-traits-and-roles]], [[task-480-skill-growth-abilities-as-mutable-stats-and-proficiency]]
 <!-- deps:end -->
 
-## Later finding — implement with bug-516 (2026-10-01)
+## Later finding - implement with bug-516 (2026-10-01)
 
 The `equipped` half of this turned out to be worse than lossy: the **import** and
 **refresh** code paths require *contradictory* shapes, so no template can be
@@ -66,10 +66,10 @@ import (lines 540-579):
 - A **string** inventory entry (a library id) copies only `description,
   actions, uses, weight, tags, current_state, library_id, image` (lines
   551-560). It **drops `equip_slots`, `damage`, `damage_type`, `defense`,
-  `insulation`, `light_level`, `triggers` and `contents`** — a library weapon or
+  `insulation`, `light_level`, `triggers` and `contents`** - a library weapon or
   armor loses its stats and triggers.
 - A **dict** entry uses inline `properties` as-is (a flattened copy,
-  `library_id` optional) — full props are possible but it is not a template
+  `library_id` optional) - full props are possible but it is not a template
   link.
 - `equipped` is assigned from `cdata` (lines 513-515) *before* inventory
   materializes (line 540), so it cannot refer to a just-loaded library item.
@@ -119,15 +119,22 @@ auto-adds new items to the library.
 
 ## Why
 
-TODO
+Library characters drop critical item stats (equip_slots, damage, damage_type, defense, insulation, light_level, triggers, contents) when materializing string-referenced library items in inventory. Furthermore, equipped assignments execute before inventory items exist, causing starting equipment to either fail to equip or be lost entirely. Enabling lossless materialization and slot resolution allows NPCs (such as the Kraktooth goblins) to spawn with complete authored loadouts without duplicate nodes or broken equipment state.
 
 ## How
 
-TODO
+1. In routes/library_ops.py, rewrite the character inventory import loop to delegate to materialize_library_item / _spawn_library_item_node so all item properties, equip slots, and child contents are preserved.
+2. Order import operations so inventory items materialize first, mapping library template IDs to created node IDs.
+3. Resolve equipped references against the newly created inventory item node IDs and assign player.equipped[slot] = item_node.id.
+4. Author starting loadouts for the six Kraktooth goblins referencing weapon/armor templates from task-513.
 
 ## Files
 
-- TODO
+- 
+outes/library_ops.py (handle_library_import_character, materialize_library_item)
+- engine/equipment.py
+- data/library/characters/
+- 	ests/test_library.py
 
 ## Browser UI and intended live verification
 

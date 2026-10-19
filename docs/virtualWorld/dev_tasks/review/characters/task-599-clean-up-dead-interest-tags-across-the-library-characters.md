@@ -16,15 +16,16 @@ tools/lint_library.py reports 23 dead_interests errors today (for example charac
 
 ## Acceptance
 
-- TODO
+- [x] Character library interests match registered item tags or names.
+- [x] `python tools/lint_library.py --check dead_interests` passes with zero errors.
 
 ## Why
 
-TODO
+Authored character interest tags drifted from item catalog tags, causing auto-dressing and preference matching to silently fail.
 
 ## How
 
-TODO
+Audited character library files against item catalogs using `tools/lint_library.py --check dead_interests` and reconciled unmatched tags.
 
 ## Steps to verify
 
@@ -44,11 +45,12 @@ TODO
 
 ## Files
 
-- TODO
+- `data/library/characters/*.json`
+- `tools/lint_library.py`
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card reconciles authored character
+Intended UI home: Not applicable - this card reconciles authored character
 library data against item tags; it does not add a player-facing behavior or
 authoring control.
 

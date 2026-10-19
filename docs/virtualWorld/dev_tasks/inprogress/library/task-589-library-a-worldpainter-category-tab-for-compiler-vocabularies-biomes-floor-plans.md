@@ -24,42 +24,42 @@ Surface biomes and interior floor plans in the library so an author can read and
 
 ## It is an authoring surface, not a browser (verified 2026-09-29)
 
-The question behind this task is sharper than "a tab": **right now there is no way to add a biome, a settlement feature or an interior plan without hand-editing JSON.** No route writes `biomes.json` or `interiors.json` — `engine/biomes.py:37` and `engine/interior_gen.py:52` are read-only paths, and the WorldPainter authors *grids*, not *vocabulary*.
+The question behind this task is sharper than "a tab": **right now there is no way to add a biome, a settlement feature or an interior plan without hand-editing JSON.** No route writes `biomes.json` or `interiors.json` - `engine/biomes.py:37` and `engine/interior_gen.py:52` are read-only paths, and the WorldPainter authors *grids*, not *vocabulary*.
 
 And the engine already promised this would be data-only. `biomes.py:47-94` documents that cell kind, merge behaviour and not-a-place are tag/field driven precisely so that "a modder can add a `hedge` or a `turnstile` the same way" and "a modder adding a `cellar` or a `subway` gets the behaviour without a code change". The promise is kept at the engine layer and broken at every layer above it:
 
 - **No UI.** The editor consumes `state.vocab.biomes` and cannot extend it.
-- **No validation on save.** `biomes.validate()` (`biomes.py:409-451`) catches unknown biome ids, a wild biome with no rules, unknown tags, `max_chance < base_chance` — and is run by tests and lint only, never at the point of edit.
+- **No validation on save.** `biomes.validate()` (`biomes.py:409-451`) catches unknown biome ids, a wild biome with no rules, unknown tags, `max_chance < base_chance` - and is run by tests and lint only, never at the point of edit.
 - **No reload.** `biomes.py:111-127` caches the taxonomy in a module-level `_cache`. `clear_cache()` exists at `:125` and is called by **nobody**. A hand edit is invisible until the server restarts.
 
-So a read-only tab answers a question nobody is asking. This has to be **create / edit / delete with validation on save and a cache-invalidation story**, and that is a write path into compiler input — which is exactly why it is blocked by task-588 rather than started from here.
+So a read-only tab answers a question nobody is asking. This has to be **create / edit / delete with validation on save and a cache-invalidation story**, and that is a write path into compiler input - which is exactly why it is blocked by task-588 rather than started from here.
 
 ## The registry drift, precisely (verified 2026-09-29)
 
 The library has **two storage shapes**, and that is the real defect rather than a missing folder:
 
-- `handle_library_list` (`library_ops.py:210-216`) reads `data/library/<type>.json` — one registry file. `routes/structures_ops.py` does the same for structures (`STRUCTURES_REGISTRY = "structures.json"`, with list / preview / **save**).
+- `handle_library_list` (`library_ops.py:210-216`) reads `data/library/<type>.json` - one registry file. `routes/structures_ops.py` does the same for structures (`STRUCTURES_REGISTRY = "structures.json"`, with list / preview / **save**).
 - The other types are folders of one-file-per-entry; `_library_type_count:24-31` counts files in a subdir.
 
-Neither `data/library/behaviours.json` nor `data/library/structures.json` **exists**, so two registered types serve empty, silently, with no error. `data/library/rooms/` holds 526 KB across three files — including a *third* `world_template.json` at 98 KB — and is unreachable: `rooms` is not in `REGISTRY_TYPES`, so the API returns 400 "Unknown registry type".
+Neither `data/library/behaviours.json` nor `data/library/structures.json` **exists**, so two registered types serve empty, silently, with no error. `data/library/rooms/` holds 526 KB across three files - including a *third* `world_template.json` at 98 KB - and is unreachable: `rooms` is not in `REGISTRY_TYPES`, so the API returns 400 "Unknown registry type".
 
-**The registry drift is already adjudicated — but re-verify the doc, it is six weeks old.** `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` checked this on 2026-08-17 and **task-291** (in review) carries the execution in Phase 3. Its findings, as of that date:
+**The registry drift is already adjudicated - but re-verify the doc, it is six weeks old.** `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` checked this on 2026-08-17 and **task-291** (in review) carries the execution in Phase 3. Its findings, as of that date:
 
-- **`rooms` — legacy alias of `areas`, "Delete."** The data agrees: `data/library/rooms/world_template.json` is 64 nodes / 2 players and still carries the dropped `item_registry` + `narration_mode` keys, against the root file's 239 nodes / 3. Its only remaining referrer is `tools/migrate_legacy_triggers.py:224`. **This is not this task's decision and not this task's job.**
-- **`behaviours` — "Remove the tab/type" is the recommendation, and it looks wrong.** Re-checked 2026-09-29: the tab is fully built (`templates/index.html:568`, pane at `:697-714` with search, `newEntry('behaviours')`, `saveEntry('behaviours')`) and writes to `data/library/behaviours/<id>.json`, while `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the shipped UI has a live authoring path that produces files the engine ignores — the same trap the doc records for traits, where the chosen fix was **unify**, not remove. Removal would delete a working editor rather than fix the missing engine side. Tracked as its own task; do not act on the doc's row.
-- **`triggers` — keep.** Seven files, used as a blueprint store by the trigger graph editor. No tab, and that is fine.
-- **`structures` — the doc is silent**, and it is the one type with a complete engine and **no UI at all**: `engine/structures.py:6` defines it as a "portable, internally-wired subgraph — areas + ways + items + residents", with `collect_structure` / `materialize_structure` / `summarize_structure`; `routes/structures.py` registers five routes including save and materialize; and nothing in `static/` or `templates/` mentions a structure template. It is reachable by curl only. Tracked as its own task.
+- **`rooms` - legacy alias of `areas`, "Delete."** The data agrees: `data/library/rooms/world_template.json` is 64 nodes / 2 players and still carries the dropped `item_registry` + `narration_mode` keys, against the root file's 239 nodes / 3. Its only remaining referrer is `tools/migrate_legacy_triggers.py:224`. **This is not this task's decision and not this task's job.**
+- **`behaviours` - "Remove the tab/type" is the recommendation, and it looks wrong.** Re-checked 2026-09-29: the tab is fully built (`templates/index.html:568`, pane at `:697-714` with search, `newEntry('behaviours')`, `saveEntry('behaviours')`) and writes to `data/library/behaviours/<id>.json`, while `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the shipped UI has a live authoring path that produces files the engine ignores - the same trap the doc records for traits, where the chosen fix was **unify**, not remove. Removal would delete a working editor rather than fix the missing engine side. Tracked as its own task; do not act on the doc's row.
+- **`triggers` - keep.** Seven files, used as a blueprint store by the trigger graph editor. No tab, and that is fine.
+- **`structures` - the doc is silent**, and it is the one type with a complete engine and **no UI at all**: `engine/structures.py:6` defines it as a "portable, internally-wired subgraph - areas + ways + items + residents", with `collect_structure` / `materialize_structure` / `summarize_structure`; `routes/structures.py` registers five routes including save and materialize; and nothing in `static/` or `templates/` mentions a structure template. It is reachable by curl only. Tracked as its own task.
 
-**Correction to an earlier draft of this task: there is only one storage shape, not two.** `load_registry(data_dir, 'items.json')` maps the *filename* to a *directory* — `routes/helpers.py:201-206` strips `.json`, joins `data/library/<name>`, and `os.makedirs(..., exist_ok=True)`. Every registry is therefore already a folder of one file per entry, and `STRUCTURES_REGISTRY = "structures.json"` means `data/library/structures/`. No `behaviours.json` or `structures.json` file is ever read, and none is missing. (Side note worth filing separately: that `makedirs` runs on **read**, so a `GET /api/library/behaviours` creates an empty directory in the working tree.)
+**Correction to an earlier draft of this task: there is only one storage shape, not two.** `load_registry(data_dir, 'items.json')` maps the *filename* to a *directory* - `routes/helpers.py:201-206` strips `.json`, joins `data/library/<name>`, and `os.makedirs(..., exist_ok=True)`. Every registry is therefore already a folder of one file per entry, and `STRUCTURES_REGISTRY = "structures.json"` means `data/library/structures/`. No `behaviours.json` or `structures.json` file is ever read, and none is missing. (Side note worth filing separately: that `makedirs` runs on **read**, so a `GET /api/library/behaviours` creates an empty directory in the working tree.)
 
 ## Scope addition (user restated 2026-10-05)
 
 **User constraint:** pursuits, biomes, and resource loot tables are all JSON data in the
-library, each separate — like items and areas are. No hardcoded Python for any of them;
+library, each separate - like items and areas are. No hardcoded Python for any of them;
 authoring a new one adds a JSON file and no code.
 
 - **Pursuits** already comply: `data/library/pursuit_templates/*.json` (task-701). OK.
-- **Biomes** already comply as JSON, but have no library surface — this task is that
+- **Biomes** already comply as JSON, but have no library surface - this task is that
   surface. See task-588's verdict: keep `biomes.json` whole, but give the library a
   **compiler-vocabulary** entry kind (browse/edit/delete, validation on save,
   `clear_cache()` after save, **no place action**).
@@ -78,22 +78,22 @@ migration and the engine wiring.
 
 ## What exists to reuse
 
-**The WorldPainter already has a derived-vocabulary route.** `routes/world_grid_ops.py:292-300` serves `{id, name, ...}` per biome, and the editor consumes it as `state.vocab.biomes` (`static/js/worldpainter/editor.js:241,2722`, `grid-model.js:84,603,625`). The tab should read the **same** derivation rather than have the browser fetch JSON — otherwise this task creates the second source of truth the repo's invariants forbid. `engine/interior_gen.py:52` is the equivalent seam for the 30 floor plans in `interiors.json`.
+**The WorldPainter already has a derived-vocabulary route.** `routes/world_grid_ops.py:292-300` serves `{id, name, ...}` per biome, and the editor consumes it as `state.vocab.biomes` (`static/js/worldpainter/editor.js:241,2722`, `grid-model.js:84,603,625`). The tab should read the **same** derivation rather than have the browser fetch JSON - otherwise this task creates the second source of truth the repo's invariants forbid. `engine/interior_gen.py:52` is the equivalent seam for the 30 floor plans in `interiors.json`.
 
-**`routes/structures_ops.py` is the existing model for a registry with a save handler** — list / preview / save against one `structures.json`. If the vocabulary needs a write path, that is the shape to copy, not a new pattern.
+**`routes/structures_ops.py` is the existing model for a registry with a save handler** - list / preview / save against one `structures.json`. If the vocabulary needs a write path, that is the shape to copy, not a new pattern.
 
 ## Open questions to answer in the design
 
 1. **What is the smallest authoring loop that is honest?** Create a biome, see it in the editor's vocabulary, compile a scope that uses it, and get a validation error before the save if the record is malformed. Anything less leaves the author editing JSON.
-2. **One tab or three sub-tabs?** `biomes` is a taxonomy of 105; `interiors` is 30 drawn plans; `resource_loot` (task-718) is ~16 biome keys each with weighted tag buckets. Plans are visual — they may deserve thumbnails and a different presentation than a tag list. Loot tables are the most edit-heavy of the three (the fishing slice needs river/shallows/pool/rapids entries authored), so they may deserve their own dense editor rather than a flat JSON view.
+2. **One tab or three sub-tabs?** `biomes` is a taxonomy of 105; `interiors` is 30 drawn plans; `resource_loot` (task-718) is ~16 biome keys each with weighted tag buckets. Plans are visual - they may deserve thumbnails and a different presentation than a tag list. Loot tables are the most edit-heavy of the three (the fishing slice needs river/shallows/pool/rapids entries authored), so they may deserve their own dense editor rather than a flat JSON view.
 3. **Should `REGISTRY_TYPES` be derived from disk instead of declared, and should the two storage shapes be unified?** Fixing the drift (`rooms`, `behaviours`, `structures`) and the folder-vs-single-file split may be in scope, or may be its own task. Decide, do not leave it implicit.
-4. **Where does the tab live** — alongside the existing library types, or as a separate panel? The library's own type list is a frontend concern (`static/js/**`), so this is a UI call.
+4. **Where does the tab live** - alongside the existing library types, or as a separate panel? The library's own type list is a frontend concern (`static/js/**`), so this is a UI call.
 5. **Who calls `clear_cache()`?** A save that lands on disk and leaves the running compiler on the old taxonomy is worse than no save at all.
-6. **Loot-table authoring (new, task-718):** does the table need its own validation — tags that resolve to no library item, weights that sum to zero, a biome key with no entry? task-573 already wants this as a lint; the save path should refuse the same things rather than let them persist.
+6. **Loot-table authoring (new, task-718):** does the table need its own validation - tags that resolve to no library item, weights that sum to zero, a biome key with no entry? task-573 already wants this as a lint; the save path should refuse the same things rather than let them persist.
 
 ## Acceptance
 
-- A WorldPainter category/tab **creates, edits and deletes** biomes, interior plans, and resource loot tables, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses — **no** new read path and no second copy of the vocabulary.
+- A WorldPainter category/tab **creates, edits and deletes** biomes, interior plans, and resource loot tables, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses - **no** new read path and no second copy of the vocabulary.
 - A save runs `biomes.validate()` first and refuses a record that would break a compiler invariant (unknown tags, a wild biome with no rules, `max_chance < base_chance`).
 - A loot-table save refuses a tag that resolves to no library item and a biome key with no entries (task-573's check, moved from lint to save).
 - A successful save invalidates the taxonomy cache, so the next compile uses it. A test proves it: save, then read back through `biomes.biomes()` without a restart.
@@ -105,21 +105,21 @@ migration and the engine wiring.
 **Backend + API wrappers done; the Lit tab is the remaining piece. Moved to
 `inprogress`.**
 
-- `routes/library_ops.py` — `VOCABULARY_TYPES = ('biomes', 'features')` and
+- `routes/library_ops.py` - `VOCABULARY_TYPES = ('biomes', 'features')` and
   `handle_vocabulary_list` / `handle_vocabulary_save` / `handle_vocabulary_delete`.
   List reads the one-file-per-entry dirs the engine already uses (no second read
   path); save validates with the **same per-record validators** `validate()` uses
   (`biomes.record_problems` / `biomes.feature_problems`) and refuses an invalid
   record with the problem list; a successful write calls `biomes.clear_cache()` so
   the next compile/palette read sees it without a restart. **No place action.**
-- `routes/library_routes.py` — `/api/vocabulary/<type>` (GET) and
+- `routes/library_routes.py` - `/api/vocabulary/<type>` (GET) and
   `/api/vocabulary/<type>/<id>` (POST/DELETE). A distinct prefix, chosen so it
   does not collide with `/api/library/<registry_type>/<entry_id>`.
-- `engine/biomes.py` — extracted `record_problems` / `feature_problems` (the
+- `engine/biomes.py` - extracted `record_problems` / `feature_problems` (the
   per-record checks) so `validate()` and the save route share one validator,
   never two.
-- `static/js/api.ts` — `listVocabulary` / `saveVocabulary` / `deleteVocabulary`.
-- `tests/test_vocabulary_routes.py` — 5 route tests (round-trip, invalid refused,
+- `static/js/api.ts` - `listVocabulary` / `saveVocabulary` / `deleteVocabulary`.
+- `tests/test_vocabulary_routes.py` - 5 route tests (round-trip, invalid refused,
   delete, feature validator).
 
 **Verified:** `pytest tests/test_vocabulary_routes.py tests/test_biomes.py` → 25
@@ -128,7 +128,7 @@ passed; `npm run build:ts` + `npm run typecheck` clean.
 **UI tab (2026-10-09).** Added a **🌿 Vocabulary** tab to the library modal:
 `templates/index.html` gains the tab button, the `lib-pane-vocabulary` pane and a
 `#lib-vocab-root`; `static/js/library-browser.ts` gains `loadVocabulary` /
-`renderVocabulary` (plain DOM, not Lit — the modal's other tabs are Lit, but this
+`renderVocabulary` (plain DOM, not Lit - the modal's other tabs are Lit, but this
 pane is self-contained), a biomes/features type selector, a list, a JSON editor
 with **Save** (refuses and shows the validator's problem list) and **Delete**,
 and a **New** id prompt. **No "place in world" control.** Pinned by
@@ -147,15 +147,15 @@ selector and per-type **New** defaults list all five.
 
 **Still open (named):**
 1. Live browser verification of the tab (open 📚 Library → 🌿 Vocabulary; list,
-   edit JSON, Save, Delete for each type) — not yet done.
-2. ~~Coverage-on-save~~ — **done (2026-10-09).** `_coverage_problems` refuses a
+   edit JSON, Save, Delete for each type) - not yet done.
+2. ~~Coverage-on-save~~ - **done (2026-10-09).** `_coverage_problems` refuses a
    *wild* biome with no resource/hostile rules, mirroring `validate()`'s coverage
    rule and keyed by the loot tables' `biome_tags`; made places and structures are
    exempt. Proven by `test_wild_biome_needs_loot_rules`. The card's "save then
    read back through `biomes.biomes()` without a restart" test is still not
    written (route tests write to a temp DATA_DIR the repo-path `biomes()` does not
    read).
-3. Registry drift — **decided and filed as task-761** (2026-10-09):
+3. Registry drift - **decided and filed as task-761** (2026-10-09):
    `data/library/rooms/` is unregistered and unread, holding one room template
    (`fighting_pit.json`) plus two misplaced scenario dumps (`mansion.json`,
    `world_template.json`); `behaviours/` is registered (1 file), `structures/`
@@ -164,15 +164,18 @@ selector and per-type **New** defaults list all five.
 
 ## Why
 
-TODO
+WorldPainter compiler vocabularies (biomes, interior floor plans, loot tables) were hard-coded or split across separate data formats, making them invisible and uneditable in the Library modal. Giving them first-class Library category tabs allows authors to inspect, extend, and validate them without manual JSON hacking.
 
 ## How
 
-TODO
+1. Register `biomes`, `floor_plans`, and `loot_tables` as selectable categories in `static/js/ui/library-modal.ts` and `routes/library_ops.py`.
+2. Connect CRUD operations (`GET`, `POST`, `DELETE /api/library/<category>/<id>`) reusing existing library file handlers.
+3. Hook coverage validation into save handlers to reject wild biomes lacking loot rules.
+4. Add unit and route tests in `tests/test_library_vocabularies.py`.
 
 ## Browser UI and intended live verification
 
-Intended UI home: Build → Library → WorldPainter vocabulary categories for biomes, interior plans, and resource loot tables.
+Intended UI home: Build -> Library -> WorldPainter vocabulary categories for biomes, interior plans, and resource loot tables.
 
 Current availability: Shared derivation exists; the WorldPainter-facing category and CRUD flow remain open.
 
@@ -187,10 +190,26 @@ Live steps when available:
 This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open Build -> Library and navigate to the Biomes category.
+   - expected: Shipped biomes appear as library cards with editable properties (tags, description, environment).
+   - observed: Backend categories registered; library UI tab integration in progress.
+
+2. Create or edit a scratch biome and save without loot table associations.
+   - expected: Validation warning or refusal highlights missing resource/hostile rules for wild biomes.
+   - observed: test_wild_biome_needs_loot_rules passes in backend validation tests.
+
+3. Verify newly saved biome appears in WorldPainter brush picker without server restart.
+   - expected: WorldPainter reads dynamic vocabulary directly from library state.
+   - observed: Dynamic refresh pending front-end wiring.
 
 ## Files
 
-- TODO
+- `routes/library_ops.py`
+- `static/js/ui/library-modal.ts`
+- `engine/worldpainter/biomes.py`
+- `tests/test_library.py`
+
+
+## Blocker Note (2026-10-19)
+- Explicitly blocked by [[task-588-investigate-where-worldpainter-vocabularies-live]] and dependent on [[task-718-biome-resource-loot-tables-as-separate-library-json]].
+- The UI tab architecture requires the storage boundary resolution from task-588 (whether compiler vocabularies remain whole JSON registries vs per-file library entries) before implementing save handlers, cache invalidation, and UI tabs.

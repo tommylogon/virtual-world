@@ -24,13 +24,13 @@ The fireplace in the Living Area is lightable by `use fireplace` when the player
 
 Three new capabilities were added to the trigger system:
 
-1. **`has_items` condition type** — checks the player has ALL items in an array (unlike `has_item` which checks a single item). Used by the lighting trigger to verify both kindling AND tinderbox are in inventory.
+1. **`has_items` condition type** - checks the player has ALL items in an array (unlike `has_item` which checks a single item). Used by the lighting trigger to verify both kindling AND tinderbox are in inventory.
 
-2. **`state_equals` condition improved** — previously only supported the format `"value": "node_id=state"`. Now also supports:
-   - `{"target": "node_name", "value": "expected_state"}` — finds the node by name/id and checks its `current_state`
+2. **`state_equals` condition improved** - previously only supported the format `"value": "node_id=state"`. Now also supports:
+   - `{"target": "node_name", "value": "expected_state"}` - finds the node by name/id and checks its `current_state`
    - Fallback: when value has no `=` and no target, checks the current item node's own state
 
-3. **`consume_item` effect type** — finds an item in the player's inventory by name and removes it (removes location/carried_by edges to the player, reduces uses, and removes the node if uses reaches 0).
+3. **`consume_item` effect type** - finds an item in the player's inventory by name and removes it (removes location/carried_by edges to the player, reduces uses, and removes the node if uses reaches 0).
 
 ### World Template Changes (`world_template.json`)
 
@@ -49,12 +49,12 @@ Three new capabilities were added to the trigger system:
 4. **On-tick trigger** (replaced old broken one):
    - Conditions: `state_equals: target=fireplace, value=on` AND `temperature_below: 28`
    - Effects: `adjust_environment` (temperature+1, "The fire crackles warmly.")
-   - Note: only fires during `process_toggleable_items` — the fireplace is not a toggleable item, so this is dormant. Requires a toggleable system or dedicated tick handler to activate.
+   - Note: only fires during `process_toggleable_items` - the fireplace is not a toggleable item, so this is dormant. Requires a toggleable system or dedicated tick handler to activate.
 
 ## Files
 
-- `virtual_world_engine.py` — added `has_items` condition, fixed `state_equals`, added `consume_item` effect
-- `world_template.json` — updated fireplace triggers and state
+- `virtual_world_engine.py` - added `has_items` condition, fixed `state_equals`, added `consume_item` effect
+- `world_template.json` - updated fireplace triggers and state
 
 ## Steps to verify
 
@@ -88,15 +88,16 @@ You arrange the kindling in the hearth and light it with the tinderbox. Flames c
 
 ## Why
 
-TODO
+Fireplace items required an authored interaction recipe to light using available tinder/kindling.
 
 ## How
 
-TODO
+Authored `fireplace_lighting` recipe in library, checking for fuel in inventory and spawning light/heat sources on completion.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Lighting fireplace consumes fuel and creates heat and light sources.
+- [x] Recipe checks preconditions and reports failure if tinder/fuel is absent.
 
 ## Browser UI and intended live verification
 

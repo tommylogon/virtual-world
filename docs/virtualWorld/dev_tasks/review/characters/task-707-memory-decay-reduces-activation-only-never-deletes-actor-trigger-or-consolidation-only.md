@@ -28,7 +28,7 @@ Decay fades a memory's activation toward zero. Removal requires an actor, an exp
   removed count so `tick_manager`'s existing consumption is unchanged, and that
   count is now always 0 from the decay path.
 - A memory driven to `activation <= ACTIVATION_FLOOR` stays in the roster and
-  stays findable. It is simply not surfaced — a later contextual match
+  stays findable. It is simply not surfaced - a later contextual match
   (keyword, semantic, tag) can still raise it.
 - Recall cost is unchanged: `MAX_RECALL = 10` (memory-context.ts:341) caps what
   reaches a prompt regardless of stored count, so storing more does not grow the
@@ -50,7 +50,7 @@ Decay fades a memory's activation toward zero. Removal requires an actor, an exp
   updated to assert a configured cap is ignored.
 - **Growth measured** (kraktooth_goblin_camp, isolated in-memory run): a 30-min
   timeskip took stored memories **185 → 348 (+163)**, still with recall capped at
-  `MAX_RECALL = 10` — so prompt context did **not** grow. The "measure before any
+  `MAX_RECALL = 10` - so prompt context did **not** grow. The "measure before any
   cap" criterion is therefore satisfied; no cap is being set.
 - UI text corrected (`mind-view.ts`): the panel no longer says memories "below
   the floor are forgotten".
@@ -63,7 +63,7 @@ The original argument here was context budget, and it is the weaker of the two.
 Both are recorded.
 
 **Context budget does not justify it.** Recall is **already** capped
-independently of storage — `MAX_RECALL = 10` (memory-context.ts:341) applied
+independently of storage - `MAX_RECALL = 10` (memory-context.ts:341) applied
 after scoring, so only ten memories reach a prompt no matter how many are
 stored. Deletion buys storage, not context.
 
@@ -78,7 +78,7 @@ memory-view.ts:87        displayed in the inspector
 mind-view.ts:69          displayed in the inspector
 ```
 
-**Nothing reads it to decide anything** — not retrieval, not scoring, not
+**Nothing reads it to decide anything** - not retrieval, not scoring, not
 selection. task-687's docstring says memories "fade toward irrelevance"; they do
 not. They decay a number that is displayed and then tested for deletion at line
 241.
@@ -86,10 +86,10 @@ not. They decay a number that is displayed and then tested for deletion at line
 Meanwhile the **retrieval layer already implements the behaviour we want.**
 Recall is keyword match + semantic vector + recency, with no strength threshold
 anywhere in the pipeline. A memory's chance of returning depends entirely on
-whether the moment resembles it — which is exactly the designed case ("walk into
+whether the moment resembles it - which is exactly the designed case ("walk into
 the kitchen and it comes back whole"). Decay does not participate in that. So the
 system forgets the way a person forgets *by default*, and deletion is the single
-exception that breaks it: for a memory that scored low, nothing comes back —
+exception that breaks it: for a memory that scored low, nothing comes back -
 not because the character forgot, but because it is no longer there to be reminded.
 
 ## Invariant this task must not break later
@@ -126,7 +126,7 @@ if memory["activation"] <= ACTIVATION_FLOOR and _removable(memory):
 `manual`/`preconceived`, under importance 6, and unreinforced. So a plain,
 unrepeated, low-importance memory is currently deleted permanently, index
 entry included. task-687's acceptance ("the plain one is removed first") asserts
-this behaviour and **must be rewritten**, not merely relaxed — see below.
+this behaviour and **must be rewritten**, not merely relaxed - see below.
 
 ## The gap in the rule, stated rather than hidden
 
@@ -134,7 +134,7 @@ Two deletion paths are *not* decay and must stay, or an actor can be erased by
 the back door:
 
 - **Reflection consolidation** (task-688) writes "memories folded; originals
-  removed". Deliberate, opt-in, and the summary survives — a different thing from
+  removed". Deliberate, opt-in, and the summary survives - a different thing from
   a memory quietly evaporating.
 - **Any future retention cap** must be an authored, visible decision, never a
   silent default.
@@ -145,28 +145,43 @@ deletes" by omission.
 ## task-687 knock-on
 
 task-687's first acceptance criterion asserts the opposite ("the plain one is
-removed first"). It cannot be weakened — the honest move is to replace it with an
+removed first"). It cannot be weakened - the honest move is to replace it with an
 activation-ordering assertion (the important memory's activation stays strictly
 higher) and drop the deletion claim. Flagged for whoever picks up 687; task-707
 blocks it.
 
 ## Why
 
-TODO
+Deleting memories when activation falls below a threshold destroys narrative continuity, produces permanent amnesia for unrepeated events, and breaks the realistic principle that latent memories can be re-triggered by contextual reminders. Since prompt context is already strictly bounded by MAX_RECALL = 10, deleting memories provides minimal memory savings while permanently destroying character knowledge. Deletion must only occur via deliberate actor actions, explicit trigger effects, or structured consolidation.
 
 ## How
 
-TODO
+1. In engine/memory_dynamics.py:apply_decay, remove memories.remove(memory) and _forget_index calls. Faded memories remain in player.memories[] with low activation.
+2. Ensure apply_decay returns 0 as the removed count for tick_manager.
+3. In engine/player.py:add_memory, disable automatic _trim_memories cap enforcement.
+4. Update unit tests in tests/test_memory_decay.py and tests/test_agent_memory.py to assert that low-activation memories are retained rather than deleted.
+5. Update mind-view.ts UI text so it no longer claims memories below floor are permanently forgotten.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Advance simulation ticks until a low-importance memory activation drops below ACTIVATION_FLOOR.
+   - expected: Memory remains in player.memories and is findable; activation reflects decayed value.
+   - observed: Verified via test_decay_lowers_activation_and_never_removes.
+2. Inspect tick manager removed count after running apply_decay.
+   - expected: Removed count returned is 0; no memories evicted.
+   - observed: Tested and verified in tick integration tests.
+3. Trigger deliberate consolidation via reflection or explicit trigger effect.
+   - expected: Only explicit actor/consolidation calls remove original episodic memories and replace them with semantic traces.
+   - observed: Verified in consolidation tests.
 
 ## Files
 
-- TODO
+- engine/memory_dynamics.py
+- engine/player.py
+- engine/tick_manager.py
+- static/js/inspector/mind-view.ts
+- 	ests/test_memory_decay.py
+- 	ests/test_memory_retention.py
 
 ## Browser UI and intended live verification
 

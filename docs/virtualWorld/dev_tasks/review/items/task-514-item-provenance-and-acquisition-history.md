@@ -17,10 +17,10 @@ related: [task-513, task-408, task-403]
 
 ## What
 
-Give items an acquisition record so gear carries history — Mikka's wrench
+Give items an acquisition record so gear carries history - Mikka's wrench
 stolen from a human wagon, Gribba's apron taken from an abandoned farm, Vekka's
 mirror traded from a scout, Krikka's favourite coin found in a dead dwarf's
-boot — and surface it on examine and in prompts.
+boot - and surface it on examine and in prompts.
 
 ## Context
 
@@ -50,7 +50,7 @@ boot — and surface it on examine and in prompts.
 - Does `steal` rewrite provenance (new owner) or append?
 - Do we reveal provenance to non-owners on examine?
 - Stacking: `engine/items/stacking.py` keys identity on `library_id`/name plus
-  identity fields — decide whether provenance participates (per-instance
+  identity fields - decide whether provenance participates (per-instance
   provenance would block stacking of otherwise identical items).
 
 ## Acceptance
@@ -74,15 +74,16 @@ boot — and surface it on examine and in prompts.
 
 ## Why
 
-TODO
+Items required origin tracking to record crafting source, previous owners, and acquisition timestamps.
 
 ## How
 
-TODO
+Attached `provenance` metadata dictionary to item node properties, updated during trading and crafting.
 
 ## Files
 
-- TODO
+- `engine/library_nodes.py`
+- `engine/trading.py`
 
 ## Browser UI and intended live verification
 

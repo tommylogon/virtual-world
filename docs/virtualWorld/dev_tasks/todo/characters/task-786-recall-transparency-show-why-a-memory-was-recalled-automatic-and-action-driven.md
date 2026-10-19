@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
-related: ['"\'task-725\'"', '"\'task-789\'"', "'task-725'", "'task-789'", 'task-725', 'task-734', 'task-736', 'task-789']
+related: ['task-725', 'task-734', 'task-736', 'task-789']
 ---
 
 # task-786: Recall transparency: show why a memory was recalled, automatic and action-driven
@@ -12,7 +12,7 @@ related: ['"\'task-725\'"', '"\'task-789\'"', "'task-725'", "'task-789'", 'task-
 **Related:** task-685, task-686, task-690, task-714
 
 <!-- deps:start -->
-**Related:** [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-789-consolidate-per-area-observation-memories-into-one-spatial-parent-with-linked-evidence]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]]
+**Related:** [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-789-consolidate-per-area-observation-memories-into-one-spatial-parent-with-linked-evidence]]
 <!-- deps:end -->
 
 ## What

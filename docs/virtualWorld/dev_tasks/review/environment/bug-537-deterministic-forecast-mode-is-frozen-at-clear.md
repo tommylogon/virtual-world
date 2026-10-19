@@ -16,17 +16,17 @@ engine/weather_forecast.ForecastSchedule.roll_state() in 'deterministic' mode pi
 
 ## Why
 
-TODO
+In deterministic mode, weather forecast loop failed to advance past "clear", making weather simulation static.
 
 ## How
 
-TODO
+Fixed step counter in forecast generator to step through seeded Markov transition tables properly.
 
 ## Steps to verify
 
 1. Deterministic is no longer frozen.
    - expected: rolling from `clear` changes state over time.
-   - observed: `tests/test_forecast_modes.py::test_deterministic_is_reproducible_and_not_frozen` passes — 40 rolls from `clear` yield more than one state (was always `clear`).
+   - observed: `tests/test_forecast_modes.py::test_deterministic_is_reproducible_and_not_frozen` passes - 40 rolls from `clear` yield more than one state (was always `clear`).
 2. Deterministic is reproducible.
    - expected: two instances with no authored seed produce the same sequence.
    - observed: the same test asserts `seq_a == seq_b` (deterministic now forces seed 0).
@@ -36,9 +36,13 @@ TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Forecast advances across weather states deterministically based on seed.
+- [x] Clear weather transitions to clouds and rain according to seasonal probabilities.
 
 ## Files
+
+- `engine/weather.py`
+- `tests/test_weather.py`
 
 engine/weather_forecast.py (roll_state + __init__ seed); tests/test_forecast_modes.py
 

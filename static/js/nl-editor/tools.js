@@ -599,6 +599,22 @@ window.NLEditorTools = (() => {
         {
             type: 'function',
             function: {
+                name: 'list_world_issues',
+                description: 'List authoring issues from the World Issues validator (the Issues tab): empty triggers, orphan/dangling trigger edges, ways with no cardinal or pass message, nodes drifted from their library, orphaned nodes. Use this to find what to fix, stage fixes with the normal tools, then re-run to confirm they cleared. Read-only; it never dismisses - that is the UI tab.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        severity: { type: 'string', enum: ['error', 'warning', 'info'], description: 'Only issues of this severity' },
+                        code: { type: 'string', description: 'Only this issue code (e.g. empty_trigger, way_missing_cardinal, orphaned_node)' },
+                        node_id: { type: 'string', description: 'Only issues raised against this node' },
+                        limit: { type: 'number', description: 'Max issues to return (default 50, max 500)' }
+                    }
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
                 name: 'list_world_summary',
                 description: 'Get a concise summary of all rooms, landmarks, and currently staged operations.',
                 parameters: { type: 'object', properties: {} }

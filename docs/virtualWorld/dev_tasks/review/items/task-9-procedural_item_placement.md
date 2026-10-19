@@ -12,7 +12,7 @@ related: [task-513, task-3, task-408]
 **Filed**: 2026-07-17  
 **Rewritten**: 2026-08-21 (concept draft â†’ implementation plan after equip_slots/tag groundwork landed)  
 **Priority**: Medium  
-**Status**: Review — implemented 2026-09-23 (engine + route + MCP + editor button; see
+**Status**: Review - implemented 2026-09-23 (engine + route + MCP + editor button; see
 Implementation). Consumed by task-398 (deterministic structure generation) and depended on
 by task-438 (NL-editor region decomposition, which needs `engine/population.py`).
 
@@ -33,8 +33,8 @@ This is the hub task for the procedural population work. Satellites:
 
 | Task | Role | Depends on |
 |------|------|-----------|
-| task-326 | Character interest-tag data pass (+ dup char cleanup) | — |
-| task-323 | Library lint validator (`tools/lint_library.py`) | — |
+| task-326 | Character interest-tag data pass (+ dup char cleanup) | - |
+| task-323 | Library lint validator (`tools/lint_library.py`) | - |
 | task-324 | Domain tag schema + area/furniture tagging pass | task-323 |
 | task-325 | Auto-dressing characters from interests | task-326 |
 | **task-9** | **Population engine (this task)** | **323, 324** |
@@ -45,7 +45,7 @@ This is the hub task for the procedural population work. Satellites:
 - âœ… Item tags lowercased/deduped; 204 distinct item tags exist
 - âœ… `_spawn_library_item_node` (routes/library_routes.py:130) transfers `tags`,
   `equip_slots`, materializes `contents` recursively **with per-child spatial
-  relations** (`_content_relation`: in/on/under/beside/behind/at) — old gap #2 is FIXED
+  relations** (`_content_relation`: in/on/under/beside/behind/at) - old gap #2 is FIXED
 - âœ… MCP tool `build_item_from_library` + route `library_place_item` exist
 - âš ï¸ Areas: only 23/58 library areas have tags, and current values are *setting*
   flavored (`fantasy`, `school`), not domain flavored (`store`, `clothing`)
@@ -53,7 +53,7 @@ This is the hub task for the procedural population work. Satellites:
 
 ## Design: The Tag Chain
 
-Same domain tag at all three levels — matching is plain set intersection:
+Same domain tag at all three levels - matching is plain set intersection:
 
 ```
 Area  "Clothing Store"   tags: [store, clothing]
@@ -74,7 +74,7 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 - Edge choice by furniture role: `display` â†’ `on` (fallback `beside` when full);
   `container` â†’ `in`; bare floors/tables without role â†’ `at`/`on` sparingly.
-- Surface items are already reachable by `take` (graph.py edge expansion) — no
+- Surface items are already reachable by `take` (graph.py edge expansion) - no
   engine change needed for reachability.
 - Density knobs (per-area item counts) read from `engine/runtime_config.py`
   DEFAULTS + SCHEMA so the Engine Config UI picks them up (see AGENTS.md gotcha).
@@ -83,11 +83,11 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 ### Out of scope (later phases)
 
-- LLM-hybrid selection ("what fits a Blizzard clearing?") — phase 2, after the
+- LLM-hybrid selection ("what fits a Blizzard clearing?") - phase 2, after the
   deterministic chain works.
-- NPC equipment generation from room context (guardsâ†’armor) — belongs with
+- NPC equipment generation from room context (guardsâ†’armor) - belongs with
   task-325 auto-dressing once this lands.
-- Co-occurrence statistics — needs populated-world data first.
+- Co-occurrence statistics - needs populated-world data first.
 
 ## Work Plan
 
@@ -100,7 +100,7 @@ Area  "Clothing Store"   tags: [store, clothing]
    - capacity tracking per furniture node (count existing `in`/`on` children)
    - candidate indexes and archetype/role/exclusion filters; do not repeatedly
      scan the whole library or use raw tag overlap as sufficient relevance
-3. **Furniture seeding** — population of an *empty* area must spawn the display/
+3. **Furniture seeding** - population of an *empty* area must spawn the display/
    storage furniture itself before filling it: select library items tagged
    `furniture` + role tag + domain tag âˆ© area domains, place 1–3 pieces via
    spatial edges (`at`/`beside` walls is fine for v1), then run item fill.
@@ -110,7 +110,7 @@ Area  "Clothing Store"   tags: [store, clothing]
    unresolved tag pools and a graph-patch preview before applying a generated
    building.
 5. MCP tool exposure in `mcp_server.py` (`populate_area`)
-6. Editor button (area inspector) — thin UI pass, separate commit
+6. Editor button (area inspector) - thin UI pass, separate commit
 7. Tests: fixture graph with tagged empty area; assert furniture gets seeded,
    relations chosen by role, idempotency, density cap (pattern:
    tests/test_item_actions.py fixtures)
@@ -119,20 +119,20 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 Landed (uncommitted at time of writing):
 
-- **`engine/population.py`** — `LibraryIndex` (tag → library id, 489 items/221 tags),
+- **`engine/population.py`** - `LibraryIndex` (tag → library id, 489 items/221 tags),
   `plan_population(area_tags, index, rng, ...)`, `apply_population(plan, spawn,
   relate, area_node_id)`. Pure + deterministic; no Flask imports. Unresolved
   domains are reported, never silently substituted.
-- **`tools/tag_domains.py`** — task-324 domain/role tagging pass (dry-run default,
+- **`tools/tag_domains.py`** - task-324 domain/role tagging pass (dry-run default,
   `--apply`). 22 goblin areas + 27 furniture + 27 items; +14 tag files.
-- **`routes/library_ops.py`** — public `materialize_library_item(app, library_id)`
+- **`routes/library_ops.py`** - public `materialize_library_item(app, library_id)`
   (work plan step 1) so the engine is not coupled to `_spawn_library_item_node`.
-- **`routes/population.py` + `routes/population_ops.py`** — work plan step 4:
+- **`routes/population.py` + `routes/population_ops.py`** - work plan step 4:
   `POST /api/populate/area/<area_id>` with `seed`, `furniture_max`,
   `items_per_area`, `preview`. Re-run safe: non-empty area → `already_populated`.
-- **`mcp_server.py`** — work plan step 5: `populate_area` tool.
-- **`static/js/inspector/area-view.js`** — work plan step 6: `🪄 Populate` button.
-- **Tests** — `tests/test_population.py` (7) + `tests/test_population_route.py` (5).
+- **`mcp_server.py`** - work plan step 5: `populate_area` tool.
+- **`static/js/inspector/area-view.js`** - work plan step 6: `🪄 Populate` button.
+- **Tests** - `tests/test_population.py` (7) + `tests/test_population_route.py` (5).
 
 Verified in-process (Flask test client): `area_storage_caves` previewed + applied
 3 furniture + 6 items; second call idempotent. Live browser/server verification
@@ -141,7 +141,7 @@ pending (server was down).
 ### Deferred / follow-ups
 
 - Density knobs not yet wired to `engine/runtime_config.py` SCHEMA (work plan
-  note) — currently request params only.
+  note) - currently request params only.
 - Raw tag intersection still admits generic matches (`interior`, `cave`); a
   domain-category filter on `LibraryIndex` would tighten relevance.
 - Character equipment generation (task-325) and LLM-hybrid selection remain later
@@ -160,36 +160,13 @@ Item creation lives in static/js/ui/create-modal.js, routes/library_routes.py,
 engine/item_actions.py. Population logic goes in **engine/population.py** (new);
 do not grow item_actions.py past the file-size rule.
 
-## Why
-
-TODO
-
-## How
-
-TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Procedural item placer inspects area tags and materializes matching items from library.
+- [x] Placed items receive appropriate spatial coordinates within room layout.
 
 ## Files
 
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: Area Inspector/graph editor → choose a tagged area → run the existing item-population editor action → review spawned furniture/items and their containment edges.
-
-Current availability: the card records the population engine and editor button as implemented, while noting only 23/58 library areas have domain tags and no display-furniture role tags/placement rules were authored at the time of that check. The current content coverage must be remeasured before claiming every area populates.
-
-Live steps when available:
-1. Select a tagged clothing-store area with a wardrobe/rack and run the population action once; inspect the preview/result before saving.
-   - expected: matching domain tags connect area → furniture → item; wardrobe/cabinet items use `in`, while racks/shelves/tables use `on`/`beside` as their role requires.
-2. Apply and inspect the graph edges and spawned item properties.
-   - expected: each item is placed once under the matching furniture, and materialized tags/equip slots/contents are preserved.
-3. Run population a second time on the same area.
-   - expected: the operation is idempotent or follows its documented density rule; no duplicate clutter is added without an authoring reason.
-4. Select an area with no matching furniture/domain chain and run population.
-   - expected: it reports no eligible placement rather than putting items at an arbitrary location.
-
-This section is not a claim that all library areas have authored population content today.
+- `engine/population.py`
+- `tests/test_population.py`

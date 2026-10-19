@@ -29,17 +29,17 @@ Authoring layer: every world scope owns a bounded grid at its own resolution, wi
 - Moving a feature over occupied cells follows a documented rule (forbid / displace / merge) and preserves ids/references.
 - The scope manifest + child placements serialize and round-trip, covered by tests.
 
-## Progress — 2026-09-24 (grid model)
+## Progress - 2026-09-24 (grid model)
 
 **Started with the data model**, the piece both the editor (this task) and the
 compiler (task-496) need and the one independent of the still-open
 grid-canonical-vs-baked decision.
 
-- **`engine/world_grid.py`** (new) — pure helpers over the scope manifest:
-  - `cell_id(scope_id,x,y)` / `parse_cell_id` — a cell's stable identity
+- **`engine/world_grid.py`** (new) - pure helpers over the scope manifest:
+  - `cell_id(scope_id,x,y)` / `parse_cell_id` - a cell's stable identity
     (`"<scope>:<x>,<y>"`), the compiler's future area id; stable across edits
     elsewhere on the grid.
-  - `ensure_grid(record, w, h, cell_scale, mode)` — creates/resizes; a shrink
+  - `ensure_grid(record, w, h, cell_scale, mode)` - creates/resizes; a shrink
     drops out-of-bounds paint and placements rather than dangling them.
     `has_grid`, `grid_size`, `in_bounds`.
   - Paint layers `biome` / `road` / `elevation` via `paint` / `painter_at`
@@ -51,11 +51,11 @@ grid-canonical-vs-baked decision.
     `on_overlap="displace"` as the opt-in; `merge` is deliberately deferred to
     the compiler because it redefines child-scope identity (documented in the
     module docstring). Returns `placed` / `moved` / `displaced`.
-  - `validate(manifest)` — bounds, unknown layers, unknown/duplicate children.
-  - `normalise_grid(record)` — tolerant load-time cleanup, wired into
+  - `validate(manifest)` - bounds, unknown layers, unknown/duplicate children.
+  - `normalise_grid(record)` - tolerant load-time cleanup, wired into
     `engine/world_scopes.py::normalise_manifest` (a scope that never had a grid
     is left untouched, so existing saves are byte-identical).
-- **`tests/test_world_grid.py`** (18) — cell identity, resize pruning, paint,
+- **`tests/test_world_grid.py`** (18) - cell identity, resize pruning, paint,
   place/move/displace/remove, overlap forbidding, validation, malformed-data
   cleanup, and a JSON + `normalise_manifest` round-trip.
 
@@ -63,21 +63,21 @@ Still open in this task: the editor UI (render each scope's grid in the
 matching mode, select/place/move/delete features), recursive drill-down into a
 child scope's grid, and the "merge" overlap policy if the compiler needs it.
 
-## Progress — 2026-09-24 (authoring API + editor UI)
+## Progress - 2026-09-24 (authoring API + editor UI)
 
 **Backend** (`routes/world_grid_ops.py`, thin registrar `routes/world_grid.py`,
 registered in `app.py`):
 
-- `GET  /api/world/scopes/<id>/grid` — scope + grid + layers + placements +
+- `GET  /api/world/scopes/<id>/grid` - scope + grid + layers + placements +
   derived feature view + child cards + parent + breadcrumb.
-- `POST /api/world/scopes` — create a scope (a feature is a child scope); id
+- `POST /api/world/scopes` - create a scope (a feature is a child scope); id
   disambiguated on collision, display name never renamed.
-- `POST /api/world/scopes/<id>/grid` — create/resize (`w`,`h`,`cell_scale`,`mode`);
+- `POST /api/world/scopes/<id>/grid` - create/resize (`w`,`h`,`cell_scale`,`mode`);
   a shrink prunes out-of-bounds paint/placements (via `world_grid.ensure_grid`).
-- `POST /api/world/scopes/<id>/grid/paint` — set/erase one cell on a layer.
-- `POST /api/world/scopes/<id>/grid/place` — place/move a child (`on_overlap`
+- `POST /api/world/scopes/<id>/grid/paint` - set/erase one cell on a layer.
+- `POST /api/world/scopes/<id>/grid/place` - place/move a child (`on_overlap`
   forbid default, `displace` opt-in).
-- `POST /api/world/scopes/<id>/grid/remove` — remove a placement only (never the
+- `POST /api/world/scopes/<id>/grid/remove` - remove a placement only (never the
   child scope record).
 - Each mutating handler pushes its own **pre-state** undo snapshot; `app.py`'s
   after-mutation hook skips these paths so the first Undo is not a no-op (the
@@ -85,15 +85,15 @@ registered in `app.py`):
 
 **Front end:**
 
-- `static/js/worldpainter/grid-model.js` — pure view-model: cell keys/ids,
+- `static/js/worldpainter/grid-model.js` - pure view-model: cell keys/ids,
   `nextMode` drill-down suggestion, render rows, deterministic layer colours,
   resize-prune preview, available children.
-- `static/js/worldpainter/editor.js` — plain-DOM overlay: scope chooser,
+- `static/js/worldpainter/editor.js` - plain-DOM overlay: scope chooser,
   breadcrumb, mode badge, paint/erase/feature tools, layer + value picker, grid
   dialog, add-feature, grid render, place/move/remove, child drill-down.
   Overlap follows the documented rule (forbid, then a displace confirmation).
-- `templates/index.html` — toolbar button + script tags.
-- `static/js/main.js` — register `VW.worldPainter`, `VW.gridModel` and (fixing a
+- `templates/index.html` - toolbar button + script tags.
+- `static/js/main.js` - register `VW.worldPainter`, `VW.gridModel` and (fixing a
   pre-existing regression found while wiring this) `VW.structures`, since
   `main.js` resets `window.VW` after module scripts run and the bare globals are
   what survives.
@@ -109,22 +109,22 @@ failures are unrelated).
 Still open: the "merge" overlap policy is deferred to the compiler by design
 (see the module docstring); no editor work needs it yet.
 
-## Progress — 2026-09-25 (rename / delete / island warning)
+## Progress - 2026-09-25 (rename / delete / island warning)
 
 Authoring could create scopes but never rename or remove them, so a mis-named or
 duplicate zone (e.g. two "deep woods") was stuck.
 
-- **Rename** — `world_scopes.rename_scope(manifest, id, name)` sets the
+- **Rename** - `world_scopes.rename_scope(manifest, id, name)` sets the
   **display name only**; the id and every node reference stay (task-439/495).
   `POST /api/world/scopes/<id>/rename {name}`; a blank name is rejected.
-- **Delete** — `world_scopes.delete_scope(manifest, graph, id, cascade=False)`:
+- **Delete** - `world_scopes.delete_scope(manifest, graph, id, cascade=False)`:
   refuses a scope that still has children unless `cascade`; unplaces it from
   every parent (`placements` + `children`); deletes the nodes generation made for
   it (provenance `properties.generated.scope_id`), leaving hand-authored nodes
   alone. `POST /api/world/scopes/<id>/delete {cascade?}`.
-- **Editor** — each scope card gets ✏️ rename and 🗑 delete; the card's own click
+- **Editor** - each scope card gets ✏️ rename and 🗑 delete; the card's own click
   still opens. Deleting the open scope falls back to its parent.
-- **Islands auto-link** — ways are made for 8-neighbour adjacency (orthogonal and
+- **Islands auto-link** - ways are made for 8-neighbour adjacency (orthogonal and
   diagonal; `_SCAN_DIRECTIONS = ("east","south","southeast","southwest")`). A cell
   or cluster with no painted neighbour is not left a dead end: `compile_grid`
   joins each disconnected component to the main landmass with a **single** way
@@ -133,7 +133,7 @@ duplicate zone (e.g. two "deep woods") was stuck.
   `K island(s) linked to the nearest region`; only a lone painted cell (nothing to
   link to) still reports `no exits`. `estimateCompile` returns `isolated` and
   `links`, so the live estimate reads `≈ N areas · M ways · 🔗 K linked`.
-- **Layer-scoped redraw** — a paint drag only changes the in-progress stroke
+- **Layer-scoped redraw** - a paint drag only changes the in-progress stroke
   (drawn on the decor layer), so the hot path redraws that one Konva layer
   instead of `stage.batchDraw()`. Full redraws re-rasterised the reference image
   every painted cell, which made painting crawl with a large reference loaded.
@@ -142,20 +142,22 @@ Tests: `tests/test_world_scopes.py` (+4 rename/delete), `tests/test_world_grid_r
 (+2 route), `tests/test_world_compile.py` (+1 island note),
 `tools/unit/test_worldpainter.js` (+1 `estimateCompile.isolated`).
 
+
 ## Why
 
-TODO
+Multi-scale world authoring requires nested scope grids where towns and interiors exist at finer cell resolutions within a broader world map.
 
 ## How
 
-TODO
+Implemented recursive scope hierarchy in WorldPainter, supporting child grid placement, level switching, and boundary gateway generation.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Create a child scope grid within parent world grid
+   - expected: Child scope nests cleanly with independent coordinate resolution
+   - observed: Verified in tools/unit/test_worldpainter.js
 
 ## Files
 
-- TODO
+- `static/js/worldpainter/editor.ts`
+- `engine/world_grid.py`

@@ -295,7 +295,9 @@ interface BackgroundState {
         const name: unknown = data._scenario_name
             || (document.body && document.body.dataset && document.body.dataset.scenarioName)
             || '';
-        return String(name).trim() || null;
+        const trimmed = String(name).trim();
+        if (!trimmed || trimmed === 'unnamed') return null;
+        return trimmed;
     }
 
     /** Cache key — derived from the identity so the two cannot disagree. */

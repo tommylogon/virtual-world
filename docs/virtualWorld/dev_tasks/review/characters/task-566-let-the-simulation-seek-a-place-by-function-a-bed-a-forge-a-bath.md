@@ -21,7 +21,7 @@ A painted town is a service directory (The Stag Inn for travellers, The Crooked 
 ## Acceptance
 
 - [x] **There is a venue concept now**: `engine/venues.py`, a lookup of *places by
-      what they provide* — `rest`, `meal`, `drink`, `bath`, `work`, `worship`,
+      what they provide* - `rest`, `meal`, `drink`, `bath`, `work`, `worship`,
       `care`.
 - [x] **A place lookup by kind, and it needed no new vocabulary.** A venue is a
       set of tags plus a preference order, and task-561's building types already
@@ -41,20 +41,20 @@ A painted town is a service directory (The Stag Inn for travellers, The Crooked 
       seeking a bed never competes with "lie down now".
 - [x] **A character chooses among several inns, and the rule is explicit**
       (`choose_venue`), in four tiers, each earning its place:
-      1. **fewest hops** — a character with a bed next door does not cross town for
+      1. **fewest hops** - a character with a bed next door does not cross town for
          a better one;
-      2. **familiarity** — among equally near places, one this character has used
+      2. **familiarity** - among equally near places, one this character has used
          before, more-used first. This is what makes a town feel inhabited: a
          regular goes back to *their* inn, a newcomer goes to the nearest;
-      3. **preference tier** — among those still equal, the nicer kind (an inn
+      3. **preference tier** - among those still equal, the nicer kind (an inn
          before a barn), as the venue declares;
-      4. **node name, last** — a total order, so the same world answers the same
+      4. **node name, last** - a total order, so the same world answers the same
          way every turn.
 
       Checked: nearest wins over nicer, memory wins an exact tie (`3 visits` beat
       `1` between two places two hops away), an inn beats a bunkroom at one hop
       each, and five calls return one answer.
-- [x] **Nearest-first is the default and familiarity only breaks ties** —
+- [x] **Nearest-first is the default and familiarity only breaks ties** -
       deliberately, and the module says why: a character with a bed in the next
       room is not going to the best inn in the city because it is better. The
       tiers are a preference among equals, not a shopping list.
@@ -66,8 +66,8 @@ A painted town is a service directory (The Stag Inn for travellers, The Crooked 
       `current_state` is deliberately not consulted: a locked building everyone
       has a key to is still the building, and whether the door opens is the
       traversal layer's job (which already refuses it).
-- [x] **The log says where and why** — "Ari walks to The Stag Inn — is looking
-      for a bed" — because a character teleporting for unexplained reasons is the
+- [x] **The log says where and why** - "Ari walks to The Stag Inn - is looking
+      for a bed" - because a character teleporting for unexplained reasons is the
       thing this task exists to stop.
 - [x] **A world with no venues behaves exactly as before.** No candidate, no
       choice, no log line; `_seek_venue` returns False and every caller falls back
@@ -78,7 +78,7 @@ A painted town is a service directory (The Stag Inn for travellers, The Crooked 
 - [x] **Familiarity lives on the character** (`venue_visits`, a counter per area),
       so it travels with a save, and a character who has never been anywhere has
       nothing to be loyal to. The counter moves on **arriving** and on **sleeping
-      somewhere** — standing one room from the inn is not a visit.
+      somewhere** - standing one room from the inn is not a visit.
 
 ## Notes
 
@@ -86,23 +86,23 @@ A painted town is a service directory (The Stag Inn for travellers, The Crooked 
   touches `background_simulation`, not the compiler, and needs nothing from the
   painter beyond the tags that already ship.
 - `meal` and `drink` venues exist and are wired to the lookup, but the *needs* that
-  drive them still serve themselves from items and water areas first — the venue
+  drive them still serve themselves from items and water areas first - the venue
   is the fallback for a character who finds nothing here, which is the case the
   task describes ("a painted town is a service directory"). Food and drink were
   left alone deliberately: changing how a character eats is a different decision
   from teaching it where a bed is, and doing both at once would make the need
   thresholds untestable.
 - The venue table is a plain dict, so a world can extend it without touching this
-  module — which is the same "vocabulary, not code" shape as task-568's room tags
+  module - which is the same "vocabulary, not code" shape as task-568's room tags
   and task-525's `merge:` rules.
 
 ## Why
 
-TODO
+NPCs with critical rest or hygiene needs previously wandered aimlessly instead of routing to functional areas (a bed, a bath).
 
 ## How
 
-TODO
+Added venue seeking in `engine/background_simulation.py` with `REST_SEEK_ENERGY` routing characters to reachable areas carrying functional tags.
 
 ## Steps to verify
 
@@ -122,7 +122,8 @@ TODO
 
 ## Files
 
-- TODO
+- `engine/background_simulation.py`
+- `tests/test_background_simulation.py`
 
 ## Browser UI and intended live verification
 
@@ -139,7 +140,7 @@ Live steps when available:
    place. Set the character's Energy to 55 or below, then advance one complete
    background-simulation tick while watching the event stream and map.
    - expected: the event stream explains the chosen destination with a line
-     such as “<character> walks to <venue> — is looking for a bed”, and movement
+     such as “<character> walks to <venue> - is looking for a bed”, and movement
      follows the connected route instead of teleporting.
 2. Repeat with no area offering a venue tag, using the same character needs.
    - expected: no venue-seeking line or forced route appears; the ordinary

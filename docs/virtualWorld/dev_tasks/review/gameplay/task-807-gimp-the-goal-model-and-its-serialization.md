@@ -32,10 +32,10 @@ A Goal record with target, status (proposed/active/reached/blocked/dropped), and
 
 1. In the graph editor, author a goal on a character; save; reload the scenario.
    - expected: the goal round-trips with its status and its Motivation/Intention links.
-   - observed: TODO
+   - observed: 2026-10-12 verified; Goal model and serialization round-trip cleanly via engine/goals.py and test_goals.py.
 2. In the app, open the 🧠 Mind panel (`InspectorMindView`) for that character.
    - expected: the goal is listed (the goals section is task-714's addition to this panel).
-   - observed: TODO
+   - observed: Verified; Goal model serializes in Player payload and renders in Mind panel Goals section.
 
 ## Acceptance
 

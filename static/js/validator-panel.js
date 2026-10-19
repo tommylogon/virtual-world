@@ -218,6 +218,15 @@
             }
             this.refresh();
         }
+        /** Launch NL editor pre-seeded to fix a specific validation issue. */
+        fixWithNL(nodeId, code, message) {
+            const prompt = `Fix world validation issue on ${nodeId || 'this node'} (${code}): "${message}". Stage necessary graph fixes and verify remediation.`;
+            const nlEditor = window.NLEditor;
+            if (nlEditor) {
+                nlEditor.openPanel();
+                nlEditor.send(prompt);
+            }
+        }
         /**
          * Way-orientation triage (task-395 rework):
          *   1. CLEAN — remove any values our OLD bulk-fill invented ("north"
@@ -456,6 +465,7 @@
             const out = [];
             if (nodeId) {
                 out.push(`<button class="validator-jump" title="Open node: ${nodeId}" onclick="ValidatorPanel.jumpTo('${String(nodeId).replace(/'/g, "\\'")}')">🔍</button>`);
+                out.push(`<button class="validator-jump" title="Fix issue with NL Editor" onclick="ValidatorPanel.fixWithNL('${String(nodeId).replace(/'/g, "\\'")}','${String(issue.code || '').replace(/'/g, "\\'")}','${String(issue.message || '').replace(/'/g, "\\'")}')">✨</button>`);
             }
             const quickFix = (issue.code === 'mechanical_tag_missing_props' && issue.severity === 'info' && nodeId);
             if (quickFix) {

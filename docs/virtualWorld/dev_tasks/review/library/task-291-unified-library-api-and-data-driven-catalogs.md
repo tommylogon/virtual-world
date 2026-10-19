@@ -30,18 +30,18 @@ Implements the Phase 1 backend consolidation and the conditions/traits data-driv
 ## Files
 
 ### Backend consolidation
-- `routes/library_routes.py` — added `POST /api/library/<type>/<id>/rename` (write new + GC old,
+- `routes/library_routes.py` - added `POST /api/library/<type>/<id>/rename` (write new + GC old,
   collision-safe), `POST /api/library/items/<id>/place` (moved from `/api/build/item-from-library`),
   unified `POST /api/library/refresh-to-world` (dispatches item/way by node type, prefers
   `library_id`), and wired `validate_tags_on_save` into the generic POST. Folded item build + item
   refresh helpers in. Refactored way refresh into `_refresh_way`/`_rebuild_triggers`.
-- `routes/items_registry.py` — **deleted** (single character import now lives only at
+- `routes/items_registry.py` - **deleted** (single character import now lives only at
   `/api/library/import/character/<id>`).
-- `app.py` — removed `items_registry` registration; added `seed_condition_library()` +
+- `app.py` - removed `items_registry` registration; added `seed_condition_library()` +
   `seed_trait_library()` (non-TESTING).
-- `static/js/api.js` + `static/js/inspector/agent-view.js` — migrated off `/api/registry/*` and
+- `static/js/api.js` + `static/js/inspector/agent-view.js` - migrated off `/api/registry/*` and
   `/api/build/item-from-library`.
-- `mcp_server.py` — MCP tools (`import_character`, `build_item_from_library`, the registry list/add/
+- `mcp_server.py` - MCP tools (`import_character`, `build_item_from_library`, the registry list/add/
   delete tools) now proxy to `/api/library/*`.
 
 ### Data-driven conditions (`player.py`)
@@ -71,7 +71,7 @@ Implements the Phase 1 backend consolidation and the conditions/traits data-driv
 
 ## Status
 
-**In Review — implemented 2026-08-17, static checks + full suite + live smoke pass.** Conditions &
+**In Review - implemented 2026-08-17, static checks + full suite + live smoke pass.** Conditions &
 traits are data-driven (`data/library/conditions/*.json`, `data/library/traits/*.json` are the editable
 source, hardcoded dicts are fallback). Backend consolidation to a single `/api/library/*` done.
 
@@ -85,7 +85,7 @@ source, hardcoded dicts are fallback). Backend consolidation to a single `/api/l
   **Two items moved out of this task on 2026-09-29:**
   - **The behaviours tab is no longer to be removed.** The design doc's "remove the tab/type" is withdrawn;
     the tab is fully built and its saves really land in `data/library/behaviours/`, while
-    `engine/npc_behaviors.py:486` reads only `player.behaviors[]` — a live authoring path the engine ignores.
+    `engine/npc_behaviors.py:486` reads only `player.behaviors[]` - a live authoring path the engine ignores.
     Making the engine consume it (the traits treatment) is **task-590**. Do not execute the removal.
   - **Structures** are not in scope here. The engine and the five routes are done; the missing piece is a
     UI affordance, tracked by **task-591**.
@@ -97,12 +97,15 @@ source, hardcoded dicts are fallback). Backend consolidation to a single `/api/l
 
 ## Why
 
-TODO
+Consolidate fractured library APIs (`items_registry` vs `library_routes`) into a single `/api/library/*` namespace and migrate hardcoded conditions and traits dictionaries into editable data-driven catalogs (`data/library/conditions/*.json` and `data/library/traits/*.json`).
 
 ## How
 
-TODO
+Deleted `routes/items_registry.py`, routed all callers through `routes/library_routes.py`, implemented catalog loaders `_load_condition_library()` and `_load_trait_library()` merging disk JSON over code fallbacks, and updated MCP server tools.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Unified library API under `/api/library/*` with `routes/items_registry.py` deleted.
+- [x] Conditions and traits load dynamically from `data/library/conditions/*.json` and `data/library/traits/*.json`.
+- [x] Disk changes to condition and trait definitions reload and update engine constants.
+- [x] Full test suite and live smoke pass cleanly.

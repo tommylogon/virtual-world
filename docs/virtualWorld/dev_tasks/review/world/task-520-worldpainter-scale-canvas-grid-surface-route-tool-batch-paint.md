@@ -26,14 +26,14 @@ Paint and navigate a massive world grid (16k+ cells) without DOM blowup or 10k a
 - A route of hundreds of cells paints in a **single request** with a single undo entry.
 - Every change is covered by tests and verified in a live browser.
 
-## Progress — 2026-09-24
+## Progress - 2026-09-24
 
-**Surface — Konva canvas** (`static/js/worldpainter/editor.js`, Konva 9 CDN):
+**Surface - Konva canvas** (`static/js/worldpainter/editor.js`, Konva 9 CDN):
 the DOM-per-cell grid is replaced by a Konva stage with three layers and four
 custom shapes (grid lines, paint, features, route). The shape count is constant,
 so a 160×100 canvas costs the same as a 10×10; work is proportional to *painted*
 cells (the payload is sparse). Pan/zoom, hit-testing and the transform are
-Konva's — nothing hand-rolled. View (`x,y,scale`) is kept in component state so a
+Konva's - nothing hand-rolled. View (`x,y,scale`) is kept in component state so a
 panel rebuild (paint/layer change) keeps the author's place. Grid lines drop out
 below ~4 px/cell to avoid moiré.
 
@@ -55,7 +55,7 @@ route of 3 waypoints → **74 cells · 74 turns · 1 h 14 m**, applied in one re
 
 **Reference image (paint over the art)**: a per-scope `reference`
 (`{image, opacity, visible}`) on the scope record, drawn by a Konva.Image in a
-bottom layer beneath the grid lines — so you can load a zone's art as a reference
+bottom layer beneath the grid lines - so you can load a zone's art as a reference
 "when needed". The HUD has a picker, a visibility toggle and an opacity slider.
 `GET /api/world/painter/backgrounds` offers the scenario's configured map layers
 plus every file in `static/images/backgrounds`, so the existing art is reused
@@ -64,7 +64,7 @@ it never compiles into areas/ways. Live check: selecting
 `kraktooth-goblin-camp.webp` mounted a 4th canvas whose centre pixel is the map at
 50% alpha. Tests: `tests/test_world_grid_routes.py` (+2).
 
-**Feedback round — drag paint, transparency, node-cost guard**:
+**Feedback round - drag paint, transparency, node-cost guard**:
 
 - **Drag-to-paint**: paint/erase drag now lays a live stroke and commits it as
   **one batch** on mouse-up (the brush felt like "click and wait" before). Pan is
@@ -81,7 +81,7 @@ it never compiles into areas/ways. Live check: selecting
 Still open (next slices):
 - **Lazy/zone materialisation** is now the headline gap: a 200×133 world painted
   densely is ~5,300 areas + ~9,900 ways = ~15,000 nodes, which freezes the vis
-  graph view — async transport does not help, only fewer/on-demand nodes does
+  graph view - async transport does not help, only fewer/on-demand nodes does
   (task-400). Merge helps for non-traversed regions but destroys per-cell travel
   time, so it is not a general fix.
 - **Align the grid to an anchored transform** (drag/scale/rotate, or reuse the
@@ -95,18 +95,25 @@ Still open (next slices):
 
 ## Why
 
-TODO
+Large maps (e.g. 200x133) require high-performance canvas rendering, batch painting, and node budget checks before generation so the vis graph does not freeze or exceed reasonable bounds.
 
 ## How
 
-TODO
+Implemented canvas-based grid surface renderer, route line painter tool, batch cell updates, and node count estimation with warning thresholds (>3,000 amber) and hard server limits (max_nodes 20,000).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Render large grid in WorldPainter
+   - expected: Canvas surface renders high cell counts with smooth scrolling and responsive paint
+   - observed: Verified on large grid canvas
+2. Test batch paint and generation bounds
+   - expected: Batch paint emits consolidated cell updates; server enforces node limit
+   - observed: Estimate shows accurate node counts and warns before threshold
 
 ## Files
 
-- TODO
+- static/js/worldpainter/canvas-view.ts
+- static/js/worldpainter/grid-model.ts
+- 
+outes/world_grid_ops.py
+- 	ests/test_world_grid_routes.py

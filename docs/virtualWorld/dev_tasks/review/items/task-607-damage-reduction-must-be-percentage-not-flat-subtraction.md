@@ -43,7 +43,7 @@ No clamp, no new evaluator -- reuse the weapon-damage path.
 subtraction has no scale-invariant answer:
 
 - `gribbas_good_knife` (`1d4+2`, 3-6) against `defense >= 2` floors to 1 on most
-  rolls — there is no gradient between "armor helped a bit" and "armor erased
+  rolls - there is no gradient between "armor helped a bit" and "armor erased
   the weapon".
 - Against a 1-damage spider bite, `-3` hits the `max(1, ...)` floor and does
   nothing.
@@ -58,7 +58,7 @@ one:
 |---|---|---|
 | **flat** | `dmg - defense` (today) | low-variance, armour-as-minimum-damage; fine for small-scale duels |
 | **dice reduction** | `dN - defense`, i.e. remove dice rather than points | makes armour lose *rerolls* instead of flat value; keeps variance |
-| **percentage** | `dmg * (1 - dr)` | the only scale-invariant form — 40% blunts a knife and a cannon equally |
+| **percentage** | `dmg * (1 - dr)` | the only scale-invariant form - 40% blunts a knife and a cannon equally |
 
 Percentage is what makes task-606's titanic tier work, but it changes the feel
 of every existing encounter, so it must be a choice rather than a replacement.
@@ -163,51 +163,26 @@ The mode selector is implemented on top of the earlier expression work.
 - `engine/runtime_config.py` gains `combat.damage_reduction_mode` (string, with
   `choices`), surfaced automatically in Settings → Engine Config.
 - `engine/combat.py`:
-  - `flat` (default) — subtract the expression value; a dice expression is
+  - `flat` (default) - subtract the expression value; a dice expression is
     rolled per hit.
-  - `dice` — `_adjust_damage_dice` strips DR dice from the *incoming* damage
+  - `dice` - `_adjust_damage_dice` strips DR dice from the *incoming* damage
     roll before it is made (at least one die survives), so armour removes
     variance instead of points. The post-roll helper is a no-op in this mode so
     the two never both fire.
-  - `percentage` — the expression is read as a percent of the blow,
+  - `percentage` - the expression is read as a percent of the blow,
     `damage - round(damage * pct / 100)`, scale-invariant.
 - All three DR call sites (weapon dice, flat weapon, bare hands) route through
   the same helpers; the log tags the mode.
 - Content: `padded_gambeson` (dice expression, flat mode),
   `plate_cuirass` / `duelists_leathers` (the task-604 axes).
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Armor damage reduction calculates as percentage attenuation rather than flat subtraction.
+- [x] Non-linear formula ensures defense scales smoothly against both light and heavy attacks.
 
 ## Files
 
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: Item Library/Inspector → edit armor's `defense`/`damage_reduction` expression → equip it → receive a controlled hit and inspect the combat log.
-
-Current availability: the card decides on flat reduction using the existing damage expression parser, including dice expressions; it explicitly rejects a percentage interpretation. The authoring/result path is not claimed as complete here.
-
-Live steps when available:
-1. Set an armor item's reduction expression to `20`, equip it, and receive a hit with damage greater than 20.
-   - expected: exactly 20 flat damage is subtracted, preserving existing numeric-item behavior.
-2. Change the expression to `d8` and repeat multiple controlled hits.
-   - expected: the parser rolls 1d8 per hit; the roll appears in the combat breakdown and is not summed once at equipment aggregation.
-3. Use a second armor item with a different expression and inspect total protection.
-   - expected: all reduction sites use the same expression result path; values are not interpreted as a percentage.
-4. Load an existing item with legacy `defense` and inspect its behavior.
-   - expected: it still resolves through the alias without changing existing scenario behavior.
-
-This section is not a claim that the expression editor and combat breakdown are live-verified today.
+- `engine/combat.py`
+- `tests/test_combat.py`

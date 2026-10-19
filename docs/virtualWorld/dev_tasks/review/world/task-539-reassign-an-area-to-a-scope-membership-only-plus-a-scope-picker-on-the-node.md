@@ -12,7 +12,7 @@ related: ['task-528', 'task-535', 'task-540', 'task-541', 'task-582']
 **Related:** task-528, task-535, task-540, task-541
 **Status:** implemented 2026-09-27, in review
 **Author's design (2026-09-27):** membership is one field, so it should be edited
-where membership is visible — click the area node, pick its scope from a dropdown,
+where membership is visible - click the area node, pick its scope from a dropdown,
 done. No separate bulk-move flow; the WorldPainter then only has to list the areas
 of the scope you are painting (task-541).
 
@@ -22,7 +22,7 @@ of the scope you are painting (task-541).
 
 ## Why
 
-`world_scope_id` *is* scope membership — the scope views read nothing else
+`world_scope_id` *is* scope membership - the scope views read nothing else
 (`world_scopes.own_area_ids` / `area_ids_in_scope`, and `project_subgraph`'s "a
 `way` whose both endpoints are included"). But today the only way to change it is
 `POST /api/world/scopes/<id>/grid/place_area` (`routes/world_grid_ops.py`), which
@@ -46,22 +46,22 @@ undo step with the rest.
       step**. The rules live in `world_scopes.assign_area_membership`, which the
       place route now shares, so there is one implementation of "move".
 - [x] Moving an area away from a scope drops it from that scope's
-      `area_placements` and clears the node's `cell`/`x`/`y` — otherwise the old
+      `area_placements` and clears the node's `cell`/`x`/`y` - otherwise the old
       grid keeps reserving a cell for an area that is no longer a member. A cell
       it holds in the *target* scope is kept, so re-assigning it there is a no-op.
 - [x] Refuses generated areas (with the same explanation `handle_place_area`
-      gives), non-areas and unknown ids — and validates **before** the snapshot, so
+      gives), non-areas and unknown ids - and validates **before** the snapshot, so
       a refusal leaves no junk undo entry and no half-applied move.
 - [x] `remove` clears the scope *and* the cell (the area then belongs to nobody
       and is free to be placed anywhere).
 - [x] An **area-node scope picker** in the inspector: a 🗺️ Scope section with a
       `<select>` of the scope list from `GET /api/world/scopes?flat=1`
-      (depth-indented), a "— no scope —" option, and an orphan option so a scope
+      (depth-indented), a "- no scope -" option, and an orphan option so a scope
       id with no record still shows as the current value instead of the select
       lying. Nothing in the inspector fetched scopes before.
 - [x] The same section shows the map placement ("cell (x,y)" + *open in
       WorldPainter*), so membership and position read as one fact.
-- [x] Removing via the "— no scope —" option posts to the area's *current* scope
+- [x] Removing via the "- no scope -" option posts to the area's *current* scope
       (an empty scope id would build `/api/world/scopes//areas`); a failure
       restores the previous selection.
 - [x] After moving, the parent's own-level view no longer lists the areas and the
@@ -80,7 +80,7 @@ Created a throwaway `zz_camp` scope and three areas, then moved two of them with
 `world`'s subgraph no longer contained the moved areas. All three refusal paths
 answered with their intended message. Through the UI: picking "goblin camp"
 (`deep_woods_2`) in the node's Scope dropdown put `area_training_pit` into the
-camp's own level, and "— no scope —" put it back. Test data was removed again and
+camp's own level, and "- no scope -" put it back. Test data was removed again and
 the world left as it was found.
 
 ## Not done here
@@ -96,7 +96,7 @@ the world left as it was found.
    - expected: goblin camp remains selected and the area appears in the camp's
      own-level view.
    - observed: verified live 2026-09-27; the area appeared in the camp view.
-2. Select **— no scope —** and reopen the Inspector.
+2. Select **- no scope -** and reopen the Inspector.
    - expected: no scope is selected and the area leaves the camp's own-level
      view.
    - observed: verified live 2026-09-27; the area was removed from that view.
@@ -120,7 +120,7 @@ Scope** section.
    the Inspector to refresh.
    - expected: the area is included in the camp's own-level view, and the
      selected scope remains goblin camp after reopening the Inspector.
-3. Select **— no scope —**.
+3. Select **- no scope -**.
    - expected: the area is removed from the camp's own-level view and the
      dropdown shows no scope after reopening the Inspector.
 4. Compare the node's scope property and both scope membership lists.
@@ -134,4 +134,10 @@ the last verified browser run (2026-09-27).
 
 ## Files
 
-- TODO
+- 
+outes/world_grid_ops.py
+- engine/world_scopes.py
+- static/js/inspector/area-view.ts
+- static/js/api.ts
+- static/js/graph-manager.ts
+- 	ests/test_world_grid_routes.py

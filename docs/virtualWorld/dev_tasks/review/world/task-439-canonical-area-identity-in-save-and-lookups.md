@@ -9,13 +9,13 @@ related: ['task-401', 'task-397', 'task-581', 'task-407', 'task-393', 'task-222'
 # task-439: Canonical area identity in the save and in area lookups
 
 **Filed:** 2026-09-21
-**Blocks:** task-401 (chunk persistence — stable area ids, id-keyed `current_area`)
+**Blocks:** task-401 (chunk persistence - stable area ids, id-keyed `current_area`)
 **Correction (2026-09-24):** this task no longer blocks **task-397**. The scope
 layer shipped keying on node id / `world_scope_id` (`engine/world_scopes.py`,
 `virtual_world_engine.py:138`) without requiring id-keyed saves, so 397 is
 partial-and-unblocked. It also no longer blocks **task-438**, which was
 cancelled in favour of the WorldPainter set (495/496/499/500); task-496's
-compiler is expected to own ids. **task-401 is the real remaining dependent** —
+compiler is expected to own ids. **task-401 is the real remaining dependent** -
 the save layer is still display-name-keyed (`engine/serialization.py` writes
 `rooms_serialized[node.name]`), and 401 needs `current_area` as an id.
 **Related:** task-407 (graph edge indexing + case normalization), task-393 (validator triage), task-222 (serialize exits graph-only), `engine/serialization.py`, `docs/virtualWorld/World Building/Rooms & Areas.md`
@@ -38,7 +38,7 @@ already contains `weeping_willow_hollow`, `snowbound_hollow`, `frozen_hollow`,
 
 ## Why
 
-The graph layer is already id-keyed and case-safe — `WorldGraph` resolves ids through
+The graph layer is already id-keyed and case-safe - `WorldGraph` resolves ids through
 `_id_index` (`graph.py:70-77`), keys `self.nodes` by id (`graph.py:137-138`), and treats an
 area **id** collision as a hard error while auto-suffixing items/ways/characters
 (`graph.py:126-136`). The **save and lookup** layer is not:
@@ -49,7 +49,7 @@ area **id** collision as a hard error while auto-suffixing items/ways/characters
    rooms_serialized[node.name] = { ... }
    ```
    Two areas named "Hollow" collapse to one entry. This is silent data loss, not a
-   performance problem — and it is the documented behaviour today
+   performance problem - and it is the documented behaviour today
    (`docs/virtualWorld/World Building/Rooms & Areas.md:51-60`).
 
 2. **Exits are resolved by display name.**
@@ -90,7 +90,7 @@ be **deterministic and reported**:
 - resolve by id first when the stored value resolves to an area id
   (`graph._resolve_id`), otherwise by name;
 - if a name matches more than one area, log a warning and pick by a stable rule
-  (sorted id) **and** surface it in the validator — never silently take iteration order;
+  (sorted id) **and** surface it in the validator - never silently take iteration order;
 - de-duplicate on load as well as on save (a legacy save with colliding name keys has
   already lost data; do not compound it).
 
@@ -104,7 +104,7 @@ than dropping the entry silently.
 
 Until `current_area` is structurally id-based (see Non-goals), **display names must be
 unique within a scenario**. Task-438's `split_area` therefore mints scenario-unique names
-(e.g. "Deep Forest — Creek Margin") rather than bare "Creek Margin". This is also better
+(e.g. "Deep Forest - Creek Margin") rather than bare "Creek Margin". This is also better
 authoring practice.
 
 ### Validator rule
@@ -143,7 +143,7 @@ can see.
 - **The `Player.current_area` string → id refactor.** That is 47+ references across 10
   files and is its own task (it gates task-401). This task only makes lookups
   unambiguous and loud, and its interim constraint is unique display names.
-- Changing the graph node model — `WorldGraph` is already id-keyed; no change needed.
+- Changing the graph node model - `WorldGraph` is already id-keyed; no change needed.
 - Removing `exits` from the serialized area payload (that is task-222's question, tracked
   separately in `review/gameplay/task-222-serialize-exits-graph-only.md`).
 
@@ -161,7 +161,7 @@ can see.
 
 Landed (id-first resolution, loud ambiguity, id-keyed projection):
 
-- `engine/room_perception.py`: `resolve_area()` is the one resolver — **id first**
+- `engine/room_perception.py`: `resolve_area()` is the one resolver - **id first**
   (through the graph's case-insensitive `_id_index`), then a normalised display
   name, then the canonical constructed id. An ambiguous name is logged and
   resolved by **smallest id**, never iteration order. `resolve_area_node()` is
@@ -192,16 +192,23 @@ break the UI for a task that is not allowed to touch `current_area`.
 **Remaining (deferred, tracked by task-581):** make `Player.current_area` an id so
 the name-keyed map can be retired and the frontend migrated to ids.
 
-Tests: `tests/test_area_identity.py` (9) — id-exact and deterministic-ambiguous
+Tests: `tests/test_area_identity.py` (9) - id-exact and deterministic-ambiguous
 resolution, duplicate round-trip with distinct exits/environments, temperature by
 id, validator and lint wiring.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run area identity test suite
+   - expected: pytest tests/test_area_identity.py passes
+   - observed: 9 passed in tests/test_area_identity.py
+2. Verify resolution of duplicate area display names across scopes
+   - expected: ID-keyed resolution correctly disambiguates distinct nodes sharing a display name
+   - observed: Verified distinct exits, environments, and temperatures by ID
 
 ## Files
 
-- TODO
+- engine/serialization.py
+- engine/world_scopes.py
+- 	ools/validate_scenario.py
+- 	ools/lint_library.py
+- 	ests/test_area_identity.py

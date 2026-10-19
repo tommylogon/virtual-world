@@ -20,7 +20,7 @@ priority: medium
 
 ## Why
 
-There is no way to teach a skill or a recipe as a stateful action. Recipes are multi-step stateful actions (see task-2 crafting), and teaching someone a recipe — narrating the steps so they learn it — is itself a stateful action. This is ideas #15 and #20 (omelet recipe) from developer ideas.
+There is no way to teach a skill or a recipe as a stateful action. Recipes are multi-step stateful actions (see task-2 crafting), and teaching someone a recipe - narrating the steps so they learn it - is itself a stateful action. This is ideas #15 and #20 (omelet recipe) from developer ideas.
 
 ## How
 
@@ -32,20 +32,16 @@ There is no way to teach a skill or a recipe as a stateful action. Recipes are m
 
 ## Files
 
-- `engine/crafting.py` (future) — recipe templates and stateful execution.
-- `engine/item_actions.py` — teach action handler orchestrating the narrative sub-steps.
-- `static/js/agent/prompt-builder.js` — instruct the model to emit teach actions targeting a recipe/skill.
+- `engine/crafting.py` (future) - recipe templates and stateful execution.
+- `engine/item_actions.py` - teach action handler orchestrating the narrative sub-steps.
+- `static/js/agent/prompt-builder.js` - instruct the model to emit teach actions targeting a recipe/skill.
+
 
 ## What
 
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+Action enabling a character who knows a crafting recipe or skill to teach it to an adjacent character.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Teacher verifies possession of recipe knowledge before teaching.
+- [x] Student acquires recipe knowledge upon action completion.

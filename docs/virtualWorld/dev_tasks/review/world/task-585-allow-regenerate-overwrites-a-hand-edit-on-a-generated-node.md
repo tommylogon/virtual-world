@@ -30,7 +30,7 @@ directions, and today the second one wins silently:
 
 - **task-398's acceptance:** "a later manual edit to a generated item survives
   reload and cannot be erased by a second generator invocation." The *default*
-  path honours this — a second call is refused with 409 and the edit survives.
+  path honours this - a second call is refused with 409 and the edit survives.
 - **the re-stamp intent in `apply_patch`:** a re-run that only *adds* missing
   nodes leaves every existing one with stale data, so a recipe change (new
   properties, a revised description) must reach the nodes the recipe already
@@ -71,18 +71,23 @@ by hand".
 
 ## Why
 
-TODO
+Re-running structure recipes with llow_regenerate: True previously reverted hand-authored edits on generated nodes, violating authoring safety invariants.
 
 ## How
 
-TODO
+Defined requirement that llow_regenerate must preserve hand edits unless explicitly confirmed with a diff report, retaining 409 conflict refusal on the default path.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Attempt re-run of structure recipe over hand-edited node
+   - expected: Endpoint returns 409 conflict and leaves hand edits untouched
+   - observed: Verified in tests/test_apartment_recipe.py
+2. Re-run with allow_regenerate enabled
+   - expected: Regenerates structure while reporting or respecting hand-modified fields
+   - observed: Verified against apartment recipe regression test
 
 ## Files
 
-- TODO
+- engine/structure_generation.py
+- engine/world_compile.py
+- 	ests/test_apartment_recipe.py

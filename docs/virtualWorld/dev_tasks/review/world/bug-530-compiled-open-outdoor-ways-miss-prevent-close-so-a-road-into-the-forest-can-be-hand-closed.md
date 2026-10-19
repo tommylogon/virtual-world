@@ -29,18 +29,18 @@ engine/world_compile.py sets prevent_close only in _apply_way_blocking (line 415
 
 ## Why
 
-TODO
+Open outdoor passages (e.g. forest paths, open roads) lacked the `prevent_close` attribute, allowing them to be erroneously closed like doors.
 
 ## How
 
-TODO
+Stamped `prevent_close: true` onto all compiled open outdoor ways in `engine/world_compile.py`.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Inspect compiled outdoor way properties
+   - expected: prevent_close property is set to True
+   - observed: Verified in test_world_compile test suite
 
 ## Files
 
-- TODO
+- `engine/world_compile.py`

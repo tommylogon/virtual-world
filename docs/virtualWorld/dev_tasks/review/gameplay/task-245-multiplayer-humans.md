@@ -6,9 +6,9 @@ area: gameplay
 priority: medium
 ---
 
-# Task-245: Multiplayer Humans — Online or Local
+# Task-245: Multiplayer Humans - Online or Local
 
-**Status:** In Review — local multi-human MVP implemented 2026-08-16.
+**Status:** In Review - local multi-human MVP implemented 2026-08-16.
 **Source:** `dev_tasks/developer ideas.md` (multiplayer humans online or local)
 
 <!-- deps:start -->
@@ -21,7 +21,7 @@ Every non-dead player is in the turn queue regardless of control type. When the 
 lands on a human character, `agent-engine._humanTurn()` calls `ApiClient.setActivePlayer(
 thatHuman)` before prompting, so each human is targeted in queue order and gets a clean
 turn handoff via the existing `active_player` mechanism. No online/concurrent-writer
-support (Flask is single-process) — that remains out of scope.
+support (Flask is single-process) - that remains out of scope.
 
 ## What
 
@@ -34,28 +34,16 @@ the same world state).
 - Local: allow multiple players marked human/active and a clean turn handoff (who acts
   each turn), reusing the existing `active_player` mechanism.
 - Online: feasibility of concurrent writers to the same `app.world.graph` (Flask is
-  single-process/single-threaded here) — locking, session identity, and tick scheduling
+  single-process/single-threaded here) - locking, session identity, and tick scheduling
   for multiple humans must be designed before building.
 - Recommend scoping MVP to local multi-human first; online is a large architectural lift.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Local multiplayer turn queue interleaves multiple human-controlled characters.
+- [x] Turn modal prompts each human player in initiative sequence.
 
 ## Files
 
-- TODO
+- `static/js/agent/turn-queue.js`

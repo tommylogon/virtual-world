@@ -20,7 +20,7 @@ related: ['task-297', 'task-200', 'task-203']
 
 ## Idea
 
-Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say "the pocket is bulging" — else "the pockets are empty".
+Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say "the pocket is bulging" - else "the pockets are empty".
 
 ## Notes
 
@@ -33,28 +33,12 @@ Condition to check if self has an item in a relationship, or if an item has anot
 - `developer ideas.md` line 15
 - `engine/trigger_system.py` (`has_item`, `has_items`, `in_area`), `graph.py` spatial edges
 
-## What
-
-TODO
-
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Condition validates graph relationships between items (contained_by, equipped_on).
+- [x] Trigger only fires when specified item relationship holds.
 
 ## Files
 
-- TODO
+- `engine/conditions.py`

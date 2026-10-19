@@ -1300,11 +1300,24 @@ def _scope_cell_areas(manifest: Dict[str, dict], scope_id: str,
         return f"{kind}|floor:{wg.floor_at(rec, *cell)}"
 
     always_merge = _merge_always_cells(cells, biome_of.get, road_of.get)
-    never_merge = _merge_never_cells(cells, biome_of.get, road_of.get)
+    never_merge = _merge_never_cells(cells, biome_of.get, road_of.get,
+                                     rec.get("placements") or {})
     regions = _regions(cells, identity, default_merge=merge,
                        always_merge=always_merge, never_merge=never_merge)
     scope_label = str(rec.get("name") or scope_id)
     cell_names = dict(rec.get("names") or {})
+    for cid, pos in (rec.get("placements") or {}).items():
+        if not isinstance(pos, dict):
+            continue
+        try:
+            ck = wg.cell_key(int(pos["x"]), int(pos["y"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not str(cell_names.get(ck) or "").strip():
+            child_rec = (manifest or {}).get(str(cid)) or {}
+            cname = str(child_rec.get("name") or "").strip()
+            if cname:
+                cell_names[ck] = cname
     used_names: Set[str] = set()
     for region in regions:
         anchor = region[0]
@@ -1502,7 +1515,8 @@ def preflight(manifest: Dict[str, dict], scope_id: str, *,
                            always_merge=_merge_always_cells(
                                ordered, biome_of.get, road_of.get),
                            never_merge=_merge_never_cells(
-                               ordered, biome_of.get, road_of.get))
+                               ordered, biome_of.get, road_of.get,
+                               record.get("placements") or {}))
         if len(regions) * _WAYS_PER_AREA_UPPER > max_nodes:
             add("node-cap", WARN,
                 f"“{label}” would compile to about {len(regions)} areas, which "
@@ -1788,7 +1802,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     scope_mode = str(record.get("mode") or "")
     climb_threshold = _climb_threshold(record)
     always_merge = _merge_always_cells(cells, cell_biome, cell_road)
-    never_merge = _merge_never_cells(cells, cell_biome, cell_road)
+    never_merge = _merge_never_cells(cells, cell_biome, cell_road,
+                                     record.get("placements") or {})
     region_lists = _regions(cells, identity, default_merge=region_merge,
                             always_merge=always_merge, never_merge=never_merge)
     regions: List[List[Tuple[int, int]]] = region_lists
@@ -1858,8 +1873,23 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
 
     # Author-set cell names (task-560). A merged region is one place, so the first
-    # named cell in the run speaks for all of it.
+    # named cell in the run speaks for all of it. When a cell holds a placed child
+    # scope and has no explicit cell name, the child scope's own display name
+    # speaks for the plot so the world-map area reads "Deep Woods" rather than
+    # "Sparse Forest (world 4,1)".
     cell_names = dict((record.get("names") or {}))
+    for cid, pos in (record.get("placements") or {}).items():
+        if not isinstance(pos, dict):
+            continue
+        try:
+            ck = wg.cell_key(int(pos["x"]), int(pos["y"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not str(cell_names.get(ck) or "").strip():
+            child_rec = manifest.get(str(cid)) or {}
+            cname = str(child_rec.get("name") or "").strip()
+            if cname:
+                cell_names[ck] = cname
     _used_names: Set[str] = set()
     region_area_name = {
         i: _place_name(scope_label, region_anchor[i], biome_of, road_of,

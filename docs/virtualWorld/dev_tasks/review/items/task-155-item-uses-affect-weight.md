@@ -27,9 +27,9 @@ related: [task-205, task-103, task-102, task-196, task-508]
 
 Two related concerns for multi-use consumable items:
 
-1. **Weight tracks remaining uses** — A bread with 4 uses at 0.5 kg should weigh less as it
+1. **Weight tracks remaining uses** - A bread with 4 uses at 0.5 kg should weigh less as it
    gets eaten. Each use consumed reduces the item's weight proportionally.
-2. **Stackable instances** — When the player has multiple copies of the same consumable
+2. **Stackable instances** - When the player has multiple copies of the same consumable
    (e.g. two breads), they should be combinable / splittable rather than managed as
    separate nodes, with weight and uses correctly merged or partitioned.
 
@@ -64,7 +64,7 @@ accounting wrong when uses are consumed on only one copy.
 - `base_weight` is a new optional property; if absent, derive it from the library entry at
   build time (or fall back to current `weight` with no scaling).
 
-### B. Stackable Instances — Combine
+### B. Stackable Instances - Combine
 
 When the player has two or more items with the same `library_id` (or same `name` + `tags` +
 `actions` + `uses` baseline) and the same `max_uses`:
@@ -82,7 +82,7 @@ When the player has two or more items with the same `library_id` (or same `name`
       clamp and note overflow)
     - Recompute weight
 
-### C. Stackable Instances — Split
+### C. Stackable Instances - Split
 
 When an item has many uses and you want to divide it:
 
@@ -100,7 +100,7 @@ When an item has many uses and you want to divide it:
 - Items with different `current_state` (e.g. "sharp" vs "dull" sword) are NOT stackable even
   if same base item.
 - The existing `find_item_node` / matching system (`engine/matching.py:301`) already
-  returns the first carry match — combine/split need to enumerate ALL matching carry edges
+  returns the first carry match - combine/split need to enumerate ALL matching carry edges
   and disambiguate (numbered take: "take bread 2").
 
 ## Implementation
@@ -108,14 +108,14 @@ When an item has many uses and you want to divide it:
 ### Backend
 
 1. `engine/item_actions.py`
-   - Add `_reconcile_item_weight(node)` — recompute `weight` from `base_weight`,
+   - Add `_reconcile_item_weight(node)` - recompute `weight` from `base_weight`,
      `uses`, `max_uses` (rule A). Call it after every `adjust_uses` / `drain` /
      `_consume_item`.
-   - Add `_get_stackable_item_nodes(player_manager, item_name)` — enumerate all
+   - Add `_get_stackable_item_nodes(player_manager, item_name)` - enumerate all
      `EDGE_CARRYING` / `EDGE_EQUIPPED` edges matching the name, return list of nodes.
-   - Add `combine_items(player_manager, source_name, target_name)` — merge uses,
+   - Add `combine_items(player_manager, source_name, target_name)` - merge uses,
      recompute weight, destroy source, re-check capacity.
-   - Add `split_item(player_manager, item_name, parts=2)` — partition uses + weight,
+   - Add `split_item(player_manager, item_name, parts=2)` - partition uses + weight,
      create new node, place in same location.
 2. `engine/effects.py`
    - Call `_reconcile_item_weight` inside `handle_adjust_uses` (line 847) and
@@ -123,13 +123,13 @@ When an item has many uses and you want to divide it:
 3. `routes/graph.py` or `routes/items_registry.py`
    - Expose `combine` / `split` as API endpoints (or reuse the action endpoint).
    - Add `base_weight` and `max_uses` to the item library editable fields.
-4. `engine/matching.py` — ensure `find_item_node` disambiguates numbered requests
+4. `engine/matching.py` - ensure `find_item_node` disambiguates numbered requests
    (already handled by task-81; verify it returns the Nth match so combine/split can
    target specific instances).
 
 ### Frontend
 
-- `static/js/inspector/item-view.js` — show `base_weight`, `max_uses`, computed
+- `static/js/inspector/item-view.js` - show `base_weight`, `max_uses`, computed
   `weight` (recalc on `uses` change) in the item editor.
 - Inventory grid: right-click menu on stackable items → "Combine", "Split",
   "Destroy + Transfer".
@@ -137,13 +137,13 @@ When an item has many uses and you want to divide it:
 
 ## Files to Modify
 
-1. `engine/item_actions.py` — weight reconciliation, combine/split/stack logic
-2. `engine/effects.py` — call weight reconciliation in `handle_adjust_uses` / `handle_drain`
-3. `routes/graph.py` — combine/split API endpoints
-4. `routes/items_registry.py` — `base_weight`, `max_uses` library fields
-5. `static/js/inspector/item-view.js` — editable base_weight, computed weight display
-6. `static/js/inspector/inventory-grid.js` — stack context menu (combine/split/destroy)
-7. `engine/matching.py` — numbered match disambiguation for combine/split targets
+1. `engine/item_actions.py` - weight reconciliation, combine/split/stack logic
+2. `engine/effects.py` - call weight reconciliation in `handle_adjust_uses` / `handle_drain`
+3. `routes/graph.py` - combine/split API endpoints
+4. `routes/items_registry.py` - `base_weight`, `max_uses` library fields
+5. `static/js/inspector/item-view.js` - editable base_weight, computed weight display
+6. `static/js/inspector/inventory-grid.js` - stack context menu (combine/split/destroy)
+7. `engine/matching.py` - numbered match disambiguation for combine/split targets
 
 ## Steps to verify
 
@@ -166,11 +166,13 @@ When an item has many uses and you want to divide it:
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Item total weight recalculates based on current charges or remaining fluid units.
+- [x] Empty container weight reverts to tare weight.
 
 ## Files
 
-- TODO
+- `engine/inventory.py`
+- `tests/test_inventory.py`
 
 ## Browser UI and intended live verification
 

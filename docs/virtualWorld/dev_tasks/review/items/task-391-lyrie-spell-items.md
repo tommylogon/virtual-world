@@ -6,17 +6,17 @@ priority: medium
 related: [task-537, task-534, task-320]
 ---
 
-# task-391: Lyrie's Spellbook — Life-Bonded Spell Items
+# task-391: Lyrie's Spellbook - Life-Bonded Spell Items
 
 **Filed**: 2026-09-02 
 **Implemented**: 2026-09-27 
-**Source**: Character backstory from `data/library/characters/Lyrie.json` — memories, personality, and current Frozen Thicket situation.
+**Source**: Character backstory from `data/library/characters/Lyrie.json` - memories, personality, and current Frozen Thicket situation.
 
 <!-- deps:start -->
 **Related:** [[task-537-spell-effect-and-condition-catalogue-review-list]], [[task-534-missing-body-reaction-sneeze]], [[task-320-scry-sight-effect]]
 <!-- deps:end -->
 
-## Status — implemented (2026-09-27)
+## Status - implemented (2026-09-27)
 
 All 15 spells are in `data/library/items/`, assigned to Lyrie, and backed by five
 new effect handlers. See **Implementation record** at the bottom of this file for
@@ -34,7 +34,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ## Spells
 
 ### 1. Hearth Ember
-**Life memory**: *The Present* (Age 79) — freezing in the Frozen Thicket. 
+**Life memory**: *The Present* (Age 79) - freezing in the Frozen Thicket. 
 **Trigger**: `on_use` 
 **Effect tier**: Existing engine effects only.
 
@@ -43,7 +43,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Hearth Ember",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "A pocket of warmth Lyrie learned out of necessity. She cups her hands and a soft heat blooms between her palms, curling up her arms and toes. It's the only spell that behaves exactly like she wants — probably because she's cast it a thousand times in the snow.",
+ "description": "A pocket of warmth Lyrie learned out of necessity. She cups her hands and a soft heat blooms between her palms, curling up her arms and toes. It's the only spell that behaves exactly like she wants - probably because she's cast it a thousand times in the snow.",
  "tags": ["spell", "magic", "fire", "warmth"],
  "triggers": [
  {
@@ -83,7 +83,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ```
 
 ### 2. Tongue of the Little Folk
-**Life memory**: *The Squirrel Incident* (Age 31) — tried to comfort a squirrel in animal tongue; it screamed for twenty minutes. 
+**Life memory**: *The Squirrel Incident* (Age 31) - tried to comfort a squirrel in animal tongue; it screamed for twenty minutes. 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + `llm_respond` for animal dialogue.
 
@@ -92,7 +92,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Tongue of the Little Folk",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "The elven tongue for beasts. Lyrie knows it well — she learned it the hard way. Animals still don't quite understand her, but she never stops trying. She leaves acorns out as apologies.",
+ "description": "The elven tongue for beasts. Lyrie knows it well - she learned it the hard way. Animals still don't quite understand her, but she never stops trying. She leaves acorns out as apologies.",
  "tags": ["spell", "magic", "beast", "elven"],
  "triggers": [
  {
@@ -128,7 +128,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ```
 
 ### 3. Whisper of Green
-**Life memory**: *The Grapevine* (Age 45) — talked to a grapevine named Vincent for three days. "He never talked back, but he listened." 
+**Life memory**: *The Grapevine* (Age 45) - talked to a grapevine named Vincent for three days. "He never talked back, but he listened." 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `plant_whisper` effect (plants can `llm_respond` as slow, patient speakers).
 
@@ -137,7 +137,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Whisper of Green",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "Named for Vincent the grapevine. Plants speak slowly, in rustles and sap, and they remember everything. This spell lets her ask them small questions — where water hides, which way is safe, whether a storm is coming.",
+ "description": "Named for Vincent the grapevine. Plants speak slowly, in rustles and sap, and they remember everything. This spell lets her ask them small questions - where water hides, which way is safe, whether a storm is coming.",
  "tags": ["spell", "magic", "plant", "elven"],
  "triggers": [
  {
@@ -176,7 +176,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ```
 
 ### 4. Bloom of the Well
-**Life memory**: *The Exile Scare* (Age 62) — tried to make the well prettier with flowers. Turned it into a fountain of blossoms; water unusable for a week. This is the incident that got her almost exiled. 
+**Life memory**: *The Exile Scare* (Age 62) - tried to make the well prettier with flowers. Turned it into a fountain of blossoms; water unusable for a week. This is the incident that got her almost exiled. 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `area_transformation` visual state.
 
@@ -223,9 +223,9 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ```
 
 ### 5. Transfigure: Poultry
-**Life memory**: *The Chicken Cart* (Age 22) — tried to fix a cart wheel with magic. "I made it better — it turned into a chicken." 
+**Life memory**: *The Chicken Cart* (Age 22) - tried to fix a cart wheel with magic. "I made it better - it turned into a chicken." 
 **Trigger**: `on_use_on` (cast on an object) 
-**Effect tier**: **Proposes new effect**: `polymorph_target` — transforms a target item/NPC into another template for a duration.
+**Effect tier**: **Proposes new effect**: `polymorph_target` - transforms a target item/NPC into another template for a duration.
 
 ```json
 {
@@ -241,7 +241,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  {
  "type": "message",
  "params": {
- "message": "Lyrie squints, mutters a word that sounds like 'chicken,' and —"
+ "message": "Lyrie squints, mutters a word that sounds like 'chicken,' and -"
  }
  },
  {
@@ -269,19 +269,19 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `polymorph_target` — takes `target_template` (library item/NPC id), `duration` in ticks, optional `revert_after`. Should work on items and simple NPCs. Reverts automatically after duration.
+**New feature proposal**: `polymorph_target` - takes `target_template` (library item/NPC id), `duration` in ticks, optional `revert_after`. Should work on items and simple NPCs. Reverts automatically after duration.
 
 ### 6. Conjure Fluffy
-**Life memory**: *The Lost Sheep* (Age 70) — found a rock that looked like a sheep. Convinced herself it was Fluffy. "It never moved. I still visit sometimes." 
+**Life memory**: *The Lost Sheep* (Age 70) - found a rock that looked like a sheep. Convinced herself it was Fluffy. "It never moved. I still visit sometimes." 
 **Trigger**: `on_use` 
-**Effect tier**: **Proposes new effect**: `create_illusory_companion` — spawns a temporary, interactable NPC with custom dialogue and behavior.
+**Effect tier**: **Proposes new effect**: `create_illusory_companion` - spawns a temporary, interactable NPC with custom dialogue and behavior.
 
 ```json
 {
  "name": "Conjure Fluffy",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "A rock that looks like a sheep. Lyrie named him Fluffy. He never moved, but he was good company in the snow. This spell conjures something that isn't quite real but feels true — useful when you're lost and the trees all look the same.",
+ "description": "A rock that looks like a sheep. Lyrie named him Fluffy. He never moved, but he was good company in the snow. This spell conjures something that isn't quite real but feels true - useful when you're lost and the trees all look the same.",
  "tags": ["spell", "magic", "illusion", "companion", "elven"],
  "triggers": [
  {
@@ -314,12 +314,12 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `create_illusory_companion` — spawns an NPC with a limited lifespan, custom dialogue snippets, and no collision/physics. Vanishes after duration or if the caster stops concentrating (e.g., moves to a new area).
+**New feature proposal**: `create_illusory_companion` - spawns an NPC with a limited lifespan, custom dialogue snippets, and no collision/physics. Vanishes after duration or if the caster stops concentrating (e.g., moves to a new area).
 
 ### 7. Siren's Lullaby
-**Life memory**: *The Singing Fish* (Age 75) — sang to a sad fish for two hours. It died. She doesn't sing near water anymore. 
+**Life memory**: *The Singing Fish* (Age 75) - sang to a sad fish for two hours. It died. She doesn't sing near water anymore. 
 **Trigger**: `on_use` 
-**Effect tier**: **Proposes new effect**: `broadcast_emotion` — shifts the `emotion` state of all characters within an area radius.
+**Effect tier**: **Proposes new effect**: `broadcast_emotion` - shifts the `emotion` state of all characters within an area radius.
 
 ```json
 {
@@ -356,10 +356,10 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `broadcast_emotion` — shifts `emotion.current` for all characters in range. Could also `adjust_vital` for Social or Sanity as a secondary effect.
+**New feature proposal**: `broadcast_emotion` - shifts `emotion.current` for all characters in range. Could also `adjust_vital` for Social or Sanity as a secondary effect.
 
 ### 8. Spark of the Baking Incident
-**Life memory**: *The Great Baking Incident* (Age 14) — used fire salts instead of flour. Kitchen exploded. Elder Caelum's eyebrows never grew back. 
+**Life memory**: *The Great Baking Incident* (Age 14) - used fire salts instead of flour. Kitchen exploded. Elder Caelum's eyebrows never grew back. 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `spawn_fire_source` persistent hazard.
 
@@ -368,7 +368,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Spark of the Baking Incident",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "Fire salts instead of flour. The kitchen exploded. Elder Caelum's eyebrows never grew back. This spell creates a sudden burst of flame — not a controlled one, but a passionate, enthusiastic one. She still bakes him a cake every year. She buys it now.",
+ "description": "Fire salts instead of flour. The kitchen exploded. Elder Caelum's eyebrows never grew back. This spell creates a sudden burst of flame - not a controlled one, but a passionate, enthusiastic one. She still bakes him a cake every year. She buys it now.",
  "tags": ["spell", "magic", "fire", "elven"],
  "triggers": [
  {
@@ -409,7 +409,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 ```
 
 ### 9. Apology to Chickens
-**Life memory**: *The Chicken Cart* (Age 22) — the aftermath. She apologizes to chickens. This spell makes skittish creatures calm down around her. 
+**Life memory**: *The Chicken Cart* (Age 22) - the aftermath. She apologizes to chickens. This spell makes skittish creatures calm down around her. 
 **Trigger**: `on_use_on` (cast on a character/NPC) 
 **Effect tier**: Existing, but extends `apply_condition` to non-self targets in a spell-item context.
 
@@ -418,7 +418,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Apology to Chickens",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "The Chicken Cart incident left her with a lifelong habit: she apologizes to chickens. This spell extends that apology into a subtle pacification — fowl (and sometimes other skittish creatures) calm down around her.",
+ "description": "The Chicken Cart incident left her with a lifelong habit: she apologizes to chickens. This spell extends that apology into a subtle pacification - fowl (and sometimes other skittish creatures) calm down around her.",
  "tags": ["spell", "magic", "beast", "elven"],
  "triggers": [
  {
@@ -450,7 +450,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 **Dev note**: `on_use_on` with `target: "target"` already exists for items; validating it works from spell items with `target: "target"` is the main QA task here.
 
 ### 10. Vincent's Embrace
-**Life memory**: *The Grapevine* (Age 45) — three days of talking to a vine. "I named him Vincent. He never talked back, but he listened." 
+**Life memory**: *The Grapevine* (Age 45) - three days of talking to a vine. "I named him Vincent. He never talked back, but he listened." 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `reveal_hidden` effect (nature exposes what is concealed).
 
@@ -459,7 +459,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Vincent's Embrace",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "Named for a grapevine who listened for three days. This spell lets her ask the green world for small favors — a hidden path, a safe resting place, something to eat. Plants oblige, slowly.",
+ "description": "Named for a grapevine who listened for three days. This spell lets her ask the green world for small favors - a hidden path, a safe resting place, something to eat. Plants oblige, slowly.",
  "tags": ["spell", "magic", "plant", "elven"],
  "triggers": [
  {
@@ -498,10 +498,10 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `reveal_hidden` — temporarily sets `hidden: false` on items/NPCs/ways within an area radius. Re-hides after duration.
+**New feature proposal**: `reveal_hidden` - temporarily sets `hidden: false` on items/NPCs/ways within an area radius. Re-hides after duration.
 
 ### 11. Fountain of Blossoms
-**Life memory**: *The Exile Scare* (Age 62) — turned the village well into a fountain of blossoms. Water unusable for a week. 
+**Life memory**: *The Exile Scare* (Age 62) - turned the village well into a fountain of blossoms. Water unusable for a week. 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `transform_area_theme` (area appearance override).
 
@@ -550,10 +550,10 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `transform_area_theme` — applies a temporary visual/audio/smell overlay to the current area. Themes could include `blossoming`, `frost`, `autumn`, `starlight`. Duration-based revert.
+**New feature proposal**: `transform_area_theme` - applies a temporary visual/audio/smell overlay to the current area. Themes could include `blossoming`, `frost`, `autumn`, `starlight`. Duration-based revert.
 
 ### 12. Ember Companion
-**Life memory**: *The Present* (Age 79) — she talks to the little flame like a friend. "oh, please stay lit... i need you to keep me warm." 
+**Life memory**: *The Present* (Age 79) - she talks to the little flame like a friend. "oh, please stay lit... i need you to keep me warm." 
 **Trigger**: `on_use` 
 **Effect tier**: Existing + proposed `bind_companion` (persistent summoned entity that follows caster).
 
@@ -594,19 +594,19 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `bind_companion` — marks a spawned item/NPC as a persistent companion of the caster. It follows the caster across area transitions within duration, retains its own triggers/behaviors, and can be interacted with by other characters. Vanishes if caster dies or duration expires.
+**New feature proposal**: `bind_companion` - marks a spawned item/NPC as a persistent companion of the caster. It follows the caster across area transitions within duration, retains its own triggers/behaviors, and can be interacted with by other characters. Vanishes if caster dies or duration expires.
 
 ### 13. Mending Touch
-**Life memory**: *The Chicken Cart* (Age 22) — the original intent was fixing the wheel. 
+**Life memory**: *The Chicken Cart* (Age 22) - the original intent was fixing the wheel. 
 **Trigger**: `on_use` 
-**Effect tier**: **Proposes new effect**: `repair_item` — restores durability/uses to a broken item in inventory or on the ground.
+**Effect tier**: **Proposes new effect**: `repair_item` - restores durability/uses to a broken item in inventory or on the ground.
 
 ```json
 {
  "name": "Mending Touch",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "The spell she tried to use on the chicken cart. She wanted to fix the wheel. It turned the cart into a chicken. But the principle was right — mending. If she concentrates very hard, she can make broken things whole again. Mostly.",
+ "description": "The spell she tried to use on the chicken cart. She wanted to fix the wheel. It turned the cart into a chicken. But the principle was right - mending. If she concentrates very hard, she can make broken things whole again. Mostly.",
  "tags": ["spell", "magic", "mending", "elven"],
  "triggers": [
  {
@@ -615,7 +615,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  {
  "type": "message",
  "params": {
- "message": "Lyrie presses her hands to the broken thing and closes her eyes. Her brow furrows with effort. For a moment nothing happens. Then — a soft green glow. The cracks knit together."
+ "message": "Lyrie presses her hands to the broken thing and closes her eyes. Her brow furrows with effort. For a moment nothing happens. Then - a soft green glow. The cracks knit together."
  }
  },
  {
@@ -634,10 +634,10 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `repair_item` — restores `uses` or a new `durability` field on a target item. If no durability system exists yet, this effect seeds the schema discussion for one.
+**New feature proposal**: `repair_item` - restores `uses` or a new `durability` field on a target item. If no durability system exists yet, this effect seeds the schema discussion for one.
 
 ### 14. Glimpse of the Lost Path
-**Life memory**: *The Present* (Age 79) — three days lost in the woods. "I think I'm going the right way. I'm probably not." 
+**Life memory**: *The Present* (Age 79) - three days lost in the woods. "I think I'm going the right way. I'm probably not." 
 **Trigger**: `on_use` 
 **Effect tier**: Existing (`scry`) + proposed `set_way_hint` (way metadata update).
 
@@ -646,7 +646,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "name": "Glimpse of the Lost Path",
  "actions": "examine,use",
  "current_state": "normal",
- "description": "Three days lost in the woods. She learned to ask the forest for directions. Not a map — just a feeling, a pull, a sense of which way leads home. It's not always right, but it's always hopeful.",
+ "description": "Three days lost in the woods. She learned to ask the forest for directions. Not a map - just a feeling, a pull, a sense of which way leads home. It's not always right, but it's always hopeful.",
  "tags": ["spell", "magic", "navigation", "elven"],
  "triggers": [
  {
@@ -656,7 +656,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
  "type": "scry",
  "params": {
  "target": "nearest_way_out",
- "message": "You catch a glimpse of a familiar landmark — the village, the well, the tree with the low branch. You think you know which way to go."
+ "message": "You catch a glimpse of a familiar landmark - the village, the well, the tree with the low branch. You think you know which way to go."
  }
  },
  {
@@ -676,12 +676,12 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `set_way_hint` — adds a temporary narrative hint to a way/node. Displayed in look/examine outputs and way tooltips for `duration` ticks.
+**New feature proposal**: `set_way_hint` - adds a temporary narrative hint to a way/node. Displayed in look/examine outputs and way tooltips for `duration` ticks.
 
 ### 15. Hearth Ward
-**Life memory**: *The Exile Scare* (Age 62) aftermath — she did chores for everyone to make amends. Learned that protection is quieter than beauty. 
+**Life memory**: *The Exile Scare* (Age 62) aftermath - she did chores for everyone to make amends. Learned that protection is quieter than beauty. 
 **Trigger**: `on_use` 
-**Effect tier**: **Proposes new effect**: `ward_area` — grants a defensive bonus or condition resistance within an area for a duration.
+**Effect tier**: **Proposes new effect**: `ward_area` - grants a defensive bonus or condition resistance within an area for a duration.
 
 ```json
 {
@@ -721,7 +721,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 }
 ```
 
-**New feature proposal**: `ward_area` — grants a buff to all friendly characters within `radius_areas`. Supports `defense_bonus`, `resistance` (element/status), and `auto_fail_saves` suppression.
+**New feature proposal**: `ward_area` - grants a buff to all friendly characters within `radius_areas`. Supports `defense_bonus`, `resistance` (element/status), and `auto_fail_saves` suppression.
 
 ## Companion Items / NPCs Needed
 
@@ -751,7 +751,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 
 ## Implementation Plan
 
-1. **Implement new effects** in `engine/trigger_system.py` (or new `engine/spell_effects.py` if volume warrants) — prioritize by spell count: `polymorph_target`, `repair_item`, and `ward_area` are the highest-value because they unlock entire gameplay loops.
+1. **Implement new effects** in `engine/trigger_system.py` (or new `engine/spell_effects.py` if volume warrants) - prioritize by spell count: `polymorph_target`, `repair_item`, and `ward_area` are the highest-value because they unlock entire gameplay loops.
 2. **Create companion items/NPCs**: `fluffy`, `vincent`, `chicken` in `data/library/items/` and `data/library/characters/`.
 3. **Create spell item JSONs** in `data/library/items/` using the specs above.
 4. **Assign spells to Lyrie**: add the completed item `library_id`s to `inventory` in `data/library/characters/Lyrie.json`.
@@ -768,7 +768,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 
 ### What was added
 
-**Five effect handlers** — `engine/effect_handlers/spells.py`, registered via
+**Five effect handlers** - `engine/effect_handlers/spells.py`, registered via
 `engine/effects.py`, declared in `engine/triggers/constants.py`:
 
 | Effect | What it does | Built from |
@@ -782,7 +782,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 Durations are in **ticks**, and the passage of time is handled in a new
 `engine/companions.py` (`process_companions`), called once per turn from
 `engine/tick_manager.py`. The effect handlers mark the world and get out of the
-way, so a spell author never reasons about the tick loop — and the sweep sits
+way, so a spell author never reasons about the tick loop - and the sweep sits
 *outside* the `skip_npcs` guard deliberately, so a fast-forward still lets a
 conjuration expire.
 
@@ -796,7 +796,7 @@ conjuration expire.
 **Two companion entities**: `data/library/characters/fluffy.json` and
 `data/library/items/chicken.json`. All four items the spec assumed already
 existed did (`everflame_ember`, `flowers`, `white_feather`, `candle`).
-`vincent` was **not** created — Whisper of Green uses `llm_respond`, which
+`vincent` was **not** created - Whisper of Green uses `llm_respond`, which
 generates the plant's voice from instructions and needs no library entity.
 
 **Lyrie** now carries the spellbook: 15 entries added to `inventory` in
@@ -822,7 +822,7 @@ Several effect params in the spec did not match the handlers:
  `text` / `importance`. It only surfaces a memory that **already exists**; all
  nine of Lyrie's memories carry the right phrases (`Grapevine`,
  `Baking Incident`, `The Present`), so the keywords match.
-- `spawn_item` supports `into: "area"` or `"container"` — **not** `"inventory"`.
+- `spawn_item` supports `into: "area"` or `"container"` - **not** `"inventory"`.
  Ember Companion spawns into the area and `bind_companion` then carries it.
 - `set_emotion` allows only 7 emotions, so Siren's Lullaby's `"soothed"` would
  have raised. It targets the task-96 affect map instead (`calm`/`peaceful` up,
@@ -832,12 +832,12 @@ Two proposals were substituted rather than invented:
 
 - `repair_item` -> `adjust_uses`. **Known limitation:** `adjust_uses` no-ops on
  items with `uses: -1` (it only adjusts when `current_uses >= 0`), so Mending
- Touch is a no-op on indestructible items. Real durability is a schema change —
+ Touch is a no-op on indestructible items. Real durability is a schema change -
  filed as the seed of that discussion in task-537.
 - `transform_area_theme` -> `adjust_environment` + `append_description`.
 - `ward_area` -> `apply_area_status: blessed` (the one existing ward-like status;
  it grants +5 light/tick). The `defense_bonus` and `resistance` halves of the
- proposal were **dropped**, not faked — see task-537.
+ proposal were **dropped**, not faked - see task-537.
 - `plant_whisper` needed nothing new; it is `llm_respond`.
 
 ### Gaps and follow-ups
@@ -866,7 +866,7 @@ Two proposals were substituted rather than invented:
 - **`broadcast_emotion` names specific affect keys** (`calm`, `peaceful`,
  `anxious`, `uneasy`) and the emotion vocabulary is slated for a reword pass.
  The handler skips unknown keys per character rather than failing the cast, so
- a rename degrades to "half the effect" rather than "broken spell" — but Siren's
+ a rename degrades to "half the effect" rather than "broken spell" - but Siren's
  Lullaby will need revisiting.
 
 ### Not done
@@ -875,39 +875,16 @@ Two proposals were substituted rather than invented:
  proposal and is now historical. See task-537 for the reviewed, consolidated
  list of missing effects.
 - `Fluffy` is `autonomy: false` / `simple_npc: false`, so it never draws an LLM
- turn and never soaks. That is deliberate — a conjured object is not an actor —
+ turn and never soaks. That is deliberate - a conjured object is not an actor -
  but it does mean it is a static prop, not a companion you can talk to.
 
-## Why
-
-TODO
-
-## How
-
-TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Spell scrolls and magical items instantiate with proper trigger and effect contracts.
+- [x] Using spell item casts associated magical effect and expends charges.
 
 ## Files
 
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: Library Browser → Lyrie's character/spellbook → inspect the 12 authored spell items → use an implementable spell from Inventory/action controls → inspect the target, memory, and event result.
-
-Current availability: the card contains 12 proposed spell-item specifications, some using existing effects and some proposing new trigger/effect types. Their library authoring and runtime behavior are not claimed complete by this card.
-
-Live steps when available:
-1. Open each Lyrie spell item in the Library Browser and compare its JSON-facing details with its linked life memory or enduring situation.
-   - expected: every spell is a valid library item and its purpose reflects Lyrie's kind/chaotic personality; unsupported mechanics are marked as proposals rather than silently treated as working.
-2. Import an existing-effect spell into Lyrie's inventory and use it on its intended target.
-   - expected: the authored trigger resolves using current engine effects and produces the specified result once.
-3. Attempt one spell that requires a new effect type not yet implemented.
-   - expected: the UI/authoring validator identifies the unsupported effect and does not report a successful spell result.
-4. Save/reload and inspect Lyrie's spellbook and memories.
-   - expected: authored items persist and the related character memory remains the source context; no spell creates a separate character-memory store.
-
-This section is not a claim that all 12 spell mechanics are implemented today.
+- `data/library/items/*.json`
+- `engine/effects.py`

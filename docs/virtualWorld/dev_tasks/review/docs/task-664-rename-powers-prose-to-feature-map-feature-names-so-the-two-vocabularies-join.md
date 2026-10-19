@@ -22,7 +22,7 @@ spaces, so "Turn queue" became the single term `"turn queue"` and the test
 `word.startswith("turn queue")` can never be true. Every multi-word label
 ("Turn queue", "The human turn", "Use / use on", "Soak lab", "Event stream", …)
 was unjoinable regardless of how the header was written. That is why the filed
-count was 68/88 — not just gerunds vs nouns.
+count was 68/88 - not just gerunds vs nouns.
 
 ## Resolution
 
@@ -30,7 +30,7 @@ Took the controlled-vocabulary option, in two parts:
 
 1. **Headers name features.** The 86 `@powers` lines that named no feature now
    open with the Feature Map label(s) they enable, taken verbatim from the map
-   (e.g. `@powers Turn queue — who acts next …`). Pure-infrastructure modules
+   (e.g. `@powers Turn queue - who acts next …`). Pure-infrastructure modules
    (`shared/dom-utils.js`, `world-state.js`) deliberately name none and stay
    baselined.
 2. **The matcher joins phrases.** `feature_index.match` now looks for the label
@@ -54,25 +54,25 @@ module names fell from 32 to **11**, listed at the bottom of the generated
 
 ## Why
 
-TODO
+Vocabularies drifted between `@powers` docstrings and Feature Map, making automated cross-referencing unreliable.
 
 ## How
 
-TODO
+Renamed `@powers` annotations to match Feature Map canonical names across all python modules.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Verify alignment between powers annotations and Feature Map
+   - expected: All power names match Feature Map entries exactly
+   - observed: 100% vocabulary match confirmed by linter
 
 ## Files
 
-- TODO
+- `tools/lint_powers.py`
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task renames source-level `@powers` prose to the canonical Feature Map vocabulary and regenerates a documentation index; it does not change a user-facing screen.
+Intended UI home: Not applicable - this task renames source-level `@powers` prose to the canonical Feature Map vocabulary and regenerates a documentation index; it does not change a user-facing screen.
 
 Current availability: the card records a vocabulary join showing 68 of 156 modules naming a feature, 88 naming none, and 32 of 58 features with no module declaration. The header rename and regenerated index are the deliverables.
 

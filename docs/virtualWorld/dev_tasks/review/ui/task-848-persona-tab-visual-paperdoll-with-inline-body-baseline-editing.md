@@ -26,12 +26,12 @@ Navigate mode swaps equip actions for selection (slots dispatch
 and rings the selection. The side panel gains per-region sensitivity
 sliders writing the new authorable baseline endpoint. Injury stays
 unwritable (sim state); schema text still edits in the fold (single
-editors — sliders write a different endpoint, so nothing fights).
+editors - sliders write a different endpoint, so nothing fights).
 
 ## Why
 
 The 847 chip row proved the mapping; the doll is the surface the user
-actually asked for — see, click, adjust the body's baseline instead of
+actually asked for - see, click, adjust the body's baseline instead of
 a database form for everything. A second doll was rejected: two figures
 means two places where the left hand lives, and they will drift.
 
@@ -46,11 +46,11 @@ means two places where the left hand lives, and they will drift.
 - Template: grid loop extracted verbatim into the figure; equip caller
   passes `{mode:'equip'}` (output unchanged); Persona passes
   `{mode:'navigate', selectedArea}`. `navigateToArea` calls the host's
-  `onNavigate` callback — the doll never edits, it names an area.
+  `onNavigate` callback - the doll never edits, it names an area.
 - Panel: `_refreshBodyNav` re-renders doll + side in place (unsaved
   typing still survives); sliders PUT on release, patch local
   `worldState` player, refresh. Jumps unchanged.
-- Pretty: navigate CSS — gradient slots, hover lift + accent glow,
+- Pretty: navigate CSS - gradient slots, hover lift + accent glow,
   selection ring, hot tint (sens ≥ .75), hurt red glow. CSS-only, no
   per-frame JS.
 
@@ -63,16 +63,10 @@ Current availability: frontend live-checked 2026-10-16 on :4444; `PUT /body` bac
 Live steps when available:
 1. Mind → Persona → Appearance, click the TORSO slot on the doll.
    - expected: slot rings selected; side shows 5 region rows each with a sensitivity slider + chest summary + jumps.
-   - observed: exact — `pd-sel` on torso, 5 sliders, chest "empty, fill it below" (Arix prose-only); viewport screenshot taken.
+   - observed: exact - `pd-sel` on torso, 5 sliders, chest "empty, fill it below" (Arix prose-only); viewport screenshot taken.
 2. Mind → Inventory tab (equipment surface, regression).
-   - expected: unchanged — equip pickers, slot modals, 🩺 buttons, carry bar.
-   - observed: equip-mode figure verified via live render (equip picker/modal/🩺 present, `data-mode="equip"`); filled-slot path not exercisable live (nobody currently geared — equipping would dirty the world; branch is verbatim moved code, covered by ts gate).
-
-Why no browser UI: (only when Intended UI home is Not applicable) TODO — explain why browser interaction is not appropriate.
-
-Alternative verification steps: (only when Intended UI home is Not applicable)
-1. TODO — describe an observable alternative.
-   - expected: TODO — describe the result.
+   - expected: unchanged - equip pickers, slot modals, 🩺 buttons, carry bar.
+   - observed: equip-mode figure verified via live render (equip picker/modal/🩺 present, `data-mode="equip"`); filled-slot path not exercisable live (nobody currently geared - equipping would dirty the world; branch is verbatim moved code, covered by ts gate).
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 

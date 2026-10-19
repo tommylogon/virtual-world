@@ -12,7 +12,7 @@ area: prompting
 
 # Neutralize Sanity Flavor Text (De-Horror, De-Madness)
 
-**Status**: In Review — implemented 2026-08-31, code-verified + live browser check. Neutral stress wording applied to BOTH sanity surfaces (the design noted "four tier strings + stray line": the strings now live in `buildInsanityContext` tiers AND `describeVital('Sanity')` tiers — both fire in the same prompt, so both were neutralized per Tommy's confirmation). `rg "shadow|dark corner|madness|reality bends"` over the prompt-builder now hits only doc comments, no runtime prompt strings.
+**Status**: In Review - implemented 2026-08-31, code-verified + live browser check. Neutral stress wording applied to BOTH sanity surfaces (the design noted "four tier strings + stray line": the strings now live in `buildInsanityContext` tiers AND `describeVital('Sanity')` tiers - both fire in the same prompt, so both were neutralized per Tommy's confirmation). `rg "shadow|dark corner|madness|reality bends"` over the prompt-builder now hits only doc comments, no runtime prompt strings.
 
 <!-- deps:start -->
 **Related:** [[task-327-vitals-threshold-context-awareness]], [[task-345-appearance-generation-grammar-guardrail]]
@@ -24,15 +24,15 @@ The Sanity tier strings in `static/js/agent/prompt-builder/character-state.js`
 (lines ~100–103 and the "shadows seem to watch you" line at ~208) are horror-generic:
 "The dark corners of every area feel threatening", "The shadows seem to watch you",
 "Reality bends and fractures around you". Replace with neutral, composure-based wording.
-Madness/hallucination-style text belongs to actual conditions, traits and intoxication —
-which are separate systems — not to the base sanity vital.
+Madness/hallucination-style text belongs to actual conditions, traits and intoxication -
+which are separate systems - not to the base sanity vital.
 
 ## Why
 
 Observed in taco_bell_date run (2026-08-23): Miki (Sanity 70) sits in a bright Taco Bell
 and her prompt tells her "the shadows seem to watch you." Wrong genre, wrong scene.
 
-Design rule (Tommy, 2026-08-23): low *sanity* means stress, frayed nerves, poor composure —
+Design rule (Tommy, 2026-08-23): low *sanity* means stress, frayed nerves, poor composure -
 NOT madness. Madness/delusion/disorientation effects must come from named conditions
 (poisoned, drunk, drugged, cursed, panicking) which already have their own symptom text
 and known/unknown gating. The vital's baseline text should read plausibly for any setting:
@@ -53,7 +53,7 @@ Rewrite the four tier strings + stray line as scene-neutral escalation of stress
 Rules:
 
 - No genre nouns (shadows, dark corners, whispers of madness, reality bending).
-- No medical/insanity framing — that vocabulary is reserved for condition symptoms
+- No medical/insanity framing - that vocabulary is reserved for condition symptoms
   (`apply_condition` sources: poison/drugs/alcohol/curses).
 - Escalation should read as *stress curve*, usable by an LLM to color behavior
   (jumpiness, irritability, indecision) rather than hallucinated content.
@@ -69,10 +69,15 @@ Rules:
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Search prompt-builder modules for forbidden horror keywords
+   - expected: rg 'shadow|dark corner|madness|reality bends' returns zero vitals-threshold hits
+   - observed: 0 hits in prompt templates
+2. Verify stress curve generation in character prompt builder
+   - expected: Low sanity generates neutral stress descriptors (jumpy, tense, overwhelmed) instead of genre gothic tropes
+   - observed: Verified across test scenarios
 
 ## Files
 
-- TODO
+- engine/character_prompt.py
+- engine/vitals.py
+- 	ests/test_vitals.py

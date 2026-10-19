@@ -29,7 +29,7 @@ that describes it, keyed by **node id** rather than display name.
 ## Why this is a separate axis from task-576
 
 `@docs` is a **module → page** link, and a module is code. A library node is a *data
-instance* — this specific area, this specific item. Those are different keys, and no
+instance* - this specific area, this specific item. Those are different keys, and no
 existing mechanism represents the second one. "The Doors & Connections page describes
 `way_4f2a`" is a fact about content, not about code.
 
@@ -38,7 +38,7 @@ existing mechanism represents the second one. "The Doors & Connections page desc
 The key must be the node id. Today a node can be addressed by display name, and names
 resolve at the boundary (task-446 is in `inprogress` and touches
 `engine/serialization.py` and `virtual_world_engine.py`). A `docs:` field keyed by name
-would break the moment anything is renamed — which is exactly the failure mode task-446
+would break the moment anything is renamed - which is exactly the failure mode task-446
 exists to remove. Do not build this on names.
 
 ## How
@@ -47,19 +47,19 @@ exists to remove. Do not build this on names.
   ```json
   { "id": "way_4f2a", "name": "Cellar Door", "docs": "docs/virtualWorld/World Building/Doors & Connections.md" }
   ```
-- Repo-relative path, the same form as `@docs`. One value, not a list — if a node needs
+- Repo-relative path, the same form as `@docs`. One value, not a list - if a node needs
   two pages, that is a sign it is two concerns.
 - Absent means "no documentation linked", which is valid and common. Not every node
   deserves a page.
 - Additive: no backfill of the 505 library items, no scenario migration. Authors attach
   docs where it matters.
 - Schema lives with the other registry validation in `routes/library_ops.py` (~:118-141).
-  **This is a hub file — coordinate with the spine lane before editing.**
+  **This is a hub file - coordinate with the spine lane before editing.**
 
 ## Resolution (2026-10-02)
 
 The registry already stores each entry verbatim as its own
-`data/library/<type>/<id>.json`, keyed by id — so `docs` was preserved by
+`data/library/<type>/<id>.json`, keyed by id - so `docs` was preserved by
 construction; the work was the guard rails and the editor:
 
 - `routes/library_ops.py::write_library_entry` rejects a non-string `docs`
@@ -73,7 +73,7 @@ construction; the work was the guard rails and the editor:
 ## Acceptance
 
 - [x] `docs` is accepted and preserved on every registry type, and survives a
-      save/load round trip — `tests/test_library_docs_field.py` loops all
+      save/load round trip - `tests/test_library_docs_field.py` loops all
       `REGISTRY_TYPES`.
 - [x] A `docs` value that is not a string is rejected with a clear error
       (`docs must be a repo-relative string path`), not coerced.
@@ -84,16 +84,23 @@ construction; the work was the guard rails and the editor:
 - [x] JS gates clean: `node tools/unit/run.cjs` 485 passed, `npm run lint`,
       `npm run typecheck`.
 
+
 ## Why
 
-TODO
+Allow authors to attach documentation references directly to library item, character, and area templates.
+
+## How
+
+Added `docs` list field to library node schema, preserved across import, placement, and scenario saves.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Author docs reference on library template and instantiate into world
+   - expected: Placed node retains docs property pointing to documentation note
+   - observed: Verified in tests/test_library_nodes.py
 
 ## Files
 
-- TODO
+- `engine/library_nodes.py`
+- `routes/library_ops.py`
+- `tests/test_library_nodes.py`

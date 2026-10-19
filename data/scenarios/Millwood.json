@@ -1,0 +1,562 @@
+{
+  "current_area": null,
+  "players_in_area": [],
+  "area_presence": {},
+  "players": {},
+  "active_player": null,
+  "game_time": "08:00:00",
+  "time_ticks": 0,
+  "time_per_tick_minutes": 5,
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "graph": {
+    "nodes": {
+      "area_world_3_2": {
+        "id": "area_world_3_2",
+        "type": "area",
+        "name": "Sparse Forest (World 3,2)",
+        "properties": {
+          "world_scope_id": "world",
+          "tags": [
+            "forest",
+            "woods",
+            "feature",
+            "outdoor"
+          ],
+          "floor": 0,
+          "surface": "dirt",
+          "environment": {
+            "light": 60,
+            "temperature": 20
+          },
+          "description": "Scattered trees open onto patches of grass. East Millwood And Woods stands here.",
+          "x": 120,
+          "y": 80,
+          "cell": {
+            "x": 3,
+            "y": 2
+          },
+          "biome": "sparse_forest",
+          "child_scope_id": "east_millwood_and_woods",
+          "generated": {
+            "scope_id": "world",
+            "recipe_id": "grid.v2",
+            "seed": "world:grid.v2",
+            "generated_at_tick": 0
+          }
+        },
+        "created": 1792351900.19597,
+        "updated": 1792352469.7218888
+      },
+      "item_world_area_world_3_2_res0": {
+        "id": "item_world_area_world_3_2_res0",
+        "type": "item",
+        "name": "potato",
+        "properties": {
+          "description": "A potato, the eyes already sprouting in the dark.",
+          "uses": 3,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "vegetable",
+            "root",
+            "staple"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "potato",
+          "damage_reduction": 0,
+          "evasion": 0,
+          "defense": 0,
+          "damage": 0,
+          "damage_type": "",
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "generated": {
+            "scope_id": "world",
+            "recipe_id": "resource_distribution.v1",
+            "seed": "world:grid.v2",
+            "generated_at_tick": 0
+          },
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ]
+        },
+        "created": 1792351900.5509567,
+        "updated": 1792352469.7228887
+      },
+      "trigger_item_world_area_world_3_2_res0_['on_eat']_0": {
+        "id": "trigger_item_world_area_world_3_2_res0_['on_eat']_0",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -30,
+                "target": "self"
+              }
+            }
+          ],
+          "generated": {
+            "scope_id": "world",
+            "recipe_id": "resource_distribution.v1",
+            "seed": "world:grid.v2",
+            "generated_at_tick": 0
+          }
+        },
+        "created": 1792351900.5509567,
+        "updated": 1792352469.7228887
+      }
+    },
+    "edges": [
+      {
+        "source": "item_world_area_world_3_2_res0",
+        "target": "trigger_item_world_area_world_3_2_res0_['on_eat']_0",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -30,
+                "target": "self"
+              }
+            }
+          ],
+          "generated": {
+            "scope_id": "world",
+            "recipe_id": "resource_distribution.v1",
+            "seed": "world:grid.v2",
+            "generated_at_tick": 0
+          }
+        }
+      },
+      {
+        "source": "item_world_area_world_3_2_res0",
+        "target": "area_world_3_2",
+        "type": "in",
+        "properties": {}
+      }
+    ]
+  },
+  "turn_number": 0,
+  "narration_mode": "none",
+  "ghost_mode": false,
+  "mature_content": false,
+  "_scenario_name": "Millwood",
+  "world_lore": [],
+  "world_scopes": {
+    "world": {
+      "id": "world",
+      "name": "World",
+      "kind": "scope",
+      "parent_id": null,
+      "children": [
+        "west_millwood",
+        "lakeshore_drive",
+        "commercial_district",
+        "east_millwood_and_woods",
+        "south_millwood",
+        "millwood__public_school",
+        "cemetery_west",
+        "cementery_east",
+        "lakeshore_lake",
+        "suburbs"
+      ],
+      "area_ids": [
+        "area_world_3_2"
+      ],
+      "state": "materialized",
+      "mode": "world",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "layers": {
+        "biome": {
+          "3,2": "sparse_forest"
+        }
+      },
+      "placements": {
+        "cementery_east": {
+          "x": 1,
+          "y": 2
+        },
+        "cemetery_west": {
+          "x": 0,
+          "y": 2
+        },
+        "commercial_district": {
+          "x": 3,
+          "y": 1
+        },
+        "east_millwood_and_woods": {
+          "x": 3,
+          "y": 2,
+          "area_id": "area_world_3_2",
+          "area_name": "Sparse Forest (World 3,2)"
+        },
+        "lakeshore_drive": {
+          "x": 3,
+          "y": 0
+        },
+        "lakeshore_lake": {
+          "x": 4,
+          "y": 0
+        },
+        "millwood__public_school": {
+          "x": 2,
+          "y": 1
+        },
+        "south_millwood": {
+          "x": 2,
+          "y": 2
+        },
+        "suburbs": {
+          "x": 1,
+          "y": 1
+        },
+        "west_millwood": {
+          "x": 0,
+          "y": 1
+        }
+      },
+      "reference": {
+        "image": "/static/images/backgrounds/Millwood_ Autumn Town Map.png",
+        "opacity": 1.0,
+        "visible": true
+      },
+      "generated_baselines": {
+        "area_world_3_2": {
+          "world_scope_id": "09bf524dc6f52721",
+          "tags": "e27e3fdd14d322ef",
+          "floor": "5feceb66ffc86f38",
+          "surface": "36072549b16c6837",
+          "environment": "2ead2aa33ad4d96d",
+          "description": "ee76a2a675a940d4",
+          "x": "2abaca4911e68fa9",
+          "y": "48449a14a4ff7d79",
+          "cell": "8dae7f0913060e75",
+          "biome": "98cb4fdf2ad6331a",
+          "child_scope_id": "b289598676d16782"
+        },
+        "item_world_area_world_3_2_res0": {
+          "description": "97fa132c43f31428",
+          "uses": "4e07408562bedb8b",
+          "weight": "44896b09365746b5",
+          "action_costs": "44136fa355b3678a",
+          "skill_check": "44136fa355b3678a",
+          "equip_slots": "4f53cda18c2baa0c",
+          "tags": "e1d135acbd625288",
+          "affinity": "4f53cda18c2baa0c",
+          "current_state": "82fbb169e7983248",
+          "light_level": "fb067b8ef0e2804c",
+          "target_temperature": "74234e98afe7498f",
+          "heating_rate": "74234e98afe7498f",
+          "sound_level": "74234e98afe7498f",
+          "sound_pattern": "74234e98afe7498f",
+          "stun_chance": "74234e98afe7498f",
+          "stun_duration": "74234e98afe7498f",
+          "library_id": "0c4b321d85b8b974",
+          "damage_reduction": "5feceb66ffc86f38",
+          "evasion": "5feceb66ffc86f38",
+          "defense": "5feceb66ffc86f38",
+          "damage": "5feceb66ffc86f38",
+          "damage_type": "12ae32cb1ec02d01",
+          "insulation": "5feceb66ffc86f38",
+          "resistances": "44136fa355b3678a",
+          "image": "74234e98afe7498f",
+          "actions": "d2a0be3866dcd950"
+        },
+        "trigger_item_world_area_world_3_2_res0_['on_eat']_0": {
+          "trigger_type": "320564a9c5b6878a",
+          "target_name": "12ae32cb1ec02d01",
+          "effects": "4248a70405b425a5"
+        }
+      },
+      "region_merge": false,
+      "entry_area_id": "area_world_3_2",
+      "entry_area_name": "Sparse Forest (World 3,2)",
+      "entry_cell": {
+        "x": 3,
+        "y": 2
+      },
+      "entry_floor": null,
+      "sibling_traversal": true
+    },
+    "west_millwood": {
+      "id": "west_millwood",
+      "name": "west millwood",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "lakeshore_drive": {
+      "id": "lakeshore_drive",
+      "name": "lakeshore drive",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "commercial_district": {
+      "id": "commercial_district",
+      "name": "commercial district",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "east_millwood_and_woods": {
+      "id": "east_millwood_and_woods",
+      "name": "east millwood and woods",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "south_millwood": {
+      "id": "south_millwood",
+      "name": "south millwood",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "millwood__public_school": {
+      "id": "millwood__public_school",
+      "name": "millwood  public school",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "cemetery_west": {
+      "id": "cemetery_west",
+      "name": "cemetery west",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "cementery_east": {
+      "id": "cementery_east",
+      "name": "cementery east",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "lakeshore_lake": {
+      "id": "lakeshore_lake",
+      "name": "lakeshore lake",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    },
+    "suburbs": {
+      "id": "suburbs",
+      "name": "suburbs",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 5,
+        "h": 3
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
+    }
+  },
+  "calendar_config": {
+    "minutes_per_day": 1440,
+    "days_per_week": 7,
+    "days_per_month": 30,
+    "months_per_year": 12,
+    "year_start_day": 1
+  },
+  "forecast_schedule": {
+    "entries": [
+      {
+        "air": "fresh",
+        "humidity": "dry",
+        "light_mod": 0,
+        "message": "Dawn breaks clear over the valley; mist lifts off the river.",
+        "offset": 0,
+        "temperature_mod": 0,
+        "weather": "clear",
+        "wind": "breeze"
+      },
+      {
+        "air": "fresh",
+        "humidity": "humid",
+        "light_mod": -3,
+        "message": "Clouds roll in from the northern hills, softening the midday sun.",
+        "offset": 360,
+        "temperature_mod": -1,
+        "weather": "overcast",
+        "wind": "wind"
+      },
+      {
+        "air": "fresh",
+        "humidity": "wet",
+        "light_mod": -5,
+        "message": "A steady rain settles in as evening draws on, beading on the leaves.",
+        "offset": 720,
+        "temperature_mod": -3,
+        "weather": "rain",
+        "wind": "breeze"
+      }
+    ],
+    "granularity": "hourly",
+    "mode": "authored"
+  },
+  "forecast_override": null,
+  "graph_background": {
+    "layers": [
+      {
+        "id": "bg-o0e2x0b",
+        "label": "world",
+        "image": "/static/images/backgrounds/Millwood_ Autumn Town Map.png",
+        "rect": {
+          "x": -230,
+          "y": -230,
+          "width": 2300,
+          "height": 1380
+        },
+        "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
+        "visible": true
+      }
+    ],
+    "positions": {},
+    "layoutLocked": false
+  },
+  "commons_theme": "live_social",
+  "schema_version": 2
+}

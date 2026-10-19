@@ -119,7 +119,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         // with no idea what was rolled, and cannot explain it. Keep the first
         // line as the outcome and prepend the check line.
         const check = lines.find(l => /^\[(Skill Check|Save|Check|Grab)\b/.test(l));
-        if (check && check !== lines[0]) return `${check} — ${lines[0]}`;
+        if (check && check !== lines[0]) return `${check} - ${lines[0]}`;
         return lines[0];
     }
 

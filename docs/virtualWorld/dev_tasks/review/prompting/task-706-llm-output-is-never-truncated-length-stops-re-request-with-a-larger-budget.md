@@ -22,7 +22,7 @@ A length stop from the provider re-requests with a doubled budget instead of han
 ## Acceptance
 
 - **Wired:** the runtime path reaches it. Every `llmClient.chat()` call goes
-  through the escalation — there is no opt-in and no second client to bypass it.
+  through the escalation - there is no opt-in and no second client to bypass it.
 - A Chat Completions `finish_reason: 'length'` and a Responses API
   `incomplete_details.reason: 'max_output_tokens'` (or `status: 'incomplete'`)
   are both detected. A `stop` / `tool_calls` / missing signal is not.
@@ -38,7 +38,7 @@ A length stop from the provider re-requests with a doubled budget instead of han
 ## Why this is the layer
 
 `max_tokens` is a hard cap at the provider. Every caller was receiving a
-silently cut-off string with no way to tell it from a complete one — the plan
+silently cut-off string with no way to tell it from a complete one - the plan
 phase turned a half-written JSON plan into **no plan** and logged nothing. The
 16 `max_tokens` call sites cannot each defend themselves, and `config.maxTokens`
 plus per-call caps means there is no single number to raise. So the fix belongs
@@ -48,10 +48,10 @@ where the truncation happens.
 
 `static/js/llm-client.ts`:
 
-- `_truncationReason(completion, isResponses)` — the provider's own stop signal.
-- `_nextTokenBudget(base, retry)` — doubling from `base`, clamped.
-- `_warnTruncated(label, budget, content)` — the last-resort event-stream line.
-- `_handleStream(..., info?)` — records the finish reason off the final SSE chunk.
+- `_truncationReason(completion, isResponses)` - the provider's own stop signal.
+- `_nextTokenBudget(base, retry)` - doubling from `base`, clamped.
+- `_warnTruncated(label, budget, content)` - the last-resort event-stream line.
+- `_handleStream(..., info?)` - records the finish reason off the final SSE chunk.
 - In `chat()`: `effectiveMaxTokens` is what goes on the wire, escalating on a
   length stop via `continue`.
 
@@ -65,7 +65,7 @@ where the truncation happens.
 2. **The escalation compounded.** `_nextTokenBudget` was handed the previously
    escalated budget instead of the caller's cap: 300 -> 600 -> 2400 -> 19200.
    On a local model that is one very long doomed generation instead of three
-   quick ones. *Caught by:* the live browser run, not the unit tests — the
+   quick ones. *Caught by:* the live browser run, not the unit tests - the
    helper-only tests could not see how the caller used the return value. Fixed
    to 300 -> 600 -> 1200 -> 2400, and pinned by a test that asserts the whole
    sequence.
@@ -91,14 +91,19 @@ escalation can detect.
 
 ## Why
 
-TODO
+When LLM generation hits token limits, truncated JSON responses break downstream parsers. Automatically re-requesting with escalated token budget preserves valid schema outputs without losing context.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Simulate length stop response
+   - expected: Adapter re-requests with doubled max_tokens budget (up to max limit)
+   - observed: Budgets escalated 300, 600, 1200, 2400 without unhandled exception
+2. Parse completed response on second attempt
+   - expected: Full JSON parsed cleanly
+   - observed: Successfully delivered valid grounded steps
 
 ## Files
 
-- TODO
+- engine/character_prompt.py
+- engine/llm_client.py
+- 	ests/test_llm_client.py

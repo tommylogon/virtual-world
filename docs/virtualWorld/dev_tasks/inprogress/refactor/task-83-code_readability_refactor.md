@@ -6,7 +6,7 @@ status: inprogress
 priority: medium
 ---
 
-# Code Readability Refactor — Variable Naming & Comments
+# Code Readability Refactor - Variable Naming & Comments
 
 **Priority**: HIGH
 
@@ -16,7 +16,7 @@ priority: medium
 
 ## What
 
-Large parts of the codebase, , use cryptic single-letter variable names (`tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, `v`, `ct`, `cv`, `tp`, `ns`, `lw`, `ni`) with no comments explaining intent. This makes the code harder to read, debug, and maintain.
+Large parts of the codebase use cryptic single-letter variable names (`tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, `v`, `ct`, `cv`, `tp`, `ns`, `lw`, `ni`) with no comments explaining intent. This makes the code harder to read, debug, and maintain.
 
 ## Goal
 
@@ -26,7 +26,7 @@ Improve readability without breaking anything. No functional changes.
 
 1. When modifying a function, rename its single-letter variables to descriptive names
 2. Add a brief comment explaining what non-obvious blocks do
-3. Never rename in isolation — always paired with a functional change to that area
+3. Never rename in isolation - always paired with a functional change to that area
 
 ## Worst Offenders (for reference when touching)
 
@@ -59,35 +59,37 @@ Improve readability without breaking anything. No functional changes.
 
 - No single-letter variable names (except loop indices `i`, `j`)
 - Function-local temp vars are fine short (`key`, `door`, `item`) but not opaque (`tn`, `ep`)
-- Add a comment for any block that isn't immediately obvious — especially trigger dispatch, effect execution, condition evaluation
+- Add a comment for any block that isn't immediately obvious - especially trigger dispatch, effect execution, condition evaluation
 - No action-at-a-distance: if a function depends on a subtle side effect, document it
 
 ## Steps to verify
 
-No functional changes — verify by:
-1. Run `pytest tests/` before and after — same results
+No functional changes - verify by:
+1. Run `pytest tests/` before and after - same results
 2. Reload the game and play through a basic interaction loop (look, move, take, use)
 3. No change in behavior, only readability
 
 ## Files
 
-- `virtual_world_engine.py` — primary target
-- `app.py` — secondary target  
-- `static/js/inspector.js` — tertiary
-- `static/js/item-library.js` — tertiary
+- `virtual_world_engine.py` - primary target
+- `app.py` - secondary target  
+- `static/js/inspector.js` - tertiary
+- `static/js/item-library.js` - tertiary
 - Any other file touched during feature work
 
 ## Why
 
-TODO
+Cryptic abbreviations and single-letter local variables obscure developer intent, make debugging and codebase exploration significantly slower for agents and humans alike, and increase defect rates during refactoring. Standardizing on descriptive names and clarifying complex logic blocks with concise intent comments ensures long-term maintainability.
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] Cryptic single-letter variables in touched functions (e.g. irtual_world_engine.py, pp.py) are renamed to descriptive equivalents.
+- [ ] Non-obvious logic blocks (trigger dispatch, condition matching, effect execution) carry brief intent comments.
+- [ ] No behavioral or functional regressions introduced; targeted unit test suites continue to pass identically.
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — renaming cryptic local variables and adding intent comments is code readability work with no intended player-facing behavior change.
+Intended UI home: Not applicable - renaming cryptic local variables and adding intent comments is code readability work with no intended player-facing behavior change.
 
 Current availability: the task lists short names such as `tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, and `v`; the cleanup is not claimed as complete.
 
@@ -120,3 +122,9 @@ Applies to every refactor in this repo, per the 2026-10-16 card refresh:
    keep public imports/API stable and re-export moved members as thin delegates.
 4. **One file/concern at a time**, verified with a targeted test selection (never the
    full suite by default, never -q).
+
+
+## Standing Policy Note (2026-10-19)
+- Rule 3 under How: Never rename in isolation - always paired with a functional change to that area.
+- Line 13: Not a blocker for merge. Deferred to post-merge cleanup passes.
+- This task functions as an ongoing repo policy rather than a standalone batch PR.

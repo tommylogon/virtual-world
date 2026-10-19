@@ -8,7 +8,7 @@ related: [task-409, task-426, task-2, task-694, task-701, task-702, task-703, ta
 
 # task-699: Character pursuits, schedules, plans, activities, and recipes
 
-**System name:** **MOSIAC** — Motivation, Obligations, Schedules, Intentions, Attention, Choice. This card is the design doc for the MOSIAC decision layer; see `Character Pursuits.md`.
+**System name:** **MOSIAC** - Motivation, Obligations, Schedules, Intentions, Attention, Choice. This card is the design doc for the MOSIAC decision layer; see `Character Pursuits.md`.
 
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
@@ -42,25 +42,32 @@ The prior draft described reusable activities as “schedules.” The designer c
 
 ## Why
 
-TODO
+Previous planning conflated schedules, long-term pursuits, moment-to-moment plans, and ongoing activities, treating them all as monolithic schedules. This conceptual entanglement caused engine implementations to blur travel from actual work, hindered crafting/activity integration, and prevented background NPCs from sharing behavioral vocabulary with LLM agents. Defining the MOSIAC architecture in Character Pursuits.md provides an unambiguous, formal hierarchy of goals, pursuits, schedules, plans, and observable activities.
 
 ## How
 
-TODO
+1. Author comprehensive design specification in docs/virtualWorld/design/Character Pursuits.md.
+2. Formalize distinction between Goals (motives), Missions (external requests), Pursuits (undertakings), Schedules (clock prompts), Plans (approach steps), Activities (observable continuous world processes), and Recipes (crafting transforms).
+3. Provide concrete exhibits: Vekka scouting mission, James travel-home-to-sleep pursuit loop, and fisherman vertical slice.
+4. Integrate cross-references to runtime implementation tasks (task-701 plan templates, task-702 plan executor, task-703 recipes, task-704 MOSIAC selector).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Review docs/virtualWorld/design/Character Pursuits.md against MOSIAC vocabulary.
+   - expected: Clear, consistent definitions for Goal, Mission, Pursuit, Schedule, Plan, Activity, and Recipe.
+   - observed: Complete design doc delivered in review.
+2. Verify alignment with implementation tasks.
+   - expected: Linked child tasks (701-704) reference exact structures described in design doc.
+   - observed: Cross-references verified.
 
 ## Files
 
-- TODO
+- docs/virtualWorld/design/Character Pursuits.md
+- docs/virtualWorld/Characters/Background Simulation.md
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card changes the design manual at `docs/virtualWorld/design/Character Pursuits.md`; it does not add a browser interaction.
+Intended UI home: Not applicable - this card changes the design manual at `docs/virtualWorld/design/Character Pursuits.md`; it does not add a browser interaction.
 
 Current availability: The design note exists. Runtime behavior is tracked by the linked implementation cards and is not asserted by this documentation card.
 

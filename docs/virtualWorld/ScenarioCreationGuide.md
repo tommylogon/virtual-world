@@ -27,16 +27,16 @@ The **only** format the engine reads at runtime is:
 }
 ```
 
-Everything else is written by `to_dict()` as convenience views — but they are **not**
+Everything else is written by `to_dict()` as convenience views - but they are **not**
 all ignorable. On load (`serialization.py` → `load_from_dict`):
 
 | Block | Read on load? |
 |---|---|
-| `graph` | **Yes — source of truth** for areas, ways, items, triggers, spatial edges |
-| `players` | **Yes — authoritative for characters.** Personality, vitals, skills, memories, emotion, `autonomy`, `npc_behavior` all hydrate from here; graph `character` nodes are bare anchors created empty if missing |
-| `world_lore` | **Yes** — injected into every agent prompt (needs `{category, title, content}` shape) |
+| `graph` | **Yes - source of truth** for areas, ways, items, triggers, spatial edges |
+| `players` | **Yes - authoritative for characters.** Personality, vitals, skills, memories, emotion, `autonomy`, `npc_behavior` all hydrate from here; graph `character` nodes are bare anchors created empty if missing |
+| `world_lore` | **Yes** - injected into every agent prompt (needs `{category, title, content}` shape) |
 | `active_player`, `time_ticks`, `clock_start_*`, `turn_number`, `narration_mode`, `ghost_mode` | **Yes** |
-| `areas`, `ways`, `rooms`, `item_registry`, `players_in_area` | No — pure convenience views |
+| `areas`, `ways`, `rooms`, `item_registry`, `players_in_area` | No - pure convenience views |
 
 **Rule: every interactive thing must be a graph node. Every relationship must be a graph edge.
 Every character must exist in `players`.**
@@ -124,7 +124,7 @@ All nodes share this shape:
 - `current_state`: `"open"`, `"closed"`, `"locked"`, `"hidden"`
 - `cost`: `{ "energy": N, "time": N }` per passage
 - `needs_open`: when `"enabled": true`, requires skill check to pass
-- `requires`: `"none"`, `"jump"`, `"climb"`, `"crawl"` — triggers Athletics check
+- `requires`: `"none"`, `"jump"`, `"climb"`, `"crawl"` - triggers Athletics check
 - `max_size`: `"tiny"`, `"small"`, `"normal"`, `"huge"`, `"giant"`, `"titanic"`
 - `auto_close`: closes after passage
 
@@ -168,14 +168,14 @@ All nodes share this shape:
 
 **Key fields:**
 - `actions`: `examine`, `take`, `drop`, `use`, `use_on`, `eat`, `drink`, `read`, `light`, `toggle`, `open`, `close`, `break`, `throw`, `equip`, `unequip`, `inspect`, `search`, `activate`
-- **DEPRECATED — do not author:** `effect_target`/`effect_stat`/`effect_amount`. Legacy consumable shortcut; give food/drink an `on_eat`/`on_drink` trigger with `adjust_vital` instead (see §20.6; task-329 removes engine support).
+- **DEPRECATED - do not author:** `effect_target`/`effect_stat`/`effect_amount`. Legacy consumable shortcut; give food/drink an `on_eat`/`on_drink` trigger with `adjust_vital` instead (see §20.6; task-329 removes engine support).
 - `current_state`: `"normal"`, `"lit"`, `"on"`, `"broken"`, `"hidden"`, `"locked"`, `"unlocked"`, `"empty"`, `"depleted"`, `"extinguished"`, `"unlit"`, `"open"`, `"closed"`, `"jammed"`, `"frozen"`, `"wet"`, `"melted"`
 - `uses`: `-1` = unlimited
 - `tags`: `flammable`, `light_source`, `container`, `food`, `drink`, `weapon`, `readable`, `portable`, `sharp`, `metal`, `cloth`, `glass`, `organic`, `magic`, `cursed`, `electronic`, `document`, `tool`, `key`, `poison`, `medicine`, `explosive`, `ranged`, `armor`, `shield`
 - `equip_slots`: `head`, `torso`, `legs`, `feet`, `hands`, `hand_left`, `hand_right`, `back`, `accessory`, `neck`, `waist`
 - `light_level`: only meaningful when `tags` includes `light_source` and `current_state` is `"lit"`/`"on"`. Values: `"pitch_black"`, `"dim"`, `"normal"`, `"bright"`, `"blinding"`, or integer
 - `action_costs`: per-action cost overrides, e.g. `{ "use": { "energy": 2, "time": 1 } }`
-- `contents`: list of child item IDs for containers — creates nested `in` edges
+- `contents`: list of child item IDs for containers - creates nested `in` edges
 - `hidden`: `true` = invisible until found via `on_search` or similar
 
 ---
@@ -229,10 +229,10 @@ All nodes share this shape:
 
 **Key fields:**
 - `state`: `"awake"`, `"sleeping"`, `"unconscious"`, `"stunned"`, `"grappled"`, `"restrained"`, `"prone"`, `"frightened"`, `"exhausted"`, `"paralyzed"`, `"blinded"`, `"deafened"`, `"poisoned"`, `"sick"`, `"burning"`, `"wet"`, `"frozen"`, `"drenched"`, `"bleeding"`, `"dying"`, `"dead"`
-- `npc_behavior`: `"wander"`, `"flee"`, `"stationary"`, `"guard"`, `"follow"`, `"hunt"` — engine accepts arbitrary strings
+- `npc_behavior`: `"wander"`, `"flee"`, `"stationary"`, `"guard"`, `"follow"`, `"hunt"` - engine accepts arbitrary strings
 - `simple_npc`: `true` skips full vitals decay for background NPCs
-- `tags`: determines first-impression naming — `male` → "the man", `female` → "the woman", `animal` → species name, `child` → "the child"
-- `image` / `profile_image` / `expressions`: character art. `image` is the full-body neutral, `profile_image` the profile neutral, and `expressions` a SillyTavern-style pack keyed by emotion or action (each key holds `profile` and/or `full`). These are normally authored by uploading in the **Expression Pack** panel of the character inspector, not by hand — see [[UI & Settings/Inspector Panels#Character images & expression packs (user guide)]] and [[Characters/Character Images & Expression Packs]].
+- `tags`: determines first-impression naming - `male` → "the man", `female` → "the woman", `animal` → species name, `child` → "the child"
+- `image` / `profile_image` / `expressions`: character art. `image` is the full-body neutral, `profile_image` the profile neutral, and `expressions` a SillyTavern-style pack keyed by emotion or action (each key holds `profile` and/or `full`). These are normally authored by uploading in the **Expression Pack** panel of the character inspector, not by hand - see [[UI & Settings/Inspector Panels#Character images & expression packs (user guide)]] and [[Characters/Character Images & Expression Packs]].
 
 ---
 
@@ -259,11 +259,11 @@ All nodes share this shape:
 ```
 
 **Key fields:**
-- `trigger_type`: one of the 27 types (see Section 5) — OR a **list** of types for a multi-type trigger (task-84): `"trigger_type": ["on_eat", "on_drink"]` fires on any of them
+- `trigger_type`: one of the 27 types (see Section 5) - OR a **list** of types for a multi-type trigger (task-84): `"trigger_type": ["on_eat", "on_drink"]` fires on any of them
 - `conditions`: flat list or compound tree
 - `conditions_logic`: `"and"` or `"or"` for flat lists
-- `effects`: **preferred** format — list of `{ "type": "...", "params": {...} }`
-- `effect_type` / `effect_params`: legacy single-effect format — engine reads these only if `effects` is absent
+- `effects`: **preferred** format - list of `{ "type": "...", "params": {...} }`
+- `effect_type` / `effect_params`: legacy single-effect format - engine reads these only if `effects` is absent
 - `fail_message`: shown when conditions fail
 - `success_message`: shown when conditions pass (overrides first effect's message)
 
@@ -639,7 +639,7 @@ Stored in `player.traits[trait_id] = value`.
 | `follow` | Follow a target character |
 | `hunt` | Actively seek and pursue |
 
-Engine accepts arbitrary strings — these are the canonical values observed in `world_template.json`.
+Engine accepts arbitrary strings - these are the canonical values observed in `world_template.json`.
 
 ---
 
@@ -711,7 +711,7 @@ These are the patterns that **no AI-generated scenario got right** without expli
 }
 
 // Trigger 2: on_tick → drain HP while poisoned (on the player, or via a global tick trigger)
-// This is handled automatically by the condition's `periodic` field — no separate trigger needed.
+// This is handled automatically by the condition's `periodic` field - no separate trigger needed.
 
 // Trigger 3: Antidote usage → remove_condition
 {
@@ -1067,7 +1067,7 @@ Based on `mansion.json` container items and the nested `in` edge pattern.
 - `container` tag tells the engine this item can hold other items
 - Contents are separate graph nodes with `in` edges pointing to the container item node
 - `hidden: true` on child items keeps them invisible until revealed by a trigger
-- The `contents` property on the container item is optional — the `in` edges are the source of truth
+- The `contents` property on the container item is optional - the `in` edges are the source of truth
 
 ---
 
@@ -1158,7 +1158,7 @@ Based on `mansion.json` flashlight (`light_level: bright`, `current_state: lit`,
 - `light_level` values: `"pitch_black"` (10), `"dim"` (30), `"normal"` (55), `"bright"` (80), `"blinding"` (95), or raw integer
 - `on_light` fires when player uses the `light` action
 - `on_toggle` fires for `toggle` action (on/off)
-- `on_tick` drain requires a condition or `on_tick` trigger on the item — the engine does not auto-drain uses per tick
+- `on_tick` drain requires a condition or `on_tick` trigger on the item - the engine does not auto-drain uses per tick
 - `on_depleted` fires when `uses` reaches 0
 
 ---
@@ -1219,10 +1219,10 @@ Based on `heating_rate` and `target_temperature` properties used by `engine/equi
 ```
 
 **Key points:**
-- `heating_rate` — float, degrees per tick the stove adds to the area's ambient temperature
-- `target_temperature` — the equilibrium temperature the stove tries to reach
+- `heating_rate` - float, degrees per tick the stove adds to the area's ambient temperature
+- `target_temperature` - the equilibrium temperature the stove tries to reach
 - Used by `engine/equipment_bonuses.py` `effective_temperature()` when a character is near the heat source
-- The actual `set_environment` trigger is what changes the displayed temperature — `heating_rate`/`target_temperature` are passive modifiers the engine reads when calculating `feels_like` temperature
+- The actual `set_environment` trigger is what changes the displayed temperature - `heating_rate`/`target_temperature` are passive modifiers the engine reads when calculating `feels_like` temperature
 - `temp_range` on the item itself limits the temperatures it can survive (e.g., `{ "min": -20, "max": 200 }`)
 
 ---
@@ -1300,11 +1300,11 @@ Based on `mansion.json`: field jacket (`insulation: 5`, `defense: 3`), dark carg
 ```
 
 **Key points:**
-- `insulation` — integer, reduces cold damage / improves effective temperature. Higher = warmer.
-- `defense` — integer, reduces incoming physical damage when equipped. Same field used by armor.
+- `insulation` - integer, reduces cold damage / improves effective temperature. Higher = warmer.
+- `defense` - integer, reduces incoming physical damage when equipped. Same field used by armor.
 - Both are read by `engine/equipment_bonuses.py` when the item has an `equipped` edge to the character
 - `equip_slots` must match the character's `equipped` dict slots for the edge to be valid
-- The `insulated` trait in the example above would need to be defined in the trait system or applied via `apply_trait` with a custom param — currently `insulation` is a raw item property, not a trait
+- The `insulated` trait in the example above would need to be defined in the trait system or applied via `apply_trait` with a custom param - currently `insulation` is a raw item property, not a trait
 
 ---
 
@@ -1367,9 +1367,9 @@ Based on `damage_dice`, `damage_type`, `defense` properties from `mansion.json` 
 ```
 
 **Key points:**
-- `damage_dice` — dice notation string: `"1d4"`, `"2d6"`, `"1d8+2"`, etc. Used by `engine/combat.py`
-- `damage_type` — `"slashing"`, `"piercing"`, `"bludgeoning"`, `"fire"`, `"cold"`, `"lightning"`, `"poison"`, `"radiant"`, `"necrotic"`, `"force"`
-- `defense` — integer, added to the wielder's defense when equipped. Shields typically 3–5, armor 2–8
+- `damage_dice` - dice notation string: `"1d4"`, `"2d6"`, `"1d8+2"`, etc. Used by `engine/combat.py`
+- `damage_type` - `"slashing"`, `"piercing"`, `"bludgeoning"`, `"fire"`, `"cold"`, `"lightning"`, `"poison"`, `"radiant"`, `"necrotic"`, `"force"`
+- `defense` - integer, added to the wielder's defense when equipped. Shields typically 3–5, armor 2–8
 - Combat formula: `attack + attack_mod - target_defense_mod` (`engine/combat.py:158-172`)
 - `is_slasher` trait gives bonus to slashing attacks
 - Weapons need `equip_slots` and `equipped` edges to function in combat
@@ -1378,7 +1378,7 @@ Based on `damage_dice`, `damage_type`, `defense` properties from `mansion.json` 
 
 ### 11.13 Abilities (Traits as Powers)
 
-Based on `TRAIT_DEFINITIONS` in `engine/traits.py` — abilities are traits applied via `apply_trait` effect or placed on character creation.
+Based on `TRAIT_DEFINITIONS` in `engine/traits.py` - abilities are traits applied via `apply_trait` effect or placed on character creation.
 
 ```json
 // Character with innate abilities
@@ -1426,7 +1426,7 @@ Based on `TRAIT_DEFINITIONS` in `engine/traits.py` — abilities are traits appl
 ```
 
 **Key points:**
-- Abilities are traits on the character — `dark_vision`, `is_slasher`, `hostile`, `save_on` traits, etc.
+- Abilities are traits on the character - `dark_vision`, `is_slasher`, `hostile`, `save_on` traits, etc.
 - `TRAIT_DEFINITIONS` in `engine/traits.py` is the canonical catalog; custom trait IDs are accepted but won't have engine behavior unless they match known effect keys
 - `save_on` traits fire automatically on world events (`enter_area`, `climb_way`, `see_item`, `takes_damage`, `alone_in_dark`, etc.)
 - `grants_conditions` traits auto-apply conditions when the trait is applied: `"chronically_ill"` grants `sick` with `periodic: {Hunger: -1, Thirst: -1}`
@@ -1437,8 +1437,8 @@ Based on `TRAIT_DEFINITIONS` in `engine/traits.py` — abilities are traits appl
 | Trait | Effect |
 |---|---|
 | `dark_vision` | See in complete darkness |
-| `is_slasher` | Horror monster — exempt from vital decay, dark vision, combat AI |
-| `hostile` | Threat marker — NPCs flee/fight |
+| `is_slasher` | Horror monster - exempt from vital decay, dark vision, combat AI |
+| `hostile` | Threat marker - NPCs flee/fight |
 | `immune_to_condition: "poisoned"` | Cannot be poisoned |
 | `allergic_to: "pollen"` | Takes damage when near `pollen`-tagged items |
 | `chronically_ill` | Grants `sick` condition with periodic Hunger/Thirst drain |
@@ -1483,7 +1483,7 @@ Spells are items with the `magic` tag and `on_activate`/`on_use` triggers that c
     "conditions": [],
     "conditions_logic": "and",
     "effects": [
-      { "type": "message", "params": { "message": "The scroll dissolves in your hands. The magic flows into your mind — you now know Fireball." } },
+      { "type": "message", "params": { "message": "The scroll dissolves in your hands. The magic flows into your mind - you now know Fireball." } },
       { "type": "spawn_item", "params": { "item_id": "item_spell_fireball_learned", "target": "self", "name": "Fireball Spell", "message": "You gained the Fireball spell!" } },
       { "type": "consume_item", "params": { "item_id": "item_spell_scroll_fireball", "target": "self" } }
     ]
@@ -1530,7 +1530,7 @@ Spells are items with the `magic` tag and `on_activate`/`on_use` triggers that c
 - `on_activate` is the canonical spell-cast trigger
 - `on_read` is for learning from scrolls (consumes the scroll, spawns a reusable spell item)
 - `target` in damage effects resolves from `target_name` on `on_use_on` or defaults to `self` for `on_activate`
-- The `spell` concept isn't a separate node type — it's an item with `magic` tag and activation triggers
+- The `spell` concept isn't a separate node type - it's an item with `magic` tag and activation triggers
 
 ---
 
@@ -1658,11 +1658,11 @@ Based on `sick`/`poisoned` condition definitions in `player.py`, `grants_conditi
 ```
 
 **Key points:**
-- `sick` condition has `stack: "accumulate"` — multiple exposures stack instances, drains sum
+- `sick` condition has `stack: "accumulate"` - multiple exposures stack instances, drains sum
 - `periodic: {"HP": -2, "Hunger": -3}` runs every tick while the condition is active (`engine/conditions.py:69-71`)
 - `source_type: "area"` + `target_by: "all_in_area"` makes the disease area-contagious
 - `source_type: "item"` + `target: "self"` on `on_take` makes it exposure-based
-- `save_on` trait can give automatic saves: `"hemophobic"` saves on `see_item` with blood tags — a similar pattern works for disease exposure
+- `save_on` trait can give automatic saves: `"hemophobic"` saves on `see_item` with blood tags - a similar pattern works for disease exposure
 - `immune_to_condition: "sick"` trait makes a character completely immune
 - `chronically_ill` trait grants `sick` permanently via `grants_conditions` with periodic drain
 - Disease progression uses `on_tick` with `has_condition` gate to worsen symptoms over time
@@ -1752,14 +1752,14 @@ Required keys: `id`, `text`. Optional: `importance` (1–5), `source`, `tags`, `
 | Failure | Model | Symptom |
 |---|---|---|
 | Memories as `["string"]` | ChatGPT | Engine crash: `'str' object has no attribute 'get'` |
-| Data only in `areas`/`players` blocks | Gemini | World loads but is empty — no items, no chars, no triggers at runtime |
+| Data only in `areas`/`players` blocks | Gemini | World loads but is empty - no items, no chars, no triggers at runtime |
 | Custom top-level schema | Qwen, DS JSON | File won't load at all |
 | Empty `connection` edge properties | ChatGPT | Navigation works but no direction names shown |
 | No `equipped`/`carrying` edges | All models | Inventory system unused |
-| Single-step triggers only | All models | No gameplay chains — just "examine → message" |
+| Single-step triggers only | All models | No gameplay chains - just "examine → message" |
 | No `on_use_on` / `use_on` action | All models | Can't use items on targets |
 | `inventory` field invented | ChatGPT | Harmless but non-canonical |
-| `effect_type`/`effect_params` instead of `effects` | World template | Works but is legacy — `effects` list is preferred |
+| `effect_type`/`effect_params` instead of `effects` | World template | Works but is legacy - `effects` list is preferred |
 | Flat conditions only | All models | No OR/NOT logic |
 | No `fail_message` / `on_fail` | All models | No failure states |
 | No `target_by` fan-out | All models | No area-wide effects |
@@ -1806,13 +1806,13 @@ Required keys: `id`, `text`. Optional: `importance` (1–5), `source`, `tags`, `
 - [ ] `decay_rates`: at least 3 keys
 - [ ] `emotion`: `{current, description, intensity}`
 - [ ] `in` edge to current area
-- [ ] **wardrobe**: every item the description claims they're wearing exists as an item node + `equipped` edge — the `equipped` dict in `players` is a VIEW; a character with no clothing edges spawns naked no matter what the description says
+- [ ] **wardrobe**: every item the description claims they're wearing exists as an item node + `equipped` edge - the `equipped` dict in `players` is a VIEW; a character with no clothing edges spawns naked no matter what the description says
 
 ### 16.5 Complete Trigger
 - [ ] `trigger_type`: one of the 27 types
 - [ ] `conditions`: list or tree (can be empty `[]`)
 - [ ] `conditions_logic`: `"and"` or `"or"`
-- [ ] `effects`: list of `{type, params}` — at least 1
+- [ ] `effects`: list of `{type, params}` - at least 1
 - [ ] For `on_use_on`: `target_name` set
 - [ ] For gated triggers: `fail_message` present
 
@@ -2003,7 +2003,7 @@ Required keys: `id`, `text`. Optional: `importance` (1–5), `source`, `tags`, `
 ## 18. Denormalized Blocks (Reference Only)
 
 Written by `to_dict()` for convenience. `areas` / `rooms` / `ways` / `item_registry` /
-`players_in_area` are **not read on load** — but `players`, `world_lore`, and the time/
+`players_in_area` are **not read on load** - but `players`, `world_lore`, and the time/
 turn settings ARE (see §1).
 
 ### 18.1 `areas` / `rooms`
@@ -2087,7 +2087,7 @@ turn settings ARE (see §1).
 
 ### 18.4 `item_registry`
 
-Dict of library item blueprints. Informational — placed items live in the graph.
+Dict of library item blueprints. Informational - placed items live in the graph.
 
 ### 18.5 `world_lore`
 
@@ -2097,7 +2097,7 @@ List of `{ "id", "category", "title", "content" }` entries.
 
 ## 19. Tips for LLM Prompting
 
-1. **Always produce `graph.nodes` + `graph.edges`** — they are the source of truth. Denormalized blocks are optional.
+1. **Always produce `graph.nodes` + `graph.edges`** - they are the source of truth. Denormalized blocks are optional.
 2. **Item IDs**: prefix with `item_`, way IDs with `way_`, areas with `area_`.
 3. **Bidirectional connections**: every way needs two `connection` edges with `cardinal` + `direction`.
 4. **Place items via `in` edges** pointing to `area_<slug>` or `item_<container>`.
@@ -2108,7 +2108,7 @@ List of `{ "id", "category", "title", "content" }` entries.
 9. **Way states**: `hidden` doors use `current_state: "hidden"` plus `hidden: true`.
 10. **Tags**: use standard tags (`flammable`, `light_source`, `container`, `food`, `drink`, `weapon`, `readable`, `portable`, `key`) so item actions resolve correctly.
 11. **Item actions**: `use_on` requires `target_name`; `use` does not.
-12. **NPC memory**: `memories` is a list of `{ "id", "text", "importance", "source", "tags", "location", "entity_ids" }` — **never bare strings**.
+12. **NPC memory**: `memories` is a list of `{ "id", "text", "importance", "source", "tags", "location", "entity_ids" }` - **never bare strings**.
 13. **Equipment**: always create `equipped`/`carrying` edges for items a character holds or wears.
 14. **Triggers**: every interactive item should have at least one trigger. A bare `on_examine → message` is fine for flavor, but interactive items need `on_use`/`on_eat`/`on_take` etc.
 15. **Chaining**: use multi-effect lists to create cause-and-effect chains: `on_take → apply_condition`, `on_eat → adjust_vital + consume_item`, `on_use → heal + remove_condition`.
@@ -2125,7 +2125,7 @@ mansion runs).
 
 ### 20.1 `active_player` is NOT the human player
 
-It's the initiative/turn cursor — whoever acts next. Human control of a character comes
+It's the initiative/turn cursor - whoever acts next. Human control of a character comes
 from `"autonomy": false` on that character's entry in `players`. Setting `active_player`
 does not make anyone player-controlled.
 
@@ -2174,7 +2174,7 @@ differ from the library entry name.
 ### 20.8 Save Scenario rewrites your file
 
 Saving exports the full denormalized format over the source scenario and adds character
-placement `in` edges. Edits made to the source file after loading are lost on save —
+placement `in` edges. Edits made to the source file after loading are lost on save -
 patch the source before loading, or change things live via the inspector and let it save.
 
 ### 20.9 Emotion renders when set
@@ -2186,26 +2186,26 @@ tracked as tasks 327/328.
 
 ## Where it lives
 
-- Core load/save: `engine/serialization.py` — `load_from_dict`, `to_dict`
-- Graph model: `graph.py` — nodes, edges, properties
-- Trigger system: `engine/trigger_system.py` — 27 trigger types, conditions, effects
-- Effects: `engine/effects.py` — effect catalog, `adjust_vital`, `consume_item`, `set_environment`, `adjust_environment`
-- Item actions: `engine/item_actions.py` — verb coverage, `on_eat`/`on_drink` fallback
+- Core load/save: `engine/serialization.py` - `load_from_dict`, `to_dict`
+- Graph model: `graph.py` - nodes, edges, properties
+- Trigger system: `engine/trigger_system.py` - 27 trigger types, conditions, effects
+- Effects: `engine/effects.py` - effect catalog, `adjust_vital`, `consume_item`, `set_environment`, `adjust_environment`
+- Item actions: `engine/item_actions.py` - verb coverage, `on_eat`/`on_drink` fallback
 - Area/way/item/character node shapes: this document (§2)
 - Edge types: this document (§3)
-- Scenario API: `routes/scenarios.py` — load, save, list
+- Scenario API: `routes/scenarios.py` - load, save, list
 - Scenario files: `data/scenarios/*.json`
 - World template: `data/world_template.json`
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[scenario-creation|Scenario creation]] (#57)
+**Features** - [[scenario-creation|Scenario creation]] (#57)
 
-**Dev tasks** — [[dev_tasks/inprogress/ui/task-383-wizard-append-mode|task]]
+**Dev tasks** - [[task-383-wizard-append-mode|task]]
 
-**Neighbouring notes** — [[Commands]], [[Emotion & Mood — Whole-System Analysis]], [[Feature Ledger]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]]
+**Neighbouring notes** - [[Commands]], [[Emotion & Mood - Whole-System Analysis]], [[Feature Ledger]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]]
 
 <!-- connected:end -->

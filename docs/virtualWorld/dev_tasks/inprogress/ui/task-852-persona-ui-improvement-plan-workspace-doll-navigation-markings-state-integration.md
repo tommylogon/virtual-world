@@ -18,25 +18,25 @@ wiki: "[[Characters/Persona]]"
 
 ## What
 
-Deliver the Persona improvement plan P1-P5: workspace redesign, paperdoll navigation with front/back views, region-linked markings, body-state integration, personality/narrative polish — no duplicate truth, no readerless fields.
+Deliver the Persona improvement plan P1-P5: workspace redesign, paperdoll navigation with front/back views, region-linked markings, body-state integration, personality/narrative polish - no duplicate truth, no readerless fields.
 
 ## Why
 
 The Persona tab read as a database form: a 720px max-width column of
 bordered inputs. The user's review (2026-10-16) asked for a polished,
 cohesive authoring workspace where the doll is central and the body is
-super useful AND stunning — real hierarchy, state clarity, region
-navigation, and markings — without duplicating systems or inventing
+super useful AND stunning - real hierarchy, state clarity, region
+navigation, and markings - without duplicating systems or inventing
 readerless fields.
 
 ## How
 
 Blueprint: user-provided Persona UI Improvement Plan (P1-P5). Order:
-workspace layout → doll navigation (front/back, keyboard, no artwork
-required) → region-linked markings (multiple per region, canonical
-store) → body-state integration (sensitivity verified end-to-end,
-injuries/bleeding/coverage read-only, task-851 seeded wounds wired) →
-personality/narrative polish → regression.
+workspace layout -> doll navigation (front/back, keyboard, no artwork
+required) -> region-linked markings (multiple per region, canonical
+store) -> body-state integration (sensitivity verified end-to-end,
+injuries/bleeding/coverage read-only, task-851 seeded wounds wired) ->
+personality/narrative polish -> regression.
 
 Non-goals (hard): no second doll/region catalog, no duplicate editors
 in the region panel, no fields without consumers, sensitivity never
@@ -88,12 +88,6 @@ Live steps when available:
      Note: the browser filters a datalist by the current text, so clear the field
      to see every option. occupation and age have no list.
    - observed: not verified live.
-
-Why no browser UI: (only when Intended UI home is Not applicable) TODO — explain why browser interaction is not appropriate.
-
-Alternative verification steps: (only when Intended UI home is Not applicable)
-1. TODO — describe an observable alternative.
-   - expected: TODO — describe the result.
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
 
@@ -155,3 +149,8 @@ This section defines intended access and live acceptance. It is not a claim that
 - engine/character_appearance.py (IDENTITY_SUGGESTIONS + identity_suggestions(): the one place for the pick-list options)
 - routes/player_ops.py (GET /record serves `suggestions`)
 
+
+
+## Blocker Note (2026-10-19)
+- Blocked on browser visual verification for P1 (workspace layout & responsive breakpoints) and P2 (paperdoll navigation, front/back face flip, and keyboard spatial arrows).
+- Subsequent phases P3 (markings), P4 (body-state integration), and P5 (narrative polish) are queued behind interactive validation of the central paperdoll canvas.

@@ -201,6 +201,7 @@ load('static/js/nl-editor/tools.js');
 load('static/js/nl-editor/budget.js');
 load('static/js/nl-editor/agent-loop.js');
 load('static/js/graph/physics.js');
+load('static/js/graph/overlays.js');
 load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');
 load('static/js/graph/event-handlers.js');

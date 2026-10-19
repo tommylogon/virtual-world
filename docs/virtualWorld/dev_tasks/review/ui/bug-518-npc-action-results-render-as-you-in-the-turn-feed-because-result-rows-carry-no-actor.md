@@ -20,7 +20,7 @@ Carry the performing actor on result rows so turn-feed stops attributing every N
   🔎 result row displays that NPC's name, not `You`.
 - A human action still displays `You`.
 - Assert the attribution comes from a carried actor, not from a name
-  comparison against `activePlayer` — a test that renames the active
+  comparison against `activePlayer` - a test that renames the active
   player mid-session and re-checks.
 - No regression in the `tf-you` / `tf-other` grouping, which also keys
   off `isPlayer`.
@@ -35,7 +35,7 @@ Three consecutive NPC actions, all attributed to `You`:
     ▶️ kayla jenkins  use lighter
     🔎 You           You light the lighter. The area is now dim.
 
-The actors are known — the `▶️ action` row immediately above each one
+The actors are known - the `▶️ action` row immediately above each one
 names them, because `events.log(\`[Action] ${finalAction}\`,
 "msg-action")` is emitted inside the per-character loop in
 `static/js/agent-engine.ts`.
@@ -51,7 +51,7 @@ names them, because `events.log(\`[Action] ${finalAction}\`,
 
 `!parsed.actor` makes an actor-less row count as the player's. The
 result row is logged as `events.log(outputText, 'msg-result', {...})`
-(`agent-engine.ts:790`) — plain text with no actor prefix — so
+(`agent-engine.ts:790`) - plain text with no actor prefix - so
 `parsed.actor` is empty, `isPlayer` is true, and the NPC's action is
 rendered as the human's.
 
@@ -64,7 +64,7 @@ same field being stored in two shapes).
 
 Emit result rows with the actor, the way action rows already do. This is
 the same fix surface as task-692's director pass, which is why the two
-are related — a narration row that carries its actor makes this
+are related - a narration row that carries its actor makes this
 unrepresentable rather than merely fixed.
 
 ## Implemented (2026-10-06)
@@ -72,15 +72,15 @@ unrepresentable rather than merely fixed.
 Two halves, because the actor was available at the emit site and thrown away at
 the read site:
 
-- **`static/js/agent/turn-feed.ts`** — the `result` branch of `parseEntry` now
+- **`static/js/agent/turn-feed.ts`** - the `result` branch of `parseEntry` now
   returns `actor: structuralActor` (the row's stamped actor) instead of a
   hardcoded `null`. A row with no actor (a human action, or a system row) still
   resolves to `null` and renders as `You`.
-- **`static/js/agent-engine.ts`** — the five `msg-result` emissions now pass the
+- **`static/js/agent-engine.ts`** - the five `msg-result` emissions now pass the
   performing character as the 4th `actor` argument of `events.log`
   (`event-stream.ts:211` `log(text, className, meta?, actor?)`), so attribution
   comes from a **carried actor**, not a name comparison against `activePlayer`.
-  Note: the actor had to be the 4th argument, not a key in `meta` — the bus
+  Note: the actor had to be the 4th argument, not a key in `meta` - the bus
   carries `actor` at the top level (`event-stream.ts:218`) and the feed reads
   `data.actor` (`turn-feed.ts:57`); a `meta.actor` would be silently ignored.
 
@@ -92,21 +92,26 @@ row carries its actor, an actor-less result row stays `null` (→ `You`). Unit
 runner green: **618 passed, 0 failed**.
 
 Not yet verified in a live LLM turn (that needs a real NPC action); the parse
-fix — the exact defect — is covered by the unit test.
+fix - the exact defect - is covered by the unit test.
 
 ## Why
 
-TODO
+Action-result rows in the turn feed previously lacked an explicit performing actor field. The parser defaulted unassigned rows to the human player (You), misattributing NPC actions in multi-actor turn feeds.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run turn feed unit tests
+   - expected: node tools/unit/run.cjs passes turn feed scope tests
+   - observed: 618 passed, 0 failed in tools/unit/test_turn_feed_scope.js
+2. Verify NPC action result row attribution
+   - expected: NPC action result row carries actor and does not render as You
+   - observed: Carried actor parsed and attributed to NPC
 
 ## Files
 
-- TODO
+- static/js/agent/turn-feed.ts
+- static/js/agent-engine.ts
+- 	ools/unit/test_turn_feed_scope.js
 
 ## Browser UI and intended live verification
 

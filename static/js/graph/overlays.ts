@@ -91,16 +91,16 @@
         return { background: '#4a1010', border: '#f85149' };
     },
 
-    /** Noise level → color palette */
+    /** Noise level -> color palette (distinct teal/cyan/magenta scale, task-642) */
     noiseColors(noise: unknown): ColorPair {
-        if (!noise) return { background: '#2d333b', border: '#58a6ff' };
+        if (!noise) return { background: '#1c2d27', border: '#3fb950' };
         const nl = String(noise).toLowerCase();
-        if (nl === 'silent') return { background: '#0a0a0a', border: '#333' };
-        if (nl === 'quiet') return { background: '#121220', border: '#4a4a7e' };
-        if (nl === 'moderate' || nl === 'normal') return { background: '#2d333b', border: '#58a6ff' };
-        if (nl === 'loud') return { background: '#3a2a18', border: '#e3b341' };
-        if (nl === 'deafening') return { background: '#4a1010', border: '#f85149' };
-        return { background: '#2d333b', border: '#58a6ff' };
+        if (nl === 'silent') return { background: '#0a100d', border: '#238636' };
+        if (nl === 'quiet') return { background: '#0f241d', border: '#2ea043' };
+        if (nl === 'moderate' || nl === 'normal' || nl === 'dripping' || nl === 'scratches') return { background: '#13382c', border: '#3fb950' };
+        if (nl === 'busy' || nl === 'loud') return { background: '#1b4b52', border: '#38bdf8' };
+        if (nl === 'chaotic' || nl === 'deafening') return { background: '#3b1d42', border: '#d946ef' };
+        return { background: '#13382c', border: '#3fb950' };
     },
 
     /**
@@ -241,8 +241,10 @@
                 updates.push({ id: node.id, color: overlays.heatColors(temp) });
             } else if (node.group === 'item') {
                 const nodeData = (worldState.graph?.nodes || {})[node.id] as GraphNode | undefined;
-                const state = nodeData?.properties?.current_state;
-                if (state === 'lit') {
+                const props = nodeData?.properties || {};
+                const tags = Array.isArray(props.tags) ? props.tags : [];
+                const isHeat = tags.includes('heat_source') || props.heat_source || props.current_state === 'lit';
+                if (isHeat) {
                     updates.push({ id: node.id, color: { background: '#4a2818', border: '#f0883e' } });
                 }
             }

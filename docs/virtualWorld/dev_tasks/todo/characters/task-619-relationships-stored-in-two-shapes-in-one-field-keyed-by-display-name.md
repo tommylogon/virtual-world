@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
-related: ['"\'task-349\'"', '"\'task-350\'"', '"\'task-420\'"', "'task-349'", "'task-350'", "'task-420'", 'task-734']
+related: ['task-349', 'task-350', 'task-420', 'task-734']
 ---
 
 # task-619: Relationships are keyed by display name, not node id

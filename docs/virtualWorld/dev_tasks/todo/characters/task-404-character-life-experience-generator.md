@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: ['"\'bug-519\'"', '"\'task-403\'"', '"\'task-457\'"', '"\'task-725\'"', '"\'task-734\'"', '"\'task-736\'"', "'task-725'", "'task-734'", "'task-736'", 'task-725', 'task-734', 'task-736', 'task-849']
+related: ['bug-519', 'task-403', 'task-457', 'task-725', 'task-734', 'task-736', 'task-849']
 wiki: "[[Memory System]]"
 ---
 

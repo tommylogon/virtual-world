@@ -291,8 +291,12 @@ type AVWin = { [key: string]: any };
      * @returns {string} HTML
      */
     AV._renderStatusRow = function(agentName: string, player: any, color: string, isAuto: boolean, escName: string) {
-        const roomOptions = Object.keys(worldState.areas || {}).map(areaName =>
-            `<option value="${areaName}" ${player.current_area === areaName ? 'selected' : ''}>${areaName}</option>`
+        const currentArea = player.current_area || '';
+        const escCurrentArea = currentArea.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const listId = 'player-room-list-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const areaNames = Object.keys(worldState.areas || {}).sort((a, b) => a.localeCompare(b));
+        const roomOptions = areaNames.map(areaName =>
+            `<option value="${areaName.replace(/"/g, '&quot;')}"></option>`
         ).join('');
         // stacked instance (4 vials of poison = 4 cards under `poisoned`).
         const condColors: Record<string, string> = {
@@ -339,11 +343,21 @@ type AVWin = { [key: string]: any };
             llm:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'LLM'),   bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },
             npc:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'),   bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
         } as Record<string, any>)[mode];
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
+        const inputId = 'player-room-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        return `<div style="display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span>📍</span>
-            <select id="player-room" name="area" onchange="ApiClient.updateCharacter('${escName}',{current_area:this.value}).then(()=>worldState.fetch())" style="font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 4px;max-width:100px;">
+            <input id="${inputId}" list="${listId}" name="area"
+                value="${escCurrentArea}"
+                placeholder="Search area..."
+                autocomplete="off"
+                onfocus="this.select()"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();InspectorAgentView._commitPlayerRoom('${escName}',this);}"
+                style="font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 6px;width:140px;max-width:180px;"
+                title="Search or select area to move this character">
+            <datalist id="${listId}">
                 ${roomOptions}
-            </select>
+            </datalist>
+            <button class="btn btn-sm btn-blue" onclick="InspectorAgentView._commitPlayerRoom('${escName}', document.getElementById('${inputId}'))" style="font-size:10px;padding:1px 8px;" title="Move character to selected area">Move</button>
             ${stateHasChip ? '' : `<span title="Most significant condition (derived from conditions)" style="font-size:10px;background:${player.state === 'dead' ? 'var(--red)' : 'var(--accent-dim)'};color:${player.state === 'dead' ? '#fff' : '#000'};border-radius:4px;padding:2px 8px;font-weight:600;border:1px solid var(--border);">${player.state}</span>`}
             ${condBadges}
             <button class="btn btn-sm" onclick="InspectorAgentView._openConditionEditor('${escName}')" title="Add a specific condition (blind, poisoned, unconscious...) with a duration, source, or level" style="font-size:10px;">➕ Add Condition</button>
@@ -352,6 +366,55 @@ type AVWin = { [key: string]: any };
             <span onclick="events.cycleControlMode('${escName}')" title="Click to cycle control mode: Human → LLM → NPC" style="cursor:pointer;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;background:${modeMeta.bg};color:${modeMeta.fg};border:1px solid ${modeMeta.bd};">${modeMeta.label}</span>
         </div>`;
     };
+
+    /**
+     * Commit moving a character to the selected area.
+     * @param {string} charName - Character name
+     * @param {HTMLInputElement} inputEl - The input element
+     */
+    AV._commitPlayerRoom = function(charName: string, inputEl: HTMLInputElement) {
+        if (!inputEl) return;
+        const val = (inputEl.value || '').trim();
+        const player = worldState.players?.[charName];
+        const oldRoom = player?.current_area || '';
+        if (!val || val === oldRoom) return;
+
+        const areas = worldState.areas || {};
+        let match = Object.keys(areas).find(a => a.toLowerCase() === val.toLowerCase());
+        let destNode: any = null;
+        if (worldState.graph?.nodes) {
+            destNode = Object.values(worldState.graph.nodes).find(
+                (n: any) => n.type === 'area' && (n.name?.toLowerCase() === val.toLowerCase() || n.id?.toLowerCase() === val.toLowerCase())
+            );
+            if (destNode && !match) match = destNode.name || destNode.id;
+        }
+
+        if (match) {
+            inputEl.value = match;
+            const destAreaNode = destNode || Object.values(worldState.graph?.nodes || {}).find((n: any) => n.type === 'area' && n.name === match);
+            const destScope = destAreaNode?.properties?.world_scope_id;
+
+            ApiClient.updateCharacter(charName, { current_area: match }).then(async () => {
+                const gm = (window as any).graphManager;
+                if (destScope && gm && gm._scopeFilter && gm._scopeFilter !== destScope && typeof gm.setScopeFilter === 'function') {
+                    gm.setScopeFilter(destScope);
+                }
+                await worldState.fetch();
+                if (destAreaNode && gm?.focusNode) {
+                    try { gm.focusNode(destAreaNode.id); } catch (e) {}
+                }
+                if (window.VW?.inspector?._reRender) {
+                    try { window.VW.inspector._reRender(); } catch (e) {}
+                }
+            });
+        } else {
+            if (typeof toastWarning === 'function') {
+                toastWarning(`Unknown area "${val}". Reverting to "${oldRoom}".`);
+            }
+            inputEl.value = oldRoom;
+        }
+    };
+    AV._changePlayerRoom = AV._commitPlayerRoom;
 
     /**
      * Render the emotion selector row

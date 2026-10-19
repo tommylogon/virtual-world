@@ -68,7 +68,7 @@ Live steps when available:
    - observed: typecheck ok, lint ok, header survival ok, window guards ok; the 4 `unit` failures and the `module:check` failure are byte-identical on a clean `HEAD` worktree (A/B, 736 passed / 4 failed both ways), so they are pre-existing debt, not this change.
 4. Live click-through (Save to Library -> import; scenario save/load).
    - expected: both survive.
-   - observed: TODO (browser click-through pending; the API-level round trip is covered by step 1).
+   - observed: pending live browser click-through; the API-level round trip is proven by step 1.
 
 ## Acceptance
 

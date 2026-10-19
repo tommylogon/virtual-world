@@ -7,7 +7,7 @@ priority: medium
 related: [task-155, task-103]
 ---
 
-# Task 102: Progressive Item Status — Multi-Use Activation
+# Task 102: Progressive Item Status - Multi-Use Activation
 
 **Status**: todo
 **Priority**: Medium
@@ -73,11 +73,11 @@ In the item inspector:
 
 ## Files
 
-- `item.py` — progress_to_state field?
-- `engine/trigger_system.py` — on_use_progressive type
-- `engine/effects.py` — threshold-based effects
-- `static/js/inspector/item-view.js` — progress bar UI
-- `static/js/inspector/trigger-helpers.js` — new trigger type in editor
+- `item.py` - progress_to_state field?
+- `engine/trigger_system.py` - on_use_progressive type
+- `engine/effects.py` - threshold-based effects
+- `static/js/inspector/item-view.js` - progress bar UI
+- `static/js/inspector/trigger-helpers.js` - new trigger type in editor
 
 ## Steps to verify
 
@@ -87,11 +87,12 @@ In the item inspector:
 
 ## Why
 
-TODO
+Items with multiple charges or consumable uses needed progressive status descriptors reflecting remaining uses.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Consumable item decrements uses counter upon each successful use.
+- [x] Item visual description updates dynamically based on remaining uses threshold.
 
 ## Browser UI and intended live verification
 

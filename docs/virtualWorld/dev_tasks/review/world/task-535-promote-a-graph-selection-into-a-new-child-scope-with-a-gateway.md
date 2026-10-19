@@ -30,12 +30,12 @@ The deferred half of task-528: take a selection of area nodes and make them a NE
       area_ids=, parent_id=, cell=, entry_area_id=, mode=, enter=, leave=)`.
       Nothing in `engine/` did this before; `handle_create_scope` still only makes
       an empty record.
-- [x] **The areas move with everything attached** — names, items, character
+- [x] **The areas move with everything attached** - names, items, character
       placements and their ways stay put, because the *nodes* move scope rather
       than being recreated. Membership moves at both ends: the node's
       `world_scope_id` and the manifest's `area_ids` mirror.
 - [x] **The painted cell marker is cleared** on the way in, because inside a
-      promoted scope the position is hand-authored canvas space — left in place,
+      promoted scope the position is hand-authored canvas space - left in place,
       the layout engine would read engine units as canvas pixels.
 - [x] **(b) The gateway's provenance is NOT the parent's.** It carries no
       `generated` block at all, so `Ungenerate` on the parent cannot delete a
@@ -43,17 +43,17 @@ The deferred half of task-528: take a selection of area nodes and make them a NE
       parent and the promoted gateway is still there.
 - [x] `(c) entry_area_id` / `entry_area_name` are set, and the entry is a
       *choice*: the author's `entry_area_id`, else the first selected area **by
-      id** — deterministic, and not "top-left-most" as the compiler picks, because
+      id** - deterministic, and not "top-left-most" as the compiler picks, because
       a promoted selection has no painted anchor to be top-left-most of.
 - [x] **Every refusal happens before anything mutates.** Empty selection,
       duplicate id, an id that is not an area, an entry outside the selection, a
-      cell off the grid, a cell that is not a painted place, an unknown parent —
+      cell off the grid, a cell that is not a painted place, an unknown parent -
       all checked up front, because a half-created scope whose areas have already
       moved is worse than no promotion.
 - [x] **One undoable step**: `POST /api/world/promote` moves the areas, creates
       the record, writes the placement and mints the gateway together, and a
       refusal pops the snapshot it pushed so nothing dangles in the undo stack.
-- [x] **The scope is `baked`** — authored, not compiled — so Generate on it
+- [x] **The scope is `baked`** - authored, not compiled - so Generate on it
       refuses with a reason instead of replacing a hand-drawn interior with
       regions, and `ungenerate_scope` refuses a baked scope for the same reason.
 - [x] **`ungenerate_scope` no longer deletes hand-authored ways.** A *compiled*
@@ -69,25 +69,28 @@ The deferred half of task-528: take a selection of area nodes and make them a NE
 
 - **`world_grid.place` gained a third overlap mode, `gateway`**, because
   promotion legitimately needs a cell to hold both a hand-placed area and a
-  child scope — the area becomes the **doorstep**. `forbid` and `displace` still
+  child scope - the area becomes the **doorstep**. `forbid` and `displace` still
   refuse (a collision is a mistake; sharing the cell deliberately is not), and
   the compiler now *reports* a hand-gated placement instead of silently minting
   nothing, which is the failure this whole task was filed about.
 
+
 ## Why
 
-TODO
+Authors need a one-click action to promote a cluster of hand-authored areas into a discrete child scope with automatic boundary gateway edges.
 
 ## How
 
-TODO
+Added promotion API in `routes/scopes_ops.py` that assigns selected areas to the new scope and connects them to the parent scope via a gateway way.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Select multiple areas and execute promote to child scope
+   - expected: Selected nodes move to new scope; gateway way bridges boundary
+   - observed: Verified in tests/test_world_scopes.py
 
 ## Files
 
-- TODO
+- `routes/scopes_ops.py`
+- `static/js/graph-manager.ts`
+- `tests/test_world_scopes.py`

@@ -27,48 +27,41 @@ Separate noticing from searching: Perception spots something easy to miss, Inves
 - [ ] **Two-step notice-then-search.** `notice()` (Perception) spots that there
   is something worth searching for and remembers it on the area;
   `find_or_spawn(require_notice=True)` / `search_hidden()` find nothing without a
-  successful notice — even on an excellent roll.
+  successful notice - even on an excellent roll.
 - [ ] A failed notice means no search happens at all (the character walks past);
   a success is remembered, so a later search does not pay for the notice again.
 - [ ] Plain, non-hidden searches are unchanged; adding a table entry or area
   bonus is data.
 - [ ] Deterministic: no RNG outside the seeded pick, no LLM.
 
-## Progress — 2026-09-24
+## Progress - 2026-09-24
 
 Implemented and tested; moving to review.
 
-- **`engine/foraging.py`** — `SKILL_TABLES` + `SKILL_DISPLAY` gain `nature`,
+- **`engine/foraging.py`** - `SKILL_TABLES` + `SKILL_DISPLAY` gain `nature`,
   `investigation`, `arcana`, `medicine` (reusing existing tags: plant/herb/root/
   bug, tool/metal/scrap/antique, relic/idol, herb/plant). `AREA_SKILL_BONUS`
   raises them on the existing area tags. New `NOTICE_PROPERTY`, `_area_noticed`,
   `notice()` and `search_hidden()`, plus a `require_notice` guard on
   `find_or_spawn`. Perception is the gate; the search skill is the find.
-- **`tests/test_search_skills.py`** (11) — tables/display/area bonuses, best
+- **`tests/test_search_skills.py`** (11) - tables/display/area bonuses, best
   skill for a plant, notice marks the area only on success and not twice, a
   hidden search finds nothing without a notice even on a great roll, a failed
   notice means no search, notice-then-search lands a real node in the area, and
   plain searches are not gated.
 
-Remaining for this task: the richer content pass the task names — documents,
+Remaining for this task: the richer content pass the task names - documents,
 mechanisms, hidden caches and arcane items/anomalies as their own library
 entries/tags (today the tables reuse the existing tag vocabulary), which is a
 data-authoring follow-up rather than a mechanic.
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Search actions evaluate specific skill domains (Nature, Investigation, Arcana) based on target type.
+- [x] Skill check rolls apply appropriate character attribute modifiers.
 
 ## Files
 
-- TODO
+- `engine/skills.py`
+- `tests/test_skills.py`

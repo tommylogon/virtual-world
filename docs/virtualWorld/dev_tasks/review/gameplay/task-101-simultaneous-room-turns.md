@@ -19,7 +19,7 @@ priority: medium
 
 ## What
 
-Currently all characters are processed sequentially in a global initiative order. This task changes the game loop to process areas in parallel — all characters in a room act (sequentially within the room), then areas sync before the next tick. If one room finishes before another, it waits. Movement between areas during a tick is handled as a special case.
+Currently all characters are processed sequentially in a global initiative order. This task changes the game loop to process areas in parallel - all characters in a room act (sequentially within the room), then areas sync before the next tick. If one room finishes before another, it waits. Movement between areas during a tick is handled as a special case.
 
 ## What Already Exists
 
@@ -37,7 +37,7 @@ Tick N:
     Process characters in that room sequentially
     Handle movement within room
     Collect events
-  Phase 3: Sync barrier — wait for all areas
+  Phase 3: Sync barrier - wait for all areas
   Phase 4: Resolve cross-room movement
     - Character A moved from Area 1 to Area 2
     - Area 2 characters can *react* to A's arrival
@@ -82,15 +82,15 @@ Tick N:
 
 ## Files
 
-- `engine/tick_manager.py` — restructure tick loop for room-based processing
-- `engine/player_manager.py` — add `get_players_by_area()` grouping
-- `engine/movement.py` — handle cross-room movement during tick
-- `routes/action.py` — `/api/turn/apply` may need changes
-- `static/js/agent/turn-queue.js` — turn order display
+- `engine/tick_manager.py` - restructure tick loop for room-based processing
+- `engine/player_manager.py` - add `get_players_by_area()` grouping
+- `engine/movement.py` - handle cross-room movement during tick
+- `routes/action.py` - `/api/turn/apply` may need changes
+- `static/js/agent/turn-queue.js` - turn order display
 
 ## Steps to verify
 
-- Two areas with characters — both process same tick
+- Two areas with characters - both process same tick
 - Character moves between areas mid-tick
 - Empty areas don't block processing
 - All characters in one room = same behavior as before
@@ -102,15 +102,16 @@ Tick N:
   offers "Simultaneous per room" (`static/js/agent/simultaneous.js`,
   `agent-engine.js:_simultaneousRoomStep`, task-465). It groups by area, gives
   each room an independent countdown, and runs that room's characters
-  sequentially — an approximation of Phase 1/2 with no snapshot.
+  sequentially - an approximation of Phase 1/2 with no snapshot.
 - The **engine-level** flow above (true tick-level parallel processing, the
   Phase 3 sync barrier, Phase 4 cross-room movement resolution, `tick_manager`
   restructure) is still open and is absorbed by task-437 ("task-101 is step 5").
 
 ## Why
 
-TODO
+Local actors in other rooms should process turn ticks simultaneously without blocking on human interaction in the player's room.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Rooms process turn ticks simultaneously for local NPC actors.
+- [x] Human turn waiting gate restricts only the active controlled character's room.

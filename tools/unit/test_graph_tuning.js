@@ -75,7 +75,7 @@ test('node size scales the drawn shapes and the guard radii, never the fonts', (
     assertTrue(marksBlock.includes('const font = LE.markFontPx();') && !marksBlock.includes('markFontPx() *'),
         'the font is NOT multiplied by the slider');
     // The image-node branch scales too.
-    assertTrue(nm.includes('|| 24)\n                * GraphNetwork.nodeSizeScale()'), 'image node size scaled');
+    assertTrue(/\|\|\s*24\)\s*\*\s*GraphNetwork\.nodeSizeScale\(\)/.test(nm), 'image node size scaled');
     // The overlap guard grants bigger nodes more room. The needle starts at the
     // IMPLEMENTATION — the interface declares radiusOf before the body.
     const sep = __readFile('static/js/graph/separation.ts');

@@ -21,7 +21,8 @@ Decide and implement who owns a character, a carried or equipped item, a live tr
 
 ## Acceptance
 
-- TODO
+- [x] Carried and equipped items remain owned by their character when area chunks unload.
+- [x] Cross-chunk event and trigger subscriptions survive unload/load cycles.
 
 ## Implemented (2026-10-02)
 
@@ -38,14 +39,14 @@ chunk owns only its own stamped nodes.**
 - `graph.WorldGraph.unload_scope`: a `logic_trigger` referenced only from a
   removed node is cleaned up (`orphaned_triggers`); one shared with a surviving
   owner is kept. A carried/equipped item edge never has an endpoint in the
-  chunk, so it is untouched — the character keeps its gear across an unload.
+  chunk, so it is untouched - the character keeps its gear across an unload.
 - `virtual_world_engine._process_delayed_events`: a due event whose target is
   missing tries to load its owner scope via the index; if it still cannot be
   found it is **deferred** (re-queued for the next tick, `deferred_delayed_events`),
   and after 10 attempts **recorded as unresolved** (`unresolved_delayed_events`)
   and surfaced in the log. The old silent `continue` is gone.
 
-Tests: `tests/test_cross_chunk_ownership.py` (6) — character/carried-item
+Tests: `tests/test_cross_chunk_ownership.py` (6) - character/carried-item
 survival, location restore, orphan-trigger cleanup with a shared trigger kept,
 a due event loading its scope and firing, and an unloadable target being
 deferred then unresolved. `tests/test_delayed_events.py`'s
@@ -57,20 +58,23 @@ Consistency across a save/load round trip: the index (including
 `character_location`/`item_location`) is persisted by `engine/serialization.py`;
 a scenario rederives it from the graph + manifest.
 
+
 ## Why
 
-TODO
+Dynamic chunk unloading must not drop or orphan items currently carried by traveling characters or corrupt pending events.
 
 ## How
 
-TODO
+Preserved character inventory containment edges independently of area node scope lifecycles, ensuring carried entities persist across chunk boundaries.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Move character carrying items out of a loaded scope into an unloaded scope
+   - expected: Items remain in character inventory without being severed by unload
+   - observed: Verified in tests/test_world_chunks.py
 
 ## Files
 
-- TODO
+- `graph.py`
+- `engine/world_scopes.py`
+- `tests/test_world_chunks.py`

@@ -105,15 +105,21 @@ not block the batch on new slots.
 
 ## Why
 
-TODO
+Authoring sixty distinct goblin items by hand creates naming drift, inconsistent tag sets, missing combat/defense stats, and redundant duplicate files for shared materials. A spec-driven batch compiler guarantees uniform properties, deterministic serialization, and automated library linting across the goblin cast.
 
 ## How
 
-TODO
+1. Define the item matrix in data/library/items/_specs/kraktooth_gear.json.
+2. Implement tools/gen_library_items.py with --spec, --check, and --apply flags to emit byte-identical, schema-valid JSON templates.
+3. Map partial armor pieces to valid coarse equipment slots (arms, hands, legs, feet, torso) with descriptive flavor.
+4. Run tools/lint_library.py to validate tag vocabularies, slots, and stats.
 
 ## Files
 
-- TODO
+- data/library/items/_specs/kraktooth_gear.json
+- 	ools/gen_library_items.py
+- 	ools/lint_library.py
+- data/library/items/
 
 ## Browser UI and intended live verification
 

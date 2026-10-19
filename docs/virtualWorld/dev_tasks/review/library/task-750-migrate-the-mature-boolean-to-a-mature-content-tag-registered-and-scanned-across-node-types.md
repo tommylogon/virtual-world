@@ -27,11 +27,11 @@ task): `light_source` (`engine/lighting.py:104`, `engine/toggleable_items.py:50,
 `heat_source`, `undead`/`ghost` (`engine/undead.py:_has_tag`) are all tags scanned
 inline. A tag is the idiomatic cross-cutting marker; the boolean is the outlier.
 
-Current state — the boolean is real and read in four places:
+Current state - the boolean is real and read in four places:
 
-- `routes/library_ops.py:_filter_mature_entries` — `value.get('mature')` (traits/conditions listing)
-- `engine/dressing.py:_wearable_entries` / `_apply_mature_gate` — `data.get("mature")` (items; currently unauthored, see task-660)
-- `engine/nl_editor_validation.py:481` — `entry.get("mature")` (library_upsert write gate)
+- `routes/library_ops.py:_filter_mature_entries` - `value.get('mature')` (traits/conditions listing)
+- `engine/dressing.py:_wearable_entries` / `_apply_mature_gate` - `data.get("mature")` (items; currently unauthored, see task-660)
+- `engine/nl_editor_validation.py:481` - `entry.get("mature")` (library_upsert write gate)
 - `engine/player_conditions.py` (definitions set `mature: True`; `:747` reads it) and `engine/traits.py` (8 traits)
 
 Data: 19 entries author `"mature": true`; traits/conditions carry no `tags` field today.
@@ -74,21 +74,31 @@ and `remove_tag` can strip it at runtime (same as any tag; accepted).
 - [x] All four readers match on the tag; no `get('mature')` reads remain.
 - [x] `ball_gag` (item) and the intended node types (traits/conditions) carry `mature`.
 - [x] `world.mature_content` off hides/gates tagged content (library listing filter + the
-      dressing pool) and on restores it — covered by tests.
+      dressing pool) and on restores it - covered by tests.
 - [x] `tests/test_auto_dress.py` mature test now exercises the real tagged `ball_gag`, not a
       monkeypatched `_wearable_entries`.
 - [x] No second marker: the boolean is fully retired.
 
 ## Why
 
-TODO
+The mature boolean property was an outlier among cross-cutting classification markers (light_source, heat_source, undead, etc. are all tags). Using a boolean required bespoke property lookups across items, characters, conditions, and traits. Migrating to a registered tag unifies tag matching, filtering, and authoring validation.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Verify tag registration and scenario tag check
+   - expected: data/library/tags/mature.json is registered and python tools/scenario_tag_check.py --check detects no missing mature tag
+   - observed: Mature tag valid across node types
+2. Run auto dress tests with mature gating
+   - expected: pytest tests/test_auto_dress.py passes with real tagged ball_gag
+   - observed: 15 passed in tests/test_auto_dress.py
 
 ## Files
 
-- TODO
+- data/library/tags/mature.json
+- engine/traits.py
+- engine/player_conditions.py
+- engine/dressing.py
+- engine/nl_editor_validation.py
+- 
+outes/library_ops.py
+- 	ests/test_auto_dress.py

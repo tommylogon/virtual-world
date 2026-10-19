@@ -707,7 +707,8 @@ window.PromptBuilder = window.PromptBuilder || {};
                 // Relationship type inline ("a close friend") when known; strangers get no label.
                 const relLabel = PromptBuilder.buildRelationshipLabel(player, person.name);
                 const relPart = relLabel ? ` - ${relLabel} - ` : ' ';
-                return `  - ${displayName}${relPart}(${person.state})${actSuffix}${atSuffix}${descSuffix}`;
+                const aliases = Array.isArray(person.aliases) && person.aliases.length ? ` [aka ${person.aliases.join(', ')}]` : '';
+                return `  - ${displayName}${aliases}${relPart}(${person.state})${actSuffix}${atSuffix}${descSuffix}`;
             });
             peopleStr = '\nPeople here:\n' + peopleLines.join('\n');
         }

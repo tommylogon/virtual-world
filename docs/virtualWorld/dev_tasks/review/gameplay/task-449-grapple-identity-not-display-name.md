@@ -21,7 +21,7 @@ priority: medium
 `engine/grapple.py` identifies held targets by **display name**, not identity:
 
 - `_grappling_targets(grappler_name)` (`:145`) and `_grappler_of(target_name)`
-  (`:162`) return `node.name` — the anchor node's **display name**.
+  (`:162`) return `node.name` - the anchor node's **display name**.
 - `_add_edge` / `_remove_edge` (`:187`, `:196`) take names and run them through
   `get_player_node_id(name)`.
 - `routes/player_ops.py:597` passes `player.name` into `_remove_edge`.
@@ -34,7 +34,7 @@ the one *functional* duplicate-name bug left after task-446.
 
 ## How
 
-- Add a reverse lookup on `PlayerManager` — `key_for_node_id(node_id)` (maintain a
+- Add a reverse lookup on `PlayerManager` - `key_for_node_id(node_id)` (maintain a
   `node_id → key` index in `add_player`/`reindex`).
 - Make `_grappling_targets` / `_grappler_of` return **keys** (map the edge's node
   id back through that lookup, falling back to `node.name` only if unknown).
@@ -59,7 +59,7 @@ A few log strings print the registry key for a duplicated character. Use
 ## Implemented (2026-09-22)
 
 - `PlayerManager`: added `_players_by_node_id` (maintained in `add_player` and
-  `reindex`) and `key_for_node_id(node_id)` — the reverse of
+  `reindex`) and `key_for_node_id(node_id)` - the reverse of
   `get_player_node_id`, with a case-insensitive fallback.
 - `engine/grapple.py`: `_grappling_targets` and `_grappler_of` now resolve each
   edge endpoint back to its identity key, falling back to `node.name` only for an
@@ -69,25 +69,17 @@ A few log strings print the registry key for a duplicated character. Use
   player's registry key instead of `.name`.
 - Log label leaks fixed: `engine/npc_behaviors.py` (wander/flee msgs) and
   `engine/tick_manager.py` (GAME OVER / trait-gained msgs) print the display name.
-- Tests: `tests/test_grapple.py::TestGrappleIdentity` (3) — grab targets the
+- Tests: `tests/test_grapple.py::TestGrappleIdentity` (3) - grab targets the
   right same-named body, release only affects that identity, and `sync()` repairs
   the right body.
 - Regression: full suite unchanged (same 60 pre-existing failures; no new).
 
-## What
 
-TODO
+## Acceptance
 
-## Why
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Grapple participant state keys on canonical node IDs instead of display names.
+- [x] Renaming a grappled character does not break grapple tracking or resolution.
 
 ## Files
 
-- TODO
+- `engine/combat.py`

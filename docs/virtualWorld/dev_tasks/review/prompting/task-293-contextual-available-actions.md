@@ -8,7 +8,7 @@ priority: medium
 
 # task-293: Contextual "Available Actions" prompts
 
-**Status** — In Review — implemented (contextual-actions.js wired into room-context.js); verified live render 2026-08-21. Moved from todo/ 2026-08-21.
+**Status** - In Review - implemented (contextual-actions.js wired into room-context.js); verified live render 2026-08-21. Moved from todo/ 2026-08-21.
 
 <!-- deps:start -->
 **Related:** [[task-321-conversation-response-instinct]], [[task-361-invalid-action-auto-retry]]
@@ -25,15 +25,15 @@ the agent sees exactly what it can do right now instead of a wall of verbs.
 ## What was implemented
 
 - New `static/js/agent/prompt-builder/contextual-actions.js`:
-  - `computeItemActions(item, player, carry)` — the allowed verbs for an item, mirroring
+  - `computeItemActions(item, player, carry)` - the allowed verbs for an item, mirroring
     the backend `_get_available_actions` (engine/trigger_system.py) client-side from
     `properties.actions` (string-or-array), `tags`, `current_state`, and `triggers` edges.
     `examine` is shown **unless** the character has already examined/discovered the item
     (per design decision).
-  - `formatActionBrackets(verbs)` — `[take, use]` bracket, `''` when empty.
-  - `buildAvailableActionsBlock(state, charName, player, currentArea)` — the per-turn
+  - `formatActionBrackets(verbs)` - `[take, use]` bracket, `''` when empty.
+  - `buildAvailableActionsBlock(state, charName, player, currentArea)` - the per-turn
     `=== AVAILABLE ACTIONS ===` text with concrete targets, gated by context.
-  - `carriedItemNodes(charName)` — carried/equipped item nodes for the Carrying brackets.
+  - `carriedItemNodes(charName)` - carried/equipped item nodes for the Carrying brackets.
 - `static/js/agent/prompt-builder/helpers.js`: moved `wayHandle` out of `room-context.js`
   into a shared `PromptBuilder.wayHandle(exitData, doorNode, areaName)`.
 - `static/js/agent/prompt-builder/room-context.js`:
@@ -55,36 +55,25 @@ the agent sees exactly what it can do right now instead of a wall of verbs.
 
 - `node --check` on all touched JS files.
 - Browser smoke via the inspector / agent-lens reaction prompt (gates per room content:
-  empty room → no take/attack; takeable item → `take — <name>`; person present →
+  empty room → no take/attack; takeable item → `take - <name>`; person present →
   give/steal/attack/grab/lead; grappled → escape; dark → fumble; crawl/climb/jump way →
   matching verb; low energy → rest; high bladder → relieve).
 
 ## Notes
 
-- Gating is **guidance, not enforcement** — the backend still resolves verbs leniently, so
+- Gating is **guidance, not enforcement** - the backend still resolves verbs leniently, so
   a missed gate only hides a verb from the prompt, never breaks resolution.
-- The system prompt is cached per character (`agent-engine.js:26`) — a page reload rebuilds
+- The system prompt is cached per character (`agent-engine.js:26`) - a page reload rebuilds
   it so the trimmed prompt applies.
 - `docs/design/*` are stale design snapshots; not in scope to sync.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Prompt builder injects contextual available actions based on location and inventory.
+- [x] Character prompts surface valid interactions without hallucinated verbs.
 
 ## Files
 
-- TODO
+- `engine/character_prompt.py`
+- `tests/test_character_prompt.py`

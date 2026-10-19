@@ -190,13 +190,15 @@ window.GraphPhysics = {
     /**
      * The ONE writer. Compute the decision and push it onto the network. Every
      * former `applyModePhysics(enabled)` site now lands here.
+     *
+     * @param {Object} [customOptions] - optional solver/stabilization block (e.g. map settling)
      */
-    apply(): void {
+    apply(customOptions?: any): void {
         const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
         if (!gm || !gm.network || !gm.network.setOptions) return;
         const run = GraphPhysics.shouldRun(GraphPhysics.readState());
         if (!run) {
-            // Freeze exactly where the nodes ARE — but ONLY for a real pause.
+            // Freeze exactly where the nodes ARE - but ONLY for a real pause.
             // During a load, GraphPhysics.pause() holds the solver off
             // transiently while the placement passes are still running; writing
             // the DataSet then captures HALF-PLACED body positions, and the grid
@@ -206,12 +208,17 @@ window.GraphPhysics = {
             if (!GraphPhysics._paused) GraphPhysics._snapshotBodyToDataset();
             // Disable WITHOUT resending the solver block. Changing a solver
             // option in the same setOptions() call makes vis.js re-initialise
-            // the force solver, which re-runs it from the seeded positions — so
+            // the force solver, which re-runs it from the seeded positions - so
             // "pause" appeared to teleport every node back to where it was
             // loaded instead of freezing it where it had settled. Halting is
             // just `enabled: false` plus an explicit stop.
             gm.network.setOptions({ physics: { enabled: false } });
             try { gm.network.stopSimulation(); } catch (e) { /* already stopped */ }
+            return;
+        }
+        if (customOptions && typeof customOptions === 'object') {
+            gm.network.setOptions({ physics: { enabled: true, ...customOptions } });
+            try { gm.network.startSimulation(); } catch (e) { /* already running */ }
             return;
         }
         const cfg: any = (typeof config !== 'undefined' && config) || {};

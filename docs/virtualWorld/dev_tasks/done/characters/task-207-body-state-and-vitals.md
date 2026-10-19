@@ -3,19 +3,19 @@ area: characters
 status: done
 type: task
 priority: medium
-related: ['"\'task-213\'"', '"\'task-534\'"', "'task-208'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", "'task-213'", "'task-215'", 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-213', 'task-215']
+related: ['task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-213', 'task-215', 'task-534']
 ---
 
 # Body State & New Vitals (Arousal/Stimulation/Pleasure)
 
 **Filed**: 2026-08-11
 **Priority**: High
-**Status**: Review — implemented and verified against the code; shipped in v1.4.0
+**Status**: Review - implemented and verified against the code; shipped in v1.4.0
 
 ---
 
 <!-- deps:start -->
-**Related:** [[task-213-mature-traits]], [[task-534-missing-body-reaction-sneeze]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-215-environmental-clothing-effects]]
+**Related:** [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-213-mature-traits]], [[task-215-environmental-clothing-effects]], [[task-534-missing-body-reaction-sneeze]]
 <!-- deps:end -->
 
 ## Why
@@ -24,28 +24,28 @@ There's no per-body-part numeric state and no arousal system. The design calls f
 
 ## How
 
-- Add `player.body_state` dict: `nipples` (left/right: hardness, puffiness, flush, sensitivity, injury, pierced), `cheeks` (flush), `genitals` (erection, wetness, sensitivity, injury). Quick numeric lookups only — body parts are NOT graph nodes.
-  - **Shipped:** the dict exists, keyed by body region id, with `sensitivity` seeded from the catalog (nipples 0.9/0.7) — `engine/body_parts.py::default_body_state`, `player.py:141`.
+- Add `player.body_state` dict: `nipples` (left/right: hardness, puffiness, flush, sensitivity, injury, pierced), `cheeks` (flush), `genitals` (erection, wetness, sensitivity, injury). Quick numeric lookups only - body parts are NOT graph nodes.
+  - **Shipped:** the dict exists, keyed by body region id, with `sensitivity` seeded from the catalog (nipples 0.9/0.7) - `engine/body_parts.py::default_body_state`, `player.py:141`.
   - **Descoped:** the erogenous numerics (hardness, puffiness, flush, pierced, erection, wetness) are modeled as conditions instead (`nipple_hard`, `blushing`, `wetness`, `sensitized`, `satisfied`) in `engine/player_conditions.py`. Nothing reads those fields today; `engine/pleasure_actions.py` reads only `sensitivity`.
 - Add vitals to `player.vitals`: `Arousal` (0-100, decays slowly), `Stimulation` (0-100), `Pleasure` (0-100).
 - Add decay rates to `player.decay_rates` for the new vitals.
-- **`sync_vitals_with_tags()`** (`player.py:274`) already does dynamic vital add/remove — mirror it if mature content ever needs to strip these vitals. Realized as `Player.sync_pleasure_vitals()` (`player.py:37`), driven by the mature-content toggle (task-206).
+- **`sync_vitals_with_tags()`** (`player.py:274`) already does dynamic vital add/remove - mirror it if mature content ever needs to strip these vitals. Realized as `Player.sync_pleasure_vitals()` (`player.py:37`), driven by the mature-content toggle (task-206).
 
 ## Files
 
-- `player.py` — `body_state` init (`:141`) and `sync_pleasure_vitals()` (`:37`)
-- `engine/body_parts.py` — `default_body_state()` (`:265`) and nipple sensitivities (`:127`, `:132`)
-- `engine/vitals.py` — Arousal/Stimulation/Pleasure classified as decaying resources (`:36-38`)
+- `player.py` - `body_state` init (`:141`) and `sync_pleasure_vitals()` (`:37`)
+- `engine/body_parts.py` - `default_body_state()` (`:265`) and nipple sensitivities (`:127`, `:132`)
+- `engine/vitals.py` - Arousal/Stimulation/Pleasure classified as decaying resources (`:36-38`)
 
 ## Steps to verify
 
-- [x] `body_state` initializes with correct defaults (nipples 0.9/0.7 sensitivity) — `tests/test_body_parts.py`
-- [x] New vitals appear in player vitals with correct range 0-100 — `tests/test_pleasure_system.py`
-- [x] Decay applies each tick — `virtual_world_engine.py:90-96`, `tests/test_pleasure_system.py`
+- [x] `body_state` initializes with correct defaults (nipples 0.9/0.7 sensitivity) - `tests/test_body_parts.py`
+- [x] New vitals appear in player vitals with correct range 0-100 - `tests/test_pleasure_system.py`
+- [x] Decay applies each tick - `virtual_world_engine.py:90-96`, `tests/test_pleasure_system.py`
 
 ## Related
 
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §1, §4, Phase 1
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §1, §4, Phase 1
 
 ## What
 

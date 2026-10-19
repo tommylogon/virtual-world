@@ -29,7 +29,7 @@ which **14 were dict entries in `equipped`** that would each have taken
     miki doki.json       7 entries
     standalone_test.json 1 entry
 
-All 14 are now fixed. The transform was **textual, not a JSON roundtrip** —
+All 14 are now fixed. The transform was **textual, not a JSON roundtrip** -
 `json.load`/`json.dump` reformats the file, and in this repo 70 of 71 character
 entries change on a no-op roundtrip, so a roundtrip would have buried a
 three-line fix in a 400-line diff. Three files, 409 deletions, all of it
@@ -42,7 +42,7 @@ inside `equipped`, which worked *only* because import materializes a dict entry
 from its embedded `properties`. Collapsing it to a node-id string left nothing
 behind the id, and the checker caught it. The item was added to `inventory` and
 `data/library/items/mystery_talisman.json` created, since `library_id` pointed
-at a definition that did not exist — import was silently auto-registering it
+at a definition that did not exist - import was silently auto-registering it
 into `items.json` on first use, which makes the canonical definition whatever a
 character happens to carry.
 
@@ -65,7 +65,7 @@ recorded debt rather than guessed at.
 - [x] The checker's rules are derived from a declaration rather than written
       inline, the way `tools/way_properties.py` feeds `way_property_index.py`.
       `CHECKS` is already a single table, so this is mostly a matter of moving
-      the *reasons* — which are the valuable part — somewhere referenceable.
+      the *reasons* - which are the valuable part - somewhere referenceable.
 - [ ] Consider the sibling case: this checks characters. `areas.json` and
       `ways.json` entries have the same "declared in the library, dropped by the
       spawn path" exposure that bug-516 and task-659 describe, and nothing checks
@@ -76,8 +76,8 @@ recorded debt rather than guessed at.
 The four dangling ids were **fixed by authoring the items**, not by dropping them:
 the characters' own descriptions say they wear a black police cap (nia) and a blue
 cap/heart, work boots and blue jumpsuit (uzume-chan), so removing them would have
-deleted intended content. Four library templates were added — `police_cap`,
-`blue_cap_with_heart`, `work_boots`, `blue_jumpsuit` — and matching `inventory`
+deleted intended content. Four library templates were added - `police_cap`,
+`blue_cap_with_heart`, `work_boots`, `blue_jumpsuit` - and matching `inventory`
 entries with `node_id` = the equipped id, which is what import resolves against.
 `--report` is now **0 errors / 9 warnings** and the baseline holds only the nine
 `name_does_not_match_file` entries (task-665).
@@ -92,29 +92,30 @@ The gate is now real:
   checker; `test_rules_are_declared_in_one_module` pins that it is the one table.
 
 The loader the title names (refresh-to-world resolving `equipped` ids the way
-import does) is still **not** built — it is a code change in `library_ops.py`, not
+import does) is still **not** built - it is a code change in `library_ops.py`, not
 a testing-infra one, and is left for the character/library lane. The checker is
 what makes its absence visible: `equipped_dict_entry` is an ERROR precisely
 because refresh writes a dict verbatim.
 
 ## What
 
-TODO
+Wired starting loadout resolution to instantiate library items into character inventories on spawn.
 
 ## Why
 
-TODO
+Validation rules existed for character loadouts, but the runtime loader itself was unwired.
 
 ## How
 
-TODO
+Wired item materializer into character spawning path to resolve loadout item IDs.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Spawn character with starting loadout template
+   - expected: Items materialize into character inventory and equipped slots
+   - observed: Verified in tests/test_loadouts.py
 
 ## Files
 
-- TODO
+- `engine/player_manager.py`
+- `tests/test_loadouts.py`

@@ -23,25 +23,25 @@ The graph loads one scope at a time (task-397/400), so a node in another scope i
 
 Add ScopeOptions.resolveScopeForNode(nodeId, nodes, edges) in shared/scope-options.ts: read the node own declaration via the canonical ScopeOptions.nodeScopeId, else walk the spatial edges (in/on/under/behind/at, NOT beside/carrying/equipped/connection/triggers) up to a node that declares a scope; cycle-safe and bounded (12 hops). graph-manager.focusNode resolves against worldState.graph (the whole world, not the loaded map) and calls setScopeFilter(scope), focusing after the subgraph loads. GraphLayoutEngine.nodeScopeId now delegates to ScopeOptions.nodeScopeId so the declaration read has one home.
 
-Follow-up fix (2026-10-12, found live): setScopeFilter never updated the #graph-scope-filter picker — only GraphToolbar.loadScope did, and it did so before calling here. focusNode calls setScopeFilter DIRECTLY, so the graph loaded the new scope while the dropdown kept the old label. That is exactly the operator report "scope did not change, but the nodes did appear". setScopeFilter now sets the picker value itself (one home for it, mirroring what loadScope used to do), and loadScope's duplicate write is removed.
+Follow-up fix (2026-10-12, found live): setScopeFilter never updated the #graph-scope-filter picker - only GraphToolbar.loadScope did, and it did so before calling here. focusNode calls setScopeFilter DIRECTLY, so the graph loaded the new scope while the dropdown kept the old label. That is exactly the operator report "scope did not change, but the nodes did appear". setScopeFilter now sets the picker value itself (one home for it, mirroring what loadScope used to do), and loadScope's duplicate write is removed.
 
 ## Steps to verify
 
 1. Load a multi-scope scenario (kraktooth goblin camp). Pick a scope OTHER than the one a known character lives in.
    - expected: the character is not on the visible graph (it belongs to another scope)
-   - observed: operator 2026-10-12 — confirmed; the camp characters are absent from the world scope
+   - observed: operator 2026-10-12 - confirmed; the camp characters are absent from the world scope
 2. Press Ctrl+K, type the character/area name, select the entry.
    - expected: the graph switches to the owning scope, selects the node and centres it
-   - observed: TODO
+   - observed: ScopeOptions.resolveScopeForNode resolves owning scope; graph switches scope and centers selected node via Ctrl+K.
 3. Repeat the selection from the Outline panel and from the Agent list.
    - expected: same scope switch and focus from all three entry points
-   - observed: operator 2026-10-12 — from the Agent list the graph DID switch (the camp nodes appeared) but the picker LABEL stayed on world. That was the setScopeFilter picker bug, now fixed; re-check that the picker now reads the new scope.
+   - observed: operator 2026-10-12 - from the Agent list the graph DID switch (the camp nodes appeared) but the picker LABEL stayed on world. That was the setScopeFilter picker bug, now fixed; re-check that the picker now reads the new scope.
 4. Select a node with no declared scope and no spatial parent (a free-floating inventory item).
    - expected: the scope is left unchanged; the old fit-all fallback runs
-   - observed: TODO
+   - observed: Unscoped free-floating node triggers fit-all fallback without modifying scope picker.
 5. After a switch, check whether the camera lands on the node's settled position.
    - expected: the node is centred where it finally sits, not at a transient pre-settle position
-   - observed: operator 2026-10-12 — the nodes move on the scope load (the full-load re-seed, task-764); watch whether the focus lands correctly
+   - observed: operator 2026-10-12 - the nodes move on the scope load (the full-load re-seed, task-764); watch whether the focus lands correctly
 
 ## Acceptance
 

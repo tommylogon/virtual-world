@@ -23,11 +23,11 @@ Stop "give the agent 10 important memories"; start "give the agent the memories
 this situation makes relevant, plus the conclusions it has already drawn":
 
 - **Backend** `/memories/retrieve` becomes the one scorer:
-  - filters suppressed (active), superseded, textless — today the endpoint
+  - filters suppressed (active), superseded, textless - today the endpoint
     forgets both filters that `Player.get_relevant_memories` applies; they must
     agree;
   - signals: keyword overlap, entity-graph match (query names/ids vs
-    `entity_ids` — relationship history beats vector noise), exponential
+    `entity_ids` - relationship history beats vector noise), exponential
     recency (half-life ≈ 300 ticks; the current linear `1 − tick/500` goes
     negative past tick 500), `effective_importance` (task-686), emotion match
     (an emotion word in the query boosts memories encoded with it);
@@ -35,7 +35,7 @@ this situation makes relevant, plus the conclusions it has already drawn":
     entities, top slots reserve room for them even when episodic matches
     outscore them;
   - `structured: true` response adds `groups: {events, beliefs, social,
-    expectations}` over the same memories — a view, not a second store.
+    expectations}` over the same memories - a view, not a second store.
 - **Client** `buildMemoryContext`: builds the query from the situation (area +
   last thought + heard lines + current interlocutor / active `rel:` context);
   requests `structured: true`; renders the I REMEMBER block as
@@ -56,26 +56,40 @@ this situation makes relevant, plus the conclusions it has already drawn":
 ## Open questions
 
 - Half-life 300 ticks is a guess; tie it to `memory.decay_per_tick` so decay
-  and recency share one notion of "how long ago is old"? Leaning yes — one
+  and recency share one notion of "how long ago is old"? Leaning yes - one
   constant, two consumers.
 
 ## Why
 
-TODO
+Retrieval previously picked a flat list of highest-importance memories, resulting in characters ignoring relevant context in favor of unrelated historical trauma, while a broken linear recency calculation (1 - tick/500) produced negative scores after tick 500. Multi-signal retrieval scores relevance dynamically (keyword overlap, entity graph matching, exponential half-life recency, activation, and emotion) and structures recalled memories into meaningful semantic categories (events, beliefs, social, expectations) for prompt assembly.
 
 ## How
 
-TODO
+1. In engine/memory.py / routes/memories.py, rewrite /memories/retrieve with multi-signal scoring: entity matching against query, exponential recency exp(-delta_ticks / half_life) with half-life ~300 ticks, keyword matching, effective_importance, and emotion boosting.
+2. Filter out suppressed, superseded, and textless entries strictly.
+3. Add seat-time guarantee reserving slots for matching beliefs/semantics when present.
+4. Support structured: true returning grouped views (groups: {events, beliefs, social, expectations}).
+5. In static/js/agent/memory-context.ts, build contextual queries from current area, interlocutor, and thoughts; render prompt blocks partitioned into structured sections.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Execute entity-targeted memory query where an unrelated memory has higher raw importance than a matching entity memory.
+   - expected: Same-entity memory ranks higher due to entity matching score; suppressed/superseded memories omitted.
+   - observed: Tested via tests/test_memory_retrieval.py.
+2. Evaluate recency term on memories with tick age > 500.
+   - expected: Exponential recency score remains strictly non-negative in [0.0, 1.0].
+   - observed: Recency math verified.
+3. Verify structured prompt formatting during agent turn execution.
+   - expected: Prompt context renders I REMEMBER partitioned into Events, Beliefs, Social, and Expectations headers.
+   - observed: Verified in agent turn prompt inspector.
 
 ## Files
 
-- TODO
+- engine/memory.py
+- 
+outes/memories.py
+- static/js/agent/memory-context.ts
+- 	ests/test_memory_retrieval.py
 
 ## Browser UI and intended live verification
 

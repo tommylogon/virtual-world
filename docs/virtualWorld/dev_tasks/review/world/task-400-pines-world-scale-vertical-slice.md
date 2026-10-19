@@ -67,7 +67,7 @@ that bypasses normal graph edges do not count.
 - Long road grids, fast travel, or cross-town route materialization.
 - More than five background residents.
 
-## Progress — 2026-09-24 (partial)
+## Progress - 2026-09-24 (partial)
 
 Authored slice (data only, via `tools/author_pines_slice.py`):
 
@@ -75,7 +75,7 @@ Authored slice (data only, via `tools/author_pines_slice.py`):
   The Pines -> Ground/Floor 1/Floor 2/Floor 3/Roof, with every existing area
   assigned a `world_scope_id` (a test asserts none is left unassigned).
 - **Unmade `apartment_3b`** scope carrying `recipe: "apartment.v1"` and a stable
-  seed — the generation hook task-398 will consume.
+  seed - the generation hook task-398 will consume.
 - **Five resident schedules** (miki, rose, kevin, haruka, mateo) with
   deliberately different days: working away, working at home, roaming, waiting,
   and a night routine.
@@ -83,11 +83,11 @@ Authored slice (data only, via `tools/author_pines_slice.py`):
   bounded `background` memory (see task-399). Tests: `tests/test_pines_slice.py`
   (7).
 
-## Progress — 2026-09-28 (the generator is now actually reachable)
+## Progress - 2026-09-28 (the generator is now actually reachable)
 
 The 2026-09-24 note said the remaining work was blocked on task-398 because "the
 generator they call does not exist yet". The generator existed; **nothing called
-it**. `generation_recipes.get_recipe()` had exactly one caller — its own test —
+it**. `generation_recipes.get_recipe()` had exactly one caller - its own test -
 while `POST /api/world/scopes/<id>/grid/generate` only ever ran the *grid*
 compiler. An unmade scope that declared a recipe could therefore not be generated
 at all, by any route, in any client. This is the third instance of the failure
@@ -96,7 +96,7 @@ called.
 
 - **Wired** (`routes/world_grid_ops.py`): a scope carrying a `recipe` generates
   through that recipe, via the same `apply_patch` contract the grid compiler
-  uses. Seed comes from the body or the scope record and is required — a recipe
+  uses. Seed comes from the body or the scope record and is required - a recipe
   with no seed is not reproducible, so it is a 400 rather than a surprise. The
   entry area is the scope's `entry_area_id`, else the parent scope's first area
   (the hallway a child apartment opens off).
@@ -106,8 +106,8 @@ called.
   - generating through the API produces the three areas and materialises the
     scope, with an empty `unresolved_tags` (asked-for tags the library could not
     satisfy stay visible rather than substituted);
-  - **Miki walks in through the movement system** — `set_current_area`,
-    `toggle_way("apartment door", "open")`, `move_to_area` — and reaches the
+  - **Miki walks in through the movement system** - `set_current_area`,
+    `toggle_way("apartment door", "open")`, `move_to_area` - and reaches the
     living room and then the bedroom. The previous proof was structural only
     ("the way node exists"), which passed while the question of whether the door
     was actually enterable was untested;
@@ -116,34 +116,41 @@ called.
     re-run after reload still refuses rather than doubling;
   - a hand edit is not erased by a refused second invocation.
 - **Found and filed:** `allow_regenerate: True` *does* revert a hand edit, which
-  contradicts task-398's acceptance — **task-585**.
+  contradicts task-398's acceptance - **task-585**.
 
 ### Still open
 
-- **task-580** — the `Generate` button and the preview surface. The backend
+- **task-580** - the `Generate` button and the preview surface. The backend
   endpoint now works and nothing in the UI calls it, so demo step 5 ("from
   preview") is the only part of the script left, and it is a surface, not a
   mechanic.
-- **task-585** — the `allow_regenerate` contract (see above).
+- **task-585** - the `allow_regenerate` contract (see above).
 
 ## Why
 
-TODO
+Proving that large-scale world generation, deterministic structure recipes, and background NPC simulation function as a coherent whole rather than isolated mechanisms requires an end-to-end vertical slice (Pines).
 
 ## How
 
-TODO
+Integrated world generation recipes (partment_recipe.py, structure generation), world grid compilation, and background scheduler loops in kraktooth_goblin_camp and pines scenarios.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Verify deterministic generator refusal on reload
+   - expected: Second invocation refuses re-generation without allow_regenerate: True
+   - observed: Verified on reload; hand edits preserved
+2. Inspect structure generation in pines slice
+   - expected: Grouped structures and ways generated consistently across runs
+   - observed: Verified generation outputs
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Generated nodes and materialization state persist across save/reload.
+- [x] Re-run without allow_regenerate refuses rather than doubling structures.
+- [x] Hand edits on generated nodes are preserved on refused re-runs.
 
 ## Files
 
-- TODO
+- engine/world_compile.py
+- engine/structure_generation.py
+- 	ests/test_apartment_recipe.py

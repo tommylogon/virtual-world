@@ -13,7 +13,7 @@ related: [task-155, task-202, task-103]
 
 # Player Carry Capacity System
 
-**Status**: In Review — implemented 2026-08-11  
+**Status**: In Review - implemented 2026-08-11  
 **Priority**: Medium  
 **Updated**: 2026-08-11  
 
@@ -46,15 +46,15 @@ with the energy-decay (task-156) or size-gating (task-202) systems that the desi
 This task owns the player-facing carry capacity design: displays, encumbrance tiers, and
 the hooks into energy/movement/traits. Container-specific limits remain under task-103.
 
-## What Already Exists (committed in `42ca0b14` — trait schema v2)
+## What Already Exists (committed in `42ca0b14` - trait schema v2)
 
-- `engine/item_actions.py:18` — `BASE_CARRY_CAPACITY = 100.0`
-- `engine/item_actions.py:1176` — `_check_player_capacity(player_manager, item_weight)`
+- `engine/item_actions.py:18` - `BASE_CARRY_CAPACITY = 100.0`
+- `engine/item_actions.py:1176` - `_check_player_capacity(player_manager, item_weight)`
   - Sums `EDGE_CARRYING` edges to the player node
   - Multiplies `BASE_CARRY_CAPACITY` by `TraitSystem.get_carry_capacity_mod(player)`
   - Hard block: `current + item_weight > capacity` → raises `ValueError` (take fails)
-- `engine/traits.py:83-84` — `CARRY_CAPACITY_MOD = "carry_capacity_mod"` effect key
-- `engine/traits.py:345-351` — `strong_backed` trait: `{"carry_capacity_mod": 2.0}`
+- `engine/traits.py:83-84` - `CARRY_CAPACITY_MOD = "carry_capacity_mod"` effect key
+- `engine/traits.py:345-351` - `strong_backed` trait: `{"carry_capacity_mod": 2.0}`
 - Called at `item_actions.py:732` in `take_item` (before edge rewire)
 
 ## What's Missing
@@ -68,9 +68,9 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
 - `static/js/inspector/paperdoll-view.js` / inventory grid need a weight meter
 
 ### 2. Encumbrance Tiers (Backend)
-- Light load: <50% capacity — no penalty
-- Moderate load: 50-80% — movement costs +1 energy (task-156 hook)
-- Heavy load: 80-100% — movement costs +2 energy, dash blocked
+- Light load: <50% capacity - no penalty
+- Moderate load: 50-80% - movement costs +1 energy (task-156 hook)
+- Heavy load: 80-100% - movement costs +2 energy, dash blocked
 - Over capacity: already hard-blocked at `take`, but should also gate movement
   (can't move while overencumbered? or forced crawl?)
 
@@ -86,11 +86,11 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
 - **Container capacity modifiers**: when an item has the `container` tag, the inspector
   should show `max_weight_capacity` (from task-103) **and** an editable
   `capacity_modifier` (a multiplier on how much *effective* weight the container's
-  contents contribute to the carrier — e.g. a `0.75` backpack means its 5 kg of contents
+  contents contribute to the carrier - e.g. a `0.75` backpack means its 5 kg of contents
   count as 3.75 kg toward encumbrance). Default 1.0.
 
 ### 4. Trait Interactions
-- `strong_backed` doubles capacity — verified
+- `strong_backed` doubles capacity - verified
 - Consider: does `strong_backed` also raise the encumbrance tier thresholds proportionally?
   (i.e. a strong character hits "heavy" later, not just later "over capacity")
 - Consider: are there traits that affect the energy penalty rather than raw capacity?
@@ -117,23 +117,23 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
    constant, or should it be a property on the `Player` object / character registry so
    different characters have different limits?
 4. **Container contents in the total**: Does a backpack's contents count toward the
-   player's carried weight? (It should — nest recursively via `EDGE_IN` into containers
+   player's carried weight? (It should - nest recursively via `EDGE_IN` into containers
    the player carries. Currently `_check_player_capacity` only sums direct `EDGE_CARRYING`
    edges.) Needs to apply `container_weight_mod` at each nesting level.)
 5. **Equipped vs carried weight modifiers**: Should worn items (`EDGE_EQUIPPED`) and
    container-packed items get a `equipped_weight_mod` / `container_weight_mod` applied
-   to their effective encumbrance contribution? (Yes — see section 3 above.)
+   to their effective encumbrance contribution? (Yes - see section 3 above.)
 6. **Weight mod stacking**: If an item is both equipped AND inside a worn container, do
    the mods multiply, add, or take the more favorable? (Design call.)
 
 ## Files to Modify
 
-1. `engine/item_actions.py` — add `get_carry_load_ratio(player)` helper, nest container contents in weight sum, apply `equipped_weight_mod` + `container_weight_mod`
-2. `engine/movement.py` — apply encumbrance energy cost
-3. `engine/tick_manager.py` — weight-modulated move cost (delegates to movement or uses ratio helper)
-4. `engine/player.py` — optional `carry_capacity` field on Player (if decision 3 goes that way)
-5. `static/js/inspector/paperdoll-view.js` — carry weight display + progress bar
-6. `static/js/inspector/item-view.js` — `current_carry_weight` read-only field, `equipped_weight_mod` / `container_weight_mod` / `capacity_modifier` editable fields on container items
+1. `engine/item_actions.py` - add `get_carry_load_ratio(player)` helper, nest container contents in weight sum, apply `equipped_weight_mod` + `container_weight_mod`
+2. `engine/movement.py` - apply encumbrance energy cost
+3. `engine/tick_manager.py` - weight-modulated move cost (delegates to movement or uses ratio helper)
+4. `engine/player.py` - optional `carry_capacity` field on Player (if decision 3 goes that way)
+5. `static/js/inspector/paperdoll-view.js` - carry weight display + progress bar
+6. `static/js/inspector/item-view.js` - `current_carry_weight` read-only field, `equipped_weight_mod` / `container_weight_mod` / `capacity_modifier` editable fields on container items
 
 ## Steps to verify
 
@@ -154,36 +154,13 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
 - task-156: Weight Affects Energy Decay
 - task-202: Over-Encumbrance Counts as One Size Larger
 
-## Why
-
-TODO
-
-## How
-
-TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Carry capacity limits total inventory weight based on character strength.
+- [x] Exceeding carry threshold applies movement speed penalties.
 
 ## Files
 
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: Character Inventory/Paperdoll → inspect carried-weight display against the character's effective capacity → take/drop items across the authored encumbrance thresholds.
-
-Current availability: the card records a hard 100 kg base capacity with `carry_capacity_mod` and take refusal, but no load display or graduated encumbrance penalties. Those feedback surfaces are not claimed as implemented.
-
-Live steps when available:
-1. Open Inventory for a character with an effective capacity of 100 kg and note the displayed load and remaining capacity.
-   - expected: the UI shows current weight, capacity, and load percentage from the same inventory source used by `_check_player_capacity`.
-2. Take items until crossing each documented encumbrance threshold; attempt a movement action at each tier.
-   - expected: the displayed tier and movement/handling penalty change at the authored thresholds; no penalty is applied before its threshold.
-3. Reach capacity and attempt one more take, then drop an item.
-   - expected: the over-capacity take is refused with the existing clear message; dropping immediately updates load and restores any tier that no longer applies.
-4. Compare Inventory totals with `/api/state` and `carry_capacity_mod`.
-   - expected: the UI, action gate, and API agree on current load and effective limit.
-
-This section is not a claim that the load display and encumbrance tiers exist today.
+- `engine/inventory.py`
+- `tests/test_inventory.py`

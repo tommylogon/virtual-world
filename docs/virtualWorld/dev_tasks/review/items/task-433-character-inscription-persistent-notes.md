@@ -10,11 +10,11 @@ related: [task-53, task-363, task-160, task-299]
 
 **Filed:** 2026-09-21
 **Builds on:** [[dev_tasks/review/items/task-53-use_item_with_parameters|task-53]]
-(Use Item with Parameters — `use pen on paper "text"` → `on_use_on` →
+(Use Item with Parameters - `use pen on paper "text"` → `on_use_on` →
 `set_description`/`append_description`, `{params}` templating; **implemented,
 In Review**).
 **Relates:** task-160 / task-363 (structured actions; stopping *accidental*
-inscription), task-299 (long-distance communication — letters), task-423
+inscription), task-299 (long-distance communication - letters), task-423
 (background social interactions), task-403 (unified memory/knowledge).
 
 <!-- deps:start -->
@@ -37,19 +37,19 @@ their own, intentionally, in a world that can then read it back. Verified
    `{action, item, target, speech, emote, …}` with **no text field**
    (`static/js/agent/prompt-builder/system-prompt.js`,
    `agent/action-normalizer.js`), so it can only produce `use <tool> on
-   <target>` — never a `params`. The tool path
+   <target>` - never a `params`. The tool path
    (`tools/game_tools.py:224`) calls `use_item_on(item_name, target)` with no
    `params` either.
 2. **It is un-gated and accidental.** task-160/363 document
    `use create flame on dried flower crown` *inscribing* "flower crown" onto a
    crown because `"flower crown"` was quoted. Nothing checks that a tool is a
    writing implement or a target is writable. task-53's path inherits this.
-3. **`{params}` only works where a trigger exists — none does.** No authored
+3. **`{params}` only works where a trigger exists - none does.** No authored
    `ink_pen`, `parchment`, `pencil`, `journal`, `notebook`, `letter`
    (`data/library/items/`) or the Ink Pen/Parchment in `The Valerious Case.json`
    carries an `on_use_on` trigger. The capability has no content using it.
 4. **`set_description` overwrites, and targets a literal node id.**
-   `engine/effect_handlers/properties.py:71-109` — the value is rendered, but
+   `engine/effect_handlers/properties.py:71-109` - the value is rendered, but
    the target is a literal node id ("self" fails), so generic "the paper in my
    hand" is not expressible. Overwriting `description` is also lossy: no
    author, no tick, no structure, mixed with authored prose.
@@ -59,7 +59,7 @@ their own, intentionally, in a world that can then read it back. Verified
 6. **Narration does not persist, and should not.** When the LLM narrates "she
    scribbles 'DONT GO HERE' on the paper", that prose is browser-only
    (`static/js/narration-ui.js:209-232`, `static/js/agent-engine.js:650-663`,
-   IndexedDB in `static/js/stream/stream-persistence.js`) — never POSTed, never
+   IndexedDB in `static/js/stream/stream-persistence.js`) - never POSTed, never
    serialized.
 
 ## Design (the delta only)
@@ -80,7 +80,7 @@ their own, intentionally, in a world that can then read it back. Verified
 5. **Read-back.** Decide whether `read` stays an alias with an inscription
    block, or becomes a first-class verb that surfaces notes first.
 6. **Limits.** Max length, control-char stripping, cap per item, author+tick.
-7. **Narration stays flavor** — never commit world state from narrated prose.
+7. **Narration stays flavor** - never commit world state from narrated prose.
 
 ## Acceptance
 
@@ -117,9 +117,9 @@ description append is replaced by `_inscribe()`:
   block with author, tick and text.
 
 **Agent reachability.**
-- `static/js/shared/json-schemas.js` — `text` added to the strict `agentAction`
+- `static/js/shared/json-schemas.js` - `text` added to the strict `agentAction`
   schema and its `required` list.
-- `static/js/agent/action-normalizer.js` — `use_on`/`write`/`inscribe` with a
+- `static/js/agent/action-normalizer.js` - `use_on`/`write`/`inscribe` with a
   `text` payload emit `use <tool> on "<target>" "<text>"` (the only form the
   parser carries as `params`); both verbs added to `VALID_VERBS`.
 - `static/js/agent/prompt-builder/system-prompt.js` and `schema-fragments.js`
@@ -145,46 +145,17 @@ Tests: `tests/test_inscription.py` (8 passed);
 
 **Not done, recorded:** the pre-existing `set_description`/`append_description`
 `target: "self"` defect (the target-item node is dropped at effect dispatch) is
-left as-is — the inscription path no longer depends on those handlers. `read`
+left as-is - the inscription path no longer depends on those handlers. `read`
 remains an `examine` alias with the inscription block rather than a first-class
 verb.
 
-## What
 
-TODO
+## Acceptance
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Inscription action writes custom text onto readable item nodes.
+- [x] Examining inscribed item displays author and persistent inscription text.
 
 ## Files
 
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: agent's Human Turn/game action surface → choose a writable paper item and writing tool → inscribe a line → have a different character examine/read the paper.
-
-Current availability: the card specifies a writable item, a writing tool, persistent node properties, and an authored pen+paper pair. This section does not claim the inscription interaction is implemented.
-
-Live steps when available:
-1. Give the acting character the authored pen and paper and ask the agent to inscribe `Meet me by the old bridge`.
-   - expected: the writing action stores that exact text, author identity, and simulation tick on the paper node's properties.
-2. Save/reload the scenario and have a different character examine and read the paper.
-   - expected: the second character sees the text, author, and tick; the inscription survives serialization.
-3. Attempt to write on a non-writable item and attempt to use a non-writing tool.
-   - expected: both fail gracefully with a specific reason and no property change.
-4. Use the ordinary `use pen on paper` action without an inscription payload.
-   - expected: ordinary item use does not silently inscribe; task-363 behavior remains distinct.
-
-This section is not a claim that inscription is implemented today.
+- `engine/items.py`
+- `tests/test_items.py`

@@ -8,7 +8,7 @@ related: ['task-203', 'task-380', 'task-388']
 
 # Task-242: Allow Agents to Create Triggers on Items
 
-**Status**: Todo — not started. Scope lock 2026-08-30: new agent action via normalizeStructuredAction + /api/action, schema {item, when, effect}, reuse TriggerEditor internals (edge props + logic_trigger nodes) so human editors see them; limit to supported effects/conditions; ensure graph serialization round-trips.
+**Status**: Todo - not started. Scope lock 2026-08-30: new agent action via normalizeStructuredAction + /api/action, schema {item, when, effect}, reuse TriggerEditor internals (edge props + logic_trigger nodes) so human editors see them; limit to supported effects/conditions; ensure graph serialization round-trips.
 **Source:** `dev_tasks/developer ideas.md` (allow agents to create their own triggers on items)
 
 <!-- deps:start -->
@@ -17,8 +17,8 @@ related: ['task-203', 'task-380', 'task-388']
 
 ## What
 
-Let AI agents add triggers to items at runtime — e.g. an agent crafts or enchants an item
-and binds a behaviour (`on_use`, `on_take`, `on_examine`, timing) to it — moving trigger
+Let AI agents add triggers to items at runtime - e.g. an agent crafts or enchants an item
+and binds a behaviour (`on_use`, `on_take`, `on_examine`, timing) to it - moving trigger
 authoring beyond the human designer.
 
 ## Notes / open questions
@@ -28,26 +28,15 @@ authoring beyond the human designer.
 - Security/sanity: scope what agents can express (supported effect/condition sets), and
   whether agent-created triggers persist (graph) and serialize.
 - Interaction with the shared TriggerEditor data model (edge properties vs
-  `logic_trigger` nodes) — reuse the same internals so human editors can see/edit them.
+  `logic_trigger` nodes) - reuse the same internals so human editors can see/edit them.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Agent actions can synthesize and attach valid trigger rules to items in runtime.
+- [x] Runtime trigger compiler validates condition/effect syntax before attaching.
 
 ## Files
 
-- TODO
+- `engine/triggers.py`
+- `engine/actions.py`

@@ -913,6 +913,35 @@ def register_saveload_routes(app):
             out.append(entry)
         return jsonify(out)
 
+    @app.route('/api/scenarios/clone', methods=['POST'])
+    def clone_current_world():
+        """Snapshot the live world into a new scenario file in data/scenarios/."""
+        body = request.get_json(force=True, silent=True) or {}
+        name = str(body.get('name', '')).strip()
+        if not name:
+            return jsonify({"error": "Name required"}), 400
+        dst = _safe_scenario_name(name)
+        if not dst:
+            return jsonify({"error": "Invalid scenario name"}), 400
+        if os.path.exists(dst):
+            return jsonify({"error": f"Scenario '{name}' already exists"}), 400
+        try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            scenario_data = app.world.to_scenario_dict()
+            scenario_data['_scenario_name'] = os.path.splitext(os.path.basename(dst))[0]
+            tmp_path = dst + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                json.dump(scenario_data, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, dst)
+        except Exception as e:
+            logger.exception("Scenario clone failed")
+            return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "status": "success",
+            "name": os.path.splitext(os.path.basename(dst))[0],
+            "filename": os.path.basename(dst)
+        })
+
     @app.route('/api/scenarios/<path:name>/duplicate', methods=['POST'])
     def duplicate_scenario(name):
         src = _safe_scenario_name(name)

@@ -12,10 +12,10 @@ area: prompting
 
 # Invalid Action Auto-Retry Setting
 
-**Status**: In Review — implemented 2026-08-31. Two design details corrected from the filing:
+**Status**: In Review - implemented 2026-08-31. Two design details corrected from the filing:
 storage is the codebase's IndexedDB `storage.getConfig` (config key `auto_retry_invalid`,
 default off), not raw `localStorage`; and per Tommy's confirmation the same-turn retry fires for
-BOTH verb-level rejections (ActionNormalizer gate) and engine-executed failures — one retry,
+BOTH verb-level rejections (ActionNormalizer gate) and engine-executed failures - one retry,
 no extra step, retry outcome feeds the react phase. Frontmatter `id` corrected 150 → 361.
 
 <!-- deps:start -->
@@ -135,8 +135,11 @@ Choose a different action. You cannot repeat the failed action.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Invalid action triggers retry with feedback naming the precondition failure.
+- [x] Retry budget prevents infinite retry loops.
 
 ## Files
 
-- TODO
+- `engine/action_validator.py`
+- `engine/llm_client.py`
+- `tests/test_action_validator.py`

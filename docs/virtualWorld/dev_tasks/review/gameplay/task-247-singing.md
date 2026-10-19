@@ -7,12 +7,12 @@ priority: medium
 ---
 
 # Task-247: Singing
-**Status**: In Review — implemented 2026-08-31. New sing speech level (sound.py sound.speech_sing, default = say propagation), sing text command with output "[name] sings: ...", activity/block gate lists include sing, and the agent schema volume list mentions sing.
+**Status**: In Review - implemented 2026-08-31. New sing speech level (sound.py sound.speech_sing, default = say propagation), sing text command with output "[name] sings: ...", activity/block gate lists include sing, and the agent schema volume list mentions sing.
 
-**Audit 2026-08-31** — NOT IMPLEMENTED; speech tiers stop at scream (sound.py _speech_levels), no `sing` verb. Effort S: volume tier + verb branch + agent schema entry.
+**Audit 2026-08-31** - NOT IMPLEMENTED; speech tiers stop at scream (sound.py _speech_levels), no `sing` verb. Effort S: volume tier + verb branch + agent schema entry.
 
 
-**Status:** In backlog — filed 2026-08-16 from developer ideas backlog.
+**Status:** In backlog - filed 2026-08-16 from developer ideas backlog.
 **Source:** `dev_tasks/developer ideas.md` (singing)
 
 <!-- deps:start -->
@@ -21,7 +21,7 @@ priority: medium
 
 ## What
 
-Add singing as a character action — a distinct performative behaviour (vs plain speech/
+Add singing as a character action - a distinct performative behaviour (vs plain speech/
 emote) with its own volume/sound-carrier semantics so songs are heard at a distance and
 characters can react to them.
 
@@ -33,24 +33,13 @@ characters can react to them.
   to a skill check (Performance) or an emotion/intensity modifier.
 - Join the COMMANDS table + action schema + prompt examples so LLM agents can sing too.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Sing command broadcasts performance to all characters in current area.
+- [x] Performance applies mood and affect modifiers based on musical skill.
 
 ## Files
 
-- TODO
+- `engine/actions.py`
+- `engine/affect.py`

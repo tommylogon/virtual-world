@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: ['"\'task-404\'"', '"\'task-725\'"', '"\'task-734\'"', "'task-404'", "'task-725'", "'task-734'", 'task-404', 'task-725', 'task-734', 'task-786']
+related: ['task-404', 'task-725', 'task-734', 'task-786']
 ---
 
 # task-736: Per-character cognitive map: a belief-based memory of places and routes in the Mind panel
@@ -23,16 +23,16 @@ Give each character a mental map of the places they remember and the ways they k
 
 The spatial memory already exists and is written; it just has no view:
 
-- `engine/agent_memory.py` — `knows_way(way_id, aspect)`; it resolves the way's
+- `engine/agent_memory.py` - `knows_way(way_id, aspect)`; it resolves the way's
   sides and writes `Player.learn_way_aspect(area_name, direction, aspect)`, so
   the real key is `known_way_aspects[(area, direction)]` (a bucket of aspects),
   not `(way_id, aspect)`.
-- `engine/movement.py` — writes spatial memory on a crossing ("spatial memory's
+- `engine/movement.py` - writes spatial memory on a crossing ("spatial memory's
   known-route").
-- `discovered_exits` — the `(area, direction)` pairs the character has seen;
+- `discovered_exits` - the `(area, direction)` pairs the character has seen;
   read by `narration.py` (unexplored exits) and `room-context.ts`.
-- `visited_areas` — areas entered.
-- `static/js/agent/turn-minimap.ts` — the existing "where you've been" renderer
+- `visited_areas` - areas entered.
+- `static/js/agent/turn-minimap.ts` - the existing "where you've been" renderer
   (task-677), currently for the human turn panel.
 
 ## How
@@ -49,11 +49,11 @@ truth:
   `discovered_exits` / `visited_areas` (task-734: derived indexes stay derived).
   No new per-character store.
 - **Routes = "how to get there".** Pick two remembered places and show the
-  route if the character knows one — a path within the known subgraph, using only
+  route if the character knows one - a path within the known subgraph, using only
   edges the character has traversed or been told about. A known place with no
   known route renders as disconnected.
 - **The agent asks with `recall`** (free, task-352). The retrieval verb is `recall`
-  — by name ("the hospital"), by intent ("somewhere a healer works"), or by tag — and
+  - by name ("the hospital"), by intent ("somewhere a healer works"), or by tag - and
   it returns the known place and route, or an **honest negative** so the agent does
   not hallucinate. `remember` is reserved for the passive `=== I REMEMBER ===` prompt
   block; the deliberate action is `recall`. Do not use `remember` as the verb.
@@ -65,7 +65,7 @@ truth:
 
 If knowledge is a memory record (734), then "a place I remember" and "a way I
 know" are semantic/procedural records, and this map is their **visualization**.
-The map and the memory model are one dataset in two views — not a second store.
+The map and the memory model are one dataset in two views - not a second store.
 `known_way_aspects` is the memory; the map is the projection.
 
 ## Open questions
@@ -74,7 +74,7 @@ The map and the memory model are one dataset in two views — not a second store
   no visit? That needs a "told about" source on the record (734's `source`).
 - `known_way_aspects` carries aspects (states, hazards); does the map show edge
   *attributes* ("there is a locked gate here"), or only existence?
-- **Stale beliefs** have no mechanic yet — a character cannot currently hold a
+- **Stale beliefs** have no mechanic yet - a character cannot currently hold a
   belief that is false against the graph. Decide whether the map may show a
   remembered-but-now-wrong edge, or whether it must reconcile on next perception.
 - Scale: a large world visited over years is a big known subgraph; render a
@@ -83,7 +83,7 @@ The map and the memory model are one dataset in two views — not a second store
 ## Acceptance
 
 - [ ] The Mind panel shows, for one character, the areas and ways *that
-      character* knows — not the world's full graph.
+      character* knows - not the world's full graph.
 - [ ] An area never visited by that character does not appear.
 - [ ] A route between two known places renders if the character knows one.
 - [ ] No new persisted store: it reads `known_way_aspects` / `discovered_exits` /

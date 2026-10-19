@@ -717,7 +717,7 @@ class WorldSerializer:
         # without the load route having to re-derive it.
         self.legacy._scenario_name = (
             data.get("_scenario_name")
-            or getattr(self.legacy, "_scenario_name", None)
+            or data.get("name")
             or ""
         )
         self.legacy._scope_store_id = data.get("_scope_store_id") or None
@@ -758,11 +758,30 @@ class WorldSerializer:
             _node = self.graph.get_node(pnode_id)
             _props = _node.properties if _node is not None else {}
             _pdata = data.get("players", {}).get(pname, {}) or {}
+            # Node properties win; fall back to players block for legacy saves
             p.personality = _props.get("personality") or _pdata.get("personality", "") or p.personality
             p.base_description = _props.get("base_description") or _pdata.get("base_description", "") or p.base_description
-            # `description` is the Player's own generated/current appearance,
-            # so the players block wins and the node is the fallback.
             p.description = _pdata.get("description", "") or _props.get("description", "") or p.description
+            if _props.get("traits"):
+                p.traits = dict(_props["traits"])
+            elif _pdata.get("traits") and _node is not None:
+                _node.properties["traits"] = dict(_pdata["traits"])
+            if _props.get("tags"):
+                p.tags = list(_props["tags"])
+            elif _pdata.get("tags") and _node is not None:
+                _node.properties["tags"] = list(_pdata["tags"])
+            if _props.get("interest_tags"):
+                p.interest_tags = list(_props["interest_tags"])
+            elif _pdata.get("interest_tags") and _node is not None:
+                _node.properties["interest_tags"] = list(_pdata["interest_tags"])
+            if _props.get("fear_tags"):
+                p.fear_tags = list(_props["fear_tags"])
+            elif _pdata.get("fear_tags") and _node is not None:
+                _node.properties["fear_tags"] = list(_pdata["fear_tags"])
+            if _node is not None and "personality" not in _node.properties and p.personality:
+                _node.properties["personality"] = p.personality
+            if _node is not None and "base_description" not in _node.properties and p.base_description:
+                _node.properties["base_description"] = p.base_description
             # task-581: the character's `in` edge is the authoritative location
             # record; the saved `current_area` display name is a resolution layer
             # over it. Prefer the edge, so a hand-edit to the string that
@@ -771,7 +790,7 @@ class WorldSerializer:
             edge_area = self.graph.get_node(edge_area_id) if edge_area_id else None
             if edge_area is not None:
                 p.current_area = edge_area.name
-            if p.current_area:
+            elif p.current_area:
                 self.player_manager.set_player_area(pname, p.current_area)
             for slot_name, stack in (p.equipped or {}).items():
                 for item_id in stack:

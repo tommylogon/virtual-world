@@ -1990,4 +1990,21 @@ def test_sibling_seam_way_loads_unloaded_sibling_in_both_directions():
     assert g.get_node("area_chunk_w_1_0") is not None
 
 
-
+def test_placed_child_scopes_never_merge_under_region_merge_and_inherit_child_name():
+    """Two adjacent cells painted with the same biome that each hold a placed child
+    scope compile to distinct areas named after their child scopes, even when
+    region_merge=True."""
+    m = _painted({(0, 0): "sparse_forest", (1, 0): "sparse_forest", (2, 0): "sparse_forest"},
+                 merge=True)
+    m["deep_woods"] = {"id": "deep_woods", "name": "Deep Woods", "kind": "scope",
+                       "parent_id": "wild", "state": "unmade", "mode": "town"}
+    m["goblin_camp"] = {"id": "goblin_camp", "name": "Goblin Camp", "kind": "scope",
+                        "parent_id": "wild", "state": "unmade", "mode": "town"}
+    m["wild"]["placements"] = {"deep_woods": {"x": 0, "y": 0}, "goblin_camp": {"x": 1, "y": 0}}
+    patch = world_compile.compile_grid(m, "wild", region_merge=True)
+    areas = sorted([n for n in patch.nodes if n.type == "area"],
+                   key=lambda n: n.properties["cell"]["x"])
+    assert len(areas) == 3
+    assert areas[0].name == "Deep Woods"
+    assert areas[1].name == "Goblin Camp"
+    assert areas[2].name.startswith("Sparse Forest")

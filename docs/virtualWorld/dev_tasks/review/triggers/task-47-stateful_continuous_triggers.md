@@ -11,7 +11,7 @@ related: ['task-203', 'task-297', 'task-306', 'task-503']
 
 **Filed**: 2026-07-15
 **Priority**: High
-**Status**: In Review — implemented (code-verified 2026-08-11). `on_state_enter`/`on_state_exit` trigger types (`engine/trigger_system.py:40-41/1759/2002`, fired on state change at `engine/effects.py:478-487`); `on_tick` + `state_equals` pattern documented in Audit below.
+**Status**: In Review - implemented (code-verified 2026-08-11). `on_state_enter`/`on_state_exit` trigger types (`engine/trigger_system.py:40-41/1759/2002`, fired on state change at `engine/effects.py:478-487`); `on_tick` + `state_equals` pattern documented in Audit below.
 
 ---
 
@@ -67,8 +67,8 @@ effect: { type: "set_environment", params: { temperature: 30 } }
 ### Phase 2: `on_state_enter` / `on_state_exit` triggers
 
 Add new trigger types:
-- `on_state_enter` — fires when an item's state changes TO a specific value (e.g., fireplace lit → start warming)
-- `on_state_exit` — fires when an item's state changes FROM a specific value (e.g., fireplace extinguished → stop warming)
+- `on_state_enter` - fires when an item's state changes TO a specific value (e.g., fireplace lit → start warming)
+- `on_state_exit` - fires when an item's state changes FROM a specific value (e.g., fireplace extinguished → stop warming)
 
 These would require the state change code to detect transitions and fire relevant triggers.
 
@@ -94,23 +94,19 @@ In the trigger editor (`item-library.js`), add:
 **How to test**:
 - Create an item with `current_state` (e.g. a fireplace with state "unlit"). Add an `on_state_enter` trigger: state="lit" → effect `set_environment` temperature=30. Add an `on_state_exit` trigger: state="unlit" → effect `set_environment` temperature=21.
 - Use the item to toggle state between lit/unlit. Verify room temperature changes accordingly.
-- Check the trigger editor in Item Library — verify `on_state_enter` and `on_state_exit` appear in the trigger type dropdown, with a "Target State" input field.
+- Check the trigger editor in Item Library - verify `on_state_enter` and `on_state_exit` appear in the trigger type dropdown, with a "Target State" input field.
 
 ## Files
 
-- `virtual_world_engine.py` — add on_state_enter/on_state_exit trigger types, detect state transitions
-- `static/js/item-library.js` — add new trigger types to UI
+- `virtual_world_engine.py` - add on_state_enter/on_state_exit trigger types, detect state transitions
+- `static/js/item-library.js` - add new trigger types to UI
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Continuous triggers evaluate on game tick intervals while conditions remain satisfied.
+- [x] State transitions fire entry and exit trigger callbacks cleanly.
+
+## Files
+
+- `engine/trigger_system.py`

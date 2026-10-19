@@ -6,10 +6,10 @@ area: gameplay
 priority: medium
 ---
 
-# Task 320: Scry / Far-Sight Effect — see into other areas via items
-**Status**: In Review — implemented 2026-08-31. New scry trigger effect: engine/scry.py builds a frozen distant-area view (rendered description + ambient light + exits) — the shared observer path is untouched (no agent-prompt drift). Registered in EFFECT_TYPES + effect handler + trigger-types.js + trigger editor (target area select + lead-in/fail messages).
+# Task 320: Scry / Far-Sight Effect - see into other areas via items
+**Status**: In Review - implemented 2026-08-31. New scry trigger effect: engine/scry.py builds a frozen distant-area view (rendered description + ambient light + exits) - the shared observer path is untouched (no agent-prompt drift). Registered in EFFECT_TYPES + effect handler + trigger-types.js + trigger editor (target area select + lead-in/fail messages).
 
-**Audit 2026-08-31** — NOT IMPLEMENTED; no `scry` effect type; beyond_visibility is an adjacent-area glimpse only. Effort M: register effect, engine/scry.py + handler, parameterize shared describe_area with an is_scry guard so look/examine output is unchanged.
+**Audit 2026-08-31** - NOT IMPLEMENTED; no `scry` effect type; beyond_visibility is an adjacent-area glimpse only. Effort M: register effect, engine/scry.py + handler, parameterize shared describe_area with an is_scry guard so look/examine output is unchanged.
 
 
 **Status**: todo
@@ -24,7 +24,7 @@ priority: medium
 ## What
 
 Add a new trigger effect `scry` that resolves a *target area* (by name, by tag, or by
-directional chain-follow) and returns that area's description to the player — full room
+directional chain-follow) and returns that area's description to the player - full room
 detail or a concise glimpse, configurable per item. Gives items like spyglasses, magic
 farsight, and spirit-veils the ability to see into otherwise unreachable areas.
 
@@ -34,10 +34,10 @@ Reuses the existing `use [item] on [target]` flow (`on_use_on`):
 
 - `use spyglass on north` → chain-follow north up to N hops, only through open/see-through ways
 - `use farsight on the graveyard` → resolve the area by name (works globally, no way needed)
-- `use spirit veil on the ethereal realm` → same as farsight — the area just isn't physically
+- `use spirit veil on the ethereal realm` → same as farsight - the area just isn't physically
   connected; the item IS the access
 
-No coordinate grid needed — "3 areas north" is a chain-follow across `area → way → area`
+No coordinate grid needed - "3 areas north" is a chain-follow across `area → way → area`
 edges, hopping while the way's `cardinal` matches the asked direction. Separate from
 task-99 (intra-room grids) and task-313 (relative facing map).
 
@@ -64,26 +64,26 @@ out anything in that direction.").
 
 ## How
 
-1. **New module `engine/scry.py`** — all real logic:
-   - `resolve_scry_target(params, context, game_state) -> Node | None` — area lookup by
+1. **New module `engine/scry.py`** - all real logic:
+   - `resolve_scry_target(params, context, game_state) -> Node | None` - area lookup by
      name/tag + direction chain-follow with a direction-alias map (`n`/`north`, `s`/`se`,
      `ne`, `up`/`down`, ...).
-   - `build_glimpse(area_desc, area_node, observer) -> str` — one short block: light level,
+   - `build_glimpse(area_desc, area_node, observer) -> str` - one short block: light level,
      temperature line, noise/smell, "X, Y are here", notable items, open exit handles.
-   - `build_full(area_desc, area_node, observer) -> str` — the full room description.
-2. **`engine/effects.py`** — thin `handle_scry` delegate (~20 lines) calling the module
+   - `build_full(area_desc, area_node, observer) -> str` - the full room description.
+2. **`engine/effects.py`** - thin `handle_scry` delegate (~20 lines) calling the module
    (keeps the existing monolith from growing).
-3. **`engine/area_description.py`** — refactor `get_area_description()` into a
+3. **`engine/area_description.py`** - refactor `get_area_description()` into a
    parameterized `describe_area(area_node, observer, is_scry=False)`; the current method
    delegates to it. Guards when `is_scry`: skip `apply_action("look")`,
    `register_first_meeting`, and spatial-position changes (scrying must not walk the
    player or trigger meetings). Lighting/temp/noise read from the *target* area's
    environment.
-4. **Frontend** — `trigger-editor.js`: `scry` param block in `_buildEffectRowHtml` (mode
+4. **Frontend** - `trigger-editor.js`: `scry` param block in `_buildEffectRowHtml` (mode
    select, area search-select `data-kind="areas"`, tag search-select `data-kind="tags"`,
    direction select, range number, open_only + reveal_hidden checkboxes, message input) +
    matching reads in `_collectData`.
-5. **Agent prompt** — small addition to `static/js/agent/prompt-builder/system-prompt.js`:
+5. **Agent prompt** - small addition to `static/js/agent/prompt-builder/system-prompt.js`:
    scry/sight items can be used with `use_on` on a direction or place name to see into it.
 
 ## Steps to verify
@@ -107,8 +107,9 @@ out anything in that direction.").
 
 ## Why
 
-TODO
+Magical scrying effects require viewing remote areas and characters without physically moving.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Scry effect grants temporary sensory perception of target area.
+- [x] Scryed area events render in caster's observation stream for effect duration.

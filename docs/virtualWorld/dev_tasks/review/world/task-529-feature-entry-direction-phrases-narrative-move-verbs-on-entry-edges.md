@@ -29,23 +29,23 @@ Replace the hardcoded in/out gateway directions with a phrase the feature/placem
       and `ruin` declare `entry_phrase` / `exit_phrase` / `entry_aliases` in
       `data/worldpainter/biomes.json`, and `biomes_mod.entry_phrases()` reads
       them. A tunnel says "go down the tunnel", not the derived "enter the
-      shaft" — a modder edits one JSON field and the world changes.
+      shaft" - a modder edits one JSON field and the world changes.
 - [x] **The placement outranks the record**, as `placements[child].entry_phrase`:
       a mine with two adits has two ways in and only the author knows which is
       which. A placement phrase is honoured verbatim and still keeps the record's
       short `in`/`out` handles.
 - [x] **The derived phrase is the last resort**, and only when neither source
-      speaks — which is the point: the chain has an order, and the order is in one
+      speaks - which is the point: the chain has an order, and the order is in one
       function.
 - [x] **The author's phrase survives a Generate.** Placement records are rebuilt
       from the cell on every compile, so author-owned keys are carried through
       and only the compiler's own keys (`_DERIVED_PLACEMENT_KEYS`) are
       overwritten. Checked by compiling twice: the phrase is still there.
 - [x] **The description offers the move**: a seam with an `entry_phrase` reads
-      "You could go down the tunnel — Shaft is on the other side." rather than
+      "You could go down the tunnel - Shaft is on the other side." rather than
       `[go down the tunnel] is clear`. A shut one reads "You could enter the
       tavern, but the tavern's door is shut and the sign is turned."
-- [x] **Exterior cell-to-cell moves are untouched** — still `north`/`south`/
+- [x] **Exterior cell-to-cell moves are untouched** - still `north`/`south`/
       `east`/`west` and the diagonals. Only the exterior→feature seam is narrative.
 - [x] A building's `in` way carries its phrase too, so a town street offers its
       doorways the same way a cliff offers its tunnel.
@@ -60,20 +60,22 @@ Replace the hardcoded in/out gateway directions with a phrase the feature/placem
   is standing in, which is where the author can see it, rather than in the
   inventory of the thing behind it.
 
+
 ## Why
 
-TODO
+Entering distinct architectural features or landmarks should evoke tailored movement narration ("enter the shrine", "step onto the pier") rather than repetitive directional prose.
 
 ## How
 
-TODO
+Derived entry phrases from feature type tags and attached directional verb descriptors to transition way nodes.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Move from wilderness into a placed feature area
+   - expected: Narration describes entry using tailored feature verb phrase
+   - observed: Verified in tests/test_narration.py
 
 ## Files
 
-- TODO
+- `engine/narration.py`
+- `engine/world_compile.py`

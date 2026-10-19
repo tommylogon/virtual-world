@@ -4,7 +4,7 @@ status: done
 type: task
 area: characters
 priority: low
-related: ['"\'task-211\'"', '"\'task-212\'"', '"\'task-253\'"', "'task-207'", "'task-208'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", "'task-215'", 'task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-215']
+related: ['task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-215', 'task-253']
 ---
 
 # Mature Traits & Body Reactions (folded from design v3.1)
@@ -12,14 +12,14 @@ related: ['"\'task-211\'"', '"\'task-212\'"', '"\'task-253\'"', "'task-207'", "'
 **Filed**: 2026-08-11
 **Closed**: 2026-09-27
 **Priority**: Low
-**Status**: Done — 7 trait definitions shipped, 5 with live consumers. The two
+**Status**: Done - 7 trait definitions shipped, 5 with live consumers. The two
 inert traits and the three undelivered body reactions were split out to task-487,
 task-488 and task-534.
 
 ---
 
 <!-- deps:start -->
-**Related:** [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-253-body-part-targeted-injuries]], [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-215-environmental-clothing-effects]]
+**Related:** [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-215-environmental-clothing-effects]], [[task-253-body-part-targeted-injuries]]
 <!-- deps:end -->
 
 ## Why
@@ -51,15 +51,15 @@ keeps working when it is off.
 ### Inert definitions
 
 `exhibitionist` (`engine/traits.py`) and `single_track` 
-define their effect flags but **nothing reads them** — there is no
+define their effect flags but **nothing reads them** - there is no
 `has_effect(..., "exhibitionist")` or `"single_track"` consumer anywhere in the
 tree. They are currently decorative: a character can be assigned either and
 nothing happens. Both were split out rather than left as silent no-ops here:
 
-- **task-487** — exhibitionist trait effect (arousal from being seen)
-- **task-488** — single_track trait effect (gate release to one path)
+- **task-487** - exhibitionist trait effect (arousal from being seen)
+- **task-488** - single_track trait effect (gate release to one path)
 
-## Body reactions — the deferral did not fully land
+## Body reactions - the deferral did not fully land
 
 This task originally deferred all body reactions to task-166, on the reasoning that
 they overlap heavily. task-166 shipped (2026-09-22) and covered most of them as
@@ -73,7 +73,7 @@ condition-driven speech interruptions in `static/js/agent/involuntary.js`:
 | stutter / ramble / yelp | shipped (166's own scope) | `involuntary.js-52, 32` |
 | **goosebumps** | **already shipped** | condition at `engine/player_conditions.py`; emote pool in `involuntary.js` |
 | **itch** | **already shipped** | condition in `player_conditions.py` + `data/library/conditions/itch.json`; emote pool; unit test in `test_involuntary.js` |
-| **sneeze** | **missing** | no condition, no trigger — genuinely absent |
+| **sneeze** | **missing** | no condition, no trigger - genuinely absent |
 
 > **Correction, 2026-09-27.** An earlier revision of this table said `goosebumps`
 > and `itch` were also missing, on the strength of a regex search that missed
@@ -82,21 +82,21 @@ condition-driven speech interruptions in `static/js/agent/involuntary.js`:
 > Only `sneeze` ever was missing, and task-534 shrank to match.
 
 So the deferral was correct in principle, but the receiving task took only one of
-the items 213 flagged as "what task-166 misses" — the other two were never
+the items 213 flagged as "what task-166 misses" - the other two were never
 missing at all (see the correction above). The one real gap, `sneeze`, is now
 **task-534**.
 
 ## Steps to verify
 
-- [x] `wired_differently` multiplies the authored body parts — `tests/test_pleasure_system.py`
-- [x] `quick_recovery` halves the overstimulation bout — `tests/test_pleasure_system.py`
-- [ ] `sex_addict` doubles Entertainment decay at low arousal — **implemented at
+- [x] `wired_differently` multiplies the authored body parts - `tests/test_pleasure_system.py`
+- [x] `quick_recovery` halves the overstimulation bout - `tests/test_pleasure_system.py`
+- [ ] `sex_addict` doubles Entertainment decay at low arousal - **implemented at
  `engine/tick_manager.py` but untested.** Code presence was previously
  recorded here as if it were verification; it is not.
-- [ ] `sensory_memory` lingering sensitivity — implemented, untested
-- [ ] `attention_seeker` arousal when observed — implemented, untested
-- [x] Adult traits hidden when `mature_content` off — `routes/library_ops.py`
-- [ ] Body reactions work without the mature toggle — true for everything task-166
+- [ ] `sensory_memory` lingering sensitivity - implemented, untested
+- [ ] `attention_seeker` arousal when observed - implemented, untested
+- [x] Adult traits hidden when `mature_content` off - `routes/library_ops.py`
+- [ ] Body reactions work without the mature toggle - true for everything task-166
  shipped (they are condition-driven and independent of `mature_content`); the
  three missing ones are task-534.
 
@@ -105,14 +105,14 @@ and worth adding alongside task-534 rather than reopening 213.
 
 ## Related
 
-- task-487 — exhibitionist trait effect (inert here)
-- task-488 — single_track trait effect (inert here)
-- task-534 — goosebumps / sneeze / itch, the body reactions 213 deferred and
+- task-487 - exhibitionist trait effect (inert here)
+- task-488 - single_track trait effect (inert here)
+- task-534 - goosebumps / sneeze / itch, the body reactions 213 deferred and
  task-166 did not deliver
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §7, §Additions #2/#4
-- task-166 (done) — involuntary actions; covered hiccups, burps, yelps, stutters,
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §7, §Additions #2/#4
+- task-166 (done) - involuntary actions; covered hiccups, burps, yelps, stutters,
  shiver, cough, ramble
-- task-212 — verb multipliers (`body_part_multipliers` consumer)
+- task-212 - verb multipliers (`body_part_multipliers` consumer)
 
 ## What
 

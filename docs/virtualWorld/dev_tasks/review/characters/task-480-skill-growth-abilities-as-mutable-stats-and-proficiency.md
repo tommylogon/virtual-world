@@ -3,7 +3,7 @@ type: task
 status: review
 area: characters
 priority: low
-related: ["'task-476'", "'task-519'", 'task-476', 'task-519']
+related: ['task-476', 'task-519']
 ---
 
 # task-480: Skill growth, abilities as mutable stats, and proficiency
@@ -41,37 +41,37 @@ Give characters a progression model: use-based skill advancement (rolling a skil
 - [ ] **Persistence:** `proficiency` and `skill_progress` serialize and load.
 - [ ] Deterministic; no LLM.
 
-## Progress — 2026-09-24
+## Progress - 2026-09-24
 
 Implemented and tested; moving to review.
 
-- **`data/library/skill_packs.json`** (new) + **`engine/skill_progress.py`** —
+- **`data/library/skill_packs.json`** (new) + **`engine/skill_progress.py`** -
   `apply_pack` / `proficiency_bonus` / `record_use` / `growth_enabled` /
   `growth_threshold` + `validate`.
-- **`player.py` / `engine/serialization.py`** — `proficiency` (default 0) and
+- **`player.py` / `engine/serialization.py`** - `proficiency` (default 0) and
   `skill_progress` (default `{}`) fields, serialized and restored.
-- **`engine/checks.py`** — proficiency merged into the one modifier pipeline as
+- **`engine/checks.py`** - proficiency merged into the one modifier pipeline as
   its own source (default 0 ⇒ no change).
-- **`engine/skills.py` / `virtual_world_engine.py`** — `SkillSystem` takes an
+- **`engine/skills.py` / `virtual_world_engine.py`** - `SkillSystem` takes an
   optional `game_state`; `skill_check` grows the skill only behind
   `skill_growth`, logging the improvement. Existing two-arg constructions are
   unaffected.
-- **`engine/effect_handlers/vitals.py`** — new `adjust_stat` effect registered in
+- **`engine/effect_handlers/vitals.py`** - new `adjust_stat` effect registered in
   the dispatch map.
-- **`tests/test_skill_progress.py`** (17) — pack apply/idempotence/validate,
+- **`tests/test_skill_progress.py`** (17) - pack apply/idempotence/validate,
   proficiency inert-by-default and in the breakdown, growth threshold/failure/
   cap, opt-in on/off and no-world, and `adjust_stat` clamping/casing/unknown.
 
-Remaining for this task: authoring follow-ups only — a scenario would set
+Remaining for this task: authoring follow-ups only - a scenario would set
 `skill_growth` and apply packs on load, and richer pack vocabulary is data.
 
 ## Why
 
-TODO
+Skills were completely static, preventing characters from improving proficiencies through practice and repeated successful actions.
 
 ## How
 
-TODO
+Added `skill_growth` toggle, tracking per-skill attempt/success counters and advancing proficiency when threshold curves are met.
 
 ## Steps to verify
 
@@ -92,7 +92,9 @@ TODO
 
 ## Files
 
-- TODO
+- `engine/skills.py`
+- `models/player.py`
+- `tests/test_skill_progress.py`
 
 ## Browser UI and intended live verification
 

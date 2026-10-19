@@ -3,7 +3,7 @@ type: task
 status: review
 area: characters
 priority: medium
-related: ["'task-685'", "'task-686'", "'task-687'", "'task-688'", "'task-690'", "'task-707'", 'task-685', 'task-686', 'task-687', 'task-688', 'task-690', 'task-707']
+related: ['task-685', 'task-686', 'task-687', 'task-688', 'task-690', 'task-707']
 parent: task-685
 ---
 
@@ -25,8 +25,8 @@ conflicts into objective truth. What it does instead is **mark** them:
 - `memory_dynamics.detect_contradiction(new, existing_pool)` runs at write time
   (both `Player.add_memory` and the HTTP entry endpoint): when the new memory
   shares an entity with an existing one AND the pair shows negation asymmetry
-  (one side asserts, the other denies — markers: never/not/didn't/denied/isn't/
-  no longer — with ≥ 2 shared content words or Jaccard ≥ 0.4), link the ids
+  (one side asserts, the other denies - markers: never/not/didn't/denied/isn't/
+  no longer - with ≥ 2 shared content words or Jaccard ≥ 0.4), link the ids
   symmetrically in `contradicts[]` and drop the older memory's confidence ×0.9.
 - Conservative by construction: entity overlap AND shared content AND negation
   asymmetry, or no link. A wrong link is visible, removable, and never
@@ -35,7 +35,7 @@ conflicts into objective truth. What it does instead is **mark** them:
   inputs and may emit a resolution belief with its own confidence; the
   episodes stay untouched and linked.
 - Prompt rendering: a recalled memory with unresolved contradictions carries
-  `(you are not sure — this conflicts with what you remember at tick N)`.
+  `(you are not sure - this conflicts with what you remember at tick N)`.
 
 ## Acceptance
 
@@ -49,25 +49,29 @@ conflicts into objective truth. What it does instead is **mark** them:
 - Negation handling in English only for now ("no/n't" morphology). Is that
   acceptable for v1, or do authored scenarios need a language-neutral escape
   hatch (an explicit `contradicts` param on grant_memory effects)? Leaning:
-  add the explicit param — it is two lines and makes authored drama reliable.
+  add the explicit param - it is two lines and makes authored drama reliable.
 
 ## Why
 
-TODO
+When characters acquire contradictory memories about the same entity, naive memory retrieval presents conflicting assertions without recognizing the contradiction.
 
 ## How
 
-TODO
+Added contradiction linking on memory ingestion based on entity overlap and opposing polarities/predicates, reducing confidence without deleting either memory.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Ingest conflicting memory statements
+   - expected: Memories link reciprocally as contradictory
+   - observed: Contradiction link verified on negation of shared entity
+2. Ingest unrelated memory
+   - expected: Unrelated memory gains no contradiction link
+   - observed: Clean isolation verified
 
 ## Files
 
-- TODO
+- `engine/memory.py`
+- `tests/test_memory_contradictions.py`
 
 ## Browser UI and intended live verification
 

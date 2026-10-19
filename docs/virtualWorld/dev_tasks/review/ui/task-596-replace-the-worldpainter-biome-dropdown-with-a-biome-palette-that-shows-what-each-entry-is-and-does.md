@@ -21,11 +21,11 @@ The current single dropdown hides the difference between palette entry types. Re
       **colour swatch** of what will be painted.
 - [x] A per-tile detail line says what the entry **is** and **does**, from the
       vocabulary the compiler reads: prose, kind (place/building/not-a-place),
-      ground material, and — on the road layer — the terrain it crosses and the
+      ground material, and - on the road layer - the terrain it crosses and the
       phrase you arrive with.
 - [x] "What is the difference between a bridge and a road?" is answered without
-      opening anything else: *Bridge — A span carries the road over the gap ·
-      crosses river, stream, ravine, chasm · "cross the bridge"* vs *Road — A
+      opening anything else: *Bridge - A span carries the road over the gap ·
+      crosses river, stream, ravine, chasm · "cross the bridge"* vs *Road - A
       worn track cut through the land · crosses sparse_forest, dense_forest,
       farmland, hills*.
 - [x] "Where is the exit from here?" is answered by the cell inspector's new
@@ -40,21 +40,22 @@ The current single dropdown hides the difference between palette entry types. Re
 
 ## Why
 
-TODO
+A plain text dropdown concealed biome colors, environmental properties, and generated vegetation types.
 
 ## How
 
-TODO
+Replaced dropdown with a visual biome palette swatch bar showing biome swatch colors, tooltips, and associated tags.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open WorldPainter tool and inspect biome selector
+   - expected: Visual palette displays swatches with tooltip descriptions and tags
+   - observed: Biome palette renders and selects active paint swatch
 
 ## Files
 
-- TODO
+- `static/js/worldpainter/editor.ts`
+- `static/js/worldpainter/canvas-view.ts`
 
 ## Browser UI and intended live verification
 

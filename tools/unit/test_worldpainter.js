@@ -765,6 +765,60 @@ test('filterPalette matches name or id and drops empty sections (task-759)', () 
     assertEq(GM.filterPalette(secs, 'zzzz').length, 0, 'no matches -> no sections');
 });
 
+// ── palette mode filter (task-774) and brush hover (bug-558) ───────────────
+
+const MODE_VOCAB = PALETTE_VOCAB.concat([
+    { id: 'courtyard', name: 'Courtyard', terrain: 'indoor', tags: ['indoor', 'room', 'outdoor', 'open'], descriptions: ['Open ground.'] },
+]);
+
+test('paletteForMode hides rooms and buildings on a world map (task-774)', () => {
+    const ids = GM.paletteForMode(GM.paletteSections('biome', MODE_VOCAB), 'world').map(s => s.id);
+    assertTrue(ids.indexOf('terrain:forest') >= 0, 'wild terrain stays');
+    assertTrue(ids.indexOf('terrain:water') >= 0, 'water stays');
+    assertTrue(ids.indexOf('structure') >= 0, 'structure is never hidden');
+    assertFalse(ids.some(i => i.indexOf('room:') === 0), 'no room sections on a world map');
+    assertFalse(ids.some(i => i.indexOf('building:') === 0), 'no building sections on a world map');
+});
+
+test('paletteForMode keeps buildings and open-air rooms in a town, drops floor-plan rooms (task-774)', () => {
+    const ids = GM.paletteForMode(GM.paletteSections('biome', MODE_VOCAB), 'town').map(s => s.id);
+    assertTrue(ids.indexOf('building:commercial') >= 0, 'buildings stay in a town');
+    assertTrue(ids.indexOf('room:outdoor') >= 0, 'courtyard-type rooms stay in a town');
+    assertFalse(ids.indexOf('room:circulation') >= 0, 'hallway sections are dropped');
+    assertFalse(ids.indexOf('room:cooking') >= 0, 'kitchen sections are dropped');
+});
+
+test('paletteForMode leaves interior, unknown and missing modes untouched (task-774)', () => {
+    const all = GM.paletteSections('biome', MODE_VOCAB);
+    assertEq(GM.paletteForMode(all, 'interior').length, all.length, 'interior unfiltered');
+    assertEq(GM.paletteForMode(all, 'nonsense').length, all.length, 'unknown mode is a no-op');
+    assertEq(GM.paletteForMode(all, null).length, all.length, 'missing mode is a no-op');
+    assertEq(GM.paletteForMode(all, undefined).length, all.length, 'undefined mode is a no-op');
+});
+
+test('paletteForMode does not change the memoised grouping it filters (task-774)', () => {
+    const before = GM.paletteSections('biome', MODE_VOCAB).length;
+    GM.paletteForMode(GM.paletteSections('biome', MODE_VOCAB), 'world');
+    assertEq(GM.paletteSections('biome', MODE_VOCAB).length, before, 'memo still returns every section');
+});
+
+test('the editor filters the palette by scope mode in the one shared entry point (task-774)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    const fn = (src.match(/function _paletteSections\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/) || [''])[0];
+    assertTrue(/paletteForMode\(/.test(fn), '_paletteSections applies the mode filter');
+    assertTrue(/scope\.mode|\.mode/.test(fn), 'and reads the scope mode');
+});
+
+test('the hover outline is the brush only for tools that use the brush (bug-558)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/function _toolUsesBrush\s*\(\)\s*\{\s*return _isPaintTool\(\) \|\| state\.tool === 'route';/.test(src),
+        'paint, erase and route consume the brush, nothing else does');
+    assertTrue(/state\.brushHover = _toolUsesBrush\(\)\s*\?\s*_brushCells\(p, cell\.x, cell\.y\)\s*:\s*\[\{ x: cell\.x, y: cell\.y \}\]/.test(src),
+        'mousemove draws the full brush only for those tools, else the single cell');
+    assertTrue(/state\.marquee = null;\s*state\.brushHover = null;/.test(src),
+        'a tool switch clears the previous tool footprint');
+});
+
 test('tileDetail answers bridge vs road without another panel (task-596/759)', () => {
     const bridge = GM.tileDetail('road', { name: 'Bridge', descriptions: ['A span carries the road over the gap.'], biomes: ['river', 'ravine'], entry_phrase: 'cross the bridge' });
     const road = GM.tileDetail('road', { name: 'Road', descriptions: ['A worn track cut through the land.'], biomes: ['sparse_forest'] });
@@ -815,13 +869,93 @@ test('the palette surface is wired into the editor and uses the view-model (task
     assertTrue(/_paletteSections/.test(src), 'the panel groups via the shared view-model');
 });
 
-test('the px/cell slider anchors the reference image on screen while resizing cells inside it', () => {
+test('the cell (0,0) corner handle anchors the reference image on screen while resizing cells inside it (task-597)', () => {
     const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertFalse(/wp-cell-size|_cellSizeControl/.test(src),
+        'retired px/cell slider is gone from the HUD');
+    assertTrue(/function _cellCornerHandlePoint\s*\(/.test(src),
+        'cell (0,0) corner handle helper is defined');
+    assertTrue(/function _gridDragCellCornerScreen\s*\(/.test(src),
+        'cell corner drag handler is defined');
     assertTrue(/function _anchorStageToRefScreen\s*\(/.test(src),
         'stage screen-box anchor helper is defined');
-    assertTrue(/_anchorStageToRefScreen\(anchorScreen,\s*afterCells\)/.test(src),
-        'slider input anchors the stage to the reference image screen bounds');
+    assertTrue(/_anchorStageToRefScreen\(drag\.anchorScreen,\s*afterCells\)/.test(src),
+        'cell corner drag anchors the stage to the reference image screen bounds');
     assertTrue(/_anchorStageToRefScreen\(savedAnchor,\s*afterCells\)/.test(src),
-        'slider commit preserves the reference image screen bounds');
+        'cell corner release preserves the reference image screen bounds');
 });
+
+test('the toolbar consolidates duplicate grid controls into a single grid dropdown (task-876)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/setAttribute\('data-role',\s*'wp-grid-adjust'\)/.test(src),
+        'toolbar has the single consolidated grid button');
+    assertTrue(/Adjust handles on canvas/.test(src),
+        'grid menu offers interactive canvas handles');
+    assertTrue(/Exact dimensions/.test(src),
+        'grid menu offers exact dimensions dialog');
+    assertFalse(/btn\.textContent = '■ Grid\.\.\.'/.test(src),
+        'retired standalone Grid... modal button is gone from toolbar');
+});
+
+test('metresToStoreys quantises 3m per storey with half-step boundaries (task-877)', () => {
+    assertEq(GM.metresToStoreys(0), 0, '0m is 0 storeys');
+    assertEq(GM.metresToStoreys(1.4), 0, '1.4m rounds to 0');
+    assertEq(GM.metresToStoreys(1.5), 1, '1.5m rounds to 1 (1.5/3 = 0.5 -> 1)');
+    assertEq(GM.metresToStoreys(4.4), 1, '4.4m is 1 storey');
+    assertEq(GM.metresToStoreys(4.5), 2, '4.5m boundary rounds to 2 storeys');
+    assertEq(GM.metresToStoreys(4.6), 2, '4.6m is 2 storeys');
+    assertEq(GM.metresToStoreys(60), 20, '60m is 20 storeys');
+    assertEq(GM.metresToStoreys(-9), -3, '-9m is -3 storeys');
+    assertEq(GM.storeysToMetres(20), 60, '20 storeys round-trips to 60m');
+    assertEq(GM.storeysToMetres(-3), -9, '-3 storeys round-trips to -9m');
+});
+
+test('heightmap luminance and climb gated steps calculations (task-877)', () => {
+    assertEq(GM.luminanceToMetres(0, 0, 60), 0, '0 luminance is min metres');
+    assertEq(GM.luminanceToMetres(255, 0, 60), 60, '255 luminance is max metres');
+    assertEq(GM.metresToLuminance(0, 0, 60), 0, '0m is 0 luminance');
+    assertEq(GM.metresToLuminance(60, 0, 60), 255, '60m is 255 luminance');
+
+    const grid = { w: 3, h: 2 };
+    // Cells:
+    // (0,0): 0,  (1,0): 2,  (2,0): 7
+    // (0,1): 0,  (1,1): 0,  (2,1): 0
+    // Differences with maxStoreyStep = 3:
+    // (0,0)-(1,0): 2 <= 3 (ok)
+    // (1,0)-(2,0): |2-7| = 5 > 3 (CLIMB GATE 1)
+    // (0,0)-(0,1): 0 <= 3 (ok)
+    // (1,0)-(1,1): 2 <= 3 (ok)
+    // (2,0)-(2,1): 7 > 3 (CLIMB GATE 2)
+    // (0,1)-(1,1): 0 <= 3 (ok)
+    // (1,1)-(2,1): 0 <= 3 (ok)
+    const floorMap = { '0,0': 0, '1,0': 2, '2,0': 7 };
+    assertEq(GM.climbGatedSteps(grid, floorMap, 3), 2, 'exactly two neighbouring pairs exceed step threshold');
+});
+
+test('the editor wires heightmap import and export dialogs without hardcoding metres per storey (task-877)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/setAttribute\('data-role',\s*'wp-heightmap-import'\)/.test(src),
+        'toolbar floor controls include heightmap import button');
+    assertTrue(/setAttribute\('data-role',\s*'wp-heightmap-export'\)/.test(src),
+        'toolbar floor controls include heightmap export button');
+    assertTrue(/function _openHeightmapImportDialog\s*\(/.test(src),
+        'heightmap import dialog helper is defined');
+    assertTrue(/function _openHeightmapExportDialog\s*\(/.test(src),
+        'heightmap export dialog helper is defined');
+    assertTrue(/state\.vocab && state\.vocab\.metres_per_storey/.test(src),
+        'editor reads metres_per_storey from vocabulary');
+});
+
+test('Alt+click on canvas samples active layer value under cursor into brush (task-879)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/e\.evt && e\.evt\.altKey/.test(src),
+        'mousedown inspects altKey modifier');
+    assertTrue(/GM\(\)\.cellValue\(p,\s*state\.layer,\s*cell\.x,\s*cell\.y\)/.test(src),
+        'Alt+click reads the cell value for active layer using grid-model');
+    assertTrue(/state\.value = String\(val\)/.test(src),
+        'Alt+click sets state.value to sampled cell paint');
+    assertTrue(/Alt\+click samples the active layer value/.test(src),
+        'Paint tool tooltip documents Alt+click sampler');
+});
+
 

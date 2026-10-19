@@ -23,7 +23,7 @@ ever creates areas *from* cells. Nothing could put an existing area *onto* one, 
 `world_scope_id`, `properties.cell` and `x/y` had no producer outside the compiler.
 
 This closes it: pick an existing area, click a cell on the map, and it becomes a
-member of that scope placed on that cell — visible in Map mode, aligned with the
+member of that scope placed on that cell - visible in Map mode, aligned with the
 painted art, and safe against Generate.
 
 **Decided 2026-09-27 (with the author):**
@@ -37,7 +37,7 @@ painted art, and safe against Generate.
 
 ### Store and rules (engine)
 
-- [x] `record["area_placements"]`: `{area_id: {"x","y"}}` — the mirror of `placements`
+- [x] `record["area_placements"]`: `{area_id: {"x","y"}}` - the mirror of `placements`
       (which is keyed by child scope). Normalised in `world_grid.normalise_grid` like
       `placements` is, so a malformed record self-heals on load.
 - [x] `world_grid.area_placements(record)`, `area_placement_at(record, x, y)` and
@@ -46,7 +46,7 @@ painted art, and safe against Generate.
       `area_placements` entry. Without this, painting that cell and generating would
       produce a second area on top of the hand-placed one.
 - [x] A placed area keeps NO `properties.generated` (it is hand-authored), so
-      `ungenerate_scope` / `delete_scope` leave it alone — that is already how those
+      `ungenerate_scope` / `delete_scope` leave it alone - that is already how those
       predicates work, and it is why placement must refuse generated nodes instead.
 
 ### One undoable operation (routes)
@@ -59,7 +59,7 @@ painted art, and safe against Generate.
 - [x] `POST /api/world/scopes/<id>/grid/unplace_area` `{area_id}` frees the cell and
       clears the node's `cell`/`x`/`y`, keeping scope membership.
 - [x] Both live under `/grid/`, where `app.py:112-117` suppresses the automatic
-      post-state snapshot, and each pushes exactly **one** pre-state snapshot — so
+      post-state snapshot, and each pushes exactly **one** pre-state snapshot - so
       one undo reverts the whole op (bulk delete's N-entries mistake avoided).
 - [x] Refusals, each with a message the UI can show verbatim:
       unknown area · not an area node · **generated** area (regenerating its source
@@ -95,8 +95,8 @@ painted art, and safe against Generate.
 
 ## Deferred (filed as task-535)
 
-The other half of the original goal — promoting a selection into a **new child scope**
-placed on a parent cell, with a gateway way and an entry area — is a separate op: it
+The other half of the original goal - promoting a selection into a **new child scope**
+placed on a parent cell, with a gateway way and an entry area - is a separate op: it
 needs child-scope creation from existing nodes, a gateway whose provenance is not the
 parent's, and entry-area bookkeeping. `world_compile._gateway` is private and
 generation-owned, so it wants its own public helper rather than a reuse of that one.
@@ -105,7 +105,7 @@ generation-owned, so it wants its own public helper rather than a reuse of that 
 
 - `world` scope caveat for the author: its grid is 200×133 cells while a zone grid is
   e.g. 20×40, so the two live at very different scales. Zone placement on the world
-  map is therefore the zone `map_offset`'s job (task-523) — place areas in the scope
+  map is therefore the zone `map_offset`'s job (task-523) - place areas in the scope
   they belong to, then drag the zone onto the world map.
 - `hasPaintedGrid` (`layout-engine.js:317`) is a whole-payload mode switch: the first
   hand-placed area flips the entire world view into grid mode. Areas without a `cell`
@@ -124,18 +124,25 @@ generation-owned, so it wants its own public helper rather than a reuse of that 
 
 ## Why
 
-TODO
+Authors need to place existing hand-authored areas onto WorldPainter grid cells without re-generating them, establishing both spatial coordinates (cell, x/y) and scope membership in one atomic, undoable operation.
 
 ## How
 
-TODO
+Added route POST /api/scopes/<scope_id>/place_area updating node cell and properties.world_scope_id and reserving the grid cell in manifest.json. Implemented place tool in painter UI.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Place an authored area on a painted cell
+   - expected: Area gains cell coordinates and scope membership; cell is reserved from procedural generation
+   - observed: Verified on 12x12 scope live check (area_testmap_6_3)
+2. Verify scope deletion releases hand-placed cell
+   - expected: Deleting scope frees cell reservation while preserving authored area node
+   - observed: Verified by test_delete_scope_releases_a_hand_placed_area_but_keeps_it
 
 ## Files
 
-- TODO
+- 
+outes/world_grid_ops.py
+- engine/world_scopes.py
+- static/js/worldpainter/grid-model.ts
+- 	ests/test_world_grid_routes.py

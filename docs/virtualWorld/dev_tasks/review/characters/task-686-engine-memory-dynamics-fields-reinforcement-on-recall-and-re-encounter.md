@@ -32,8 +32,8 @@ accumulating near-duplicates with a ratcheting importance.
   `reinforcements`, `last_recalled_tick`, `reflection_depth`,
   `source_memory_ids`, `contradicts`.
 - `effective_importance(m) = importance × (0.6+0.4×activation) × (0.75+0.25×confidence)`
-  — derived, never persisted.
-- Reinforcement triggers: (a) every recall path —
+  - derived, never persisted.
+- Reinforcement triggers: (a) every recall path -
   `Player.get_relevant_memories`, `AgentMind.recall`, `/memories/retrieve`,
   the vector-search merge in `memory-context.js`; (b) write-time near-duplicate
   re-encounter: extend the task-346 `_is_near_duplicate` dedup in
@@ -62,21 +62,35 @@ accumulating near-duplicates with a ratcheting importance.
 
 ## Why
 
-TODO
+Previously, memory recall simply ratcheted importance up by +1 until capping at 10, while duplicate experiences constantly appended new identical strings to Player.memories[]. This bloated memory lists without modeling how memory works. Memory dynamics fields (activation, reinforcements, confidence, last_recalled_tick) and bounded reinforcement allow memory retrieval and repeated encounters to strengthen existing memories organically without cluttering storage or distorting importance.
 
 ## How
 
-TODO
+1. In engine/memory_dynamics.py, implement ensure_dynamics(), reinforce(), and effective_importance(m) formula (importance * (0.6 + 0.4*activation) * (0.75 + 0.25*confidence)).
+2. Wire reinforcement into Player.get_relevant_memories, AgentMind.recall, and /memories/retrieve endpoint.
+3. In routes/memories.py, update _is_near_duplicate to reinforce existing matching memories (Jaccard similarity >= 0.75 on same subject entity) instead of appending redundant records.
+4. Replace raw importance += 1 ratchet in Player.get_relevant_memories with reinforce().
+5. Support backward-compatible loading of legacy saves without dynamics fields.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Call /memories/retrieve targeting an existing memory.
+   - expected: reinforcements count increments on the targeted memory object; last_recalled_tick updates.
+   - observed: Tested via tests/test_memory_dynamics.py.
+2. Post a near-duplicate memory to /api/players/<name>/memories.
+   - expected: Endpoint returns deduped: true, bumps reinforcements on original memory, and does not append a new record.
+   - observed: Deduplication and reinforcement confirmed in route unit tests.
+3. Load an old save file missing dynamics fields.
+   - expected: Legacy memories load cleanly with default dynamics lazily populated; saves round-trip without data loss.
+   - observed: Verified in test_old_save_memory_round_trips_without_new_fields.
 
 ## Files
 
-- TODO
+- engine/memory_dynamics.py
+- engine/player.py (add_memory, get_relevant_memories)
+- 
+outes/memories.py
+- 	ests/test_memory_dynamics.py
 
 ## Browser UI and intended live verification
 

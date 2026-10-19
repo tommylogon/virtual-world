@@ -10,7 +10,7 @@ related: ['task-242', 'task-203', 'task-388']
 
 **Filed**: 2026-08-30
 **Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P3 — Trigger snippet palette: prebuilt drop-ins (chest, torch, whispering door, recorder-capture) with param placeholders.
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P3 - Trigger snippet palette: prebuilt drop-ins (chest, torch, whispering door, recorder-capture) with param placeholders.
 
 <!-- deps:start -->
 **Related:** [[task-242-agents-create-item-triggers]], [[task-203-set-adjust-parameters]], [[task-388-trigger-graph-editor-overhaul]]
@@ -20,28 +20,12 @@ related: ['task-242', 'task-203', 'task-388']
 
 See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.
 
-## What
-
-TODO
-
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Trigger snippet palette provides pre-authored templates for common trigger mechanics.
+- [x] Inserting a snippet populates trigger editor fields with valid condition/effect blocks.
 
 ## Files
 
-- TODO
+- `static/js/shared/trigger-editor.js`

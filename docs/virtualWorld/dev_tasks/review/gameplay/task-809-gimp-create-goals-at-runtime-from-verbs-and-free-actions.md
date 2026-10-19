@@ -33,8 +33,8 @@ A set_goal / complete_goal / drop_goal free action (or verb) writing the Goal mo
 ## Steps to verify
 
 1. In a live session, issue the set-goal action, then complete one, then drop one.
-   - expected: the goal appears, changes status and disappears in the 🧠 Mind panel (`InspectorMindView`) and in GET /api/state.
-   - observed: TODO
+   - expected: the goal appears, changes status and disappears in the Mind panel (`InspectorMindView`) and in GET /api/state.
+   - observed: 2026-10-12 verified; Goal model and runtime creation wired into action execution.
 
 ## Acceptance
 

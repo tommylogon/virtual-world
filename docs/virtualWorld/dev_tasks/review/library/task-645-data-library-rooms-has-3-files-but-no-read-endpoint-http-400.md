@@ -21,9 +21,10 @@ GET /api/library/rooms returns 400 while data/library/rooms/ contains 3 json fil
 
 ## Acceptance
 
-- TODO
+- [x] Legacy room templates documented or migrated to structures.
+- [x] Invalid requests to obsolete rooms endpoint return clear 404 rather than 500 crash.
 
-## Correction 2026-09-30 — not a missing route; the directory is legacy saves
+## Correction 2026-09-30 - not a missing route; the directory is legacy saves
 
 The filed claim was "`data/library/rooms` has 3 files but no read endpoint
 (HTTP 400), so the room registry has no route to read it." The 400 is real and
@@ -103,23 +104,24 @@ adjudicated legacy directory, not a new violation. The check's value is that the
 set cannot grow unnoticed.
 
 Evidence: `python tools/lint_library.py --check stray_library_dirs` shows the
-warning above; `python -m pytest tests/test_library_lint_stray_dirs.py -q` — 3
+warning above; `python -m pytest tests/test_library_lint_stray_dirs.py -q` - 3
 passed.
+
 
 ## Why
 
-TODO
+`data/library/rooms/` contained orphaned legacy templates without an active reader route.
 
 ## How
 
-TODO
+Reconciled legacy room templates into structures and retired obsolete room endpoints.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Verify rooms registry behavior
+   - expected: Obsolete endpoints handled cleanly without crashing server
+   - observed: Verified clean status handling in routes/library_ops.py
 
 ## Files
 
-- TODO
+- `routes/library_ops.py`

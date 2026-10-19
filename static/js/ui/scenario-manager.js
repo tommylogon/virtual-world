@@ -226,13 +226,48 @@ window.ScenarioManager = (() => {
         foot.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted);';
         const hint = document.createElement('span');
         hint.textContent = 'Opening a scenario REPLACES the current world (↩ Undo restores).';
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const cloneBtn = document.createElement('button');
+        cloneBtn.className = 'btn btn-sm btn-green';
+        cloneBtn.style.cssText = 'font-size:10px;';
+        cloneBtn.textContent = '➕ Clone current world';
+        cloneBtn.title = 'Save active in-memory world into a new scenario file';
+        cloneBtn.onclick = async () => {
+            const nn = prompt('Name for new scenario clone:');
+            if (!nn || !nn.trim())
+                return;
+            try {
+                const r = await fetch('/api/scenarios/clone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: nn.trim() })
+                });
+                const j = await r.json();
+                if (j.error) {
+                    toastError('Clone failed: ' + j.error);
+                    return;
+                }
+                toastInfo('Cloned active world into "' + j.name + '".');
+                const list = _overlay && _overlay.querySelector('div[style*="max-height:60vh"]');
+                if (list)
+                    renderList(list);
+            }
+            catch (e) {
+                console.error(e);
+                toastError('Clone failed: ' + (e instanceof Error ? e.message : String(e)));
+            }
+        };
         const refresh = document.createElement('button');
         refresh.className = 'btn btn-sm';
+        refresh.style.cssText = 'font-size:10px;';
         refresh.textContent = '⟳ Refresh';
         refresh.onclick = () => { const list = _overlay && _overlay.querySelector('div[style*="max-height:60vh"]'); if (list)
             renderList(list); };
+        btnGroup.appendChild(cloneBtn);
+        btnGroup.appendChild(refresh);
         foot.appendChild(hint);
-        foot.appendChild(refresh);
+        foot.appendChild(btnGroup);
         return foot;
     }
     async function renderList(container) {
@@ -358,6 +393,12 @@ window.ScenarioManager = (() => {
                 return;
             }
             data._scenario_name = data._scenario_name || sc.name;
+            const w = window;
+            if (w.SaveLoadView && typeof w.SaveLoadView.openImportPreview === 'function') {
+                close();
+                w.SaveLoadView.openImportPreview(sc.filename || (sc.name + '.json'), data._scenario_name, data);
+                return;
+            }
             data.persist = true; // GUI open: keep the scenario file as the source
             const r = await fetch('/api/load', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },

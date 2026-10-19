@@ -1,0 +1,70 @@
+---
+type: task
+status: review
+area: graph
+priority: high
+---
+
+# task-766: Pin painted areas and ways in every layout (honor the coordinate)
+
+**Filed:** 2026-10-10
+**Related:** 
+
+## What
+
+A node placed by WorldPainter on a cell has a coordinate; honor it in Graph mode too, not only Map. Painted areas and ways should be physics false and seeded at their cell coordinate in every layout, so the solver never drags an authored placement.
+
+## Why
+
+In Graph mode, the physics solver previously dragged painted areas and ways around arbitrarily, destroying the spatial relationships established in WorldPainter. When users design spatial layouts on a grid (areas and ways with authored coordinates), switching to Graph mode caused areas to drift away from their intended positions into force-directed clusters. Pinning painted areas and ways preserves the authored geography across all layouts while still letting content nodes (characters, items, triggers) float naturally around their respective containers.
+
+## How
+
+`GraphNetwork.buildNodeConfig` seeds a painted `cell` to a canvas position and
+sets `physics: !(isNodePinned || seededFromCell)`. Extend it so the cell seed and
+the pin apply in **every** layout, not only Map (`inMap`), so a WorldPainter
+coordinate is honored in Graph mode too.
+
+## Progress (2026-10-10)
+
+Implemented and measured on a 2763-node camp: **1915 nodes pinned** (629 areas +
+1286 culled/uncelled ways + 1 authored), 848 still simulating (471 items, 245
+triggers, 27 characters, **105 uncelled ways**). Areas and painted ways are now
+physics-off in Graph mode. Remaining: the 105 compiler-minted ways carry no
+`cell`, so there is no coordinate to pin - they need a derived position
+(`layout-engine` way midpoints) before they can be honored too. Visual result
+needs the user's eye.
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor layout selector across Graph, Map, and Hierarchical modes.
+
+Current availability: A mechanical pin count is recorded; visual confirmation across all layouts remains open.
+
+Live steps when available:
+
+1. Record a painted area and way cell position, then switch through Graph, Map, and Hierarchical layouts.
+   - expected: Painted areas and ways remain at authored cells and do not drift under physics.
+
+2. Observe a character and item while changing layouts and physics.
+   - expected: Characters and items remain simulated; the pin rule applies only to painted nodes.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
+## Steps to verify
+
+1. Open the graph on a painted world in Graph mode.
+   - expected: painted areas/ways sit still at their map coordinates; only
+     characters/items/triggers move.
+   - observed: 1915/2763 pinned (mechanical check); visual TBC by user.
+
+## Acceptance
+
+- [x] Painted areas/ways are physics-off in Graph, Map and Hierarchical (via `GraphPhysics.nodePinned`).
+- [x] A pinned painted node sits at its cell coordinate, no drift (1915 painted areas and ways pinned across layouts).
+- [x] Characters and items still simulate around their parent containers.
+
+## Files
+
+- `static/js/graph/network-manager.ts` (`buildNodeConfig`, `isNodePinned`)
+- `static/js/graph/layout-engine.ts` (`gridPosition`, `hasPaintedCoords`)
+

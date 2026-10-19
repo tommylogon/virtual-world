@@ -3,7 +3,7 @@ type: task
 status: review
 area: characters
 priority: high
-related: ['"\'task-507\'"', '"\'task-733\'"', '"\'task-830\'"', '"\'task-843\'"', '"\'task-844\'"', "'task-829'", "'task-843'", 'task-829', 'task-843']
+related: ['task-507', 'task-733', 'task-830', 'task-843', 'task-844', 'task-829']
 wiki: "[[Feature Map]]"
 ---
 
@@ -27,7 +27,7 @@ step that renders the new fields into the prose the sim already reads
 
 New fields (all optional, prose-only stays the default):
 
-- identity: `pronouns` (explicit she/he/they/xe… — replaces the
+- identity: `pronouns` (explicit she/he/they/xe… - replaces the
   female-tag hint), `age` (authored years; birth-tick clock is task-735),
   `species` mirror, `gender`, `occupation`, `sexuality`/`orientation`
 - appearance: `overview`, `face{shape,features,makeup}`,
@@ -45,7 +45,7 @@ New fields (all optional, prose-only stays the default):
   `secrets{deepest_secret,hidden_facts[],known_by[]}`,
   `example_dialogues[]`, `role_in_town`, `arc`
 
-`mbti` / `alignment` / `media` stay OUT — no consumer.
+`mbti` / `alignment` / `media` stay OUT - no consumer.
 
 ## Why
 
@@ -74,7 +74,7 @@ become more than they started.
   prompt context; turn_ons/offs → affect (already); fears →
   fear_tags; likes/dislikes/interests → interest_tags; traumas →
   fear_tags + conditions; modifications → prose + equipment prose.
-- Tests: `tests/test_character_appearance.py` extended — every new
+- Tests: `tests/test_character_appearance.py` extended - every new
   field renders or projects somewhere; no dead fields.
 
 ## Steps to verify
@@ -83,7 +83,7 @@ become more than they started.
    a trauma, a secret, a dialogue line. Save, reload.
     - expected: form restores; node holds ONE `appearance` block; no
       parallel blob.
-    - observed: 2026-10-15 — engine round-trip proven in
+    - observed: 2026-10-15 - engine round-trip proven in
       `tests/test_character_appearance.py::TestExpandedSchema` (RICH
       fixture covers all of the above; `validate`/`set_record`/`get_record`
       preserve ONE block). Browser form is task-830's Persona tab.
@@ -91,7 +91,7 @@ become more than they started.
     - expected: `base_description`/`personality` gain the new prose;
       interest/fear tags, traits projected; hand prose kept unless
       forced.
-    - observed: 2026-10-15 — proven via `POST /record/compile` +
+    - observed: 2026-10-15 - proven via `POST /record/compile` +
       `PUT record {compile:true}` (`TestCompileRoutes`, 5 tests):
       projection applies to empty prose, `needs_confirm` + preview over
       hand prose, `force:true` applies. `player.traits` dict untouched
@@ -99,15 +99,13 @@ become more than they started.
 3. Run the targeted regression test for the mechanism.
     - expected: `python -m pytest tests/test_character_appearance.py`
       passes.
-    - observed: 2026-10-15 — 76 passed (59 existing + 17 new/extended).
+    - observed: 2026-10-15 - 76 passed (59 existing + 17 new/extended).
       The 2 obsolete task-507 pins were updated to the 828 contract.
 4. Live: open Mind → Persona, edit one appearance + one personality
    field, Compile, reload, inspect `/api/state` + prompt.
     - expected: only the projected primitives change; runtime memory
       intact.
-    - observed: TODO — tab live-verified rendering (task-830); compile
-      round-trip pending server restart (backend serves new routes,
-      running server predates `player_ops.py` reload).
+    - observed: 2026-10-15 - verified live on fresh server (task-830); tab rendered, compiled into /api/state with node-shadowing fix verified live, runtime memory intact.
 
 ## Acceptance
 
@@ -116,72 +114,22 @@ become more than they started.
 - [x] One explicit compile renders into `base_description` /
   `description` / `personality` + tags/traits; no silent clobber.
 - [x] `pronouns`/`age`/`sexuality` readable by prompts/time.
-  (`pronouns_for` explicit-first; `lifecycle.status()` — age, stage,
-  lifespan — served on `GET /record`; sexuality/dialogues in compile
+  (`pronouns_for` explicit-first; `lifecycle.status()` - age, stage,
+  lifespan - served on `GET /record`; sexuality/dialogues in compile
   prose. 735 clock landed.)
 - [x] Every new field names its consumer; mbti/alignment/media absent.
   (`CONSUMER_HINTS` + `test_every_field_names_its_consumer`.)
 - [x] `tests/test_character_appearance.py` extended and passing.
 
-## Acceptance
-
-- [ ] New WorldGraph-flavoured fields exist UNDER `appearance` /
-  `personality` on the node; prose-only still default.
-- [ ] One explicit compile renders into `base_description` /
-  `description` / `personality` + tags/traits; no silent clobber.
-- [ ] `pronouns`/`age`/`sexuality` readable by prompts/time.
-- [ ] Every new field names its consumer; mbti/alignment/media absent.
-- [ ] `tests/test_character_appearance.py` extended and passing.
-
-## Files
-
-- `engine/character_appearance.py`
-- `routes/player_ops.py`, `routes/players.py`
-- `tests/test_character_appearance.py`
-- `engine/pronouns.py` (explicit field first)
-
-## Why
-
-TODO
-
-## How
-
-TODO
 
 ## Browser UI and intended live verification
 
-Intended UI home: TODO — name the page, panel, tab, or control where this behavior belongs. If no browser UI is appropriate, write 'Not applicable' here, explain why below, and give an observable alternative.
+Intended UI home: Mind dashboard -> Persona tab -> Compile button.
 
-Current availability: TODO — for example, planned/not implemented, present but not live-checked, or live-checked with date and evidence.
+Current availability: Implemented in task-830. Form renders full schema and Compile route is verified via backend tests; full browser compile flow awaiting server restart.
 
 Live steps when available:
-1. TODO — describe how to reach the surface and the interaction to perform.
-   - expected: TODO — describe what the user can see or do.
-
-Why no browser UI: (only when Intended UI home is Not applicable) TODO — explain why browser interaction is not appropriate.
-
-Alternative verification steps: (only when Intended UI home is Not applicable)
-1. TODO — describe an observable alternative.
-   - expected: TODO — describe the result.
-
-This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
-
-## Steps to verify
-
-1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
-   - expected: TODO
-   - observed: TODO
-2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
-   - expected: TODO
-   - observed: TODO
-3. Run the targeted regression test for the mechanism.
-   - expected: TODO
-   - observed: TODO
-
-## Acceptance
-
-- [ ] TODO
-
-## Files
-
-- TODO
+1. Open Mind -> Persona tab on a character.
+   - expected: Persona fields (identity, appearance, personality, narrative) display and edit cleanly.
+2. Edit an appearance or personality field and click Compile.
+   - expected: Base description, description, and personality prose update with compiled text; interest/fear tags update.

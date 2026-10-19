@@ -29,28 +29,29 @@ way_props in engine/world_compile.py:2023-2070 and _way_edges set no tags, so al
 
 ## How
 
-`docs/design/way-tags.md` — the writer/reader doctrine, the compiler inputs, the
+`docs/design/way-tags.md` - the writer/reader doctrine, the compiler inputs, the
 three-tier vocabulary, and the systems that read way tags (with the follow-up
 consumers: hazard-on-the-crossing, plans-toward-a-route, trigger-written
-condition tags — each filed/owned separately, not bolted on here).
+condition tags - each filed/owned separately, not bolted on here).
 
 ## Landed 2026-10-08
 
 `engine/world_compile.py` `emit_passage` (tags before `nodes.append`);
 `engine/area_description.py` exit line. Vocabulary comes from
-`data/worldpainter/biomes.json` — no new vocabulary. `tags` is already a declared
+`data/worldpainter/biomes.json` - no new vocabulary. `tags` is already a declared
 way property (`tools/way_properties.py`), so the gate is unaffected.
 
 ## Why
 
-TODO
+Generated way nodes compiled from WorldPainter cells lacked tags, causing way inspection to report `tags: None`.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Compile a painted grid to WorldGraph ways
+   - expected: Generated way nodes carry surface and road tags
+   - observed: Verified in tests/test_world_compile.py
 
 ## Files
 
-- TODO
+- `engine/world_compile.py`
+- `tests/test_world_compile.py`

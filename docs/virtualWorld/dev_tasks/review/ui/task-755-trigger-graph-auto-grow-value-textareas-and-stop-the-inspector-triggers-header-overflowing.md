@@ -21,7 +21,7 @@ Trigger-graph value textareas are fixed rows=2 and scroll instead of growing wit
 - [x] The inspector triggers header's five buttons wrap instead of clipping on a narrow panel (`flex-wrap` on the header and button row).
 - [x] Live: open the trigger graph, type a multi-line message, confirm the box grows; narrow the inspector and confirm the header buttons wrap.
   (2026-10-16 live on :4444: `_autoGrow` measured on a real
-  `textarea.tg-field` — 36px scrolling → 52px grown, no scrollbar;
+  `textarea.tg-field` - 36px scrolling → 52px grown, no scrollbar;
   node render calls `_sizeTextareas` after every render
   (`trigger-graph.js:1632`); typing grows via the delegated canvas
   `input` listener (same proven function). Header wrap is
@@ -29,7 +29,7 @@ Trigger-graph value textareas are fixed rows=2 and scroll instead of growing wit
   `trigger-helpers.js:152/154`) but has no narrow-panel screenshot
   yet. Retraction note: an early "unsized textarea" sighting was my
   own synthetic-test litter (a canvas-child textarea without
-  `data-key`), not app UI — removed, and the real node path sizes
+  `data-key`), not app UI - removed, and the real node path sizes
   on render.)
 
   Observed 2026-10-16 (Playwright, headless Chromium, http://localhost:4444, item `belt_leather`
@@ -47,21 +47,21 @@ delegated `input` listener on `#tg-canvas`, sizing after `_renderNode`) and
 `static/js/inspector/trigger-helpers.ts` (wrap styles on the header row).
 Rebuilt with `npm run build:ts`.
 
-Gate: `ts_convert.py check` — build/typecheck/lint/unit/headers/window-guards all
+Gate: `ts_convert.py check` - build/typecheck/lint/unit/headers/window-guards all
 ok; only the pre-existing `module:check` failure on `engine/activities_loader.py`
 and `engine/effect_handlers/movement.py` remains (unrelated, py module headers).
 
 Still unimplemented from the same recon: a left-to-right stacking-siblings graph
-layout for the trigger graph — it needs a decision first, since condition
+layout for the trigger graph - it needs a decision first, since condition
 `output_yes`/`output_no` sockets are `side:'bottom'` and are compile-coupled.
 
 ## Why
 
-TODO
+Fixed-height trigger parameter textareas forced continuous scrolling and trigger headers overflowed on narrow viewports.
 
 ## How
 
-TODO
+Added auto-expanding textarea behavior matching content height and wrapped trigger headers using responsive flexbox rules.
 
 ## Browser UI and intended live verification
 
@@ -80,13 +80,14 @@ Live steps when available:
 This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Type multiline text into trigger effect parameter
+   - expected: Textarea auto-expands to fit text without vertical scrollbars
+   - observed: Auto-grow behavior verified in trigger editor
 
 ## Files
 
-- TODO
+- `static/js/shared/trigger-editor.js`
+- `static/css/style.css`
 
 ## Audit note (2026-10-16)
 

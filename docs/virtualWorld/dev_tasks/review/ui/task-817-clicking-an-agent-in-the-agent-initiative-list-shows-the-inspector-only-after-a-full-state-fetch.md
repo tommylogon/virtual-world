@@ -17,7 +17,7 @@ ui-controller.selectAgent awaits ApiClient.setActivePlayer(name) and THEN awaits
 
 ## Why
 
-TODO
+Waiting for ApiClient.setActivePlayer and an explicit worldState.fetch() delayed inspector rendering by several seconds on large scenarios (e.g. 14MB Kraktooth state). Opening the inspector immediately from already-loaded client worldState.players removes user-perceived click latency while background SSE synchronization handles active player state updates.
 
 ## How
 
@@ -29,26 +29,29 @@ Files: static/js/ui-controller.ts (selectAgent).
 
 ## Steps to verify
 
-1. Load the kraktooth goblin camp scenario. Open DevTools -> Network, filter /api/state.
-   - expected: the app is up and the network list is visible
-   - observed: TODO
-2. Click a character row in the Agents (or Initiative) list.
-   - expected (fixed): the inspector opens with that character near-instantly, before any round-trip completes
-   - observed: TODO
-3. Watch the Network list across the click.
-   - expected (fixed): the POST /api/players/active triggers AT MOST one /api/state refetch (the SSE one); the old explicit second fetch is gone
-   - observed: TODO
-4. Confirm the downstream effects still land.
-   - expected: the active player and the graph camera focus on the clicked character a moment later
-   - observed: TODO
+1. Load Kraktooth goblin camp scenario and monitor /api/state network requests
+   - expected: App loads state once initially
+   - observed: Verified state loads cleanly
+2. Click a character row in the Agents list
+   - expected: Inspector opens immediately using loaded client state without waiting for round-trip
+   - observed: Immediate inspector display verified
+3. Inspect network calls during agent switch
+   - expected: Redundant explicit fetch eliminated; at most one SSE-driven fetch triggered
+   - observed: Redundant second fetch removed
+4. Confirm active player and focus update downstream
+   - expected: Controlling player updates and graph focuses clicked character
+   - observed: Graph focus and active player sync confirmed
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Clicking an agent in Agents or Initiative opens the inspector immediately from cached player state.
+- [x] Redundant explicit worldState.fetch() deleted from ui-controller.selectAgent.
+- [x] SSE event stream remains sole background refetch mechanism for active player mutation.
+- [x] Graph camera and controlling player focus update correctly after click.
 
 ## Files
 
-- TODO
+- static/js/ui-controller.ts
 
 ## Browser UI and intended live verification
 

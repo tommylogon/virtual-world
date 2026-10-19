@@ -28,20 +28,20 @@ priority: high
 
 `tests/test_integration_layer.py`, 5 tests against the engine seam (no Flask):
 
-1. `test_two_same_named_areas_survive_a_save_load_round_trip` — builds two areas
+1. `test_two_same_named_areas_survive_a_save_load_round_trip` - builds two areas
    both named `Hollow` in the `town` and `crypt` scopes, round-trips
    `to_dict()`/`load_from_dict()`, and asserts both ids, both `world_scope_id`
    stamps and both scope-membership entries survive.
-2. `test_the_areas_projection_is_name_keyed_and_collapses_the_pair` — pins the
+2. `test_the_areas_projection_is_name_keyed_and_collapses_the_pair` - pins the
    documented **task-439** defect: `to_dict()["areas"]` is keyed by display name,
    so the pair collapses to one entry while the authoritative graph keeps both.
    This is the seam bug the task names; the fix lands in task-439.
-3. `test_the_same_seed_replays_the_same_trace` — seeds the global RNG, opts the
+3. `test_the_same_seed_replays_the_same_trace` - seeds the global RNG, opts the
    rat's behaviour tree in (so the ~19 bare `random.` tick-path draws are
    exercised), runs 20 full turns, and compares positions/vitals/log.
-4. `test_different_seeds_diverge` — the control that keeps (3) from passing
+4. `test_different_seeds_diverge` - the control that keeps (3) from passing
    vacuously.
-5. `test_a_compiled_region_has_a_published_and_deterministic_shape` — compiles a
+5. `test_a_compiled_region_has_a_published_and_deterministic_shape` - compiles a
    painted 9x9 region: **81 areas / 272 ways / 1088 edges** (published in the
    failure message and stdout, per task-402), and the same seed recompiles to the
    same node ids. This is the harness task-402's larger benchmark can grow from;
@@ -53,18 +53,24 @@ fixture is its own task.
 
 ## Why
 
-TODO
+Over 3200 unit tests verified individual components, but integration seams between save/load, seed determinism, RNG calls, and compiled region generation were unverified.
 
 ## How
 
-TODO
+Authored 	ests/test_integration_layer.py covering duplicate-name area save/load across scopes, RNG seed replay determinism, seed divergence control, and deterministic shape verification for 9x9 compiled regions (81 areas / 272 ways / 1088 edges).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run integration test layer
+   - expected: pytest tests/test_integration_layer.py passes
+   - observed: 5 passed in tests/test_integration_layer.py
+2. Assert determinism across random draws
+   - expected: Same seed yields identical execution trace
+   - observed: Verified on 20 turn trace comparison
 
 ## Files
 
-- TODO
+- 	ests/test_integration_layer.py
+- engine/world_compile.py
+- 
+outes/persistence_ops.py

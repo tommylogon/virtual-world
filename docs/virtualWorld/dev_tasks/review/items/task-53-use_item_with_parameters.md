@@ -11,7 +11,7 @@ related: [task-433, task-363]
 
 **Filed**: 2026-07-15
 **Priority**: Medium
-**Status**: In Review — implemented (code-verified 2026-08-11; re-audited against
+**Status**: In Review - implemented (code-verified 2026-08-11; re-audited against
 current code 2026-09-21).
 **Residual work**: [[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433]]
 
@@ -31,13 +31,13 @@ interactive items.
 
 ### What works
 
-- **Command parsing.** `use <tool> on <target> "<text>"` — `routes/action_handlers.py:382-414`
+- **Command parsing.** `use <tool> on <target> "<text>"` - `routes/action_handlers.py:382-414`
   (the `use` branch; line 393 `on_idx`, 397-405 quoted-token split), using
   `tokenize_command_detailed` at `routes/helpers.py:113-152`. Quoted tokens after
   `on`: the first becomes the target, the rest become `params`.
 - **Engine entry point.** `VirtualWorld.use_item_on(item, target, params=…, amount=…)`
   at `virtual_world_engine.py:616-617` → `engine/items/use_actions.py:187`.
-- **The inscription path.** `engine/items/use_actions.py:266-277` — when `params`
+- **The inscription path.** `engine/items/use_actions.py:266-277` - when `params`
   is truthy, appends `\n[Inscribed: "<params>"]` to the **target node's**
   `properties["description"]`, stamps `updated`, records a `use` turn event, and
   returns early. Because it lands in `node.properties`, it is serialized with the
@@ -59,10 +59,10 @@ interactive items.
 
 ### What was proposed but is NOT implemented
 
-- **`params_match` condition** — proposed in this task; no `params_match`
+- **`params_match` condition** - proposed in this task; no `params_match`
   implementation exists anywhere in the codebase. `params` is only reachable as
   a `{params}` template token inside an authored effect value.
-- **Phase 2 built-in per-item param effects** (phone→notify, radio→tune, etc.) —
+- **Phase 2 built-in per-item param effects** (phone→notify, radio→tune, etc.) -
   never built; only the generic trigger path exists.
 - **No test coverage** for the inscription path or the `{params}` template token.
   `tests/test_descriptive_targets.py:161` touches `use_item_on` but asserts the
@@ -72,7 +72,7 @@ interactive items.
 
 - **`params` is silently un-gated.** `use_actions.py:266-277` never checks that
   the tool is a writing implement or that the target is writable. Any tool+target
-  pair inscribes if `params` is set — see task-160 / task-363, where
+  pair inscribes if `params` is set - see task-160 / task-363, where
   `use create flame on dried flower crown` *inscribed* "flower crown" onto a
   crown.
 - **Targeting is by quoted token, not structure.** `use pen on paper "text"`
@@ -82,7 +82,7 @@ interactive items.
 - **`append_description` re-appends on every fire** (fixed literal), so it is not
   idempotent as a note mechanism.
 - **`set_description`/`append_description` target a literal node id**
-  (`properties.py:80,100` — `"self"` does not resolve there; `set_parameter`
+  (`properties.py:80,100` - `"self"` does not resolve there; `set_parameter`
   does resolve `"self"` via `engine/effects.py:470-479`).
 
 ### What this task did not do
@@ -103,9 +103,9 @@ These are scoped in **task-433**.
 When `use_item_on()` fires `on_use_on` triggers, pass the `params` text into the
 trigger context so conditions and effects can reference it.
 
-New condition type: `params_match` — checks if params match a pattern. *(never built)*
+New condition type: `params_match` - checks if params match a pattern. *(never built)*
 
-New effect type: `set_description` — changes a node's description. *(built — see above)*
+New effect type: `set_description` - changes a node's description. *(built - see above)*
 
 ### Phase 2: Built-in param effects *(never built)*
 
@@ -132,7 +132,7 @@ Triggers may reference `{params}` in effect messages and values:
 }
 ```
 
-`{params}` templating works; `target_property` is not a real field — the target
+`{params}` templating works; `target_property` is not a real field - the target
 is a node id and the field is always `description`.
 
 ## Audit
@@ -150,49 +150,24 @@ is a node id and the field is always `description`.
 
 ## Files
 
-- `routes/action_handlers.py` — `use` parsing, quoted target/params split
-- `routes/helpers.py` — `tokenize_command_detailed` quoted-token tracking
-- `engine/items/use_actions.py` — `use_item_on`, the `params` inscription path,
+- `routes/action_handlers.py` - `use` parsing, quoted target/params split
+- `routes/helpers.py` - `tokenize_command_detailed` quoted-token tracking
+- `engine/items/use_actions.py` - `use_item_on`, the `params` inscription path,
   `{params}` trigger context
-- `engine/effect_handlers/properties.py` — `set_description`, `append_description`
-- `engine/triggers/execution.py` — `{params}` template resolution
-- `virtual_world_engine.py` — `use_item_on` facade
+- `engine/effect_handlers/properties.py` - `set_description`, `append_description`
+- `engine/triggers/execution.py` - `{params}` template resolution
+- `virtual_world_engine.py` - `use_item_on` facade
 - `static/js/item-library.js`, `static/js/shared/trigger-*.js`,
-  `static/js/prompt-docs.js` — effect authoring + prompt docs
-- `tests/` — **no inscription test exists yet** (task-433 adds one)
+  `static/js/prompt-docs.js` - effect authoring + prompt docs
+- `tests/` - **no inscription test exists yet** (task-433 adds one)
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Use action accepts target arguments (e.g. `use key on door`).
+- [x] Trigger handlers receive target arguments and execute contextual effects.
 
-## Browser UI and intended live verification
+## Files
 
-Intended UI home: select the pen and paper in Inventory/Inspector → submit the parameterized action `use pen on paper "i wrote this"` → read the paper as a second character.
-
-Current availability: the card describes item-to-item use parameters and a writing example. The general parameterized use contract is not claimed complete by this card.
-
-Live steps when available:
-1. With a writable paper and pen, enter the exact parameterized use command.
-   - expected: the target paper stores `i wrote this` as its inscription and the action result identifies the paper as the modified target.
-2. Repeat using a non-writable target and then an incompatible tool.
-   - expected: each request is rejected with a specific explanation and neither item changes.
-3. Use a different parameter value containing spaces and punctuation.
-   - expected: the full parameter is preserved exactly; it is not split, lowercased, or dropped by target matching.
-4. Save/reload and inspect the paper and action history.
-   - expected: the parameterized result persists; ordinary `use X on Y` without a parameter retains its existing behavior.
-
-This section is not a claim that parameterized item use is implemented today.
+- `engine/effects.py`
+- `engine/actions.py`

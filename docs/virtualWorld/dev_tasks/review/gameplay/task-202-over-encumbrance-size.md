@@ -25,19 +25,15 @@ Carrying too much should make a character count as one size larger for passage, 
 
 ## Files
 
-- engine/movement.py — apply encumbrance-driven size bump in crawl/climb/jump gating
-- engine/item_actions.py — expose total carried weight for the encumbrance threshold
+- engine/movement.py - apply encumbrance-driven size bump in crawl/climb/jump gating
+- engine/item_actions.py - expose total carried weight for the encumbrance threshold
+
 
 ## What
 
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+Carrying >= 50% of maximum carrying capacity adds an effective size tier to the character, restricting traversal through narrow gaps.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Effective size tier increments when carried weight reaches encumbrance threshold.
+- [x] Narrow passages enforcing max_size block over-encumbered characters.

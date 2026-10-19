@@ -20,7 +20,7 @@ A character died. There is no revive command, so the user revived it by hand in
 the inspector: added HP, added Energy, and cleared the `dead` and `unconscious`
 conditions. The character then still refused interaction until `wake` was issued.
 
-## Cause — the activity gate, not the condition gate
+## Cause - the activity gate, not the condition gate
 
 Two gates stack in `routes/action_handlers.py`:
 
@@ -28,13 +28,13 @@ Two gates stack in `routes/action_handlers.py`:
   any `BLOCKING_CONDITIONS` are present.
 - `_activity_gate` (line 78): a **blocking activity** (`ACTIVITY_BLOCKING`, e.g.
   `sleeping`, `interruptible: false`) blocks every command except a small
-  allow-list — and `wake` is on that list (`_activity_cmd_allowed`).
+  allow-list - and `wake` is on that list (`_activity_cmd_allowed`).
 
 `Player.state` is **derived** (`player.py:488` → `get_state()` reads the
 conditions), so a stale state string is not the cause. `sleeping` is an
 **activity** that *applies* the `unconscious` **condition** (`source: "sleep"`,
 `engine/activities.py:151`). The user cleared the condition, but
-`player.activity` remained — and nothing clears it on death (only
+`player.activity` remained - and nothing clears it on death (only
 `end_activity`, which `wake` calls). So the character was "awake but still
 sleeping", and the activity gate demanded `wake`.
 
@@ -68,14 +68,24 @@ Not yet verified live (needs a server restart). Still open: a proper revive path
 
 ## Why
 
-TODO
+Conditions (e.g. dead, unconscious) and ongoing activities (e.g. sleeping, crafting) are distinct systems. When a character died while performing a blocking activity (like sleeping), death added the dead condition but never cleared player.activity. Later, when an operator revived the character by clearing conditions and restoring HP/Energy, _activity_gate continued blocking all user commands except wake because player.activity remained stuck in sleeping.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Put a character into a blocking activity (e.g. sleeping) and kill them via engine kill_player or death damage.
+   - expected: Character dies and player.activity is immediately cleared (end_activity called with reason='died').
+   - observed: Verified via engine death unit test.
+2. Revive the character by restoring HP and clearing the dead / unconscious conditions.
+   - expected: Character can immediately accept standard actions (look, move, take) without requiring a manual wake command.
+   - observed: Tested via regression tests; activity gate passes cleanly.
+3. Check event logs.
+   - expected: Activity termination event records died as reason.
+   - observed: Verified in activity log stream.
 
 ## Files
 
-- TODO
+- irtual_world_engine.py (kill_player)
+- engine/activities.py (end_activity)
+- 
+outes/action_handlers.py (_activity_gate)
+- 	ests/test_activities.py

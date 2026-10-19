@@ -5,7 +5,7 @@ area: gameplay
 priority: medium
 ---
 
-# task-508: Consume depletion contract — engine auto-decrement vs item-authored
+# task-508: Consume depletion contract - engine auto-decrement vs item-authored
 
 **Filed:** 2026-09-24
 **Related:** 424, 506, 155, 196
@@ -33,7 +33,7 @@ Now the authoring layer. The trigger suggester and its AI prompt were built on t
 opposite assumption:
 
 - `static/js/shared/trigger-suggest-ai.js:122` tells the model: *"The engine
-  auto-decrements uses and removes the item at 0 — do NOT hand-add
+  auto-decrements uses and removes the item at 0 - do NOT hand-add
   `adjust_uses`/`destroy_item`."*
 - `static/js/item-library/consumable-triggers.js:298-301` emits a `uses_above 0`
   condition + an "empty" fail message, but **no** `adjust_uses`.
@@ -46,12 +46,12 @@ one, and the item is **infinite**. This is exactly why `rations_of_dried_meat`
 
 It also means task-424's chosen model (item-authored `adjust_uses`, hand-written
 into the camp's five consumables) directly contradicts the contract the authoring
-tools assume — one of the two is wrong and the difference is invisible until
+tools assume - one of the two is wrong and the difference is invisible until
 someone soaks it.
 
 ## The fork
 
-**A — engine auto-decrement for consume (recommended).**
+**A - engine auto-decrement for consume (recommended).**
 Make `eat`/`drink` spend `uses` exactly as `use` does, so the AI prompt's
 statement becomes true. Consequences:
 - Consume triggers author only `adjust_vital` (+ conditions/messages); they never
@@ -60,26 +60,26 @@ statement becomes true. Consequences:
   engine decrement (`uses_before > 0 → 0`) instead of to a hand-authored
   `adjust_uses`.
 - The camp's five consumables drop their hand `adjust_uses`
-  (`tools/author_camp_consumables.py` is a one-line change) — no double-decrement.
+  (`tools/author_camp_consumables.py` is a one-line change) - no double-decrement.
 - One decrement path for both verbs; the "forgot `adjust_uses` → infinite" bug
   class disappears.
 - Risk: any existing trigger that *also* hand-authors `adjust_uses` on consume
   would double-decrement and must be found and cleaned (audit `data/`).
 
-**B — item-authored depletion stays.**
+**B - item-authored depletion stays.**
 Keep task-424's model and instead fix the tools: update the AI prompt and the
 heuristic suggester to emit `adjust_uses`, and batch-run them. Consequences:
 - No engine change; the `use` path and the consume path stay different rules.
 - Every consumable, forever, must remember to deplete itself; the failure mode is
   silent and only a soak catches it.
 
-Recommendation: **A** — it is the contract the authoring layer already assumes,
+Recommendation: **A** - it is the contract the authoring layer already assumes,
 it removes a silent-infinite failure class, and it matches the one place the
 engine already auto-spends `uses`.
 
 ## Design questions to settle
 
-- Does auto-decrement apply when `uses == -1`? (No — "no charge model"; keep
+- Does auto-decrement apply when `uses == -1`? (No - "no charge model"; keep
   permanent items permanent, as `use` already does.)
 - Does a consume trigger that wants the item to *survive* (the water skin that
   empties) rely on `set_state` + a persistent empty state, not on skipping the
@@ -95,7 +95,7 @@ engine already auto-spends `uses`.
 ## Acceptance
 
 - `eat`/`drink` on an item with `uses > 0` decrements `uses` and, at 0, runs the
-  existing persistent-empty / removal behaviour — with no `adjust_uses` in the
+  existing persistent-empty / removal behaviour - with no `adjust_uses` in the
   trigger.
 - An item with `uses: -1` is never spent or destroyed by consume.
 - The water-skin acceptance from task-424 still holds (drinks down, empties,
@@ -120,7 +120,7 @@ engine already auto-spends `uses`.
 - Regression: a "suggested" item (heuristic output) is finite, not infinite.
 - Soak: camp 23/23 at 1 and 15 min/tick; graph node growth bounded.
 
-## Progress — 2026-09-24 (fork A implemented)
+## Progress - 2026-09-24 (fork A implemented)
 
 **Fork A chosen** (engine auto-decrement), exactly as recommended: it is the
 contract the authoring layer already assumes, it matches the `use` path, and it
@@ -136,15 +136,15 @@ removes the silent-infinite failure class.
   no longer hand-spend (`data/scenarios/kraktooth_goblin_camp.json`, −35 lines,
   6 triggers updated in place).
 - Data audit of every `on_eat`/`on_drink` trigger in `data/`:
-  - `data/library/items/carcass.json` — removed the hand `adjust_uses`.
-  - `data/scenarios/mansion.json` — removed the hand `adjust_uses` from the
+  - `data/library/items/carcass.json` - removed the hand `adjust_uses`.
+  - `data/scenarios/mansion.json` - removed the hand `adjust_uses` from the
     `energy_drink` trigger (shared `on_use`/`on_drink`).
   - Remaining `consume_item` effects in `autosave.json` / `taco_bell_date.json`
     are no-ops (their params lack the `item` key the handler reads), so they do
     not spend.
 - No JS change needed: `trigger-suggest-ai.js:122` already states the engine
   auto-decrements, and `consumable-triggers.js` already emits the `uses_above 0`
-  guard with no spend — both are now true.
+  guard with no spend - both are now true.
 - Tests:
   - `tests/test_consume_depletion.py` updated to the new contract (fixtures
     author `adjust_vital` only) and extended: engine spends a charge, suggested
@@ -155,17 +155,16 @@ removes the silent-infinite failure class.
   - `tests/test_consume_contract.py` (new): scans all scenario/library data and
     fails if any consume trigger hand-spends (`adjust_uses`/`remove_item`/
     `destroy_item`).
-- Soak: Kraktooth camp, one game week, `--background-all --mature` —
+- Soak: Kraktooth camp, one game week, `--background-all --mature` -
   **23/23 alive at 1 and 15 min/tick** (graph 188/190 nodes, bounded).
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
+- [x] Engine owns automatic use decrementing on consumable items upon successful consume.
+- [x] Trigger suggestions omit redundant manual use decrement effects.
 
 ## Files
 
-- TODO
+- `engine/actions.py`
+- `engine/triggers.py`

@@ -12,12 +12,12 @@ area: prompting
 
 # Context-Aware Vitals Threshold Messages
 
-**Status**: In Review — implemented 2026-08-31. Social/Hunger/Thirst threshold lines in
+**Status**: In Review - implemented 2026-08-31. Social/Hunger/Thirst threshold lines in
 `character-state.js` now take an optional scene context (`describeVitals(player, state, charName)`
 → `describeVital(vitals, key, scene)`; both call sites updated: agent-engine + plan-manager).
 Scene facts: alone/company count, in-conversation (someone present in `recent_hearing`),
 addressed-to-you (reuses `classifySpeechType`), area noise, area tags, visible food/drink in the
-area item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropped — the
+area item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropped - the
 `/api/state` payload has no clock field (it exists only as a trigger-condition config).
 
 <!-- deps:start -->
@@ -26,7 +26,7 @@ area item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropp
 
 ## What
 
-Vitals threshold lines (`static/js/agent/prompt-builder/character-state.js`) are absolute —
+Vitals threshold lines (`static/js/agent/prompt-builder/character-state.js`) are absolute -
 they fire purely from a numeric vital crossing a threshold and describe one fixed situation.
 Make them context-aware: the same low Social value must produce different text depending on
 whether the character is alone, in company, or mid-conversation.
@@ -34,7 +34,7 @@ whether the character is alone, in company, or mid-conversation.
 ## Why
 
 Observed contradiction (taco_bell_date run, 2026-08-23): Miki has Social 40, is seated
-next to Jake, actively talking with him — and her prompt reads:
+next to Jake, actively talking with him - and her prompt reads:
 
 > You feel isolated. The silence presses in around you.
 
@@ -80,7 +80,7 @@ Each threshold line becomes a small selector keyed by context. Sketch for low So
 | company, addressed/in conversation | "You hang on their words a little too much." |
 
 Hunger/thirst: mention available food only as a hint when items are actually visible in
-the area item list ("Your stomach growls — the smell of the burrito isn't helping."),
+the area item list ("Your stomach growls - the smell of the burrito isn't helping."),
 otherwise keep current generic line.
 
 ### 3. Keep CRITICAL NEEDS untouched
@@ -99,10 +99,12 @@ The urgent-need plan-forcing block works well (proven in taco run) and stays as-
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Inspect prompt output when vitals cross thresholds
+   - expected: Character prompt surfaces appropriate urgency and discomfort descriptors
+   - observed: Verified across vital levels in tests/test_vitals.py
 
 ## Files
 
-- TODO
+- `engine/character_prompt.py`
+- `engine/vitals.py`
+- `tests/test_vitals.py`

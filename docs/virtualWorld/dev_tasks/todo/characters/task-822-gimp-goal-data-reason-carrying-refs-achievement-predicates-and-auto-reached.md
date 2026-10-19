@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
-related: ['"\'task-704\'"', '"\'task-849\'"', "'task-704'", "'task-849'", 'task-704', 'task-849']
+related: ['task-704', 'task-849']
 wiki: "[[Character Pursuits]]"
 ---
 

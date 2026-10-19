@@ -36,7 +36,15 @@ const ScenarioStatus = (() => {
             st = await resp.json();
         }
         catch (e) {
-            return; // older server — chip stays quiet
+            return; // older server - chip stays quiet
+        }
+        if (st && typeof st.name === 'string') {
+            const displayName = st.name || 'unnamed';
+            const nameText = document.getElementById('scenario-name-text');
+            if (nameText && nameText.textContent !== displayName) {
+                nameText.textContent = displayName;
+            }
+            document.body.dataset.scenarioName = (st.name && st.name !== 'unnamed') ? st.name : '';
         }
         node.textContent = '';
         const icon = document.createElement('span');

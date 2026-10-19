@@ -66,10 +66,10 @@ The "Items that catch your attention:" list is everything you can interact with 
     const ACTION_STRUCTURE = `
 
 === ACTION STRUCTURE ===
-The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the "item" and "target" fields — full multi-word names, never split.
-Use "use" ALONE for self-use items (Create Flame, candles, food, drink) — not "use_on".
+The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, name, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the "item" and "target" fields - full multi-word names, never split.
+Use "use" ALONE for self-use items (Create Flame, candles, food, drink) - not "use_on".
 If you wait, listen, or hold still, use "action": "wait".
-Targets are matched leniently — by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
+Targets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
 
 Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)

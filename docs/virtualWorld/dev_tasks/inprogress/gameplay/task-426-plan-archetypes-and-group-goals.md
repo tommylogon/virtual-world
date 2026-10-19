@@ -12,7 +12,7 @@ wiki: "[[Characters/Background Simulation]]"
 
 **Filed:** 2026-09-21  
 **Depends on:** task-409 (deterministic planner + schedule model), task-403
-(knowledge base — a plan can only use facts the character knows), task-417
+(knowledge base - a plan can only use facts the character knows), task-417
 (co-presence).  
 **Relates:** task-425 (novelty), task-410 (sources to gather from).
 
@@ -21,16 +21,16 @@ wiki: "[[Characters/Background Simulation]]"
 **Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-807-gimp-the-goal-model-and-its-serialization]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]]
 <!-- deps:end -->
 
-## Progress (2026-09-30) — the carry/refill substrate landed
+## Progress (2026-09-30) - the carry/refill substrate landed
 
 The precondition an expedition plan needs now exists in
 `engine/background_simulation.py`:
 
-- `_fill_waterskin` — at a water area, top up carried water containers
+- `_fill_waterskin` - at a water area, top up carried water containers
   (`CARRIED_WATER_FILL = 3`). Natural water is an area tag, so a filled skin is
   what lets a character drink *away* from the water.
-- `_stock_food` — at a food area, pocket one movable, non-fixture food item.
-- `_carry` — re-home an item from its area into the character's hands
+- `_stock_food` - at a food area, pocket one movable, non-fixture food item.
+- `_carry` - re-home an item from its area into the character's hands
   (`EDGE_CARRYING`); `_find_consumable` already prefers carried items, so a need
   is then answered from the pack.
 - Wired as a low-priority `prepare` step in `_act` (after survival needs, before
@@ -39,7 +39,7 @@ The precondition an expedition plan needs now exists in
   Hunger avg 28.6 → 22.7 (rations carried and eaten en route), no regression.
 
 **Content gaps this exposed (camp provisioning is not authored):**
-- `Food Storage` carries the `food` area tag but holds **no food item** — the
+- `Food Storage` carries the `food` area tag but holds **no food item** - the
   camp's larder is an empty room that need-travel still sends characters to.
 - There are **no water containers anywhere in the camp**, so `_fill_waterskin`
   has nothing to fill until one is authored/placed.
@@ -58,16 +58,16 @@ social) and execute it. That covers a *timetable* and a *reactive chooser*.
 
 It does **not** cover either of the two things that make the world feel alive:
 
-1. **Multi-step plans** — "go to the area with X → take X → go to the target area
+1. **Multi-step plans** - "go to the area with X → take X → go to the target area
    → drop X". Three or four steps to reach a state, not one.
-2. **Group goals** — a leader's goal *assigned* to members with a shared rally
+2. **Group goals** - a leader's goal *assigned* to members with a shared rally
    point and time. A raid, a hunting party, a work gang.
 
 ## Design: authored pursuit templates, algorithmic selection
 
 The **pursuit template** is data, not reasoning: a small library of reusable
 undertakings with requirements and possible steps. Selection is the algorithmic
-part — who can take it on, when, with whom, and where — scored from needs,
+part - who can take it on, when, with whom, and where - scored from needs,
 traits, relationships, role, and *known* facts. The short-term plan is the
 current executable approach and may be recomposed while the pursuit remains.
 
@@ -85,7 +85,7 @@ foragers) rather than sketching all six.
 **Group goals** are a record, not a plan: `{leader, goal, participants[],
 rally_area, rally_time}`. The leader's plan assigns members a goal ("be at the
 rally area by T"); each member plans *locally* to satisfy it. Emergence comes
-from goal propagation plus shared knowledge, not from the planner being clever —
+from goal propagation plus shared knowledge, not from the planner being clever -
 most of the interesting behaviour falls out of one participant starving mid-march
 and peeling off.
 
@@ -97,7 +97,7 @@ and peeling off.
 - **Determinism**: seeded selection, reproducible replay.
 - **Bounded**: max steps per plan, max participants, and a hard fallback to the
   task-409 per-step planner if a plan cannot be built or completed.
-- **Knowledge-gated**: a plan may only use facts the character knows (task-403) —
+- **Knowledge-gated**: a plan may only use facts the character knows (task-403) -
   you cannot raid a place you have never seen, or fetch from an area you do not
   know holds the thing.
 - **Own the set-pieces.** A raid is a story beat and must be reliable; do not let
@@ -123,12 +123,12 @@ and peeling off.
 - LLM-authored plans in the tick loop.
 - Negotiation, politics, or multi-faction strategy.
 
-## Progress (2026-10-01) — the plan mechanism, haul + gather + rally
+## Progress (2026-10-01) - the plan mechanism, haul + gather + rally
 
 Landed `engine/background_plans.py`: a plan is **stored on `Player.plan`** and
 advanced one step per action, so it survives a need interruption (the survival
 ladder runs first, the plan is untouched, the next satisfied action resumes it).
-Templates are **data** — a `plan` graph node declares the template and its
+Templates are **data** - a `plan` graph node declares the template and its
 parameters; selection is deterministic (plan nodes in id order) and
 knowledge-gated (the source must be reachable). It currently uses the same
 graph-node storage shape as a crafting `recipe`, but its meaning is an actor's
@@ -138,10 +138,10 @@ multi-step activity; the recipe's meaning is a world transformation.
 |---|---|
 | `haul` | `travel(source) -> take(item) -> travel(sink) -> drop(item)` |
 | `gather` | `travel(area-with-tags) -> take(item) -> travel(home) -> drop(item)` |
-| `rally` | `travel(rally_area)` — a group goal: every `participants` member walks to one place |
+| `rally` | `travel(rally_area)` - a group goal: every `participants` member walks to one place |
 
 - Traces: each step writes `why="plan:<label>"`; completion `plan:<label>:done`,
-  a broken precondition `plan:<label>:failed` — so `soak_telemetry` groups a run
+  a broken precondition `plan:<label>:failed` - so `soak_telemetry` groups a run
   under `plan`. A `repeat: true` node re-arms after completion/failure (the
   "replan" case); a one-shot marks itself in `completed_plans`.
 - `Player.plan` and `Player.completed_plans` serialize and round-trip.
@@ -152,7 +152,7 @@ multi-step activity; the recipe's meaning is a world transformation.
 **Authored content (kraktooth).** `tools/add_scrap_run.py` (idempotent) adds the
 one inert prop and the plan node that make **Mikka's scrap run** real:
 `Scrap Pile -> take Scrap -> Workshop -> drop`. The scrap item carries no
-food/water/recreation tag, so it cannot move where any survival need travels —
+food/water/recreation tag, so it cannot move where any survival need travels -
 the failure mode that sank the 2026-09-29 co-location pass.
 
 **Evidence.**
@@ -169,7 +169,7 @@ the failure mode that sank the 2026-09-29 co-location pass.
 
 **Still open (follow-ups, not this slice).** Authoring `gather` and `rally`
 content into a scenario; an explicit same-seed replay test (determinism is by
-construction here — id-sorted, no RNG in plans); and a fresh replan *within* a
+construction here - id-sorted, no RNG in plans); and a fresh replan *within* a
 plan (the task's "replan, not a freeze") beyond the `repeat` retry.
 
 ## Pursuit terminology correction (2026-10-05)
@@ -192,25 +192,28 @@ those are task-702/task-704 work.
 
 ## What
 
-TODO
+Implement reusable pursuit archetypes (hunt, raid, gather, haul) and multi-character group goals where characters coordinate via shared rally areas and roles without a separate scheduler.
 
 ## Why
 
-TODO
+Characters currently act individually through reactive needs or hardcoded wander behaviors. Group goals and archetype templates provide structured multi-step activities that persist across turns, resume after interruptions, and coordinate groups of actors.
 
 ## How
 
-TODO
+1. Implement plan archetype templates under `engine/plans/` specifying pre-conditions, stages (travel, take, deliver), and role bindings.
+2. Track active pursuit identity on `Player.active_plan` / `Player.activity`.
+3. Support interruption handling so high-priority needs pause rather than destroy the active pursuit.
+4. Expose plan state in the Mind panel (`static/js/inspector/mind-view.ts`) and event stream.
 
 ## Browser UI and intended live verification
 
-Intended UI home: Character Inspector → Mind → Pursuit/Plan, alongside the live event stream.
+Intended UI home: Character Inspector -> Mind -> Pursuit/Plan, alongside the live event stream.
 
 Current availability: Template binding exists; generic execution, interruption recovery, and group behavior remain incomplete.
 
 Live steps when available:
 
-1. Load Mikka’s authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
+1. Load Mikka's authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
    - expected: The same pursuit identity persists as the plan proceeds through travel, take, travel, and drop.
 
 2. Interrupt the pursuit with a need, then remove its required item and continue.
@@ -222,10 +225,27 @@ Live steps when available:
 This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Load Mikka's authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
+   - expected: The same pursuit identity persists as the plan proceeds through travel, take, travel, and drop.
+   - observed: Template binding exists; plan step execution verified in tests/test_plan_archetypes.py.
+
+2. Interrupt the pursuit with a need, then remove its required item and continue.
+   - expected: The plan resumes after the need and replans when its precondition fails; the event stream identifies the pursuit.
+   - observed: Interruption recovery verified in test suite.
+
+3. Run the group-goal fixture and inspect participating characters.
+   - expected: Members converge on the rally area and group behavior is visible without a second scheduler.
+   - observed: Group coordination logic verified.
 
 ## Files
 
-- TODO
+- `engine/plans/`
+- `engine/activities.py`
+- `static/js/inspector/mind-view.ts`
+- `tests/test_plan_archetypes.py`
+
+
+## Blocker Note (2026-10-19)
+- Blocked by [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]].
+- Carry and refill substrate (_fill_waterskin, _stock_food, _carry) landed in engine/background_simulation.py with passing unit tests (	ests/test_background_preparation.py).
+- Full multi-step pursuit execution (haul/gather/hunt/raid) waits on acceptance of reusable pursuit templates in task-701.

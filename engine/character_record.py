@@ -62,67 +62,73 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
     "identity": [
         DefinitionField("name", "identity", ON_NODE, True,
                         "the node's own name; the one field already canonical"),
-        DefinitionField("unknown_name", "identity", ON_PLAYER, True,
-                        "what the character is called before they are introduced"),
-        DefinitionField("description", "identity", ON_PLAYER, True),
-        DefinitionField("base_description", "identity", ON_PLAYER, True,
+        DefinitionField("unknown_name", "identity", ON_PLAYER, False,
+                        "what the character is called before they are introduced; runtime perception"),
+        DefinitionField("description", "identity", ON_NODE, True,
+                        "current appearance prose, authored base with Player projection"),
+        DefinitionField("base_description", "identity", ON_NODE, True,
                         "the authored look, before any state modifies it"),
-        DefinitionField("personality", "identity", ON_PLAYER, True),
-        DefinitionField("flags", "identity", ON_PLAYER, True),
+        DefinitionField("personality", "identity", ON_NODE, True,
+                        "the authored personality definition"),
+        DefinitionField("flags", "identity", ON_NODE, True,
+                        "authored identity flags"),
     ],
     "capability": [
-        DefinitionField("stats", "capability", ON_PLAYER, True),
-        DefinitionField("skills", "capability", ON_PLAYER, True),
-        DefinitionField("proficiency", "capability", ON_PLAYER, True),
-        DefinitionField("skill_progress", "capability", ON_PLAYER, True),
-        DefinitionField("crafting_known", "capability", ON_PLAYER, True),
-        DefinitionField("traits", "capability", ON_PLAYER, True),
+        DefinitionField("stats", "capability", ON_PLAYER, False,
+                        "stats and proficiencies belong to Player model"),
+        DefinitionField("skills", "capability", ON_PLAYER, False),
+        DefinitionField("proficiency", "capability", ON_PLAYER, False),
+        DefinitionField("skill_progress", "capability", ON_PLAYER, False),
+        DefinitionField("crafting_known", "capability", ON_PLAYER, False),
+        DefinitionField("traits", "capability", ON_NODE, True,
+                        "authored traits live on character node"),
     ],
     "state": [
-        DefinitionField("vitals", "state", ON_PLAYER, True,
-                        "the task lists vitals in scope, though they are runtime "
-                        "state rather than definition - see the module docstring"),
-        DefinitionField("decay_rates", "state", ON_PLAYER, True),
-        DefinitionField("body_state", "state", ON_PLAYER, True),
-        DefinitionField("emotion", "state", ON_PLAYER, True),
-        DefinitionField("emotion_intensity", "state", ON_PLAYER, True),
-        DefinitionField("conditions", "state", ON_PLAYER, True),
-        DefinitionField("hidden", "state", ON_PLAYER, True),
-        DefinitionField("manifested", "state", ON_PLAYER, True),
+        DefinitionField("vitals", "state", ON_PLAYER, False,
+                        "runtime vital simulation belongs to Player"),
+        DefinitionField("decay_rates", "state", ON_PLAYER, False),
+        DefinitionField("body_state", "state", ON_PLAYER, False),
+        DefinitionField("emotion", "state", ON_PLAYER, False),
+        DefinitionField("emotion_intensity", "state", ON_PLAYER, False),
+        DefinitionField("conditions", "state", ON_PLAYER, False),
+        DefinitionField("hidden", "state", ON_PLAYER, False),
+        DefinitionField("manifested", "state", ON_PLAYER, False),
     ],
     "social": [
-        DefinitionField("relationships", "social", ON_PLAYER, True),
-        DefinitionField("memories", "social", ON_PLAYER, True),
+        DefinitionField("relationships", "social", ON_PLAYER, False,
+                        "relationships belong to Player social model"),
+        DefinitionField("memories", "social", ON_PLAYER, False),
         DefinitionField("memory_index", "social", ON_PLAYER, False,
                         "an index into memories, not a definition; deriving it "
                         "from the canonical memories is enough"),
-        DefinitionField("lived_log", "social", ON_PLAYER, True),
+        DefinitionField("lived_log", "social", ON_PLAYER, False),
     ],
     "tier": [
-        DefinitionField("simple_npc", "tier", ON_PLAYER, True,
+        DefinitionField("simple_npc", "tier", ON_PLAYER, False,
                         "the field that separates a simple NPC from an agent or "
-                        "a human - the task's uniformity requirement turns on it"),
-        DefinitionField("autonomy", "tier", ON_PLAYER, True),
-        DefinitionField("npc_behavior", "tier", ON_PLAYER, True),
-        DefinitionField("npc_action_interval", "tier", ON_PLAYER, True),
+                        "a human; runner tier flag"),
+        DefinitionField("autonomy", "tier", ON_PLAYER, False),
+        DefinitionField("npc_behavior", "tier", ON_PLAYER, False),
+        DefinitionField("npc_action_interval", "tier", ON_PLAYER, False),
         DefinitionField("npc_state", "tier", ON_PLAYER, False,
                         "the behaviour state machine's current node; runtime"),
         DefinitionField("state_enter_tick", "tier", ON_PLAYER, False, "runtime"),
-        DefinitionField("behaviors", "tier", ON_PLAYER, True),
-        DefinitionField("patrol_route", "tier", ON_PLAYER, True),
-        DefinitionField("simulation_mode", "tier", ON_PLAYER, True,
+        DefinitionField("behaviors", "tier", ON_PLAYER, False),
+        DefinitionField("patrol_route", "tier", ON_PLAYER, False),
+        DefinitionField("simulation_mode", "tier", ON_PLAYER, False,
                         "background vs active; decides which runner owns them"),
     ],
     "knowledge": [
-        DefinitionField("tags", "knowledge", ON_PLAYER, True,
-                        "the list every shipped character actually fills "
-                        "(\"goblin\", \"teen\") - see task-552"),
-        DefinitionField("interest_tags", "knowledge", ON_PLAYER, True),
-        DefinitionField("fear_tags", "knowledge", ON_PLAYER, True),
-        DefinitionField("known", "knowledge", ON_PLAYER, True),
+        DefinitionField("tags", "knowledge", ON_NODE, True,
+                        "authored identity tags live on character node"),
+        DefinitionField("interest_tags", "knowledge", ON_NODE, True,
+                        "authored interest tags live on character node"),
+        DefinitionField("fear_tags", "knowledge", ON_NODE, True,
+                        "authored fear tags live on character node"),
+        DefinitionField("known", "knowledge", ON_PLAYER, False),
         DefinitionField("discovered_exits", "knowledge", ON_PLAYER, False,
                         "a set; runtime accumulation"),
-        DefinitionField("known_way_aspects", "knowledge", ON_PLAYER, True),
+        DefinitionField("known_way_aspects", "knowledge", ON_PLAYER, False),
         DefinitionField("visited_areas", "knowledge", ON_PLAYER, False,
                         "a set; runtime accumulation"),
         DefinitionField("discovered_items", "knowledge", ON_PLAYER, False,
@@ -132,7 +138,7 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
         DefinitionField("equipped", "inventory", ON_EDGES, True,
                         "already carried by EDGE_EQUIPPED edges; the node must "
                         "not also hold the list or there are two records"),
-        DefinitionField("carcass_item", "inventory", ON_PLAYER, True),
+        DefinitionField("carcass_item", "inventory", ON_PLAYER, False),
     ],
     "spatial": [
         DefinitionField("current_area", "spatial", ON_EDGES, True,
@@ -146,7 +152,8 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
                         "the way that crossing used, so the heading can be "
                         "explained rather than asserted (task-313)"),
         DefinitionField("node_id", "spatial", ON_NODE, True),
-        DefinitionField("id", "spatial", ON_PLAYER, True),
+        DefinitionField("id", "spatial", ON_PLAYER, False,
+                        "opaque character UUID lives on Player and edge references"),
     ],
     "runtime": [
         DefinitionField("activity", "runtime", ON_PLAYER, False,
@@ -215,43 +222,37 @@ def node_definition(node) -> Dict[str, object]:
 
 def _comparable(value):
     """Normalise the types that are structurally equal but unequal by ``==``."""
-    if isinstance(value, set):
+    if isinstance(value, (set, list)):
         return sorted(str(v) for v in value)
     return value
 
 
 def definition_drift(player, node) -> Dict[str, List[str]]:
-    """Which defining fields the Player holds alone.
+    """Which canonical authored definition fields differ or are missing on the node.
 
-    Returns ``{"missing": [...], "differs": [...]}``, considering only fields
-    that are **canonical** and live **only on the Player** - which is the
-    migration's work list by construction, so the two cannot drift apart.
+    Returns ``{"missing": [...], "differs": [...]}``, considering canonical
+    node-authored fields (excluding node metadata like ``name`` and ``node_id``).
 
-    Two kinds of field are deliberately excluded:
-
-    * *Edge-backed* ones (``equipped``, ``current_area``). The graph already holds
-      them as edges; putting them on the node as well would duplicate the record
-      rather than centralise it.
-    * *Already-on-node* ones (``name``, ``node_id``). The node **is** the record
-      for these - ``node_definition`` strips the graph's own metadata, so
-      checking them would report them missing forever.
-
-    ``missing`` means the node has never heard of the field. ``differs`` means
-    the node has a value and the Player has a different one, which is the
-    dangerous case: two records, two answers, no way to tell which is right.
+    * ``missing``: the player projection has a value but the node does not.
+    * ``differs``: both have a value but they do not match.
     """
     have = node_definition(node)
     missing: List[str] = []
     differs: List[str] = []
-    for name in PLAYER_ONLY_FIELDS:
-        if not hasattr(player, name):
-            # A subclass or an older save may not have it. A field this
-            # character does not have is not drift.
+    # Check authored canonical fields that live on the node
+    for f in DEFINITION_FIELDS:
+        if not f.canonical or f.lives_on != ON_NODE or f.name in ("name", "node_id"):
             continue
-        if name not in have:
+        name = f.name
+        if not hasattr(player, name):
+            continue
+        p_val = getattr(player, name)
+        if p_val is None:
+            continue
+        if name not in have or have[name] is None:
             missing.append(name)
             continue
-        if _comparable(getattr(player, name)) != _comparable(have[name]):
+        if _comparable(p_val) != _comparable(have[name]):
             differs.append(name)
     return {"missing": missing, "differs": differs}
 

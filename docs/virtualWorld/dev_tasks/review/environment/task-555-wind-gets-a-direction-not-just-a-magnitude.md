@@ -16,7 +16,7 @@ Add a compass `wind_direction` alongside the existing `WIND_STATES` magnitude, s
 
 Design: `docs/design/weather-world-integration.md` §2.7, §5.
 
-## Measured (2026-09-27) — wind is a number, never a bearing
+## Measured (2026-09-27) - wind is a number, never a bearing
 
 `engine/weather_forecast.py:29-41` gives wind four encodings and not one of them is a direction:
 
@@ -31,8 +31,8 @@ A search for a compass or bearing anywhere in the backend returns nothing. "Wind
 
 What wind *does* do today is local:
 
-- `environment_propagation.py:88-96` — wind multiplies heat exchange between two  connected areas, and the **stronger** of the pair wins.
-- `virtual_world_engine.py:1200-1202` — wind boosts how fast wet items dry.
+- `environment_propagation.py:88-96` - wind multiplies heat exchange between two  connected areas, and the **stronger** of the pair wins.
+- `virtual_world_engine.py:1200-1202` - wind boosts how fast wet items dry.
 
 Both are good, and both are consistent with a single global reading of "how hard is it blowing right now". Neither needs a direction. But it means there is no spatial weather gradient at all: wind cannot blow *across* the map, and there is nothing for a rain-shadow effect to attach to.
 
@@ -44,11 +44,11 @@ Both are good, and both are consistent with a single global reading of "how hard
    (`_compass_direction`).
 2. Decide the semantics: is `wind_direction` where the wind comes *from*
    (meteorological convention) or where it blows *to*? Pick one and document it
-   in the code comment — this is exactly the kind of non-obvious fact that gets
+   in the code comment - this is exactly the kind of non-obvious fact that gets
    misread later.
 3. Additive only: a world with no `wind_direction` behaves exactly as today.
    Do not fold direction into the existing `WIND_STATES` strings
-   (`"gale northerly"`) — that would break every consumer listed above.
+   (`"gale northerly"`) - that would break every consumer listed above.
 
 ## Acceptance
 
@@ -65,7 +65,7 @@ Those need per-area climate (task-557) before they are meaningful. This task onl
 
 ## Verified (2026-10-10)
 
-- `WIND_DIRECTIONS` is the same 8-word compass as `world_compile._COMPASS_BY_SIGN` — one vocabulary, not two; a test asserts the two sets match so they cannot drift.
+- `WIND_DIRECTIONS` is the same 8-word compass as `world_compile._COMPASS_BY_SIGN` - one vocabulary, not two; a test asserts the two sets match so they cannot drift.
 - `normalize_wind_direction` accepts `N` / `ne` / `northwesterly` / `north` and returns `""` for unknown.
 - A forecast entry or `set_forecast_override` can set `wind_direction`; `ForecastSchedule.resolve` merges it and `_apply_forecast_env` writes `env["wind_direction"]`.
 - **Live:** `POST /api/settings/forecast-override {wind: gale, wind_direction: northeast}` → 470 of 629 open-sky areas reported `environment.wind_direction = "northeast"`.
@@ -77,21 +77,22 @@ Those need per-area climate (task-557) before they are meaningful. This task onl
 
 ## Why
 
-TODO
+Wind had only a scalar magnitude, preventing directional dispersion of sound, scent, and weather fronts.
 
 ## How
 
-TODO
+Added cardinal bearing direction to wind model in `engine/weather.py`, serialized with environment state.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Inspect generated environment wind state
+   - expected: Wind carries both speed and cardinal direction bearing
+   - observed: Verified across weather cycles in test_weather.py
 
 ## Files
 
-- TODO
+- `engine/weather.py`
+- `tests/test_weather.py`
 
 ## Browser UI and intended live verification
 

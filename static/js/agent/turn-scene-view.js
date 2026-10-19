@@ -410,13 +410,18 @@ window.TurnSceneView = (() => {
         }
         if (kind === 'person') {
             let body = obj.desc;
+            const aliases = Array.isArray(obj.aliases) && obj.aliases.length
+                ? obj.aliases.join(', ')
+                : '';
+            if (aliases)
+                body = `Also known as: ${aliases}\n\n` + body;
             if (obj.tags.length)
                 body += `\n\n(${obj.tags.join(', ')})`;
             let foot = 'free look · no turn cost';
             if (!obj.name) {
                 foot = obj.met
-                    ? 'recognized — but you don\'t know their name yet'
-                    : 'a stranger — you don\'t know their name yet';
+                    ? 'recognized - but you don\'t know their name yet'
+                    : 'a stranger - you don\'t know their name yet';
             }
             return { title: obj.display_name, body, foot };
         }

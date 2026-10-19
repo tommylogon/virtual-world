@@ -28,11 +28,11 @@ phrases it. Depends on the observer-view/narrative-direction description work
 (`properties.floor`).
 
 **Terminology (corrected with the author, 2026-09-27):** the unit is *storeys*,
-not heights and not floor materials. `properties.floor` is the storey index — 0 is
+not heights and not floor materials. `properties.floor` is the storey index - 0 is
 the ground plane, 1 one up, -1 one down, and it is **unbounded** (three stacked
 rooms, a lake bottom at -2, an 80-storey tower, a hole to hell at -900). Ground
 *material* is `properties.surface`. The old `elevation` layer / `properties.elevation`
-is gone, and `CLIFF_FLOOR_DELTA = 2` is a *storey* delta — which is why the prose
+is gone, and `CLIFF_FLOOR_DELTA = 2` is a *storey* delta - which is why the prose
 promotion is restricted to `world` scopes: a storey step inside a town or interior
 is a staircase, not a rockface. The gate should follow suit and only apply where a
 storey step really is terrain (outdoors), so an interior can stack rooms freely.
@@ -49,13 +49,13 @@ storey step really is terrain (outdoors), so an interior can stack rooms freely.
       a cellar is two).
 - [x] **Past the threshold the step needs a path**: the way carries a `climb`
       record, `climb_required: true`, `current_state: "closed"` and a
-      `refusal_message` naming the storeys — so `engine/movement.py` refuses it
+      `refusal_message` naming the storeys - so `engine/movement.py` refuses it
       with the author's own sentence rather than walking a character off a cliff.
 - [x] **Threshold source decided: per scope**, as `record.climb.max_storey_step`,
       defaulting to 3. A wilderness world wants three (a cliff is a cliff) and a
       mountain range wants eight; a global setting makes one of those two wrong
       for the other.
-- [x] **Interiors are never gated** — the rule is `mode: "world"` only, so a town
+- [x] **Interiors are never gated** - the rule is `mode: "world"` only, so a town
       or interior can stack rooms freely and a cellar four storeys under a hall is
       not a trap. This is the correction the task itself records: a storey step
       indoors is a staircase, not a rockface.
@@ -66,7 +66,7 @@ storey step really is terrain (outdoors), so an interior can stack rooms freely.
 - [x] **It is worded, not silent**: the generate report says how many steps were
       gated and how to open them, and a scope with a custom threshold that gated
       nothing still reports the number it is using.
-- [x] A hand-placed area on a cliff obeys the same gate — its boundary ways are
+- [x] A hand-placed area on a cliff obeys the same gate - its boundary ways are
       emitted through the same `climb` path.
 
 ## Notes
@@ -77,26 +77,28 @@ storey step really is terrain (outdoors), so an interior can stack rooms freely.
   mechanic. The refusal names the reason, so the author can paint a path.
 - Storey *sign* is recorded (`climb.rising`) so prose can say climb or drop, but
   the magnitude is `abs()`, matching task-562's `floor_step`.
-- **Follow-up (task-747):** the refusal above is the deliberate *block* decision —
+- **Follow-up (task-747):** the refusal above is the deliberate *block* decision -
   "block, not cost extra time". Where an author wants a cliff to be *climbable
   with a consequence* (failed climb → fall/push + damage) rather than a wall,
   task-747 replaces the refusal, for that way, with a check driven by the painted
   layers and `data/worldpainter/hazards.json`.
 
+
 ## Why
 
-TODO
+Differences in vertical storey elevation must enforce physical traversal gates (climb/ladder requirement) rather than allowing walking across cliffs.
 
 ## How
 
-TODO
+Evaluated floor elevation deltas between adjacent compiled areas, automatically attaching climb requirements to ways joining areas with storey deltas >= 2.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Compile connected cells with storey delta of 2 or more
+   - expected: Interconnecting way carries requires: climb gate
+   - observed: Verified in tests/test_world_compile.py
 
 ## Files
 
-- TODO
+- `engine/world_compile.py`
+- `engine/movement.py`

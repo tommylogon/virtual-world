@@ -483,3 +483,9 @@ def test_normalise_grid_cleans_a_malformed_override_map():
         "way_good": {"action": "suppress"},
         "way_handed": {"action": "hand", "way_id": "way_mine"},
     }
+
+
+def test_metres_per_storey_is_three():
+    assert hasattr(wg, "METRES_PER_STOREY")
+    assert wg.METRES_PER_STOREY == 3
+    assert isinstance(wg.METRES_PER_STOREY, int)

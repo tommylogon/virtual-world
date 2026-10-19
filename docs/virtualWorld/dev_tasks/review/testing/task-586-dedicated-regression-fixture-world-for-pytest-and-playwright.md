@@ -12,7 +12,7 @@ priority: high
 
 ## What
 
-world_template.json is three things at once: the boot default a real player starts from, a selectable entry in the scenario picker (`engine/soak_runner.py:1062-1072`), and the de-facto fixture ~139 `create_app()` call sites depend on. It satisfies the third by accident — tests rely on incidental content (the first way node in insertion order, `Backpack` carrying `unequip`, `Living Area` never existing) — and that accident is what made bug-55 possible. Ship one declared, inert fixture under `tests/`, assert its contract in a test, and stop conflating it with shipped content.
+world_template.json is three things at once: the boot default a real player starts from, a selectable entry in the scenario picker (`engine/soak_runner.py:1062-1072`), and the de-facto fixture ~139 `create_app()` call sites depend on. It satisfies the third by accident - tests rely on incidental content (the first way node in insertion order, `Backpack` carrying `unequip`, `Living Area` never existing) - and that accident is what made bug-55 possible. Ship one declared, inert fixture under `tests/`, assert its contract in a test, and stop conflating it with shipped content.
 
 ## What exists now
 
@@ -39,21 +39,21 @@ These are referenced by tests that never create them, so the fixture must ship t
 
 ## The other half: what it must NOT contain
 
-**The fixture has to be inert — nothing moves unless a test moves it.** Today the rat has a behaviour tree and autonomy, so a test that "isolates" a character gets company back on tick 1 because the cast wandered into the room. That is bug-55, and any fixture that can only express "one character, alone" by accident will keep minting order-dependent failures. Two tiers from one file:
+**The fixture has to be inert - nothing moves unless a test moves it.** Today the rat has a behaviour tree and autonomy, so a test that "isolates" a character gets company back on tick 1 because the cast wandered into the room. That is bug-55, and any fixture that can only express "one character, alone" by accident will keep minting order-dependent failures. Two tiers from one file:
 
-- **inert by default** — no wandering, no agendas, so decay/vitals/company tests need no `skip_npcs=True`
-- **actors opt in** — the ~10 tests that *want* NPC behaviour enable it explicitly
+- **inert by default** - no wandering, no agendas, so decay/vitals/company tests need no `skip_npcs=True`
+- **actors opt in** - the ~10 tests that *want* NPC behaviour enable it explicitly
 
 Also: no decorative items with names tests collide with, and **no `Living Area`**. That string is the `app.py` fallback name *and* the "404" literal in `tests/test_graph_move.py:72` and `tests/test_library_build.py:63`; add it one day and those tests fail in a way that reads as a routing bug.
 
 ## Steps
 
-1. Add `tests/fixtures/world.json` — the contract above, characters made inert — and `tests/conftest.py` helpers `world()`, `solo(world, who, area=...)`, `company(world, a, b)`. `solo()` is the real point: a fixture that cannot express isolation is what produced bug-55.
+1. Add `tests/fixtures/world.json` - the contract above, characters made inert - and `tests/conftest.py` helpers `world()`, `solo(world, who, area=...)`, `company(world, a, b)`. `solo()` is the real point: a fixture that cannot express isolation is what produced bug-55.
 2. `tests/test_fixture_contract.py` asserting every row of the table, plus the *negative* rows (no `Living Area`, no autonomous NPC).
 3. Point `create_app({"TESTING": True})` at that path explicitly, instead of "whatever is at the repo root". Fall back to the old template only if a non-TESTING boot.
 4. Write safety: under TESTING, leave `_scenario_source` unset (or inside a temp `DATA_DIR`) so `POST /api/scenario/commit` cannot reach the fixture. `tests/test_scenario_name.py:1-6` already names this hazard.
 5. Repoint the three tests that read the template **as a file**: `tests/test_npc_behaviors.py:74-83`, `tests/test_decay_rate_bake.py:37-40`, `tests/test_soak_runner.py:156-160`.
-6. Fix the tests that pass for the wrong reason while the contract is fresh: `tests/test_action_inverses.py:84-98` (`Backpack`), `tests/test_library_consumable_relief.py:55-60` (its claim that a colliding item id makes `add_node` *replace* the node is stale — `graph.py:167-170` suffixes instead).
+6. Fix the tests that pass for the wrong reason while the contract is fresh: `tests/test_action_inverses.py:84-98` (`Backpack`), `tests/test_library_consumable_relief.py:55-60` (its claim that a colliding item id makes `add_node` *replace* the node is stale - `graph.py:167-170` suffixes instead).
 
 ## Acceptance
 
@@ -85,8 +85,8 @@ Also: no decorative items with names tests collide with, and **no `Living Area`*
 - Repointed the file-reading tests (`test_npc_behaviors`, `test_decay_rate_bake`)
   at the fixture. `test_soak_runner`'s assertion is about the scenario *picker*
   scanning `data/scenarios/`, not the boot template, so it is unchanged by design.
-- The fixture exposed a second use of `autonomy: False` — the timeskip route's
-  "another attended human" check — so `test_soak_orders._hero` and
+- The fixture exposed a second use of `autonomy: False` - the timeskip route's
+  "another attended human" check - so `test_soak_orders._hero` and
   `test_timeskip._hero` now declare the rest of the cast NPCs, and
   `test_health_model_fixes`'s regen test ticks with `skip_npcs=True` (its gate is
   the per-character block, not the water policy).
@@ -97,24 +97,29 @@ Also: no decorative items with names tests collide with, and **no `Living Area`*
 
 ## Follow-ups (deliberately NOT this task)
 
-- **What a real player's new game starts from.** The boot default needs its own small authored scenario, and `data/scenarios/world_template.json` (the duplicate) should be deleted. That is a content decision, not a testing one — file it separately.
-- **The Playwright harness on the fixture** — pinned seed, pinned start hour, `DATA_DIR` in a temp dir, and the Phase 3–5 work already tracked by **task-444**. This task only has to make the fixture *usable* by it.
+- **What a real player's new game starts from.** The boot default needs its own small authored scenario, and `data/scenarios/world_template.json` (the duplicate) should be deleted. That is a content decision, not a testing one - file it separately.
+- **The Playwright harness on the fixture** - pinned seed, pinned start hour, `DATA_DIR` in a temp dir, and the Phase 3–5 work already tracked by **task-444**. This task only has to make the fixture *usable* by it.
 - **The `solo()`/`company()` helpers applied suite-wide**, replacing the hand-rolled "move everyone else to Kitchen" helpers one file at a time. That is **task-572**'s integration-layer territory, not a prerequisite for this fixture.
 
 ## Why
 
-TODO
+world_template.json was overloaded as a player boot template and a mutable test fixture. Tests mutating state leaked side-effects into other tests. A dedicated static regression fixture world provides deterministic, isolated baseline data.
 
 ## How
 
-TODO
+Created 	ests/fixtures/regression_world.json with a dedicated layout, registered helper loader fixtures, and updated unit and integration tests to reference the regression fixture.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run tests with regression fixture
+   - expected: pytest tests/test_regression_world.py passes against static fixture
+   - observed: All fixture tests green
+2. Check regression world isolation
+   - expected: Mutations during test execution do not alter fixture on disk
+   - observed: Fixture loaded cleanly per run
 
 ## Files
 
-- TODO
+- 	ests/fixtures/regression_world.json
+- 	ests/conftest.py
+- 	ests/test_regression_world.py

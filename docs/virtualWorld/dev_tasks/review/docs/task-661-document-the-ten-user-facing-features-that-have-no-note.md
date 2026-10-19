@@ -56,25 +56,44 @@ Also corrected the Grid-to-graph size claim (largest *non-test* Python file;
 
 ## Why
 
-TODO
+Undocumented features lead to developer confusion, false defect reports, divergent implementations, and invisible mechanics that are completed in code but unwired in runtime. Authoring dedicated documentation notes grounded in source code and tracking them in Feature Map.md ensures codebase visibility and establishes accurate wired vs unwired status.
 
 ## How
 
-TODO
+1. Write 10 comprehensive markdown documentation notes in their respective vault folders: Gameplay/Search & Forage.md, Characters/Background Simulation.md, Gameplay/Per-Agent Knowledge (Fog of War).md, World Building/WorldPainter.md, World Building/Grid to Graph.md, UI & Settings/NL Editor.md, UI & Settings/Recent Edits & Undo.md, UI & Settings/Validator & Issues.md, UI & Settings/Event Stream.md, UI & Settings/Soak Lab.md.
+2. Update docs/virtualWorld/Feature Map.md rows to link each feature note.
+3. Verify wiring and callers via python tools/doc_links.py --check.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run doc links verification CLI (python tools/doc_links.py --check).
+   - expected: Tool exits 0; all ten documented feature notes resolve without broken links.
+   - observed: 0 broken links; all ten notes linked.
+2. Inspect docs/virtualWorld/Feature Map.md.
+   - expected: Zero features listed as lacking notes; rows contain active wiki links.
+   - observed: Feature Map updated with all 10 links.
+3. Validate source citations in created notes.
+   - expected: Every note cites real file and line locations with verified wired/unwired status.
+   - observed: All 10 notes cite exact symbols and call chains.
 
 ## Files
 
-- TODO
+- docs/virtualWorld/Feature Map.md
+- docs/virtualWorld/Gameplay/Search & Forage.md
+- docs/virtualWorld/Characters/Background Simulation.md
+- docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
+- docs/virtualWorld/World Building/WorldPainter.md
+- docs/virtualWorld/World Building/Grid to Graph.md
+- docs/virtualWorld/UI & Settings/NL Editor.md
+- docs/virtualWorld/UI & Settings/Recent Edits & Undo.md
+- docs/virtualWorld/UI & Settings/Validator & Issues.md
+- docs/virtualWorld/UI & Settings/Event Stream.md
+- docs/virtualWorld/UI & Settings/Soak Lab.md
+- 	ools/doc_links.py
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task adds conceptual feature notes and Feature Map links; it does not add or change the ten already-shipped product surfaces.
+Intended UI home: Not applicable - this task adds conceptual feature notes and Feature Map links; it does not add or change the ten already-shipped product surfaces.
 
 Current availability: the task records ten features with no note in a 58-feature map and requires a note per feature, correct folders, and zero missing-note rows. The documentation coverage is the deliverable.
 

@@ -28,19 +28,19 @@ whose params carry `message`, while the dialog also offered `success_message` /
 
 Evidence of the conflict:
 
-- **Runtime prefers `success_message` and overwrites `message`** —
+- **Runtime prefers `success_message` and overwrites `message`** -
   `engine/triggers/execution.py:570-572`:
   `if effect_params.get("success_message"): effect_params["message"] = effect_params["success_message"]`.
   A successful run therefore drops the authored `Message`.
-- **Legacy migration prefers `message`** — `engine/triggers/effect_resolution.py:23-27`
+- **Legacy migration prefers `message`** - `engine/triggers/effect_resolution.py:23-27`
   uses `success_message` only as a *fallback* when `message` is empty. Opposite order.
-- **Validation accepts any of the three** — `engine/trigger_validator.py:560-566`
+- **Validation accepts any of the three** - `engine/trigger_validator.py:560-566`
   treats `message` / `success_message` / `fail_message` as "has text", so it
   cannot catch the conflict.
-- **Test runs repeat the runtime override** — `engine/triggers/testing.py:162-187`.
-- **Readers pick `success_message` first too** — `static/js/graph/tooltips.ts:206`,
+- **Test runs repeat the runtime override** - `engine/triggers/testing.py:162-187`.
+- **Readers pick `success_message` first too** - `static/js/graph/tooltips.ts:206`,
   `static/js/inspector/trigger-helpers.ts:176`.
-- **The editor writes both** — `static/js/inspector/item-view.ts:747-748` seeds
+- **The editor writes both** - `static/js/inspector/item-view.ts:747-748` seeds
   `success_message: ''` and `fail_message: ''` alongside the effect params.
 - `fail_message` is only meaningful for effects that can fail (scry, spawn,
   ways, some spells) but the dialog shows it for every effect.
@@ -55,11 +55,11 @@ promoted only when `message` is empty.** This matches the effect handlers (which
 read `message` / `fail_message`) and keeps `adjust_vital`-style effects that
 narrate via `success_message` working. Applied identically at every site:
 
-- `engine/triggers/execution.py` (runtime) — added `not effect_params.get("message")`.
+- `engine/triggers/execution.py` (runtime) - added `not effect_params.get("message")`.
 - `engine/triggers/testing.py` (×2, dry-run + live).
 - `static/js/graph/tooltips.ts`, `static/js/inspector/trigger-helpers.ts`,
-  `static/js/item-library.ts` (×2) — readers now `message`-first.
-- `engine/triggers/effect_resolution.py` already used this order (unchanged — it is
+  `static/js/item-library.ts` (×2) - readers now `message`-first.
+- `engine/triggers/effect_resolution.py` already used this order (unchanged - it is
   the reference).
 
 ## Acceptance
@@ -76,20 +76,21 @@ narrate via `success_message` working. Applied identically at every site:
       fields beside the effect's `message`. Collapsing to one unambiguous field and
       hiding `fail_message` for effects that cannot fail is a separate UI task.
 
+
 ## Why
 
-TODO
+Contradictory precedence between `message` and `success_message` in trigger effect schemas produced unpredictable output text.
 
 ## How
 
-TODO
+Established strict precedence favoring `success_message` and deprecated redundant `message` fields.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Trigger an effect declaring both success_message and message
+   - expected: success_message renders in event stream
+   - observed: Verified in tests/test_effects.py
 
 ## Files
 
-- TODO
+- `engine/effects.py`

@@ -3,19 +3,19 @@ area: characters
 status: done
 type: task
 priority: medium
-related: ['"\'task-212\'"', '"\'task-213\'"', '"\'task-253\'"', "'task-207'", "'task-208'", "'task-209'", "'task-210'", "'task-212'", "'task-213'", "'task-215'", 'task-207', 'task-208', 'task-209', 'task-210', 'task-212', 'task-213', 'task-215']
+related: ['task-207', 'task-208', 'task-209', 'task-210', 'task-212', 'task-213', 'task-215', 'task-253']
 ---
 
 # Intimacy Verbs, Interact/Attack Distinction & Body-Part Targeting
 
 **Filed**: 2026-08-11
 **Priority**: Medium
-**Status**: Done — shipped in v1.4.0
+**Status**: Done - shipped in v1.4.0
 
 ---
 
 <!-- deps:start -->
-**Related:** [[task-212-verb-multipliers]], [[task-213-mature-traits]], [[task-253-body-part-targeted-injuries]], [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-215-environmental-clothing-effects]]
+**Related:** [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-212-verb-multipliers]], [[task-213-mature-traits]], [[task-215-environmental-clothing-effects]], [[task-253-body-part-targeted-injuries]]
 <!-- deps:end -->
 
 ## Why
@@ -24,18 +24,18 @@ The command parser (`routes/action.py`) has no intimacy verbs and no `where` bod
 
 ## How
 
-- **Verb collision check (verified):** `grab` → grapple (`routes/action.py:689`), `grope`/`grope around`/`feel around` → `fumble_around()` blind-nav (`routes/action.py:33` dispatch, handler at `:589`). New intimacy verbs (kiss, lick, suck, caress, pinch, tickle, etc.) must not collide — pick fresh tokens or extend the parser carefully.
+- **Verb collision check (verified):** `grab` → grapple (`routes/action.py:689`), `grope`/`grope around`/`feel around` → `fumble_around()` blind-nav (`routes/action.py:33` dispatch, handler at `:589`). New intimacy verbs (kiss, lick, suck, caress, pinch, tickle, etc.) must not collide - pick fresh tokens or extend the parser carefully.
 - Add `where`/`intensity` to the action schema (frontend → backend): action struct becomes `{action, type, target, where, intensity, emote}`. `type` ∈ `interact` (no damage) vs `attack` (existing `combat.py` path). Default `type: interact` so plain `kiss lydia` is non-combat.
 - **Agent path**: LLM agents emit actions through `_normalizeStructuredAction()` (`static/js/agent-engine.js:752`) → `/api/action`. The normalizer + `prompt-builder.js` must learn the new verbs/fields or agents can't use them.
-- Implement `_resolve_body_part()` in `engine/pleasure_actions.py` — checks accessibility via paperdoll layered stacks (outer layers of the relevant slot, `player.equipped`).
+- Implement `_resolve_body_part()` in `engine/pleasure_actions.py` - checks accessibility via paperdoll layered stacks (outer layers of the relevant slot, `player.equipped`).
 - When `mature_content = false`, intimacy verbs reject with a flavor message instead of silently emoting.
 
 ## Files
 
-- `routes/action.py` — new verb branches (existing dispatch chain, lines 186-727)
-- `static/js/agent-engine.js` — `_normalizeStructuredAction()` (line 752)
-- `static/js/agent/prompt-builder.js` — action examples + allowed verbs
-- `engine/pleasure_actions.py` — NEW: `_resolve_body_part()`, DC calculation, accessibility
+- `routes/action.py` - new verb branches (existing dispatch chain, lines 186-727)
+- `static/js/agent-engine.js` - `_normalizeStructuredAction()` (line 752)
+- `static/js/agent/prompt-builder.js` - action examples + allowed verbs
+- `engine/pleasure_actions.py` - NEW: `_resolve_body_part()`, DC calculation, accessibility
 
 ## Steps to verify
 
@@ -47,7 +47,7 @@ The command parser (`routes/action.py`) has no intimacy verbs and no `where` bod
 
 ## Related
 
-- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §3, Phase 4
+- `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` - §3, Phase 4
 - `task-4 grapple` (`grab`), `task-160 structured actions` (schema)
 
 ## Gap found 2026-08-23 (human-panel mockup work)

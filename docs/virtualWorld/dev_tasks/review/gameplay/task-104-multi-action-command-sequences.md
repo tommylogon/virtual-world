@@ -36,7 +36,7 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 - Visual feedback showing sequence progress ("Step 2/3: going north...")
 
 ### Backend
-- `/api/action/sequence` endpoint — accepts array of commands, executes in order
+- `/api/action/sequence` endpoint - accepts array of commands, executes in order
 - Each command in sequence gets its own response event
 - If one command fails, the sequence stops with a clear error
 - State is passed between commands (e.g., after taking an item, use it in next step)
@@ -49,11 +49,11 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 
 ## Files
 
-- `routes/action.py` — `/api/action/sequence` endpoint
-- `virtual_world_engine.py` — sequence execution loop
-- `static/js/agent-engine.js` — sequence parsing
-- `static/js/ui-controller.js` — sequence UI feedback
-- `static/js/event-stream.js` — sequence step events
+- `routes/action.py` - `/api/action/sequence` endpoint
+- `virtual_world_engine.py` - sequence execution loop
+- `static/js/agent-engine.js` - sequence parsing
+- `static/js/ui-controller.js` - sequence UI feedback
+- `static/js/event-stream.js` - sequence step events
 
 ## Steps to verify
 
@@ -65,8 +65,9 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 
 ## Why
 
-TODO
+Allow players to execute compound command sequences separated by delimiters (e.g. `take key and unlock door`).
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Command sequences execute sequentially in order.
+- [x] Execution halts immediately if an intermediate action fails validation.

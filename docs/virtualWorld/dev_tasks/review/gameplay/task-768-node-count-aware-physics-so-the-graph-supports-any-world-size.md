@@ -21,7 +21,7 @@ The solver constants are tuned to one world of about 638 nodes. Physics must sca
 
 ## Why
 
-TODO
+The vis.js physics simulation becomes CPU-prohibitive on massive graphs (>8000 nodes), causing browser freezes unless physics is automatically disabled above threshold.
 
 ## How
 
@@ -32,7 +32,7 @@ user's default-on physics is untouched. This stops the "1M nodes" catastrophe
 without changing normal worlds.
 
 This is deliberately a valve, not full scaling. A larger world still needs a
-rendering strategy vis-network cannot give for free (clustering, LOD, culling) —
+rendering strategy vis-network cannot give for free (clustering, LOD, culling) -
 that remains open and is a separate, bigger effort.
 
 ## Progress (2026-10-10)

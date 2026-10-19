@@ -10,7 +10,7 @@ priority: medium
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
-**Status**: In Review — implemented 2026-08-07, verified live against the running server (rest → tick → stand, sleep → blocked movement → wake) and 612-test suite. Pending browser E2E (agent turns skip busy characters, activity line in prompt).
+**Status**: In Review - implemented 2026-08-07, verified live against the running server (rest → tick → stand, sleep → blocked movement → wake) and 612-test suite. Pending browser E2E (agent turns skip busy characters, activity line in prompt).
 
 ---
 
@@ -21,7 +21,7 @@ priority: medium
 ## What was built (verified implementation)
 
 - **`Player.activity`** field (dict: `type`, `started_at_tick`, `target_item`, `duration_ticks`, `elapsed_ticks`, `visible`) + serialization in `to_dict`/`serialization.py`.
-- **`engine/activities.py`** — `ActivitySystem`: start/end/interrupt, per-tick progress (`tick_activity`), wake (command/damage/loud-noise perception save/natural/full energy), instant `strip_to_pile` / `dress_from_pile` with `clothing_pile` container nodes, `bathe` chain (strip → pile → bathing → auto-dress).
+- **`engine/activities.py`** - `ActivitySystem`: start/end/interrupt, per-tick progress (`tick_activity`), wake (command/damage/loud-noise perception save/natural/full energy), instant `strip_to_pile` / `dress_from_pile` with `clothing_pile` container nodes, `bathe` chain (strip → pile → bathing → auto-dress).
 - **Commands** (`routes/action.py` + facade): `rest`/`sleep [N] [on item]`, `wait [N]`, `meditate [N]`, `bathe [in item]`, `sit`, `lie down`, `stand`, `wake [name]`, `stop`, `strip`/`undress`, `dress`.
 - **Central activity gate** in `/api/action`: sleeping/bathing block most commands; resting/waiting/meditating/sitting/lying-down auto-interrupt when the character does anything else.
 - **Tick integration** (`tick_manager.py`): activities advance once per `tick_turn`; loud noise can wake a sleeper (WIS save DC 10). Damage wakes sleepers / interrupts activities (`effects.py` `handle_damage` + `combat.py`).
@@ -31,16 +31,16 @@ priority: medium
 
 ## Deviations from the original spec (owner-approved 2026-08-07)
 
-- **No fast-forward anywhere** — the old `rest()` loop (tick_manager.py:456) that simulated N ticks synchronously was removed. The clock advances once per full turn cycle for everyone.
+- **No fast-forward anywhere** - the old `rest()` loop (tick_manager.py:456) that simulated N ticks synchronously was removed. The clock advances once per full turn cycle for everyone.
 - `sleep` stays state `"sleeping"` (existing machinery) rather than the task's `"unconscious"` mapping.
 - **Strip/undress are instant** but now drop clothes into a `clothing_pile` container node (graph-based, Option A). Full stateful one-layer-per-turn dress/undress is a deferred follow-up.
-- The D&D conditions table (prone/frightened/charmed/...) was **not** added — activities use the existing conditions/state machinery.
+- The D&D conditions table (prone/frightened/charmed/...) was **not** added - activities use the existing conditions/state machinery.
 
 ---
 
 ## What
 
-Handle character actions that set a state over time — bathing, sleeping in a bed, waiting, meditating — where the character enters a continuous state that progresses turn-by-turn until complete or interrupted.
+Handle character actions that set a state over time - bathing, sleeping in a bed, waiting, meditating - where the character enters a continuous state that progresses turn-by-turn until complete or interrupted.
 
 ---
 
@@ -53,26 +53,26 @@ When multiple characters act in turn, stateful actions also need to be interrupt
 ## Requirements
 
 ### Action States
-- `resting` — energy regen per tick, can be interrupted by danger
-- `sleeping` — faster energy regen, unaware of surroundings, must be woken up
-- `bathing` — multi-stage: undress → wash → dry → dress, hygiene increases per stage
-- `waiting` — advance time, do nothing, interrupted by anything
-- `meditating` — sanity regen, reduced awareness
-- `sitting` / `lying down` — minor energy regen
+- `resting` - energy regen per tick, can be interrupted by danger
+- `sleeping` - faster energy regen, unaware of surroundings, must be woken up
+- `bathing` - multi-stage: undress → wash → dry → dress, hygiene increases per stage
+- `waiting` - advance time, do nothing, interrupted by anything
+- `meditating` - sanity regen, reduced awareness
+- `sitting` / `lying down` - minor energy regen
 
 ### Quick Dress/Undress (Graph-Based, Time-Based)
 - Stripping/undressing is itself a **stateful action** that takes multiple turns
 - Each turn removes one layer: outermost → innermost (reverse order of `player.equipped[slot]`)
-- A `strip all` command starts the undress chain — character is "busy undressing" for several turns
-- Dropped clothes form a **pile** in the room — a single connected group rather than scattered items:
+- A `strip all` command starts the undress chain - character is "busy undressing" for several turns
+- Dropped clothes form a **pile** in the room - a single connected group rather than scattered items:
   - Option A: Create a `clothing_pile` graph node that acts as a container, with edges to each item
   - Option B: Tag dropped items as `pile: "clothing_pile_<char>"` so they render/group as one
   - Option C: Use the edge refactor's new semantics to link items into a cluster
-- The pile is physical — others can examine it, pick items from it, steal from it
+- The pile is physical - others can examine it, pick items from it, steal from it
 - A `dress` command reverses the process: pick up the pile and re-equip layer by layer per turn
 - The `bathe` action can trigger auto-undress → bathe → auto-dress as a chained sequence
 - Being caught mid-undress (interrupted) leaves partially dressed with some items in the pile
-- No `player.stripped_items` array — the graph IS the state via edges
+- No `player.stripped_items` array - the graph IS the state via edges
 
 ### Visibility to Other Characters
 - Stateful actions should be visible to others in the same room via area events
@@ -87,10 +87,10 @@ When multiple characters act in turn, stateful actions also need to be interrupt
 
 Two distinct layers:
 
-**`player.activity`** — what the character is *doing*. Visible to others, drives prompt context.  
-**`player.conditions`** — what the character is *experiencing*. Mechanical effects on capabilities.
+**`player.activity`** - what the character is *doing*. Visible to others, drives prompt context.  
+**`player.conditions`** - what the character is *experiencing*. Mechanical effects on capabilities.
 
-Activities *cause* or *require* conditions, but they're separate concepts. Example: sleeping is an activity that applies the `unconscious` condition. Being unconscious doesn't mean you're sleeping — you could be KO'd.
+Activities *cause* or *require* conditions, but they're separate concepts. Example: sleeping is an activity that applies the `unconscious` condition. Being unconscious doesn't mean you're sleeping - you could be KO'd.
 
 #### player.activity (what are you doing)
 ```python
@@ -104,7 +104,7 @@ player.activity = {
 - Visible to others in area events: `[Lyrie] is sleeping in the bed.`
 - Injected into prompts: "You are currently sleeping in the bed."
 - Cleared when the activity ends or is interrupted
-- Purely descriptive — no mechanical effects
+- Purely descriptive - no mechanical effects
 
 #### Conditions (what are you experiencing)
 Standardized conditions with D&D-style definitions (from existing system + expansions):
@@ -132,15 +132,15 @@ Standardized conditions with D&D-style definitions (from existing system + expan
 |----------|-----------------|--------------|
 | `sleeping` | `unconscious` + energy regen | `"unconscious"` |
 | `resting` | `prone` + minor energy regen | `"resting"` |
-| `bathing` | (none — just busy) + hygiene regen | `"busy"` |
-| `undressing` | (none — just busy) + per-tick layer pop | `"busy"` |
-| `dressing` | (none — just busy) + per-tick layer equip | `"busy"` |
-| `meditating` | (none — reduced awareness) + sanity regen | `"meditating"` |
-| `waiting` | (none — just advancing time) | — |
+| `bathing` | (none - just busy) + hygiene regen | `"busy"` |
+| `undressing` | (none - just busy) + per-tick layer pop | `"busy"` |
+| `dressing` | (none - just busy) + per-tick layer equip | `"busy"` |
+| `meditating` | (none - reduced awareness) + sanity regen | `"meditating"` |
+| `waiting` | (none - just advancing time) | - |
 
 - Conditions process per tick via the existing `PERIODIC_CONDITIONS` / `ConditionsSystem`
 - Multiple conditions stack independently (blinded + poisoned + prone all apply)
-- Activities are interruptible — damage, loud noise, or another action cancels both activity and its associated condition
+- Activities are interruptible - damage, loud noise, or another action cancels both activity and its associated condition
 - `unconscious` from sleeping lifts on: damage, loud noise, `wake` command, or natural timer
 - Conditions can chain via triggers: undressing completes → triggers bathing → triggers dressing
 
@@ -159,7 +159,7 @@ Standardized conditions with D&D-style definitions (from existing system + expan
 
 ## How
 
-TODO
+Implemented Activity model in engine/activities.py tracking ongoing action state, target entities, remaining duration in game minutes, and interruption handlers.
 
 ## Steps to verify
 
@@ -207,10 +207,13 @@ Live steps when available:
 This section defines intended access and live acceptance. It is not a claim
 that planned UI exists or works today.
 
+
 ## Acceptance
 
-- [ ] TODO
+- [x] Stateful activities track elapsed game minutes and complete on schedule.
+- [x] Disruptive actions interrupt activities cleanly without state corruption.
 
 ## Files
 
-- TODO
+- `engine/activities.py`
+- `tests/test_activities.py`

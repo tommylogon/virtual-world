@@ -27,7 +27,7 @@ cover this module path or this node id"*, so the app never reads `docs/` off dis
 ## Why
 
 `docs/` is not under `static/`, so the browser cannot reach the markdown today. Any
-authoring UI that wants to show documentation needs a route — and a naive one (serve the
+authoring UI that wants to show documentation needs a route - and a naive one (serve the
 file, or scan the tree per request) would be both slow and unsafe, because the corpus
 contains 660 dev-task files and authored content that should not all be public.
 
@@ -67,12 +67,12 @@ contains 660 dev-task files and authored content that should not all be public.
 
 ### Minor fix carried along
 
-`docs_problems` now accepts `@docs none — <reason>` by testing the first token,
+`docs_problems` now accepts `@docs none - <reason>` by testing the first token,
 so a Python module can declare a reasoned absence without failing the guard.
 
 ## Acceptance
 
-- [x] Both lookups return correct results — `tests/test_docs_resolve.py` against
+- [x] Both lookups return correct results - `tests/test_docs_resolve.py` against
       a fixture corpus, plus a real-repo smoke test
       (`engine/tick_manager.py` -> "Turn Queue & Human Turns").
 - [x] The index is built once and reused; a second request does not re-scan
@@ -94,17 +94,18 @@ so a Python module can declare a reasoned absence without failing the guard.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Query doc resolver endpoint for a known feature
+   - expected: Returns relevant markdown documentation links
+   - observed: 200 OK with doc links returned by test client
 
 ## Files
 
-- TODO
+- `routes/doc_resolver.py`
+- `tests/test_doc_resolver.py`
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — the feature is an HTTP documentation-resolver API, not a rendered author/player screen. Its JSON is directly inspectable at `/api/docs/resolve` in a browser address bar or API client.
+Intended UI home: Not applicable - the feature is an HTTP documentation-resolver API, not a rendered author/player screen. Its JSON is directly inspectable at `/api/docs/resolve` in a browser address bar or API client.
 
 Current availability: the card records module/node lookup, one-time cached indexing, exclusion of `dev_tasks/`, traversal protection, and fixture plus real-repo smoke tests. The route is not claimed as a browser UI.
 

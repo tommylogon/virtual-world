@@ -94,10 +94,9 @@
         gridEdit: false,
         gridDrag: null, // {kind, key, start, w, h, offset} during a grid edit
         gridDragRelease: null,
-        // Set by the `px / cell` slider while it is being dragged (task-597); the
-        // canvas draws the candidate extent and the cells it would strand.
+        // Set while dragging the cell (0,0) corner handle (task-597); the canvas
+        // draws the candidate extent and the cells it would strand.
         cellSizePreview: null,
-        cellSizeSync: null,
         dimsBtn: null,
         selectedChild: null,
         selectedArea: null, // area picked by the 📍 Area place tool (task-528)
@@ -262,14 +261,14 @@
         }
     }
     function _notify(worldChanged) {
-        // `worldSync` is a top-level `const` in world-sync.js, so `window.worldSync`
-        // is undefined at runtime and this branch has never fired — main.js puts
-        // the instance on `VW.worldSync`. Kept as-is rather than "fixed": the cast
-        // documents what the guard actually reads, and changing the lookup is a
-        // behaviour change this conversion did not ask for.
         const win = window;
-        if (worldChanged && win.worldSync && typeof win.worldSync.refresh === 'function') {
-            win.worldSync.refresh();
+        const sync = win.worldSync || win.VW?.worldSync;
+        if (worldChanged && sync && typeof sync.refresh === 'function') {
+            sync.refresh();
+        }
+        if (worldChanged && win.graphManager && typeof win.graphManager.loadGraphData === 'function') {
+            win.graphManager._lastSig = '';
+            win.graphManager.loadGraphData();
         }
     }
     const _post = (path, body) => _req(BASE + path, {
@@ -391,7 +390,12 @@
      * vocabulary the compiler reads.
      */
     function _paletteSections(layer) {
-        return GM().paletteSections(layer, _layerOptions(layer));
+        const all = GM().paletteSections(layer, _layerOptions(layer));
+        // Both the toolbar value picker and the palette panel read through here,
+        // so the mode filter (task-774) cannot make them disagree.
+        const p = state.payload;
+        const mode = p ? (p.mode || (p.scope && p.scope.mode) || null) : null;
+        return GM().paletteForMode(all, mode);
     }
     function _defaultValueForLayer(layer) {
         // The floor layer is a *storey index* (engine/world_grid.py): 0 is ground,
@@ -452,8 +456,6 @@
     function close() {
         _unbindKeys();
         _gridDragRelease();
-        // The cell-size hook points at HUD elements that are about to be removed.
-        state.cellSizeSync = null;
         state.dimsBtn = null;
         state.cellSizePreview = null;
         if (state.resizeObs) {
@@ -807,7 +809,9 @@
             'Click cells to select, shift-click to add, drag for a marquee. '
                 + 'Ctrl+A all, Escape clear. With cells selected, Paint and Erase '
                 + 'apply to the whole selection in one request.'],
-        ['paint', '🖌 Paint', 'P', 'Paint the current layer and value. Drag to stroke.'],
+        ['paint', '🖌 Paint', 'P',
+            'Paint the current layer and value. Drag to stroke. '
+                + 'Alt+click samples the active layer value under the cursor into the brush.'],
         ['erase', '🧽 Erase', 'E', 'Clear the current layer on a cell. Drag to stroke.'],
         ['move', '✥ Move', 'M',
             'Shift the selected cells\' contents one cell. Arrow keys, or WASD, '
@@ -939,6 +943,7 @@
         if (id !== 'move')
             state.nudged = null;
         state.marquee = null;
+        state.brushHover = null;
         _syncDraggable();
         render();
     }
@@ -1136,23 +1141,43 @@
         });
         _help(wrap.appendChild(layerSel), 'wp-layer');
         wrap.appendChild(_help(_valueControl(), 'wp-value'));
-        wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
-        // Direct manipulation of the grid itself (task-597). The dialog is still
-        // there for exact numbers; this is for the common "nudge it and see".
-        const gridAdjust = _btn(state.gridEdit ? '✔ grid' : '✥ grid', () => {
-            state.gridEdit = !state.gridEdit;
-            state.gridDrag = null;
-            _gridDragRelease();
-            render();
-            _status(state.gridEdit
-                ? 'Grid adjust: drag the green handle on cell (0,0) to resize cells inside the image, '
-                    + 'drag the frame to move the scope on the graph map, or drag the E/S/SE handles '
-                    + 'to resize the frame.'
-                : 'Grid adjust off.', false);
-        }, 'padding:1px 6px;font-size:11px;');
-        gridAdjust.setAttribute('data-role', 'wp-grid-adjust');
-        gridAdjust.title = 'Resize cells (drag the green corner on cell 0,0), move the grid on the graph map, or resize the frame';
-        wrap.appendChild(gridAdjust);
+        // Unified Grid control (task-876): combines exact-number dialog and on-canvas direct adjust.
+        const gridBox = _el('div', 'position:relative;display:inline-flex;align-items:center;');
+        const gridBtn = _btn((state.gridEdit ? '✔ ' : '▦ ') + (p.grid ? `${p.grid.w}×${p.grid.h}` : 'Grid') + ' ▾', () => {
+            const existing = gridBox.querySelector('[data-role="wp-grid-menu"]');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+            const menu = _el('div', 'position:absolute;top:100%;left:0;z-index:99;background:var(--bg-card,#23232b);'
+                + 'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:6px;'
+                + 'display:flex;flex-direction:column;gap:4px;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,0.5);margin-top:2px;');
+            menu.setAttribute('data-role', 'wp-grid-menu');
+            const adjustBtn = _btn(state.gridEdit ? '✔ Done adjusting handles' : '✥ Adjust handles on canvas', () => {
+                menu.remove();
+                state.gridEdit = !state.gridEdit;
+                state.gridDrag = null;
+                _gridDragRelease();
+                render();
+                _status(state.gridEdit
+                    ? 'Grid adjust: drag the green handle on cell (0,0) to resize cells inside the image, '
+                        + 'drag the frame to move the scope on the graph map, or drag the E/S/SE handles '
+                        + 'to resize the frame.'
+                    : 'Grid adjust off.', false);
+            }, 'text-align:left;font-size:11px;' + (state.gridEdit ? 'outline:1px solid #7ab;background:#1e3550;' : ''));
+            adjustBtn.setAttribute('data-role', 'wp-grid-adjust');
+            adjustBtn.title = 'Resize cells (drag the green corner on cell 0,0), move the grid on the graph map, or resize the frame';
+            menu.appendChild(adjustBtn);
+            const exactBtn = _btn('▦ Exact dimensions…', () => {
+                menu.remove();
+                _openGridDialog(p);
+            }, 'text-align:left;font-size:11px;');
+            exactBtn.title = 'Open dialog to set exact width, height, mode, or choose region presets';
+            menu.appendChild(exactBtn);
+            gridBox.appendChild(menu);
+        }, 'font-size:11px;' + (state.gridEdit ? 'outline:2px solid #7ab;background:#1e3550;' : ''), 'Grid settings: resize dimensions, presets, or adjust directly on canvas');
+        gridBox.appendChild(gridBtn);
+        wrap.appendChild(gridBox);
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
         // Why this scope cannot be compiled yet, and what to do about it
         // (engine/world_compile.preflight). The compiler refuses the same
@@ -1240,17 +1265,27 @@
         const options = _layerOptions(state.layer);
         if (state.layer === 'floor' || !options.length) {
             // No vocabulary (fetch failed) or a numeric layer: free text.
-            const input = _el('input', 'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
+            const wrap = _el('div', 'display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;');
+            const input = _el('input', 'width:90px;padding:3px 6px;border-radius:5px;border:1px solid ' +
                 'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
             input.setAttribute('data-role', 'wp-value');
             input.value = state.value;
             input.placeholder = state.layer === 'floor' ? '+1 / -1' : 'value';
             input.title = state.layer === 'floor'
-                ? 'Storey: 0 is ground, 1 is one up, -1 one down. Unbounded — 3 for a '
+                ? 'Storey: 0 is ground, 1 is one up, -1 one down. Unbounded - 3 for a '
                     + 'room three storeys up, 80 for a tower, -900 for a hole.'
                 : `Value painted on the ${state.layer} layer.`;
             input.addEventListener('input', () => { state.value = input.value; });
-            return input;
+            wrap.appendChild(input);
+            if (state.layer === 'floor' && state.payload && state.payload.grid) {
+                const btnImport = _btn('📥 Import heightmap…', () => _openHeightmapImportDialog(state.payload), 'font-size:11px;padding:2px 6px;', 'Import greyscale heightmap PNG into the floor layer (task-877)');
+                btnImport.setAttribute('data-role', 'wp-heightmap-import');
+                wrap.appendChild(btnImport);
+                const btnExport = _btn('📤 Export heightmap…', () => _openHeightmapExportDialog(state.payload), 'font-size:11px;padding:2px 6px;', 'Export floor layer as greyscale PNG (task-877)');
+                btnExport.setAttribute('data-role', 'wp-heightmap-export');
+                wrap.appendChild(btnExport);
+            }
+            return wrap;
         }
         const sections = _paletteSections(state.layer);
         const all = GM().flattenPalette(sections);
@@ -1583,9 +1618,6 @@
             'gap:6px;align-items:center;flex-wrap:wrap;background:rgba(13,17,23,0.85);' +
             'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:4px 6px;' +
             'pointer-events:auto;');
-        // The HUD is rebuilt on every render, so any sync hook from the previous
-        // one points at a detached element. Cleared here and re-armed below.
-        state.cellSizeSync = null;
         state.dimsBtn = null;
         // Keep references so the controls can reflect the clamp (task-595): at
         // the floor the − button is disabled rather than silently doing nothing.
@@ -1722,11 +1754,6 @@
             // One click: make the grid the image's aspect, so painted cells and
             // the reference share geometry instead of fighting at different ratios.
             wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p), 'padding:1px 6px;font-size:11px;'), 'wp-reference'));
-            // The grid framed by cell *size* (task-597): the number an author can
-            // measure against the art, with the count as its readout.
-            const pxControl = _cellSizeControl(p);
-            if (pxControl)
-                wrap.appendChild(pxControl);
             // Move/resize/crop the picture (task-524). The rect is stored in cell
             // units, so the graph map layout draws the same geometry.
             const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
@@ -1764,12 +1791,12 @@
      * Adjust `state.stage` (and `state.view`) so the reference image rect
      * occupies the exact same screen-space box as `beforeScreen`.
      *
-     * When the author pulls the `px / cell` slider, the grid cell count (`w*h`)
-     * changes while `CELL` (22 stage units) stays constant. Without counter-scaling
-     * the stage camera, changing `w` from 20 to 80 makes the stage 4x larger on
-     * screen. Anchoring the screen rect of the reference image keeps the background
-     * art fixed in the viewport while the grid cells visibly grow or shrink inside
-     * its borders.
+     * When the author drags the cell `(0,0)` corner handle, the grid cell count
+     * (`w*h`) changes while `CELL` (22 stage units) stays constant. Without
+     * counter-scaling the stage camera, changing `w` from 20 to 80 makes the stage
+     * 4x larger on screen. Anchoring the screen rect of the reference image keeps
+     * the background art fixed in the viewport while the grid cells visibly grow
+     * or shrink inside its borders.
      */
     function _anchorStageToRefScreen(beforeScreen, afterCells) {
         const stage = state.stage;
@@ -1800,104 +1827,6 @@
             w: rect.w * CELL * scale,
             h: rect.h * CELL * scale,
         };
-    }
-    function _cellSizeControl(p) {
-        if (!(p.reference && p.reference.image))
-            return null;
-        const generated = p.scope.state === 'materialized';
-        const wrap = _el('span', 'display:flex;align-items:center;gap:4px;');
-        const slider = _el('input', 'width:110px;');
-        slider.type = 'range';
-        slider.step = '1';
-        slider.disabled = true; // until the image's pixel size is known
-        slider.setAttribute('data-role', 'wp-cell-size');
-        const readout = _el('span', 'font-size:11px;color:var(--text-muted,#999);');
-        readout.setAttribute('data-role', 'wp-cell-size-readout');
-        const imgW = () => (state.refImage && state.refImage.naturalWidth) || 0;
-        const imgH = () => (state.refImage && state.refImage.naturalHeight) || 0;
-        const show = (px) => {
-            const next = GM().gridForCellSize(imgW(), imgH(), px);
-            readout.textContent = next ? `${next.w}×${next.h} · 1 cell ≈ ${px}px`
-                : 'cell size: reading image…';
-        };
-        // The image decodes after the HUD is built, so the bounds and the current
-        // value are learned here rather than at construction. A drag in progress
-        // owns the slider, so a sync must not snap it back mid-gesture.
-        const sync = () => {
-            if (state.cellSizePreview)
-                return;
-            const range = GM().cellSizeRange(imgW(), imgH());
-            if (!range) {
-                slider.disabled = true;
-                show(0);
-                return;
-            }
-            slider.min = String(range.min);
-            slider.max = String(range.max);
-            const px = GM().cellSizeForGrid(imgW(), p.grid.w) || range.min;
-            slider.value = String(Math.min(range.max, Math.max(range.min, Math.round(px))));
-            slider.disabled = generated;
-            // The dims readout is built before the image is decoded, so its px
-            // half is filled in here rather than at construction.
-            if (state.dimsBtn) {
-                state.dimsBtn.textContent = `${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`
-                    + ` ≈ ${Math.round(px)}px`;
-            }
-            show(parseFloat(slider.value));
-        };
-        state.cellSizeSync = sync;
-        sync();
-        let anchorScreen = null;
-        slider.addEventListener('input', () => {
-            if (!anchorScreen) {
-                anchorScreen = _refScreenBox(p, p.grid);
-            }
-            const px = parseFloat(slider.value);
-            const next = GM().gridForCellSize(imgW(), imgH(), px);
-            state.cellSizePreview = next ? { w: next.w, h: next.h, pxPerCell: px } : null;
-            show(px);
-            _applyRefTransform(p);
-            if (state.cellSizePreview && anchorScreen) {
-                const afterCells = _refRectCells(p, state.refImage, state.cellSizePreview);
-                _anchorStageToRefScreen(anchorScreen, afterCells);
-            }
-            _redrawGrid(); // the frame, the lattice and the stranded set follow
-        });
-        slider.addEventListener('change', () => {
-            const preview = state.cellSizePreview;
-            const savedAnchor = anchorScreen || _refScreenBox(p);
-            anchorScreen = null;
-            state.cellSizePreview = null;
-            if (!preview)
-                return;
-            const oldGrid = { w: p.grid.w, h: p.grid.h };
-            _commitGridSize(p, preview.w, preview.h, `1 cell ≈ ${preview.pxPerCell}px`, oldGrid)
-                .then((committed) => {
-                if (!committed) {
-                    _applyRefTransform(p);
-                    if (savedAnchor) {
-                        const origCells = _refRectCells(p, state.refImage, oldGrid);
-                        _anchorStageToRefScreen(savedAnchor, origCells);
-                    }
-                    sync();
-                    _redrawGrid();
-                    return;
-                }
-                render();
-                if (state.payload && savedAnchor) {
-                    const afterCells = _refRectCells(state.payload, state.refImage);
-                    _anchorStageToRefScreen(savedAnchor, afterCells);
-                    _redrawGrid();
-                }
-            })
-                .catch((e) => _status(`Grid failed: ${errText(e)}`, true));
-        });
-        if (generated)
-            slider.title = 'The grid is generated - ungenerate to re-key it';
-        wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'px / cell'));
-        _help(wrap.appendChild(slider), 'wp-cell-size');
-        wrap.appendChild(readout);
-        return wrap;
     }
     /**
      * Make the grid the image's aspect ratio (the `▦ match` button).
@@ -2063,11 +1992,14 @@
     function _redrawGrid() {
         if (state.stage)
             state.stage.batchDraw();
-        // The reference image decodes after the HUD is built, so the `px / cell`
-        // control learns the image's real pixel size here rather than on a full
-        // re-render (which would discard a slider the author is holding).
-        if (state.cellSizeSync)
-            state.cellSizeSync();
+        // The reference image decodes after the HUD is built, so the dims button
+        // learns the image's real pixel size here rather than on a full re-render.
+        if (state.dimsBtn && state.payload && state.payload.grid && !state.cellSizePreview) {
+            const iw = (state.refImage && state.refImage.naturalWidth) || 0;
+            const px = iw > 0 ? GM().cellSizeForGrid(iw, state.payload.grid.w) : null;
+            state.dimsBtn.textContent = `${state.payload.grid.w}×${state.payload.grid.h} · 1 cell = 1 turn`
+                + (px ? ` ≈ ${Math.round(px)}px` : '');
+        }
     }
     /**
      * Redraw only the decor + selection layers (in-progress paint stroke, feature
@@ -2514,12 +2446,9 @@
         _applyRefTransform(p);
         const afterCells = _refRectCells(p, img, state.cellSizePreview);
         _anchorStageToRefScreen(drag.anchorScreen, afterCells);
-        const slider = state.overlay && state.overlay.querySelector('[data-role="wp-cell-size"]');
-        const readout = state.overlay && state.overlay.querySelector('[data-role="wp-cell-size-readout"]');
-        if (slider)
-            slider.value = String(px);
-        if (readout)
-            readout.textContent = `${next.w}×${next.h} · 1 cell ≈ ${px}px`;
+        if (state.dimsBtn) {
+            state.dimsBtn.textContent = `${next.w}×${next.h} · 1 cell = 1 turn ≈ ${px}px`;
+        }
         if (state.stage)
             state.stage.batchDraw();
     }
@@ -2755,19 +2684,33 @@
     }
     function _drawFeatures(ctx, p) {
         ctx.save();
+        ctx.globalAlpha = state.paintAlpha == null ? 1 : state.paintAlpha;
         const scale = state.stage ? state.stage.scaleX() : 1;
         ctx.font = `${Math.max(9, CELL - 8)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         (p.placements || []).forEach((pl) => {
             const selected = pl.id === state.selectedChild;
-            ctx.fillStyle = selected ? '#f5c542' : '#7b5aa6';
-            ctx.fillRect(pl.x * CELL + 2, pl.y * CELL + 2, CELL - 4, CELL - 4);
+            ctx.fillStyle = selected ? '#f5c542' : 'rgba(123,90,166,0.82)';
+            ctx.fillRect(pl.x * CELL + 4, pl.y * CELL + 4, CELL - 8, CELL - 8);
+            ctx.strokeStyle = selected ? '#fff' : '#d8c4f0';
+            ctx.lineWidth = 1 / scale;
+            ctx.strokeRect(pl.x * CELL + 4, pl.y * CELL + 4, CELL - 8, CELL - 8);
             ctx.fillStyle = '#fff';
-            ctx.fillText('🏠', pl.x * CELL + CELL / 2, pl.y * CELL + CELL / 2);
+            ctx.font = `${Math.max(8, CELL - 10)}px sans-serif`;
+            ctx.fillText('🏠', pl.x * CELL + CELL / 2, pl.y * CELL + CELL / 2 - (CELL * scale >= 20 && pl.name ? 2 : 0));
+            if (CELL * scale >= 20 && pl.name) {
+                const label = _ellipsize(pl.name, 14);
+                ctx.font = `${Math.max(3, Math.min(9, 10 / scale))}px sans-serif`;
+                ctx.strokeStyle = 'rgba(13,17,23,0.9)';
+                ctx.lineWidth = 2.5 / scale;
+                ctx.strokeText(label, pl.x * CELL + CELL / 2, pl.y * CELL + CELL - 3);
+                ctx.fillStyle = selected ? '#fff6cc' : '#f0e6ff';
+                ctx.fillText(label, pl.x * CELL + CELL / 2, pl.y * CELL + CELL - 3);
+            }
         });
         // Placed areas (task-528) sit in the same decor layer but are a different
-        // kind of thing — a node that already exists, not a child scope — so they
+        // kind of thing - a node that already exists, not a child scope - so they
         // get their own colour and a corner notch instead of the house glyph.
         (p.area_placements || []).forEach((a) => {
             const selected = a.id === state.selectedArea;
@@ -2778,10 +2721,14 @@
             ctx.strokeRect(a.x * CELL + 2.5, a.y * CELL + 2.5, CELL - 5, CELL - 5);
             // A name is worth showing when the cell is big enough to hold one;
             // at 1x the map is a mosaic and only the marker reads.
-            if (CELL * scale >= 26) {
-                ctx.fillStyle = '#d9f2e5';
+            if (CELL * scale >= 20 && a.name) {
+                const label = _ellipsize(a.name, 12);
                 ctx.font = '9px sans-serif';
-                ctx.fillText(_ellipsize(a.name, 12), a.x * CELL + CELL / 2, a.y * CELL + CELL + 8);
+                ctx.strokeStyle = 'rgba(13,17,23,0.9)';
+                ctx.lineWidth = 2.5 / scale;
+                ctx.strokeText(label, a.x * CELL + CELL / 2, a.y * CELL + CELL + 8);
+                ctx.fillStyle = '#d9f2e5';
+                ctx.fillText(label, a.x * CELL + CELL / 2, a.y * CELL + CELL + 8);
             }
         });
         ctx.restore();
@@ -2852,6 +2799,17 @@
     function _isPaintTool() {
         return state.tool === 'paint' || state.tool === 'erase';
     }
+    /**
+     * Whether the active tool actually acts on an N x N footprint.
+     *
+     * Paint and Erase stroke it; Route widens its trail with it in applyRoute.
+     * Every other tool (select, move, feature, area, inspect) acts on the one
+     * cell under the pointer, so showing the brush outline there promises a
+     * footprint the click never uses (bug-558).
+     */
+    function _toolUsesBrush() {
+        return _isPaintTool() || state.tool === 'route';
+    }
     function _strokeAdd(p, cell) {
         if (!cell)
             return false;
@@ -2895,7 +2853,24 @@
                     else
                         map[key] = value;
                     _notify(true);
+                    if (state.layers && state.layers.paint)
+                        state.layers.paint.batchDraw();
                     _redrawDecor();
+                    const estEl = state.overlay && state.overlay.querySelector('[data-role="wp-estimate"]');
+                    if (estEl) {
+                        const est = GM().estimateCompile(state.payload, state.merge);
+                        estEl.textContent = `≈ ${est.areas} areas · ${est.ways} ways`
+                            + (est.links ? ` · 🔗 ${est.links} linked` : '');
+                    }
+                    const hadNoPaint = Array.isArray(state.payload.blockers)
+                        && state.payload.blockers.some((b) => b && b.code === 'no-paint');
+                    if (hadNoPaint && Object.keys(map).length > 0) {
+                        state.payload.blockers = state.payload.blockers.filter((b) => !b || b.code !== 'no-paint');
+                        load(p.scope.id);
+                    }
+                    else if (!hadNoPaint && Object.keys(map).length === 0) {
+                        load(p.scope.id);
+                    }
                     return;
                 }
                 // Old server (or unexpected shape): fall back to the payload.
@@ -2950,6 +2925,22 @@
             }
             if (!_isPaintTool() || state.spaceDown)
                 return;
+            // Alt+click samples the active layer value under the cursor into the brush (task-879).
+            if (e.evt && e.evt.altKey) {
+                const cell = _cellAtPointer(p);
+                if (!cell)
+                    return;
+                const val = GM().cellValue(p, state.layer, cell.x, cell.y);
+                if (val !== undefined && val !== null && val !== '') {
+                    state.value = String(val);
+                    render();
+                    _status(`Sampled ${state.layer} "${state.value}" from cell (${cell.x}, ${cell.y}).`, false);
+                }
+                else {
+                    _status(`Cell (${cell.x}, ${cell.y}) has no paint on the ${state.layer} layer.`, false);
+                }
+                return;
+            }
             // A selection is the whole point of the Select tool: with cells
             // selected, a paint click is one batch over all of them rather than a
             // single-cell edit the author then has to repeat by hand.
@@ -2985,7 +2976,9 @@
             if (state.stroking && _strokeAdd(p, cell))
                 _redrawDecor();
             else if (cell) {
-                state.brushHover = _brushCells(p, cell.x, cell.y);
+                state.brushHover = _toolUsesBrush()
+                    ? _brushCells(p, cell.x, cell.y)
+                    : [{ x: cell.x, y: cell.y }];
                 _redrawDecor();
             }
             else {
@@ -3982,6 +3975,230 @@
         }));
         wrap.appendChild(_btn('Cancel', () => wrap.remove()));
         // Live at the bottom of the open panel so Apply/Cancel are always reachable.
+        state.body.appendChild(wrap);
+    }
+    /**
+     * Dialog to import a greyscale heightmap image into the floor layer (task-877).
+     *
+     * Converts pixel luminance (0..255) to metres in range [blackM, whiteM],
+     * then to whole storeys via round(metres / metresPerStorey).
+     * Resamples the image to the grid dimensions (w × h).
+     * Calculates the count of neighbouring pairs exceeding the scope's climb threshold.
+     * Commits as a single paint_batch undo step.
+     */
+    function _openHeightmapImportDialog(p) {
+        const existing = state.body.querySelector('[data-role="wp-heightmap-dialog"]');
+        if (existing)
+            existing.remove();
+        const wrap = _el('div', 'display:flex;flex-direction:column;gap:8px;padding:12px;' +
+            'border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
+            'background:var(--bg-card,#23232b);box-shadow:0 4px 16px rgba(0,0,0,0.4);');
+        wrap.setAttribute('data-role', 'wp-heightmap-dialog');
+        const head = _el('div', 'display:flex;align-items:center;justify-content:space-between;');
+        head.appendChild(_el('span', 'font-weight:600;font-size:13px;', 'Import Heightmap (Floor Layer)'));
+        head.appendChild(_btn('✕', () => wrap.remove(), 'padding:2px 8px;font-size:11px;', 'Close'));
+        wrap.appendChild(head);
+        const grid = p.grid || { w: 10, h: 10 };
+        const metresPerStorey = (state.vocab && state.vocab.metres_per_storey) || 3;
+        const scopeAny = p.scope;
+        const climbThreshold = (scopeAny && scopeAny.climb && scopeAny.climb.max_storey_step) != null
+            ? Number(scopeAny.climb.max_storey_step) : 3;
+        const info = _el('div', 'font-size:11px;color:var(--text-muted,#999);', `Grid size: ${grid.w}×${grid.h} · 1 storey step = ${metresPerStorey}m · Climb threshold: >${climbThreshold} storeys (${climbThreshold * metresPerStorey}m)`);
+        wrap.appendChild(info);
+        const fileRow = _el('div', 'display:flex;align-items:center;gap:8px;');
+        const fileInput = _el('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.setAttribute('data-role', 'wp-heightmap-file');
+        fileRow.appendChild(fileInput);
+        wrap.appendChild(fileRow);
+        const rangeRow = _el('div', 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;');
+        const mkNum = (label, defVal, role) => {
+            rangeRow.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', label));
+            const inp = _el('input', 'width:64px;padding:3px 6px;border-radius:5px;border:1px solid ' +
+                'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+            inp.type = 'number';
+            inp.value = String(defVal);
+            inp.setAttribute('data-role', role);
+            rangeRow.appendChild(inp);
+            return inp;
+        };
+        const blackInput = mkNum('Black (m):', 0, 'wp-heightmap-black');
+        const whiteInput = mkNum('White (m):', 60, 'wp-heightmap-white');
+        wrap.appendChild(rangeRow);
+        const previewBox = _el('div', 'font-size:11px;color:var(--text-muted,#999);padding:6px;' +
+            'background:var(--bg-dark,#1a1a20);border-radius:4px;min-height:36px;line-height:1.45;');
+        previewBox.setAttribute('data-role', 'wp-heightmap-preview');
+        previewBox.textContent = 'Select an image to preview conversion.';
+        wrap.appendChild(previewBox);
+        let parsedFloorEdits = null;
+        const updatePreview = (img) => {
+            const minM = parseFloat(blackInput.value) || 0;
+            const maxM = parseFloat(whiteInput.value) || 0;
+            const canvas = document.createElement('canvas');
+            canvas.width = grid.w;
+            canvas.height = grid.h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx)
+                return;
+            ctx.drawImage(img, 0, 0, grid.w, grid.h);
+            const imgData = ctx.getImageData(0, 0, grid.w, grid.h).data;
+            const floorMap = {};
+            const edits = [];
+            let minStorey = Infinity;
+            let maxStorey = -Infinity;
+            for (let y = 0; y < grid.h; y += 1) {
+                for (let x = 0; x < grid.w; x += 1) {
+                    const idx = (y * grid.w + x) * 4;
+                    const r = imgData[idx];
+                    const g = imgData[idx + 1];
+                    const b = imgData[idx + 2];
+                    const lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                    const metres = GM().luminanceToMetres(lum, minM, maxM);
+                    const storeys = GM().metresToStoreys(metres, metresPerStorey);
+                    const k = GM().cellKey(x, y);
+                    floorMap[k] = storeys;
+                    edits.push({ layer: 'floor', x, y, value: storeys });
+                    if (storeys < minStorey)
+                        minStorey = storeys;
+                    if (storeys > maxStorey)
+                        maxStorey = storeys;
+                }
+            }
+            parsedFloorEdits = edits;
+            const climbCliffs = GM().climbGatedSteps(grid, floorMap, climbThreshold);
+            previewBox.innerHTML = `Metres: <b>${minM}m</b> to <b>${maxM}m</b><br>`
+                + `Storeys: <b>${minStorey === Infinity ? 0 : minStorey}</b> to <b>${maxStorey === -Infinity ? 0 : maxStorey}</b><br>`
+                + `Climb-gated steps (> ${climbThreshold} storeys): <b>${climbCliffs}</b> cell pairs`;
+        };
+        let loadedImage = null;
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file)
+                return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedImage = img;
+                    updatePreview(img);
+                };
+                img.src = String(ev.target && ev.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+        [blackInput, whiteInput].forEach((inp) => inp.addEventListener('input', () => {
+            if (loadedImage)
+                updatePreview(loadedImage);
+        }));
+        const actions = _el('div', 'display:flex;gap:8px;justify-content:flex-end;margin-top:4px;');
+        const applyBtn = _btn('Apply to floor layer', async () => {
+            if (!parsedFloorEdits || !parsedFloorEdits.length) {
+                _status('No heightmap image loaded.', true);
+                return;
+            }
+            try {
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, {
+                    edits: parsedFloorEdits,
+                });
+                wrap.remove();
+                _notify(true);
+                render();
+                _status(`Heightmap imported: painted ${parsedFloorEdits.length} cells to floor layer.`, false);
+            }
+            catch (e) {
+                _status(`Heightmap import failed: ${e instanceof Error ? e.message : String(e)}`, true);
+            }
+        }, 'font-weight:600;');
+        applyBtn.setAttribute('data-role', 'wp-heightmap-apply');
+        actions.appendChild(applyBtn);
+        actions.appendChild(_btn('Cancel', () => wrap.remove()));
+        wrap.appendChild(actions);
+        state.body.appendChild(wrap);
+    }
+    /**
+     * Dialog to export the current floor layer as a greyscale PNG (task-877).
+     */
+    function _openHeightmapExportDialog(p) {
+        const existing = state.body.querySelector('[data-role="wp-heightmap-dialog"]');
+        if (existing)
+            existing.remove();
+        const wrap = _el('div', 'display:flex;flex-direction:column;gap:8px;padding:12px;' +
+            'border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
+            'background:var(--bg-card,#23232b);box-shadow:0 4px 16px rgba(0,0,0,0.4);');
+        wrap.setAttribute('data-role', 'wp-heightmap-dialog');
+        const head = _el('div', 'display:flex;align-items:center;justify-content:space-between;');
+        head.appendChild(_el('span', 'font-weight:600;font-size:13px;', 'Export Heightmap (Floor Layer)'));
+        head.appendChild(_btn('✕', () => wrap.remove(), 'padding:2px 8px;font-size:11px;', 'Close'));
+        wrap.appendChild(head);
+        const grid = p.grid || { w: 10, h: 10 };
+        const metresPerStorey = (state.vocab && state.vocab.metres_per_storey) || 3;
+        const floorMap = (p.layers && p.layers.floor) || {};
+        let minStorey = 0;
+        let maxStorey = 0;
+        for (let y = 0; y < grid.h; y += 1) {
+            for (let x = 0; x < grid.w; x += 1) {
+                const rawVal = floorMap[GM().cellKey(x, y)];
+                const s = rawVal != null ? Number(rawVal) : 0;
+                if (s < minStorey)
+                    minStorey = s;
+                if (s > maxStorey)
+                    maxStorey = s;
+            }
+        }
+        const minM = GM().storeysToMetres(minStorey, metresPerStorey);
+        const maxM = GM().storeysToMetres(maxStorey, metresPerStorey);
+        const info = _el('div', 'font-size:11px;color:var(--text-muted,#999);', `Grid: ${grid.w}×${grid.h} · Storeys: ${minStorey} to ${maxStorey} · Metres: ${minM}m to ${maxM}m`);
+        wrap.appendChild(info);
+        const rangeRow = _el('div', 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;');
+        const mkNum = (label, defVal, role) => {
+            rangeRow.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', label));
+            const inp = _el('input', 'width:64px;padding:3px 6px;border-radius:5px;border:1px solid ' +
+                'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+            inp.type = 'number';
+            inp.value = String(defVal);
+            inp.setAttribute('data-role', role);
+            rangeRow.appendChild(inp);
+            return inp;
+        };
+        const blackInput = mkNum('Black (m):', minM, 'wp-heightmap-export-black');
+        const whiteInput = mkNum('White (m):', Math.max(minM + 3, maxM), 'wp-heightmap-export-white');
+        wrap.appendChild(rangeRow);
+        const actions = _el('div', 'display:flex;gap:8px;justify-content:flex-end;margin-top:4px;');
+        const exportBtn = _btn('Download Heightmap PNG', () => {
+            const expMinM = parseFloat(blackInput.value) || 0;
+            const expMaxM = parseFloat(whiteInput.value) || (expMinM + 3);
+            const canvas = document.createElement('canvas');
+            canvas.width = grid.w;
+            canvas.height = grid.h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx)
+                return;
+            const imgData = ctx.createImageData(grid.w, grid.h);
+            for (let y = 0; y < grid.h; y += 1) {
+                for (let x = 0; x < grid.w; x += 1) {
+                    const idx = (y * grid.w + x) * 4;
+                    const s = floorMap[GM().cellKey(x, y)] != null ? floorMap[GM().cellKey(x, y)] : 0;
+                    const m = GM().storeysToMetres(s, metresPerStorey);
+                    const lum = GM().metresToLuminance(m, expMinM, expMaxM);
+                    imgData.data[idx] = lum;
+                    imgData.data[idx + 1] = lum;
+                    imgData.data[idx + 2] = lum;
+                    imgData.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+            const link = document.createElement('a');
+            link.download = `heightmap_${p.scope.id}_${expMinM}m_to_${expMaxM}m.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            wrap.remove();
+            _status(`Heightmap exported (${grid.w}×${grid.h}, ${expMinM}m to ${expMaxM}m).`, false);
+        }, 'font-weight:600;');
+        exportBtn.setAttribute('data-role', 'wp-heightmap-download');
+        actions.appendChild(exportBtn);
+        actions.appendChild(_btn('Cancel', () => wrap.remove()));
+        wrap.appendChild(actions);
         state.body.appendChild(wrap);
     }
     function _status(text, isError) {

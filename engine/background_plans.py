@@ -328,11 +328,15 @@ def _run(sim, p, plan, step):
         except (TypeError, ValueError):
             dur_minutes = None
         catch_target = step.get("catch_count_target")
+        start_kwargs = {}
+        if dur_minutes is not None:
+            start_kwargs["duration_minutes"] = dur_minutes
+        if catch_target is not None:
+            start_kwargs["catch_count_target"] = catch_target
         try:
             msg = sim.gs.activities.start_activity(
                 p.name, want, target_item, dur_ticks,
-                duration_minutes=dur_minutes,
-                catch_count_target=catch_target,
+                **start_kwargs,
             )
             record(p, sim.gs.time_ticks, "plan",
                    f"started {want} for {plan['label']}: {msg}",

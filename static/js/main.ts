@@ -766,6 +766,8 @@ async function updateClockStart(value: string) { SaveLoadView.updateClockStart(v
 // New empty scenario
 async function newScenario() {
     const voidWorld = {
+        _scenario_name: '',
+        name: '',
         players: {}, graph: { nodes: {}, edges: [] },
         time_ticks: 0, turn_number: 0, time_per_tick_minutes: 5,
         clock_start_hour: 8, clock_start_minute: 0
@@ -777,8 +779,16 @@ async function newScenario() {
         });
         const data = await resp.json();
         if (data.error) { toastError('Error: ' + data.error); return; }
+        document.body.dataset.scenarioName = '';
+        const nameText = document.getElementById('scenario-name-text');
+        if (nameText) nameText.textContent = 'unnamed';
+        const bg = (window as unknown as { GraphBackground?: { reset(): void } }).GraphBackground;
+        if (bg && typeof bg.reset === 'function') bg.reset();
+        try { events.clearAll(); } catch (e) {}
         toastInfo('New empty scenario created.');
-        worldState.fetch();
+        await worldState.fetch();
+        const scStatus = (window as unknown as { ScenarioStatus?: { refresh(): void } }).ScenarioStatus;
+        if (scStatus && typeof scStatus.refresh === 'function') scStatus.refresh();
     } catch(e: any) { toastError('Failed to create new scenario: ' + e.message); }
 }
 

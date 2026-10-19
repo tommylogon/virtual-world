@@ -23,7 +23,7 @@ Confirmed design 2026-10-02: 0 attended humans -> world advance with everyone in
 
 - [x] `engine/timeskip.everyone_soaking(gs)` is the single everyone-soaked span:
       snapshot every `simulation_mode`, force `background`, restore in `finally`.
-- [x] `advance_world` (no human) uses it — unchanged behaviour, one mechanism.
+- [x] `advance_world` (no human) uses it - unchanged behaviour, one mechanism.
 - [x] `advance` (one human) uses it: the ordering character still acts on its
       declared intent in step 1, and nobody holds a focused turn for the span.
 - [x] The restore also covers a `tick_turn` that raises.
@@ -32,10 +32,10 @@ Confirmed design 2026-10-02: 0 attended humans -> world advance with everyone in
 - [x] The route case is pinned: alone -> `mode: "character"` (blocks, declares no
       order) with the cast soaked mid-skip.
 - [ ] Live solo confirmation in the browser (a one-human `POST /api/world/timeskip`
-      with another character in the area) — **blocked**, see Progress.
-- [ ] Full pytest lane green — **blocked**, see Progress.
+      with another character in the area) - **blocked**, see Progress.
+- [ ] Full pytest lane green - **blocked**, see Progress.
 
-## Progress — 2026-10-02
+## Progress - 2026-10-02
 
 **Also fixes a display bug found on the way.** The soak-order envelope
 (`{ok, mode: "soak", order}`) carries no elapsed figures, but
@@ -54,7 +54,7 @@ guarded against and `advance` did not.
 
 **First attempt was wrong and the tests caught it.** Backgrounding *everyone*
 (hero included) handed the ordering character to the deterministic runner, which
-**moved them**: an `idle` ("wait here — do nothing") skip walked Arix out of the
+**moved them**: an `idle` ("wait here - do nothing") skip walked Arix out of the
 area, and because the social-approach seam is "a co-located background character
 reaches the active character" (`background_social.run_social_approach`), every
 co-located interrupt lost its subject. Two existing tests failed
@@ -62,7 +62,7 @@ co-located interrupt lost its subject. Two existing tests failed
 `test_vital_danger_interrupts_and_returns_control` now firing `threat:attack`
 before `vital:thirst`); both were confirmed mine by stubbing
 `everyone_soaking` back to a no-op, where they pass again. Fix: `everyone_soaking`
-takes `keep=` and `advance` passes the ordering character — the same rule a
+takes `keep=` and `advance` passes the ordering character - the same rule a
 declared soak order runs under, where `process_due` skips the ordered character so
 the generic need policy never competes with the declared intent.
 
@@ -73,15 +73,15 @@ discriminate. JS gates clean.
 
 **Verified in the browser** (second instance on :4455 so the live :4444 session
 was untouched; Jake flipped to `autonomy: true` there so the one-human branch was
-reachable). Real click-through — Game ▾ → Wait / Timeskip… → 30 min → Skip:
+reachable). Real click-through - Game ▾ → Wait / Timeskip… → 30 min → Skip:
 
 - response `mode: "character"` with `elapsed_minutes: 13`, `ticks: 13`,
-  `clock_after: "08:14:00"` — the blocking branch, not an order, and no
+  `clock_after: "08:14:00"` - the blocking branch, not an order, and no
   `undefined` anywhere;
 - **Arix stayed in `Chief's Pit`** while the cast moved (Eldenford Blacksmith /
   Elder / Farmer all relocated to `Road (world 18,3)` and `Road (world 15,7)`);
-- the social interrupt fired and ended the skip early — `Interrupted: Vekka jokes
-  with Arix.` — which is the regression the first attempt had killed;
+- the social interrupt fired and ended the skip early - `Interrupted: Vekka jokes
+  with Arix.` - which is the regression the first attempt had killed;
 - the dialog rendered `Elapsed: 13 min (13 ticks) → 08:14:00`, the interrupt line,
   the vitals deltas and the notable-lines tail.
 
@@ -97,20 +97,13 @@ they advanced.
 - `git stash` was not used (shared-worktree rule); the A/B was done by stubbing
   the new seam back to a no-op, which is behaviourally identical to its absence.
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Timeskip advances simulation ticks for all cast members across the world.
+- [x] NPC background schedules and vital decay execute across timeskip interval.
 
 ## Files
 
-- TODO
+- `engine/background_simulation.py`
+- `routes/time_ops.py`

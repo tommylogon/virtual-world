@@ -136,18 +136,36 @@ def _merge_always_cells(cells: List[Tuple[int, int]], cell_biome, cell_road
 
 
 
-def _merge_never_cells(cells: List[Tuple[int, int]], cell_biome, cell_road
+def _merge_never_cells(cells: List[Tuple[int, int]], cell_biome, cell_road,
+                       placements: Optional[Dict[str, dict]] = None
                        ) -> Set[Tuple[int, int]]:
-    """Cells whose kind says "never merge me" (task-564) - every building.
+    """Cells whose kind says "never merge me" (task-564) - every building and placed feature.
 
     A building cell is a **plot**: the terrace next door is another building, and a
     merged pair would be one house with one door and the wrong number of beds. The
     rule comes from :func:`biomes_mod.merge_rule`, which reads ``merge:never`` off
     the record and reports every building as never-merge without 31 records having
     to say so.
+
+    A cell holding a placed child scope (``placements``) is likewise its own plot:
+    two adjacent features painted with the same biome (e.g. ``Deep Woods`` and
+    ``West Woods`` on a world map) must stay distinct areas so each child scope gets
+    its own world-map area and gateway.
     """
-    return {c for c in cells
-            if biomes_mod.merge_rule(cell_biome(c) or cell_road(c)) == biomes_mod.MERGE_NEVER}
+    out = {c for c in cells
+           if biomes_mod.merge_rule(cell_biome(c) or cell_road(c)) == biomes_mod.MERGE_NEVER}
+    if placements:
+        cell_set = set(cells)
+        for pos in placements.values():
+            if not isinstance(pos, dict):
+                continue
+            try:
+                c = (int(pos["x"]), int(pos["y"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+            if c in cell_set:
+                out.add(c)
+    return out
 
 
 #: Storeys you may stride between on open ground before the step stops being a

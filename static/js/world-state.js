@@ -238,6 +238,16 @@ class WorldState {
             const resp = await fetch(url);
             const state = await resp.json();
             this.data = state;
+            if (state && typeof state === 'object') {
+                const scName = (typeof state._scenario_name === 'string' && state._scenario_name.trim()) ? state._scenario_name.trim() : '';
+                if (typeof document !== 'undefined' && document.body) {
+                    document.body.dataset.scenarioName = scName;
+                    const nameText = document.getElementById('scenario-name-text');
+                    if (nameText) {
+                        nameText.textContent = scName || 'unnamed';
+                    }
+                }
+            }
             this._syncTurnEvents(state);
             // Rebuild the turn queue if the roster changed (new/dead characters)
             // so freshly added characters join the initiative loop mid-run.
@@ -320,14 +330,28 @@ class WorldState {
             return {};
         }
     }
-    /** Graph node lookup helper — case-insensitive (ids are always lowercase) */
+    /** Graph node lookup helper - case-insensitive (ids are always lowercase) */
     getNode(id) {
-        if (!this.graph?.nodes)
-            return null;
-        if (this.graph.nodes[id])
-            return this.graph.nodes[id];
         const key = String(id).toLowerCase();
-        return this.graph.nodes[key] || null;
+        const nodes = this.graph?.nodes;
+        if (nodes) {
+            if (nodes[id])
+                return nodes[id];
+            if (nodes[key])
+                return nodes[key];
+        }
+        const gm = window.graphManager;
+        const gmObj = gm?._graphNodesObj;
+        if (gmObj) {
+            if (gmObj[id])
+                return gmObj[id];
+            if (gmObj[key])
+                return gmObj[key];
+        }
+        if (gm?.nodes) {
+            return gm.nodes.get(id) || gm.nodes.get(key) || null;
+        }
+        return null;
     }
     /** Find the parent node of a trigger node via the triggers edge */
     _findTriggerParent(triggerId) {

@@ -374,6 +374,7 @@ def handle_painter_vocabulary(app):
         "default_climate": world_grid.DEFAULT_CLIMATE,
         "layers": list(world_grid.PAINT_LAYERS),
         "modes": list(world_grid.MODES),
+        "metres_per_storey": world_grid.METRES_PER_STOREY,
     })
 
 
@@ -1144,6 +1145,8 @@ def handle_paint_batch(app, scope_id):
     except ValueError as exc:
         return _error(str(exc))
     _commit(app, manifest)
+    if data.get("slim") or request.args.get("slim") == "1":
+        return jsonify({"status": "painted", "count": count})
     return jsonify({"status": "painted", "count": count,
                     **_grid_payload(manifest, scope_id, app.world.graph)})
 

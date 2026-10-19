@@ -59,23 +59,16 @@ Tests: `tests/test_item_stacks.py` (take/decrement/last-unit, merge-on-drop,
 merge-on-put, split-id regression, unmarked-prop non-merge, authored content).
 `python -m pytest tests/test_item_stacks.py -q` -> 11 passed.
 
-Not done: a UI field for the `stackable` marker (inspector) — the marker is
+Not done: a UI field for the `stackable` marker (inspector) - the marker is
 engine-side; the item editor shows `uses`/`max_uses` already.
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Stackable items aggregate into pooled quantity nodes in area inventories.
+- [x] Picking up or dropping items adjusts stack quantities without creating duplicate nodes.
 
 ## Files
 
-- TODO
+- `engine/items.py`
+- `tests/test_items.py`

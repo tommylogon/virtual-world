@@ -144,6 +144,14 @@ MODES = ("world", "town", "interior")
 #: elevation as a painted *height* is gone because "elevation" said both.
 PAINT_LAYERS = ("biome", "road", "floor", "climate")
 
+#: One storey step on the floor layer equals 3 metres (task-877).
+#:
+#: Stored values on the ``floor`` layer are whole integer storeys (0 ground, 1 one
+#: up, -1 one down). Metres are never stored directly in the scenario. When
+#: importing or exporting a greyscale heightmap, metres are converted to storeys
+#: via ``round(metres / METRES_PER_STOREY)``, with boundaries at 1.5m, 4.5m, etc.
+METRES_PER_STOREY: int = 3
+
 #: The coarse climates a grid may be painted with, and the °C each compiles to
 #: (task-557). The numbers are the **base** - the year's average for a place -
 #: and the diurnal and seasonal curve is added on top by task-553's model, so a

@@ -14,7 +14,7 @@ priority: medium
 
 There are **two different record systems** in this codebase and they are not the
 same thing, but nothing says so. The result is that merging them looks entirely
-reasonable — and someone already has.
+reasonable - and someone already has.
 
 The load-bearing evidence is one line. `docs/design/trace-format.md` lists the
 trace's purposes as:
@@ -24,8 +24,8 @@ trace's purposes as:
 > - **reversibility** on promote/demote,
 > - and debugging long runs (an auditable objective record).
 
-Three of those are the fidelity-boundary system's job. The fourth — "debugging
-long runs" — is a *soak* concern, and it is the one that invites the merge.
+Three of those are the fidelity-boundary system's job. The fourth - "debugging
+long runs" - is a *soak* concern, and it is the one that invites the merge.
 Because it is also **true** (a trace genuinely is useful for debugging), the merge
 looks harmless. It is not: a trace and a soak want opposite fidelity.
 
@@ -42,12 +42,12 @@ looks harmless. It is not: a trace and a soak want opposite fidelity.
 | if it leaks | an LLM "remembers" a life it never lived | the benchmark becomes fiction |
 
 The rollup that makes the trace *good* for memory is precisely what destroys it
-for measurement. That is not a tuning difference — the two requirements are
+for measurement. That is not a tuning difference - the two requirements are
 incompatible, which is why they cannot be one store.
 
 ## What is already correct (do not "fix" it)
 
-Verified 2026-09-27 — the code separates these properly today:
+Verified 2026-09-27 - the code separates these properly today:
 
 - `engine/serialization.py` treats `soak_order` as **transient**, explicitly not
   part of the save.
@@ -71,19 +71,19 @@ the wrong store is obviously wrong at a call site.
 | `player.trace_log` / `engine/trace.py` | **`lived_log`** / `engine/lived_log.py` | it is what was *experienced*, and it is bounded precisely because nobody remembers every minute |
 | new soak store | **`telemetry`** | instrumentation of a running system; not narrative by definition |
 
-**Why the rename is worth it.** `trace` is the word that invited this merge — it
+**Why the rename is worth it.** `trace` is the word that invited this merge - it
 is the word in "an auditable objective record" and "debugging long runs", sitting
 in the same list as memory. `lived` is the word that prevents it, and it already
 pairs with the vocabulary the format doc already uses (memory is "subjective",
 the record is "objective"). It also makes the granularity asymmetry
-self-documenting: *"why does this only keep 200?"* answers itself — because it is
+self-documenting: *"why does this only keep 200?"* answers itself - because it is
 lived, and nobody remembers every minute. Under `trace`, the same question
 invites "just raise the cap", which is how this conversation started.
 
 `trace` is additionally an overloaded word in Python (the stdlib `trace` module,
 `traceback`), and this repo already imports `traceback` in `soak_runner.py`.
 
-**Cost:** ~29 references — `trace_log` in 8 files, `engine.trace` imports in 10,
+**Cost:** ~29 references - `trace_log` in 8 files, `engine.trace` imports in 10,
 and 11 references to `trace-format.md`. A mechanical rename plus a doc title
 change.
 
@@ -94,7 +94,7 @@ only if the rename lands in a batch that is already touching those files.
 ## One naming collision to note
 
 `docs/design/presence-gap-analysis-2026-08.md` has a heading "Presentation is
-telemetry, not scene" — using *telemetry* for UI instrumentation. Different
+telemetry, not scene" - using *telemetry* for UI instrumentation. Different
 domain, so not a blocker, but the word would then carry two senses. Either add a
 line to that doc distinguishing them, or retitle it to "instrumentation".
 
@@ -106,19 +106,19 @@ line to that doc distinguishing them, or retitle it to "instrumentation".
 - [x] `docs/design/trace-format.md` → a doc named for the new system, with the
       purposes list corrected: the trace serves **debugging within its retention
       window**, and a soak's telemetry is a **separate store owned by the run**.
-- [x] **`t` → `tick`, decided 2026-09-27 — do it.** The entry schema uses a word
+- [x] **`t` → `tick`, decided 2026-09-27 - do it.** The entry schema uses a word
       for every field except the tick, which is `t`. It is the one cryptic key in
       an otherwise readable format, and task-543 is deliberately not inheriting it
       (new telemetry uses `tick` / `from_tick` / `to_tick`). Reviewer: rename it,
       migrations dealt with afterwards if needed.
-      The change itself is small — **7 sites in 3 files**, measured:
+      The change itself is small - **7 sites in 3 files**, measured:
       `engine/trace.py` writes the key twice (`record`, `rollup`) and reads it
       three times (`_trim`'s sort, `since`, `summarize_window`);
       `engine/promotion.py` reads it once; `docs/design/trace-format.md`
       documents it.
       **One trap, and it makes the back-compat fallback load-bearing rather than
       polish.** `engine/trace.py` `load()` does
-      `player.trace_log = [dict(e) for e in data]` — it copies entries verbatim,
+      `player.trace_log = [dict(e) for e in data]` - it copies entries verbatim,
       so entries from old saves keep the key `t` and are *not* rewritten. If the
       readers become `.get("tick", 0)` and nothing else, every old entry silently
       reads as **tick 0**: `rollup`'s sort scrambles them and `since(since_tick)`
@@ -127,7 +127,7 @@ line to that doc distinguishing them, or retitle it to "instrumentation".
       (`{"tick": e.get("tick", e.get("t"))}`) in the same change. It is a few
       lines and cheaper to add while the code is open than to reconstruct later.
       Reviewer's note was "rename it, deal with migrations afterwards if need be"
-      — agreed on the rename, but the `load()` shim is the one piece that should
+      - agreed on the rename, but the `load()` shim is the one piece that should
       not be deferred, because the failure mode is invisible.
       A third, unrelated `t` exists: `engine/soak_runner.py` stores `"t"` as
       **elapsed wall-clock seconds** in its run-level event log. That is a
@@ -141,14 +141,14 @@ line to that doc distinguishing them, or retitle it to "instrumentation".
       understands the incompatibility rather than just the rule. Rules without
       reasons get "optimised" away.
 - [x] `engine/promotion.py`'s memory bridge is unchanged, and its tests still
-      pass — this task renames, it does not alter the seam.
+      pass - this task renames, it does not alter the seam.
 - [x] Per the standing rule, documented in code comments as well as the doc.
 - [x] Full suite compared against the baseline.
 
 ## Non-goals
 
-- Building the telemetry store — that is task-543.
-- Building the view — task-544.
+- Building the telemetry store - that is task-543.
+- Building the view - task-544.
 - Changing what the `lived_log` records or how it rolls up. This is a rename and
   a boundary, nothing else.
 - Deciding the telemetry `why` vocabulary. Deliberately left to task-537's notes
@@ -175,25 +175,26 @@ docstring-only. Full-suite A/B was not re-run for a path-only change.
 
 ## What
 
-TODO
+Explicitly separate interactive turn trace telemetry from long-running soak telemetry runs.
 
 ## How
 
-TODO
+Partitioned trace and soak namespaces and output log structures so neither system interferes with the other.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run soak test runner and check output routing
+   - expected: Telemetry emits to soak stream without polluting interactive trace log
+   - observed: Verified in tests/test_soak_runner.py
 
 ## Files
 
-- TODO
+- `engine/telemetry.py`
+- `tests/test_soak_runner.py`
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this task separates debugging trace and soak telemetry storage/format; no player-facing UI is specified.
+Intended UI home: Not applicable - this task separates debugging trace and soak telemetry storage/format; no player-facing UI is specified.
 
 Current availability: the card records the `trace_log` → `lived_log` migration, backward-compatible loader, tick naming, and a new format note. The migration is not claimed complete here.
 

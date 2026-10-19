@@ -46,25 +46,25 @@ Two findings the page records that differ from the task's shorthand:
 
 ## Why
 
-TODO
+Document the unified item action model (reach, take, gate, depletion, components) so actions have consistent precondition and depletion contracts.
 
 ## How
 
-TODO
+Authored reference documentation in `docs/virtualWorld/Items & Equipment/Item Action Model.md`.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Inspect Item Action Model reference documentation
+   - expected: Document defines reach, take, gate, depletion, and components contracts
+   - observed: Verified in docs/virtualWorld/Items & Equipment/Item Action Model.md
 
 ## Files
 
-- TODO
+- `docs/virtualWorld/Items & Equipment/Item Action Model.md`
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this card's deliverable is the canonical technical reference for item actions, reach, depletion, containers, and component contracts; it does not add a player-facing screen.
+Intended UI home: Not applicable - this card's deliverable is the canonical technical reference for item actions, reach, depletion, containers, and component contracts; it does not add a player-facing screen.
 
 Current availability: the page documents the `take` capability gate, `item_reach`, depletion branches, containment nesting, and the planned part/component contract. Its link check is recorded as passing; “registered in docs index” has no separate index per the card.
 

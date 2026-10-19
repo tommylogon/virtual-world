@@ -24,7 +24,7 @@ Players want to express quantity when using items on a target: "use 2 kindling i
 
 ## How
 
-- Doable now with LLM response params — no engine rework.
+- Doable now with LLM response params - no engine rework.
 - Model emits a structured action: `{action:"use_on", item:"eggs", amount:2, target:"pan"}`.
 - Add amount/quantity parsing to the use-on action handler, defaulting to 1 when absent so existing behavior is unchanged.
 - Trigger/effect path consumes N uses of the item (decrement uses/item count by the parsed amount) and emits the right narrative.
@@ -32,20 +32,16 @@ Players want to express quantity when using items on a target: "use 2 kindling i
 
 ## Files
 
-- `routes/action.py` — accept and forward `amount` in the use-on action payload.
-- `engine/item_actions.py` — parse amount, validate against item quantity, consume N uses, emit narrative.
-- `static/js/agent/prompt-builder.js` — instruct the model to emit `amount` for use-on actions.
+- `routes/action.py` - accept and forward `amount` in the use-on action payload.
+- `engine/item_actions.py` - parse amount, validate against item quantity, consume N uses, emit narrative.
+- `static/js/agent/prompt-builder.js` - instruct the model to emit `amount` for use-on actions.
+
 
 ## What
 
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+Enable `use <count> <item> on <target>` syntax to consume or apply multiple pooled units in a single turn.
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Command parser extracts quantity count for pooled item interactions.
+- [x] Action deducts specified quantity from inventory stack.

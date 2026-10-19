@@ -394,3 +394,30 @@ test('afterApply refreshes the system prompt against the post-Apply world', () =
     assertTrue(loop.messages[0].role === 'system', 'index 0 stays the system prompt');
     assertTrue(loop.messages[0].content !== 'STALE PROMPT', 'system prompt rebuilt after Apply');
 });
+
+test('ToolRouter execute handles list_world_issues with filtering and severity breakdown', async () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const mockIssues = [
+        { code: 'empty_trigger', severity: 'warning', message: 'Trigger has no effects', source_node_id: 'trig_1' },
+        { code: 'dangling_way', severity: 'error', message: 'Way missing target area', source_node_id: 'way_1' },
+        { code: 'mechanical_tag_missing_props', severity: 'info', message: 'Missing temperature', source_node_id: 'area_1' }
+    ];
+
+    const origApi = window.ApiClient;
+    window.ApiClient = {
+        get: async (url) => ({ issues: mockIssues })
+    };
+
+    try {
+        const res = await router.execute('list_world_issues', { severity: 'warning' });
+
+        assertEq(res.count, 1, 'count reflects severity filter');
+        assertEq(res.issues.length, 1);
+        assertEq(res.issues[0].code, 'empty_trigger');
+        assertEq(res.by_severity.warning, 1);
+        assertEq(res.by_severity.error, 0);
+    } finally {
+        window.ApiClient = origApi;
+    }
+});

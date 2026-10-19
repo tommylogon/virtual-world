@@ -3,13 +3,13 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: ['"\'task-409\'"', '"\'task-426\'"', '"\'task-685\'"', '"\'task-699\'"', '"\'task-701\'"', '"\'task-702\'"', '"\'task-822\'"', '"\'task-849\'"', "'task-822'", "'task-849'", 'task-822', 'task-849']
+related: ['task-409', 'task-426', 'task-685', 'task-699', 'task-701', 'task-702', 'task-822', 'task-849']
 blocked_by: [task-701, task-702, task-705]
 ---
 
 # task-704: Pursuit selection from goals, needs, memory, perception, and world time
 
-**System name:** the **MOSIAC** selector — the *Choice* step of MOSIAC (Motivation, Obligations, Schedules, Intentions, Attention, Choice). It reads those inputs and binds a plan.
+**System name:** the **MOSIAC** selector - the *Choice* step of MOSIAC (Motivation, Obligations, Schedules, Intentions, Attention, Choice). It reads those inputs and binds a plan.
 
 **Clarified:** 2026-10-05
 
@@ -34,7 +34,7 @@ score(action) = disposition_weights . action_features + goal_alignment(action, a
 
 ## Acceptance
 
-- [ ] Selection runs on meaningful triggers—need signals, mission offer/acceptance, Activity completion or interruption, pursuit completion/invalidation, relevant perception/memory, or schedule/calendar cue—not once per simulation tick.
+- [ ] Selection runs on meaningful triggers-need signals, mission offer/acceptance, Activity completion or interruption, pursuit completion/invalidation, relevant perception/memory, or schedule/calendar cue-not once per simulation tick.
 - [ ] Candidate pursuits come from the shared character-agnostic template library or explicit actor-authored content. The selector binds only targets and facts supported by the actor's knowledge and the authoritative world.
 - [ ] Each bound pursuit carries a readable character reason and structured objective, where, when, supplies/requirements, stop condition, and progress fields. A character's hoped-for consequence is prose/motive; actual consequences are determined by world and relationship rules.
 - [ ] Personality can shape goal weights and soft preferences. It cannot create an item, route, skill, permission, or outcome that the world does not support.

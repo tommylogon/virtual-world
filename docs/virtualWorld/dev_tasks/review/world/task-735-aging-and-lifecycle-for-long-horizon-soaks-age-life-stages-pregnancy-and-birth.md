@@ -52,15 +52,15 @@ Make a 10-year soak credible: a character has an age that advances with sim time
 
 `age` only means something with a clock. The system:
 
-- **Age** — a birth tick (or an authored starting age resolved to a birth tick
+- **Age** - a birth tick (or an authored starting age resolved to a birth tick
   from the world's current date), so `age = elapsed / year`. Advances with sim
   time, not wall time.
-- **Life stages** — child / adolescent / adult / elder, gating behaviour,
+- **Life stages** - child / adolescent / adult / elder, gating behaviour,
   capability and fertility. Feeds prose and prompts (task-733's `age` field).
-- **Fertility + pregnancy** — conception given willingness, fertility by stage,
+- **Fertility + pregnancy** - conception given willingness, fertility by stage,
   gestation over sim time, birth, and the outcome (a child) becoming a real
   character (spawn-character, task-295) placed at the parent's location.
-- **Death by age** — lifespan by species, so a 10-year soak actually loses people.
+- **Death by age** - lifespan by species, so a 10-year soak actually loses people.
 
 This is a demographics/lifecycle layer over the background simulation, not two
 fields. `pronouns` (task-733) is the prose side and is trivial by comparison.
@@ -87,7 +87,7 @@ per character.
   (`engine/lifecycle.py`: birth_tick + elapsed sim time; child/adolescent/adult/elder; transitions emit turn events. 9 tests in `tests/test_lifecycle.py`.)
 - [ ] Fertility/willingness can result in pregnancy → gestation → birth over sim
   time, and the child exists as a character afterwards.
-  (Split to task-846 — consent-gated system of its own, not clock work.)
+  (Split to task-846 - consent-gated system of its own, not clock work.)
 - [x] Death by old age is possible.
   (Annual probabilistic roll past species lifespan via `world.kill_player`; bounded to one roll per game-year.)
 - [x] `age` and `pronouns` are available to prose/prompts.
@@ -106,17 +106,18 @@ per character.
 
 ## Why
 
-TODO
+Long-horizon simulation soaks required persistent life stages, chronological aging, pregnancy progression, and death.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Advance simulation calendar by one year
+   - expected: Character age advances and life stages transition at configured thresholds
+   - observed: Verified in tests/test_lifecycle.py
 
 ## Files
 
-- TODO
+- `engine/lifecycle.py`
+- `tests/test_lifecycle.py`
 
 ## Browser UI and intended live verification
 

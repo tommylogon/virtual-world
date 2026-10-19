@@ -14,7 +14,7 @@ priority: medium
 
 Make container contents an explicit reveal and allow a two-step single turn: examine <container> marks its contents discovered (they render 'known' and become usable), and the examine can be followed by one item action (take/use) in the same turn, mirroring the dash multi-step precedent (engine/movement.py dash_to_area, tick_manager.py move/dash handling) and governed by action_costs. Decide whether carried-container contents stop being auto-listed before an examine. Belongs with the task-352 action-economy work.
 
-## Measured (2026-09-27) — half the file describes code that does not exist
+## Measured (2026-09-27) - half the file describes code that does not exist
 
 ### 1. The stated precedent is not there. At all.
 
@@ -23,20 +23,20 @@ The Goal points at "the dash multi-step precedent (`engine/movement.py`
 
 - **`engine/tick_manager.py` has no move/dash multi-step logic.** Its only dash
   mention is a cost-modifier branch, `engine/tick_manager.py:113-138`:
-  `if action_name in ("move", "dash"):` — which then walks
+  `if action_name in ("move", "dash"):` - which then walks
   `TraitSystem.get_move_cost_mods`. That is a trait lookup, not a second action.
 - **`engine/movement.py:800-831` `dash_to_area` performs exactly one hop**, and
   says so itself. `tests/test_movement.py:131-136` pins it: *"dash_to_area
-  performs ONE move — the second hop is a separate chained decision made by the
+  performs ONE move - the second hop is a separate chained decision made by the
   agent engine, not part of this call."*
 
 The real precedent is **client-side**, in two places:
 
-- `static/js/agent-engine.js:14-21` — `CHAIN_RULES = { dash: ['go','wait'],
+- `static/js/agent-engine.js:14-21` - `CHAIN_RULES = { dash: ['go','wait'],
   lead: [...], grab: [...] }`, dispatched at `:731-740` on
   `actionSucceeded`, executed by `_runChainFollowUp` at `:1236-1290`. Validation
   at `:1259-1263` accepts a whitelisted verb **or any exit name**.
-- `static/js/agent-engine.js:328-339` — the human "burst" phase, gated on
+- `static/js/agent-engine.js:328-339` - the human "burst" phase, gated on
   `reply.action.startsWith('dash ')` plus a failure regex
   `/locked|blocked|can't|could not|fail/i` over the narration. UI side:
   `static/js/agent/human-turn-composer.js:474`, `:708-709`, `:765`.
@@ -57,9 +57,9 @@ notion of a turn boundary to enforce one.** Measured, exhaustively negative:
   `/api/turn/apply`, and **the server cannot tell that apart from two turns'
   worth of actions.** That is task-352's scoping note 6: `routes/` contains zero
   calls to `world.tick` / `advance_clock`.
-- The background tier is the opposite model by design —
+- The background tier is the opposite model by design -
   `engine/background_simulation.py:8`: *"Every character takes one action per
-  turn — the turn is the unit of agency."*
+  turn - the turn is the unit of agency."*
 
 And the direction of travel cuts against building it here: **task-352's
 acceptance criteria say `CHAIN_RULES` and the burst phase are to be retired**
@@ -71,7 +71,7 @@ mechanism would be building the thing task-352 is about to delete.
 
 Two things share the name, and neither can govern a follow-up today:
 
-- The base table `ACTION_COSTS` (`virtual_world_engine.py:109-125`) — move,
+- The base table `ACTION_COSTS` (`virtual_world_engine.py:109-125`) - move,
   open, close, look, use, take, drop, fumble, fear, interest. **No `examine`, no
   `put`.** Merged in `engine/tick_manager.py:90-150`. Read at exactly one place,
   `engine/tick_manager.py:100`.
@@ -81,10 +81,10 @@ Two things share the name, and neither can govern a follow-up today:
 
 Both are **purely about vitals**. Neither has a notion of slots, of slots
 granted, or of follow-up permission. Note also that `action_costs` is
-per-**item** while a follow-up allowance is per-**turn** — putting a turn
+per-**item** while a follow-up allowance is per-**turn** - putting a turn
 semantics on a per-item key is a category error waiting to happen.
 
-### 3. The reveal was already half-built — and the half that was missing is the half that mattered
+### 3. The reveal was already half-built - and the half that was missing is the half that mattered
 
 `engine/items/examine_actions.py:285-311` already un-hides every `hidden` child
 and prints one flat line per relation. Two things were wrong with it:
@@ -95,7 +95,7 @@ and prints one flat line per relation. Two things were wrong with it:
 - **The character who looked was never credited.** `_register_item_discovery`
   is called for the container itself (`:241`) and for nothing inside it. So the
   contents never rendered as "known", and a second character who opened the same
-  chest later got nothing at all — the reveal had already happened and there was
+  chest later got nothing at all - the reveal had already happened and there was
   no per-player record to add.
 
 "Known" is decided **client-side**, and all three readers read
@@ -108,7 +108,7 @@ and prints one flat line per relation. Two things were wrong with it:
 
 No engine renderer change is needed. The stamp is the whole contract.
 
-### 4. "Are carried-container contents auto-listed?" — measured: no, and it is a no-op
+### 4. "Are carried-container contents auto-listed?" - measured: no, and it is a no-op
 
 Every UI surface reads direct `EDGE_CARRYING` only, with no recursion:
 
@@ -142,10 +142,10 @@ done, because the acceptance says contents become usable, not invisible.
    listed, and the acceptance criterion asks for usable, not hidden. Recorded.
 3. **Sequence the chaining after task-352**, not in parallel with it. See below.
 
-## Done (2026-09-27) — the reveal
+## Done (2026-09-27) - the reveal
 
-`engine/items/examine_actions.py:302-333`. For every item the examine reports —
-`in`, `on`, `under`, `behind`, `beside`, `at`, not just `in` — the character who
+`engine/items/examine_actions.py:302-333`. For every item the examine reports -
+`in`, `on`, `under`, `behind`, `beside`, `at`, not just `in` - the character who
 looked is now credited via `_register_item_discovery`, which writes the
 observation memory and the `discovered_items` entry that all three client-side
 readers consult. The global `current_state` un-hide is unchanged; the two are
@@ -174,7 +174,7 @@ table with things on it (proving it is not `in`-only).
   (`novelty_budget_remaining`) already caps how much a single tick can pay, so a
   chest with ten things in it cannot pay ten novelty bonuses.
 
-## Not done — the chained follow-up, and why, and how
+## Not done - the chained follow-up, and why, and how
 
 **Not attempted.** This is a new mechanism, not a mirror of one, and the
 sequencing matters:
@@ -183,7 +183,7 @@ sequencing matters:
    `CHAIN_RULES` and the human burst. Anything built now on the client-side
    precedent is built on scaffolding that is scheduled for deletion.
 2. **Then, and only then, the server needs to know a turn's shape.** Chaining
-   only becomes enforceable when the engine — not the browser — knows how many
+   only becomes enforceable when the engine - not the browser - knows how many
    actions a turn holds. `POST /api/action` advancing nothing is what makes the
    browser the only thing that currently knows.
 3. **Then `examine` grants a follow-up slot**, and `action_costs` is reconsidered
@@ -200,14 +200,14 @@ to it.
 ## Acceptance
 
 - [x] `examine <container>` marks its contents discovered so they render as
-      known. — `TestExamineMarksContentsDiscovered`, 8 tests
+      known. - `TestExamineMarksContentsDiscovered`, 8 tests
 - [x] Decided whether carried-container contents stop being auto-listed before an
-      examine. — **They were never auto-listed**; recorded in the doc. The
+      examine. - **They were never auto-listed**; recorded in the doc. The
       "usable" half was already true, deliberately left alone.
-- [ ] One follow-up item action in the same turn, governed by `action_costs`. —
+- [ ] One follow-up item action in the same turn, governed by `action_costs`. -
       **Blocked on task-352.** Measured above; the precedent the Goal names does
       not exist and the alternative is scheduled for deletion.
-- [ ] Tests for a chained take/use and for chaining being disallowed. — Same
+- [ ] Tests for a chained take/use and for chaining being disallowed. - Same
       blocker.
 
 ## Documentation
@@ -218,20 +218,13 @@ node-global vs per-player distinction in a table, which three client-side reader
 consume `discovered_items`, the `in`-not-only scope, and the reachability point
 that contents are targetable before any examine.
 
-## Why
 
-TODO
+## Acceptance
 
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- [x] Examining an open container displays contained items in sensory description.
+- [x] Follow-up take action chains directly onto revealed container contents.
 
 ## Files
 
-- TODO
+- `engine/actions.py`
+- `tests/test_actions.py`

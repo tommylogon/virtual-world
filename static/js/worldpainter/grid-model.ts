@@ -207,6 +207,78 @@ type Vocabulary = any;
     }
 
     /**
+     * Convert metres to whole storeys: `round(metres / metresPerStorey)` (task-877).
+     *
+     * Boundaries for 3 m/storey fall at 1.5 m, 4.5 m, 7.5 m, etc.
+     * Rounding uses standard Math.round.
+     */
+    function metresToStoreys(metres: number, metresPerStorey?: number | null): number {
+        const m = Number(metres);
+        if (!Number.isFinite(m)) return 0;
+        const scale = (metresPerStorey && metresPerStorey > 0) ? metresPerStorey : 3;
+        return Math.round(m / scale);
+    }
+
+    /** Convert whole storeys to metres: `storeys * metresPerStorey` (task-877). */
+    function storeysToMetres(storeys: number, metresPerStorey?: number | null): number {
+        const s = Number(storeys);
+        if (!Number.isFinite(s)) return 0;
+        const scale = (metresPerStorey && metresPerStorey > 0) ? metresPerStorey : 3;
+        return Math.round(s) * scale;
+    }
+
+    /**
+     * Interpolate greyscale luminance (0..255) into a metre range [minM, maxM].
+     */
+    function luminanceToMetres(luminance: number, minM: number, maxM: number): number {
+        const lum = Math.max(0, Math.min(255, Number(luminance) || 0));
+        const fraction = lum / 255.0;
+        return minM + fraction * (maxM - minM);
+    }
+
+    /**
+     * Map a metre value into 0..255 greyscale luminance given a metre range [minM, maxM].
+     */
+    function metresToLuminance(metres: number, minM: number, maxM: number): number {
+        if (maxM <= minM) return 0;
+        const m = Math.max(minM, Math.min(maxM, Number(metres) || 0));
+        const fraction = (m - minM) / (maxM - minM);
+        return Math.round(fraction * 255);
+    }
+
+    /**
+     * Count neighbouring cell pairs whose storey delta strictly exceeds maxStoreyStep.
+     *
+     * Checks orthogonal neighbouring pairs (E and S of each cell) so each seam is
+     * counted once. Unpainted cells are ground (0 storeys).
+     */
+    function climbGatedSteps(grid: { w: number; h: number }, floorMap: Record<string, number>, maxStoreyStep?: number | null): number {
+        const w = (grid && grid.w) || 0;
+        const h = (grid && grid.h) || 0;
+        const limit = (maxStoreyStep != null && maxStoreyStep >= 0) ? maxStoreyStep : 3;
+        let count = 0;
+        for (let y = 0; y < h; y += 1) {
+            for (let x = 0; x < w; x += 1) {
+                const k = cellKey(x, y);
+                const cur = floorMap[k] != null ? floorMap[k] : 0;
+                // East neighbour
+                if (x + 1 < w) {
+                    const eK = cellKey(x + 1, y);
+                    const eVal = floorMap[eK] != null ? floorMap[eK] : 0;
+                    if (Math.abs(cur - eVal) > limit) count += 1;
+                }
+                // South neighbour
+                if (y + 1 < h) {
+                    const sK = cellKey(x, y + 1);
+                    const sVal = floorMap[sK] != null ? floorMap[sK] : 0;
+                    if (Math.abs(cur - sVal) > limit) count += 1;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
      * Bresenham line of cells from *a* to *b*, inclusive. The route tool uses
      * this so a two-click route paints the exact cells a straight trail covers
      * (a hand-rolled line rasteriser is standard, not a wheel worth a library).
@@ -406,7 +478,9 @@ type Vocabulary = any;
                              at(k, 1, 1), at(k, -1, 1), at(k, 1, -1), at(k, -1, -1)];
 
         // One region per cell, or a same-identity flood-fill (8-neighbour) region
-        // under merge.
+        // under merge. Cells holding a placed child scope (placements) never merge
+        // with adjacent same-biome cells so each placed feature stays its own area.
+        const placedFeatures = featureMap(payload);
         const regionOf: Record<string, number> = {};
         let rid = 0;
         if (!regionMerge) {
@@ -414,13 +488,17 @@ type Vocabulary = any;
         } else {
             liveCells.forEach((start) => {
                 if (regionOf[start] != null) return;
+                if (placedFeatures[start]) {
+                    regionOf[start] = rid++;
+                    return;
+                }
                 const kind = identity(start);
                 const stack: string[] = [start];
                 regionOf[start] = rid;
                 while (stack.length) {
                     const k = stack.pop() as string;
                     ring(k).forEach((nk: string | null) => {
-                        if (nk && present[nk] && regionOf[nk] == null && identity(nk) === kind) {
+                        if (nk && present[nk] && !placedFeatures[nk] && regionOf[nk] == null && identity(nk) === kind) {
                             regionOf[nk] = rid;
                             stack.push(nk);
                         }
@@ -945,7 +1023,7 @@ type Vocabulary = any;
     // backend already serves (`handle_painter_vocabulary`). These helpers group,
     // filter and describe tiles with no DOM, so the editor renders and the unit
     // tests assert the same derivation. The rail is derived from the record's
-    // own `terrain` + `tags` — never a hand-kept category list, which would be a
+    // own `terrain` + `tags` - never a hand-kept category list, which would be a
     // second taxonomy beside `biomes.json`.
 
     /** A vocabulary record as the painter receives it (see the route). */
@@ -1008,8 +1086,8 @@ type Vocabulary = any;
 
     /**
      * One line describing a tile (task-596): what it is, and what it does, from
-     * the same record the compiler reads. `Bridge — A span… · crosses river,
-     * ravine · "cross the bridge"` versus `Road — A worn track…`.
+     * the same record the compiler reads. `Bridge - A span... · crosses river,
+     * ravine · "cross the bridge"` versus `Road - A worn track...`.
      */
     function tileDetail(layer: string, rec: PaletteEntry): string {
         const name = rec.name || rec.id || '';
@@ -1018,7 +1096,7 @@ type Vocabulary = any;
             const bits = [desc];
             if ((rec.biomes || []).length) bits.push('crosses ' + (rec.biomes || []).join(', '));
             if (rec.entry_phrase) bits.push('\u201c' + rec.entry_phrase + '\u201d');
-            return (name + ' \u2014 ' + bits.filter(Boolean).join(' \u00b7 ')).replace(/ \u2014 $/, '');
+            return (name + ' - ' + bits.filter(Boolean).join(' \u00b7 ')).replace(/ - $/, '');
         }
         if (layer === 'biome') {
             const tags = (rec.tags || []).map((t) => String(t).toLowerCase());
@@ -1032,9 +1110,9 @@ type Vocabulary = any;
             const bits = [desc, kind];
             if (rec.surface) bits.push('ground ' + rec.surface);
             if (rec.refusal) bits.push(rec.refusal);
-            return name + ' \u2014 ' + bits.filter(Boolean).join(' \u00b7 ');
+            return name + ' - ' + bits.filter(Boolean).join(' \u00b7 ');
         }
-        return (name + ' \u2014 ' + desc).replace(/ \u2014 $/, '');
+        return (name + ' - ' + desc).replace(/ - $/, '');
     }
 
     /** Labelled rows for the palette's detail panel; absent fields are omitted. */
@@ -1071,6 +1149,10 @@ type Vocabulary = any;
         return rows;
     }
 
+    // Memoize paletteSections by (layer, entry-id signature) so repeated calls
+    // across renders and value changes return the cached grouping (task-776).
+    const _paletteSectionsMemo = new Map<string, PaletteSection[]>();
+
     /**
      * Group the layer's records into rail sections. Derived entirely from each
      * record's `terrain` and `tags`:
@@ -1081,11 +1163,19 @@ type Vocabulary = any;
      * A layer without groups (road/climate) is a single section.
      */
     function paletteSections(layer: string, entries: PaletteEntry[]): PaletteSection[] {
-        const tiles: PaletteTile[] = (entries || []).filter((e) => e && e.id)
+        const list = entries || [];
+        const sig = layer + ':' + list.map((e) => (e && e.id) || '').join(',');
+        const cached = _paletteSectionsMemo.get(sig);
+        if (cached && list.length > 0 && cached.reduce((n, s) => n + s.tiles.length, 0) === list.filter((e) => e && e.id).length) {
+            return cached;
+        }
+        const tiles: PaletteTile[] = list.filter((e) => e && e.id)
             .map((e) => ({ id: String(e.id), name: e.name || String(e.id), kind: tileKind(layer, e), rec: e }));
         if (layer !== 'biome') {
             const only: PaletteSection = { id: layer, label: titleCase(layer), tiles };
-            return tiles.length ? [only] : [];
+            const res = tiles.length ? [only] : [];
+            _paletteSectionsMemo.set(sig, res);
+            return res;
         }
         const byId = new Map<string, PaletteSection>();
         const order: string[] = [];
@@ -1110,7 +1200,7 @@ type Vocabulary = any;
             put('terrain:' + terrain, TERRAIN_LABELS[terrain] || titleCase(terrain), t);
         }
         // Stable rail order: wild terrain first, then rooms, then buildings, then
-        // structure — a plan is where terrain gives way to rooms and buildings.
+        // structure - a plan is where terrain gives way to rooms and buildings.
         const rank = (id: string): number => {
             if (id.indexOf('terrain:') === 0) {
                 const i = TERRAIN_ORDER.indexOf(id.slice(8));
@@ -1120,7 +1210,38 @@ type Vocabulary = any;
             if (id.indexOf('building:') === 0) return 200 + Math.max(0, BUILDING_CATEGORIES.indexOf(id.slice(9)));
             return 300;
         };
-        return order.sort((a, b) => rank(a) - rank(b)).map((id) => byId.get(id)!);
+        const res = order.sort((a, b) => rank(a) - rank(b)).map((id) => byId.get(id)!);
+        _paletteSectionsMemo.set(sig, res);
+        return res;
+    }
+
+    /**
+     * Which rail sections a scope mode does not offer (task-774).
+     *
+     * A world map paints terrain, so room and building tiles are noise there
+     * (53 of the 106 biome records are indoor, 32 are buildings). A town paints
+     * buildings and streets but not floor-plan rooms, except the `outdoor`
+     * purpose (porch, courtyard, balcony), which are open space a town uses.
+     * Interior scopes are left unfiltered: no evidence yet of which terrain an
+     * interior legitimately paints. Structure (walls, solids) is never hidden.
+     * Matching is by section id prefix, so it follows `paletteSections`' own
+     * grouping and is not a second category list.
+     */
+    const MODE_HIDDEN_SECTIONS: Record<string, string[]> = {
+        world: ['room:', 'building:'],
+        town: ['room:'],
+    };
+    const MODE_KEPT_SECTIONS: Record<string, string[]> = {
+        town: ['room:outdoor'],
+    };
+
+    /** Drop the sections a map mode has no use for. Unknown or missing mode is a no-op. */
+    function paletteForMode(sections: PaletteSection[], mode?: string | null): PaletteSection[] {
+        const hidden = MODE_HIDDEN_SECTIONS[String(mode || '')];
+        if (!hidden) return sections;
+        const kept = MODE_KEPT_SECTIONS[String(mode)] || [];
+        return sections.filter((s) =>
+            kept.includes(s.id) || !hidden.some((prefix) => s.id.indexOf(prefix) === 0));
     }
 
     /** Search sections by name or id; empty sections are dropped. */
@@ -1134,7 +1255,7 @@ type Vocabulary = any;
             .filter((s) => s.tiles.length);
     }
 
-    /** Every tile, in rail order — the default-value and keyboard path. */
+    /** Every tile, in rail order - the default-value and keyboard path. */
     function flattenPalette(sections: PaletteSection[]): PaletteTile[] {
         const out: PaletteTile[] = [];
         for (const s of sections) for (const t of s.tiles) out.push(t);
@@ -1151,6 +1272,7 @@ type Vocabulary = any;
         CLIMATES, CLIMATE_IDS, DEFAULT_CLIMATE, useClimatesFromVocab,
         cellKey, parseCellKey, cellId, nextMode, layerColor,
         floorNumber, floorLabel,
+        metresToStoreys, storeysToMetres, luminanceToMetres, metresToLuminance, climbGatedSteps,
         lineCells, routeCells, routeStats, estimateCompile,
         cellValue, cellName, cellKind, cellEnter, cellNeighbours, featureAt, placementFor,
         paintedBounds, gridHandlePoints, gridHandleDrag,
@@ -1161,7 +1283,7 @@ type Vocabulary = any;
         cellSizeRange, strandedCount, strandedCells,
         referenceHandlePoints, referenceHandleDrag,
         tileKind, tileDetail, detailRows,
-        paletteSections, filterPalette, flattenPalette, paletteTile,
+        paletteSections, paletteForMode, filterPalette, flattenPalette, paletteTile,
     };
     // main.js (loaded last) does `window.VW = {}` and re-registers singletons, so
     // the bare global is what survives; VW.gridModel is (re)attached there too.

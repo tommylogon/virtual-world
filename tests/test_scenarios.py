@@ -102,3 +102,28 @@ def test_import_audit_flags_problems(app, client):
 
 def test_import_audit_rejects_garbage(app, client):
     assert client.post("/api/import/audit", json={}).status_code == 400
+
+
+def test_clone_current_world(app, client):
+    # Missing or empty name -> 400
+    assert client.post("/api/scenarios/clone", json={}).status_code == 400
+    assert client.post("/api/scenarios/clone", json={"name": ""}).status_code == 400
+
+    # Successful clone of live world
+    r = client.post("/api/scenarios/clone", json={"name": "live_clone"})
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data["status"] == "success"
+    assert data["name"] == "live_clone"
+    clone_path = os.path.join(app.config['DATA_DIR'], 'scenarios', 'live_clone.json')
+    assert os.path.exists(clone_path)
+
+    # Verifying content is valid scenario json
+    with open(clone_path, 'r', encoding='utf-8') as f:
+        saved = json.load(f)
+    assert saved.get('_scenario_name') == "live_clone"
+
+    # Cloning to existing name -> 400
+    r_dup = client.post("/api/scenarios/clone", json={"name": "live_clone"})
+    assert r_dup.status_code == 400
+

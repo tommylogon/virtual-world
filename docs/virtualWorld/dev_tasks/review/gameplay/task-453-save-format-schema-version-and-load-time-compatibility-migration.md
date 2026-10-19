@@ -45,46 +45,46 @@ are recorded under **Resolution** below.
 
 ## Files
 
-- `version.py` — schema version constant
-- `routes/helpers.py` — `_save_game` metadata, `save_autosave` meta
-- `routes/saveload.py` — `/api/load` and `/api/load-game` compatibility gate
-- `engine/serialization.py` — migration hook in the load path
-- `tests/test_saveload.py` — schema gate, migration, refusal coverage
+- `version.py` - schema version constant
+- `routes/helpers.py` - `_save_game` metadata, `save_autosave` meta
+- `routes/saveload.py` - `/api/load` and `/api/load-game` compatibility gate
+- `engine/serialization.py` - migration hook in the load path
+- `tests/test_saveload.py` - schema gate, migration, refusal coverage
 
-## Resolution — 2026-10-02
+## Resolution - 2026-10-02
 
 A schema field already existed but was a half-measure: `save_autosave` hard-coded
 `'schema_version': 2` (initial release, `170d5f1`) and `load_autosave_if_exists`
-had an inline bladder v1→v2 migration — but **nothing read it on the load
+had an inline bladder v1→v2 migration - but **nothing read it on the load
 routes**, `_save_game` never stamped it, and `to_scenario_dict` never stamped it.
 
 Implemented:
 
-- `version.py` — `SCHEMA_VERSION = 2`, documented as the payload *format* version,
+- `version.py` - `SCHEMA_VERSION = 2`, documented as the payload *format* version,
   distinct from `APP_VERSION` (app build). No more magic `2`.
-- `engine/schema.py` (new) — `schema_version_of`, `migrate`, `SchemaError`, and a
+- `engine/schema.py` (new) - `schema_version_of`, `migrate`, `SchemaError`, and a
   `SCHEMA_MIGRATIONS` registry. `migrate` returns `(data, from_version)`, applies
   registered migrations in memory (read-old/write-new; never rewrites the
   source), refuses a version newer than the app, and refuses an older version
   with no registered step.
-- `routes/helpers.py` — `save_autosave` and `_write_autosave_slot` and
+- `routes/helpers.py` - `save_autosave` and `_write_autosave_slot` and
   `_save_game` all stamp `SCHEMA_VERSION`; the autosave boot path now calls
   `migrate()` instead of its inline bladder block, so the one gate is shared.
-- `routes/saveload.py` — `/api/load` and `/api/load-game` migrate before
+- `routes/saveload.py` - `/api/load` and `/api/load-game` migrate before
   `load_from_dict`; a refusal is a 400 with the specific reason, a migration
   returns `schema_notice`.
-- `engine/serialization.py` — `to_scenario_dict` stamps `schema_version` too.
-- `static/js/ui/saveload-view.js` — `doLoadGame` / import-apply toast
+- `engine/serialization.py` - `to_scenario_dict` stamps `schema_version` too.
+- `static/js/ui/saveload-view.js` - `doLoadGame` / import-apply toast
   `schema_notice`, so a migration is visible.
-- `tests/test_save_schema.py` — 12 cases: reader, same-version no-op, explicit
+- `tests/test_save_schema.py` - 12 cases: reader, same-version no-op, explicit
   v1 migration, newer refusal, stamping on save/autosave, and both load routes.
 
 ### Decision: an *unstamped* payload is current-format, not v1
 
 The acceptance said "missing … migrates or is refused". The evidence says
 otherwise, and blindly migrating is actively harmful here: `save_autosave` has
-stamped `schema_version: 2` since the initial public release — the same commit
-that introduced the bladder migration — while `_save_game` and
+stamped `schema_version: 2` since the initial public release - the same commit
+that introduced the bladder migration - while `_save_game` and
 `to_scenario_dict` wrote current-format payloads **without** the field. So an
 unstamped file is a current-format save/scenario, and assuming v1 would invert
 the Bladder vital of every existing one. `LEGACY_SCHEMA_VERSION` is therefore
@@ -112,24 +112,17 @@ not corrupting the files that predate the field.
 - [x] Existing autosave/scenario boot behavior is unchanged for same-version
       files (stamped 2 → no-op; A/B-identical).
 - [ ] Migration of a legacy **name-keyed** payload cooperating with
-      task-439/task-446 is **not** done here — this task provides the gate and
+      task-439/task-446 is **not** done here - this task provides the gate and
       the registry; the name-keyed migration is content that belongs with those
       tasks. No checked-in file needs it today.
 
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Scenario save files include schema version metadata.
+- [x] Load-time migration pipeline updates legacy schema structures automatically.
+
+## Files
+
+- `engine/serialization.py`
+- `tests/test_serialization.py`

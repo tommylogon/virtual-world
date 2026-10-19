@@ -99,3 +99,9 @@ test('the lock is one signal: the toolbar reads the policy lock, and a lock chan
     const setLocked = physics.slice(physics.indexOf('setLocked(locked: boolean)'));
     assertTrue(setLocked.includes('GraphToolbar.syncAll()'), 'a lock change repaints the toolbar');
 });
+
+test('layout-engine routes hybrid map-settling physics through GraphPhysics.apply (task-765)', () => {
+    const layoutSrc = __readFile('static/js/graph/layout-engine.ts');
+    assertTrue(layoutSrc.includes('window.GraphPhysics.apply({'), 'layout-engine routes hybrid map settling through GraphPhysics.apply');
+});
+

@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_CONNECTION
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_CONNECTION, EDGE_AT
 from engine.matching import NameMatching
 
 
@@ -312,6 +312,37 @@ class TestMatching:
         assert len(in_edges) == 1, "stale 'in' edge survived the move"
         assert in_edges[0].target == "area_task_5"
         assert lower.players["TestPlayer"].current_area == "task_5"
+
+    def test_set_player_area_removes_at_edges_and_updates_scope(self, matcher, graph, game_state):
+        """_set_player_area removes existing 'at' edges and updates world_scope_id and coordinates."""
+        player_node = graph.get_node("player_TestPlayer")
+        player_node.properties["world_scope_id"] = "old_scope"
+        player_node.properties["x"] = 100
+        player_node.properties["y"] = 100
+        dest_area = Node(id="area_Mountain", type="area", name="Mountain",
+                         properties={"world_scope_id": "peaks", "x": 500, "y": 600})
+        chair = Node(id="item_chair", type="item", name="Chair")
+        graph.add_node(dest_area)
+        graph.add_node(chair)
+        graph.add_edge(Edge(source="player_TestPlayer", target="item_chair", type=EDGE_AT))
+
+        assert len([e for e in graph.edges if e.type == EDGE_AT]) == 1
+
+        matcher._set_player_area("TestPlayer", "Mountain")
+
+        # In edge updated
+        in_edges = [e for e in graph.edges if e.source == "player_TestPlayer" and e.type == EDGE_IN]
+        assert len(in_edges) == 1
+        assert in_edges[0].target == "area_Mountain"
+
+        # At edge cleared
+        at_edges = [e for e in graph.edges if e.source == "player_TestPlayer" and e.type == EDGE_AT]
+        assert len(at_edges) == 0
+
+        # Scope and coordinates synced
+        assert player_node.properties["world_scope_id"] == "peaks"
+        assert player_node.properties["x"] == 520
+        assert player_node.properties["y"] == 620
 
     def test_fuzzy_match_note_reset(self, matcher):
         """_fuzzy_match_note is None before any fuzzy match."""

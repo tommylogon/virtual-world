@@ -73,21 +73,33 @@ the data model and combat resolution now carry both values for it to render.
 
 ## Why
 
-TODO
+A single defense integer collapsed two fundamentally distinct defensive mechanics: how hard a target is to hit (evasion/agility) and how much incoming damage is absorbed when hit (damage reduction/armor). Under the single-integer model, heavy plate and nimble leather either had identical combat effects or made plate wearers impossible to hit. Splitting defense into signed evasion and damage_reduction allows meaningful trade-offs where heavy armor makes characters easier to hit but much harder to damage, while agile gear helps dodge strikes entirely.
 
 ## How
 
-TODO
+1. In engine/equipment_bonuses.py, aggregate damage_reduction (with backward-compatible fallback to defense) and signed evasion.
+2. In engine/combat.py, compute target_evasion and evaluate hit contest as attack_roll >= defense_roll + target_evasion.
+3. Support dice strings (e.g. 'd8') in damage reduction without type errors in decrement_armor_uses_on_hit.
+4. Author contrasting items: plate_cuirass (high DR, negative evasion) and duelists_leathers (low DR, positive evasion).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run defense axes unit test suite (python -m pytest tests/test_defense_axes.py).
+   - expected: All tests pass covering evasion contest math, damage reduction absorption, and legacy defense backward compatibility.
+   - observed: Tested and verified in unit suite.
+2. Resolve a combat attack against a target wearing negative evasion armor (e.g. plate).
+   - expected: Attack roll hits against lowered threshold; combat log explicitly reports evasion modifier and reduced incoming damage.
+   - observed: Verified in combat roll logs.
+3. Load legacy item with only defense declared.
+   - expected: Item functions identically with defense mapped to damage_reduction and evasion defaulting to 0.
+   - observed: Confirmed in regression tests.
 
 ## Files
 
-- TODO
+- engine/equipment_bonuses.py
+- engine/combat.py
+- engine/equipment.py
+- 	ests/test_defense_axes.py
 
 ## Browser UI and intended live verification
 

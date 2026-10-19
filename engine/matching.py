@@ -4,7 +4,7 @@ import difflib
 import re
 from typing import List, Optional, Tuple
 
-from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_AT
 from engine.facing import RELATIVE_WORDS, edge_cardinal, resolve_for_player
 
 # task-624 / task-638: 51 of 205 areas in the reference scenario are literally
@@ -917,6 +917,28 @@ class NameMatching:
         for edge in list(self.graph.get_edges_for_source(player_node_id, EDGE_IN)):
             self.graph.remove_edge(edge.source, edge.target, edge.type)
         self.graph.add_edge(Edge(source=player_node_id, target=new_area_id, type=EDGE_IN))
+
+        # Clear any existing `at` edges so the character is not left anchored
+        # across rooms or to objects in the previous area.
+        for edge in list(self.graph.get_edges_for_source(player_node_id, EDGE_AT)):
+            self.graph.remove_edge(edge.source, edge.target, edge.type)
+        for edge in list(self.graph.get_edges_for_target(player_node_id, EDGE_AT)):
+            self.graph.remove_edge(edge.source, edge.target, edge.type)
+
+        # Sync the character node's world_scope_id and coordinates to destination area
+        char_node = self.graph.get_node(player_node_id)
+        if area_node is None:
+            area_node = self.graph.get_node(new_area_id)
+        if char_node is not None and area_node is not None:
+            dest_scope = area_node.properties.get("world_scope_id")
+            if dest_scope:
+                char_node.properties["world_scope_id"] = dest_scope
+            elif "world_scope_id" in char_node.properties:
+                char_node.properties.pop("world_scope_id", None)
+            if "x" in area_node.properties and "y" in area_node.properties:
+                char_node.properties["x"] = area_node.properties["x"] + 20
+                char_node.properties["y"] = area_node.properties["y"] + 20
+
         # task-583: keep the resident index's id-keyed location record in step
         # with the authoritative `in` edge it mirrors.
         index = getattr(self.gs, "world_index", None)

@@ -10,7 +10,7 @@ related: ['task-355', 'task-291', 'task-306']
 
 **Filed**: 2026-08-19
 **Priority**: High
-**Status**: In Review — implemented 2026-08-19 (backend validator, left-panel World Issues)
+**Status**: In Review - implemented 2026-08-19 (backend validator, left-panel World Issues)
 
 ---
 
@@ -24,9 +24,9 @@ Warn when an instanced entity's properties no longer match its selected template
 
 ## Implemented
 
-- `engine/trigger_validator.py` — `_validate_library_sync()` pass: items with `library_id` are diffed against `data/library/items/<library_id>.json`.
-  - `library_entry_missing` — library file doesn't exist.
-  - `library_mismatch` — differing sync props (name/description/tags/actions/uses/weight/equip_slots/current_state/light_level/target_temperature/heating_rate/contents/aliases), with `_props_match()` tolerating the hydration normalization (library `actions` string → node list).
+- `engine/trigger_validator.py` - `_validate_library_sync()` pass: items with `library_id` are diffed against `data/library/items/<library_id>.json`.
+  - `library_entry_missing` - library file doesn't exist.
+  - `library_mismatch` - differing sync props (name/description/tags/actions/uses/weight/equip_slots/current_state/light_level/target_temperature/heating_rate/contents/aliases), with `_props_match()` tolerating the hydration normalization (library `actions` string → node list).
 - Surfaced in the left panel `#validation-section` via `/api/triggers/validate`.
 - Tests: `TestLibrarySyncWarnings` (missing entry, mismatch, in-sync clean).
 
@@ -43,28 +43,13 @@ Warn when an instanced entity's properties no longer match its selected template
 - `developer ideas.md` line 3
 - `data/library/items/*.json`, `routes/library_routes.py`
 
-## What
-
-TODO
-
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Inspector warns when placed node properties differ from library source template.
+- [x] Mismatch warning offers DiffModal inspection and sync options.
 
 ## Files
 
-- TODO
+- `static/js/inspector/agent-view.js`
+- `static/js/inspector/item-view.js`

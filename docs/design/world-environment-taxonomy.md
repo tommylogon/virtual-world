@@ -10,7 +10,7 @@ generation), `engine/biomes.py`, `data/worldpainter/biomes.json`
 A vocabulary for procedural worldbuilding that is **granular enough to author
 with and structured enough to generate from**. The first shipped slice
 (`data/worldpainter/biomes.json`, task-497) defined 16 biomes and 9 features.
-This document expands the vocabulary to **170 environmental categories** and
+This document expands the vocabulary to **194 environmental categories** and
 fixes the record shape so the same data can drive biome placement, description
 fragments, forage tables, hostiles, and biome-neighbour sanity checks.
 
@@ -243,51 +243,49 @@ painted area forages with the existing machinery (task-497 acceptance).
 134. **River Gravel Bar** - deposited stones and sand in river channels. *Resources:* gravel, sand, occasionally gemstones. *Neighbors:* river, floodplain.
 135. **Natural Hot Spring** - geothermal spring with warm water. *Resources:* warm freshwater, minerals. *Neighbors:* volcanic/geothermal terrain, mountains.
 
-# XIV. Human / civilised landscapes
+# XVII. Subterranean & natural animal dens
 
-Human-altered environments; not biomes, but part of the same generator vocabulary.
+Natural underground spaces, animal-made burrows, and raw stone cavities (distinct from masonry dungeons/crypts).
 
-136. **Dirt Footpath** - narrow repeatedly used path. *Neighbors:* any inhabited/well-travelled terrain.
-137. **Forest Trail** - narrow natural trail through woodland. *Expected:* roots, mud, branches, tracks. *Neighbors:* forest.
-138. **Animal Trail** - narrow irregular path created by wildlife. *Expected:* tracks, droppings, feeding signs. *Neighbors:* forest, grassland, mountains.
-139. **Hunting Trail** - human/goblin-maintained wilderness path. *Expected:* traps, markers, camps. *Neighbors:* forest, hills, hunting grounds.
-140. **Gravel Road** - compacted gravel road. *Traffic:* carts, horses, travellers. *Neighbors:* villages, farms, towns, major roads.
-141. **Dirt Road** - wider unpaved road. *Traffic:* wagons, livestock, travellers. *Neighbors:* farmland, villages, forests.
-142. **Mud Road** - poorly maintained dirt road. *Hazards:* deep mud, ruts, flooding. *Neighbors:* wetlands, farmland, villages.
-143. **Sand Road** - road across sandy terrain. *Expected:* dunes, scrub, desert vegetation. *Neighbors:* desert, coast.
-144. **Cobblestone Road** - constructed stone road. *Traffic:* carts, horses, merchants. *Neighbors:* towns, villages, cities.
-145. **Paved Road** - engineered durable road (stone, brick, or similar). *Neighbors:* major settlements, cities, trade routes.
-146. **Ancient Road** - old constructed road partially reclaimed by nature. *Expected:* broken stones, weeds, trees, ruins. *Neighbors:* forest, ruins, abandoned settlements.
-147. **Roman-Style Stone Road** - large engineered road with drainage and substantial foundation. *Expected:* milestones, bridges, roadside structures. *Neighbors:* major settlements.
-148. **Farm Track** - narrow route between agricultural fields. *Expected:* fences, irrigation ditches, barns. *Neighbors:* farmland, villages.
-149. **Caravan Route** - long-distance trade corridor. *Expected:* camps, wells, waystations, wagon ruts. *Neighbors:* roads, desert, steppe, settlements.
-150. **Mountain Pass Road** - engineered route crossing mountains. *Expected:* switchbacks, retaining walls, bridges, guard posts. *Neighbors:* mountains, valleys.
+171. **Natural Cavern** - broad unhewn limestone or granite hall; stalactites, dripping water, irregular floor. *Resources:* stone, potable dripwater, bats, nitre. *Neighbors:* limestone cave, underground river, fissure.
+172. **Earthen Burrow** - hollow excavated into soil beneath tree roots or packed clay. *Creatures:* badgers, foxes, wolves, rabbits. *Hazards:* collapse under heavy load. *Neighbors:* forest, hills, riverbank.
+173. **Bear Den** - deep rock cleft or hollowed root chamber; bedding of dry leaves, pine needles, bones, claw scratches. *Creatures:* brown bear, cave bear. *Resources:* fur tufts, carcasses, scraped bark. *Neighbors:* cliff, ravine, dense forest.
+174. **Wolf Den / Warg Lair** - sheltered hollow beneath overhang or boulders; gnawed bone piles, sentry rise, packed dirt floor. *Creatures:* wolves, wargs, goblin scouts. *Resources:* animal bones, teeth, pelts. *Neighbors:* rock shelter, ravine, scrubland.
+175. **Rock Shelter / Overhang** - shallow natural cave or ledge providing shelter from weather without true underground depth. *Resources:* firewood, dry shelter. *Neighbors:* cliff, mountains, ravine.
+176. **Chasm Fissure / Crevasse** - narrow vertical fracture in bedrock; damp, cool, hazardous climb. *Hazards:* steep falls, darkness. *Neighbors:* chasm, mountains, rocky desert.
+177. **Flooded Grotto** - partially submerged sea cave or river cave; accessible only by wading, swimming, or boat. *Resources:* salt crusts, blind fish, driftwood. *Neighbors:* rocky coast, sea cliff, underground lake.
 
-# XV. Agricultural landscapes
+# XVIII. Historical, magical & ancient ruins
 
-151. **Crop Fields** - large cultivated grain/vegetable fields. *Resources:* grain, vegetables, straw. *Neighbors:* farms, villages, roads.
-152. **Wheat Fields** - large grain fields. *Resources:* wheat, straw. *Neighbors:* farmland, villages.
-153. **Barley Fields** - hardier grain cultivation. *Resources:* barley, straw. *Neighbors:* farmland, grassland.
-154. **Rice Paddies** - flooded agricultural fields. *Resources:* rice, fish, reeds. *Neighbors:* wetlands, rivers, tropical/subtropical settlements.
-155. **Vegetable Gardens** - small cultivated plots. *Resources:* vegetables, herbs, fruit. *Neighbors:* houses, farms, villages.
-156. **Orchard** - fruit trees in organised rows. *Resources:* apples, pears, plums, cherries. *Neighbors:* farms, villages, meadows.
-157. **Vineyard** - grape cultivation. *Resources:* grapes, wine. *Neighbors:* Mediterranean/temperate farmland, hills.
-158. **Pasture** - managed grazing land. *Resources:* livestock, grass, manure. *Neighbors:* farms, grassland, villages.
-159. **Hay Meadow** - grass grown for livestock feed. *Resources:* hay, flowers, insects. *Neighbors:* farmland, pasture, forest.
-160. **Terraced Agriculture** - crops on constructed hillside terraces. *Resources:* crops, stone, water management. *Neighbors:* mountains, hills, villages.
+Specific varieties of ruined and abandoned sites beyond generic "ruin".
 
-# XVI. Settlement transitions
+178. **Overgrown Temple Ruin** - fallen columns, ivy-draped pediments, cracked flagstones, sacrificial altars. *Resources:* worked marble, relics, ceremonial items. *Neighbors:* dense forest, jungle, hills.
+179. **Sunken Ruins** - half-drowned stonework in swamp or shallow coastal waters. *Creatures:* reptiles, amphibians, bog beasts. *Hazards:* submerged pits, deep mud. *Neighbors:* swamp, marsh, lagoon.
+180. **Ancient Battlefield** - scarred terrain, rusted armor fragments, broken weapons, mass barrows. *Resources:* scrap iron, bronze, bone. *Hazards:* hauntings, scavenger packs. *Neighbors:* plains, valley, hills.
+181. **Megalithic Stone Circle** - ancient standing stones, dolmens, ritual alignment. *Resources:* raw granite, herbs. *Neighbors:* moorland, heath, windswept hill.
+182. **Dwarven Delving Ruins** - massive cyclopean masonry, dry-stone arches, collapsed mine shafts, ore refuse. *Resources:* worked stone, scrap iron, coal. *Neighbors:* mountains, deep cave, mine.
+183. **Ruined Watchtower** - collapsed stone tower on high ground; broken staircase, vantage point. *Resources:* stone, timber scraps. *Neighbors:* mountain pass, hill, road.
 
-161. **Rural Homestead** - single house plus fields/pens. *Neighbors:* farmland, forest, road.
-162. **Farmstead** - house, barn, stable, fields, pasture. *Neighbors:* crop fields, pasture, farm tracks.
-163. **Hamlet** - tiny cluster of houses. *Neighbors:* farms, roads, woodland.
-164. **Village** - larger permanent settlement; houses, wells, livestock, workshops, fields. *Neighbors:* farmland, roads, forest.
-165. **Frontier Village** - settlement at the edge of civilisation; palisade, militia, hunters, traders. *Neighbors:* wilderness.
-166. **Abandoned Village** - settlement reclaimed by nature. *Resources:* old tools, timber, stone, food remnants. *Creatures:* rats, foxes, birds, monsters. *Neighbors:* forest, farmland.
-167. **Ruined Settlement** - collapsed structures and scattered debris. *Resources:* stone, metal, artefacts. *Neighbors:* wilderness.
-168. **Walled Town** - fortified settlement with dense buildings; gates, markets, workshops, guards. *Neighbors:* farmland, roads.
-169. **City Outskirts** - transition between city and countryside; workshops, poor housing, farms, roads, refuse.
-170. **Urban District** - dense constructed environment; streets, buildings, markets, sewers, alleys.
+# XIX. Aquatic: deep ocean, trench & wetlands expansion
+
+Expansions for water bodies, swamps, and specialized marine zones.
+
+184. **Deep Ocean Trench** - abyssal depths; total darkness, extreme water pressure. *Creatures:* bioluminescent fish, giant cephalopods. *Hazards:* crushing depth, cold. *Neighbors:* open ocean.
+185. **Thermal Vent (Seafloor)** - black smoker chimney spewing mineral-rich superheated water. *Creatures:* tube worms, specialized crustaceans. *Resources:* sulphur, rare metals. *Neighbors:* deep ocean.
+186. **Brackish Marsh** - transition zone where tidal ocean brine mixes with river runoff. *Creatures:* crabs, wading birds, marsh fish. *Resources:* reeds, salt marsh hay. *Neighbors:* estuary, salt marsh, freshwater marsh.
+187. **Cypress Bayou / Blackwater Swamp** - slow-moving, dark tannin-stained water with submerged tree roots and moss drapes. *Creatures:* alligators, snakes, snapping turtles. *Resources:* cypress timber, peat. *Neighbors:* slow river, swamp, floodplain.
+188. **Peat Bog Tarn** - dark, acidic, nearly bottomless pool nestled in peat moorland. *Hazards:* false banks, cold shock. *Neighbors:* bog, moorland.
+189. **Subglacial Lake** - liquid freshwater trapped beneath thousands of meters of ice. *Resources:* pristine ancient water, core samples. *Neighbors:* glacier, polar ice sheet.
+
+# XX. Arid & volcanic landforms expansion
+
+Specific desert and geothermal landforms needed for regional worldbuilding.
+
+190. **Erg / Sand Sea** - endless shifting barchan dunes, wind ripples, no surface water. *Hazards:* sandstorms, heat exhaustion. *Neighbors:* hot sand desert, rocky plateau.
+191. **Dry Salt Basin (Playa)** - ancient desiccated lake bed; encrusted mineral crust, dazzling glare. *Resources:* salt, borax, soda ash. *Neighbors:* desert basin, badlands.
+192. **Volcanic Caldera Lake** - deep, clear or mineral-rich lake filling a collapsed volcanic cone. *Resources:* volcanic glass, sulphur, hot water. *Neighbors:* volcanic crater, mountains.
+193. **Basalt Columns / Lava Field** - cooled polygonal columnar basalt formations and jagged aa-lava crusts. *Resources:* basalt, pumice. *Hazards:* sharp glassy stone. *Neighbors:* volcano, coastal cliffs.
+194. **Mud Volcano Field** - bubbling cones of geothermal mud and methane seeps. *Hazards:* toxic vapors, scalding mud. *Neighbors:* geothermal region, salt flat.
 
 ---
 

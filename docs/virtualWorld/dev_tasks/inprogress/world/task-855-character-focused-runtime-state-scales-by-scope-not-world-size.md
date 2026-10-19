@@ -32,7 +32,7 @@ Build on chunk persistence, stable location identity, the global scope index, ga
 
 ## Browser UI and intended live verification
 
-Intended UI home: Live turn interface ? select or hand off to a character, act, cross a scope boundary, then inspect the loaded scope in the map/scene.
+Intended UI home: Live turn interface -> select or hand off to a character, act, cross a scope boundary, then inspect the loaded scope in the map/scene.
 
 Current implementation: selecting an active character sets the runtime focus before the active-player update; human and autonomous turns use the same focused endpoint, and focus follows turn handoffs. The focused projection is merged into the existing editor cache; it does not replace the global world snapshot or unload/change the authoritative world graph. Startup and graph-editor loading remain separate whole-world operations. The latest active-selection/handoff change builds, but has not yet been rechecked in the live browser.
 
@@ -56,13 +56,13 @@ Live steps when available:
    - observed: See task-583; the benchmark reports the Kraktooth run. A million-area fixture remains a future scale target, not a prerequisite for completing the production loader.
 3. Move the character across a gateway into another scope, then select a second character in a different scope.
    - expected: the working set follows authoritative locations, includes every attended scope once, and preserves player identity/state without duplicate or stale locations.
-   - observed: TODO; the live movement stayed within `goblin_camp`.
+   - observed: pending live multi-scope gateway traversal verification; movement test stayed within `goblin_camp`.
 4. Run backsim, a world timeskip, and a character soak with scopes outside the browser working set; later load an affected scope and inspect state.
    - expected: authoritative server simulation advances the intended world/residents and the fetched scope reflects those changes without transferring all scopes to the client.
-   - observed: TODO
+   - observed: pending automated soak/timeskip execution against evicted off-scope areas.
 5. Perform an action in the focused scope while a state refresh overlaps a mutation/event notification.
    - expected: the caller receives a coherent post-mutation snapshot; no stale budget, missed focused update, or whole-world refetch is required.
-   - observed: TODO
+   - observed: pending concurrent mutation stress test during focused SSE / fetch dispatch.
 
 ## Acceptance
 
@@ -81,3 +81,8 @@ Live steps when available:
 - `static/js/world-state.ts`, `static/js/agent-engine.ts`, `static/js/agent/human-turn-composer.ts`
 - focused snapshot, scope-transition, simulation-correctness, and scale benchmark tests/tools
 - `docs/virtualWorld/World Building/World Scopes.md`
+
+
+## Blocker Note (2026-10-19)
+- Blocked by [[bug-536-get-read-paths-race-mutating-requests-on-the-shared-graph]], [[bug-545-worldpainter-paint-is-seconds-per-cell-every-single-cell-paint-serializes-the-whole-world-for-undo-then-rebuilds-the-full-payload]], and [[task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll]].
+- Live browser testing in Kraktooth revealed that while /api/runtime/state was called, whole-world /api/state requests still fired during the same turn window. Requires resolving the underlying async read races and SSE transport scaling blockers.

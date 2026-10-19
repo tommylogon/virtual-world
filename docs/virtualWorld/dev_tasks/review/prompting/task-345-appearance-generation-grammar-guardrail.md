@@ -6,12 +6,12 @@ area: prompting
 priority: medium
 ---
 
-# task-345 — Grammar guardrail for LLM-generated appearance text
+# task-345 - Grammar guardrail for LLM-generated appearance text
 
-**Status**: In Review — implemented 2026-08-31, (a)+(b) as recommended plus (c)-ish
+**Status**: In Review - implemented 2026-08-31, (a)+(b) as recommended plus (c)-ish
 fallback. One design correction from the filing: the desired voice is **consistent
 third person** (not second person) because `player.description` is consumed by other
-characters' views (stranger labels, examine — task-154) and converted to second
+characters' views (stranger labels, examine - task-154) and converted to second
 person at prompt time by `secondPersonDesc`. Implemented in
 `static/js/inspector/agent-view.js`: extended `_generateDescription` directives
 (third-person rule, exact-agreement rule, 2 few-shot lines) +
@@ -19,7 +19,7 @@ person at prompt time by `secondPersonDesc`. Implemented in
 `you is` / `you was` / `body is who`) + `AV._sanitizeAppearanceGrammar` (one
 silent repair LLM pass; if still flagged → safe client-side merge fallback, never
 persist broken text). Note: the backend `_update_equipment_description` prompt
-(equipment.py:558) is currently log-only — the LLM call was removed in a prior
+(equipment.py:558) is currently log-only - the LLM call was removed in a prior
 refactor; the true generation path is this browser-side call.
 
 <!-- deps:start -->
@@ -36,7 +36,7 @@ Mansion session (mansion_event_log_2026-08-23T15-04-54.txt), sammy lopez's
 
 The appearance-generation call produced broken second-person grammar
 ("you is", "body is who"), and generated text is stored once and echoed into
-every system/user prompt forever — errors become permanent, load-bearing
+every system/user prompt forever - errors become permanent, load-bearing
 context that models also mirror in prose.
 
 ## Fix options
@@ -55,31 +55,16 @@ Recommend (a)+(b): instruction plus automated catch. (c) optional.
 ## Verify
 
 Generate appearances across several providers/models (incl. small local ones
-— the repro came from stealth/ox-alpha) → zero `\byou is\b|\byou was\b` hits;
+- the repro came from stealth/ox-alpha) → zero `\byou is\b|\byou was\b` hits;
 regression: pre-existing broken text can be repaired via a regenerate action.
 
-## What
-
-TODO
-
-## Why
-
-TODO
-
-## How
-
-TODO
-
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [x] Grammar guardrail prevents second-person and pronoun-verb drift in appearance output.
+- [x] Generated prose strictly conforms to descriptive noun phrases.
 
 ## Files
 
-- TODO
+- `engine/character_appearance.py`
+- `tests/test_character_appearance.py`
