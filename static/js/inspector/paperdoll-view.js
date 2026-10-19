@@ -1,9 +1,9 @@
 "use strict";
 /**
- * InspectorPaperdoll — Paperdoll view and equipment context menus
+ * InspectorPaperdoll - Paperdoll view and equipment context menus
  * Extracted from inspector.js for modularity.
  *
- * @module inspector/paperdoll-view — paperdoll + equipment menus
+ * @module inspector/paperdoll-view - paperdoll + equipment menus
  * @contributes InspectorPaperdoll: body-region rendering, slot menus, equip/unequip actions
  * @powers seeing and changing what a character is wearing
  * @relates renders through InspectorPanel; used by agent-view's Inventory tab
@@ -16,7 +16,7 @@ window.InspectorPaperdoll = (() => {
     // Used only for the small popups/modals/pickers that render into standalone
     // containers (not the shared inspector panel string template).
     const paperdollTag = (strings, ...values) => window.Lit.html(strings, ...values);
-    // Natural-language durability chip (task-161) — humans read "battered",
+    // Natural-language durability chip (task-161) - humans read "battered",
     // never "3/10". '' when the item doesn't track uses. Module scope, because
     // the paperdoll and the slot modal both render it; while it lived inside
     // renderPaperdollEquipmentHtml the showSlotModal call was out of scope (a
@@ -151,7 +151,7 @@ window.InspectorPaperdoll = (() => {
     };
     /**
      * Character-wide equipment totals (one place, no duplication): the same
-     * aggregation rules the engine uses (equipment_bonuses.aggregate_bonuses) —
+     * aggregation rules the engine uses (equipment_bonuses.aggregate_bonuses) -
      * defense = sum over armor/clothing, damage = best weapon, resistances =
      * max per damage type, insulation = sum. Slot modals stay the per-item
      * detail view; this is the at-a-glance summary for the Inventory tab.
@@ -224,7 +224,7 @@ window.InspectorPaperdoll = (() => {
         return totals;
     };
     /**
-     * Render the paperdoll (equipment) HTML content — shown at the top of the
+     * Render the paperdoll (equipment) HTML content - shown at the top of the
      * Inventory tab. No outer data-tab wrapper: the caller hosts it.
      * @param {string} agentName - Character name
      * @param {object} player - Player data from worldState
@@ -245,7 +245,7 @@ window.InspectorPaperdoll = (() => {
             carryColor = 'var(--red)';
         else if (carryRatio >= 0.5)
             carryColor = 'var(--yellow)';
-        // Character-wide gear totals (single source — see computeEquipmentTotals).
+        // Character-wide gear totals (single source - see computeEquipmentTotals).
         const t = P.computeEquipmentTotals(player);
         const fmtDmg = (d) => {
             if (!d)
@@ -256,15 +256,15 @@ window.InspectorPaperdoll = (() => {
             return `${d.damage}${d.type ? ` ${d.type}` : ''}`;
         };
         const resChips = Object.entries(t.resistances)
-            .map(([k, v]) => `<span class="paperdoll-stat" title="From: ${esc(t.contributors.resistances.join(', ') || '—')}">⚡ ${esc(k)} ${v}</span>`);
+            .map(([k, v]) => `<span class="paperdoll-stat" title="From: ${esc(t.contributors.resistances.join(', ') || '-')}">⚡ ${esc(k)} ${v}</span>`);
         const statChips = [];
         if (t.defense)
-            statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.defense.join(', ') || '—')}">🛡️ Armor +${t.defense}</span>`);
+            statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.defense.join(', ') || '-')}">🛡️ Armor +${t.defense}</span>`);
         const dmgText = fmtDmg(t.bestDamage);
         if (dmgText)
-            statChips.push(`<span class="paperdoll-stat" title="Best weapon — from: ${esc(t.contributors.damage.join(', ') || '—')}">⚔️ ${esc(dmgText)}</span>`);
+            statChips.push(`<span class="paperdoll-stat" title="Best weapon - from: ${esc(t.contributors.damage.join(', ') || '-')}">⚔️ ${esc(dmgText)}</span>`);
         if (t.insulation)
-            statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.insulation.join(', ') || '—')}">🌡️ ${t.insulation > 0 ? '+' : ''}${t.insulation}°C</span>`);
+            statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.insulation.join(', ') || '-')}">🌡️ ${t.insulation > 0 ? '+' : ''}${t.insulation}°C</span>`);
         statChips.push(...resChips);
         html += `<div class="inspector-section"><h3>🧠 Equipment</h3>
             ${statChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin-bottom:6px;">${statChips.join('')}</div>` : ''}
@@ -276,7 +276,7 @@ window.InspectorPaperdoll = (() => {
             </div>
             `;
         html += P.renderPaperdollFigureHtml(agentName, player, esc, escName, { mode: 'equip' });
-        // (figure grid renders here via renderPaperdollFigureHtml — one
+        // (figure grid renders here via renderPaperdollFigureHtml - one
         // template, two readers; defined below at module scope.)
         // Accessory slots
         const accStack = equipped.accessory || [];
@@ -307,7 +307,7 @@ window.InspectorPaperdoll = (() => {
     };
     /**
      * The doll figure: the slot grid both modes share (task-848). One
-     * template, two readers — Inventory equips through it, Persona reads
+     * template, two readers - Inventory equips through it, Persona reads
      * through it. Equip output is unchanged; navigate mode swaps actions
      * for selection (slots dispatch, never equip).
      * @param {string} agentName - Character name
@@ -320,7 +320,7 @@ window.InspectorPaperdoll = (() => {
     P.renderPaperdollFigureHtml = function (agentName, player, esc, escName, opts) {
         const mode = opts?.mode === 'navigate' ? 'navigate' : 'equip';
         const selected = opts?.selectedArea || null;
-        // task-852 P2: front/back filter uses the same slots — no second artwork.
+        // task-852 P2: front/back filter uses the same slots - no second artwork.
         const facing = (mode === 'navigate' && opts?.facing === 'back') ? 'back' : 'front';
         const equipped = player.equipped || {};
         const nameForNode = (id) => (worldState.getNode(id)?.name || id);
@@ -388,7 +388,7 @@ window.InspectorPaperdoll = (() => {
                 }
             }
             else {
-                html += `<div class="paperdoll-slot-empty">—</div>`;
+                html += `<div class="paperdoll-slot-empty">-</div>`;
             }
             html += `<div class="paperdoll-slot-actions">
                 <button class="btn btn-sm btn-blue" onclick="InspectorPaperdoll.showEquipPicker('${escName}','${gs.slot}')" title="Equip ${SLOT_LABELS[gs.slot]}">+</button>
@@ -430,7 +430,7 @@ window.InspectorPaperdoll = (() => {
         const popup = document.createElement('div');
         popup.className = 'paperdoll-stack-popup';
         window.Lit.render(paperdollTag `
-            <div style="font-weight:600;margin-bottom:4px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${slot} — inner layers</div>
+            <div style="font-weight:600;margin-bottom:4px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${slot} - inner layers</div>
             ${rows}
         `, popup);
         document.body.appendChild(popup);
@@ -588,7 +588,7 @@ window.InspectorPaperdoll = (() => {
         const esc = InspectorHelpers.esc;
         const bodyState = player.body_state || {};
         const regionName = (regionId) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
-        let html = `<div style="font-weight:600;font-size:14px;margin-bottom:8px;">🩺 ${charName} — Body Regions</div>`;
+        let html = `<div style="font-weight:600;font-size:14px;margin-bottom:8px;">🩺 ${charName} - Body Regions</div>`;
         for (const regionId of regions) {
             const label = regionName(regionId);
             const bs = bodyState[regionId] || {};
@@ -596,7 +596,7 @@ window.InspectorPaperdoll = (() => {
             const bleedingInstances = (playerConditions.bleeding || []).filter((i) => i.body_part === regionId);
             const missingInstances = (playerConditions.missing || []).filter((i) => i.body_part === regionId);
             const exposed = player.region_exposed?.[regionId] !== false;
-            const sensitivity = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity).toFixed(2) : '—';
+            const sensitivity = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity).toFixed(2) : '-';
             const injuryLevel = bs.injury ?? (injuredInstances.length ? Math.max(...injuredInstances.map((i) => i.level || 1)) : null);
             const statusChips = [];
             if (injuredInstances.length)
@@ -615,7 +615,7 @@ window.InspectorPaperdoll = (() => {
                     <span style="font-size:9px;color:var(--text-dim);">sens ${sensitivity}</span>
                 </div>
                 <div style="font-size:10px;color:var(--text-muted);">
-                    Sensitivity: <strong>${sensitivity}</strong> · Injury: <strong>${injuryLevel ?? '—'}</strong>
+                    Sensitivity: <strong>${sensitivity}</strong> · Injury: <strong>${injuryLevel ?? '-'}</strong>
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;margin-top:4px;">${statusChips.join('')}</div>
             </div>`;

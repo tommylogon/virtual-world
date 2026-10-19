@@ -1,21 +1,21 @@
 "use strict";
 /**
- * InspectorMindView — the Memory Mind dashboard (task-691 stage 4).
+ * InspectorMindView - the Memory Mind dashboard (task-691 stage 4).
  *
  * A full-surface view of one character's memory dynamics, the wired version of
  * docs/design/memory-mockup.html: timeline ribbon, category filters, dynamics
  * badges, a memory detail pane with connections (contradicts / derived-from /
  * same-entity), per-person derived profiles from the /memories/people endpoint
- * (engine/derive.py — the same numbers the prompt sees), and an accessibility
+ * (engine/derive.py - the same numbers the prompt sees), and an accessibility
  * panel showing current activation (what decay is working on right now).
  *
  * Reads ONLY existing state: worldState memories + the people endpoint. Every
- * number shown is a field the backend wrote or a value derive.py computes —
+ * number shown is a field the backend wrote or a value derive.py computes -
  * no decorative data.
  *
- * @module inspector/mind-view — the character's memory mind (dashboard)
+ * @module inspector/mind-view - the character's memory mind (dashboard)
  * @contributes InspectorMindView.open(charName): full-surface memory dashboard
- * @powers Node inspectors, Memory — inspecting and correcting what a character remembers
+ * @powers Node inspectors, Memory - inspecting and correcting what a character remembers
  * @relates complements inspector/memory-view (the editor); reads /api/players/<n>/memories/people
  * @docs docs/virtualWorld/AI & Narration/Memory Dynamics.md
  */
@@ -36,10 +36,10 @@ const CAT_COLORS = {
     episodic: '#58a6ff', semantic: '#39c5cf', belief: '#bc8cff',
     social: '#f778ba', procedural: '#d29922'
 };
-let _state = null;
-let _container = null;
 const InspectorMindView = (() => {
     'use strict';
+    let _state = null;
+    let _container = null;
     const esc = (value) => {
         const s = String(value ?? '');
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -266,7 +266,7 @@ const InspectorMindView = (() => {
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;justify-content:space-between;">
                 <span>Accessibility now (activation)</span><span style="text-transform:none;">${faded} below 0.5</span></div>
             ${sorted.map(row).join('')}
-            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Recall (↻) raises activation; decay lowers it every tick at a rate each memory resists differently. Every memory is kept for life — decay lowers how likely it is to be recalled, it never forgets one.</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Recall (↻) raises activation; decay lowers it every tick at a rate each memory resists differently. Every memory is kept for life - decay lowers how likely it is to be recalled, it never forgets one.</div>
         </div>`;
     }
     function _goals() {
@@ -684,7 +684,7 @@ const InspectorMindView = (() => {
     function _recipesHtml() {
         if (!_state)
             return '';
-        // Task-841: known recipes are procedural knowledge — rendered
+        // Task-841: known recipes are procedural knowledge - rendered
         // from the backend projection (registry + knowledge), never
         // executed here. Filled by _fetchRecipes below.
         return `<div style="margin-top:14px;" id="mind-recipes"><div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make</div>
@@ -707,7 +707,7 @@ const InspectorMindView = (() => {
             const controlled = player && player.autonomy === false;
             const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
             if (!list.length) {
-                live.innerHTML = `${head}<div style="font-size:10px;color:var(--text-dim);">None yet — teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
+                live.innerHTML = `${head}<div style="font-size:10px;color:var(--text-dim);">None yet - teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
                 return;
             }
             const srcColor = {
@@ -899,7 +899,7 @@ const InspectorMindView = (() => {
                 return;
             // Never wipe an in-progress persona edit: a background state
             // push while typing would destroy unsaved form input. Any
-            // focused field counts — including chip inputs, which carry
+            // focused field counts - including chip inputs, which carry
             // no data-path until their pill is committed.
             const active = document.activeElement;
             if (_state.tab === 'persona' && active
@@ -1012,7 +1012,7 @@ const InspectorMindView = (() => {
             return `<div style="font-size:10.5px;color:var(--text-muted);">deriving profiles…</div>`;
         }
         if (_state.peopleStatus === 'error' || !_state.people.length) {
-            return `<div style="font-size:10.5px;color:var(--text-muted);">${_state.peopleStatus === 'error' ? 'profiles unavailable.' : 'no rel-tagged memories yet — feelings about people appear as the character experiences them.'}</div>`;
+            return `<div style="font-size:10.5px;color:var(--text-muted);">${_state.peopleStatus === 'error' ? 'profiles unavailable.' : 'no rel-tagged memories yet - feelings about people appear as the character experiences them.'}</div>`;
         }
         const DIMS = [['trust', '#4caf50'], ['fear', '#e0a33c'], ['attraction', '#f778ba'], ['disgust', '#3fb950'], ['respect', '#bc8cff']];
         return _state.people.map((p) => {
@@ -1038,6 +1038,15 @@ const InspectorMindView = (() => {
         ['personality', 'Personality'], ['narrative', 'Narrative'],
     ];
     const _PERSONA_NUMBERS = new Set(['identity.age', 'appearance.height_cm', 'appearance.weight_kg']);
+    const _PERSONA_TEXTAREAS = new Set([
+        'appearance.overview',
+        'narrative.arc',
+        'narrative.role_in_town',
+        'narrative.biography.early_life',
+        'narrative.biography.adulthood',
+        'narrative.biography.current_situation',
+        'narrative.secrets.deepest_secret',
+    ]);
     function _personaVal(path) {
         const rec = _state?.persona?.record || {};
         const parts = path.split('.');
@@ -1052,7 +1061,7 @@ const InspectorMindView = (() => {
     const _PERSONA_INTIMACY = new Set(['personality.kinks', 'personality.turn_ons',
         'personality.turn_offs', 'personality.boundaries', 'personality.experience']);
     const _PERSONA_TONES = {
-        fears: 'danger', traumas: 'danger', turn_offs: 'danger',
+        fears: 'danger', traumas: 'danger', turn_offs: 'danger', dislikes: 'danger',
         interests: 'info', likes: 'info',
     };
     function _personaCss() {
@@ -1064,7 +1073,7 @@ const InspectorMindView = (() => {
         #mind-persona .pf-hint{cursor:help;font-size:10px;}
         #mind-persona .pf-in{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:13px;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
         #mind-persona .pf-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.18);}
-        #mind-persona textarea.pf-in{resize:vertical;font-family:inherit;}
+        #mind-persona textarea.pf-in{resize:vertical;font-family:inherit;min-height:56px;line-height:1.4;}
         #mind-persona fieldset.pf-group{border:1px solid var(--border);border-radius:6px;padding:7px 9px;margin:0;}
         #mind-persona fieldset.pf-group>legend{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:0 4px;}
         #mind-persona .pf-sub{font-size:11px;color:var(--text-muted);margin-bottom:2px;}
@@ -1177,6 +1186,9 @@ const InspectorMindView = (() => {
         if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
             const numeric = decl?.type === 'number' || _PERSONA_NUMBERS.has(path);
             const str = val === undefined || val === null ? '' : String(val);
+            if (_PERSONA_TEXTAREAS.has(path)) {
+                return { html: `<div class="pf-span">${label}<textarea class="pf-in" data-persona-path="${esc(path)}" rows="3">${esc(str)}</textarea></div>`, wide: true };
+            }
             // Identity text fields stay free-form; a native datalist adds a
             // pick-list from the engine's vocabulary. Picking fires `input`
             // on the field, so the dirty chip and form-sync work unchanged.
@@ -1194,7 +1206,7 @@ const InspectorMindView = (() => {
             return { html: `<div class="pf-span">${label}${_personaChipBox(path, values, tone)}</div>`, wide: true };
         }
         if (decl.type === 'object' && decl.properties) {
-            // modifications[] is authored on the doll side panel (task-852 P3) —
+            // modifications[] is authored on the doll side panel (task-852 P3) -
             // keep a hidden input so collect/save still round-trips, no second editor.
             const skipSubs = path === 'appearance.body' ? new Set(['modifications']) : null;
             const subs = Object.keys(decl.properties).map((sub) => {
@@ -1208,6 +1220,9 @@ const InspectorMindView = (() => {
                     return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}${_sparkle(subPath)}</div>${_personaChipBox(subPath, values, tone)}</div>`;
                 }
                 const str = subVal === undefined || subVal === null ? '' : String(subVal);
+                if (_PERSONA_TEXTAREAS.has(subPath)) {
+                    return `<div style="margin-bottom:8px;"><div class="pf-sub">${esc(sub)}${_sparkle(subPath)}</div><textarea class="pf-in" data-persona-path="${esc(subPath)}" rows="3">${esc(str)}</textarea></div>`;
+                }
                 return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}${_sparkle(subPath)}</div><input class="pf-in" data-persona-path="${esc(subPath)}" value="${esc(str)}"></div>`;
             }).join('');
             const markHidden = path === 'appearance.body'
@@ -1218,15 +1233,18 @@ const InspectorMindView = (() => {
                 })()
                 : '';
             const locked = path === 'narrative.secrets'
-                ? `<div class="pf-lock-note" data-lock="${esc(path)}">🔒 sealed — never compiled to prose. click to reveal.</div><div class="pf-locked" data-lockbody="${esc(path)}">${subs}</div>`
+                ? `<div class="pf-lock-note" data-lock="${esc(path)}">🔒 sealed - never compiled to prose. click to reveal.</div><div class="pf-locked" data-lockbody="${esc(path)}">${subs}</div>`
                 : subs;
             return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintIco}</legend>${locked}${markHidden}</fieldset></div>`, wide: true };
         }
         const str = val === undefined || val === null ? '' : String(val);
+        if (_PERSONA_TEXTAREAS.has(path)) {
+            return { html: `<div class="pf-span">${label}<textarea class="pf-in" data-persona-path="${esc(path)}" rows="3">${esc(str)}</textarea></div>`, wide: true };
+        }
         return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"></div>`, wide: false };
     }
     // ── persona body navigator (task-847) ─────────────────────────
-    // The paperdoll's AREA_TO_REGIONS, read — never re-declared. Clicking
+    // The paperdoll's AREA_TO_REGIONS, read - never re-declared. Clicking
     // an area shows live region status (same data as the 🩺 modal) plus the
     // linked schema values as a descriptive summary. The schema inputs
     // below stay the only editors; summary lines jump to their field.
@@ -1269,7 +1287,7 @@ const InspectorMindView = (() => {
                 .filter((i) => i.body_part === regionId);
             const exposed = player?.region_exposed?.[regionId] !== false;
             const sensNum = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity) : NaN;
-            const sens = Number.isFinite(sensNum) ? sensNum.toFixed(2) : '—';
+            const sens = Number.isFinite(sensNum) ? sensNum.toFixed(2) : '-';
             const chips = [];
             if (injured.length)
                 chips.push(`<span style="color:var(--yellow);">🤕 Lv${Math.max(...injured.map((i) => i.level || 1))}</span>`);
@@ -1282,7 +1300,7 @@ const InspectorMindView = (() => {
             if (!chips.length)
                 chips.push(`<span style="color:var(--text-dim);">healthy</span>`);
             const slider = Number.isFinite(sensNum)
-                ? `<input type="range" min="0" max="100" value="${Math.round(sensNum * 100)}" data-sens-region="${esc(regionId)}" title="sensitivity baseline — writes on release" style="width:90px;vertical-align:middle;accent-color:var(--accent);">`
+                ? `<input type="range" min="0" max="100" value="${Math.round(sensNum * 100)}" data-sens-region="${esc(regionId)}" title="sensitivity baseline - writes on release" style="width:90px;vertical-align:middle;accent-color:var(--accent);">`
                 : '';
             return `<div style="margin-bottom:6px;"><span style="font-size:12px;text-transform:capitalize;">${esc(regionName(regionId))}</span> `
                 + `<span style="font-size:10px;color:var(--text-muted);">sens ${sens}</span> ${slider} `
@@ -1294,7 +1312,7 @@ const InspectorMindView = (() => {
             const summary = _schemaLineSummary(path);
             const body = summary
                 ? summary
-                : `<span style="color:var(--text-muted);">— empty, fill it below</span>`;
+                : `<span style="color:var(--text-muted);">- empty, fill it below</span>`;
             return `<div style="margin-bottom:5px;"><span style="font-size:11px;color:var(--text-muted);">${esc(leaf)}</span> `
                 + `<span data-persona-jump="${esc(path)}" title="jump to field" style="cursor:pointer;color:var(--accent);font-size:12px;">⤴</span><br>${body}</div>`;
         }).join('');
@@ -1313,7 +1331,7 @@ const InspectorMindView = (() => {
         </div>`;
         const descBlock = linked
             ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${linked}</div>`
-            : `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">no schema field maps to this area — live status + markings only.</div>`;
+            : `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">no schema field maps to this area - live status + markings only.</div>`;
         return `${rows}${descBlock}${markEditor}`;
     }
     function _bodyNavHtml() {
@@ -1328,7 +1346,7 @@ const InspectorMindView = (() => {
         const doll = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing });
         const side = sel
             ? _bodyNavSideHtml(sel)
-            : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
+            : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll - live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
         const unassigned = _allMarks().filter((raw) => !_parseMark(raw).area);
         const orphan = unassigned.length
             ? `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">unassigned markings (pick a region, then re-add): ${unassigned.map((m) => esc(_parseMark(m).text || m)).join(' · ')}</div>`
@@ -1413,7 +1431,7 @@ const InspectorMindView = (() => {
         if (nav) {
             nav.innerHTML = sel
                 ? _bodyNavSideHtml(sel)
-                : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
+                : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll - live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
             _wireBodyNavJumps(pane);
             _wireBodyNavSliders(pane);
             _wireBodyNavMarks(pane);
@@ -1550,7 +1568,8 @@ const InspectorMindView = (() => {
         const ident = (rec.identity || {});
         const picks = [
             ['pronouns', ident.pronouns], ['age', ident.age],
-            ['species', ident.species], ['occupation', ident.occupation],
+            ['gender', ident.gender], ['species', ident.species],
+            ['occupation', ident.occupation],
         ];
         const chips = picks
             .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
@@ -1559,7 +1578,7 @@ const InspectorMindView = (() => {
             return '';
         return `<div class="pf-badges">${chips}</div>`;
     }
-    // task-852 P1: character header — name, one-liner, badges, state chips
+    // task-852 P1: character header - name, one-liner, badges, state chips
     // (✓ saved / ● unsaved / ⚠ uncompiled), actions on the right.
     function _personaStatesHtml() {
         const p = _state?.persona;
@@ -1645,7 +1664,7 @@ const InspectorMindView = (() => {
                 }
             }
             else {
-                // Doll lives in the left workspace column — appearance fold is fields only.
+                // Doll lives in the left workspace column - appearance fold is fields only.
                 inner = `<div class="pf-grid">${names.map(renderable).join('')}</div>`;
             }
             const count = names.length;
@@ -1657,7 +1676,7 @@ const InspectorMindView = (() => {
             </details>`;
         }).join('');
         const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
-                <div style="font-weight:600;margin-bottom:6px;">Compile preview — hand prose differs</div>
+                <div style="font-weight:600;margin-bottom:6px;">Compile preview - hand prose differs</div>
                 <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:11px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
                 <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">BASE COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div></div>
                 <div style="margin-bottom:8px;"><div style="color:var(--text-muted);font-size:11px;">PERSONALITY NOW</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
@@ -1668,8 +1687,8 @@ const InspectorMindView = (() => {
         const msg = p.msg ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
         return `${_personaCss()}
             ${_personaHeaderHtml()}
-            <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry — live preview</summary>
-                <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type — the compiled entry appears here without storing anything.</div></div>
+            <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry - live preview</summary>
+                <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type - the compiled entry appears here without storing anything.</div></div>
             </details>
             ${preview}
             <div class="pf-workspace">
@@ -1833,7 +1852,7 @@ const InspectorMindView = (() => {
                 return;
             }
             _state.persona.preview = null;
-            _state.persona.msg = 'compiled — prose + tags projected.';
+            _state.persona.msg = 'compiled - prose + tags projected.';
             _fetchPersona();
             worldState.fetch();
         })
@@ -1890,7 +1909,7 @@ const InspectorMindView = (() => {
             return;
         const record = _collectPersona();
         if (!Object.keys(record).length) {
-            box.innerHTML = `<span style="color:var(--text-muted);">empty sheet — nothing to project.</span>`;
+            box.innerHTML = `<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`;
             return;
         }
         fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
@@ -1909,7 +1928,7 @@ const InspectorMindView = (() => {
             const c = data.compiled || {};
             live.innerHTML = `${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
                     ${c.personality ? `<div style="color:var(--text-dim);">${esc(c.personality)}</div>` : ''}
-                    ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '—'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '—'}</div>` : ''}`;
+                    ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '-'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '-'}</div>` : ''}`;
         })
             .catch(() => { });
     }
@@ -1919,11 +1938,11 @@ const InspectorMindView = (() => {
         const CI = window.CharacterImport;
         const llm = window.llmClient;
         if (!CI) {
-            _personaMsg('importer not loaded — rebuild the frontend.');
+            _personaMsg('importer not loaded - rebuild the frontend.');
             return;
         }
         if (!llm || typeof llm.chat !== 'function') {
-            _personaMsg('no model connected — configure one in Settings first.');
+            _personaMsg('no model connected - configure one in Settings first.');
             return;
         }
         const reader = new FileReader();
@@ -1933,7 +1952,7 @@ const InspectorMindView = (() => {
                     const parsed = CI.parseInputFile(String(reader.result ?? ''), file.name);
                     const schema = _state?.persona?.schema;
                     if (!schema) {
-                        _personaMsg('schema not loaded — retry the tab.');
+                        _personaMsg('schema not loaded - retry the tab.');
                         return;
                     }
                     _personaMsg(`converting ${parsed.kind} “${file.name}”…`);
@@ -1963,7 +1982,7 @@ const InspectorMindView = (() => {
                     _personaRepaint(false);
                 }
                 catch (e) {
-                    _personaMsg(`import failed: ${e instanceof Error ? e.message : String(e)} — nothing stored.`);
+                    _personaMsg(`import failed: ${e instanceof Error ? e.message : String(e)} - nothing stored.`);
                 }
             })();
         };
@@ -2011,8 +2030,8 @@ const InspectorMindView = (() => {
                 if (body) {
                     const locked = body.classList.toggle('pf-locked');
                     el.textContent = locked
-                        ? '🔒 sealed — never compiled to prose. click to reveal.'
-                        : '🔓 revealed — still never compiled to prose.';
+                        ? '🔒 sealed - never compiled to prose. click to reveal.'
+                        : '🔓 revealed - still never compiled to prose.';
                 }
             });
         });
@@ -2142,7 +2161,7 @@ const InspectorMindView = (() => {
                 <div style="margin-top:12px;" id="mind-access">${_accessibilityHtml(all)}</div>
             </div></div>`;
         const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
-            <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People — derived from memories</div>
+            <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People - derived from memories</div>
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
         const personaPane = `<div style="flex:1;padding:16px 20px;overflow-y:auto;">
             <div id="mind-persona">${_personaHtml()}</div></div>`;
@@ -2154,7 +2173,7 @@ const InspectorMindView = (() => {
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
         <div style="position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;">
             <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-inset);flex-wrap:wrap;">
-                <h3 style="margin:0;font-size:14px;">🧠 Mind — ${esc(_state.charName)}</h3>
+                <h3 style="margin:0;font-size:14px;">🧠 Mind - ${esc(_state.charName)}</h3>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">${_statsHtml(all)}</div>
                 <button class="btn btn-sm mind-refresh" style="font-size:10px;" title="Re-read the character's memories">🔄</button>
                 <button class="btn btn-sm mind-close" style="font-size:10px;">✕</button>
@@ -2383,6 +2402,12 @@ const InspectorMindView = (() => {
             }
             _state = null;
         },
+        // Test helpers
+        _parseMark,
+        _formatMark,
+        _allMarks,
+        _PERSONA_TEXTAREAS,
+        _PERSONA_TONES,
     };
     return M;
 })();
