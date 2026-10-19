@@ -11,15 +11,15 @@ A world scope is a named, addressable region (like "Millbrook Falls > Downtown D
 
 ## Where it lives
 
-- `engine/world_scopes.py` — manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
-- `engine/generation_recipes.py` / `engine/generation.py` — `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
-- `routes/world_grid.py` / `routes/world_grid_ops.py` — scope CRUD, grid paint/place/name, generate/ungenerate, promote
-- `static/js/graph/scope-tree.js` — editor scope tree UI
-- `engine/world_grid.py` — `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
-- `engine/biomes.py` — taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
+- `engine/world_scopes.py` - manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
+- `engine/generation_recipes.py` / `engine/generation.py` - `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
+- `routes/world_grid.py` / `routes/world_grid_ops.py` - scope CRUD, grid paint/place/name, generate/ungenerate, promote
+- `static/js/graph/scope-tree.js` - editor scope tree UI
+- `engine/world_grid.py` - `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
+- `engine/biomes.py` - taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
 
 A **world scope** is a named, addressable region of the world with a parent. It is
-the unit of loading, of projection, of generation and — later — of eviction.
+the unit of loading, of projection, of generation and - later - of eviction.
 `Millbrook Falls > Downtown District > The Pines Apartment Complex > Floor 2` is
 a path a system can name and a person can navigate.
 
@@ -33,11 +33,11 @@ Part of [[_Index]].
 
 A region could be described three ways, and two of them are wrong:
 
-- as **coordinates** — then every system that wants to know "is the well inside
+- as **coordinates** - then every system that wants to know "is the well inside
   the mill?" needs geometry, and the answer changes when a map is re-painted;
-- as a **name** — then a duplicate name silently merges two places, which is
+- as a **name** - then a duplicate name silently merges two places, which is
   exactly the hazard task-581 has to fix for `current_area`;
-- as a **node with a parent** — a scope. Addressing a place becomes a graph walk
+- as a **node with a parent** - a scope. Addressing a place becomes a graph walk
   up to a common ancestor, not a geometry problem.
 
 So a scope is a node. Its `area_ids` say what it contains, its `parent_id` says
@@ -61,7 +61,7 @@ where it sits, and its `kind` says what it is (`settlement`, `district`,
 
 An area belongs to a scope through the `world_scope_id` property **on the area
 node**. The manifest's `area_ids` is a mirror of that, kept in step by
-`assign_area_membership()` (task-539) — so the node is the fact and a manifest
+`assign_area_membership()` (task-539) - so the node is the fact and a manifest
 that has drifted still resolves correctly on read, because `area_ids_in_scope()`
 unions both sources.
 
@@ -90,7 +90,7 @@ A scope with no `grid` costs nothing and older saves load unchanged. Coordinates
 `(x, y)` from the top-left with `y` down, and a cell's stable identity is `cell_id` =
 `"<scope_id>:<x>,<y>"`.
 
-**A painted cell compiles to an area node** — the id is minted from the cell
+**A painted cell compiles to an area node** - the id is minted from the cell
 (`area_<scope_id>_<x>_<y>`) and the node carries `properties.cell`, so the grid is an *authoring*
 surface over the same areas the graph holds, not a second model. Full statement, with the three
 deliberate exceptions (region merging, hand-placed cells, never-compiled grids):
@@ -103,7 +103,7 @@ child as a single feature cell rather than spilling its whole interior.
 
 ## Projection, not the whole graph
 
-`project()` returns one scope's subtree — the areas, the ways between them, the
+`project()` returns one scope's subtree - the areas, the ways between them, the
 boundary ways that leave the scope, and the counts a UI needs. The rule that
 matters: **the default view does not reveal what a scope merely contains.**
 Opening a scope into a projection is a deliberate act, not a default.
@@ -116,7 +116,7 @@ through this path.
 `flat_scopes()` is the whole manifest flattened for a tree or breadcrumb, and
 `scope_summary()` is the per-scope rollup (areas, items, characters, generation
 state). Deleting a scope is refused while it has children unless `cascade=True`,
-and it removes only **generated** nodes — hand-authored nodes are left alone
+and it removes only **generated** nodes - hand-authored nodes are left alone
 rather than guessed at, while a hand-*placed* area keeps its area and loses the
 cell.
 
@@ -139,7 +139,7 @@ scope; those remain server-side world simulation.
 ## Unmade scopes
 
 A scope with a grid but no materialised areas is **unmade**: declared, addressable,
-and empty. This is the state that makes the rest of the roadmap possible —
+and empty. This is the state that makes the rest of the roadmap possible -
 generation needs a target, and chunking needs something to load.
 
 An unmade scope may carry a `recipe`. That is the whole contract for
@@ -167,7 +167,7 @@ The rule that keeps generation from becoming a second authoring system:
 > **Generated is a provenance flag, not an ownership claim.**
 
 Once a person edits a generated item, that edit outranks the recipe. A later
-generation cannot erase it — a second run is a no-op on anything already made.
+generation cannot erase it - a second run is a no-op on anything already made.
 `ungenerate_scope()` is the explicit, separate way to take a scope back to unmade.
 
 Not built yet: the `Generate` button and the preview surface (**task-580**). The
@@ -204,22 +204,22 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 
 ## Related
 
-- [[Simulation Model]] — where a character is, and what a turn is.
-- [[Gameplay/Character Spatial Position]] — one `at` per character.
-- [[Rooms & Areas]] — what a scope contains.
-- [[Graph System]] — nodes, ways, and the projection over them.
-- [[Millbrook Falls Town Map]] — the first authored scope hierarchy.
+- [[Simulation Model]] - where a character is, and what a turn is.
+- [[Gameplay/Character Spatial Position]] - one `at` per character.
+- [[Rooms & Areas]] - what a scope contains.
+- [[Graph System]] - nodes, ways, and the projection over them.
+- [[Millbrook Falls Town Map]] - the first authored scope hierarchy.
 
 ## Where it lives
 
-- `engine/world_scopes.py` — manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
-- `engine/generation_recipes.py` / `engine/generation.py` — `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
-- `routes/world_grid.py` / `routes/world_grid_ops.py` — scope CRUD, grid paint/place/name, generate/ungenerate, promote
-- `static/js/graph/scope-tree.js` — editor scope tree UI
-- `engine/world_grid.py` — `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
-- `engine/biomes.py` — taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
-- `engine/world/index.py` / `engine/world/store.py` — resident scope index and durable chunk loader
-- `routes/runtime_ops.py` — character-focused runtime snapshot
+- `engine/world_scopes.py` - manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
+- `engine/generation_recipes.py` / `engine/generation.py` - `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
+- `routes/world_grid.py` / `routes/world_grid_ops.py` - scope CRUD, grid paint/place/name, generate/ungenerate, promote
+- `static/js/graph/scope-tree.js` - editor scope tree UI
+- `engine/world_grid.py` - `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
+- `engine/biomes.py` - taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
+- `engine/world/index.py` / `engine/world/store.py` - resident scope index and durable chunk loader
+- `routes/runtime_ops.py` - character-focused runtime snapshot
 
 <!-- changelog:start -->
 ## Changelog
@@ -235,12 +235,12 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[scopes|Scopes]] (#49)
+**Features** - [[scopes|Scopes]] (#49)
 
-**Dev tasks** — [[dev_tasks/inprogress/world/task-855-character-focused-runtime-state-scales-by-scope-not-world-size|task]], [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]], [[dev_tasks/review/world/task-583-global-scope-index-gateway-ways-and-load-before-you-move|task]]
+**Dev tasks** - [[task-855-character-focused-runtime-state-scales-by-scope-not-world-size|task]], [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]], [[dev_tasks/review/world/task-583-global-scope-index-gateway-ways-and-load-before-you-move|task]]
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
+**Neighbouring notes** - [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

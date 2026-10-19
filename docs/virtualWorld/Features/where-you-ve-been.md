@@ -13,10 +13,15 @@ tags: [status/wired, surface/in-game, system/gameplay]
 ## How it works
 
 - [[Turn Queue & Human Turns]]
+- [[Grid Line of Sight & Charted Memory]]
 
 ## Where it lives
 
-_Not recorded yet — add the code paths when you next touch this feature._
+- `engine/world_grid.py` - viewshed slope-sweep and 2.5D raycast line of sight
+- `player.py` / `engine/character_record.py` - `player.charted_cells` persistent memory
+- `engine/spatial_memory.py` - `recall` action and charted A* pathfinding
+- `static/js/agent/turn-minimap.ts` - 4-tier fog of war lattice rendering
+- `static/js/agent/prompt-builder/room-context.ts` - bounded horizon context injection
 
 ## Connected
 

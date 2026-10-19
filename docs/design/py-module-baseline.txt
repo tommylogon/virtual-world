@@ -5,7 +5,6 @@ engine/agent_memory.py
 engine/area_description.py
 engine/area_statuses.py
 engine/area_tags.py
-engine/attention.py
 engine/autocomplete.py
 engine/awareness.py
 engine/background_plans.py
@@ -101,6 +100,7 @@ engine/schedule.py
 engine/schema.py
 engine/scry.py
 engine/serialization.py
+engine/serialization_helpers.py
 engine/serialization_legacy.py
 engine/serialization_template.py
 engine/size.py
@@ -116,6 +116,7 @@ engine/structures.py
 engine/sync.py
 engine/timeskip.py
 engine/toggleable_items.py
+engine/trait_library.py
 engine/traits.py
 engine/traversal.py
 engine/trigger_system.py
@@ -123,6 +124,7 @@ engine/triggers/__init__.py
 engine/triggers/behaviors.py
 engine/triggers/condition_tree.py
 engine/triggers/constants.py
+engine/triggers/context.py
 engine/triggers/effect_resolution.py
 engine/triggers/evaluation.py
 engine/triggers/execution.py
@@ -133,16 +135,22 @@ engine/undead.py
 engine/vector_store.py
 engine/venues.py
 engine/vitals.py
+engine/way_narratives.py
 engine/weather_forecast.py
 engine/world/__init__.py
 engine/world/index.py
 engine/world/spawner.py
+engine/world_compile_blocking.py
+engine/world_compile_directions.py
+engine/world_compile_regions.py
+engine/world_compile_stable.py
 engine/world_events.py
 engine/world_scopes.py
 engine/zones.py
 routes/__init__.py
 routes/action.py
 routes/action_handlers.py
+routes/benchmark.py
 routes/events.py
 routes/graph.py
 routes/health.py
