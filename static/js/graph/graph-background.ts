@@ -1839,11 +1839,18 @@ interface BackgroundState {
         const nodesObj = ((graphManager as unknown as { _graphNodesObj?: Record<string, any> } | undefined)
             ? (graphManager as unknown as { _graphNodesObj?: Record<string, any> })._graphNodesObj
             : null) || {};
-        const isPainted = (id: string): boolean => {
-            const props = (nodesObj[id] || {}).properties || {};
+        const isDerivedOrPainted = (id: string): boolean => {
+            const node = nodesObj[id];
+            if (!node) return false;
+            const props = node.properties || {};
             const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
-            return !!(engine && typeof engine.hasPaintedCoords === 'function'
-                && engine.hasPaintedCoords(props));
+            if (engine && typeof engine.hasPaintedCoords === 'function' && engine.hasPaintedCoords(props)) {
+                return true;
+            }
+            // An uncelled way or child whose position is derived from its rooms/holder
+            // must not have solver coordinates persisted over it (task-769).
+            if (node.type === 'way') return true;
+            return false;
         };
 
         const ops: unknown[] = [];
@@ -1851,7 +1858,7 @@ interface BackgroundState {
         for (const id of Object.keys(positions)) {
             const position = positions[id];
             if (!position) continue;
-            if (isPainted(id)) { skipped++; continue; }
+            if (isDerivedOrPainted(id)) { skipped++; continue; }
             ops.push({
                 type: 'update_node',
                 payload: {
