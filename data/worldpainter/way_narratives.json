@@ -1,0 +1,789 @@
+{
+  "version": 1,
+  "kinds": {
+    "door": {
+      "descriptions": [
+        "A sturdy wooden door set into a rough timber frame.",
+        "A heavy timber door reinforced with rusted iron bands.",
+        "A simple plank door hung on squeaking iron hinges.",
+        "A weathered wooden door with a tarnished latch.",
+        "A thick oak door fitted flush against the wall."
+      ],
+      "forward_views": [
+        "a sturdy wooden door set into the frame",
+        "a heavy timber door hung on iron hinges",
+        "a simple plank door with an iron latch",
+        "a weathered wooden door",
+        "a thick oak door fitted against the opening"
+      ],
+      "reverse_views": [
+        "a sturdy wooden door set into the frame",
+        "a heavy timber door hung on iron hinges",
+        "a simple plank door with an iron latch",
+        "a weathered wooden door",
+        "a thick oak door fitted against the opening"
+      ]
+    },
+    "stairs": {
+      "descriptions": [
+        "A flight of rough-hewn wooden steps leading between levels.",
+        "A set of sturdy stone stairs cut directly into the structure.",
+        "A narrow staircase with creaking floorboards and a simple rail.",
+        "A steep flight of stairs climbing between storeys.",
+        "A solid wooden stairway with a worn handrail."
+      ],
+      "forward_views": [
+        "a flight of wooden steps leading between levels",
+        "a set of stone stairs cut into the structure",
+        "a narrow staircase with creaking steps",
+        "a steep flight of stairs rising to the adjoining level",
+        "a solid wooden stairway with a worn handrail"
+      ],
+      "reverse_views": [
+        "a flight of wooden steps leading between levels",
+        "a set of stone stairs cut into the structure",
+        "a narrow staircase with creaking steps",
+        "a steep flight of stairs descending to the adjoining level",
+        "a solid wooden stairway with a worn handrail"
+      ]
+    },
+    "entrance": {
+      "descriptions": [
+        "The front entrance to the building, flanked by wooden posts.",
+        "A welcoming doorway opening into the interior.",
+        "A framed entryway with a worn stone threshold.",
+        "A sturdy threshold leading directly inside.",
+        "A recessed doorway set into the building front."
+      ],
+      "forward_views": [
+        "a doorway leading into the building",
+        "a framed entryway opening into the interior",
+        "the worn stone threshold of the entrance",
+        "a sturdy doorway leading inside",
+        "a recessed entrance set into the wall"
+      ],
+      "reverse_views": [
+        "the doorway leading back outside",
+        "an exit leading back to the street",
+        "the threshold opening to the outside",
+        "the main doorway leading out",
+        "an entryway opening into the open air"
+      ]
+    }
+  },
+  "transitions": {
+    "road:road": {
+      "descriptions": [
+        "A packed dirt roadway worn smooth by foot and cart traffic.",
+        "A rutted wagon road flanked by dry ditches and wild grasses.",
+        "A wide gravel track lined with pressed earth and stones.",
+        "A well-travelled dirt thoroughfare cutting across the land.",
+        "A maintained roadway showing faint tracks of past travellers."
+      ],
+      "forward_views": [
+        "a packed dirt road continuing onward",
+        "a rutted wagon track stretching into the distance",
+        "a wide gravel track bordered by weeds",
+        "a well-travelled thoroughfare leading forward",
+        "a maintained roadway winding into view"
+      ],
+      "reverse_views": [
+        "a packed dirt road continuing onward",
+        "a rutted wagon track stretching into the distance",
+        "a wide gravel track bordered by weeds",
+        "a well-travelled thoroughfare leading forward",
+        "a maintained roadway winding into view"
+      ]
+    },
+    "road:woods": {
+      "descriptions": [
+        "A rutted track disappearing into the encroaching forest.",
+        "A clearing where the maintained road gives way to a shadowed woodland path.",
+        "A dirt roadway narrowing beneath an arching canopy of trees.",
+        "A packed path bordered by thick brush and towering trunks.",
+        "A winding forest road shaded by dense overhanging branches."
+      ],
+      "forward_views": [
+        "the roadway narrowing into the shaded woods",
+        "an earthy track winding beneath the tree canopy",
+        "the forest opening around a shaded road",
+        "a woodland track swallowed by green boughs",
+        "a dirt path leading under the forest boughs"
+      ],
+      "reverse_views": [
+        "the trees thinning out toward a broad open road",
+        "a sunlit dirt roadway emerging from the forest edge",
+        "a maintained wagon track visible beyond the trees",
+        "the wide roadway opening in the distance",
+        "a clear thoroughfare emerging from the woods"
+      ]
+    },
+    "road:water": {
+      "descriptions": [
+        "A muddy approach leading down toward the water's edge.",
+        "A damp gravel path running along the riverbank.",
+        "A stone-paved ford where the road meets the water.",
+        "A soft earth track sloping toward the flowing current.",
+        "A low causeway where the road crosses the shallows."
+      ],
+      "forward_views": [
+        "the road descending toward the water's edge",
+        "the glint of open water where the path meets the shore",
+        "a damp track leading down to the riverbank",
+        "the path sloping toward the water",
+        "a shallow ford crossing the current"
+      ],
+      "reverse_views": [
+        "the road climbing away from the water",
+        "a dry dirt roadway rising above the shore",
+        "a wagon path leading away from the riverbank",
+        "the maintained road climbing up from the bank",
+        "a dirt track ascending from the water's edge"
+      ]
+    },
+    "road:rock": {
+      "descriptions": [
+        "A stony path cut into bedrock along the mountain base.",
+        "A rugged road strewn with scree and crumbled rock.",
+        "A switchback track climbing through fractured stone.",
+        "A graded mountain road flanked by rocky ledges.",
+        "A gravelly road winding between weathered stone boulders."
+      ],
+      "forward_views": [
+        "a gravel track rising toward rocky heights",
+        "a stony road winding past boulders and rockfaces",
+        "a rugged path climbing along the rockface",
+        "the road leading up into stone hills",
+        "a rocky road cutting through the crags"
+      ],
+      "reverse_views": [
+        "the road descending toward lower ground",
+        "a smoother roadway winding down from the rocks",
+        "the track opening onto easier terrain below",
+        "a graded road sloping down the mountainside",
+        "a wide dirt roadway leading away from the cliffs"
+      ]
+    },
+    "road:cultivated": {
+      "descriptions": [
+        "A quiet cart track bordered by split-rail fences and cultivated fields.",
+        "A dusty lane running between rows of crops and tilled soil.",
+        "A well-trodden farm road flanked by shallow drainage ditches.",
+        "A broad dirt track separating the open road from productive farmland.",
+        "A rustic farm lane worn deep by work wagons and livestock."
+      ],
+      "forward_views": [
+        "a quiet cart track bordered by split-rail fences",
+        "a dusty lane running between rows of crops",
+        "a farm road leading toward tilled fields",
+        "a broad dirt track flanked by farm fences",
+        "a rustic farm lane cutting across the fields"
+      ],
+      "reverse_views": [
+        "the farm lane joining the main road",
+        "a dirt track leading out to the thoroughfare",
+        "the open roadway visible beyond the fields",
+        "a wagon road leading away from the farm",
+        "the main road stretching beyond the gate"
+      ]
+    },
+    "road:urban": {
+      "descriptions": [
+        "A widening roadway that transitions from packed dirt to uneven cobblestones.",
+        "A settlement approach flanked by roadside posts and drainage gullies.",
+        "A thoroughfare leading past the first outlying buildings of town.",
+        "A paved road entering between stone walls and timbered structures.",
+        "A busy roadway passing beneath the threshold of the settlement."
+      ],
+      "forward_views": [
+        "cobblestones replacing dirt as the road enters town",
+        "a paved street flanked by settlement buildings",
+        "the thoroughfare passing between town walls",
+        "a wide lane entering the clustered buildings",
+        "the stone paving of the town entrance"
+      ],
+      "reverse_views": [
+        "the paved street giving way to the open dirt road",
+        "a dirt thoroughfare leading out into the countryside",
+        "the road stretching away from the settlement",
+        "an unpaved wagon track heading into open land",
+        "the country road opening beyond town"
+      ]
+    },
+    "woods:woods": {
+      "descriptions": [
+        "A winding animal trail cutting through thick brush and ancient trunks.",
+        "A narrow break between mossy roots and overhanging branches.",
+        "A shadowed path flanked by towering pines and tangled ferns.",
+        "A damp dirt track carpeted in pine needles and fallen leaves.",
+        "A quiet woodland path winding beneath an interlocking canopy."
+      ],
+      "forward_views": [
+        "a winding trail cutting through thick brush",
+        "a shadowed opening between ancient trees",
+        "dense foliage parting around a forest path",
+        "a canopy of thick boughs opening into the woods",
+        "a pine-needle path disappearing between the trunks"
+      ],
+      "reverse_views": [
+        "a winding trail cutting through thick brush",
+        "a shadowed opening between ancient trees",
+        "dense foliage parting around a forest path",
+        "a canopy of thick boughs opening into the woods",
+        "a pine-needle path disappearing between the trunks"
+      ]
+    },
+    "woods:water": {
+      "descriptions": [
+        "A gentle path sloping from the tree line down to the riverbank.",
+        "A break in the riverside willows opening onto the water's edge.",
+        "A muddy trail winding out of the forest toward the water.",
+        "A moss-covered track descending through reeds to the current.",
+        "A damp path leading out from the shaded woods to the river."
+      ],
+      "forward_views": [
+        "the trees opening onto the glint of open water",
+        "a trail descending from the woods to the riverbank",
+        "the bright reflection of water through the trees",
+        "a break in the willows along the water's edge",
+        "reeds and moving water visible through the foliage"
+      ],
+      "reverse_views": [
+        "the tree line rising up from the water's edge",
+        "a shadowed trail disappearing into dense forest",
+        "the green forest canopy rising above the bank",
+        "a narrow woodland path opening between the trunks",
+        "the cool shade of the woods bordering the shore"
+      ]
+    },
+    "woods:rock": {
+      "descriptions": [
+        "A steep footpath climbing from the tree line into rocky scree.",
+        "A narrow gap where the forest gives way to exposed stone ledges.",
+        "A pine-needle-strewn slope ascending toward rocky crags.",
+        "A rugged track flanked by sparse trees and fractured stone.",
+        "A rocky ascent winding between stunted pines and boulders."
+      ],
+      "forward_views": [
+        "a steep rocky slope rising above the trees",
+        "bare stone crags looming beyond the forest edge",
+        "a narrow trail climbing into rocky heights",
+        "exposed rockfaces rising above the pine boughs",
+        "a rugged path ascending into the stone crags"
+      ],
+      "reverse_views": [
+        "the dark green expanse of the forest below",
+        "a footpath descending into the shelter of trees",
+        "pine branches canopying the trail down",
+        "the dense forest spreading out below the rocks",
+        "a green woodland canopy visible down the slope"
+      ]
+    },
+    "woods:open": {
+      "descriptions": [
+        "A sun-dappled track leading from the woodland into open meadow.",
+        "A grassy verge where thick forest gives way to open plains.",
+        "A winding dirt path emerging from under the forest canopy.",
+        "A pleasant clearing opening between the tree line and tall grass.",
+        "A soft earthen trail connecting the shaded woods to the open field."
+      ],
+      "forward_views": [
+        "open grassland stretching under a wide sky",
+        "sunlight spilling across the open meadow",
+        "a grassy path leading out into the plains",
+        "the trees giving way to rolling grassland",
+        "an open expanse of grass beyond the tree line"
+      ],
+      "reverse_views": [
+        "the cool shadow of the forest edge",
+        "the dark tree line rising above the meadow",
+        "a path disappearing beneath the heavy forest canopy",
+        "dense woods bordering the grass",
+        "the shaded opening of a woodland trail"
+      ]
+    },
+    "woods:cultivated": {
+      "descriptions": [
+        "A cleared border where deep woods meet cultivated farmland.",
+        "A rough track passing through a gap in the boundary hedge into the fields.",
+        "A trail leading past a split-rail fence from the forest into tilled ground.",
+        "A worn woodland path opening onto organized rows of crops.",
+        "A grassy lane along the forest margin bordering farm fields."
+      ],
+      "forward_views": [
+        "orderly rows of crops stretching beyond the trees",
+        "cultivated fields opening past the woodland border",
+        "a split-rail fence marking the farm edge",
+        "tilled soil and farm plots beyond the tree line",
+        "a farm track winding out into open farmland"
+      ],
+      "reverse_views": [
+        "the encroaching woods rising beyond the farm fence",
+        "a shadowy forest trail opening past the field boundary",
+        "dense trees bordering the edge of the farm",
+        "a woodland path disappearing into heavy foliage",
+        "the cool shelter of the forest edge"
+      ]
+    },
+    "rock:rock": {
+      "descriptions": [
+        "A rugged mountain ledge carved by wind and frost.",
+        "A narrow canyon pass winding between sheer stone walls.",
+        "A rocky traverse flanked by jagged boulders and loose scree.",
+        "A wind-scoured trail across a high stone ridge.",
+        "A natural stone corridor flanked by towering rockfaces."
+      ],
+      "forward_views": [
+        "a rocky ridge stretching between stone crags",
+        "a rugged pass cutting through sheer stone",
+        "wind-swept ledges rising along the rockface",
+        "a narrow track bordered by broken boulders",
+        "a stony gap leading deeper into the mountain"
+      ],
+      "reverse_views": [
+        "a rocky ridge stretching between stone crags",
+        "a rugged pass cutting through sheer stone",
+        "wind-swept ledges rising along the rockface",
+        "a narrow track bordered by broken boulders",
+        "a stony gap leading deeper into the mountain"
+      ]
+    },
+    "rock:water": {
+      "descriptions": [
+        "A rocky path descending down a sheer gorge to the water below.",
+        "A slick stone shelf washed by the spray of rushing water.",
+        "A gravelly bank where stone cliffs meet the deep river.",
+        "A narrow track cut into the rocks above the flowing current.",
+        "A boulder-strewn descent ending at the river's edge."
+      ],
+      "forward_views": [
+        "the glint of rushing water at the foot of the rocks",
+        "a steep descent leading down to the riverbank",
+        "moving water cutting through the stone gorge",
+        "the river flowing beneath the rocky cliff",
+        "wet riverstones and open water below"
+      ],
+      "reverse_views": [
+        "sheer cliffs rising steeply above the water",
+        "a rugged stone path climbing away from the shore",
+        "rocky crags towering over the river gorge",
+        "a narrow trail ascending the stone face",
+        "steep rocky ledges rising above the bank"
+      ]
+    },
+    "rock:open": {
+      "descriptions": [
+        "A gravelly slope descending from the rocky heights into rolling plains.",
+        "A transition where broken scree gives way to hardy mountain grass.",
+        "A wide stone-strewn path descending toward open ground.",
+        "A foothill trail bridging the crags and the flat plains below.",
+        "A gradual descent from the rockface out onto open grasslands."
+      ],
+      "forward_views": [
+        "wide open plains spreading out below the rocks",
+        "gentle grassy hills rolling into the distance",
+        "the flat horizon opening beyond the foothills",
+        "an expanse of grassland under the open sky",
+        "open ground spreading out from the base of the rocks"
+      ],
+      "reverse_views": [
+        "rocky crags and steep ledges rising above the plain",
+        "a gravel path climbing toward the stone heights",
+        "the rugged face of the mountain looming upward",
+        "stony slopes ascending into the hills",
+        "a boulder-strewn trail heading into the rocks"
+      ]
+    },
+    "water:water": {
+      "descriptions": [
+        "A shallow sandbar crossing the gentle current.",
+        "A ford where the river spreads wide and stones break the surface.",
+        "A tranquil watercourse gliding between reed-fringed banks.",
+        "A channel of brisk current moving between muddy shores.",
+        "A natural crossing where flat river stones provide footing."
+      ],
+      "forward_views": [
+        "the river flowing steadily onward",
+        "rippling water stretching between the banks",
+        "a shallow ford crossing the current",
+        "open water glinting in the light",
+        "a calm water channel bordered by reeds"
+      ],
+      "reverse_views": [
+        "the river flowing steadily onward",
+        "rippling water stretching between the banks",
+        "a shallow ford crossing the current",
+        "open water glinting in the light",
+        "a calm water channel bordered by reeds"
+      ]
+    },
+    "water:open": {
+      "descriptions": [
+        "A gentle gravelly bank where the water meets the grassy meadow.",
+        "A sandy verge sloping up from the waterline to open ground.",
+        "A soft grass path leading down to the water's edge.",
+        "A reed-lined shore opening onto sweeping grassland.",
+        "A low earthen bank connecting the water to the open field."
+      ],
+      "forward_views": [
+        "open grassland rolling away from the water",
+        "a grassy bank leading into the meadow",
+        "sweeping plains stretching under the sky",
+        "tall grass swaying beyond the shoreline",
+        "dry open ground rising above the water"
+      ],
+      "reverse_views": [
+        "the bright surface of the water ahead",
+        "a gentle slope leading down to the shoreline",
+        "reeds and gentle ripples along the water's edge",
+        "the watercourse curving into view",
+        "a sandy bank bordering the water"
+      ]
+    },
+    "cultivated:cultivated": {
+      "descriptions": [
+        "A narrow dirt headland running between adjacent fields.",
+        "A cart track separating two expanses of tilled soil.",
+        "A grass verge dividing rows of crops and vegetable beds.",
+        "A farm lane flanked by shallow drainage ditches and stone cairns.",
+        "A pathway beaten smooth by farm hands and working beasts."
+      ],
+      "forward_views": [
+        "tilled fields and crop rows continuing ahead",
+        "a dirt headland running between farm plots",
+        "a cart track winding across the farmland",
+        "fenced pastures and crop fields beyond",
+        "open agricultural plots under the sky"
+      ],
+      "reverse_views": [
+        "tilled fields and crop rows continuing ahead",
+        "a dirt headland running between farm plots",
+        "a cart track winding across the farmland",
+        "fenced pastures and crop fields beyond",
+        "open agricultural plots under the sky"
+      ]
+    },
+    "cultivated:open": {
+      "descriptions": [
+        "A boundary ditch where enclosed farmland gives way to wild pasture.",
+        "A rustic stile crossing the outer fence of the farm into open grass.",
+        "A dirt path leading past the last tilled furrow into open plains.",
+        "A grassy lane opening out from the fields into untamed meadow.",
+        "A split-rail fence marking the border between crop fields and wild land."
+      ],
+      "forward_views": [
+        "open grassland stretching beyond the farm fence",
+        "untamed pasture rolling under the wide sky",
+        "a grassy trail leading into open country",
+        "wild meadow grass waving in the wind",
+        "open plains extending past the field boundary"
+      ],
+      "reverse_views": [
+        "the organized rows of the farm fields",
+        "tilled earth and split-rail fencing ahead",
+        "a farm lane entering cultivated plots",
+        "hedgerows and crop fields bordering the path",
+        "enclosed farmland spreading before you"
+      ]
+    },
+    "indoor:indoor": {
+      "descriptions": [
+        "An open interior doorway connecting the adjoining chambers.",
+        "A wide timber-framed threshold leading between the rooms.",
+        "A passage with worn floorboards opening into the next space.",
+        "A quiet archway separating the interior living spaces.",
+        "A clear interior threshold linking the two rooms."
+      ],
+      "forward_views": [
+        "an open doorway leading into the adjoining room",
+        "a wide archway opening into the next chamber",
+        "a timber-framed threshold leading inside",
+        "a passage with worn floorboards opening ahead",
+        "a clear interior opening into the adjacent room"
+      ],
+      "reverse_views": [
+        "an open doorway leading into the adjoining room",
+        "a wide archway opening into the next chamber",
+        "a timber-framed threshold leading inside",
+        "a passage with worn floorboards opening ahead",
+        "a clear interior opening into the adjacent room"
+      ]
+    },
+    "indoor:urban": {
+      "descriptions": [
+        "A threshold connecting the building interior with the street outside.",
+        "A framed entryway opening between the indoor room and outdoor lane.",
+        "A doorway bridging the shelter of the building and the open street.",
+        "An entrance passage leading from the interior out into the settlement.",
+        "A timber doorstep dividing the indoor chamber from the street outside."
+      ],
+      "forward_views": [
+        "the street and settlement buildings visible outside",
+        "a doorway opening out onto the cobblestone lane",
+        "the open air of the street beyond the doorway",
+        "an exit leading outside to the town",
+        "the outdoor lane framed by the doorway"
+      ],
+      "reverse_views": [
+        "the sheltered room waiting inside the building",
+        "an entryway opening into the building interior",
+        "the threshold leading inside from the street",
+        "the quiet interior visible through the entrance",
+        "a doorway leading into the building"
+      ]
+    },
+    "urban:urban": {
+      "descriptions": [
+        "A narrow cobblestone lane between weathered timber buildings.",
+        "A paved alleyway flanked by overhanging eaves and stone walls.",
+        "A thoroughfare lined with flagstones and rain gutters.",
+        "A quiet passage winding between plaster walls and shuttered windows.",
+        "A stone-paved street bordered by doorsteps and stone foundations."
+      ],
+      "forward_views": [
+        "a cobblestone street flanked by timber walls",
+        "a narrow paved passage between the buildings",
+        "an open courtyard paved with worn flagstones",
+        "a winding lane bordered by stone houses",
+        "a street flanked by overhanging eaves"
+      ],
+      "reverse_views": [
+        "a cobblestone street flanked by timber walls",
+        "a narrow paved passage between the buildings",
+        "an open courtyard paved with worn flagstones",
+        "a winding lane bordered by stone houses",
+        "a street flanked by overhanging eaves"
+      ]
+    },
+    "urban:open": {
+      "descriptions": [
+        "A settlement boundary where paved streets give way to open ground.",
+        "A wide gap in the outer enclosure opening into the countryside.",
+        "A dirt track leading past the final houses into open country.",
+        "A worn path leaving the settlement behind for open fields.",
+        "A transition where stone curbs end and meadow grass begins."
+      ],
+      "forward_views": [
+        "open countryside spreading out beyond the settlement",
+        "a dirt path leading into the open fields",
+        "the wide horizon opening beyond the town border",
+        "green plains stretching under the open sky",
+        "untamed grassland beginning where the street ends"
+      ],
+      "reverse_views": [
+        "the clustered roofs and timber facades of the settlement",
+        "a paved lane entering between the buildings",
+        "stone foundations and settlement walls ahead",
+        "the town entrance opening before you",
+        "clustered buildings lining the street entrance"
+      ]
+    },
+    "urban:woods": {
+      "descriptions": [
+        "A pathway leading from the settlement edge into the encroaching woods.",
+        "A clearing where the outermost houses back against tall forest trees.",
+        "A beaten dirt track passing behind timber homes into the tree line.",
+        "A shaded verge where town boundaries meet thick woodland brush.",
+        "A narrow gap between timber cottages opening into the forest."
+      ],
+      "forward_views": [
+        "the forest canopy rising behind the buildings",
+        "a shaded path entering the deep woods",
+        "tall trees and tangled undergrowth ahead",
+        "the cool shade of the forest bordering town",
+        "a woodland trail opening beyond the houses"
+      ],
+      "reverse_views": [
+        "the backs of timber buildings and brick chimneys",
+        "the settlement lane emerging from the tree line",
+        "houses and fences lining the town margin",
+        "a path leading into the clustered settlement",
+        "the town entrance visible beyond the trees"
+      ]
+    },
+    "open:open": {
+      "descriptions": [
+        "A gentle footpath beaten through swaying prairie grasses.",
+        "A wide earthen trail rolling across the open meadow.",
+        "A quiet path bordered by wildflowers and clover.",
+        "A sun-warmed track traversing the sweeping grassland.",
+        "A clear path winding across the undulating plain."
+      ],
+      "forward_views": [
+        "sweeping grassland stretching under the open sky",
+        "a beaten path winding through tall grass",
+        "rolling green plains rippling in the breeze",
+        "a sunlit dirt trail extending across the meadow",
+        "an open expanse of grassland stretching ahead"
+      ],
+      "reverse_views": [
+        "sweeping grassland stretching under the open sky",
+        "a beaten path winding through tall grass",
+        "rolling green plains rippling in the breeze",
+        "a sunlit dirt trail extending across the meadow",
+        "an open expanse of grassland stretching ahead"
+      ]
+    },
+    "dense_forest:dense_forest": {
+      "descriptions": [
+        "A shadowed game trail winding between massive ancient trunks.",
+        "A mossy track weaving through impenetrable thickets and hanging lichen.",
+        "A dim corridor beneath a heavy, light-choking forest canopy.",
+        "A narrow break through tangled roots and dense understory.",
+        "A deeply shadowed path carpeted in rotting bark and damp moss."
+      ],
+      "forward_views": [
+        "a shadowed game trail winding through the massive trunks",
+        "dense tangled understory parting around a faint path",
+        "a dim tunnel beneath the heavy forest canopy",
+        "ancient moss-covered roots bordering the way",
+        "a narrow break through the deep woods"
+      ],
+      "reverse_views": [
+        "a shadowed game trail winding through the massive trunks",
+        "dense tangled understory parting around a faint path",
+        "a dim tunnel beneath the heavy forest canopy",
+        "ancient moss-covered roots bordering the way",
+        "a narrow break through the deep woods"
+      ]
+    },
+    "dense_forest:river": {
+      "descriptions": [
+        "A muddy slope descending from the dark woods to the riverbank.",
+        "A break in the dense riverside thicket opening onto the rushing current.",
+        "A root-bound trail winding out of the deep forest to the water's edge.",
+        "A damp descent where ancient trees give way to reed-filled shallows.",
+        "A shadowed track leading from the high timber down to the river."
+      ],
+      "forward_views": [
+        "the dense trees parting onto the bright surface of the river",
+        "a muddy trail descending to the rushing current",
+        "water glinting through the thick woodland boughs",
+        "reeds and flowing water visible through the foliage",
+        "the open watercourse opening before you"
+      ],
+      "reverse_views": [
+        "the imposing dark wall of the dense forest canopy",
+        "a shadowy gap disappearing into the thick woods",
+        "massive mossy trunks rising steeply from the bank",
+        "a dark tunnel of overhanging boughs above the shore",
+        "the deep woods closing in along the riverbank"
+      ]
+    },
+    "sparse_forest:hills": {
+      "descriptions": [
+        "A winding trail climbing from scattered trees into grassy hilltops.",
+        "A rocky track ascending between isolated pines toward open crests.",
+        "A scenic path rising through sparse woodland onto the rolling hills.",
+        "A foothill route where trees thin out along the rising ridges.",
+        "A sunlit path climbing through scattered timber to the high ground."
+      ],
+      "forward_views": [
+        "grassy hill crests rising under the open sky",
+        "a trail climbing the rolling slopes above the trees",
+        "open ridges stretching across the higher ground",
+        "the high hills opening above the scattered pines",
+        "a path winding up toward the crest of the hill"
+      ],
+      "reverse_views": [
+        "scattered pine trees dotting the lower slopes",
+        "a gentle trail descending toward the sparse forest",
+        "the sheltered woodland basin spread out below",
+        "dappled sunlight filtering through the trees down the slope",
+        "the tree line thickening in the valley below"
+      ]
+    },
+    "cliff:dungeon": {
+      "descriptions": [
+        "A dark cavernous archway cut directly into the sheer cliff face.",
+        "A rough stone portal leading from the mountain ledge into subterranean dark.",
+        "A yawning fissure in the rockface opening into a deep cavern.",
+        "A fortified stone doorway built into the base of the towering cliff.",
+        "A shadow-filled opening descending into the cold heart of the mountain."
+      ],
+      "forward_views": [
+        "the yawning dark mouth of a cavern in the cliff",
+        "a shadowy stone portal opening into the mountain",
+        "a dark fissure plunging underground",
+        "a fortified threshold leading into the subterranean depths",
+        "the shadowy entrance of a tunnel cut into the rock"
+      ],
+      "reverse_views": [
+        "daylight framing the mouth of the cavern",
+        "the open cliff ledge and sky visible outside",
+        "sunlight pouring past the rockface entrance",
+        "the sheer stone cliffs outside the portal",
+        "the bright open air waiting at the cavern mouth"
+      ]
+    },
+    "ruin:ruin": {
+      "descriptions": [
+        "A tumbled stone corridor choked with fallen masonry and weeds.",
+        "A cracked flagstone pathway crossing collapsed archways.",
+        "A breach in the ancient stone foundations lined with rubble.",
+        "A weed-grown aisle between crumbling ancient pillars.",
+        "A weathered passage through shattered walls of forgotten stone."
+      ],
+      "forward_views": [
+        "fallen masonry and crumbled arches lining the path",
+        "a flagstone aisle winding between ancient ruins",
+        "cracked stone walls and weed-choked rubble ahead",
+        "a breach in the ancient stonework leading onward",
+        "the broken remnants of ancient stone structures"
+      ],
+      "reverse_views": [
+        "fallen masonry and crumbled arches lining the path",
+        "a flagstone aisle winding between ancient ruins",
+        "cracked stone walls and weed-choked rubble ahead",
+        "a breach in the ancient stonework leading onward",
+        "the broken remnants of ancient stone structures"
+      ]
+    },
+    "ruin:woods": {
+      "descriptions": [
+        "A mossy track where encroaching forest roots split ancient ruins.",
+        "A threshold where fallen stonework yields to tangled woodland brush.",
+        "An ancient stone archway swallowed by thick creeping ivy and trees.",
+        "A forest path winding past moss-covered remnants of forgotten walls.",
+        "A break where ancient masonry is buried beneath decades of forest loam."
+      ],
+      "forward_views": [
+        "the tree line swallowing the ancient stones",
+        "a woodland path winding away from the ruins",
+        "dense green forest encroaching on the masonry",
+        "ivy-clad trees rising beyond the crumbled wall",
+        "the cool shade of the woods opening ahead"
+      ],
+      "reverse_views": [
+        "weathered stone blocks protruding from the undergrowth",
+        "the crumbling walls of ancient ruins among the trees",
+        "a shattered stone archway standing in the brush",
+        "mossy masonry appearing through the foliage",
+        "ancient foundations half-buried in the soil"
+      ]
+    },
+    "default": {
+      "descriptions": [
+        "A clear pathway connecting the two areas.",
+        "A well-defined track crossing between the areas.",
+        "A natural path winding across the terrain.",
+        "An open way leading forward into the adjoining area.",
+        "A passable route linking the surrounding ground."
+      ],
+      "forward_views": [
+        "a clear path leading forward",
+        "an open way stretching ahead",
+        "the terrain opening in that direction",
+        "a path continuing onward",
+        "a passable route leading ahead"
+      ],
+      "reverse_views": [
+        "a clear path leading forward",
+        "an open way stretching ahead",
+        "the terrain opening in that direction",
+        "a path continuing onward",
+        "a passable route leading ahead"
+      ]
+    }
+  }
+}

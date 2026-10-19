@@ -44,6 +44,8 @@ def _first(props: dict, keys: Iterable[str]) -> Optional[str]:
 
 
 def _node_scope(node) -> Optional[str]:
+    if getattr(node, "type", "") == "character":
+        return None
     props = getattr(node, "properties", None) or {}
     owner = props.get("world_scope_id")
     if owner:

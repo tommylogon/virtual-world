@@ -80,6 +80,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from graph import EDGE_CONNECTION, Edge, Node
 
 from engine import biomes as biomes_mod
+from engine import way_narratives
 from engine import world_grid as wg
 from engine.generation import GenerationPatch, GenerationReport, provenance
 
@@ -694,23 +695,37 @@ def _compass_direction(dx: int, dy: int) -> str:
 
 
 def _way_edges(area_from: str, area_to: str, way_id: str,
-               direction: str) -> List[Edge]:
+               direction: str,
+               view_from_a: str = "",
+               view_from_b: str = "") -> List[Edge]:
     """The four connection edges a bidirectional way needs (movement.py).
 
     Each edge carries ``cardinal`` as well as ``direction``: the way inspector's
     "cardinal for map layout" compass and the cardinal map fallback read
     ``edge.properties.cardinal`` (``area_description.build_exits_for_area``), so a
     generated way without it showed an empty compass. It is the same 8-wind name
-    the painter's cell delta produced.
+    the painter's cell delta produced. Both incoming edges carry
+    ``visible_in_direction`` so narration and inspection reflect the view toward
+    the way from either side.
     """
     back = OPPOSITE.get(direction, direction)
+    props_a = {
+        "direction": direction,
+        "cardinal": direction,
+        "visible_in_direction": view_from_a or f"a path leading {direction}",
+    }
+    props_b = {
+        "direction": back,
+        "cardinal": back,
+        "visible_in_direction": view_from_b or f"a path leading {back}",
+    }
     return [
         Edge(source=area_from, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": direction, "cardinal": direction}),
+             properties=props_a),
         Edge(source=way_id, target=area_to, type=EDGE_CONNECTION,
              properties={"direction": back, "cardinal": back}),
         Edge(source=area_to, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": back, "cardinal": back}),
+             properties=props_b),
         Edge(source=way_id, target=area_from, type=EDGE_CONNECTION,
              properties={"direction": direction, "cardinal": direction}),
     ]
@@ -854,6 +869,7 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "target_scope_id": child_id,
         "direction": enter,
         "return_direction": leave,
+        "description": f"A passage connecting {parent_name} and {entry_name}.",
         "current_state": "open",
         # You cannot see through into a whole child scope from outside it.
         "see_through": False,
@@ -881,11 +897,13 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
                 name=f"Entrance to {child_name}", properties=props)
     edges = [
         Edge(source=parent_area, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": enter}),
+             properties={"direction": enter, "cardinal": "in",
+                         "visible_in_direction": f"an entrance leading into {child_name}"}),
         Edge(source=way_id, target=entry_area, type=EDGE_CONNECTION,
              properties={"direction": enter}),
         Edge(source=entry_area, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": leave}),
+             properties={"direction": leave, "cardinal": "out",
+                         "visible_in_direction": f"an exit leading back to {parent_name}"}),
         Edge(source=way_id, target=parent_area, type=EDGE_CONNECTION,
              properties={"direction": leave}),
     ]
@@ -1009,6 +1027,7 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
         "area_from_id": from_area,
         "area_to_id": to_area,
         "direction": enter,
+        "description": f"The main entrance leading into the {subject}.",
         "current_state": "closed" if refuse else "open",
         # A front door is not a window: you cannot see the interior from the
         # street, and the town map should not draw a line through the wall.
@@ -1056,7 +1075,8 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
     # interior or the plot either way.
     return node, [
         Edge(source=from_area, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": enter}),
+             properties={"direction": enter, "cardinal": "in",
+                         "visible_in_direction": f"the entrance leading into the {subject}"}),
         Edge(source=way_id, target=to_area, type=EDGE_CONNECTION,
              properties={"direction": enter}),
     ]
@@ -2080,13 +2100,26 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         """
         way_id = _way_id(scope_id, from_area, to_area)
         road_id = cell_road(cell)
+        nb_road_id = cell_road(nb)
         storey_delta = abs(wg.floor_at(record, *cell) - wg.floor_at(record, *nb))
+        desc, view_from_a, view_from_b = way_narratives.get_way_narrative(
+            biome_from=cell_biome(cell),
+            biome_to=cell_biome(nb),
+            road_from=road_id,
+            road_to=nb_road_id,
+            kind=kind,
+            direction=direction,
+            seed=seed,
+            scope_id=scope_id,
+            way_id=way_id,
+        )
         way_props = {
             "area_from": from_name,
             "area_to": to_name,
             "area_from_id": from_area,
             "area_to_id": to_area,
             "direction": direction,
+            "description": desc,
             "current_state": "open",
             "see_through": True,
             # What kind of connection this is (task-562): `open` (you walk it),
@@ -2206,7 +2239,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                           name=f"{from_name} - door" if kind == "door"
                                else f"{from_name} to {to_name}",
                           properties=way_props))
-        edges.extend(_way_edges(from_area, to_area, way_id, direction))
+        edges.extend(_way_edges(from_area, to_area, way_id, direction,
+                                view_from_a=view_from_a, view_from_b=view_from_b))
         if kind == "open" and way_props.get("current_state") == "open":
             # A candidate for the blocking pass. A way already refused by a climb
             # is not a candidate: it is closed for a *reason the player can fix*
@@ -2706,6 +2740,17 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         way_tags.append("outdoor")
                     if kind == "stairs" and "stairs" not in way_tags:
                         way_tags.append("stairs")
+                    desc, view_from_a, view_from_b = way_narratives.get_way_narrative(
+                        biome_from=biome_a,
+                        biome_to=biome_b,
+                        road_from=road_a,
+                        road_to=road_b,
+                        kind=kind,
+                        direction=direction,
+                        seed=seed,
+                        scope_id=scope_id,
+                        way_id=seam_id,
+                    )
                     border_x = cell_a[0] + 0.5 * dx
                     border_y = cell_a[1] + 0.5 * dy
                     seam_props: Dict[str, object] = {
@@ -2720,6 +2765,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         "sibling_scope_id": nb_scope_id,
                         "direction": direction,
                         "return_direction": OPPOSITE[direction],
+                        "description": desc,
                         "current_state": "open",
                         "see_through": True,
                         "prevent_close": True,
@@ -2750,7 +2796,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         name=f"{name_a} to {name_b}",
                         properties=seam_props,
                     ))
-                    edges.extend(_way_edges(area_a, area_b, seam_id, direction))
+                    edges.extend(_way_edges(area_a, area_b, seam_id, direction,
+                                            view_from_a=view_from_a, view_from_b=view_from_b))
                     sibling_seams += 1
 
     # ── block a deterministic subset of the outdoor ways (task-522) ──

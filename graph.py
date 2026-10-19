@@ -609,6 +609,8 @@ class WorldGraph:
     @staticmethod
     def _declared_scope(node) -> Optional[str]:
         """The scope a node claims ownership by, or None (task-582)."""
+        if getattr(node, "type", "") == "character":
+            return None
         props = getattr(node, "properties", None) or {}
         owner = props.get("world_scope_id")
         if owner:
@@ -620,6 +622,8 @@ class WorldGraph:
 
     @staticmethod
     def _declared_scope_dict(ndata: dict) -> Optional[str]:
+        if (ndata or {}).get("type") == "character":
+            return None
         props = (ndata or {}).get("properties") or {}
         owner = props.get("world_scope_id")
         if owner:
