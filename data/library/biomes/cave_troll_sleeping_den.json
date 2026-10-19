@@ -1,0 +1,19 @@
+{
+  "name": "Cave Troll Sleeping Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "troll",
+    "sleeping",
+    "cave",
+    "large_creature",
+    "monster",
+    "bedding",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A cavernous hollow holds a crude bed of moss, hides, and crushed vegetation.",
+    "Deep grooves in the stone mark the resting place of a creature far larger than a man."
+  ]
+}

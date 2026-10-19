@@ -1,0 +1,19 @@
+{
+  "name": "Lizardfolk Fish Smokehouse",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "lizardfolk",
+    "food",
+    "smoking",
+    "fish",
+    "storage",
+    "monster",
+    "den"
+  ],
+  "surface": "wood_planks",
+  "descriptions": [
+    "Fish hang from racks above a low, smoky fire pit.",
+    "The walls are stained dark by smoke, and the air carries the sharp smell of preserved catch."
+  ]
+}

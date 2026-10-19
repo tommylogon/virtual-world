@@ -1,0 +1,14 @@
+{
+  "name": "Detention Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "education"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A barren classroom where delinquent students sit in silent rows under a ticking wall clock.",
+    "Graffiti-scratched desks and blinds drawn shut against the afternoon sunlight."
+  ]
+}

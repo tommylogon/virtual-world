@@ -1,0 +1,18 @@
+{
+  "name": "Communal Grooming Pool",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "grooming",
+    "water",
+    "social",
+    "cleaning",
+    "communal",
+    "den"
+  ],
+  "surface": "smooth_stone",
+  "descriptions": [
+    "A shallow pool is surrounded by smooth stone worn by repeated use.",
+    "Fur, feathers, or shed scales collect around the water where the inhabitants clean themselves."
+  ]
+}

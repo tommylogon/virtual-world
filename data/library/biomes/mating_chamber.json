@@ -1,0 +1,18 @@
+{
+  "name": "Mating Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "mating",
+    "breeding",
+    "social",
+    "sheltered",
+    "animal_den",
+    "den"
+  ],
+  "surface": "soft_moss",
+  "descriptions": [
+    "A secluded chamber is lined with fresh bedding and sheltered from disturbance.",
+    "Scent marks and carefully cleared ground suggest a place used during courtship."
+  ]
+}

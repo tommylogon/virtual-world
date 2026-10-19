@@ -1,0 +1,15 @@
+{
+  "name": "Mess Tent",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "food"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A greasy canvas shelter housing iron cook-pots over roaring hearth trenches.",
+    "Gnawed bones underfoot, wooden trenchers, and the smell of boiled offal."
+  ]
+}

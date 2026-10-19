@@ -1,0 +1,17 @@
+{
+  "name": "Lynx Rock Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "lynx",
+    "den",
+    "rock",
+    "solitary",
+    "resting"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A rocky recess provides a quiet refuge for a solitary predator.",
+    "Tufts of fur lie in the corners of a chamber with a narrow approach."
+  ]
+}

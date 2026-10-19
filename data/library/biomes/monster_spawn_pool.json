@@ -1,0 +1,19 @@
+{
+  "name": "Monster Spawn Pool",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "spawning",
+    "eggs",
+    "breeding",
+    "monster",
+    "water",
+    "protected",
+    "den"
+  ],
+  "surface": "black_silt",
+  "descriptions": [
+    "A dark pool holds clusters of eggs or gelatinous spawn beneath the surface.",
+    "The water is still and warm, with strange shapes moving among the submerged rocks."
+  ]
+}

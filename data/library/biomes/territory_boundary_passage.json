@@ -1,0 +1,17 @@
+{
+  "name": "Territory Boundary Passage",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "boundary",
+    "passage",
+    "territory",
+    "defensive",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A narrow passage marks the transition between the den and the surrounding tunnels.",
+    "Scratches, scent marks, and disturbed debris warn other creatures that they are nearing occupied territory."
+  ]
+}

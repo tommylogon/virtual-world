@@ -1,0 +1,17 @@
+{
+  "name": "Badger Latrine",
+  "terrain": "outdoor",
+  "tags": [
+    "latrine",
+    "waste",
+    "badger",
+    "territory",
+    "smelly",
+    "den"
+  ],
+  "surface": "loose_soil",
+  "descriptions": [
+    "A shallow pit outside the living quarters serves as a communal latrine.",
+    "The sharp smell and disturbed earth make the purpose of this patch unmistakable."
+  ]
+}

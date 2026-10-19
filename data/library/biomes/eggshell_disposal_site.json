@@ -1,0 +1,17 @@
+{
+  "name": "Eggshell Disposal Site",
+  "terrain": "outdoor",
+  "tags": [
+    "waste",
+    "eggs",
+    "breeding",
+    "nest",
+    "outdoor",
+    "den"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "Fragments of eggshell have accumulated away from the main nesting area.",
+    "The scattered remains suggest recent hatching, with small tracks leading back toward shelter."
+  ]
+}

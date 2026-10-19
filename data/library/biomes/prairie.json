@@ -1,0 +1,17 @@
+{
+  "name": "Prairie",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "open"
+  ],
+  "surface": "grass",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "Tall grass prairie with stems rising chest-high across endless horizons.",
+    "Deep fertile soils supporting dense root masses and soaring songbirds."
+  ]
+}

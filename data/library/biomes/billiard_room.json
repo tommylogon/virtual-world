@@ -1,0 +1,15 @@
+{
+  "name": "Billiard Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "recreation"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A gentleman recreation parlor housing a full-sized slate billiard table under green lamps.",
+    "Cue racks, chalk dust, and leather armchairs smelling of tobacco smoke."
+  ]
+}

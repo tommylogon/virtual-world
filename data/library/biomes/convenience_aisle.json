@@ -1,0 +1,14 @@
+{
+  "name": "Convenience Aisle",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "commercial"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A narrow grocery aisle flanked by wire chip racks, soda coolers, and discount magazines.",
+    "Fluorescent strips buzzing overhead above scuffed linoleum tiles."
+  ]
+}

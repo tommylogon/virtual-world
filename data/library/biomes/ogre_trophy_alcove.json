@@ -1,0 +1,19 @@
+{
+  "name": "Ogre Trophy Alcove",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ogre",
+    "trophies",
+    "storage",
+    "decoration",
+    "monster",
+    "intimidation",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Broken weapons, skulls, and stolen objects crowd a rough alcove.",
+    "The collection appears arranged to impress visitors or remind them of past victims."
+  ]
+}

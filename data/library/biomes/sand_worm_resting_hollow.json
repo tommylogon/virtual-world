@@ -1,0 +1,19 @@
+{
+  "name": "Sand Worm Resting Hollow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sand_worm",
+    "resting",
+    "burrow",
+    "desert",
+    "monster",
+    "ambush",
+    "den"
+  ],
+  "surface": "loose_sand",
+  "descriptions": [
+    "A vast pocket beneath the dunes is packed with shifting sand.",
+    "The hollow is marked by smooth, curved walls and a trail leading deeper underground."
+  ]
+}

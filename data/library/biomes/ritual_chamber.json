@@ -1,0 +1,15 @@
+{
+  "name": "Ritual Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "sacred",
+    "occult"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A sanctum carved with archaic runes and centered upon an inscribed basalt altar.",
+    "Channeling grooves in the flagstones, cold braziers, and dried incense resin."
+  ]
+}

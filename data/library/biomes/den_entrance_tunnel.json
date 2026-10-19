@@ -1,0 +1,17 @@
+{
+  "name": "Den Entrance Tunnel",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "entrance",
+    "passage",
+    "tunnel",
+    "below_ground",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A narrow tunnel slopes inward, carrying the smell of the den.",
+    "Claw marks score the earthen walls along a well-travelled passage."
+  ]
+}

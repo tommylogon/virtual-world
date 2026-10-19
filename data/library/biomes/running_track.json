@@ -1,0 +1,15 @@
+{
+  "name": "Running Track",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "recreation",
+    "campus"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "An oval cinder track looping around the open sports field.",
+    "White lane markers painted onto compressed all-weather track rubber."
+  ]
+}

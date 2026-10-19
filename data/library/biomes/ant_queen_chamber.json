@@ -1,0 +1,19 @@
+{
+  "name": "Ant Queen Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ant",
+    "queen",
+    "colony",
+    "breeding",
+    "protected",
+    "insect",
+    "den"
+  ],
+  "surface": "fine_soil",
+  "descriptions": [
+    "A protected chamber houses the enormous queen at the centre of the colony.",
+    "Workers crowd the warm, carefully maintained room around the egg-laying monarch."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Predator Territory Core",
+  "terrain": "outdoor",
+  "tags": [
+    "territory",
+    "predator",
+    "central",
+    "scent_marking",
+    "den"
+  ],
+  "surface": "trampled_soil",
+  "descriptions": [
+    "Tracks from several approaches converge on a patch of ground claimed by a dominant predator.",
+    "Scratches, scent marks, and remains of past kills make the boundaries unmistakable."
+  ]
+}

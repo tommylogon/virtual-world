@@ -1,0 +1,18 @@
+{
+  "name": "Echo Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "communication",
+    "echo",
+    "cave",
+    "social",
+    "territory",
+    "den"
+  ],
+  "surface": "bare_stone",
+  "descriptions": [
+    "A rounded chamber amplifies every call, growl, and movement into a deep echo.",
+    "The stone walls carry sound far into the surrounding tunnels, making the space useful for signalling."
+  ]
+}

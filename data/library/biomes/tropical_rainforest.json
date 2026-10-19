@@ -1,0 +1,20 @@
+{
+  "name": "Tropical Rainforest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "tropical",
+    "dense"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "An impenetrable humid jungle beneath a continuous multi-tiered canopy.",
+    "Hanging lianas, buttress roots, screeching birds, and endless warm rain."
+  ]
+}

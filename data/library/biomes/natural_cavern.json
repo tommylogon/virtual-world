@@ -1,0 +1,19 @@
+{
+  "name": "Natural Cavern",
+  "terrain": "rock",
+  "tags": [
+    "rocky",
+    "chasm",
+    "cliff"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "investigation",
+    "arcana"
+  ],
+  "descriptions": [
+    "A vast subterranean vault of rough unworked stone carved by primeval forces.",
+    "Towering vaulted rock ceilings lost in shadow above jagged boulder piles."
+  ]
+}

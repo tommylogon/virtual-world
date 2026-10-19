@@ -1,0 +1,17 @@
+{
+  "name": "Sleeping Hollow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sleeping",
+    "resting",
+    "sheltered",
+    "animal_den",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "A shallow hollow holds a thick layer of leaves and flattened grass.",
+    "The bedding is warm with lingering body heat and the scent of fur."
+  ]
+}

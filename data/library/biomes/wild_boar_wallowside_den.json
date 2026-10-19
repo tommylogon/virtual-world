@@ -1,0 +1,16 @@
+{
+  "name": "Wild Boar Wallowside Den",
+  "terrain": "outdoor",
+  "tags": [
+    "boar",
+    "den",
+    "resting",
+    "mud",
+    "wallowside"
+  ],
+  "surface": "mud",
+  "descriptions": [
+    "A rough shelter lies close to a muddy wallow, surrounded by churned earth.",
+    "Heavy tracks lead from the resting place to the dark, wet ground outside."
+  ]
+}

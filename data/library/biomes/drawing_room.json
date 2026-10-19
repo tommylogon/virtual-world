@@ -1,0 +1,15 @@
+{
+  "name": "Drawing Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "social"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A formal parlor with brocade settees, a carved marble fireplace, and oil portraits.",
+    "Heavy velvet drapery muffling sound, with tea services arranged on low mahogany tables."
+  ]
+}

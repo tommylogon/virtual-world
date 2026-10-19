@@ -1,0 +1,18 @@
+{
+  "name": "Seabird Cliff Burrow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "seabird",
+    "burrow",
+    "cliff",
+    "breeding",
+    "narrow",
+    "den"
+  ],
+  "surface": "loose_soil",
+  "descriptions": [
+    "A narrow burrow disappears into the grassy face of the sea cliff.",
+    "The passage smells of salt, feathers, and damp earth."
+  ]
+}

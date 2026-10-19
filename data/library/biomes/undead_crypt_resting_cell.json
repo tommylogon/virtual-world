@@ -1,0 +1,19 @@
+{
+  "name": "Undead Crypt Resting Cell",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "undead",
+    "resting",
+    "crypt",
+    "burial",
+    "dark",
+    "monster",
+    "den"
+  ],
+  "surface": "stone_slab",
+  "descriptions": [
+    "A stone bier stands in a narrow chamber untouched by daylight.",
+    "Dust and old burial cloth cover the resting place, where the air feels unnaturally still."
+  ]
+}

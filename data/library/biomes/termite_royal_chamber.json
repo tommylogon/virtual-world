@@ -1,0 +1,19 @@
+{
+  "name": "Termite Royal Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "termite",
+    "queen",
+    "king",
+    "breeding",
+    "colony",
+    "insect",
+    "den"
+  ],
+  "surface": "clay",
+  "descriptions": [
+    "A thick-walled clay chamber encloses the swollen queen and her mate.",
+    "Workers tend the royal pair in a humid room deep within the mound."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Emergency Escape Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "escape",
+    "secondary_exit",
+    "tunnel",
+    "defensive",
+    "hidden",
+    "animal_den",
+    "den"
+  ],
+  "surface": "loose_earth",
+  "descriptions": [
+    "A cramped recess hides a narrow passage leading away from the main den.",
+    "Freshly disturbed earth conceals an escape route that can be opened from within."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Troll Mushroom Pantry",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "troll",
+    "food",
+    "fungus",
+    "storage",
+    "cave",
+    "monster",
+    "den"
+  ],
+  "surface": "damp_soil",
+  "descriptions": [
+    "Fleshy mushrooms and roots are piled in a cool, damp corner.",
+    "The store is unevenly sorted, with the freshest growth nearest a trickle of water."
+  ]
+}

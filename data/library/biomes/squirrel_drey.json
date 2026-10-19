@@ -1,0 +1,17 @@
+{
+  "name": "Squirrel Drey",
+  "terrain": "outdoor",
+  "tags": [
+    "squirrel",
+    "nest",
+    "tree",
+    "canopy",
+    "dry",
+    "den"
+  ],
+  "surface": "twigs",
+  "descriptions": [
+    "A woven ball of twigs sits among branches, lined with moss and leaves.",
+    "The nest sways gently in the canopy, sheltered by overlapping foliage."
+  ]
+}

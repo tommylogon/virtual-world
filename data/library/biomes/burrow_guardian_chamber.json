@@ -1,0 +1,19 @@
+{
+  "name": "Burrow Guardian Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "guardian",
+    "guard",
+    "defensive",
+    "burrow",
+    "monster",
+    "chokepoint",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A reinforced chamber narrows the passage to a single defensible approach.",
+    "Claw marks and disturbed soil show where a guardian holds its position against intruders."
+  ]
+}

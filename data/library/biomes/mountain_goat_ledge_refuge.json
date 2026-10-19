@@ -1,0 +1,17 @@
+{
+  "name": "Mountain Goat Ledge Refuge",
+  "terrain": "outdoor",
+  "tags": [
+    "mountain_goat",
+    "resting",
+    "cliff",
+    "ledge",
+    "elevated",
+    "den"
+  ],
+  "surface": "bare_rock",
+  "descriptions": [
+    "A narrow ledge provides a secure resting place above a steep drop.",
+    "Hoof marks score the rock where mountain goats pause beyond easy reach."
+  ]
+}

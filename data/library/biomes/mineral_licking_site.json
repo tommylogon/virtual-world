@@ -1,0 +1,17 @@
+{
+  "name": "Mineral Licking Site",
+  "terrain": "outdoor",
+  "tags": [
+    "mineral",
+    "feeding",
+    "salt",
+    "herbivore",
+    "resource",
+    "den"
+  ],
+  "surface": "mineral_crust",
+  "descriptions": [
+    "Pale mineral deposits coat a rock repeatedly visited by herbivores.",
+    "The stone is roughened by tongues and hooves seeking the salts within."
+  ]
+}

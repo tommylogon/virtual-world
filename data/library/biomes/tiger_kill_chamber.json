@@ -1,0 +1,18 @@
+{
+  "name": "Tiger Kill Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "tiger",
+    "food",
+    "carcass",
+    "cave",
+    "solitary",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A secluded chamber contains the remains of prey dragged out of sight.",
+    "Scratches and drag marks cross the floor beneath the smell of old meat."
+  ]
+}

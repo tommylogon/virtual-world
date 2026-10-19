@@ -1,0 +1,17 @@
+{
+  "name": "Sealed Burrow Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sealed",
+    "burrow",
+    "defensive",
+    "hidden",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A wall of packed earth blocks access to a chamber beyond.",
+    "The seal looks deliberate, concealing either a refuge, a cache, or something best left undisturbed."
+  ]
+}

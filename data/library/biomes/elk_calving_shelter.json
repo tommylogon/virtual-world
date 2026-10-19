@@ -1,0 +1,17 @@
+{
+  "name": "Elk Calving Shelter",
+  "terrain": "outdoor",
+  "tags": [
+    "elk",
+    "calving",
+    "young",
+    "shelter",
+    "vegetation",
+    "den"
+  ],
+  "surface": "moss",
+  "descriptions": [
+    "Tall grass and brush conceal a sheltered patch where a calf can lie unseen.",
+    "The vegetation is flattened into a warm hollow beneath the trees."
+  ]
+}

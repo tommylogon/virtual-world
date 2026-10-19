@@ -1,0 +1,18 @@
+{
+  "name": "Woodpecker Nest Cavity",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "woodpecker",
+    "nest",
+    "tree_hollow",
+    "breeding",
+    "small_bird",
+    "den"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A clean cavity has been excavated into the heartwood of a standing tree.",
+    "Wood chips gather below the entrance to a chamber just large enough for the bird and its young."
+  ]
+}

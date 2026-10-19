@@ -1,0 +1,18 @@
+{
+  "name": "Wyvern Roost",
+  "terrain": "outdoor",
+  "tags": [
+    "wyvern",
+    "roost",
+    "cliff",
+    "flight",
+    "monster",
+    "elevated",
+    "den"
+  ],
+  "surface": "bare_rock",
+  "descriptions": [
+    "A high crag provides room for a winged predator to rest above the clouds.",
+    "Claw furrows, shed scales, and scattered bones mark the exposed perch."
+  ]
+}

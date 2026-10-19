@@ -1,0 +1,18 @@
+{
+  "name": "Unicorn Foaling Glade",
+  "terrain": "outdoor",
+  "tags": [
+    "unicorn",
+    "breeding",
+    "young",
+    "glade",
+    "magical",
+    "sheltered",
+    "den"
+  ],
+  "surface": "soft_grass",
+  "descriptions": [
+    "A quiet glade is carpeted with soft grass and sheltered by flowering trees.",
+    "Fresh hoofprints circle a sheltered hollow where a newborn foal could rest."
+  ]
+}

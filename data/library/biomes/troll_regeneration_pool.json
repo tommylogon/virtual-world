@@ -1,0 +1,19 @@
+{
+  "name": "Troll Regeneration Pool",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "troll",
+    "healing",
+    "water",
+    "regeneration",
+    "monster",
+    "magical",
+    "den"
+  ],
+  "surface": "wet_stone",
+  "descriptions": [
+    "A shallow pool collects dark water beneath a ceiling furred with moss.",
+    "The water ripples around old scars and fragments of shed flesh, as though the cave itself is alive."
+  ]
+}

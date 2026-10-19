@@ -1,0 +1,18 @@
+{
+  "name": "Roc Nest Platform",
+  "terrain": "outdoor",
+  "tags": [
+    "roc",
+    "nest",
+    "giant_bird",
+    "mountaintop",
+    "monster",
+    "breeding",
+    "den"
+  ],
+  "surface": "logs",
+  "descriptions": [
+    "Trunks and enormous branches form a platform large enough to hold a small building.",
+    "The nest rests on a mountain peak, surrounded by feathers as long as swords."
+  ]
+}

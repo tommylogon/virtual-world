@@ -1,0 +1,18 @@
+{
+  "name": "Hidden Secondary Nest",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "nest",
+    "secondary",
+    "hidden",
+    "backup",
+    "breeding",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "A small concealed hollow contains spare bedding and signs of occasional use.",
+    "The nest is tucked away from the main chamber, ready as a refuge if the primary site is disturbed."
+  ]
+}

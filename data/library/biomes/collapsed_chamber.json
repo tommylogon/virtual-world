@@ -1,0 +1,18 @@
+{
+  "name": "Collapsed Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "collapsed",
+    "blocked",
+    "debris",
+    "ruin",
+    "den",
+    "hazard"
+  ],
+  "surface": "rubble",
+  "descriptions": [
+    "Fallen earth and broken stone choke what was once a usable chamber.",
+    "Old tracks disappear beneath the debris, leaving the fate of the former occupants uncertain."
+  ]
+}

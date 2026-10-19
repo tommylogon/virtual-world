@@ -1,0 +1,18 @@
+{
+  "name": "Maternal Refuge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "breeding",
+    "mother",
+    "young",
+    "refuge",
+    "defensible",
+    "den"
+  ],
+  "surface": "moss",
+  "descriptions": [
+    "A secluded recess protects a mother and her young from disturbances.",
+    "Fresh bedding fills the narrow space, and the entrance is easy to guard."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Gargoyle Dormancy Alcove",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "gargoyle",
+    "dormancy",
+    "alcove",
+    "stone",
+    "monster",
+    "concealed",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A statue-shaped alcove conceals a resting creature among ordinary carvings.",
+    "Dust covers the floor, broken only by fragments of stone shed from the motionless figure."
+  ]
+}

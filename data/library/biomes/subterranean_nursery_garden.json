@@ -1,0 +1,19 @@
+{
+  "name": "Subterranean Nursery Garden",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "nursery",
+    "cultivation",
+    "fungus",
+    "plants",
+    "underground",
+    "resource",
+    "den"
+  ],
+  "surface": "rich_soil",
+  "descriptions": [
+    "Patches of moss and fungus grow beneath dim light from cracks overhead.",
+    "The chamber is maintained as a living food source, with damp soil and carefully protected growth."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Snake Egg Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "snake",
+    "eggs",
+    "breeding",
+    "reptile",
+    "warm",
+    "hidden",
+    "den"
+  ],
+  "surface": "loose_soil",
+  "descriptions": [
+    "A warm pocket of soil holds a clutch of leathery eggs.",
+    "The sheltered chamber is partly covered by decaying leaves and loose earth."
+  ]
+}

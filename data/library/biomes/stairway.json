@@ -2,6 +2,7 @@
   "name": "Stairway",
   "terrain": "indoor",
   "tags": [
+    "indoor",
     "structure",
     "not_a_place",
     "cell_kind:passable",

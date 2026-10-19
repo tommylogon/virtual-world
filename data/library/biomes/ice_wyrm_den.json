@@ -1,0 +1,18 @@
+{
+  "name": "Ice Wyrm Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ice_wyrm",
+    "den",
+    "cold",
+    "monster",
+    "hibernation",
+    "frozen"
+  ],
+  "surface": "ice",
+  "descriptions": [
+    "A frozen cavern winds into a deep hollow glazed with blue ice.",
+    "Scales have scored the frost along a path leading to a cold, silent chamber."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Courtyard Quad",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "campus",
+    "garden"
+  ],
+  "surface": "grass",
+  "descriptions": [
+    "A landscaped campus green crisscrossed by paved walkways between academic wings.",
+    "Benches beneath shade trees where students congregate between bells."
+  ]
+}

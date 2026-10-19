@@ -1,0 +1,15 @@
+{
+  "name": "Parking Lot",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "transport",
+    "modern"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A wide expanse of cracked asphalt with painted yellow stall lines.",
+    "Parked student cars, speed bumps, and light poles casting harsh sodium glare."
+  ]
+}

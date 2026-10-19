@@ -1,0 +1,18 @@
+{
+  "name": "Bear Hibernation Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sleeping",
+    "hibernation",
+    "bear",
+    "seasonal",
+    "insulated",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "A deep, insulated hollow is packed with leaves, grass, and moss.",
+    "The chamber is still and close, its bedding arranged for a long winter sleep."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Ritual or Display Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ritual",
+    "display",
+    "social",
+    "intelligent_creature",
+    "magical",
+    "den"
+  ],
+  "surface": "carved_stone",
+  "descriptions": [
+    "Marks, objects, and carefully arranged materials give the chamber a ceremonial character.",
+    "The space appears reserved for displays of status, mating rituals, or strange communal customs."
+  ]
+}

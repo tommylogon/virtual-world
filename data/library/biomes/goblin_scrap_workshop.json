@@ -1,0 +1,19 @@
+{
+  "name": "Goblin Scrap Workshop",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "goblin",
+    "workshop",
+    "crafting",
+    "scrap",
+    "tools",
+    "monster",
+    "den"
+  ],
+  "surface": "rough_wood",
+  "descriptions": [
+    "Bent metal, broken tools, and scavenged timber cover a makeshift workbench.",
+    "The room rings with the memory of crude repairs and improvised inventions."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Flood Refuge Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "refuge",
+    "flood",
+    "elevated",
+    "safety",
+    "den"
+  ],
+  "surface": "raised_stone",
+  "descriptions": [
+    "A raised shelf offers shelter when water fills the lower tunnels.",
+    "Mud lines on the walls show how high the last flood reached."
+  ]
+}

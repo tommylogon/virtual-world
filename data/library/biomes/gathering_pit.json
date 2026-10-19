@@ -1,0 +1,15 @@
+{
+  "name": "Gathering Pit",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "frontier",
+    "communal"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A sunken circular dirt arena where tribal warriors assemble to argue and celebrate.",
+    "Tamped clay steps, blackened embers from ceremonial fires, and trampled filth."
+  ]
+}

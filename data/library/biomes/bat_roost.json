@@ -1,0 +1,18 @@
+{
+  "name": "Bat Roost",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "bat",
+    "roost",
+    "ceiling",
+    "colony",
+    "dark",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Bats cling to the ceiling above a floor scattered with droppings.",
+    "The air is warm and close, disturbed by the rustle of folded wings."
+  ]
+}

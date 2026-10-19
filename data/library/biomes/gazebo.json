@@ -1,0 +1,15 @@
+{
+  "name": "Gazebo",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "garden"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "An octagonal painted timber pavilion nestled in the estate grounds.",
+    "Lattice railing, climbing ivy, and a view over the lawn."
+  ]
+}

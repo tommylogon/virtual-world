@@ -1,0 +1,17 @@
+{
+  "name": "Beaver Underwater Entrance",
+  "terrain": "underwater",
+  "tags": [
+    "beaver",
+    "entrance",
+    "underwater",
+    "aquatic",
+    "concealed",
+    "den"
+  ],
+  "surface": "river_silt",
+  "descriptions": [
+    "A submerged passage leads beneath the lodge, hidden below the waterline.",
+    "Bubbles rise from a dark opening between roots and waterlogged branches."
+  ]
+}

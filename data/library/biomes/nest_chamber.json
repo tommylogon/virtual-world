@@ -1,0 +1,17 @@
+{
+  "name": "Nest Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "nest",
+    "breeding",
+    "young",
+    "sheltered",
+    "den"
+  ],
+  "surface": "twigs",
+  "descriptions": [
+    "A carefully shaped hollow cradles a nest of woven twigs and soft fibres.",
+    "The chamber is lined with down, moss, and whatever soft material the creature could gather."
+  ]
+}

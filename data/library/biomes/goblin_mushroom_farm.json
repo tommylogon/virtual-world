@@ -1,0 +1,19 @@
+{
+  "name": "Goblin Mushroom Farm",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "goblin",
+    "food",
+    "fungus",
+    "cultivation",
+    "underground",
+    "monster",
+    "den"
+  ],
+  "surface": "compost",
+  "descriptions": [
+    "Pale mushrooms grow in damp rows on beds of decaying organic matter.",
+    "The low chamber smells of wet soil and fungus, providing a steady source of food."
+  ]
+}

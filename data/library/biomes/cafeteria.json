@@ -1,0 +1,15 @@
+{
+  "name": "Cafeteria",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "food",
+    "communal"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A cavernous lunch hall with long folding laminate tables and plastic trash bins.",
+    "Stainless steel serving lines, milk cartons, and grease vapors from warming trays."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Imp Nest",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "imp",
+    "nest",
+    "small_creature",
+    "bedding",
+    "monster",
+    "mischief",
+    "den"
+  ],
+  "surface": "straw",
+  "descriptions": [
+    "A cramped hollow is stuffed with stolen trinkets, scraps of cloth, and straw.",
+    "Tiny claw marks and scattered objects suggest a nest maintained by creatures that enjoy mischief."
+  ]
+}

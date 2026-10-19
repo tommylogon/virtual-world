@@ -1,0 +1,17 @@
+{
+  "name": "Giant Boar Rooting Den",
+  "terrain": "outdoor",
+  "tags": [
+    "giant_boar",
+    "den",
+    "rooting",
+    "feeding",
+    "monster",
+    "forest"
+  ],
+  "surface": "churned_earth",
+  "descriptions": [
+    "The ground has been torn apart by enormous tusks searching for roots and grubs.",
+    "A rough shelter beneath exposed roots offers a place to rest beside the feeding grounds."
+  ]
+}

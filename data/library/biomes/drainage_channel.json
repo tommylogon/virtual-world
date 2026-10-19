@@ -1,0 +1,18 @@
+{
+  "name": "Drainage Channel",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "drainage",
+    "water",
+    "passage",
+    "utility",
+    "den",
+    "flood_control"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "A narrow channel carries seepage away from the lower chambers.",
+    "Pebbles and fine sediment line a groove worn by the steady movement of water."
+  ]
+}

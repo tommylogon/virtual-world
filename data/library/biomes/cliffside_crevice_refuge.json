@@ -1,0 +1,18 @@
+{
+  "name": "Cliffside Crevice Refuge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "refuge",
+    "cliff",
+    "crevice",
+    "elevated",
+    "sheltered",
+    "den"
+  ],
+  "surface": "rough_stone",
+  "descriptions": [
+    "A narrow crack in the cliff widens into a sheltered resting pocket.",
+    "The crevice is difficult to reach from below and protected from most of the wind."
+  ]
+}

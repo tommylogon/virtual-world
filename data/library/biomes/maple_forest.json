@@ -1,0 +1,18 @@
+{
+  "name": "Maple Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "trees"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A dense broadleaf woodland rich with sap, broad leaves, and deep loam.",
+    "A cathedral of broad branches turning vivid scarlet and gold in autumn."
+  ]
+}

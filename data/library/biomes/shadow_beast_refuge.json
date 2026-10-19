@@ -1,0 +1,19 @@
+{
+  "name": "Shadow Beast Refuge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "shadow_beast",
+    "refuge",
+    "dark",
+    "ambush",
+    "magical",
+    "monster",
+    "den"
+  ],
+  "surface": "black_stone",
+  "descriptions": [
+    "A lightless recess seems to swallow the edges of everything inside it.",
+    "The floor is smooth and bare, with no sign of how the creature enters or leaves."
+  ]
+}

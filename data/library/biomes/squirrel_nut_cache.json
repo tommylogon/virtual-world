@@ -1,0 +1,18 @@
+{
+  "name": "Squirrel Nut Cache",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "squirrel",
+    "food",
+    "storage",
+    "nuts",
+    "tree_hollow",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "Nuts and seeds fill a dry pocket inside a hollow trunk.",
+    "Tiny teeth marks cover the shells piled around this well-used cache."
+  ]
+}

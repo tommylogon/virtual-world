@@ -1,0 +1,18 @@
+{
+  "name": "Carcass Butchering Area",
+  "terrain": "outdoor",
+  "tags": [
+    "feeding",
+    "carcass",
+    "butchering",
+    "predator",
+    "waste",
+    "outdoor",
+    "den"
+  ],
+  "surface": "trampled_soil",
+  "descriptions": [
+    "Drag marks and torn vegetation surround a spot where large prey is taken apart.",
+    "Bones and scraps are scattered around the remains, attracting flies and scavengers."
+  ]
+}

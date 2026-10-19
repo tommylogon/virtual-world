@@ -1,0 +1,17 @@
+{
+  "name": "Otter Fish Cache",
+  "terrain": "outdoor",
+  "tags": [
+    "otter",
+    "food",
+    "fish",
+    "cache",
+    "water_adjacent",
+    "den"
+  ],
+  "surface": "river_stone",
+  "descriptions": [
+    "Fish scraps and scales collect among the stones beside the water.",
+    "A slick feeding spot smells of river water and freshly caught prey."
+  ]
+}

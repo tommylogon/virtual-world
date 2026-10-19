@@ -1,0 +1,15 @@
+{
+  "name": "Dressing Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "residential"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "An anteroom fitted with mahogany wardrobes, full-length cheval mirrors, and hatboxes.",
+    "Perfume atomizers, velvet-lined jewelry trays, and tailored garments on mannequins."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Bee Honey Store",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "bee",
+    "honey",
+    "food",
+    "storage",
+    "hive",
+    "colony",
+    "den"
+  ],
+  "surface": "wax",
+  "descriptions": [
+    "Honey-filled cells glisten along the walls of the hive.",
+    "The air is thick with sweetness, while workers seal stores for leaner days."
+  ]
+}

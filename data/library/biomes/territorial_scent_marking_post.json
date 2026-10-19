@@ -1,0 +1,17 @@
+{
+  "name": "Territorial Scent Marking Post",
+  "terrain": "outdoor",
+  "tags": [
+    "territory",
+    "scent_marking",
+    "boundary",
+    "animal_den",
+    "outdoor",
+    "den"
+  ],
+  "surface": "tree_bark",
+  "descriptions": [
+    "A prominent tree bears repeated scratches and scent marks at animal height.",
+    "Tracks converge on the post, where the resident repeatedly announces its presence."
+  ]
+}

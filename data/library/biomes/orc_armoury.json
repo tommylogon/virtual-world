@@ -1,0 +1,19 @@
+{
+  "name": "Orc Armoury",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "orc",
+    "weapons",
+    "storage",
+    "armour",
+    "defensive",
+    "monster",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "Axes, shields, and patched armour hang from pegs driven into the walls.",
+    "The equipment is battered but serviceable, stacked for rapid distribution."
+  ]
+}

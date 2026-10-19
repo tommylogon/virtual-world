@@ -1,0 +1,16 @@
+{
+  "name": "Rain Shelter",
+  "terrain": "outdoor",
+  "tags": [
+    "shelter",
+    "weather_protection",
+    "resting",
+    "outdoor",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "An overhanging rock and thick brush keep most of the rain from reaching the ground.",
+    "The sheltered patch remains comparatively dry, even when the surrounding soil turns to mud."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Bus Loop",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "transport",
+    "campus"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A curved concrete loop designated for school bus drop-offs and pick-ups.",
+    "Yellow curb markings, idle diesel exhaust, and student crossing queues."
+  ]
+}

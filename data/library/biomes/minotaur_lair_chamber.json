@@ -1,0 +1,19 @@
+{
+  "name": "Minotaur Lair Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "minotaur",
+    "lair",
+    "maze",
+    "resting",
+    "monster",
+    "defensive",
+    "den"
+  ],
+  "surface": "flagstone",
+  "descriptions": [
+    "A stone chamber lies beyond a confusing series of turns and blind passages.",
+    "Deep hoof marks and broken furnishings reveal the lair of a powerful, territorial beast."
+  ]
+}

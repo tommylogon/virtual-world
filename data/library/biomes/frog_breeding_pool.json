@@ -1,0 +1,17 @@
+{
+  "name": "Frog Breeding Pool",
+  "terrain": "underwater",
+  "tags": [
+    "frog",
+    "breeding",
+    "water",
+    "eggs",
+    "amphibian",
+    "den"
+  ],
+  "surface": "mud",
+  "descriptions": [
+    "A shallow pool shelters clusters of eggs among reeds and submerged plants.",
+    "The water is crowded with tadpoles, insects, and the soft movement of amphibians."
+  ]
+}

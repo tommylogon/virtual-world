@@ -1,0 +1,15 @@
+{
+  "name": "Ballroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "social"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A grand ballroom with polished parquet floors, gilt chandeliers, and mirrored walls.",
+    "Tall French doors opening onto estate terraces under vaulted fresco ceilings."
+  ]
+}

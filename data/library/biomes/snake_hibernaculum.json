@@ -1,0 +1,18 @@
+{
+  "name": "Snake Hibernaculum",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "snake",
+    "hibernation",
+    "reptile",
+    "crevice",
+    "seasonal",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A deep rocky fissure shelters several snakes through the cold season.",
+    "The chamber is still and cool, its cracks offering countless places to coil out of sight."
+  ]
+}

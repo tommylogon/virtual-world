@@ -1,0 +1,16 @@
+{
+  "name": "Convenience Store",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "modern",
+    "shop"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A fluorescent-lit convenience shop lined with candy, energy drinks, and packaged snacks.",
+    "Shelves crowded with tobacco, lottery tickets, and refrigerated soda cases."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Molting Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "molting",
+    "shedding",
+    "growth",
+    "sheltered",
+    "animal_den",
+    "den"
+  ],
+  "surface": "dry_sand",
+  "descriptions": [
+    "The chamber contains shed skins, scales, or fragments of an old exoskeleton.",
+    "A sheltered hollow provides room for the resident to outgrow its former covering."
+  ]
+}

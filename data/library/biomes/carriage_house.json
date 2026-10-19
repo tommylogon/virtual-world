@@ -1,0 +1,15 @@
+{
+  "name": "Carriage House",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "storage"
+  ],
+  "surface": "cobblestone",
+  "descriptions": [
+    "A stone outbuilding with high coach doors, horse harness pegs, and oily tool chests.",
+    "Cobblestone floors, iron wheel rims, and horse-drawn carriages covered in dust sheets."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Gatehouse",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "fortification"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A fortified entrance lodge framing wrought-iron estate gates.",
+    "Heavy oak timbers, porter arrow-slits, and a heavy brass bell."
+  ]
+}

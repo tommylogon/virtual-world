@@ -1,0 +1,17 @@
+{
+  "name": "Abandoned Nest",
+  "terrain": "outdoor",
+  "tags": [
+    "abandoned",
+    "nest",
+    "ruin",
+    "old_bedding",
+    "wildlife",
+    "den"
+  ],
+  "surface": "rotting_twigs",
+  "descriptions": [
+    "A broken nest of twigs and leaves hangs empty among the branches.",
+    "Rain and wind have loosened the structure, while moss begins to cover the old bedding."
+  ]
+}

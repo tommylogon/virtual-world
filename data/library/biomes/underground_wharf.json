@@ -1,0 +1,15 @@
+{
+  "name": "Underground Wharf",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "underground",
+    "water"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A damp wooden jetty moored beside a black subterranean river channel.",
+    "Mooring rings driven into wet cavern walls, cargo crates, and silent flatboats."
+  ]
+}

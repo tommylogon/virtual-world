@@ -1,0 +1,15 @@
+{
+  "name": "Mine Shaft",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "underground",
+    "excavation"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A timber-braced tunnel penetrating deep rock, tracked with narrow ore cart rails.",
+    "Pick marks along vein walls, dripping water, and oil lantern hooks."
+  ]
+}

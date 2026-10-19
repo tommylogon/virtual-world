@@ -1,0 +1,18 @@
+{
+  "name": "Waterproof Nest Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "nest",
+    "waterproof",
+    "rain_protection",
+    "breeding",
+    "sheltered",
+    "den"
+  ],
+  "surface": "woven_reeds",
+  "descriptions": [
+    "A woven shell of reeds and leaves sheds water away from the soft bedding inside.",
+    "The chamber remains dry despite damp surroundings, its walls patched with fresh vegetation."
+  ]
+}

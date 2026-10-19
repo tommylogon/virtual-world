@@ -1,0 +1,17 @@
+{
+  "name": "Final Refuge Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "refuge",
+    "defensive",
+    "deep_chamber",
+    "last_resort",
+    "den"
+  ],
+  "surface": "solid_rock",
+  "descriptions": [
+    "A deep chamber offers the final defensible retreat within the den.",
+    "The entrance is narrow and the walls are thick, making the space difficult to reach without warning."
+  ]
+}

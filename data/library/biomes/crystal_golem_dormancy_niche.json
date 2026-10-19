@@ -1,0 +1,19 @@
+{
+  "name": "Crystal Golem Dormancy Niche",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "crystal_golem",
+    "dormancy",
+    "crystal",
+    "magical",
+    "monster",
+    "mineral",
+    "den"
+  ],
+  "surface": "crystal",
+  "descriptions": [
+    "A faceted recess fits the contours of a motionless crystalline figure.",
+    "Prismatic light crawls over the walls as the chamber resonates with a faint hum."
+  ]
+}

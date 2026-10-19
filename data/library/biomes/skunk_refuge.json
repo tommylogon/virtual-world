@@ -1,0 +1,18 @@
+{
+  "name": "Skunk Refuge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "skunk",
+    "refuge",
+    "sleeping",
+    "defensive",
+    "small_den",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "A narrow, sheltered hollow offers a skunk a quiet place to rest.",
+    "The chamber carries a pungent musk that warns visitors to keep their distance."
+  ]
+}

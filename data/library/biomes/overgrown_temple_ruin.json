@@ -1,0 +1,21 @@
+{
+  "name": "Overgrown Temple Ruin",
+  "terrain": "rock",
+  "tags": [
+    "ruin",
+    "ruins",
+    "temple",
+    "woods"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "history",
+    "investigation",
+    "arcana",
+    "religion"
+  ],
+  "descriptions": [
+    "Cracked marble columns and fallen pediments bound by strangler figs and ivy.",
+    "Weathered inscriptions on mossy altars where lost rites were once performed."
+  ]
+}

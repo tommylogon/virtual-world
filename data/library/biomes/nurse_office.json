@@ -1,0 +1,15 @@
+{
+  "name": "Nurse Office",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "medical",
+    "service"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A small clinic bay with vinyl cots, privacy curtains, and ice-pack coolers.",
+    "First aid kits, blood-pressure cuffs, and a locked glass medicine cabinet."
+  ]
+}

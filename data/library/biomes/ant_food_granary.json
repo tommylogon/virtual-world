@@ -1,0 +1,19 @@
+{
+  "name": "Ant Food Granary",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ant",
+    "food",
+    "storage",
+    "granary",
+    "colony",
+    "insect",
+    "den"
+  ],
+  "surface": "dry_sand",
+  "descriptions": [
+    "Seeds and fragments of food are packed into dry chambers above the damp soil.",
+    "The granary is orderly, with narrow paths between neatly separated stores."
+  ]
+}

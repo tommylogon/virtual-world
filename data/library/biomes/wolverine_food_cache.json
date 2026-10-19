@@ -1,0 +1,18 @@
+{
+  "name": "Wolverine Food Cache",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "wolverine",
+    "food",
+    "cache",
+    "cold",
+    "scavenging",
+    "den"
+  ],
+  "surface": "frozen_earth",
+  "descriptions": [
+    "Frozen scraps and bones are hidden in a cold crevice.",
+    "The cache is tucked away from the sun, beneath loose stones and packed snow."
+  ]
+}

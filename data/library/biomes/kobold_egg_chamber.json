@@ -1,0 +1,19 @@
+{
+  "name": "Kobold Egg Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "kobold",
+    "eggs",
+    "breeding",
+    "nursery",
+    "warm",
+    "monster",
+    "den"
+  ],
+  "surface": "warm_stone",
+  "descriptions": [
+    "Clusters of leathery eggs rest in warm hollows lined with soft debris.",
+    "Kobold caretakers have arranged stones and scraps to keep the chamber at a steady temperature."
+  ]
+}

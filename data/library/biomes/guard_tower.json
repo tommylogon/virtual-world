@@ -1,0 +1,15 @@
+{
+  "name": "Guard Tower",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "fortification"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A rough-hewn wooden observation tower with notched ladders and an overhanging deck.",
+    "A vantage point equipped with warning horns, torches, and heavy javelins."
+  ]
+}

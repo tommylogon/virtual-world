@@ -1,0 +1,19 @@
+{
+  "name": "Elemental Earth Niche",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "earth_elemental",
+    "resting",
+    "mineral",
+    "magical",
+    "monster",
+    "earth",
+    "den"
+  ],
+  "surface": "raw_stone",
+  "descriptions": [
+    "A rough niche blends almost seamlessly into the surrounding rock.",
+    "Loose pebbles tremble across the floor as though the stone itself is breathing."
+  ]
+}

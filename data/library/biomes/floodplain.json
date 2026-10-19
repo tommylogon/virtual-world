@@ -1,0 +1,18 @@
+{
+  "name": "Floodplain",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "field",
+    "farmland"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "Broad flat valley land shaped by recurrent river inundations.",
+    "Rich alluvial soils deposited across verdant meadows and seasonal channels."
+  ]
+}

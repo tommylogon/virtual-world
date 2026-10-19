@@ -1,0 +1,16 @@
+{
+  "name": "Den Entrance",
+  "terrain": "outdoor",
+  "tags": [
+    "entrance",
+    "threshold",
+    "natural",
+    "animal_den",
+    "den"
+  ],
+  "surface": "earth",
+  "descriptions": [
+    "A low opening breaks the ground beneath tangled roots.",
+    "Tracks converge on a dark entrance that smells of fur and damp soil."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Ogre Larder",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ogre",
+    "food",
+    "storage",
+    "larder",
+    "monster",
+    "carrion",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "Bones, salted meat, and dubious scraps are piled against the cavern wall.",
+    "A sour mixture of smoke, old food, and rot hangs over the crude store."
+  ]
+}

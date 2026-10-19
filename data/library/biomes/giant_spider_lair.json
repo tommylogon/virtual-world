@@ -1,0 +1,19 @@
+{
+  "name": "Giant Spider Lair",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "spider",
+    "lair",
+    "web",
+    "ambush",
+    "predator",
+    "monster",
+    "den"
+  ],
+  "surface": "webbing",
+  "descriptions": [
+    "Thick strands of webbing span the chamber from wall to wall.",
+    "The floor is a trap of sticky silk, discarded husks, and wrapped prey."
+  ]
+}

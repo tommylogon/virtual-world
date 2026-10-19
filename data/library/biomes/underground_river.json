@@ -1,0 +1,19 @@
+{
+  "name": "Underground River",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "water",
+    "rocky"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "perception"
+  ],
+  "descriptions": [
+    "A swift subterranean river roaring through a subterranean limestone channel.",
+    "Black foaming water rushing between polished rock banks in absolute dark."
+  ]
+}

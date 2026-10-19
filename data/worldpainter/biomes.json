@@ -809,7 +809,7 @@
         "empty"
       ],
       "descriptions": [
-        "Nothing here \u2014 a gap, a courtyard, unwalkable. Not a place.",
+        "Nothing here  -  a gap, a courtyard, unwalkable. Not a place.",
         "Open air where a place was never made."
       ]
     },
@@ -1738,8 +1738,1717 @@
       ],
       "surface": "dirt",
       "descriptions": [
-        "A yard room \u2014 half roofed, open to the weather, and the busiest part of the place.",
+        "A yard room  -  half roofed, open to the weather, and the busiest part of the place.",
         "A lean-to with benches under it and a yard to work in."
+      ]
+    },
+    "gas_station": {
+      "name": "Gas Station",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "modern"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A roadside gas station under buzzing fluorescent canopies.",
+        "Pumps smelling of fuel, asphalt grease, and a flickering convenience sign."
+      ]
+    },
+    "convenience_store": {
+      "name": "Convenience Store",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "modern",
+        "shop"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A fluorescent-lit convenience shop lined with candy, energy drinks, and packaged snacks.",
+        "Shelves crowded with tobacco, lottery tickets, and refrigerated soda cases."
+      ]
+    },
+    "diner": {
+      "name": "Diner",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "food",
+        "modern"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "A chrome-edged diner with vinyl booths and the smell of stale coffee and bacon grease.",
+        "Checkered tile, a long counter with swivel stools, and pie cases on display."
+      ]
+    },
+    "motel": {
+      "name": "Motel",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "residential",
+        "modern"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A low-slung roadside motel with exterior catwalks and cheap curtains.",
+        "Numbered doors facing an asphalt lot under a humming neon sign."
+      ]
+    },
+    "police_station": {
+      "name": "Police Station",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic",
+        "modern"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A municipal precinct desk with bullet-resistant glass and dispatch radios crackling.",
+        "Cinderblock corridors, holding cells, and desks piled with incident reports."
+      ]
+    },
+    "fire_station": {
+      "name": "Fire Station",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic",
+        "modern"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "An engine bay with polished concrete, high bay doors, and hanging turnout gear.",
+        "Ladders, hose racks, and the heavy diesel smell of fire engines."
+      ]
+    },
+    "pharmacy": {
+      "name": "Pharmacy",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "medical",
+        "modern"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A clean drugstore counter lined with prescription bottles and first-aid supplies.",
+        "Sanitized aisles stocked with antiseptics, pills, and medical sundries."
+      ]
+    },
+    "post_office": {
+      "name": "Post Office",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic",
+        "modern"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "A postal branch with rows of metal PO boxes and parcel scales behind a wicket.",
+        "Sorting bins, cancellation stamps, and stacks of padded envelopes."
+      ]
+    },
+    "hardware_store": {
+      "name": "Hardware Store",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "craft",
+        "modern"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A sprawling hardware shop smelling of cut timber, motor oil, and galvanized nails.",
+        "Aisles of power tools, plumbing fixtures, and coils of heavy chain."
+      ]
+    },
+    "supermarket": {
+      "name": "Supermarket",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "food",
+        "modern"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A large grocery store with wide lanes, hum of refrigeration, and produce stands.",
+        "Endcaps stacked with canned goods, cereal boxes, and checkout conveyor belts."
+      ]
+    },
+    "auto_repair": {
+      "name": "Auto Repair",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "craft",
+        "modern"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A service garage with hydraulic vehicle lifts, impact wrenches, and oil catch pans.",
+        "Tire stacks, diagnostic machines, and tools hanging on pegboards."
+      ]
+    },
+    "laundromat": {
+      "name": "Laundromat",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "service",
+        "modern"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "A self-service laundromat with coin-operated washers churning soapy water.",
+        "Row upon row of tumble dryers emitting heat, lint, and chemical detergent scent."
+      ]
+    },
+    "football_field": {
+      "name": "Football Field",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "recreation",
+        "campus",
+        "field"
+      ],
+      "surface": "grass",
+      "descriptions": [
+        "A marked regulation turf field flanked by goalposts and tall floodlight masts.",
+        "Chalk yard lines stretching across green grass under the stadium lights."
+      ]
+    },
+    "bleachers": {
+      "name": "Bleachers",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "recreation",
+        "campus"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "Tiered spectator benches overlooking the track and playing field.",
+        "Aluminium and timber planks hollow-sounding under running footsteps."
+      ]
+    },
+    "running_track": {
+      "name": "Running Track",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "recreation",
+        "campus"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "An oval cinder track looping around the open sports field.",
+        "White lane markers painted onto compressed all-weather track rubber."
+      ]
+    },
+    "parking_lot": {
+      "name": "Parking Lot",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "transport",
+        "modern"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A wide expanse of cracked asphalt with painted yellow stall lines.",
+        "Parked student cars, speed bumps, and light poles casting harsh sodium glare."
+      ]
+    },
+    "courtyard_quad": {
+      "name": "Courtyard Quad",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "campus",
+        "garden"
+      ],
+      "surface": "grass",
+      "descriptions": [
+        "A landscaped campus green crisscrossed by paved walkways between academic wings.",
+        "Benches beneath shade trees where students congregate between bells."
+      ]
+    },
+    "bus_loop": {
+      "name": "Bus Loop",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "transport",
+        "campus"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A curved concrete loop designated for school bus drop-offs and pick-ups.",
+        "Yellow curb markings, idle diesel exhaust, and student crossing queues."
+      ]
+    },
+    "gymnasium": {
+      "name": "Gymnasium",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "campus",
+        "recreation"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A high-ceilinged athletic gym with polished hardwood basketball courts and retracted bleachers.",
+        "Echoing dribbles, scoreboard banners, and climbing ropes coiled near rafters."
+      ]
+    },
+    "auditorium": {
+      "name": "Auditorium",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "campus",
+        "civic"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A tiered assembly hall with rows of folding cushioned seats facing a raised proscenium stage.",
+        "Heavy velvet stage curtains, spot lanterns, and acoustic wall paneling."
+      ]
+    },
+    "conservatory": {
+      "name": "Conservatory",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "garden"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "A glass-roofed botanical conservatory sheltering exotic ferns, orchids, and iron plant stands.",
+        "Steamy glass panes, smelling of damp potting loam, jasmine, and decaying petals."
+      ]
+    },
+    "carriage_house": {
+      "name": "Carriage House",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "storage"
+      ],
+      "surface": "cobblestone",
+      "descriptions": [
+        "A stone outbuilding with high coach doors, horse harness pegs, and oily tool chests.",
+        "Cobblestone floors, iron wheel rims, and horse-drawn carriages covered in dust sheets."
+      ]
+    },
+    "gatehouse": {
+      "name": "Gatehouse",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "fortification"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A fortified entrance lodge framing wrought-iron estate gates.",
+        "Heavy oak timbers, porter arrow-slits, and a heavy brass bell."
+      ]
+    },
+    "mausoleum": {
+      "name": "Mausoleum",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "sacred",
+        "crypt"
+      ],
+      "surface": "marble",
+      "descriptions": [
+        "A classical stone sepulchre bearing ancestral names carved in decaying relief.",
+        "Iron grilles, weeping marble slabs, and cold stagnant air."
+      ]
+    },
+    "gazebo": {
+      "name": "Gazebo",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "garden"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "An octagonal painted timber pavilion nestled in the estate grounds.",
+        "Lattice railing, climbing ivy, and a view over the lawn."
+      ]
+    },
+    "hedge_maze": {
+      "name": "Hedge Maze",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "garden"
+      ],
+      "surface": "grass",
+      "descriptions": [
+        "A dense labyrinth of manicured ten-foot yew hedges with blind turns.",
+        "Gravel paths disappearing into shadowed corners where birds fall silent."
+      ]
+    },
+    "formal_garden": {
+      "name": "Formal Garden",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "estate",
+        "garden"
+      ],
+      "surface": "gravel",
+      "descriptions": [
+        "Geometric parterres lined with trimmed box hedges, rose beds, and marble sundials.",
+        "Crushed gravel paths leading past classical stone urns and birdbaths."
+      ]
+    },
+    "goblin_palisade": {
+      "name": "Goblin Palisade",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "fortification"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A defensive wall of sharpened timber stakes bound with rawhide and wire.",
+        "Crude firing platforms, spiked logs, and mud-daubed battlements."
+      ]
+    },
+    "chieftain_tent": {
+      "name": "Chieftain Tent",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "residential"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "An enormous hide pavilion hung with war trophies, wolf skins, and cracked shields.",
+        "A central firepit surrounded by coarse cushions, skulls, and curved cleavers."
+      ]
+    },
+    "shaman_hovel": {
+      "name": "Shaman Hovel",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "sacred"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A crooked shack hung with dried bone talismans, bundle roots, and pungent feathers.",
+        "Smoking braziers, clay bowls of foul mash, and dried herbs hanging from willow struts."
+      ]
+    },
+    "mess_tent": {
+      "name": "Mess Tent",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "food"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A greasy canvas shelter housing iron cook-pots over roaring hearth trenches.",
+        "Gnawed bones underfoot, wooden trenchers, and the smell of boiled offal."
+      ]
+    },
+    "loot_pit": {
+      "name": "Loot Pit",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "storage"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A reinforced trench filled with plundered wagons, battered iron, and sacked bundles.",
+        "Guarded crates, salvaged chains, and rusted weapons tossed in heaps."
+      ]
+    },
+    "guard_tower": {
+      "name": "Guard Tower",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "fortification"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A rough-hewn wooden observation tower with notched ladders and an overhanging deck.",
+        "A vantage point equipped with warning horns, torches, and heavy javelins."
+      ]
+    },
+    "archery_range": {
+      "name": "Archery Range",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "frontier",
+        "training"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A firing lane backed by straw butts and riddled timber targets.",
+        "Split arrows, discarded bowstrings, and shooting stakes driven into the mud."
+      ]
+    },
+    "tannery": {
+      "name": "Tannery",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "craft",
+        "work"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A pungent workshop with scraping beams, lime vats, and stretched beast hides.",
+        "Acrid tanning liquors, drying racks, and heaps of raw animal pelts."
+      ]
+    },
+    "apothecary": {
+      "name": "Apothecary",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "medical"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A shop crowded with dried herbs, glass retorts, pestles, and tincture jars.",
+        "Shelves of labeled powders, hanging lavender bundles, and simmering copper kettles."
+      ]
+    },
+    "classroom_science_lab": {
+      "name": "Science Lab",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "education",
+        "science"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A high school chemistry laboratory with black slate workbenches, gas taps, and glass beakers.",
+        "Bunsen burners, fume hoods, and charts of the periodic table taped to tile walls."
+      ]
+    },
+    "locker_room": {
+      "name": "Locker Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "recreation",
+        "service"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "Rows of dented metal lockers lining communal shower benches smelling of disinfectant.",
+        "Moist tiled floors, athletic tape on the benches, and echoing ventilation vents."
+      ]
+    },
+    "cafeteria": {
+      "name": "Cafeteria",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "food",
+        "communal"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A cavernous lunch hall with long folding laminate tables and plastic trash bins.",
+        "Stainless steel serving lines, milk cartons, and grease vapors from warming trays."
+      ]
+    },
+    "nurse_office": {
+      "name": "Nurse Office",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "medical",
+        "service"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A small clinic bay with vinyl cots, privacy curtains, and ice-pack coolers.",
+        "First aid kits, blood-pressure cuffs, and a locked glass medicine cabinet."
+      ]
+    },
+    "principal_office": {
+      "name": "Principal Office",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "administration"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A carpeted administrative office dominated by an imposing faux-oak desk.",
+        "Framed diplomas, disciplinary logs, and security intercom monitors on the credenza."
+      ]
+    },
+    "detention_room": {
+      "name": "Detention Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "education"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A barren classroom where delinquent students sit in silent rows under a ticking wall clock.",
+        "Graffiti-scratched desks and blinds drawn shut against the afternoon sunlight."
+      ]
+    },
+    "boiler_room": {
+      "name": "Boiler Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "utility",
+        "service"
+      ],
+      "surface": "concrete",
+      "descriptions": [
+        "A subterranean mechanical chamber humming with massive water boilers and wrapped pipes.",
+        "Steam hissing from relief valves, concrete dust, and electrical breaker panels."
+      ]
+    },
+    "motel_room": {
+      "name": "Motel Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "residential"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A cramped motel room with floral bedspreads, a humming cathode television, and a noisy AC unit.",
+        "Stained commercial carpet, cheap particleboard nightstands, and thin adjoining walls."
+      ]
+    },
+    "diner_booth_floor": {
+      "name": "Diner Booth Floor",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "food"
+      ],
+      "surface": "tile",
+      "descriptions": [
+        "A dining room floor fitted with crimson vinyl booths, chrome napkin dispensers, and salt shakers.",
+        "Linoleum walkway between tables where waitresses balance heavy breakfast plates."
+      ]
+    },
+    "convenience_aisle": {
+      "name": "Convenience Aisle",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "commercial"
+      ],
+      "surface": "linoleum",
+      "descriptions": [
+        "A narrow grocery aisle flanked by wire chip racks, soda coolers, and discount magazines.",
+        "Fluorescent strips buzzing overhead above scuffed linoleum tiles."
+      ]
+    },
+    "ballroom": {
+      "name": "Ballroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "social"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A grand ballroom with polished parquet floors, gilt chandeliers, and mirrored walls.",
+        "Tall French doors opening onto estate terraces under vaulted fresco ceilings."
+      ]
+    },
+    "drawing_room": {
+      "name": "Drawing Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "social"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A formal parlor with brocade settees, a carved marble fireplace, and oil portraits.",
+        "Heavy velvet drapery muffling sound, with tea services arranged on low mahogany tables."
+      ]
+    },
+    "billiard_room": {
+      "name": "Billiard Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "recreation"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "A gentleman recreation parlor housing a full-sized slate billiard table under green lamps.",
+        "Cue racks, chalk dust, and leather armchairs smelling of tobacco smoke."
+      ]
+    },
+    "servants_quarters": {
+      "name": "Servants Quarters",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "residential"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A plain attic bedroom with narrow iron cot frames and simple washstands.",
+        "Bare floorboards, pitched dormer ceilings, and wool blankets folded neatly."
+      ]
+    },
+    "wine_cellar": {
+      "name": "Wine Cellar",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "storage"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A subterranean stone vault filled with timber bins and dusty vintage bottles.",
+        "Cool damp masonry, smelling of aging oak barrels and tart wine dregs."
+      ]
+    },
+    "attic": {
+      "name": "Attic",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "storage"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A shadowy crawlspace beneath heavy rafters stacked with steamer trunks and disused furniture.",
+        "Cobwebs veiling discarded family heirlooms and dust motes dancing in dormer shafts."
+      ]
+    },
+    "master_suite": {
+      "name": "Master Suite",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "residential"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "An opulent bedchamber dominated by a four-poster canopy bed and silk beddings.",
+        "Private hearth, writing bureau, and plush rugs cushioning every footstep."
+      ]
+    },
+    "dressing_room": {
+      "name": "Dressing Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "residential"
+      ],
+      "surface": "carpet",
+      "descriptions": [
+        "An anteroom fitted with mahogany wardrobes, full-length cheval mirrors, and hatboxes.",
+        "Perfume atomizers, velvet-lined jewelry trays, and tailored garments on mannequins."
+      ]
+    },
+    "morning_room": {
+      "name": "Morning Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "estate",
+        "social"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "An east-facing breakfast salon flooded with early daylight through leaded bay windows.",
+        "Chintz-covered chairs, a writing desk, and botanical prints upon paneled walls."
+      ]
+    },
+    "fungus_grotto": {
+      "name": "Fungus Grotto",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "underground",
+        "flora"
+      ],
+      "surface": "mud",
+      "descriptions": [
+        "A subterranean hollow teeming with luminous cap mushrooms and spore-spewing shelf fungi.",
+        "Damp loam, pale phosphorescent glow, and spongy lichen carpets."
+      ]
+    },
+    "gathering_pit": {
+      "name": "Gathering Pit",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "frontier",
+        "communal"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A sunken circular dirt arena where tribal warriors assemble to argue and celebrate.",
+        "Tamped clay steps, blackened embers from ceremonial fires, and trampled filth."
+      ]
+    },
+    "slave_pens": {
+      "name": "Slave Pens",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "frontier",
+        "prison"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "Iron-barred enclosures sunk into cold stone and mud to hold captive workers.",
+        "Chains pinned to bedrock, fouled straw, and crude wooden stockades."
+      ]
+    },
+    "mine_shaft": {
+      "name": "Mine Shaft",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "underground",
+        "excavation"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A timber-braced tunnel penetrating deep rock, tracked with narrow ore cart rails.",
+        "Pick marks along vein walls, dripping water, and oil lantern hooks."
+      ]
+    },
+    "smelting_trench": {
+      "name": "Smelting Trench",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "craft",
+        "industrial"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A scorching stone hall housing bellows-driven ore furnaces and slag channels.",
+        "Bellows groaning, glowing molten metal puddles, and choking sulfurous smoke."
+      ]
+    },
+    "underground_wharf": {
+      "name": "Underground Wharf",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "underground",
+        "water"
+      ],
+      "surface": "wood",
+      "descriptions": [
+        "A damp wooden jetty moored beside a black subterranean river channel.",
+        "Mooring rings driven into wet cavern walls, cargo crates, and silent flatboats."
+      ]
+    },
+    "ritual_chamber": {
+      "name": "Ritual Chamber",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "sacred",
+        "occult"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A sanctum carved with archaic runes and centered upon an inscribed basalt altar.",
+        "Channeling grooves in the flagstones, cold braziers, and dried incense resin."
+      ]
+    },
+    "oak_forest": {
+      "name": "Oak Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "trees"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A mature oak canopy casting dappled shade across deep leaf litter.",
+        "Thick gnarled trunks, mossy hollows, and acorns scattered over the ground."
+      ]
+    },
+    "birch_forest": {
+      "name": "Birch Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "trees"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A bright woodland of pale, papery birch trunks rustling with fine leaves.",
+        "Slender trees admitting ample sun to brush, berry thickets, and grasses below."
+      ]
+    },
+    "maple_forest": {
+      "name": "Maple Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "trees"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A dense broadleaf woodland rich with sap, broad leaves, and deep loam.",
+        "A cathedral of broad branches turning vivid scarlet and gold in autumn."
+      ]
+    },
+    "old_growth_forest": {
+      "name": "Old-Growth Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "dense",
+        "ancient"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "perception"
+      ],
+      "descriptions": [
+        "An ancient forest of colossal ancient trees, fallen nurse logs, and thick moss mantles.",
+        "Multiple towering canopy layers shutting out the sky, alive with fungal networks."
+      ]
+    },
+    "temperate_rainforest": {
+      "name": "Temperate Rainforest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "wet",
+        "dense"
+      ],
+      "surface": "moss",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "A saturated woodland where giant evergreens drip with rain and thick moss shrouds.",
+        "Enormous ferns, nurse logs, and dense wet foliage absorbing all distant sound."
+      ]
+    },
+    "young_regrowth": {
+      "name": "Young Regrowth",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "scrub"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A tangled thicket of vigorous saplings, briars, and berry bushes recovering from clearing.",
+        "Sunlit brush crowded with blackberry brambles, tender shoots, and young poles."
+      ]
+    },
+    "floodplain_forest": {
+      "name": "Floodplain Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "river",
+        "wet"
+      ],
+      "surface": "mud",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A lowland river forest periodically inundated by seasonal high water.",
+        "Silt-stained tree bases, exposed root masses, and fertile mud deposits."
+      ]
+    },
+    "taiga": {
+      "name": "Taiga",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "cold"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A vast subarctic coniferous expanse of spruce, fir, and spongy lichen.",
+        "Acidic soil blanketed in dark pine needles under cold northern winds."
+      ]
+    },
+    "tundra": {
+      "name": "Tundra",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "cold",
+        "rocky"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A windswept, treeless expanse of dwarf shrubs, sedges, and frost-heaved turf.",
+        "Permafrost beneath a thin carpet of reindeer moss and hardy alpine berries."
+      ]
+    },
+    "snowfield": {
+      "name": "Snowfield",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "cold",
+        "mountain"
+      ],
+      "surface": "snow",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A glaring, unbroken sheet of hard-packed perpetual snow and ice.",
+        "Winds scouring sastrugi ridges across a blinding, frozen horizon."
+      ]
+    },
+    "tropical_rainforest": {
+      "name": "Tropical Rainforest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "tropical",
+        "dense"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "An impenetrable humid jungle beneath a continuous multi-tiered canopy.",
+        "Hanging lianas, buttress roots, screeching birds, and endless warm rain."
+      ]
+    },
+    "jungle": {
+      "name": "Jungle",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "tropical",
+        "dense"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "A dense tropical tangled forest choked with vines, bamboo, and broadleaf palms.",
+        "Sweating heat, buzzing insects, and sharp thorned undergrowth."
+      ]
+    },
+    "mangrove_forest": {
+      "name": "Mangrove Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "shore",
+        "water"
+      ],
+      "surface": "mud",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A tidal coastal forest supported by arching stilt roots above brackish mud.",
+        "Tangled root mazes trapping tidal debris, crabs, and wading birds."
+      ]
+    },
+    "bamboo_forest": {
+      "name": "Bamboo Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "dense"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A dense grove of towering green bamboo culms clattering together in the breeze.",
+        "Filtered green light falling upon fallen sheath leaves and shooting spears."
+      ]
+    },
+    "grassland": {
+      "name": "Grassland",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "open"
+      ],
+      "surface": "grass",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "Rolling open plains of wild prairie grasses rippling under the sky.",
+        "Expansive meadows dotted with clover, wildflowers, and grazing tracks."
+      ]
+    },
+    "prairie": {
+      "name": "Prairie",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "open"
+      ],
+      "surface": "grass",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "Tall grass prairie with stems rising chest-high across endless horizons.",
+        "Deep fertile soils supporting dense root masses and soaring songbirds."
+      ]
+    },
+    "steppe": {
+      "name": "Steppe",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "rocky",
+        "open"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A dry, semi-arid shortgrass plain sweeping toward distant mountain ranges.",
+        "Wind-scoured turf, dry soil, and expansive unimpeded vistas."
+      ]
+    },
+    "savanna": {
+      "name": "Savanna",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "woods",
+        "open"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "Sun-baked grasslands punctuated by solitary flat-topped acacia and baobab trees.",
+        "Golden dry-season grass trampled along migratory game paths."
+      ]
+    },
+    "alpine_meadow": {
+      "name": "Alpine Meadow",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "mountain",
+        "hills"
+      ],
+      "surface": "grass",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "A high-altitude pasture brilliant with blooming alpine gentians and herbs.",
+        "Short lush grass clinging to mountain slopes just below the bare rock line."
+      ]
+    },
+    "moorland": {
+      "name": "Moorland",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "hills",
+        "rocky"
+      ],
+      "surface": "peat",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "An undulating upland of purple heather, bracken fern, and wet peat soils.",
+        "Misty rolling ridges, hidden mires, and cold biting winds."
+      ]
+    },
+    "heathland": {
+      "name": "Heathland",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "hills",
+        "woods"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "Open dwarf-shrub heathland dominated by gorse, heather, and sandy tracks.",
+        "Low shrubs humming with bees under bright sun and dry breezes."
+      ]
+    },
+    "freshwater_marsh": {
+      "name": "Freshwater Marsh",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "lake",
+        "water"
+      ],
+      "surface": "mud",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A shallow wetland of reeds, cattails, and open water pools buzzing with dragonflies.",
+        "Spongy reed tussocks resting over soft, organic waterlogged muck."
+      ]
+    },
+    "swamp": {
+      "name": "Swamp",
+      "terrain": "water",
+      "tags": [
+        "forest",
+        "woods",
+        "water"
+      ],
+      "surface": "mud",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "A drowned forest where gnarled cypress trees rise from stagnant tea-colored water.",
+        "Spanish moss hanging from boughs above submerged logs and lurking predators."
+      ]
+    },
+    "bog": {
+      "name": "Bog",
+      "terrain": "water",
+      "tags": [
+        "water",
+        "rocky",
+        "field"
+      ],
+      "surface": "peat",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "medicine"
+      ],
+      "descriptions": [
+        "An acidic peat mire carpeted in sphagnum moss and carnivorous sundew plants.",
+        "Unstable quaking peat mats covering dark, bottomless cold pools."
+      ]
+    },
+    "fen": {
+      "name": "Fen",
+      "terrain": "water",
+      "tags": [
+        "water",
+        "field",
+        "river"
+      ],
+      "surface": "mud",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A mineral-fed wetland rich in sedges, rushes, and slow winding streams.",
+        "Nutrient-rich marshy soil supporting waving grasses and nesting waterfowl."
+      ]
+    },
+    "floodplain": {
+      "name": "Floodplain",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "field",
+        "farmland"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "Broad flat valley land shaped by recurrent river inundations.",
+        "Rich alluvial soils deposited across verdant meadows and seasonal channels."
+      ]
+    },
+    "sand_desert": {
+      "name": "Sand Desert",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "rocky"
+      ],
+      "surface": "sand",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A sea of wind-sculpted sand dunes shimmering under blinding solar glare.",
+        "Cresting sand ridges shifting constantly under scorching desert gales."
+      ]
+    },
+    "rocky_desert": {
+      "name": "Rocky Desert",
+      "terrain": "rock",
+      "tags": [
+        "rocky",
+        "hills",
+        "mountain"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A stark desert floor of fractured stone, gravel reg, and sun-blackened boulders.",
+        "Weathered rock terraces devoid of shade, crackling in baking heat."
+      ]
+    },
+    "salt_flat": {
+      "name": "Salt Flat",
+      "terrain": "rock",
+      "tags": [
+        "field",
+        "rocky"
+      ],
+      "surface": "salt",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "An ancient evaporated lakebed encrusted with hexagonal white salt crystals.",
+        "Blinding white expanse stretching to the horizon with zero vegetation."
+      ]
+    },
+    "oasis": {
+      "name": "Oasis",
+      "terrain": "water",
+      "tags": [
+        "lake",
+        "spring",
+        "water",
+        "field"
+      ],
+      "surface": "sand",
+      "forage_skills": [
+        "survival",
+        "nature"
+      ],
+      "descriptions": [
+        "A lush sanctuary of date palms and clear spring water surrounded by barren dunes.",
+        "Cool shade, blooming reeds, and refreshing water in the heart of the desert."
+      ]
+    },
+    "mountain_pass": {
+      "name": "Mountain Pass",
+      "terrain": "rock",
+      "tags": [
+        "mountain",
+        "mountains",
+        "rocky",
+        "road"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A high saddle cut between sheer peaks, exposed to whistling gale-force winds.",
+        "A narrow winding trail hemmed in by looming rock walls and yawning drops."
+      ]
+    },
+    "glacier": {
+      "name": "Glacier",
+      "terrain": "rock",
+      "tags": [
+        "mountain",
+        "mountains",
+        "field"
+      ],
+      "surface": "ice",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A massive river of blue-green glacial ice groaning under enormous internal pressure.",
+        "Jagged seracs, meltwater channels, and lethal hidden crevasses."
+      ]
+    },
+    "scree": {
+      "name": "Scree",
+      "terrain": "rock",
+      "tags": [
+        "mountain",
+        "mountains",
+        "rocky"
+      ],
+      "surface": "gravel",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A steep slope of loose, fractured rock fragments shifting under every step.",
+        "Unstable gravel and broken shale clattering downhill toward valley floors."
+      ]
+    },
+    "limestone_cave": {
+      "name": "Limestone Cave",
+      "terrain": "rock",
+      "tags": [
+        "rocky",
+        "chasm",
+        "cliff"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "investigation",
+        "arcana"
+      ],
+      "descriptions": [
+        "A dissolution cavern draped in stalactites, flowstone drapes, and mineral pillars.",
+        "Echoing water droplets striking underground stone pools in deep stillness."
+      ]
+    },
+    "natural_cavern": {
+      "name": "Natural Cavern",
+      "terrain": "rock",
+      "tags": [
+        "rocky",
+        "chasm",
+        "cliff"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "investigation",
+        "arcana"
+      ],
+      "descriptions": [
+        "A vast subterranean vault of rough unworked stone carved by primeval forces.",
+        "Towering vaulted rock ceilings lost in shadow above jagged boulder piles."
+      ]
+    },
+    "underground_river": {
+      "name": "Underground River",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "water",
+        "rocky"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "nature",
+        "perception"
+      ],
+      "descriptions": [
+        "A swift subterranean river roaring through a subterranean limestone channel.",
+        "Black foaming water rushing between polished rock banks in absolute dark."
+      ]
+    },
+    "lava_tube": {
+      "name": "Lava Tube",
+      "terrain": "rock",
+      "tags": [
+        "rocky",
+        "cliff",
+        "mountain"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "investigation"
+      ],
+      "descriptions": [
+        "A smooth cylindrical conduit formed by long-drained basaltic lava flows.",
+        "Vitreous glazed rock walls, slag ripples, and dark cavern floors."
+      ]
+    },
+    "burned_forest": {
+      "name": "Burned Forest",
+      "terrain": "woods",
+      "tags": [
+        "forest",
+        "woods",
+        "ruin"
+      ],
+      "surface": "ash",
+      "forage_skills": [
+        "survival",
+        "investigation"
+      ],
+      "descriptions": [
+        "A desolate stand of charred timber snags rising from black ash and soot.",
+        "Soot-stained soil, crumbling charcoal stumps, and haunting silence."
+      ]
+    },
+    "badlands": {
+      "name": "Badlands",
+      "terrain": "rock",
+      "tags": [
+        "rocky",
+        "hills",
+        "chasm"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "An intensely eroded landscape of banded clay hills, canyons, and dry gullies.",
+        "Fragile shale ridges, exposed fossil beds, and harsh barren ravines."
+      ]
+    },
+    "canyon": {
+      "name": "Canyon",
+      "terrain": "rock",
+      "tags": [
+        "chasm",
+        "cliff",
+        "rocky"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "descriptions": [
+        "A colossal fissure cut into plateau bedrock by eons of water erosion.",
+        "Sheer banded rock cliffs plunging hundreds of paces to a shadowed floor."
+      ]
+    },
+    "overgrown_temple_ruin": {
+      "name": "Overgrown Temple Ruin",
+      "terrain": "rock",
+      "tags": [
+        "ruin",
+        "ruins",
+        "temple",
+        "woods"
+      ],
+      "surface": "stone",
+      "forage_skills": [
+        "history",
+        "investigation",
+        "arcana",
+        "religion"
+      ],
+      "descriptions": [
+        "Cracked marble columns and fallen pediments bound by strangler figs and ivy.",
+        "Weathered inscriptions on mossy altars where lost rites were once performed."
+      ]
+    },
+    "ancient_battlefield": {
+      "name": "Ancient Battlefield",
+      "terrain": "rock",
+      "tags": [
+        "battlefield",
+        "field",
+        "ruin"
+      ],
+      "surface": "dirt",
+      "forage_skills": [
+        "history",
+        "investigation",
+        "perception"
+      ],
+      "descriptions": [
+        "A scarred moor strewn with rusted iron armor flakes, spearheads, and burial barrows.",
+        "Trenches grown over with wild grasses, holding silent memories of slaughter."
       ]
     }
   },

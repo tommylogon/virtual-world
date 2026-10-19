@@ -1,0 +1,18 @@
+{
+  "name": "Hedgehog Day Nest",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "hedgehog",
+    "nest",
+    "sleeping",
+    "small_animal",
+    "leaves",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "A tight ball of leaves conceals a small resting hollow.",
+    "The nest is tucked beneath brush, its entrance nearly hidden by fallen foliage."
+  ]
+}

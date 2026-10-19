@@ -1,0 +1,17 @@
+{
+  "name": "Hydra Marsh Den",
+  "terrain": "outdoor",
+  "tags": [
+    "hydra",
+    "den",
+    "marsh",
+    "aquatic",
+    "monster",
+    "ambush"
+  ],
+  "surface": "mud",
+  "descriptions": [
+    "A muddy hollow opens beside dark water beneath a tangle of reeds.",
+    "Several deep tracks converge on a pool where the water scarcely moves."
+  ]
+}

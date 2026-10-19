@@ -1,0 +1,17 @@
+{
+  "name": "Juvenile Training Ground",
+  "terrain": "outdoor",
+  "tags": [
+    "young",
+    "training",
+    "play",
+    "social",
+    "territory",
+    "den"
+  ],
+  "surface": "trampled_grass",
+  "descriptions": [
+    "The grass is flattened into a rough arena where young creatures practise movement and combat.",
+    "Scattered sticks, scratches, and overlapping tracks mark repeated games and training bouts."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Kraken Resting Grotto",
+  "terrain": "underwater",
+  "tags": [
+    "kraken",
+    "resting",
+    "grotto",
+    "underwater",
+    "monster",
+    "tentacles",
+    "den"
+  ],
+  "surface": "dark_sand",
+  "descriptions": [
+    "A cavernous underwater hollow opens into deep, lightless water.",
+    "The stone is polished by enormous tentacles, and wreckage rests among the silt."
+  ]
+}

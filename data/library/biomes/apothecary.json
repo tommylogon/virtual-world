@@ -1,0 +1,15 @@
+{
+  "name": "Apothecary",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "medical"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A shop crowded with dried herbs, glass retorts, pestles, and tincture jars.",
+    "Shelves of labeled powders, hanging lavender bundles, and simmering copper kettles."
+  ]
+}

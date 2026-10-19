@@ -1,0 +1,15 @@
+{
+  "name": "Gas Station",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "modern"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A roadside gas station under buzzing fluorescent canopies.",
+    "Pumps smelling of fuel, asphalt grease, and a flickering convenience sign."
+  ]
+}

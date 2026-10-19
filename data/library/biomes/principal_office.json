@@ -1,0 +1,14 @@
+{
+  "name": "Principal Office",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "administration"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A carpeted administrative office dominated by an imposing faux-oak desk.",
+    "Framed diplomas, disciplinary logs, and security intercom monitors on the credenza."
+  ]
+}

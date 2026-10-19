@@ -1,0 +1,18 @@
+{
+  "name": "Young Regrowth",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "scrub"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A tangled thicket of vigorous saplings, briars, and berry bushes recovering from clearing.",
+    "Sunlit brush crowded with blackberry brambles, tender shoots, and young poles."
+  ]
+}

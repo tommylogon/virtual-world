@@ -1,0 +1,19 @@
+{
+  "name": "Ancient Battlefield",
+  "terrain": "rock",
+  "tags": [
+    "battlefield",
+    "field",
+    "ruin"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "history",
+    "investigation",
+    "perception"
+  ],
+  "descriptions": [
+    "A scarred moor strewn with rusted iron armor flakes, spearheads, and burial barrows.",
+    "Trenches grown over with wild grasses, holding silent memories of slaughter."
+  ]
+}

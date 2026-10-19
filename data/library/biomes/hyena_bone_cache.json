@@ -1,0 +1,18 @@
+{
+  "name": "Hyena Bone Cache",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "hyena",
+    "bones",
+    "food",
+    "storage",
+    "scavenging",
+    "den"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "A heap of gnawed bones fills a dry recess in the den.",
+    "Old fragments crunch underfoot, carrying the stale smell of carrion."
+  ]
+}

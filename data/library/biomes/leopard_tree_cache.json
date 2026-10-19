@@ -1,0 +1,17 @@
+{
+  "name": "Leopard Tree Cache",
+  "terrain": "outdoor",
+  "tags": [
+    "leopard",
+    "food",
+    "tree",
+    "elevated",
+    "cache",
+    "den"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A heavy branch supports the remains of prey lifted beyond the reach of scavengers.",
+    "Claw marks and scraps of fur cling to the bark above the forest floor."
+  ]
+}

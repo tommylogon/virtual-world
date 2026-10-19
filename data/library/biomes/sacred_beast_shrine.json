@@ -1,0 +1,18 @@
+{
+  "name": "Sacred Beast Shrine",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "shrine",
+    "sacred",
+    "magical",
+    "beast",
+    "ritual",
+    "den"
+  ],
+  "surface": "carved_stone",
+  "descriptions": [
+    "Bones, flowers, and polished stones are arranged around a natural rock formation.",
+    "The chamber is treated with unusual care, as though the inhabitants honour a guardian or ancestral spirit."
+  ]
+}

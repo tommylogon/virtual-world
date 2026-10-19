@@ -1,0 +1,20 @@
+{
+  "name": "Dragon Egg Incubation Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dragon",
+    "eggs",
+    "breeding",
+    "incubation",
+    "heat",
+    "monster",
+    "magical",
+    "den"
+  ],
+  "surface": "volcanic_rock",
+  "descriptions": [
+    "Huge eggs rest in hollows warmed by vents beneath the dark stone.",
+    "Heat shimmers above a chamber carefully arranged to keep the eggs at an even temperature."
+  ]
+}

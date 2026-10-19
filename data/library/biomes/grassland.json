@@ -1,0 +1,17 @@
+{
+  "name": "Grassland",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "open"
+  ],
+  "surface": "grass",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "Rolling open plains of wild prairie grasses rippling under the sky.",
+    "Expansive meadows dotted with clover, wildflowers, and grazing tracks."
+  ]
+}

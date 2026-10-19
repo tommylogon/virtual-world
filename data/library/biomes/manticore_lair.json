@@ -1,0 +1,19 @@
+{
+  "name": "Manticore Lair",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "manticore",
+    "lair",
+    "predator",
+    "ambush",
+    "monster",
+    "bones",
+    "den"
+  ],
+  "surface": "sandstone",
+  "descriptions": [
+    "A rocky lair is strewn with bones and deep gouges from a barbed tail.",
+    "The sheltered chamber offers a clear view of its approach and room to spring upon prey."
+  ]
+}

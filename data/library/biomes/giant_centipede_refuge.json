@@ -1,0 +1,19 @@
+{
+  "name": "Giant Centipede Refuge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "centipede",
+    "refuge",
+    "predator",
+    "crevice",
+    "damp",
+    "monster",
+    "den"
+  ],
+  "surface": "wet_stone",
+  "descriptions": [
+    "A narrow, damp fissure disappears beneath a slab of rock.",
+    "The chamber is littered with shed exoskeletons and the remains of small prey."
+  ]
+}

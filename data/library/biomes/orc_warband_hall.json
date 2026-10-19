@@ -1,0 +1,19 @@
+{
+  "name": "Orc Warband Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "orc",
+    "gathering",
+    "social",
+    "warband",
+    "central",
+    "monster",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A broad hall holds fire pits, rough benches, and the scars of countless gatherings.",
+    "The walls are blackened by smoke and decorated with crude trophies from raids."
+  ]
+}

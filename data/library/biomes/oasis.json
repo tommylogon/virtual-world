@@ -1,0 +1,19 @@
+{
+  "name": "Oasis",
+  "terrain": "water",
+  "tags": [
+    "lake",
+    "spring",
+    "water",
+    "field"
+  ],
+  "surface": "sand",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A lush sanctuary of date palms and clear spring water surrounded by barren dunes.",
+    "Cool shade, blooming reeds, and refreshing water in the heart of the desert."
+  ]
+}

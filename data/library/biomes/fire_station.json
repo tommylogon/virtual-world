@@ -1,0 +1,15 @@
+{
+  "name": "Fire Station",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic",
+    "modern"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "An engine bay with polished concrete, high bay doors, and hanging turnout gear.",
+    "Ladders, hose racks, and the heavy diesel smell of fire engines."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Police Station",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic",
+    "modern"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A municipal precinct desk with bullet-resistant glass and dispatch radios crackling.",
+    "Cinderblock corridors, holding cells, and desks piled with incident reports."
+  ]
+}

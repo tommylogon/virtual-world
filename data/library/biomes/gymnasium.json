@@ -1,0 +1,15 @@
+{
+  "name": "Gymnasium",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "campus",
+    "recreation"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A high-ceilinged athletic gym with polished hardwood basketball courts and retracted bleachers.",
+    "Echoing dribbles, scoreboard banners, and climbing ropes coiled near rafters."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Fungus Grotto",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "underground",
+    "flora"
+  ],
+  "surface": "mud",
+  "descriptions": [
+    "A subterranean hollow teeming with luminous cap mushrooms and spore-spewing shelf fungi.",
+    "Damp loam, pale phosphorescent glow, and spongy lichen carpets."
+  ]
+}

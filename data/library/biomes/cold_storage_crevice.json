@@ -1,0 +1,18 @@
+{
+  "name": "Cold Storage Crevice",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "storage",
+    "cold",
+    "food",
+    "crevice",
+    "preservation",
+    "den"
+  ],
+  "surface": "ice",
+  "descriptions": [
+    "A narrow crack remains cold long after the surrounding chambers have warmed.",
+    "Food scraps and frozen remains lie tucked behind a screen of stone."
+  ]
+}

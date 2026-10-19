@@ -1,0 +1,18 @@
+{
+  "name": "Badlands",
+  "terrain": "rock",
+  "tags": [
+    "rocky",
+    "hills",
+    "chasm"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "An intensely eroded landscape of banded clay hills, canyons, and dry gullies.",
+    "Fragile shale ridges, exposed fossil beds, and harsh barren ravines."
+  ]
+}

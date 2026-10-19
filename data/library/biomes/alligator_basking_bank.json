@@ -1,0 +1,17 @@
+{
+  "name": "Alligator Basking Bank",
+  "terrain": "outdoor",
+  "tags": [
+    "alligator",
+    "basking",
+    "riverbank",
+    "reptile",
+    "resting",
+    "den"
+  ],
+  "surface": "mud",
+  "descriptions": [
+    "A sun-warmed bank slopes gently into the water.",
+    "Deep grooves and broad tail marks cross the mud beside a dark pool."
+  ]
+}

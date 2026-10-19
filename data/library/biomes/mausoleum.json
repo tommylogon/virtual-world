@@ -1,0 +1,16 @@
+{
+  "name": "Mausoleum",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "sacred",
+    "crypt"
+  ],
+  "surface": "marble",
+  "descriptions": [
+    "A classical stone sepulchre bearing ancestral names carved in decaying relief.",
+    "Iron grilles, weeping marble slabs, and cold stagnant air."
+  ]
+}

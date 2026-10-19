@@ -1,0 +1,19 @@
+{
+  "name": "Treant Root Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "treant",
+    "roots",
+    "resting",
+    "living_wood",
+    "monster",
+    "forest",
+    "den"
+  ],
+  "surface": "roots",
+  "descriptions": [
+    "Thick roots intertwine to form a sheltered hollow within the living tree.",
+    "The chamber is quiet except for the creaking of wood and the slow movement of roots."
+  ]
+}

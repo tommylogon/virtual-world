@@ -1,0 +1,18 @@
+{
+  "name": "Fox Prey Pantry",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "food",
+    "storage",
+    "prey",
+    "fox",
+    "cache",
+    "den"
+  ],
+  "surface": "dry_earth",
+  "descriptions": [
+    "Small prey remains are tucked into a dry pocket beneath the earth.",
+    "Feathers, fur, and tiny bones reveal a store of food gathered over several hunts."
+  ]
+}

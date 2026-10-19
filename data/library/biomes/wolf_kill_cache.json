@@ -1,0 +1,18 @@
+{
+  "name": "Wolf Kill Cache",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "food",
+    "carcass",
+    "storage",
+    "wolf",
+    "pack",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Bones and scraps of a carcass lie in a sheltered recess.",
+    "The air is heavy with the smell of meat, blood, and scavengers."
+  ]
+}

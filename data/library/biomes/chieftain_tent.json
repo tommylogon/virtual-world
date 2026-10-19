@@ -1,0 +1,15 @@
+{
+  "name": "Chieftain Tent",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "residential"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "An enormous hide pavilion hung with war trophies, wolf skins, and cracked shields.",
+    "A central firepit surrounded by coarse cushions, skulls, and curved cleavers."
+  ]
+}

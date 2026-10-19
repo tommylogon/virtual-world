@@ -170,7 +170,7 @@ def item_props(entry):
     if "armor" in ltags:
         props.setdefault("equip_slots", ["torso"])
     if "light_source" in ltags or "light" in ltags:
-        props.setdefault("light_level", "dim")
+        props.setdefault("light_level", "dim" if "light_source" in (props.get("tags") or []) else "none")
     if "container" in ltags:
         props.setdefault("max_weight_capacity", 10)
     return props

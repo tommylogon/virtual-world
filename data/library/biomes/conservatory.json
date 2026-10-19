@@ -1,0 +1,15 @@
+{
+  "name": "Conservatory",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "garden"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "A glass-roofed botanical conservatory sheltering exotic ferns, orchids, and iron plant stands.",
+    "Steamy glass panes, smelling of damp potting loam, jasmine, and decaying petals."
+  ]
+}

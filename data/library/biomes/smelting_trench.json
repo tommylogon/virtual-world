@@ -1,0 +1,15 @@
+{
+  "name": "Smelting Trench",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "craft",
+    "industrial"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A scorching stone hall housing bellows-driven ore furnaces and slag channels.",
+    "Bellows groaning, glowing molten metal puddles, and choking sulfurous smoke."
+  ]
+}

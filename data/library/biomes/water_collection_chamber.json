@@ -1,0 +1,18 @@
+{
+  "name": "Water Collection Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "water",
+    "storage",
+    "drainage",
+    "resource",
+    "den",
+    "utility"
+  ],
+  "surface": "wet_stone",
+  "descriptions": [
+    "Water drips from the ceiling into a shallow depression worn into the floor.",
+    "A small pool collects runoff, its edges marked by mud and tracks."
+  ]
+}

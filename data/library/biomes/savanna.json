@@ -1,0 +1,18 @@
+{
+  "name": "Savanna",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "woods",
+    "open"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "Sun-baked grasslands punctuated by solitary flat-topped acacia and baobab trees.",
+    "Golden dry-season grass trampled along migratory game paths."
+  ]
+}

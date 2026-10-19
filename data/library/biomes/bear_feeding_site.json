@@ -1,0 +1,17 @@
+{
+  "name": "Bear Feeding Site",
+  "terrain": "outdoor",
+  "tags": [
+    "feeding",
+    "bear",
+    "food",
+    "foraging",
+    "messy",
+    "den"
+  ],
+  "surface": "trampled_soil",
+  "descriptions": [
+    "Broken branches, crushed plants, and scraps of food mark a regular feeding spot.",
+    "The ground is churned beneath heavy paws, with a lingering smell of meat and berries."
+  ]
+}

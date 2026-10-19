@@ -1,0 +1,20 @@
+{
+  "name": "Lich Phylactery Vault",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "lich",
+    "phylactery",
+    "vault",
+    "magical",
+    "undead",
+    "secure",
+    "monster",
+    "den"
+  ],
+  "surface": "black_marble",
+  "descriptions": [
+    "Runes cover the walls around a protected niche that houses a vessel of terrible importance.",
+    "The vault is unnaturally cold, and faint magical light gathers around its sealed centre."
+  ]
+}

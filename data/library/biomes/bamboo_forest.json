@@ -1,0 +1,18 @@
+{
+  "name": "Bamboo Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "dense"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A dense grove of towering green bamboo culms clattering together in the breeze.",
+    "Filtered green light falling upon fallen sheath leaves and shooting spears."
+  ]
+}

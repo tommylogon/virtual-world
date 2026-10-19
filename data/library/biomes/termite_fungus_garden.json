@@ -1,0 +1,19 @@
+{
+  "name": "Termite Fungus Garden",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "termite",
+    "fungus",
+    "food",
+    "cultivation",
+    "humid",
+    "colony",
+    "den"
+  ],
+  "surface": "compost",
+  "descriptions": [
+    "Pale fungal growth covers carefully arranged beds of chewed plant matter.",
+    "Warm, humid air hangs over a living garden tended by countless workers."
+  ]
+}

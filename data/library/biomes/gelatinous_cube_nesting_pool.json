@@ -1,0 +1,19 @@
+{
+  "name": "Gelatinous Cube Nesting Pool",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "gelatinous_cube",
+    "resting",
+    "slime",
+    "monster",
+    "damp",
+    "corrosive",
+    "den"
+  ],
+  "surface": "slick_stone",
+  "descriptions": [
+    "A shallow depression holds a clear, viscous residue that clings to the stone.",
+    "Small bones and dissolved debris collect in the stagnant pool at the end of the passage."
+  ]
+}

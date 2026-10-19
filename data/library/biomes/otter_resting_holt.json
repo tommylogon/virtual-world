@@ -1,0 +1,18 @@
+{
+  "name": "Otter Resting Holt",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "otter",
+    "resting",
+    "holt",
+    "water_adjacent",
+    "bedding",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "A sheltered hollow near the water is padded with grass and reeds.",
+    "Wet tracks cross the floor, but the bedding has been kept relatively dry."
+  ]
+}

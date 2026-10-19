@@ -1,0 +1,18 @@
+{
+  "name": "Heathland",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "hills",
+    "woods"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "Open dwarf-shrub heathland dominated by gorse, heather, and sandy tracks.",
+    "Low shrubs humming with bees under bright sun and dry breezes."
+  ]
+}

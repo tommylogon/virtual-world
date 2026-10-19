@@ -1,0 +1,17 @@
+{
+  "name": "Shed Antler and Horn Deposit",
+  "terrain": "outdoor",
+  "tags": [
+    "antlers",
+    "horns",
+    "seasonal",
+    "resource",
+    "wildlife",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "Shed antlers and broken horn fragments lie among the leaves at the edge of the clearing.",
+    "The deposit is a seasonal reminder of the animals that frequent this part of the forest."
+  ]
+}

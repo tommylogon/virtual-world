@@ -1,0 +1,17 @@
+{
+  "name": "Giant Raven Bone Cache",
+  "terrain": "outdoor",
+  "tags": [
+    "raven",
+    "bones",
+    "food",
+    "cache",
+    "cliff",
+    "den"
+  ],
+  "surface": "bare_rock",
+  "descriptions": [
+    "Bones and torn scraps of meat collect in a sheltered pocket of the cliff.",
+    "The wind whistles through a cache littered with the remains of stolen meals."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Slave Pens",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "frontier",
+    "prison"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "Iron-barred enclosures sunk into cold stone and mud to hold captive workers.",
+    "Chains pinned to bedrock, fouled straw, and crude wooden stockades."
+  ]
+}

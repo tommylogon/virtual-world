@@ -1,0 +1,15 @@
+{
+  "name": "Attic",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "storage"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A shadowy crawlspace beneath heavy rafters stacked with steamer trunks and disused furniture.",
+    "Cobwebs veiling discarded family heirlooms and dust motes dancing in dormer shafts."
+  ]
+}

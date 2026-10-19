@@ -1,0 +1,19 @@
+{
+  "name": "Slime Colony Growth Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "slime",
+    "colony",
+    "growth",
+    "moist",
+    "monster",
+    "organic",
+    "den"
+  ],
+  "surface": "slime",
+  "descriptions": [
+    "Translucent growths spread across the damp floor in overlapping patches.",
+    "The chamber glistens with mucus and broken organic matter absorbed into the colony."
+  ]
+}

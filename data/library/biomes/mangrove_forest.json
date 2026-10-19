@@ -1,0 +1,19 @@
+{
+  "name": "Mangrove Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "shore",
+    "water"
+  ],
+  "surface": "mud",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A tidal coastal forest supported by arching stilt roots above brackish mud.",
+    "Tangled root mazes trapping tidal debris, crabs, and wading birds."
+  ]
+}

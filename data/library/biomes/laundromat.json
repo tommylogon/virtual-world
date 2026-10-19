@@ -1,0 +1,16 @@
+{
+  "name": "Laundromat",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "service",
+    "modern"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "A self-service laundromat with coin-operated washers churning soapy water.",
+    "Row upon row of tumble dryers emitting heat, lint, and chemical detergent scent."
+  ]
+}

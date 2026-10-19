@@ -1,0 +1,17 @@
+{
+  "name": "Scavenger Gathering Ground",
+  "terrain": "outdoor",
+  "tags": [
+    "scavenging",
+    "feeding",
+    "social",
+    "bones",
+    "outdoor",
+    "den"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "Scattered bones and scraps draw scavengers to this repeatedly visited patch of ground.",
+    "Tracks of different sizes overlap around the remains of past meals."
+  ]
+}

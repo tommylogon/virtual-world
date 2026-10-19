@@ -1,0 +1,18 @@
+{
+  "name": "Owl Roost Hollow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "owl",
+    "roost",
+    "tree_hollow",
+    "dark",
+    "resting",
+    "den"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A deep hollow in an old tree offers shelter from daylight and weather.",
+    "Pellets and feathers collect below a narrow opening in the trunk."
+  ]
+}

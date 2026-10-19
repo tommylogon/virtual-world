@@ -1,0 +1,17 @@
+{
+  "name": "Salt Flat",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "rocky"
+  ],
+  "surface": "salt",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "An ancient evaporated lakebed encrusted with hexagonal white salt crystals.",
+    "Blinding white expanse stretching to the horizon with zero vegetation."
+  ]
+}

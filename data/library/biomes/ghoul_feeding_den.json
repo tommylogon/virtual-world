@@ -1,0 +1,19 @@
+{
+  "name": "Ghoul Feeding Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ghoul",
+    "feeding",
+    "carrion",
+    "undead",
+    "monster",
+    "stench",
+    "den"
+  ],
+  "surface": "bone",
+  "descriptions": [
+    "Bones and scraps of rotting flesh cover the floor of the low chamber.",
+    "The stale air reeks of decay, and claw marks surround a heap of discarded remains."
+  ]
+}

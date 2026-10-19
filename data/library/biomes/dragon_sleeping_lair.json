@@ -1,0 +1,19 @@
+{
+  "name": "Dragon Sleeping Lair",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dragon",
+    "sleeping",
+    "lair",
+    "large_creature",
+    "monster",
+    "warm",
+    "den"
+  ],
+  "surface": "obsidian",
+  "descriptions": [
+    "A vast hollow bears the marks of enormous claws and a body that has rested here for centuries.",
+    "The stone is warm beneath a bed of ash, scorched hides, and crushed treasure."
+  ]
+}

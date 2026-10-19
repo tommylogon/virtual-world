@@ -1,0 +1,20 @@
+{
+  "name": "Jungle",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "tropical",
+    "dense"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "A dense tropical tangled forest choked with vines, bamboo, and broadleaf palms.",
+    "Sweating heat, buzzing insects, and sharp thorned undergrowth."
+  ]
+}

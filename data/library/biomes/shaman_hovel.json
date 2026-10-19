@@ -1,0 +1,15 @@
+{
+  "name": "Shaman Hovel",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "sacred"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A crooked shack hung with dried bone talismans, bundle roots, and pungent feathers.",
+    "Smoking braziers, clay bowls of foul mash, and dried herbs hanging from willow struts."
+  ]
+}

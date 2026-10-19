@@ -1,0 +1,18 @@
+{
+  "name": "Giant Boar Wallows",
+  "terrain": "outdoor",
+  "tags": [
+    "giant_boar",
+    "mud",
+    "bathing",
+    "cooling",
+    "territory",
+    "monster",
+    "den"
+  ],
+  "surface": "deep_mud",
+  "descriptions": [
+    "A deep muddy hollow bears the impressions of a creature far larger than an ordinary boar.",
+    "Mud and churned water coat the surrounding roots, with a powerful animal scent in the air."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Main Den Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "living",
+    "central",
+    "animal_den",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A broad chamber forms the heart of the den, worn smooth by repeated use.",
+    "Loose earth, fur, and scattered debris mark the centre of the animal's territory."
+  ]
+}

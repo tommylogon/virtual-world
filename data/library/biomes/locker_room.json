@@ -1,0 +1,15 @@
+{
+  "name": "Locker Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "recreation",
+    "service"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "Rows of dented metal lockers lining communal shower benches smelling of disinfectant.",
+    "Moist tiled floors, athletic tape on the benches, and echoing ventilation vents."
+  ]
+}

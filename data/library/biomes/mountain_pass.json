@@ -1,0 +1,19 @@
+{
+  "name": "Mountain Pass",
+  "terrain": "rock",
+  "tags": [
+    "mountain",
+    "mountains",
+    "rocky",
+    "road"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "A high saddle cut between sheer peaks, exposed to whistling gale-force winds.",
+    "A narrow winding trail hemmed in by looming rock walls and yawning drops."
+  ]
+}

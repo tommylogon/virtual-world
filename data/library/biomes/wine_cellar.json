@@ -1,0 +1,15 @@
+{
+  "name": "Wine Cellar",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "storage"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A subterranean stone vault filled with timber bins and dusty vintage bottles.",
+    "Cool damp masonry, smelling of aging oak barrels and tart wine dregs."
+  ]
+}

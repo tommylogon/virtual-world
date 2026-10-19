@@ -1,0 +1,18 @@
+{
+  "name": "Dire Wolf Pack Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dire_wolf",
+    "den",
+    "pack",
+    "sleeping",
+    "monster",
+    "large_creature"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "A spacious den contains several deep sleeping hollows worn by massive bodies.",
+    "Heavy paw prints and shredded bedding mark the territory of an oversized pack."
+  ]
+}

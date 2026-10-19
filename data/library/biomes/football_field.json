@@ -1,0 +1,16 @@
+{
+  "name": "Football Field",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "recreation",
+    "campus",
+    "field"
+  ],
+  "surface": "grass",
+  "descriptions": [
+    "A marked regulation turf field flanked by goalposts and tall floodlight masts.",
+    "Chalk yard lines stretching across green grass under the stadium lights."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Bee Brood Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "bee",
+    "brood",
+    "hive",
+    "young",
+    "wax",
+    "colony",
+    "den"
+  ],
+  "surface": "wax",
+  "descriptions": [
+    "Rows of wax cells hold developing brood beneath the constant movement of worker bees.",
+    "The chamber hums with life and carries the warm scent of wax and honey."
+  ]
+}

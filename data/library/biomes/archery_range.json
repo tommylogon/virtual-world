@@ -1,0 +1,15 @@
+{
+  "name": "Archery Range",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "training"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A firing lane backed by straw butts and riddled timber targets.",
+    "Split arrows, discarded bowstrings, and shooting stakes driven into the mud."
+  ]
+}

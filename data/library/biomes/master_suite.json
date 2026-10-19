@@ -1,0 +1,15 @@
+{
+  "name": "Master Suite",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "residential"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "An opulent bedchamber dominated by a four-poster canopy bed and silk beddings.",
+    "Private hearth, writing bureau, and plush rugs cushioning every footstep."
+  ]
+}

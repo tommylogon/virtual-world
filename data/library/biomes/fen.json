@@ -1,0 +1,18 @@
+{
+  "name": "Fen",
+  "terrain": "water",
+  "tags": [
+    "water",
+    "field",
+    "river"
+  ],
+  "surface": "mud",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A mineral-fed wetland rich in sedges, rushes, and slow winding streams.",
+    "Nutrient-rich marshy soil supporting waving grasses and nesting waterfowl."
+  ]
+}

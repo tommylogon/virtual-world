@@ -1,0 +1,18 @@
+{
+  "name": "Pack Gathering Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "social",
+    "pack",
+    "gathering",
+    "central",
+    "wolf",
+    "den"
+  ],
+  "surface": "hard_earth",
+  "descriptions": [
+    "A broad open space bears the tracks of many animals moving together.",
+    "The chamber is worn smooth where pack members gather, rest, and interact."
+  ]
+}

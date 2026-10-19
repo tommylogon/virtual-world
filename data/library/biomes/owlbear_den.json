@@ -1,0 +1,18 @@
+{
+  "name": "Owlbear Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "owlbear",
+    "den",
+    "sleeping",
+    "predator",
+    "monster",
+    "large_creature"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "A rough den is piled with leaves, torn feathers, and the remains of prey.",
+    "Claw furrows score the entrance where the creature has repeatedly scraped against the rock."
+  ]
+}

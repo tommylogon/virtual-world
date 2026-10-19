@@ -1,0 +1,19 @@
+{
+  "name": "Cyclops Livestock Pen",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "cyclops",
+    "livestock",
+    "pen",
+    "food",
+    "monster",
+    "large_creature",
+    "den"
+  ],
+  "surface": "straw",
+  "descriptions": [
+    "A crude enclosure holds animals destined to feed a single enormous resident.",
+    "Heavy posts, trampled straw, and a broad gate mark the pen's rough construction."
+  ]
+}

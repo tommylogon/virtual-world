@@ -1,0 +1,15 @@
+{
+  "name": "Post Office",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic",
+    "modern"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "A postal branch with rows of metal PO boxes and parcel scales behind a wicket.",
+    "Sorting bins, cancellation stamps, and stacks of padded envelopes."
+  ]
+}

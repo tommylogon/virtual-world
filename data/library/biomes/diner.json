@@ -1,0 +1,16 @@
+{
+  "name": "Diner",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "food",
+    "modern"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "A chrome-edged diner with vinyl booths and the smell of stale coffee and bacon grease.",
+    "Checkered tile, a long counter with swivel stools, and pie cases on display."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Ventilation Shaft",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ventilation",
+    "shaft",
+    "airflow",
+    "utility",
+    "burrow",
+    "vertical",
+    "den"
+  ],
+  "surface": "raw_earth",
+  "descriptions": [
+    "A narrow shaft rises toward the surface, carrying a faint current of air.",
+    "Roots hang from the opening, and loose soil has collected around the base."
+  ]
+}

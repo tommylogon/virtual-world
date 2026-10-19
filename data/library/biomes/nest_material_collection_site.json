@@ -1,0 +1,17 @@
+{
+  "name": "Nest Material Collection Site",
+  "terrain": "outdoor",
+  "tags": [
+    "nest_material",
+    "foraging",
+    "twigs",
+    "leaves",
+    "resource",
+    "den"
+  ],
+  "surface": "forest_floor",
+  "descriptions": [
+    "Twigs, moss, grass, and soft fibres are gathered in a small pile near the den.",
+    "Repeated trips have left a narrow trail through the vegetation to this useful supply."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Giant Spider Egg Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "spider",
+    "eggs",
+    "breeding",
+    "web",
+    "protected",
+    "monster",
+    "den"
+  ],
+  "surface": "webbing",
+  "descriptions": [
+    "Silken sacs hang within a chamber layered in dense webbing.",
+    "The air is still, and every surface is bound in sticky threads around the egg cases."
+  ]
+}

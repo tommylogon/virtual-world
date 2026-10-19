@@ -1,0 +1,18 @@
+{
+  "name": "Fossil and Bone Deposit",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "bones",
+    "fossils",
+    "storage",
+    "cave",
+    "old_remains",
+    "den"
+  ],
+  "surface": "limestone",
+  "descriptions": [
+    "Old bones and mineralised fragments lie embedded in the floor and piled against the wall.",
+    "The deposit contains remains from creatures that occupied the cavern long before its current resident."
+  ]
+}

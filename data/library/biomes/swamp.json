@@ -1,0 +1,19 @@
+{
+  "name": "Swamp",
+  "terrain": "water",
+  "tags": [
+    "forest",
+    "woods",
+    "water"
+  ],
+  "surface": "mud",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "A drowned forest where gnarled cypress trees rise from stagnant tea-colored water.",
+    "Spanish moss hanging from boughs above submerged logs and lurking predators."
+  ]
+}

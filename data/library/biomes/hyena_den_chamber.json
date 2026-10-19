@@ -1,0 +1,17 @@
+{
+  "name": "Hyena Den Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "hyena",
+    "den",
+    "pack",
+    "living",
+    "underground"
+  ],
+  "surface": "hard_earth",
+  "descriptions": [
+    "A broad underground chamber bears the tracks of a busy clan.",
+    "Bones and scraps lie along the walls where hyenas gather and rest."
+  ]
+}

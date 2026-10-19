@@ -1,0 +1,19 @@
+{
+  "name": "Mimic Lair",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "mimic",
+    "ambush",
+    "lair",
+    "deception",
+    "monster",
+    "predator",
+    "den"
+  ],
+  "surface": "wood_planks",
+  "descriptions": [
+    "The chamber resembles an ordinary storage room, though its contents sit strangely still.",
+    "Scratches and scraps of clothing surround an inviting space that feels unnaturally deliberate."
+  ]
+}

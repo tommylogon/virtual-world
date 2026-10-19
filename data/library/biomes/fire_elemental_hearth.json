@@ -1,0 +1,19 @@
+{
+  "name": "Fire Elemental Hearth",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "fire_elemental",
+    "heat",
+    "resting",
+    "magical",
+    "monster",
+    "fire",
+    "den"
+  ],
+  "surface": "lava_rock",
+  "descriptions": [
+    "A hollow of blackened stone glows with heat from cracks beneath the floor.",
+    "Ash drifts around a fiery core where ordinary bedding would burn in moments."
+  ]
+}

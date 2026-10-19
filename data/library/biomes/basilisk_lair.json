@@ -1,0 +1,19 @@
+{
+  "name": "Basilisk Lair",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "basilisk",
+    "lair",
+    "reptile",
+    "ambush",
+    "monster",
+    "mineral",
+    "den"
+  ],
+  "surface": "limestone",
+  "descriptions": [
+    "A pale cavern holds the shed scales and remains of creatures that wandered too close.",
+    "The chamber is quiet and cold, with a clear stretch of floor before the creature's hiding place."
+  ]
+}

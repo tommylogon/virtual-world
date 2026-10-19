@@ -108,6 +108,11 @@ STAIR_TAG = "stair"
 #: a modder adding a room gets the exemption by being one.
 INDOOR_TAG = "indoor"
 
+#: Marks a record as a specialized **den, lair, or nest** (feature biomes).
+#: Like rooms and buildings, dens have custom authored descriptions and contents
+#: rather than generic regional wilderness foraging.
+DEN_TAG = "den"
+
 _cache: Dict[str, dict] = {}
 
 

@@ -1,0 +1,17 @@
+{
+  "name": "Eagle Eyrie",
+  "terrain": "outdoor",
+  "tags": [
+    "eagle",
+    "nest",
+    "cliff",
+    "elevated",
+    "breeding",
+    "den"
+  ],
+  "surface": "twigs",
+  "descriptions": [
+    "A massive platform of interwoven branches crowns a high rock shelf.",
+    "The nest overlooks the valley, lined with grass and tufts of down."
+  ]
+}

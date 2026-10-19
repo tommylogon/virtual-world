@@ -1,0 +1,18 @@
+{
+  "name": "Worm Colony Moisture Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "worm",
+    "colony",
+    "moist",
+    "soil",
+    "organic_matter",
+    "den"
+  ],
+  "surface": "wet_soil",
+  "descriptions": [
+    "Soft soil glistens with moisture as worms burrow through the chamber.",
+    "Decaying leaves and rich earth form a living mass beneath the surface."
+  ]
+}

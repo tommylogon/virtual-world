@@ -77,7 +77,7 @@ def build_item(item_id: str, entry: dict) -> dict:
     item.setdefault("uses", -1)
     item.setdefault("weight", 0.1)
     item.setdefault("current_state", "normal")
-    item.setdefault("light_level", "dim")
+    item.setdefault("light_level", "dim" if "light_source" in (item.get("tags") or []) else "none")
     item.setdefault("triggers", [])
     item.setdefault("contents", [])
 

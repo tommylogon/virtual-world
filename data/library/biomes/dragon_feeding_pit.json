@@ -1,0 +1,19 @@
+{
+  "name": "Dragon Feeding Pit",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dragon",
+    "feeding",
+    "carcass",
+    "large_creature",
+    "monster",
+    "waste",
+    "den"
+  ],
+  "surface": "blackened_stone",
+  "descriptions": [
+    "The floor is stained by blood and scattered with bones too large for ordinary beasts.",
+    "A deep pit collects the remains of meals consumed by a creature of enormous appetite."
+  ]
+}

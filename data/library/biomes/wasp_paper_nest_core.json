@@ -1,0 +1,19 @@
+{
+  "name": "Wasp Paper Nest Core",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "wasp",
+    "nest",
+    "paper",
+    "brood",
+    "colony",
+    "defensive",
+    "den"
+  ],
+  "surface": "paper_fibre",
+  "descriptions": [
+    "Layered paper-like walls enclose a dense cluster of brood cells.",
+    "The nest vibrates with activity, its thin walls guarding a fiercely defended core."
+  ]
+}

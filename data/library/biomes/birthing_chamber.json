@@ -1,0 +1,18 @@
+{
+  "name": "Birthing Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "breeding",
+    "birthing",
+    "young",
+    "protected",
+    "warm",
+    "den"
+  ],
+  "surface": "moss",
+  "descriptions": [
+    "Soft moss and fur cover a secluded hollow prepared for newborn young.",
+    "The chamber is unusually warm, with fresh bedding and the faint sounds of small animals."
+  ]
+}

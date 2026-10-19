@@ -1,0 +1,18 @@
+{
+  "name": "Guard Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "guard",
+    "defensive",
+    "watch",
+    "pack",
+    "chamber",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "The chamber overlooks the approach, leaving little room for an intruder to pass unseen.",
+    "Scuffed ground and a strong animal scent mark a place where sentries regularly pause."
+  ]
+}

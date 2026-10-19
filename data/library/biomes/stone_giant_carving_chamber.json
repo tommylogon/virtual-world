@@ -1,0 +1,19 @@
+{
+  "name": "Stone Giant Carving Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "stone_giant",
+    "workshop",
+    "crafting",
+    "stone",
+    "monster",
+    "large_creature",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Half-finished stone figures and chipped blocks surround a giant's work area.",
+    "Stone dust blankets the floor beneath crude tools and immense carved fragments."
+  ]
+}

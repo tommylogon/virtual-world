@@ -1,0 +1,15 @@
+{
+  "name": "Goblin Palisade",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "fortification"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A defensive wall of sharpened timber stakes bound with rawhide and wire.",
+    "Crude firing platforms, spiked logs, and mud-daubed battlements."
+  ]
+}

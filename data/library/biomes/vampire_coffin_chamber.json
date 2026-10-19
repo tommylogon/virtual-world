@@ -1,0 +1,19 @@
+{
+  "name": "Vampire Coffin Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "vampire",
+    "sleeping",
+    "coffin",
+    "undead",
+    "secure",
+    "monster",
+    "den"
+  ],
+  "surface": "polished_stone",
+  "descriptions": [
+    "A sealed coffin rests in a shadowed chamber behind a heavy door.",
+    "Dark curtains and carefully placed furnishings keep every trace of daylight away."
+  ]
+}

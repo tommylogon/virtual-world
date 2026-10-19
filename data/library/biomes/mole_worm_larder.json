@@ -1,0 +1,18 @@
+{
+  "name": "Mole Worm Larder",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "mole",
+    "food",
+    "storage",
+    "worms",
+    "larder",
+    "den"
+  ],
+  "surface": "damp_soil",
+  "descriptions": [
+    "Earthworms and other small prey are gathered in a cool pocket of soil.",
+    "The larder is damp and earthy, with tiny feeding marks along its edges."
+  ]
+}

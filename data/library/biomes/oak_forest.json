@@ -1,0 +1,18 @@
+{
+  "name": "Oak Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "trees"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A mature oak canopy casting dappled shade across deep leaf litter.",
+    "Thick gnarled trunks, mossy hollows, and acorns scattered over the ground."
+  ]
+}

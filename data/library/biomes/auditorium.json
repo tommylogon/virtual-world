@@ -1,0 +1,15 @@
+{
+  "name": "Auditorium",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "campus",
+    "civic"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A tiered assembly hall with rows of folding cushioned seats facing a raised proscenium stage.",
+    "Heavy velvet stage curtains, spot lanterns, and acoustic wall paneling."
+  ]
+}

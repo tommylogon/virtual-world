@@ -1,0 +1,19 @@
+{
+  "name": "Alpine Meadow",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "mountain",
+    "hills"
+  ],
+  "surface": "grass",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "A high-altitude pasture brilliant with blooming alpine gentians and herbs.",
+    "Short lush grass clinging to mountain slopes just below the bare rock line."
+  ]
+}

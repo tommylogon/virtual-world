@@ -1,0 +1,18 @@
+{
+  "name": "Taiga",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "cold"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A vast subarctic coniferous expanse of spruce, fir, and spongy lichen.",
+    "Acidic soil blanketed in dark pine needles under cold northern winds."
+  ]
+}

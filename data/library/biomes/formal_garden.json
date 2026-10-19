@@ -1,0 +1,15 @@
+{
+  "name": "Formal Garden",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "garden"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "Geometric parterres lined with trimmed box hedges, rose beds, and marble sundials.",
+    "Crushed gravel paths leading past classical stone urns and birdbaths."
+  ]
+}

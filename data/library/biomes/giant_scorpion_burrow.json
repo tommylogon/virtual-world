@@ -1,0 +1,19 @@
+{
+  "name": "Giant Scorpion Burrow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "scorpion",
+    "burrow",
+    "desert",
+    "ambush",
+    "dry",
+    "monster",
+    "den"
+  ],
+  "surface": "sand",
+  "descriptions": [
+    "A deep sandy burrow ends in a cool pocket beneath the sun-baked ground.",
+    "Scraped sand and a pair of claw marks frame a chamber built for sudden ambush."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Auto Repair",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "craft",
+    "modern"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A service garage with hydraulic vehicle lifts, impact wrenches, and oil catch pans.",
+    "Tire stacks, diagnostic machines, and tools hanging on pegboards."
+  ]
+}

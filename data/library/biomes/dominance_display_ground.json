@@ -1,0 +1,17 @@
+{
+  "name": "Dominance Display Ground",
+  "terrain": "outdoor",
+  "tags": [
+    "dominance",
+    "display",
+    "social",
+    "territory",
+    "mating",
+    "den"
+  ],
+  "surface": "bare_earth",
+  "descriptions": [
+    "A clear patch of ground bears the scars of repeated contests and displays.",
+    "Scrapes, broken branches, and scent marks identify a place where rank is established."
+  ]
+}

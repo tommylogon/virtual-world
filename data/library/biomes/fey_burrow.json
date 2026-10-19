@@ -1,0 +1,19 @@
+{
+  "name": "Fey Burrow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "fey",
+    "burrow",
+    "magical",
+    "small_creature",
+    "sheltered",
+    "monster",
+    "den"
+  ],
+  "surface": "flower_petals",
+  "descriptions": [
+    "A tiny chamber beneath the roots is lined with petals, moss, and delicate fibres.",
+    "Soft lights flicker along the walls, illuminating a burrow that feels larger inside than out."
+  ]
+}

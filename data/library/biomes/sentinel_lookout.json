@@ -1,0 +1,17 @@
+{
+  "name": "Sentinel Lookout",
+  "terrain": "outdoor",
+  "tags": [
+    "lookout",
+    "watch",
+    "elevated",
+    "defensive",
+    "territory",
+    "den"
+  ],
+  "surface": "bare_rock",
+  "descriptions": [
+    "A raised perch provides a clear view of the approaches to the den.",
+    "The surface is worn by repeated visits from a creature watching over its territory."
+  ]
+}

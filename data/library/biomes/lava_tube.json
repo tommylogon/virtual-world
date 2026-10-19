@@ -1,0 +1,18 @@
+{
+  "name": "Lava Tube",
+  "terrain": "rock",
+  "tags": [
+    "rocky",
+    "cliff",
+    "mountain"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "investigation"
+  ],
+  "descriptions": [
+    "A smooth cylindrical conduit formed by long-drained basaltic lava flows.",
+    "Vitreous glazed rock walls, slag ripples, and dark cavern floors."
+  ]
+}

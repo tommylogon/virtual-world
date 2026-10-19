@@ -1,0 +1,15 @@
+{
+  "name": "Hedge Maze",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "estate",
+    "garden"
+  ],
+  "surface": "grass",
+  "descriptions": [
+    "A dense labyrinth of manicured ten-foot yew hedges with blind turns.",
+    "Gravel paths disappearing into shadowed corners where birds fall silent."
+  ]
+}

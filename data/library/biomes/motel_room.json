@@ -1,0 +1,14 @@
+{
+  "name": "Motel Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "residential"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A cramped motel room with floral bedspreads, a humming cathode television, and a noisy AC unit.",
+    "Stained commercial carpet, cheap particleboard nightstands, and thin adjoining walls."
+  ]
+}

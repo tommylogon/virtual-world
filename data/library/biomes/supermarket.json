@@ -1,0 +1,16 @@
+{
+  "name": "Supermarket",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "food",
+    "modern"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A large grocery store with wide lanes, hum of refrigeration, and produce stands.",
+    "Endcaps stacked with canned goods, cereal boxes, and checkout conveyor belts."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Deer Bedding Hollow",
+  "terrain": "outdoor",
+  "tags": [
+    "deer",
+    "sleeping",
+    "bedding",
+    "forest_floor",
+    "camouflage",
+    "den"
+  ],
+  "surface": "dry_leaves",
+  "descriptions": [
+    "A shallow depression in the leaves marks a regular resting place.",
+    "Bent grass and a scatter of deer tracks reveal where the herd beds down."
+  ]
+}

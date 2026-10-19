@@ -1,0 +1,19 @@
+{
+  "name": "Fungal Beast Spore Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "fungal_beast",
+    "spores",
+    "growth",
+    "fungus",
+    "monster",
+    "humid",
+    "den"
+  ],
+  "surface": "mycelium",
+  "descriptions": [
+    "Pale fungal threads carpet the floor beneath clusters of swollen spore sacs.",
+    "A faint haze hangs in the still air, carrying the smell of damp wood and decay."
+  ]
+}

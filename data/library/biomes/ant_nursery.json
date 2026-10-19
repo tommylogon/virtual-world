@@ -1,0 +1,19 @@
+{
+  "name": "Ant Nursery",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ant",
+    "nursery",
+    "larvae",
+    "colony",
+    "insect",
+    "warm",
+    "den"
+  ],
+  "surface": "fine_soil",
+  "descriptions": [
+    "Rows of larvae and pupae occupy carefully maintained pockets in the earth.",
+    "Worker ants move constantly between the nursery and deeper passages."
+  ]
+}

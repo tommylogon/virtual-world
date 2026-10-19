@@ -1,0 +1,16 @@
+{
+  "name": "Hardware Store",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "craft",
+    "modern"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A sprawling hardware shop smelling of cut timber, motor oil, and galvanized nails.",
+    "Aisles of power tools, plumbing fixtures, and coils of heavy chain."
+  ]
+}

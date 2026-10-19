@@ -1,0 +1,17 @@
+{
+  "name": "Deep Sanctuary",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sanctuary",
+    "deep_chamber",
+    "protected",
+    "resting",
+    "den"
+  ],
+  "surface": "smooth_stone",
+  "descriptions": [
+    "A secluded chamber lies far from the entrance, sheltered by several turns of passage.",
+    "The air is still and the floor undisturbed, making this the safest place in the den."
+  ]
+}

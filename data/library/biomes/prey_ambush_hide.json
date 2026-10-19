@@ -1,0 +1,18 @@
+{
+  "name": "Prey Ambush Hide",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ambush",
+    "hunting",
+    "concealed",
+    "predator",
+    "den",
+    "defensive"
+  ],
+  "surface": "loose_gravel",
+  "descriptions": [
+    "A concealed recess overlooks a narrow approach where prey must pass close by.",
+    "The ground is bare near the hiding place, leaving little to betray the predator's position."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Floodplain Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "river",
+    "wet"
+  ],
+  "surface": "mud",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "A lowland river forest periodically inundated by seasonal high water.",
+    "Silt-stained tree bases, exposed root masses, and fertile mud deposits."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Giant Raven Landing Ledge",
+  "terrain": "outdoor",
+  "tags": [
+    "raven",
+    "landing",
+    "cliff",
+    "flight",
+    "elevated",
+    "den"
+  ],
+  "surface": "bare_rock",
+  "descriptions": [
+    "A broad stone ledge gives a giant raven room to land and fold its wings.",
+    "Feathers and claw scratches mark the rock above a dizzying drop."
+  ]
+}

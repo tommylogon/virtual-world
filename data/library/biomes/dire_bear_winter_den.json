@@ -1,0 +1,18 @@
+{
+  "name": "Dire Bear Winter Den",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dire_bear",
+    "hibernation",
+    "den",
+    "sleeping",
+    "monster",
+    "insulated"
+  ],
+  "surface": "moss",
+  "descriptions": [
+    "A deep cavern is stuffed with moss, leaves, and thick layers of fur.",
+    "The floor is flattened beneath a vast sleeping hollow, sheltered from every cold draft."
+  ]
+}

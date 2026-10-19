@@ -1,0 +1,18 @@
+{
+  "name": "Canyon",
+  "terrain": "rock",
+  "tags": [
+    "chasm",
+    "cliff",
+    "rocky"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "A colossal fissure cut into plateau bedrock by eons of water erosion.",
+    "Sheer banded rock cliffs plunging hundreds of paces to a shadowed floor."
+  ]
+}

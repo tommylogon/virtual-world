@@ -1,0 +1,20 @@
+{
+  "name": "Old-Growth Forest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "dense",
+    "ancient"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "perception"
+  ],
+  "descriptions": [
+    "An ancient forest of colossal ancient trees, fallen nurse logs, and thick moss mantles.",
+    "Multiple towering canopy layers shutting out the sky, alive with fungal networks."
+  ]
+}

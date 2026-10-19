@@ -1,0 +1,18 @@
+{
+  "name": "Moorland",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "hills",
+    "rocky"
+  ],
+  "surface": "peat",
+  "forage_skills": [
+    "survival",
+    "nature"
+  ],
+  "descriptions": [
+    "An undulating upland of purple heather, bracken fern, and wet peat soils.",
+    "Misty rolling ridges, hidden mires, and cold biting winds."
+  ]
+}

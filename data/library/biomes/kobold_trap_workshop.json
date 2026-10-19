@@ -1,0 +1,19 @@
+{
+  "name": "Kobold Trap Workshop",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "kobold",
+    "traps",
+    "workshop",
+    "crafting",
+    "defensive",
+    "monster",
+    "den"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Wire, sharpened stakes, counterweights, and scraps of metal cover the floor.",
+    "Half-built traps crowd the walls, each designed to punish an unwary intruder."
+  ]
+}

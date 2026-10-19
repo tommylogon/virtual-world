@@ -1,0 +1,17 @@
+{
+  "name": "Sunbathing Ledge",
+  "terrain": "outdoor",
+  "tags": [
+    "basking",
+    "sunlight",
+    "resting",
+    "warm",
+    "reptile",
+    "den"
+  ],
+  "surface": "sun_warmed_rock",
+  "descriptions": [
+    "A broad slab of rock catches the sun for much of the day.",
+    "The stone is warm beneath the scattered tracks of creatures that gather here to bask."
+  ]
+}

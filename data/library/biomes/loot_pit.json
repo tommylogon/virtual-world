@@ -1,0 +1,15 @@
+{
+  "name": "Loot Pit",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "frontier",
+    "storage"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A reinforced trench filled with plundered wagons, battered iron, and sacked bundles.",
+    "Guarded crates, salvaged chains, and rusted weapons tossed in heaps."
+  ]
+}

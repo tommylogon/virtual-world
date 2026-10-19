@@ -1,0 +1,18 @@
+{
+  "name": "Giant Raven Feather Store",
+  "terrain": "outdoor",
+  "tags": [
+    "giant_raven",
+    "feathers",
+    "nest_material",
+    "storage",
+    "cliff",
+    "monster",
+    "den"
+  ],
+  "surface": "feathers",
+  "descriptions": [
+    "Large feathers and strips of dried grass have been gathered into a sheltered cleft.",
+    "The cache contains nesting material collected from the cliff and surrounding forest."
+  ]
+}

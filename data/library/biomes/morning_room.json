@@ -1,0 +1,15 @@
+{
+  "name": "Morning Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "social"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "An east-facing breakfast salon flooded with early daylight through leaded bay windows.",
+    "Chintz-covered chairs, a writing desk, and botanical prints upon paneled walls."
+  ]
+}

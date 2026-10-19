@@ -1,0 +1,15 @@
+{
+  "name": "Science Lab",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "education",
+    "science"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A high school chemistry laboratory with black slate workbenches, gas taps, and glass beakers.",
+    "Bunsen burners, fume hoods, and charts of the periodic table taped to tile walls."
+  ]
+}

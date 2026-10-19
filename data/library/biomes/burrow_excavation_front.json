@@ -1,0 +1,17 @@
+{
+  "name": "Burrow Excavation Front",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "excavation",
+    "tunnel",
+    "construction",
+    "loose_soil",
+    "den"
+  ],
+  "surface": "loose_earth",
+  "descriptions": [
+    "Fresh earth piles up at the end of a tunnel still being extended.",
+    "Raw claw marks and exposed roots show where excavation stopped most recently."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Penguin Nesting Scrape",
+  "terrain": "outdoor",
+  "tags": [
+    "penguin",
+    "nest",
+    "cold",
+    "breeding",
+    "colony",
+    "den"
+  ],
+  "surface": "gravel",
+  "descriptions": [
+    "A shallow hollow among stones shelters an egg from the worst of the wind.",
+    "Pebbles and feathers form a simple nest amid the noisy colony."
+  ]
+}

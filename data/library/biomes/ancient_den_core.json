@@ -1,0 +1,17 @@
+{
+  "name": "Ancient Den Core",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "ancient",
+    "central",
+    "den",
+    "historical",
+    "deep_chamber"
+  ],
+  "surface": "worn_stone",
+  "descriptions": [
+    "The oldest chamber bears layers of claw marks, stains, and mineral deposits from generations of use.",
+    "Its walls preserve traces of former inhabitants, long after their tracks disappeared."
+  ]
+}

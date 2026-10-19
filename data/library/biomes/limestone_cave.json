@@ -1,0 +1,19 @@
+{
+  "name": "Limestone Cave",
+  "terrain": "rock",
+  "tags": [
+    "rocky",
+    "chasm",
+    "cliff"
+  ],
+  "surface": "stone",
+  "forage_skills": [
+    "survival",
+    "investigation",
+    "arcana"
+  ],
+  "descriptions": [
+    "A dissolution cavern draped in stalactites, flowstone drapes, and mineral pillars.",
+    "Echoing water droplets striking underground stone pools in deep stillness."
+  ]
+}

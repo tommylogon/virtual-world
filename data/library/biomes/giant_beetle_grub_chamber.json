@@ -1,0 +1,19 @@
+{
+  "name": "Giant Beetle Grub Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "beetle",
+    "grubs",
+    "breeding",
+    "organic_matter",
+    "insect",
+    "monster",
+    "den"
+  ],
+  "surface": "rotting_wood",
+  "descriptions": [
+    "Large grubs writhe among damp wood fibres and decomposing plant matter.",
+    "The chamber is rich with rot, providing food and shelter for growing larvae."
+  ]
+}

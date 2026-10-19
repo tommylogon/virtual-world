@@ -1,0 +1,18 @@
+{
+  "name": "Wolf Den Entrance Watch",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "wolf",
+    "guard",
+    "entrance",
+    "watch",
+    "defensive",
+    "den"
+  ],
+  "surface": "packed_earth",
+  "descriptions": [
+    "The passage widens just enough for a wolf to stand watch at the entrance.",
+    "Paw prints overlap around a spot from which the outside approach can be heard."
+  ]
+}

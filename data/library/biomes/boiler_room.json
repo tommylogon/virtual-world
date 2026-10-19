@@ -1,0 +1,15 @@
+{
+  "name": "Boiler Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "utility",
+    "service"
+  ],
+  "surface": "concrete",
+  "descriptions": [
+    "A subterranean mechanical chamber humming with massive water boilers and wrapped pipes.",
+    "Steam hissing from relief valves, concrete dust, and electrical breaker panels."
+  ]
+}

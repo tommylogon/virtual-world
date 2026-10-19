@@ -1,0 +1,18 @@
+{
+  "name": "Wolf Den Sleeping Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "sleeping",
+    "wolf",
+    "pack",
+    "resting",
+    "bedding",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "Several flattened sleeping hollows lie close together in the earth.",
+    "The chamber carries the musky scent of a pack that rests here between hunts."
+  ]
+}

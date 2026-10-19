@@ -1,0 +1,15 @@
+{
+  "name": "Tannery",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "craft",
+    "work"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A pungent workshop with scraping beams, lime vats, and stretched beast hides.",
+    "Acrid tanning liquors, drying racks, and heaps of raw animal pelts."
+  ]
+}

@@ -63,7 +63,7 @@ def _base(item_id, description, tags, weight=0.3, **extra):
         "uses": 1,
         "weight": weight,
         "current_state": "normal",
-        "light_level": "dim",
+        "light_level": "dim" if "light_source" in tags else "none",
         "equip_slots": [],
         "defense": 0,
         "damage": 0,

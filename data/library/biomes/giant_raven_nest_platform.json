@@ -1,0 +1,18 @@
+{
+  "name": "Giant Raven Nest Platform",
+  "terrain": "outdoor",
+  "tags": [
+    "raven",
+    "nest",
+    "giant_bird",
+    "cliff",
+    "elevated",
+    "breeding",
+    "den"
+  ],
+  "surface": "twigs",
+  "descriptions": [
+    "An enormous nest of branches occupies a broad shelf on the cliff face.",
+    "Thick sticks and tangled fibres form a platform deep enough to cradle giant eggs."
+  ]
+}

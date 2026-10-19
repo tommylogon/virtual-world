@@ -1,0 +1,20 @@
+{
+  "name": "Dragon Hoard Vault",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "dragon",
+    "treasure",
+    "storage",
+    "hoard",
+    "secure",
+    "monster",
+    "magical",
+    "den"
+  ],
+  "surface": "gold",
+  "descriptions": [
+    "Coins, jewels, and stolen treasures form deep drifts across the cavern floor.",
+    "The chamber gleams with accumulated wealth, each glittering object part of a dragon's guarded hoard."
+  ]
+}

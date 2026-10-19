@@ -1,0 +1,19 @@
+{
+  "name": "Bog",
+  "terrain": "water",
+  "tags": [
+    "water",
+    "rocky",
+    "field"
+  ],
+  "surface": "peat",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "An acidic peat mire carpeted in sphagnum moss and carnivorous sundew plants.",
+    "Unstable quaking peat mats covering dark, bottomless cold pools."
+  ]
+}

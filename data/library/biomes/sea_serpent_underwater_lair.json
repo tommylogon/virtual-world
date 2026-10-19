@@ -1,0 +1,18 @@
+{
+  "name": "Sea Serpent Underwater Lair",
+  "terrain": "underwater",
+  "tags": [
+    "sea_serpent",
+    "lair",
+    "underwater",
+    "aquatic",
+    "monster",
+    "large_creature",
+    "den"
+  ],
+  "surface": "sea_silt",
+  "descriptions": [
+    "A deep hollow beneath the seabed bears broad grooves from a coiling body.",
+    "Broken shells and bones collect around a sheltered pocket beneath the rock shelf."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Heron Rookery Nest",
+  "terrain": "outdoor",
+  "tags": [
+    "heron",
+    "nest",
+    "wetland",
+    "colony",
+    "tree",
+    "den"
+  ],
+  "surface": "sticks",
+  "descriptions": [
+    "A loose platform of sticks rests among the branches above the marsh.",
+    "Droppings, feathers, and broken reeds mark a crowded nesting tree."
+  ]
+}

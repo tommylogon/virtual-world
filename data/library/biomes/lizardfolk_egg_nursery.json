@@ -1,0 +1,19 @@
+{
+  "name": "Lizardfolk Egg Nursery",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "lizardfolk",
+    "eggs",
+    "nursery",
+    "reptilian",
+    "humid",
+    "monster",
+    "den"
+  ],
+  "surface": "warm_mud",
+  "descriptions": [
+    "Eggs rest in warm mud beneath a roof of woven reeds.",
+    "The chamber is humid and carefully tended, with shallow channels carrying moisture through the soil."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Tundra",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "cold",
+    "rocky"
+  ],
+  "surface": "dirt",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "A windswept, treeless expanse of dwarf shrubs, sedges, and frost-heaved turf.",
+    "Permafrost beneath a thin carpet of reindeer moss and hardy alpine berries."
+  ]
+}

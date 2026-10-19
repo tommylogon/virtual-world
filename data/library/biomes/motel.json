@@ -1,0 +1,16 @@
+{
+  "name": "Motel",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "residential",
+    "modern"
+  ],
+  "surface": "carpet",
+  "descriptions": [
+    "A low-slung roadside motel with exterior catwalks and cheap curtains.",
+    "Numbered doors facing an asphalt lot under a humming neon sign."
+  ]
+}

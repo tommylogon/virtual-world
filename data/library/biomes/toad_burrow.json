@@ -1,0 +1,18 @@
+{
+  "name": "Toad Burrow",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "toad",
+    "burrow",
+    "amphibian",
+    "moist",
+    "resting",
+    "den"
+  ],
+  "surface": "damp_soil",
+  "descriptions": [
+    "A small burrow beneath a stone offers a cool retreat from the sun.",
+    "The damp walls are pressed smooth where the toad settles during the day."
+  ]
+}

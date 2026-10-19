@@ -1,0 +1,19 @@
+{
+  "name": "Demon Summoning Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "demon",
+    "summoning",
+    "ritual",
+    "magical",
+    "monster",
+    "dangerous",
+    "den"
+  ],
+  "surface": "obsidian",
+  "descriptions": [
+    "A ritual circle is carved into the black stone, surrounded by scorched offerings.",
+    "The chamber smells of smoke and sulphur, while strange markings stain the walls."
+  ]
+}

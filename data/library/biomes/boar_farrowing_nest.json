@@ -1,0 +1,18 @@
+{
+  "name": "Boar Farrowing Nest",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "boar",
+    "breeding",
+    "young",
+    "nest",
+    "insulated",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "A deep bowl of grass and leaves protects a litter of piglets.",
+    "The nest is tucked behind roots and branches, thickly lined against the cold."
+  ]
+}

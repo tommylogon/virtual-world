@@ -1,0 +1,19 @@
+{
+  "name": "Frost Giant Sleeping Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "frost_giant",
+    "sleeping",
+    "large_creature",
+    "cold",
+    "monster",
+    "bedding",
+    "den"
+  ],
+  "surface": "packed_snow",
+  "descriptions": [
+    "A bed of furs and pelts occupies a hall carved into the frozen mountain.",
+    "The chamber is broad enough for a giant to stretch out without touching the walls."
+  ]
+}

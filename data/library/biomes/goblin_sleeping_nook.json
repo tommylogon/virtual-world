@@ -1,0 +1,19 @@
+{
+  "name": "Goblin Sleeping Nook",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "goblin",
+    "sleeping",
+    "bedding",
+    "small_humanoid",
+    "monster",
+    "communal",
+    "den"
+  ],
+  "surface": "straw",
+  "descriptions": [
+    "A cramped nook contains a heap of straw, stolen cloth, and patched blankets.",
+    "The sleeping space is crowded with small footprints and the smell of smoke."
+  ]
+}

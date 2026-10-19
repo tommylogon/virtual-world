@@ -1,0 +1,17 @@
+{
+  "name": "Sand Desert",
+  "terrain": "rock",
+  "tags": [
+    "field",
+    "rocky"
+  ],
+  "surface": "sand",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "A sea of wind-sculpted sand dunes shimmering under blinding solar glare.",
+    "Cresting sand ridges shifting constantly under scorching desert gales."
+  ]
+}

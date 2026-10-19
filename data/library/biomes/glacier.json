@@ -1,0 +1,18 @@
+{
+  "name": "Glacier",
+  "terrain": "rock",
+  "tags": [
+    "mountain",
+    "mountains",
+    "field"
+  ],
+  "surface": "ice",
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "descriptions": [
+    "A massive river of blue-green glacial ice groaning under enormous internal pressure.",
+    "Jagged seracs, meltwater channels, and lethal hidden crevasses."
+  ]
+}

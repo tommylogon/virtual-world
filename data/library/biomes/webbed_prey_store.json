@@ -1,0 +1,19 @@
+{
+  "name": "Webbed Prey Store",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "spider",
+    "food",
+    "storage",
+    "wrapped_prey",
+    "web",
+    "monster",
+    "den"
+  ],
+  "surface": "webbing",
+  "descriptions": [
+    "Wrapped bundles hang from the ceiling like pale, motionless cocoons.",
+    "The chamber stores prey in layers of silk, each parcel suspended beyond easy reach."
+  ]
+}

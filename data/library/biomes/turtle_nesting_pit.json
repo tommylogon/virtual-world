@@ -1,0 +1,17 @@
+{
+  "name": "Turtle Nesting Pit",
+  "terrain": "outdoor",
+  "tags": [
+    "turtle",
+    "eggs",
+    "nest",
+    "sand",
+    "buried",
+    "den"
+  ],
+  "surface": "sand",
+  "descriptions": [
+    "A flask-shaped pit has been dug into the warm sand above the waterline.",
+    "Loose grains conceal the eggs beneath a patch of freshly disturbed ground."
+  ]
+}

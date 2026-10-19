@@ -1,0 +1,18 @@
+{
+  "name": "Monster Transformation Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "transformation",
+    "magical",
+    "monster",
+    "growth",
+    "sheltered",
+    "den"
+  ],
+  "surface": "black_stone",
+  "descriptions": [
+    "Deep grooves and strange residue mark the floor of a chamber used during a monstrous change.",
+    "The air prickles with residual energy, and fragments of shed hide or shell cling to the walls."
+  ]
+}

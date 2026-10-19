@@ -1,0 +1,19 @@
+{
+  "name": "Chimera Nest",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "chimera",
+    "nest",
+    "breeding",
+    "monster",
+    "large_creature",
+    "mixed_bedding",
+    "den"
+  ],
+  "surface": "bone",
+  "descriptions": [
+    "A jumble of hides, branches, and bones forms a crude nest in the cave.",
+    "The chamber carries several overlapping animal scents, each clashing with the others."
+  ]
+}

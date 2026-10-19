@@ -1,0 +1,20 @@
+{
+  "name": "Temperate Rainforest",
+  "terrain": "woods",
+  "tags": [
+    "forest",
+    "woods",
+    "wet",
+    "dense"
+  ],
+  "surface": "moss",
+  "forage_skills": [
+    "survival",
+    "nature",
+    "medicine"
+  ],
+  "descriptions": [
+    "A saturated woodland where giant evergreens drip with rain and thick moss shrouds.",
+    "Enormous ferns, nurse logs, and dense wet foliage absorbing all distant sound."
+  ]
+}

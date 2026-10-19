@@ -1,0 +1,18 @@
+{
+  "name": "Beaver Bark Store",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "beaver",
+    "food",
+    "storage",
+    "bark",
+    "winter",
+    "den"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "Stripped branches and bark are stacked where they can be reached from the lodge.",
+    "Piles of gnawed wood form a winter store beside the damp walls."
+  ]
+}

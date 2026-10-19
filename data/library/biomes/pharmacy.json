@@ -1,0 +1,16 @@
+{
+  "name": "Pharmacy",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "medical",
+    "modern"
+  ],
+  "surface": "linoleum",
+  "descriptions": [
+    "A clean drugstore counter lined with prescription bottles and first-aid supplies.",
+    "Sanitized aisles stocked with antiseptics, pills, and medical sundries."
+  ]
+}

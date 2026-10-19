@@ -1,0 +1,18 @@
+{
+  "name": "Mole Nest Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "mole",
+    "nest",
+    "underground",
+    "sleeping",
+    "insulated",
+    "den"
+  ],
+  "surface": "dry_grass",
+  "descriptions": [
+    "A rounded chamber sits deep in the soil, insulated by roots and packed earth.",
+    "A small nest of grasses occupies the centre of this otherwise bare underground room."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Servants Quarters",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "estate",
+    "residential"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "A plain attic bedroom with narrow iron cot frames and simple washstands.",
+    "Bare floorboards, pitched dormer ceilings, and wool blankets folded neatly."
+  ]
+}

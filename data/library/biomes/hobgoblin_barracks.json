@@ -1,0 +1,19 @@
+{
+  "name": "Hobgoblin Barracks",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "hobgoblin",
+    "sleeping",
+    "barracks",
+    "military",
+    "communal",
+    "monster",
+    "den"
+  ],
+  "surface": "wood_planks",
+  "descriptions": [
+    "Bunks and bedrolls line a chamber kept in rough military order.",
+    "Weapons rest beside each sleeping place, ready for a sudden call to arms."
+  ]
+}

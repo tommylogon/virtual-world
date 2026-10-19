@@ -1,0 +1,15 @@
+{
+  "name": "Bleachers",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "recreation",
+    "campus"
+  ],
+  "surface": "wood",
+  "descriptions": [
+    "Tiered spectator benches overlooking the track and playing field.",
+    "Aluminium and timber planks hollow-sounding under running footsteps."
+  ]
+}

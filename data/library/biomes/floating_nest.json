@@ -1,0 +1,17 @@
+{
+  "name": "Floating Nest",
+  "terrain": "surface_water",
+  "tags": [
+    "nest",
+    "floating",
+    "aquatic",
+    "reeds",
+    "breeding",
+    "den"
+  ],
+  "surface": "woven_reeds",
+  "descriptions": [
+    "A floating mat of reeds and stems rises and falls with the water.",
+    "The nest is anchored among aquatic plants, keeping its eggs above the shifting surface."
+  ]
+}

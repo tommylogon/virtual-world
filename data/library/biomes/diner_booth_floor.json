@@ -1,0 +1,14 @@
+{
+  "name": "Diner Booth Floor",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "food"
+  ],
+  "surface": "tile",
+  "descriptions": [
+    "A dining room floor fitted with crimson vinyl booths, chrome napkin dispensers, and salt shakers.",
+    "Linoleum walkway between tables where waitresses balance heavy breakfast plates."
+  ]
+}
