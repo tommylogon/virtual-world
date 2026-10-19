@@ -550,8 +550,6 @@ const _GraphRelativeLayout = {
             // solver — that is what "Physics enabled" off means.
             if (this.isStatic(node))
                 continue;
-            if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y))
-                continue;
             // In the solver, and not pinned: the player can still drag it, and the
             // sim keeps it beside whatever holds it.
             updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });

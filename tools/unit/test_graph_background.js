@@ -550,3 +550,35 @@ test('saving the layout to the world leaves a painted area on its own cell', () 
         window.ApiClient = beforeApi;
     }
 });
+
+test('saving the layout skips uncelled ways so solver coordinates do not leak (task-769)', () => {
+    const way = { type: 'way', properties: { name: 'Gate' } };
+    const dragged = { type: 'area', properties: { x: 100, y: 100 } };
+    let captured = null;
+    const manager = {
+        _graphNodesObj: { way_gate: way, dragged_area: dragged },
+        network: {
+            getPositions: () => ({ way_gate: { x: 9999, y: 9999 }, dragged_area: { x: 100, y: 100 } }),
+            body: {
+                nodes: {
+                    way_gate: { x: 9999, y: 9999 },
+                    dragged_area: { x: 100, y: 100 },
+                },
+                data: { nodes: { getIds: () => ['way_gate', 'dragged_area'] } },
+            },
+        },
+    };
+    const beforeApi = window.ApiClient;
+    window.ApiClient = { batchGraph: (ops) => { captured = ops; return {}; } };
+    try {
+        const result = withManager(manager, () => GB.persistPositionsToWorld());
+        return result.then((res) => {
+            assertEq(res.skipped, 1, 'the uncelled way was skipped');
+            assertEq(res.saved, 1, 'only the hand-placed area was saved');
+            const ids = captured.map((op) => op.payload.node_id);
+            assertEq(ids, ['dragged_area'], 'way_gate is excluded from batchGraph ops');
+        });
+    } finally {
+        window.ApiClient = beforeApi;
+    }
+});

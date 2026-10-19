@@ -1726,11 +1726,20 @@
         const nodesObj = (graphManager
             ? graphManager._graphNodesObj
             : null) || {};
-        const isPainted = (id) => {
-            const props = (nodesObj[id] || {}).properties || {};
+        const isDerivedOrPainted = (id) => {
+            const node = nodesObj[id];
+            if (!node)
+                return false;
+            const props = node.properties || {};
             const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
-            return !!(engine && typeof engine.hasPaintedCoords === 'function'
-                && engine.hasPaintedCoords(props));
+            if (engine && typeof engine.hasPaintedCoords === 'function' && engine.hasPaintedCoords(props)) {
+                return true;
+            }
+            // An uncelled way or child whose position is derived from its rooms/holder
+            // must not have solver coordinates persisted over it (task-769).
+            if (node.type === 'way')
+                return true;
+            return false;
         };
         const ops = [];
         let skipped = 0;
@@ -1738,7 +1747,7 @@
             const position = positions[id];
             if (!position)
                 continue;
-            if (isPainted(id)) {
+            if (isDerivedOrPainted(id)) {
                 skipped++;
                 continue;
             }
