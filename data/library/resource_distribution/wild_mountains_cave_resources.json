@@ -1,0 +1,22 @@
+{
+  "id": "wild_mountains_cave_resources",
+  "name": "mountain and cavern salvage",
+  "biome_tags": [
+    "mountain_pass",
+    "glacier",
+    "scree",
+    "limestone_cave",
+    "natural_cavern",
+    "underground_river",
+    "lava_tube"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "metal",
+    "scrap",
+    "relic",
+    "antique"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

@@ -1,0 +1,13 @@
+{
+  "id": "fen_predator_0",
+  "name": "fen predator 1",
+  "biome_tags": [
+    "fen"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.03,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.25,
+  "conditions": {}
+}

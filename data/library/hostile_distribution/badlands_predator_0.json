@@ -1,0 +1,13 @@
+{
+  "id": "badlands_predator_0",
+  "name": "badlands predator 1",
+  "biome_tags": [
+    "badlands"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.03,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.25,
+  "conditions": {}
+}

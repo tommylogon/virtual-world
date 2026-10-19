@@ -1,0 +1,13 @@
+{
+  "id": "jungle_predator_0",
+  "name": "jungle predator 1",
+  "biome_tags": [
+    "jungle"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.05,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.35,
+  "conditions": {}
+}

@@ -1,0 +1,19 @@
+{
+  "id": "wild_desert_resources",
+  "name": "desert arid forage",
+  "biome_tags": [
+    "sand_desert",
+    "rocky_desert",
+    "salt_flat",
+    "oasis"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "scrap",
+    "junk",
+    "plant",
+    "root"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

@@ -1,0 +1,22 @@
+{
+  "id": "wild_grassland_resources",
+  "name": "grassland forage",
+  "biome_tags": [
+    "grassland",
+    "prairie",
+    "steppe",
+    "savanna",
+    "alpine_meadow",
+    "moorland",
+    "heathland"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "plant",
+    "herb",
+    "root",
+    "bug"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

@@ -1,0 +1,18 @@
+{
+  "id": "wild_cold_boreal_resources",
+  "name": "cold boreal forage",
+  "biome_tags": [
+    "taiga",
+    "tundra",
+    "snowfield"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "root",
+    "berry",
+    "scrap",
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

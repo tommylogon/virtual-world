@@ -200,7 +200,7 @@
             const props = ((node && node.properties) || {});
             const patch = {};
             if (!props.light_level)
-                patch.light_level = 'dim';
+                patch.light_level = 'none';
             if (!props.target_temperature)
                 patch.target_temperature = 30;
             if (!props.heating_rate)
@@ -324,7 +324,7 @@
                 const props = ((node && node.properties) || {});
                 const patch = {};
                 if (!props.light_level)
-                    patch.light_level = 'dim';
+                    patch.light_level = 'none';
                 if (!props.target_temperature)
                     patch.target_temperature = 30;
                 if (!props.heating_rate)

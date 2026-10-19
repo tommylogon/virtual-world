@@ -1,0 +1,19 @@
+{
+  "id": "wild_tropical_resources",
+  "name": "tropical forage",
+  "biome_tags": [
+    "tropical_rainforest",
+    "jungle",
+    "mangrove_forest",
+    "bamboo_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fruit",
+    "herb",
+    "medicinal",
+    "bug"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

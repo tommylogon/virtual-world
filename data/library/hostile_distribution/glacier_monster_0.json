@@ -1,0 +1,13 @@
+{
+  "id": "glacier_monster_0",
+  "name": "glacier monster 1",
+  "biome_tags": [
+    "glacier"
+  ],
+  "location_tags": [],
+  "kind": "monster",
+  "base_chance": 0.02,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.2,
+  "conditions": {}
+}

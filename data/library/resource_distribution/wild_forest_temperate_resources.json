@@ -1,0 +1,22 @@
+{
+  "id": "wild_forest_temperate_resources",
+  "name": "temperate forest forage",
+  "biome_tags": [
+    "oak_forest",
+    "birch_forest",
+    "maple_forest",
+    "old_growth_forest",
+    "temperate_rainforest",
+    "young_regrowth",
+    "floodplain_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "plant",
+    "herb",
+    "berry",
+    "root"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

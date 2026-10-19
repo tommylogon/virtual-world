@@ -1,0 +1,20 @@
+{
+  "id": "wild_wetlands_resources",
+  "name": "wetlands forage",
+  "biome_tags": [
+    "freshwater_marsh",
+    "swamp",
+    "bog",
+    "fen",
+    "floodplain"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish",
+    "bait",
+    "medicinal",
+    "plant"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

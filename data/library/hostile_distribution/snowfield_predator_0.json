@@ -1,0 +1,13 @@
+{
+  "id": "snowfield_predator_0",
+  "name": "snowfield predator 1",
+  "biome_tags": [
+    "snowfield"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.02,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.2,
+  "conditions": {}
+}

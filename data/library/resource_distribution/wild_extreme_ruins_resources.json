@@ -1,0 +1,21 @@
+{
+  "id": "wild_extreme_ruins_resources",
+  "name": "ruins and scarred lands salvage",
+  "biome_tags": [
+    "burned_forest",
+    "badlands",
+    "canyon",
+    "overgrown_temple_ruin",
+    "ancient_battlefield"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "relic",
+    "antique",
+    "idol",
+    "metal",
+    "coin"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

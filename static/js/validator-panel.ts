@@ -193,7 +193,7 @@
             const node = worldState.getNode(nodeId);
             const props = ((node && node.properties) || {}) as PropertyPatch;
             const patch: PropertyPatch = {};
-            if (!props.light_level) patch.light_level = 'dim';
+            if (!props.light_level) patch.light_level = 'none';
             if (!props.target_temperature) patch.target_temperature = 30;
             if (!props.heating_rate) patch.heating_rate = 0.5;
             if (!Object.keys(patch).length) { this.refresh(); return; }
@@ -321,7 +321,7 @@
                 const node = worldState.getNode(nodeId);
                 const props = ((node && node.properties) || {}) as PropertyPatch;
                 const patch: PropertyPatch = {};
-                if (!props.light_level) patch.light_level = 'dim';
+                if (!props.light_level) patch.light_level = 'none';
                 if (!props.target_temperature) patch.target_temperature = 30;
                 if (!props.heating_rate) patch.heating_rate = 0.5;
                 if (Object.keys(patch).length) {

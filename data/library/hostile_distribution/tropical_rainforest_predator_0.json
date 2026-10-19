@@ -1,0 +1,13 @@
+{
+  "id": "tropical_rainforest_predator_0",
+  "name": "tropical_rainforest predator 1",
+  "biome_tags": [
+    "tropical_rainforest"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.05,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.35,
+  "conditions": {}
+}
