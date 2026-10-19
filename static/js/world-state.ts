@@ -1,8 +1,8 @@
 /**
- * WorldState — Reactive state management
+ * WorldState - Reactive state management
  * Fetches world state from the backend and notifies listeners
  *
- * @module world-state — reactive cache of the server's `/api/state` payload
+ * @module world-state - reactive cache of the server's `/api/state` payload
  * @contributes the `worldState` singleton: data, fetch/poll, getNode/players/areas helpers; the `/api/events` live feed (external edits + streamed world-advance ticks)
  * @powers every panel's view of the world (graph, inspector, agent list, turn panel)
  * @relates fetches via api.js and the `/api/events` SSE stream; emits `state:updated`
@@ -106,7 +106,7 @@ class WorldState {
 
         // Coalesce concurrent fetches into one. app.py broadcasts `world_changed`
         // for EVERY mutating /api/ call, so the SSE (connectLiveEdits) refetches
-        // state AND the call site often fetches again — two full /api/state
+        // state AND the call site often fetches again - two full /api/state
         // downloads for a single edit (14 MB on a large world). While one fetch
         // is in flight a second request joins it; if a change landed during it,
         // callers wait for one trailing fetch rather than reading stale state.
@@ -289,7 +289,7 @@ class WorldState {
      *
      * Spectator-only, and gated on the `spectator-mode` checkbox (which ships
      * UNCHECKED): main.ts calls this only from SaveLoadView.toggleSpectator().
-     * It is NOT the graph's update path — see the `/api/events` stream below,
+     * It is NOT the graph's update path - see the `/api/events` stream below,
      * which opens unconditionally and fires `worldState.fetch()` on every
      * `world_changed` even with spectator OFF. Do not reason about graph
      * updates from the spectator checkbox alone.
@@ -304,8 +304,8 @@ class WorldState {
         this._pollTimer = setInterval(() => {
             // The agent loop already pushes UI updates via renderAll while running.
             // Polling /api/state on top of that doubles the stream and re-triggers
-            // the whole inspector/lens render cascade — skip it while running.
-            // `config` is a top-level const lexical global — window.config is
+            // the whole inspector/lens render cascade - skip it while running.
+            // `config` is a top-level const lexical global - window.config is
             // always undefined (would make this guard dead code).
             if (typeof config !== 'undefined' && config.running) return;
             if (inFlight) return;
@@ -402,7 +402,7 @@ class WorldState {
      *
      * A relationship record means they've shared space, but the record is
      * stamped `first_sighting: true` by the backend on the first meeting and
-     * only cleared on the NEXT encounter — so the name stays hidden for the
+     * only cleared on the NEXT encounter - so the name stays hidden for the
      * rest of the first-sighting turn, matching area_description.py's rule.
      */
     hasMet(charName: string, targetName: string) {
@@ -421,7 +421,7 @@ class WorldState {
         return result;
     }
 
-    /** Get character inventory from graph — optionally filter by edge types */
+    /** Get character inventory from graph - optionally filter by edge types */
     getInventory(charName: string, edgeTypes?: string[]): string[] {
         const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         const types = edgeTypes || ['carrying', 'equipped', 'known'];
@@ -441,7 +441,7 @@ class WorldState {
     }
 
     /**
-     * Character's item node **ids** by edge type — the id-based sibling of
+     * Character's item node **ids** by edge type - the id-based sibling of
      * `getInventory`, which returns display names.
      *
      * Use this for anything that has to *identify* or compare items. Names are
@@ -484,7 +484,7 @@ class WorldState {
     /** Get items in a area from graph */
     getItemsInArea(areaName: string): Array<Record<string, any>> {
         const items: Array<Record<string, any>> = [];
-        // Resolve the actual area node id by name — ids may differ in case
+        // Resolve the actual area node id by name - ids may differ in case
         // from the derived id (e.g. "Task 3 - main area" vs "area_Task_3_-_main_area"),
         // which used to make every item in such areas invisible.
         let areaId = null;
@@ -502,7 +502,7 @@ class WorldState {
                 items.push({ id: edgeSource, name: node.name, properties: node.properties });
             }
         };
-        // Directly placed items (in the area) — these are also the anchors that
+        // Directly placed items (in the area) - these are also the anchors that
         // spatially-placed items hang off of.
         const anchorIds = new Set();
         for (const edge of this.graph?.edges || []) {
@@ -512,7 +512,7 @@ class WorldState {
                 anchorIds.add(edge.source);
             }
         }
-        // Spatially placed items (on/under/behind/beside/at) — attached to the
+        // Spatially placed items (on/under/behind/beside/at) - attached to the
         // area itself or to a surface that is in the area, so they are present
         // and visible like any other item.
         const spatialTypes = ['on', 'under', 'behind', 'beside', 'at'];
@@ -554,13 +554,13 @@ class WorldState {
 
 // ── Live world-edit push (EventSource) ──────────────────────────────
 // The server broadcasts a `world_changed` event over /api/events for every
-// mutating API call — including edits made by external agents through the MCP
+// mutating API call - including edits made by external agents through the MCP
 // server. Refetch world state in real time so those edits appear in the GUI
 // without a manual refresh, and log a thin line when a non-local editor acted.
 // Runs immediately (no `load` race) and lets the browser auto-reconnect.
 //
-// SPECTATOR-INDEPENDENT: unlike the 1.5s poll in startPolling() — which runs
-// only while the spectator checkbox is ticked (it ships unchecked) — this
+// SPECTATOR-INDEPENDENT: unlike the 1.5s poll in startPolling() - which runs
+// only while the spectator checkbox is ticked (it ships unchecked) - this
 // stream is NOT gated on spectator mode. It fires on every world edit
 // regardless, so a graph update can arrive with spectator off. This is the
 // path an external editor / MCP edit takes into the GUI.
@@ -626,10 +626,10 @@ class WorldState {
       if (bus) bus.emit('world:changed', ev);
       const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
       if (editor && typeof events !== 'undefined') {
-        events.log('World edited by ' + editor + ' — ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
+        events.log('World edited by ' + editor + ' - ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
       }
     };
-    // Do not close on error — the browser reconnects the EventSource itself.
+    // Do not close on error - the browser reconnects the EventSource itself.
     es.onerror = function () { /* auto-reconnect */ };
   } catch (e) { /* keep the GUI safe if the stream is unavailable */ }
 })();

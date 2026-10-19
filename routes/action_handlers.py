@@ -192,6 +192,7 @@ def handle_get_state(app):
         state["scenario_ended"] = getattr(app.world, 'scenario_ended', False)
         state["_restart_requested"] = getattr(app.world, '_restart_requested', False)
         state["vital_polarity"] = VITAL_POLARITY
+        state["is_play_mode"] = bool(getattr(app, 'play_mode', False))
         # task-330: pending browser-side LLM responses (llm_respond effect).
         state["llm_pending"] = list(getattr(app.world, 'llm_pending_requests', []) or [])
         # task-228/229/227: calendar + sky state for widgets and agents.

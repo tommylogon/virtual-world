@@ -40,6 +40,10 @@
         <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span> <span id="scenario-status-chip" style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;"></span></div>
         <div class="sky-time" id="sky-time" aria-live="polite">🕐 08:00</div>
         <div class="top-actions">
+            <!-- task-885: Play Mode vs Edit Mode -->
+            <button id="play-mode-btn" class="btn btn-sm btn-green" onclick="PlayMode.toggle()" title="Toggle Play Mode: run simulation in a transient sandbox and revert on stop" aria-label="Toggle Play Mode">▶ Play</button>
+            <span id="play-mode-badge">PLAYING</span>
+
             <label class="toggle-label" for="spectator-mode">
                 <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
                 <span>👁️ Spectator</span>
@@ -1510,6 +1514,7 @@
     <script src="/static/js/ui/world-export.js"></script>
     <script src="/static/js/ui/saveload-view.js"></script>
     <script src="/static/js/ui/scenario-status.js"></script>
+    <script src="/static/js/ui/play-mode.js"></script>
     <script src="/static/js/ui/changes-panel.js"></script>
     <script src="/static/js/ui/room-template-palette.js"></script>
     <script src="/static/js/ui/setup-checklist.js"></script>

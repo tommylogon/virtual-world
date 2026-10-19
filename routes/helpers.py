@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'autosave.json')
+SANDBOX_AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'sandbox_autosave.json')
 
 # Autosave ALSO lands in the saves directory (marked ``autosave: True``) so it
 # appears in the save/load modal alongside manual slots — an always-current,
@@ -68,9 +69,15 @@ def unique_filename(directory, filename):
 
 def save_autosave(world):
     """Write full world state to data/autosave.json (boot restore) AND to the
-    saves/autosave.json slot (visible in the save/load modal)."""
+    saves/autosave.json slot (visible in the save/load modal).
+
+    If the world is in Play Mode (transient simulation sandbox), writes to
+    data/sandbox_autosave.json instead of clobbering the authored boot autosave.
+    """
     try:
-        os.makedirs(os.path.dirname(AUTOSAVE_PATH), exist_ok=True)
+        is_play = getattr(world, 'is_play_mode', False)
+        target_path = SANDBOX_AUTOSAVE_PATH if is_play else AUTOSAVE_PATH
+        os.makedirs(os.path.dirname(target_path), exist_ok=True)
         data = world.to_dict()
         data['_autosave_meta'] = {
             'timestamp': time.time(),
@@ -78,10 +85,12 @@ def save_autosave(world):
             'turn': getattr(world, 'turn_number', 0),
             'scenario_source': getattr(world, '_scenario_source', None),
             'schema_version': SCHEMA_VERSION,
+            'is_play_mode': is_play,
         }
-        with open(AUTOSAVE_PATH, 'w', encoding='utf-8') as f:
+        with open(target_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        _write_autosave_slot(data)
+        if not is_play:
+            _write_autosave_slot(data)
     except Exception as e:
         logger.warning(f"Autosave failed: {e}")
 

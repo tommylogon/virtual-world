@@ -132,6 +132,11 @@ def create_app(config=None):
     app._undo_stack = []
     app._redo_stack = []
 
+    # task-885: Play Mode vs Edit Mode state
+    app.play_mode = False
+    app._play_mode_snapshot = None
+    world.is_play_mode = False
+
     # The dev server runs threaded (see app.run below) so a slow /api/state build
     # no longer blocks image/static requests in a single worker. Serialize
     # mutating API calls so concurrent writes to the shared world cannot
@@ -194,45 +199,49 @@ def create_app(config=None):
                 # up in the 📜 undo dropdown. Load/reset/undo/redo push their
                 # own entries and live outside the covered paths. (In-memory
                 # only - safe to keep active in TESTING.)
-                if not app.config.get('TESTING'):
+                # task-885: Simulation steps and mutations in Play Mode are sandboxed
+                # and do not dirty the authored scenario or push undo history.
+                is_play = getattr(app, 'play_mode', False)
+                if not app.config.get('TESTING') and not is_play:
                     app.world._edit_seq = getattr(app.world, '_edit_seq', 0) + 1
                 try:
-                    from routes.saveload import _push_undo_snapshot
-                    if path == '/api/graph/batch':
-                        # task-387: the NL-editor batch handler pushes its own
-                        # single PRE-state snapshot; a post-state push here
-                        # would make the first Undo a no-op.
-                        label = None
-                    elif path.startswith('/api/world/scopes') or path == '/api/world/promote':
-                        # task-495 / task-539 / task-535: every WorldPainter scope
-                        # handler pushes its own PRE-state snapshot, for the same
-                        # reason (a post-state push here would shadow it and make
-                        # the first Undo a no-op). Matched as a prefix rather than a
-                        # list of suffixes: `/rename`, `/delete` and `/offset`
-                        # were missed by the suffix list and each of them pushed
-                        # twice, so one Undo after a rename did nothing visible.
-                        # `/api/world/promote` is the odd one out - it is a World
-                        # Painter handler that does not live under `/grid/` or
-                        # `/scopes/`, so the prefix missed it and the promote
-                        # pushed twice, leaving the first Undo a no-op.
-                        label = None
-                    elif path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
-                        label = f"edited node {path.rsplit('/', 1)[-1]}"
-                    elif '/api/graph/' in path:
-                        label = "graph edit"
-                    elif '/api/players/' in path:
-                        label = "character edit"
-                    elif '/api/build/' in path:
-                        label = "build edit"
-                    elif path.startswith('/api/settings/'):
-                        # A settings edit dirties the scenario (see the branch
-                        # above) but pushes no undo entry: a time-skip would
-                        # otherwise flood the history with "world edit".
-                        label = None
-                    else:
-                        label = "world edit"
-                    if label is not None:
-                        _push_undo_snapshot(app, label=label)
+                    if not is_play:
+                        from routes.saveload import _push_undo_snapshot
+                        if path == '/api/graph/batch':
+                            # task-387: the NL-editor batch handler pushes its own
+                            # single PRE-state snapshot; a post-state push here
+                            # would make the first Undo a no-op.
+                            label = None
+                        elif path.startswith('/api/world/scopes') or path == '/api/world/promote':
+                            # task-495 / task-539 / task-535: every WorldPainter scope
+                            # handler pushes its own PRE-state snapshot, for the same
+                            # reason (a post-state push here would shadow it and make
+                            # the first Undo a no-op). Matched as a prefix rather than a
+                            # list of suffixes: `/rename`, `/delete` and `/offset`
+                            # were missed by the suffix list and each of them pushed
+                            # twice, so one Undo after a rename did nothing visible.
+                            # `/api/world/promote` is the odd one out - it is a World
+                            # Painter handler that does not live under `/grid/` or
+                            # `/scopes/`, so the prefix missed it and the promote
+                            # pushed twice, leaving the first Undo a no-op.
+                            label = None
+                        elif path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
+                            label = f"edited node {path.rsplit('/', 1)[-1]}"
+                        elif '/api/graph/' in path:
+                            label = "graph edit"
+                        elif '/api/players/' in path:
+                            label = "character edit"
+                        elif '/api/build/' in path:
+                            label = "build edit"
+                        elif path.startswith('/api/settings/'):
+                            # A settings edit dirties the scenario (see the branch
+                            # above) but pushes no undo entry: a time-skip would
+                            # otherwise flood the history with "world edit".
+                            label = None
+                        else:
+                            label = "world edit"
+                        if label is not None:
+                            _push_undo_snapshot(app, label=label)
                 except Exception:
                     pass  # never let history bookkeeping break a mutation
                 if not app.config.get('TESTING') and not _paint_burst:

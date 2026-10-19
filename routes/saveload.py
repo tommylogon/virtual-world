@@ -517,9 +517,13 @@ def register_saveload_routes(app):
             except SchemaError as exc:
                 logger.warning("Refused savegame %s: %s", filename, exc)
                 return jsonify({"error": str(exc)}), 400
-            _push_undo_snapshot(app, label=f"load savegame <{filename}>")
+            is_play = getattr(app, 'play_mode', False)
+            if not is_play:
+                _push_undo_snapshot(app, label=f"load savegame <{filename}>")
             app.world.load_from_dict(data)
-            _adopt_loaded_world(app, data)
+            _adopt_loaded_world(app, data, autosave=not is_play)
+            if is_play:
+                app.world.is_play_mode = True
             response = {"status": "success"}
             if from_version < SCHEMA_VERSION:
                 response["schema_notice"] = (
@@ -1018,11 +1022,13 @@ def register_saveload_routes(app):
                 committed_at = os.path.getmtime(source)
             except Exception:
                 committed_at = None
+        is_play = bool(getattr(app, 'play_mode', False))
         return jsonify({
             "name": name,
             "source": source or "",
-            "dirty": edit_seq != commit_seq,
+            "dirty": False if is_play else (edit_seq != commit_seq),
             "committed_at": committed_at,
+            "play_mode": is_play,
         })
 
     @app.route('/api/scenario/name', methods=['POST'])
@@ -1074,6 +1080,8 @@ def register_saveload_routes(app):
     def scenario_commit():
         """Write the live world into the scenario source (undo not needed —
         the world itself is unchanged; only the source file is refreshed)."""
+        if getattr(app, 'play_mode', False):
+            return jsonify({"error": "Cannot commit scenario while in Play Mode. Stop Play Mode first to restore or inspect authored state."}), 400
         world = app.world
         body = request.get_json(force=True, silent=True) or {}
         name = str(body.get('name') or getattr(world, '_scenario_name', None) or '').strip()
@@ -1099,3 +1107,59 @@ def register_saveload_routes(app):
         world._commit_seq = getattr(world, '_edit_seq', 0)
         logger.info(f"Committed live world to scenario {source}")
         return jsonify({"status": "success", "name": name, "path": source})
+
+    # task-885: Play Mode vs Edit Mode endpoints
+    @app.route('/api/play_mode/status', methods=['GET'])
+    def play_mode_status():
+        return jsonify({
+            "play_mode": bool(getattr(app, 'play_mode', False)),
+            "has_snapshot": bool(getattr(app, '_play_mode_snapshot', None) is not None),
+        })
+
+    @app.route('/api/play_mode/enter', methods=['POST'])
+    def play_mode_enter():
+        if getattr(app, 'play_mode', False):
+            return jsonify({"status": "already_active", "play_mode": True})
+
+        app._play_mode_snapshot = {
+            "state": app.world.to_dict(),
+            "source": getattr(app.world, '_scenario_source', None),
+            "name": getattr(app.world, '_scenario_name', None),
+            "edit_seq": getattr(app.world, '_edit_seq', 0),
+            "commit_seq": getattr(app.world, '_commit_seq', 0),
+        }
+        app.play_mode = True
+        app.world.is_play_mode = True
+
+        app._state_revision = getattr(app, '_state_revision', 0) + 1
+        from engine.world_events import hub
+        hub.publish({"event": "play_mode_changed", "play_mode": True})
+        hub.publish({"event": "world_changed"})
+        return jsonify({"status": "success", "play_mode": True})
+
+    @app.route('/api/play_mode/stop', methods=['POST'])
+    @app.route('/api/saveload/restore_snapshot', methods=['POST'])
+    def play_mode_stop():
+        snap = getattr(app, '_play_mode_snapshot', None)
+        if snap:
+            _restore_snapshot(app, snap["state"], snap["source"])
+            app.world._scenario_name = snap.get("name")
+            app.world._edit_seq = snap.get("edit_seq", 0)
+            app.world._commit_seq = snap.get("commit_seq", 0)
+            app._play_mode_snapshot = None
+
+        app.play_mode = False
+        app.world.is_play_mode = False
+
+        app._state_revision = getattr(app, '_state_revision', 0) + 1
+        from engine.world_events import hub
+        hub.publish({"event": "play_mode_changed", "play_mode": False})
+        hub.publish({"event": "world_changed"})
+        return jsonify({"status": "success", "play_mode": False})
+
+    @app.route('/api/play_mode/toggle', methods=['POST'])
+    def play_mode_toggle():
+        if getattr(app, 'play_mode', False):
+            return play_mode_stop()
+        else:
+            return play_mode_enter()
