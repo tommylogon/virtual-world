@@ -1329,7 +1329,7 @@ def handle_build_item_legacy(app):
         "affinity": data.get('affinity', []),
         # Mechanical props the engine reads (lighting, heat, sound, equipment
         # bonuses). Defaults mirror _spawn_library_item_node in library_ops.
-        "light_level": data.get('light_level', 'dim'),
+        "light_level": data.get('light_level', 'dim' if 'light_source' in (data.get('tags') or []) else 'none'),
         "target_temperature": data.get('target_temperature'),
         "heating_rate": data.get('heating_rate'),
         "sound_level": data.get('sound_level'),

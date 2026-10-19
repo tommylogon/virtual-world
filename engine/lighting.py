@@ -104,7 +104,7 @@ class LightingSystem:
                 if "light_source" not in tags:
                     return
                 raw = node.properties.get("light_level", "dim")
-                level_map = {'pitch_black': 10, 'dim': 30, 'normal': 55, 'bright': 80, 'blinding': 95}
+                level_map = {'none': 0, 'pitch_black': 10, 'dim': 30, 'normal': 55, 'bright': 80, 'blinding': 95}
                 if isinstance(raw, str) and raw in level_map:
                     light = level_map[raw]
                 else:

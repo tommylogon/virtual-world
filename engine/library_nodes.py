@@ -74,7 +74,7 @@ def library_item_properties(lib_item: dict, library_id: str,
         "affinity": lib_item.get("affinity", []),
         "current_state": "hidden" if lib_item.get("hidden", False)
                          else lib_item.get("current_state", "normal"),
-        "light_level": lib_item.get("light_level", "dim"),
+        "light_level": lib_item.get("light_level", "dim" if "light_source" in (lib_item.get("tags") or []) else "none"),
         "target_temperature": lib_item.get("target_temperature"),
         "heating_rate": lib_item.get("heating_rate"),
         "sound_level": lib_item.get("sound_level"),
