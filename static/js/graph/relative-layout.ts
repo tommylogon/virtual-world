@@ -639,7 +639,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         if (!Object.keys(current).length) return 0;
         const derived = this.layoutPositions(nodes, this._edges(), current);
 
-        const updates: { id: string; x: number; y: number; fixed: boolean; physics: boolean }[] = [];
+        const updates: { id: string; x: number; y: number; fixed: boolean | { x: boolean; y: boolean }; physics: boolean }[] = [];
         for (const [id, rawPos] of Object.entries(derived)) {
             const pos = rawPos as LayoutPos;
             const node = nodes[id];
@@ -654,10 +654,17 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             // A node the user froze keeps its own place and stays out of the
             // solver — that is what "Physics enabled" off means.
             if (this.isStatic(node)) continue;
-            if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
-            // In the solver, and not pinned: the player can still drag it, and the
-            // sim keeps it beside whatever holds it.
-            updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });
+            // Uncelled ways placed at their rooms' midpoint are pinned (fixed: true, physics: false)
+            // so Barnes-Hut repulsion cannot drift them off-center (task-769).
+            // Items and characters stay in the solver (fixed: false, physics: true).
+            const isWay = node.type === 'way';
+            updates.push({
+                id,
+                x: pos.x,
+                y: pos.y,
+                fixed: isWay ? { x: true, y: true } : false,
+                physics: !isWay
+            });
             (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.('GraphRelativeLayout.apply', id, pos.x, pos.y);
         }
         if (updates.length) {
