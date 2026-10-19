@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-683: WITNESSED speech line attributes a line to a door instead of to the person who spoke it

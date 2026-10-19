@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: graph
 priority: medium
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # bug-540: NL staging tray labels spawn/attach/detach/connect ops '(no property change - will no-op)', which is false

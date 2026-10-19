@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: low
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-655: Equipment readout renders weapon damage as '1dd+8' (doubled d)

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: high
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-712: A failed scope fetch silently resets the filter to Whole world, which will promote the whole cast

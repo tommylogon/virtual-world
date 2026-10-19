@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: medium
 related: [task-404, task-725, task-736, task-786]
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-734: Knowledge is memory: fold known/recipes/known-places into one prose+data record with episodic vs semantic kinds

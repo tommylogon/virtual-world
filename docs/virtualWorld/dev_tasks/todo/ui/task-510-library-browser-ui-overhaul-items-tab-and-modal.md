@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-510: Library browser UI overhaul (items tab and modal)

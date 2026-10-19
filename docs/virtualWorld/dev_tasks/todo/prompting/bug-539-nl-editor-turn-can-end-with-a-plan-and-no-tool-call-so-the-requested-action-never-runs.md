@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: prompting
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # bug-539: NL editor turn can end with a plan and no tool call, so the requested action never runs

@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: bugs
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # bug-548: Changing scenario does not update the scenario name in the top-left corner

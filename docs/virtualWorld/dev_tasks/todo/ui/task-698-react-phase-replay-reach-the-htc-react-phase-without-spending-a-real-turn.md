@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: low
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-698: React phase replay: reach the HTC react phase without spending a real turn

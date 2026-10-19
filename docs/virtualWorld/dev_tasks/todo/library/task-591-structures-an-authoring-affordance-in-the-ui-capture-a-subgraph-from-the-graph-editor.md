@@ -4,6 +4,7 @@ status: todo
 area: library
 priority: high
 related: [task-357, task-291]
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-591: Structures — an authoring affordance (capture a subgraph from the graph editor)

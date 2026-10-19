@@ -3,6 +3,7 @@ type: task
 status: todo
 area: docs
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-672: Inspector Panels doc describes controls and node types that do not exist

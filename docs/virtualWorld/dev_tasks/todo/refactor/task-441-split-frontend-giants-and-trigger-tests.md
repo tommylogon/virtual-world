@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: low
+wiki: "[[Feature Map]]"
 ---
 
 # task-441: Split the frontend giants and the trigger test module

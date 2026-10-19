@@ -3,6 +3,7 @@ type: task
 status: todo
 area: world
 priority: medium
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-570: Hostile distribution consumer

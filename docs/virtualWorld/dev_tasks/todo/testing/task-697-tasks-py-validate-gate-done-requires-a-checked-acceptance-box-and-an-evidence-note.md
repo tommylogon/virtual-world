@@ -3,6 +3,7 @@ type: task
 status: todo
 area: testing
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-697: tasks.py validate gate: done requires a checked acceptance box and an evidence note

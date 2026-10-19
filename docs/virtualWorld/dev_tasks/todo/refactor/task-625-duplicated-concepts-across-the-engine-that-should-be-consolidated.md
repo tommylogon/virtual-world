@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-625: Duplicated concepts across the engine that should be consolidated

@@ -5,6 +5,7 @@ area: items
 priority: high
 related: [task-2, task-18, task-197, task-504, task-472, task-699, task-701, task-702, task-807]
 blocked_by: [task-701, task-702]
+wiki: "[[Items and Inventory/Item System & Properties Overview]]"
 ---
 
 # task-703: World recipes resolve transformations performed by Activities

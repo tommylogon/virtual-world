@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: prompting
 priority: low
+wiki: "[[Feature Map]]"
 ---
 
 # bug-517: AI room narration is broadcast as the character's own spoken line, polluting every listener's recent_hearing

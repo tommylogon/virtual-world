@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: ["'task-691'", "'task-787'", "'task-820'", 'task-785', 'task-787', 'task-820']
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-788: Mind panel: fullscreen mode

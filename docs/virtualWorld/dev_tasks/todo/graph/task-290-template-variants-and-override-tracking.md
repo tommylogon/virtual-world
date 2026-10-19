@@ -3,6 +3,7 @@ type: task
 status: todo
 area: graph
 priority: medium
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # Task 290 — Template Variants & Override Tracking

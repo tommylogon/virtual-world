@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: characters
 priority: Low
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # bug-519: Editorial rewrite notes are stored inside character memories, so a character recalls its own drafting notes

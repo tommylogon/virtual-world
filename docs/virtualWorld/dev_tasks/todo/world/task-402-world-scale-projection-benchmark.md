@@ -4,6 +4,7 @@ status: todo
 area: testing
 priority: medium
 blocked_by: [task-401]
+wiki: "[[Feature Map]]"
 ---
 
 # task-402: Large-world projection and indexing benchmark

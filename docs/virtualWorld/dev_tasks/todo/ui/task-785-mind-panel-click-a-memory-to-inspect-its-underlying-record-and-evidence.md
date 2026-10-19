@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: ["'task-691'", "'task-730'", "'task-787'", 'task-691', 'task-714', 'task-730', 'task-787', 'task-788']
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-785: Mind panel: click a memory to inspect its underlying record and evidence

@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: [task-397, task-398, task-528, task-531, task-574]
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-592: One hierarchy: scopes at the top of the Outline tab

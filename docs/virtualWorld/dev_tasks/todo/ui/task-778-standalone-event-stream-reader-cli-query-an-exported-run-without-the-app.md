@@ -5,6 +5,7 @@ area: ui
 priority: low
 related: [task-347, task-777]
 blocked_by: [task-777]
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-778: Standalone event-stream reader CLI: query an exported run without the app

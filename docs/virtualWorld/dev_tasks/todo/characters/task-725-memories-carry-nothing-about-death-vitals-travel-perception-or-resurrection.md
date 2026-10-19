@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: high
 related: ['task-404', 'task-734', 'task-736', 'task-786', 'task-789']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-725: Memories carry nothing about death, vitals, travel, perception, or resurrection

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-790: Human turn panel: a proper recap of what other characters did

@@ -4,6 +4,7 @@ status: todo
 area: refactor
 priority: medium
 related: ['task-675', 'task-847', 'task-848']
+wiki: "[[Feature Map]]"
 ---
 
 # task-744: Equipment and body: one edge truth for worn gear, layered coverage, body marks, body-centric UI

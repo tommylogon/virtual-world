@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: ['task-744', 'task-847', 'task-848']
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-675: Character editor: three-column body with section nav rail

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-612: Person context menu is orphaned when the turn modal closes, leaving a stale full-page scrim

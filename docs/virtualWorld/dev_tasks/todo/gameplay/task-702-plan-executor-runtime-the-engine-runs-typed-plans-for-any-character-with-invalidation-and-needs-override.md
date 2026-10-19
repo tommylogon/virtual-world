@@ -5,6 +5,7 @@ area: gameplay
 priority: high
 related: [task-409, task-426, task-90, task-699, task-700, task-701, task-703, task-704, task-807, task-812]
 blocked_by: [task-700, task-701]
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-702: Short-term plan executor for character pursuits

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: triggers
 priority: medium
+wiki: "[[Triggers/Trigger System Overview]]"
 ---
 
 # task-746: A single-roll hazard effect: one check, branch, forced move, and a sweep guard against cascades

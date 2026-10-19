@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-594: Swimming as a navigation type, with diving and a limited air vital

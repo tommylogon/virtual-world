@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: high
+wiki: "[[Feature Map]]"
 ---
 
 # task-715: Live-update transport will not scale to multiple clients (SSE per tab + 1.5s full-state poll)

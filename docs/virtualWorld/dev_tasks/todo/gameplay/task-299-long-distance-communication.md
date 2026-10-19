@@ -3,6 +3,7 @@ area: gameplay
 type: task
 status: todo
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # Long-Distance Communication (Phones, Walkie-Talkies, Radios)

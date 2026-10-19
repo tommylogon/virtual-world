@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-676: Area editor: split properties/place view with a mini-map

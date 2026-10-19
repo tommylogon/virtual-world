@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: high
 related: ['task-725', 'task-734', 'task-736', 'task-789']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-786: Recall transparency: show why a memory was recalled, automatic and action-driven

@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: medium
 related: ["'task-552'", 'task-552']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-742: Faction-scoped hostility and group-aware fear; wire or retire the hostile trait

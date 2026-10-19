@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: low
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-544: Soak lab space-time view — swimlanes by area, with condition ribbons

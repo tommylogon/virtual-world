@@ -3,6 +3,7 @@ type: task
 status: todo
 area: prompting
 priority: high
+wiki: "[[Feature Map]]"
 ---
 
 # task-692: Narration v2: the DM layer is a client-side string rewriter, not a narrator

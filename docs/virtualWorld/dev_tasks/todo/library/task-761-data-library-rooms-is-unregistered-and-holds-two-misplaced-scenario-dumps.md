@@ -3,6 +3,7 @@ type: task
 status: todo
 area: library
 priority: low
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-761: data/library/rooms is unregistered and holds two misplaced scenario dumps

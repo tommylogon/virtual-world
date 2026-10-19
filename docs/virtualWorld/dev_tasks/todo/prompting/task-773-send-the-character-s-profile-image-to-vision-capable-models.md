@@ -3,6 +3,7 @@ type: task
 status: todo
 area: prompting
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-773: Send the character's profile image to vision-capable models

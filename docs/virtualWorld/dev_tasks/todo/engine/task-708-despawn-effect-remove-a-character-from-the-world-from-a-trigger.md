@@ -3,6 +3,7 @@ type: task
 status: todo
 area: engine
 priority: high
+wiki: "[[Feature Map]]"
 ---
 
 # task-708: Despawn effect: remove a character from the world from a trigger

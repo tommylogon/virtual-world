@@ -3,6 +3,7 @@ type: task
 status: todo
 area: testing
 priority: high
+wiki: "[[Feature Map]]"
 ---
 
 # task-693: E2E verification harness: one command that boots the app, drives the browser and asserts live state

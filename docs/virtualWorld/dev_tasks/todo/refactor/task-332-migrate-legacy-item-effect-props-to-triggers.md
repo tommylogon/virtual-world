@@ -8,6 +8,7 @@ updated: 2026-08-23
 tags: [refactor, engine, items, deprecation, data-migration]
 type: task
 area: refactor
+wiki: "[[Feature Map]]"
 ---
 
 # Migrate Legacy Item Effect Props to Triggers, Then Remove Support

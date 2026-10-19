@@ -3,6 +3,7 @@ type: task
 status: todo
 area: graph
 priority: high
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # task-764: Incremental graph updates: diff nodes and edges instead of a full rebuild

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: high
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-430: Retire `visited_areas` and `discovered_items`

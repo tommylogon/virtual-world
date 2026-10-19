@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-467: Belief-based travel: heading + budget, maps and hearsay

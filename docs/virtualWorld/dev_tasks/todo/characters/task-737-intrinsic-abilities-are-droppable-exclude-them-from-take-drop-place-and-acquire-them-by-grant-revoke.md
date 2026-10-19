@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-737: Intrinsic abilities are droppable: exclude them from take/drop/place and acquire them by grant/revoke

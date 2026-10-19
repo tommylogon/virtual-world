@@ -5,6 +5,7 @@ area: world
 priority: medium
 children: [task-581, task-582, task-583, task-584]
 blocked_by: [task-397, task-398, task-399, task-400]
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-401: Chunk persistence, scoped indexes, and gateway ways

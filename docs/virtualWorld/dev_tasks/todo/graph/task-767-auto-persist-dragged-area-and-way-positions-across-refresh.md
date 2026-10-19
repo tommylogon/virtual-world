@@ -4,6 +4,7 @@ status: todo
 area: graph
 priority: medium
 blocked_by: [769]
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # task-767: Auto-persist dragged area and way positions across refresh

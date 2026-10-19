@@ -4,6 +4,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Simulation Model]]"
 ---
 
 # task-437 — One turn order, owned by the engine, with simultaneous as a mode

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: graph
 priority: low
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # task-435: Offline generators still mint way-orientation templates

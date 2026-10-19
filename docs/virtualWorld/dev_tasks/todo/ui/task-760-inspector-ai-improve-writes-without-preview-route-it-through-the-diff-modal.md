@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: [task-673, task-674, task-369, task-384]
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-760: Inspector AI Improve writes without preview; route it through the diff modal

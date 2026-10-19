@@ -3,6 +3,7 @@ type: task
 status: todo
 area: docs
 priority: low
+wiki: "[[Feature Map]]"
 ---
 
 # task-782: Retire Connections.md or absorb what it uniquely holds

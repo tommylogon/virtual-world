@@ -3,6 +3,7 @@ type: task
 status: todo
 area: library
 priority: low
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-684: matches and candlestick carry light triggers in the save but not in the library entry

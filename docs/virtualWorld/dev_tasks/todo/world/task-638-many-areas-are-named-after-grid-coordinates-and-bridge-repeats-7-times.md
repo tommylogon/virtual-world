@@ -5,6 +5,7 @@ area: world
 priority: medium
 blocked_by: [task-439]
 related: [task-624, task-646]
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-638: Many areas are named after grid coordinates and 'Bridge' repeats 7+ times

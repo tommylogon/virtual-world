@@ -5,6 +5,7 @@ area: characters
 priority: medium
 related: [task-507, task-828, task-830, task-844, task-829, task-849, task-850, task-619, task-742]
 blocked_by: [task-457]
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-733: Character sheet: a full-page WorldGraph-style person form that compiles into ViWo primitives

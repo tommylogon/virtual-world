@@ -5,6 +5,7 @@ area: characters
 priority: medium
 related: ['task-409', 'task-426', 'task-685', 'task-699', 'task-701', 'task-702', 'task-822', 'task-849']
 blocked_by: [task-701, task-702, task-705]
+wiki: "[[design/Character Pursuits]]"
 ---
 
 # task-704: Pursuit selection from goals, needs, memory, perception, and world time

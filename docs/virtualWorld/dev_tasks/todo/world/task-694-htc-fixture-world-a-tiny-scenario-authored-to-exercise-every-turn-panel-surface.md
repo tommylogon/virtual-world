@@ -3,6 +3,7 @@ type: task
 status: todo
 area: world
 priority: high
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-694: HTC fixture world: a tiny scenario authored to exercise every turn-panel surface

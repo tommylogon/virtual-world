@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-456: Split saveload-view concerns and extract the save-row template

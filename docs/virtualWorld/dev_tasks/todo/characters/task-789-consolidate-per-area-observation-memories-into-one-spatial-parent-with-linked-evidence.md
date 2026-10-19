@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: medium
 related: ['task-725', 'task-786']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-789: Consolidate per-area observation memories into one spatial parent with linked evidence

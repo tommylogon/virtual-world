@@ -3,6 +3,7 @@ type: task
 status: todo
 area: world
 priority: high
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-710: Scope selection drives the promoted set: level-scoped, never recursive

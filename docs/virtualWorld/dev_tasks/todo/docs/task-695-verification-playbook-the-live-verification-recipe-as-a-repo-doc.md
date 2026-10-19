@@ -3,6 +3,7 @@ type: task
 status: todo
 area: docs
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-695: Verification playbook: the live-verification recipe as a repo doc

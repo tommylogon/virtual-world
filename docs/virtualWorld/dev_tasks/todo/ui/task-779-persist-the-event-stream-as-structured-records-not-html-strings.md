@@ -5,6 +5,7 @@ area: ui
 priority: medium
 related: [task-777, task-778, task-340, bug-46]
 blocked_by: [task-777]
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-779: Persist the event stream as structured records, not HTML strings

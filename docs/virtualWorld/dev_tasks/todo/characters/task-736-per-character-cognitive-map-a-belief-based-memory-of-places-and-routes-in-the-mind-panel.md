@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: medium
 related: ['task-404', 'task-725', 'task-734', 'task-786']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-736: Per-character cognitive map: a belief-based memory of places and routes in the Mind panel

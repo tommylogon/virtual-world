@@ -3,6 +3,7 @@ type: task
 status: todo
 area: library
 priority: medium
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-509: Library — batch-generate triggers for selected items

@@ -3,6 +3,7 @@ type: task
 status: todo
 area: world
 priority: high
+wiki: "[[World Building/World Building Overview]]"
 ---
 
 # task-711: Re-evaluate the promoted set every tick: promote on entry, demote on exit

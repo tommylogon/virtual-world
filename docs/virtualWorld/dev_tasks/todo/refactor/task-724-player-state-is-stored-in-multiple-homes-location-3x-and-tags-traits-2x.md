@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: high
+wiki: "[[Feature Map]]"
 ---
 
 # task-724: Player state is stored in multiple homes: location (3x) and tags/traits (2x)

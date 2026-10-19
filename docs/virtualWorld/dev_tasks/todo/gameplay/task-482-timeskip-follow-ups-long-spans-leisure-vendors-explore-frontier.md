@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-482: Timeskip follow-ups: long spans, leisure vendors, explore frontier

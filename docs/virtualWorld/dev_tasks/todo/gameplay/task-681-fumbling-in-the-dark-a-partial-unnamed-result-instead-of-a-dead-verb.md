@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-681: Fumbling in the dark: a partial, unnamed result instead of a dead verb

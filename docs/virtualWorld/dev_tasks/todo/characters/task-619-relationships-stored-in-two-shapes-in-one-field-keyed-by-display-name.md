@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: high
 related: ['task-349', 'task-350', 'task-420', 'task-734']
+wiki: "[[World Building/Character Creation & Archetypes]]"
 ---
 
 # task-619: Relationships are keyed by display name, not node id
