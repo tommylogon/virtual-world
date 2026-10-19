@@ -43,7 +43,7 @@ type Vocabulary = any;
     // Mirrors engine/world_grid.py PAINT_LAYERS. A layer missing from either list
     // is dropped on save (the backend normalises against its own tuple) or paints
     // a colour nothing reads — so the two must move together.
-    const PAINT_LAYERS = ['biome', 'road', 'floor', 'climate'];
+    const PAINT_LAYERS = ['biome', 'road', 'floor', 'climate', 'current'];
 
     // The coarse climates a grid may be painted with, and the colours that make
     // one readable at a glance (task-557). The **ids and base °C come from the
@@ -302,6 +302,326 @@ type Vocabulary = any;
             if (e2 < dx) { err += dx; y0 += sy; }
         }
         return cells;
+    }
+
+    /**
+     * Conservative supercover line rasterization between a and b.
+     * Crucially seals diagonal corner transits by visiting both orthogonal
+     * cells when stepping diagonally (task-882).
+     */
+    function supercoverLine(a: Cell, b: Cell): Cell[] {
+        const x0 = Math.trunc(a.x);
+        const y0 = Math.trunc(a.y);
+        const x1 = Math.trunc(b.x);
+        const y1 = Math.trunc(b.y);
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const nx = Math.abs(dx);
+        const ny = Math.abs(dy);
+        const signX = dx > 0 ? 1 : dx < 0 ? -1 : 0;
+        const signY = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+
+        let px = x0;
+        let py = y0;
+        const points: Cell[] = [{ x: px, y: py }];
+        if (nx === 0 && ny === 0) return points;
+
+        let ix = 0;
+        let iy = 0;
+        while (ix < nx || iy < ny) {
+            const decision = (1 + 2 * ix) * ny - (1 + 2 * iy) * nx;
+            if (decision === 0) {
+                points.push({ x: px + signX, y: py });
+                points.push({ x: px, y: py + signY });
+                px += signX;
+                py += signY;
+                ix += 1;
+                iy += 1;
+            } else if (decision < 0) {
+                px += signX;
+                ix += 1;
+            } else {
+                py += signY;
+                iy += 1;
+            }
+            points.push({ x: px, y: py });
+        }
+        return points;
+    }
+
+    function tileHeight(payload: any, x: number, y: number, vocab?: any): number {
+        const key = cellKey(x, y);
+        const bId = (payload?.layers?.biome || {})[key];
+        if (!bId) return 0;
+        if (vocab?.biomes) {
+            const b = vocab.biomes.find((v: any) => v.id === bId);
+            if (b && typeof b.height === 'number') return b.height;
+        }
+        const bStr = String(bId).toLowerCase();
+        if (bStr.includes('mountain') || bStr.includes('peak') || bStr.includes('cliff')) return 20;
+        if (bStr.includes('hill')) return 5;
+        if (bStr.includes('wall')) return 2;
+        if (bStr.includes('dense_forest') || bStr.includes('jungle')) return 3;
+        if (bStr.includes('sparse_forest') || bStr.includes('forest') || bStr.includes('wood')) return 2;
+        if (bStr.includes('marsh') || bStr.includes('swamp') || bStr.includes('scrub')) return 1;
+        return 0;
+    }
+
+    function tileObscurity(payload: any, x: number, y: number, vocab?: any): number {
+        const key = cellKey(x, y);
+        const bId = (payload?.layers?.biome || {})[key];
+        if (!bId) return 0;
+        if (vocab?.biomes) {
+            const b = vocab.biomes.find((v: any) => v.id === bId);
+            if (b && typeof b.obscurity === 'number') return Math.max(0, Math.min(1, b.obscurity));
+        }
+        const bStr = String(bId).toLowerCase();
+        if (bStr.includes('mountain') || bStr.includes('peak') || bStr.includes('cliff') || bStr.includes('wall')) return 1.0;
+        if (bStr.includes('dense_forest') || bStr.includes('jungle')) return 0.8;
+        if (bStr.includes('sparse_forest') || bStr.includes('forest') || bStr.includes('wood')) return 0.4;
+        if (bStr.includes('marsh') || bStr.includes('swamp') || bStr.includes('scrub')) return 0.2;
+        if (bStr.includes('hill')) return 0.3;
+        return 0;
+    }
+
+    function tileFloor(payload: any, x: number, y: number): number {
+        const v = (payload?.layers?.floor || {})[cellKey(x, y)];
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    interface SightRayResult {
+        visible: boolean;
+        blockedBy?: Cell | null;
+        obscurity: number;
+        cells: Cell[];
+        blockedElevation?: number;
+    }
+
+    interface ScanStep {
+        c: Cell;
+        d: number;
+        seen: boolean;
+        hidden: number;
+        blocker: Cell | null;
+    }
+
+    function scanRay(
+        cells: Cell[],
+        x0: number,
+        y0: number,
+        zEye: number,
+        maxRange: number,
+        props: (cx: number, cy: number) => { floor: number; height: number; obscurity: number }
+    ): ScanStep[] {
+        let opaqueSlope: number | null = null;
+        let opaqueCell: Cell | null = null;
+        const partial: Array<{ slope: number; obs: number; cell: Cell }> = [];
+        const steps: ScanStep[] = [];
+
+        for (const c of cells) {
+            if (c.x === x0 && c.y === y0) continue;
+            const d = Math.hypot(c.x - x0, c.y - y0);
+            if (d > maxRange) break;
+
+            const { floor: floorE, height: obsH, obscurity: obsV } = props(c.x, c.y);
+            const drop = Math.max(0, d - 40) * 1.0;
+            const slope = (floorE + obsH - drop - zEye) / d;
+
+            let hidden = 0.0;
+            let blocker: Cell | null = null;
+            if (opaqueSlope !== null && opaqueSlope >= slope - 1e-9) {
+                hidden = 1.0;
+                blocker = opaqueCell;
+            } else {
+                for (const p of partial) {
+                    if (p.slope >= slope - 1e-9) {
+                        hidden += p.obs;
+                        blocker = p.cell;
+                    }
+                }
+                if (hidden < 1.0) blocker = null;
+            }
+
+            const seen = hidden < 1.0;
+            steps.push({ c, d, seen, hidden, blocker });
+
+            const groundSlope = (floorE - drop - zEye) / d;
+            if (opaqueSlope === null || groundSlope > opaqueSlope) {
+                opaqueSlope = groundSlope;
+                opaqueCell = c;
+            }
+            if (obsH > 0 && obsV > 0) {
+                if (obsV >= 1.0) {
+                    if (slope > opaqueSlope) {
+                        opaqueSlope = slope;
+                        opaqueCell = c;
+                    }
+                } else {
+                    partial.push({ slope, obs: obsV, cell: c });
+                }
+            }
+        }
+        return steps;
+    }
+
+    function castSightRay(
+        origin: Cell & { z?: number },
+        target: Cell & { z?: number },
+        payload: any,
+        eyeHeight = 0.5,
+        maxRange = 60,
+        vocab?: any
+    ): SightRayResult {
+        const x0 = Math.trunc(origin.x);
+        const y0 = Math.trunc(origin.y);
+        const z0 = typeof origin.z === 'number' ? origin.z : tileFloor(payload, x0, y0);
+        const zEye = z0 + eyeHeight;
+
+        const x1 = Math.trunc(target.x);
+        const y1 = Math.trunc(target.y);
+        const explicitZ1 = typeof target.z === 'number' ? target.z : null;
+
+        if (x0 === x1 && y0 === y1) {
+            return { visible: true, blockedBy: null, obscurity: 0, cells: [{ x: x0, y: y0 }] };
+        }
+
+        const distTotal = Math.hypot(x1 - x0, y1 - y0);
+        if (distTotal > maxRange) {
+            return { visible: false, blockedBy: null, obscurity: 1, cells: [] };
+        }
+
+        const cells = supercoverLine({ x: x0, y: y0 }, { x: x1, y: y1 });
+        const props = (cx: number, cy: number) => {
+            let floor = tileFloor(payload, cx, cy);
+            if (explicitZ1 !== null && cx === x1 && cy === y1) {
+                floor = explicitZ1;
+            }
+            const height = tileHeight(payload, cx, cy, vocab);
+            const obscurity = tileObscurity(payload, cx, cy, vocab);
+            return { floor, height, obscurity };
+        };
+
+        const steps = scanRay(cells, x0, y0, zEye, maxRange, props);
+        let resultVisible = true;
+        let blockedBy: Cell | null = null;
+        let obscurity = 0;
+
+        for (const st of steps) {
+            if (st.c.x === x1 && st.c.y === y1) {
+                resultVisible = st.seen;
+                obscurity = st.hidden;
+                if (!st.seen) blockedBy = st.blocker;
+            }
+        }
+
+        if (blockedBy !== null) {
+            const { floor, height } = props(blockedBy.x, blockedBy.y);
+            return {
+                visible: false,
+                blockedBy,
+                blockedElevation: floor + height,
+                obscurity,
+                cells,
+            };
+        }
+
+        return { visible: resultVisible, blockedBy: null, obscurity, cells };
+    }
+
+    const FACING_ANGLES: Record<string, number> = {
+        east: 0, e: 0,
+        southeast: 45, se: 45,
+        south: 90, s: 90,
+        southwest: 135, sw: 135,
+        west: 180, w: 180,
+        northwest: -135, nw: -135,
+        north: -90, n: -90,
+        northeast: -45, ne: -45,
+    };
+
+    function computeVisibleCells(
+        origin: Cell & { z?: number },
+        payload: any,
+        maxRange = 60,
+        facing?: string | null,
+        arcDegrees = 360,
+        peripheralRange = 3,
+        vocab?: any
+    ): Set<string> {
+        const x0 = Math.trunc(origin.x);
+        const y0 = Math.trunc(origin.y);
+        const w = payload?.grid?.w || 0;
+        const h = payload?.grid?.h || 0;
+        const visible = new Set<string>();
+        visible.add(cellKey(x0, y0));
+        if (!w || !h) return visible;
+
+        let headingAngle: number | null = null;
+        if (facing && arcDegrees < 360) {
+            const angle = FACING_ANGLES[String(facing).toLowerCase()];
+            if (typeof angle === 'number') headingAngle = angle;
+        }
+
+        const halfArc = headingAngle !== null ? arcDegrees / 2.0 : 180;
+        const r = Math.min(maxRange, Math.max(w, h));
+        const minX = Math.max(0, x0 - r);
+        const maxX = Math.min(w - 1, x0 + r);
+        const minY = Math.max(0, y0 - r);
+        const maxY = Math.min(h - 1, y0 + r);
+
+        const perimeterTargets: Cell[] = [];
+        for (let x = minX; x <= maxX; x++) {
+            perimeterTargets.push({ x, y: minY });
+            perimeterTargets.push({ x, y: maxY });
+        }
+        for (let y = minY; y <= maxY; y++) {
+            perimeterTargets.push({ x: minX, y });
+            perimeterTargets.push({ x: maxX, y });
+        }
+
+        const z0 = typeof origin.z === 'number' ? origin.z : tileFloor(payload, x0, y0);
+        const zEye = z0 + 0.5;
+
+        const memo = new Map<string, { floor: number; height: number; obscurity: number }>();
+        const props = (cx: number, cy: number) => {
+            const k = cellKey(cx, cy);
+            let got = memo.get(k);
+            if (!got) {
+                got = {
+                    floor: tileFloor(payload, cx, cy),
+                    height: tileHeight(payload, cx, cy, vocab),
+                    obscurity: tileObscurity(payload, cx, cy, vocab),
+                };
+                memo.set(k, got);
+            }
+            return got;
+        };
+
+        for (const target of perimeterTargets) {
+            if (target.x === x0 && target.y === y0) continue;
+            const rayCells = supercoverLine({ x: x0, y: y0 }, target);
+            const inside: Cell[] = [];
+            for (const c of rayCells) {
+                if (c.x < 0 || c.x >= w || c.y < 0 || c.y >= h) break;
+                inside.push(c);
+            }
+            const steps = scanRay(inside, x0, y0, zEye, maxRange, props);
+            for (const st of steps) {
+                if (!st.seen) continue;
+                if (headingAngle !== null) {
+                    const cellAngle = (Math.atan2(st.c.y - y0, st.c.x - x0) * 180) / Math.PI;
+                    const angleDiff = Math.abs(((cellAngle - headingAngle + 180) % 360) - 180);
+                    if (angleDiff > halfArc) {
+                        const { height: obsH } = props(st.c.x, st.c.y);
+                        if (st.d > peripheralRange && obsH < 5.0) continue;
+                    }
+                }
+                visible.add(cellKey(st.c.x, st.c.y));
+            }
+        }
+
+        return visible;
     }
 
     /** Chain waypoint segments into one de-duplicated cell path. */
@@ -1267,6 +1587,139 @@ type Vocabulary = any;
         return null;
     }
 
+    const COMPASS_8_OFFSETS = [
+        { dx: 1, dy: 0 },   // 0: East
+        { dx: 1, dy: 1 },   // 1: Southeast
+        { dx: 0, dy: 1 },   // 2: South
+        { dx: -1, dy: 1 },  // 3: Southwest
+        { dx: -1, dy: 0 },  // 4: West
+        { dx: -1, dy: -1 }, // 5: Northwest
+        { dx: 0, dy: -1 },  // 6: North
+        { dx: 1, dy: -1 },  // 7: Northeast
+    ];
+    const COMPASS_8_BEARINGS = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
+
+    function isWaterCell(payload: any, x: number, y: number, vocab?: any): boolean {
+        const bId = cellValue(payload, 'biome', x, y);
+        if (!bId) return false;
+        const bStr = String(bId).toLowerCase();
+        if (bStr.includes('river') || bStr.includes('water') || bStr.includes('lake') ||
+            bStr.includes('ocean') || bStr.includes('stream') || bStr.includes('rapids') ||
+            bStr.includes('waterfall') || bStr.includes('sea')) {
+            return true;
+        }
+        if (vocab && Array.isArray(vocab.biomes)) {
+            const b = vocab.biomes.find((v: any) => v.id === bId);
+            if (b) {
+                if (b.terrain === 'water') return true;
+                if (b.surface === 'shallow_water' || b.surface === 'deep_water') return true;
+                const tags = (b.tags || []).map((t: any) => String(t).toLowerCase());
+                if (tags.some((t: string) => ['water', 'river', 'stream', 'lake', 'ocean', 'rapids', 'waterfall'].includes(t))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function slopeToCurrentStrength(dropStoreys: number): number {
+        if (dropStoreys <= 0) return 1;
+        if (dropStoreys === 1) return 5;
+        if (dropStoreys === 2 || dropStoreys === 3) return 10;
+        return 20;
+    }
+
+    function deriveWaterCurrent(payload: any, x: number, y: number, vocab?: any): any {
+        if (!isWaterCell(payload, x, y, vocab)) return null;
+
+        const layers = payload?.layers || {};
+        const currentLayer = layers.current || {};
+        const key = cellKey(x, y);
+        let manual: any = null;
+        if (key in currentLayer) {
+            const val = currentLayer[key];
+            if (val && typeof val === 'object') manual = val;
+            else if (typeof val === 'number') manual = { strength: val, direction: 0 };
+        }
+
+        const bId = cellValue(payload, 'biome', x, y);
+        let bHazard: string | null = null;
+        if (vocab && Array.isArray(vocab.biomes)) {
+            const b = vocab.biomes.find((v: any) => v.id === bId);
+            if (b && b.hazard_id) bHazard = String(b.hazard_id);
+        }
+
+        if (manual !== null) {
+            const s = Math.max(1, Math.min(20, Number(manual.strength) || 5));
+            const d = (Number(manual.direction) || 0) % 8;
+            return {
+                direction: d,
+                bearing: COMPASS_8_BEARINGS[d],
+                strength: s,
+                drop: 0,
+                hazard_id: manual.hazard_id || bHazard || 'river',
+                slope_percent: 0.0,
+                manual_override: true,
+            };
+        }
+
+        const z0 = tileFloor(payload, x, y);
+        let bestDrop = -999999;
+        let bestIdx = 0;
+        let bestDist = 80.0;
+        let downstreamFound = false;
+
+        for (let i = 0; i < COMPASS_8_OFFSETS.length; i++) {
+            const off = COMPASS_8_OFFSETS[i];
+            const nx = x + off.dx;
+            const ny = y + off.dy;
+            if (!isWaterCell(payload, nx, ny, vocab)) continue;
+            const nz = tileFloor(payload, nx, ny);
+            const drop = z0 - nz;
+            const dist = (off.dx === 0 || off.dy === 0) ? 80.0 : (80.0 * 1.41421356);
+            if (drop > 0) {
+                downstreamFound = true;
+                const grad = drop / dist;
+                const bestGrad = bestDrop > 0 ? (bestDrop / bestDist) : -1.0;
+                if (grad > bestGrad) {
+                    bestDrop = drop;
+                    bestIdx = i;
+                    bestDist = dist;
+                }
+            } else if (!downstreamFound && drop === 0 && bestDrop < 0) {
+                bestDrop = 0;
+                bestIdx = i;
+                bestDist = dist;
+            }
+        }
+
+        if (bestDrop < 0) {
+            bestDrop = 0;
+            bestIdx = 0;
+            bestDist = 80.0;
+        }
+
+        const strength = slopeToCurrentStrength(bestDrop);
+        const slopePct = bestDrop > 0 ? (bestDrop * 3.0 / bestDist) * 100.0 : 0.0;
+
+        let hazardId: string | null = null;
+        if (bestDrop >= 4 || bId === 'waterfall') hazardId = 'fall';
+        else if (bestDrop === 2 || bestDrop === 3 || bId === 'river_rapids') hazardId = 'rapids';
+        else if (bHazard) hazardId = bHazard;
+        else if (bestDrop === 1 || bId === 'river_swift' || bId === 'river') hazardId = 'river';
+        else hazardId = null;
+
+        return {
+            direction: bestIdx,
+            bearing: COMPASS_8_BEARINGS[bestIdx],
+            strength,
+            drop: Math.max(0, bestDrop),
+            hazard_id: hazardId,
+            slope_percent: Number(slopePct.toFixed(2)),
+            manual_override: false,
+        };
+    }
+
     const gridModel = {
         MODES, PAINT_LAYERS, BIOME_COLORS, ROAD_COLORS,
         CLIMATES, CLIMATE_IDS, DEFAULT_CLIMATE, useClimatesFromVocab,
@@ -1274,6 +1727,8 @@ type Vocabulary = any;
         floorNumber, floorLabel,
         metresToStoreys, storeysToMetres, luminanceToMetres, metresToLuminance, climbGatedSteps,
         lineCells, routeCells, routeStats, estimateCompile,
+        supercoverLine, tileHeight, tileObscurity, castSightRay, computeVisibleCells,
+        isWaterCell, slopeToCurrentStrength, deriveWaterCurrent,
         cellValue, cellName, cellKind, cellEnter, cellNeighbours, featureAt, placementFor,
         paintedBounds, gridHandlePoints, gridHandleDrag,
         buildRows, featureMap,

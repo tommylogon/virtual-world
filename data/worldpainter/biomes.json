@@ -151,6 +151,7 @@
         "survival"
       ],
       "surface": "stone",
+      "hazard_id": "cliff",
       "descriptions": [
         "The ground ends at a sheer drop.",
         "A rock face falls away, wind pulling at the edge."
@@ -200,6 +201,8 @@
         "survival"
       ],
       "surface": "dirt",
+      "height": 3.0,
+      "obscurity": 0.8,
       "descriptions": [
         "Close-set trunks swallow the light a few steps in.",
         "Underbrush claws at the legs with every stride."
@@ -518,9 +521,82 @@
         "survival"
       ],
       "surface": "shallow_water",
+      "hazard_id": "river",
       "descriptions": [
         "A current runs steadily between its banks.",
         "Water hurries over a stony bed."
+      ]
+    },
+    "river_calm": {
+      "name": "Calm River",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "water",
+        "shallow_water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "shallow_water",
+      "descriptions": [
+        "A slow, wide river winds gently between soft banks.",
+        "Placid water glides past with barely a ripple."
+      ]
+    },
+    "river_swift": {
+      "name": "Swift River",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "water",
+        "current"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "shallow_water",
+      "hazard_id": "river",
+      "descriptions": [
+        "A powerful current pulls firmly against your legs.",
+        "The river surges past, churning around gravel bars."
+      ]
+    },
+    "river_rapids": {
+      "name": "River Rapids",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "water",
+        "rapids"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "shallow_water",
+      "hazard_id": "rapids",
+      "descriptions": [
+        "White spray erupts as water crashes through jagged rocks.",
+        "Foaming chutes race violently down a rocky shelf."
+      ]
+    },
+    "waterfall": {
+      "name": "Waterfall",
+      "terrain": "water",
+      "tags": [
+        "river",
+        "waterfall",
+        "water",
+        "cliff"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "deep_water",
+      "hazard_id": "fall",
+      "descriptions": [
+        "A roaring torrent plunges off a sheer stone precipice.",
+        "Thundering water crashes down in a cloud of mist."
       ]
     },
     "ruin": {
@@ -608,6 +684,8 @@
         "perception"
       ],
       "surface": "dirt",
+      "height": 2.0,
+      "obscurity": 0.4,
       "descriptions": [
         "Scattered trees open onto patches of grass.",
         "Thin woodland, easy to walk and hard to hide in."
@@ -748,7 +826,9 @@
         "Solid wall. Nothing passes it and nothing sees through it.",
         "A blank of masonry, thick enough to be a room's own boundary."
       ],
-      "surface": "stone"
+      "surface": "stone",
+      "height": 2.0,
+      "obscurity": 1.0
     },
     "warehouse": {
       "name": "Warehouse",

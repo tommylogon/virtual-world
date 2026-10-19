@@ -498,6 +498,15 @@ window.HelpCenter = (() => {
             body: 'Reads a cell without changing it: what is painted on each layer, which area or child scope sits there, and its <b>name</b> field. Right-click works the same panel from <b>any</b> tool, so you can name a cell without switching. A place with no name compiles to coordinates like "Inn (Eldenford 12,7)" and cannot be asked for by name — "go inn" has nothing to match.',
             target: '[data-help="wp-tool-inspect"]',
         },
+        {
+            id: 'wp-tool-vision',
+            event: 'data-help',
+            match: d => d === 'wp-tool-vision',
+            group: 'WorldPainter',
+            title: '👁 Vision - raycast line of sight debugger',
+            body: 'Tests 2.5D geometric line of sight (LoS) raycasting across elevation and obscuring biomes. Click an origin cell to set the observer position, then click any target cell to cast a Bresenham ray with elevation clearance and obscurity accumulation. Supports directional facing arcs (120° primary cone).',
+            target: '[data-help="wp-tool-vision"]',
+        },
     ];
 
     // Guided tours: ordered chains of tip ids.

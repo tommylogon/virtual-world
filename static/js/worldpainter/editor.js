@@ -39,7 +39,7 @@
     /**
      * `catch (e)` is `unknown` under strict. Almost every handler below wants the
      * message and nothing else, and `_req` always rejects with an `Error`, so
-     * this is the one narrowing — the non-Error branch keeps the old
+     * this is the one narrowing - the non-Error branch keeps the old
      * string-interpolation behaviour rather than swallowing it.
      */
     function errText(e) {
@@ -58,7 +58,7 @@
     // `_drawGridLines` stops drawing the lattice below 4px per cell, so at the
     // old 0.12 (< 3px per cell) the grid dissolved into a smear of paint blobs
     // and the author could not tell a road from a field. 0.25 keeps a cell at
-    // 5.5px — lines still drawn, a 160-cell world still fits an 880px pane — so
+    // 5.5px - lines still drawn, a 160-cell world still fits an 880px pane - so
     // zooming out to the floor leaves a readable map rather than a blank one.
     const MIN_SCALE = 0.25;
     const MAX_SCALE = 20;
@@ -116,9 +116,12 @@
         scrollTop: 0,
         scrollRestored: false,
         merge: false,
-        view: null, // {scale} — Konva owns the live transform
+        view: null, // {scale} - Konva owns the live transform
         route: [], // waypoints for the route/trail tool
         stage: null,
+        paintCache: null,
+        paintCacheValid: false,
+        recents: [],
         resizeObs: null,
         shapes: null,
         layers: null,
@@ -134,6 +137,12 @@
         checklistTouched: false,
         status: '',
         statusError: false,
+        visionOrigin: null,
+        visionTarget: null,
+        visionFacing: null,
+        visionRay: null,
+        visionVisibleSet: null,
+        visionLens: false,
         _keyDown: null,
         _keyUp: null,
     };
@@ -301,11 +310,18 @@
         passable: 'a threshold — you go through it',
     };
     // ───────────────────────────── open/close ──────────────────────────
+    const _layerOptionsCache = new Map();
+    const _paletteSectionsCache = new Map();
+    function _clearPaletteMemos() {
+        _layerOptionsCache.clear();
+        _paletteSectionsCache.clear();
+    }
     async function ensureVocab() {
         if (state.vocab)
             return state.vocab;
         try {
             state.vocab = await _req('/api/world/painter/vocabulary', { cache: 'no-store' });
+            _clearPaletteMemos();
             // The climates come from the backend, ids and base °C both (task-557);
             // only the colour is local, so a new climate needs no editor change.
             GM().useClimatesFromVocab(state.vocab);
@@ -327,24 +343,292 @@
         }
         return state.backgrounds;
     }
+    function _saveScopePrefs() {
+        if (!state.scopeId || typeof localStorage === 'undefined')
+            return;
+        try {
+            const prefs = {
+                tool: state.tool,
+                layer: state.layer,
+                value: state.value,
+                zoom: state.stage ? state.stage.scaleX() : (state.view ? state.view.scale : undefined),
+                paletteOpen: state.paletteOpen,
+            };
+            localStorage.setItem(`wp_scope_prefs_${state.scopeId}`, JSON.stringify(prefs));
+        }
+        catch { }
+    }
+    function _loadScopePrefs(scopeId) {
+        if (!scopeId || typeof localStorage === 'undefined')
+            return;
+        try {
+            const raw = localStorage.getItem(`wp_scope_prefs_${scopeId}`);
+            if (!raw)
+                return;
+            const prefs = JSON.parse(raw);
+            if (prefs && typeof prefs === 'object') {
+                if (typeof prefs.tool === 'string')
+                    state.tool = prefs.tool;
+                if (typeof prefs.layer === 'string')
+                    state.layer = prefs.layer;
+                if (typeof prefs.value === 'string')
+                    state.value = prefs.value;
+                if (typeof prefs.paletteOpen === 'boolean')
+                    state.paletteOpen = prefs.paletteOpen;
+                if (typeof prefs.zoom === 'number' && prefs.zoom >= MIN_SCALE && prefs.zoom <= MAX_SCALE) {
+                    state.view = { scale: prefs.zoom };
+                }
+            }
+        }
+        catch { }
+    }
+    function _getRecents() {
+        if (typeof localStorage === 'undefined')
+            return [];
+        try {
+            const raw = localStorage.getItem('wp_recents');
+            if (!raw)
+                return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+        }
+        catch {
+            return [];
+        }
+    }
+    function _pushRecent(layer, value) {
+        if (!layer || value == null || value === '' || typeof localStorage === 'undefined')
+            return;
+        try {
+            const recents = _getRecents().filter((r) => !(r.layer === layer && r.value === value));
+            recents.unshift({ layer, value });
+            const trimmed = recents.slice(0, 8);
+            localStorage.setItem('wp_recents', JSON.stringify(trimmed));
+        }
+        catch { }
+    }
+    function _recentsRow() {
+        const wrap = _el('div', 'display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;');
+        wrap.setAttribute('data-role', 'wp-recents');
+        const recents = _getRecents();
+        if (!recents.length)
+            return wrap;
+        const label = _el('span', 'font-size:10px;color:var(--text-muted,#888);margin-right:2px;', 'Recents:');
+        wrap.appendChild(label);
+        recents.forEach((r) => {
+            const chip = _el('button', 'display:inline-flex;align-items:center;gap:3px;padding:1px 5px;font-size:10px;'
+                + 'border-radius:4px;border:1px solid var(--border,#444);background:var(--bg-card,#25252d);'
+                + 'color:var(--text,#ccc);cursor:pointer;');
+            const swatch = _el('span', 'display:inline-block;width:8px;height:8px;border-radius:2px;');
+            swatch.style.background = GM().layerColor(r.layer, r.value) || '#777';
+            chip.appendChild(swatch);
+            const nameText = r.value.length > 14 ? r.value.slice(0, 13) + '...' : r.value;
+            chip.appendChild(_el('span', null, `${r.layer}:${nameText}`));
+            chip.title = `Arm ${r.layer}: ${r.value}`;
+            chip.addEventListener('click', () => {
+                state.tool = 'paint';
+                state.layer = r.layer;
+                state.value = r.value;
+                _saveScopePrefs();
+                softRender();
+                _status(`Armed recent ${r.layer}: "${r.value}".`, false);
+            });
+            wrap.appendChild(chip);
+        });
+        return wrap;
+    }
+    function _ensurePaintCache(p) {
+        if (!p.grid)
+            return;
+        if (typeof document === 'undefined' || typeof document.createElement !== 'function')
+            return;
+        if (!state.paintCache || state.paintCache.width !== p.grid.w || state.paintCache.height !== p.grid.h) {
+            const c = document.createElement('canvas');
+            c.width = p.grid.w;
+            c.height = p.grid.h;
+            state.paintCache = c;
+            state.paintCacheValid = false;
+        }
+        if (state.paintCacheValid)
+            return;
+        const ctx = state.paintCache.getContext('2d');
+        if (!ctx)
+            return;
+        ctx.clearRect(0, 0, p.grid.w, p.grid.h);
+        const layers = p.layers || {};
+        const layerOrder = ['biome', 'current', 'road'];
+        const otherLayers = Object.keys(layers).filter((l) => layerOrder.indexOf(l) < 0);
+        const allLayers = [...layerOrder, ...otherLayers];
+        allLayers.forEach((layer) => {
+            const cells = layers[layer] || {};
+            Object.keys(cells).forEach((key) => {
+                const pos = GM().parseCellKey(key);
+                if (!pos)
+                    return;
+                const color = GM().layerColor(layer, cells[key]);
+                if (!color)
+                    return;
+                ctx.fillStyle = color;
+                ctx.fillRect(pos.x, pos.y, 1, 1);
+            });
+        });
+        state.paintCacheValid = true;
+    }
+    function _patchPaintCache(p, cells) {
+        if (!p.grid || !state.paintCache || !state.paintCacheValid) {
+            _ensurePaintCache(p);
+            return;
+        }
+        const ctx = state.paintCache.getContext('2d');
+        if (!ctx)
+            return;
+        const layers = p.layers || {};
+        const layerOrder = ['biome', 'current', 'road'];
+        const otherLayers = Object.keys(layers).filter((l) => layerOrder.indexOf(l) < 0);
+        const allLayers = [...layerOrder, ...otherLayers];
+        cells.forEach((cell) => {
+            ctx.clearRect(cell.x, cell.y, 1, 1);
+            const key = GM().cellKey(cell.x, cell.y);
+            allLayers.forEach((layer) => {
+                const val = layers[layer] && layers[layer][key];
+                if (val !== undefined && val !== null && val !== '') {
+                    const color = GM().layerColor(layer, val);
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(cell.x, cell.y, 1, 1);
+                    }
+                }
+            });
+        });
+    }
+    function _updateStatusBar() {
+        const statusBar = (state.body && state.body.querySelector('[data-role="wp-status"]'))
+            || (state.overlay && state.overlay.querySelector('[data-role="wp-status"]'));
+        if (statusBar) {
+            statusBar.textContent = state.status;
+            statusBar.style.color = state.statusError ? '#e66' : '#9c9';
+        }
+    }
+    function softRender() {
+        const p = state.payload;
+        if (!p || !state.body || !state.gridHolder || !state.stage) {
+            render();
+            return;
+        }
+        // 1. Update status bar
+        _updateStatusBar();
+        // 2. Update estimate
+        const estEl = state.overlay && state.overlay.querySelector('[data-role="wp-estimate"]');
+        if (estEl) {
+            const est = GM().estimateCompile(p, state.merge);
+            estEl.textContent = `≈ ${est.areas} areas · ${est.ways} ways`
+                + (est.links ? ` · 🔗 ${est.links} linked` : '');
+        }
+        // 3. Update value readout and swatch
+        const swatch = state.overlay && state.overlay.querySelector('[data-role="wp-value-swatch"]');
+        if (swatch) {
+            swatch.style.background = GM().layerColor(state.layer, state.value) || 'transparent';
+        }
+        const pick = state.overlay && state.overlay.querySelector('[data-role="wp-value"]');
+        if (pick) {
+            const sections = _paletteSections(state.layer);
+            const tile = GM().paletteTile(sections, state.value);
+            pick.textContent = (tile ? tile.name : (state.value || '(no tiles)')) + '  ▾';
+        }
+        const detail = state.overlay && state.overlay.querySelector('[data-role="wp-value-detail"]');
+        if (detail) {
+            const sections = _paletteSections(state.layer);
+            const tile = GM().paletteTile(sections, state.value);
+            const text = tile ? GM().tileDetail(state.layer, tile.rec) : '';
+            detail.textContent = text;
+            detail.title = text;
+        }
+        // 4. Update tool rail buttons active state and tool rail options
+        const oldRail = state.overlay && state.overlay.querySelector('[data-role="wp-rail"]');
+        if (oldRail && oldRail.parentElement) {
+            const freshRail = _toolRail(p);
+            oldRail.replaceWith(freshRail);
+        }
+        // 5. Update recents row
+        const oldRecents = state.overlay && state.overlay.querySelector('[data-role="wp-recents"]');
+        if (oldRecents && oldRecents.parentElement) {
+            const freshRecents = _recentsRow();
+            oldRecents.replaceWith(freshRecents);
+        }
+        // 6. Update palette dock in studio row
+        const withRail = state.overlay && state.overlay.querySelector('[data-role="wp-studio-row"]');
+        if (withRail) {
+            const existingPalette = withRail.querySelector('[data-role="wp-palette"]');
+            if (state.paletteOpen && !existingPalette) {
+                const pal = _palettePanel();
+                if (pal)
+                    withRail.appendChild(pal);
+            }
+            else if (!state.paletteOpen && existingPalette) {
+                existingPalette.remove();
+            }
+            else if (state.paletteOpen && existingPalette) {
+                const freshPal = _palettePanel();
+                if (freshPal)
+                    existingPalette.replaceWith(freshPal);
+            }
+        }
+        // 7. Update cell panel (inspector)
+        if (state.scrollBox) {
+            const existingPanel = state.scrollBox.querySelector('[data-role="wp-cellpanel"]');
+            if (state.inspected) {
+                const freshPanel = _cellPanel(p);
+                if (existingPanel && freshPanel) {
+                    existingPanel.replaceWith(freshPanel);
+                }
+                else if (!existingPanel && freshPanel) {
+                    const railRow = state.scrollBox.querySelector('[data-role="wp-studio-row"]');
+                    if (railRow && railRow.nextSibling) {
+                        state.scrollBox.insertBefore(freshPanel, railRow.nextSibling);
+                    }
+                    else {
+                        state.scrollBox.appendChild(freshPanel);
+                    }
+                }
+            }
+            else if (existingPanel) {
+                existingPanel.remove();
+            }
+        }
+        // 8. Update checklist
+        if (state.scrollBox) {
+            const existingChecklist = state.scrollBox.querySelector('[data-role="wp-checklist"]');
+            if (existingChecklist) {
+                const freshChecklist = _checklist(p);
+                existingChecklist.replaceWith(freshChecklist);
+            }
+        }
+        // 9. Redraw Konva layers
+        _redrawGrid();
+        _redrawDecor();
+    }
     /**
      * The values the current layer may be painted with, in the **vocabulary's own
-     * shape** — `{id, name, tags}` — because that is what the palette groups, the
+     * shape** - `{id, name, tags}` - because that is what the palette groups, the
      * select renders (`${o.name} (${o.id})`) and `_defaultValueForLayer` reads
      * (`o.id`). Wrapping them as `{value, label}` here would have every consumer
      * reading `undefined` and a dropdown full of it.
      */
     function _layerOptions(layer) {
+        const cached = _layerOptionsCache.get(layer);
+        if (cached)
+            return cached;
         const vocab = state.vocab || {};
+        let res = [];
         if (layer === 'biome')
-            return (vocab.b || vocab.biomes || []).slice();
-        if (layer === 'road')
-            return (vocab.f || vocab.features || []).slice();
-        if (layer === 'climate') {
+            res = (vocab.b || vocab.biomes || []).slice();
+        else if (layer === 'road')
+            res = (vocab.f || vocab.features || []).slice();
+        else if (layer === 'climate') {
             // Shaped like a record so one renderer serves every layer, with the
             // base °C in the name because that number is the whole point of
             // painting it (task-557) and it otherwise lives only in the report.
-            return GM().CLIMATE_IDS.map((id) => {
+            res = GM().CLIMATE_IDS.map((id) => {
                 const c = GM().CLIMATES[id] || {};
                 return {
                     id,
@@ -353,7 +637,9 @@
                 };
             });
         }
-        return [];
+        if (state.vocab)
+            _layerOptionsCache.set(layer, res);
+        return res;
     }
     /** A climate legend, shown while the climate layer is active (task-557). */
     function _climateLegend() {
@@ -384,23 +670,31 @@
      * The layer's records grouped into rail sections (task-759).
      *
      * The grouping is derived from each record's own `terrain` and `tags` by the
-     * view-model (`grid-model.paletteSections`) — rooms by purpose, buildings by
+     * view-model (`grid-model.paletteSections`) - rooms by purpose, buildings by
      * category, wild terrain by `terrain`, structure on its own. It is never a
      * hand-kept category list, which would be a second taxonomy beside the
      * vocabulary the compiler reads.
      */
     function _paletteSections(layer) {
+        const p = state.payload;
+        const mode = p ? (p.mode || (p.scope && p.scope.mode) || '') : '';
+        const memoKey = `${layer}:${mode}`;
+        const cached = _paletteSectionsCache.get(memoKey);
+        if (cached)
+            return cached;
         const all = GM().paletteSections(layer, _layerOptions(layer));
         // Both the toolbar value picker and the palette panel read through here,
         // so the mode filter (task-774) cannot make them disagree.
-        const p = state.payload;
-        const mode = p ? (p.mode || (p.scope && p.scope.mode) || null) : null;
-        return GM().paletteForMode(all, mode);
+        const filtered = GM().paletteForMode(all, mode || null);
+        if (state.vocab)
+            _paletteSectionsCache.set(memoKey, filtered);
+        return filtered;
     }
     function _defaultValueForLayer(layer) {
         // The floor layer is a *storey index* (engine/world_grid.py): 0 is ground,
-        // so 1 — "one storey up" — is the only useful value to start dragging
+        // so 1 - "one storey up" - is the only useful value to start dragging
         // with. It used to default to a 0..1 height fraction, which is not a
+        // storey and cannot express "eighty floors up".
         // storey and cannot express "eighty floors up".
         if (layer === 'floor')
             return '1';
@@ -659,13 +953,17 @@
         return b;
     }
     async function load(scopeId) {
+        _saveScopePrefs();
         state.scopeId = scopeId;
         state.selectedChild = null;
-        state.view = null; // a new scope opens fitted
+        state.view = null; // a new scope opens fitted, or restored from prefs
         state.route = [];
         state.refEdit = false; // reference adjust is per-scope
         state.refDrag = null;
         state.cellSizePreview = null; // a candidate belongs to one scope only
+        state.paintCache = null;
+        state.paintCacheValid = false;
+        _loadScopePrefs(scopeId);
         const box = _renderShell('🗺️ WorldPainter');
         box.appendChild(_el('div', 'color:var(--text-muted,#999);', 'Loading grid…'));
         try {
@@ -693,11 +991,11 @@
     function _renderShell(title) {
         // Read the author's position BEFORE the wipe below. Clearing the panel
         // detaches the old scroll box, and a detached element reports scrollTop
-        // 0 — so reading it afterwards silently threw the view back to the top.
+        // 0 - so reading it afterwards silently threw the view back to the top.
         // Only a box whose position has actually been applied is trusted, and only if it
         // can scroll. Two things make a capture wrong: an intermediate "Loading
         // grid…" shell has no overflow, and a second render inside the same task
-        // sees the newest box before its scrollTop is applied — both report 0 and
+        // sees the newest box before its scrollTop is applied - both report 0 and
         // would overwrite the author's real position.
         if (state.scrollBox && state.scrollRestored
             && state.scrollBox.scrollHeight > state.scrollBox.clientHeight) {
@@ -716,9 +1014,16 @@
         const box = _el('div', 'display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:auto;');
         panel.appendChild(box);
         state.scrollBox = box;
+        // Fixed status bar at bottom of panel (task-776): stays visible without scrolling.
+        const statusBar = _el('div', 'flex:0 0 auto;margin-top:6px;font-size:12px;min-height:18px;display:flex;align-items:center;'
+            + 'border-top:1px solid var(--border,#2b2b36);padding-top:4px;');
+        statusBar.setAttribute('data-role', 'wp-status');
+        statusBar.setAttribute('data-role-fixed', 'wp-status-bar');
+        panel.appendChild(statusBar);
+        _updateStatusBar();
         // Restore AFTER the content is in. load() calls this while the box is
         // still empty, and scrollTop on an element with nothing to scroll is
-        // clamped to 0 — so setting it here stored 0 and lost the position. One
+        // clamped to 0 - so setting it here stored 0 and lost the position. One
         // frame later the body is populated and the assignment sticks.
         const want = state.scrollTop;
         state.scrollRestored = false;
@@ -759,6 +1064,7 @@
         // Docking the palette beside the canvas means opening it never shoves the
         // canvas below the fold or forces vertical scrolling to paint.
         const withRail = _el('div', 'display:flex;gap:10px;align-items:stretch;flex:1 1 auto;min-height:0;');
+        withRail.setAttribute('data-role', 'wp-studio-row');
         withRail.appendChild(_toolRail(p));
         withRail.appendChild(_grid(p));
         if (state.paletteOpen) {
@@ -773,15 +1079,10 @@
         // The "what next" checklist sits below the map, not above it. The canvas
         // is the thing being looked at, and a collapsed progress bar wedged
         // between the toolbar and the art was the only thing standing between an
-        // author and their paint — so it now reports from under the image.
+        // author and their paint - so it now reports from under the image.
         box.appendChild(_checklist(p));
         _renderChildren(box, p);
-        if (state.status) {
-            const color = state.statusError ? '#e66' : '#9c9';
-            const status = _el('div', `margin-top:8px;font-size:12px;color:${color};`, state.status);
-            status.setAttribute('data-role', 'wp-status');
-            box.appendChild(status);
-        }
+        _updateStatusBar();
     }
     function _breadcrumb(trail) {
         const row = _el('div', 'margin-bottom:8px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;');
@@ -815,9 +1116,12 @@
         ['move', '✥ Move', 'M',
             'Shift the selected cells\' contents one cell. Arrow keys, or WASD, '
                 + 'or the nudge buttons. Clamped to the grid; one request, one undo.'],
-        ['route', '🧭 Route', 'R', 'Click waypoints, then ✓ Paint route — paints the '
+        ['route', '🧭 Route', 'R', 'Click waypoints, then ✓ Paint route - paints the '
                 + 'current layer along the line (1 cell = 1 turn).'],
-        ['feature', '🏠 Feature', 'F', 'Place a sub-zone (child scope) at a cell — not a '
+        ['vision', '👁 Vision', 'L', 'Debug 2.5D line of sight (LoS) raycasting. '
+                + 'Click an origin cell, then click any target cell to cast a sightline ray. '
+                + 'Inspect elevation clearance, obscurity, and directional facing.'],
+        ['feature', '🏠 Feature', 'F', 'Place a sub-zone (child scope) at a cell - not a '
                 + 'road. Roads/bridges are painted on the road layer.'],
         ['area', '📍 Area', 'A', 'Put an area you already wrote (Northern Hills, Murk '
                 + 'Lake…) on a cell of this map. Pick the area, then click where '
@@ -826,6 +1130,17 @@
                 + 'on it, and which area or child scope sits there. Right-click does the '
                 + 'same on any tool.'],
     ];
+    function _recomputeVisionField(p) {
+        if (!state.visionOrigin) {
+            state.visionVisibleSet = null;
+            return;
+        }
+        const origFloor = state.visionOrigin.floor != null
+            ? state.visionOrigin.floor
+            : GM().tileFloor(p, state.visionOrigin.x, state.visionOrigin.y);
+        const visSet = GM().computeVisibleCells(p, [state.visionOrigin.x, state.visionOrigin.y, origFloor], 60, state.visionFacing || null, state.visionFacing ? 120.0 : 360.0);
+        state.visionVisibleSet = visSet;
+    }
     function _toolRail(p) {
         const rail = _el('div', 'display:flex;flex-direction:column;gap:4px;flex:0 0 auto;');
         rail.setAttribute('data-role', 'wp-rail');
@@ -916,6 +1231,76 @@
             _help(brushSel, 'wp-brush');
             return box;
         }
+        if (state.tool === 'vision') {
+            const box = _el('div', 'display:flex;flex-direction:column;gap:5px;align-items:flex-start;width:100%;');
+            const orig = state.visionOrigin;
+            const tgt = state.visionTarget;
+            box.appendChild(_el('span', 'font-size:11px;font-weight:600;color:var(--text,#ddd);', 'Raycast Debugger'));
+            box.appendChild(_el('span', 'font-size:10.5px;color:var(--text-muted,#999);line-height:1.3;', orig ? `Origin: (${orig.x}, ${orig.y}) z=${orig.floor ?? 0}` : 'Click canvas to set origin'));
+            if (tgt) {
+                box.appendChild(_el('span', 'font-size:10.5px;color:var(--text-muted,#999);line-height:1.3;', `Target: (${tgt.x}, ${tgt.y}) z=${tgt.floor ?? 0}`));
+            }
+            if (state.visionRay) {
+                const vis = state.visionRay.visible;
+                const statusBadge = _el('span', 'font-size:10.5px;padding:2px 6px;border-radius:4px;font-weight:700;'
+                    + (vis ? 'background:#1f4a2c;color:#3fb950;' : 'background:#5c2226;color:#f85149;'), vis ? '✔ CLEAR SIGHTLINE' : '✖ BLOCKED');
+                box.appendChild(statusBadge);
+                if (state.visionRay.reason) {
+                    box.appendChild(_el('span', 'font-size:10px;color:#f85149;line-height:1.2;', state.visionRay.reason));
+                }
+            }
+            // Facing cone control
+            box.appendChild(_el('span', 'font-size:10px;color:var(--text-muted,#999);margin-top:3px;', 'facing arc (120°):'));
+            const facingSel = _el('select', 'padding:2px 4px;font-size:11px;border-radius:4px;width:100%;');
+            facingSel.setAttribute('data-role', 'wp-vision-facing');
+            const dirs = [
+                ['', 'Omnidirectional (360°)'],
+                ['n', 'North (N)'],
+                ['ne', 'North-East (NE)'],
+                ['e', 'East (E)'],
+                ['se', 'South-East (SE)'],
+                ['s', 'South (S)'],
+                ['sw', 'South-West (SW)'],
+                ['w', 'West (W)'],
+                ['nw', 'North-West (NW)']
+            ];
+            dirs.forEach(([val, lbl]) => {
+                const opt = _el('option', null, lbl);
+                opt.value = val;
+                if ((state.visionFacing || '') === val)
+                    opt.selected = true;
+                facingSel.appendChild(opt);
+            });
+            facingSel.addEventListener('change', () => {
+                state.visionFacing = facingSel.value || null;
+                if (state.visionOrigin && state.payload) {
+                    _recomputeVisionField(state.payload);
+                }
+                _redrawDecor();
+            });
+            box.appendChild(facingSel);
+            // Vision Lens toggle
+            const lensBtn = _btn(state.visionLens ? '✔ Vision Lens: ON' : 'Vision Lens: OFF', () => {
+                state.visionLens = !state.visionLens;
+                if (state.visionLens && state.visionOrigin && state.payload) {
+                    _recomputeVisionField(state.payload);
+                }
+                render();
+            }, 'font-size:10.5px;width:100%;' + (state.visionLens ? 'outline:1px solid #7ab;background:#1e3550;' : ''));
+            lensBtn.title = 'Highlight all visible cells from origin (LoS field)';
+            box.appendChild(lensBtn);
+            if (orig || tgt) {
+                box.appendChild(_btn('Clear ray', () => {
+                    state.visionOrigin = null;
+                    state.visionTarget = null;
+                    state.visionRay = null;
+                    state.visionVisibleSet = null;
+                    _redrawDecor();
+                    _status('Vision debugger cleared.');
+                }, 'font-size:10.5px;width:100%;', 'Clear current origin and target'));
+            }
+            return box;
+        }
         return null;
     }
     /**
@@ -944,7 +1329,8 @@
         state.marquee = null;
         state.brushHover = null;
         _syncDraggable();
-        render();
+        _saveScopePrefs();
+        softRender();
     }
     /**
      * The per-mode "what do I do now" list, with live progress.
@@ -967,15 +1353,15 @@
         const allDone = done === steps.length;
         // Self-showing while the author has not taken control of it: open for a
         // scope with nothing on it, collapse once there is real paint. Once they
-        // click it, their choice sticks — an author who collapsed it to get on
+        // click it, their choice sticks - an author who collapsed it to get on
         // with painting should not have it pop back open on the next stroke.
         if (!state.checklistTouched) {
             state.checklistOpen = done === 0 || !_paintedCount(p);
         }
-        const toggle = _btn(allDone ? '✔ all done' : `📋 ${done}/${steps.length} — what next`, () => {
+        const toggle = _btn(allDone ? '✔ all done' : `📋 ${done}/${steps.length} - what next`, () => {
             state.checklistOpen = !state.checklistOpen;
             state.checklistTouched = true;
-            render();
+            softRender();
         }, 'font-size:11px;padding:2px 8px;', allDone
             ? 'Every step for this mode is done.'
             : 'What this kind of scope needs, in the order it needs it.');
@@ -1003,6 +1389,27 @@
                 text.appendChild(_el('div', 'color:#7a7;', '→ ' + s.note));
             }
             row.appendChild(text);
+            if (!s.done) {
+                row.style.cursor = 'pointer';
+                row.title = 'Click to arm this step (' + (s.tool ? `tool: ${s.tool}` : 'action') + ')';
+                row.setAttribute('data-actionable', 'true');
+                row.addEventListener('click', () => {
+                    if (s.tool)
+                        state.tool = s.tool;
+                    if (s.layer)
+                        state.layer = s.layer;
+                    if (s.value)
+                        state.value = s.value;
+                    _saveScopePrefs();
+                    if (s.action) {
+                        s.action();
+                    }
+                    else {
+                        softRender();
+                        _status(`Armed step: ${s.title}` + (s.tool ? ` Tool: ${s.tool}` : '') + (s.layer ? ` (${s.layer}: ${s.value})` : '') + '.', false);
+                    }
+                });
+            }
             wrap.appendChild(row);
         }
         return wrap;
@@ -1022,7 +1429,7 @@
         }
         if (mode === 'interior') {
             return 'An interior is a floor plan. Paint rooms, join them with doors, '
-                + 'put a storey number where the level changes, and name the rooms — '
+                + 'put a storey number where the level changes, and name the rooms - '
                 + 'corridors always merge into one place, rooms never do.';
         }
         return 'A world scope is deliberately coarse: the shape of the land and how '
@@ -1055,62 +1462,90 @@
             how: 'One cell is one minute of walking, so the size is how long the '
                 + 'place takes to cross. ▦ Grid… sets it.',
             done: !!p.scope.has_grid,
+            action: () => _openGridDialog(p),
         };
         const ground = {
             title: 'Paint the ground.',
             how: 'Biome layer, a big brush, dragged over the area. Tick "merge '
                 + 'same-biome" or every cell becomes its own area.',
             done: biomeCells.length > 0,
+            tool: 'paint',
+            layer: 'biome',
+            value: 'sparse_forest',
         };
         const roads = {
             title: 'Lay the roads.',
             how: 'Road layer, value "road", with the 🧭 Route tool — click '
                 + 'waypoints, then ✓ Paint route.',
             done: roadCells.length > 0,
+            tool: 'route',
+            layer: 'road',
+            value: 'road',
         };
         const namesStep = {
             title: 'Name the places.',
             how: 'Right-click a cell, use the name field. A place with no name '
                 + 'compiles to "Inn (Eldenford 12,7)" and cannot be asked for.',
             done: names > 0 && names >= (biomeCells.length + roadCells.length) * 0.5,
+            tool: 'select',
         };
-        const generate = {
+        const generateStep = {
             title: 'Generate.',
             how: 'Turns the painted cells into real areas and ways. Do it last, '
                 + 'and generate the parent before its children so the gateways '
                 + 'between them get minted.',
             done: generated,
-            note: 'already generated — Ungenerate to start over',
+            note: 'already generated - Ungenerate to start over',
+            action: () => generate(),
         };
         const reference = {
             title: 'Line the art up.',
             how: 'Load a reference image, then ▦ match so the grid takes the '
                 + "image's aspect and a cell is the same place in both.",
             done: !!(p.reference && p.reference.image),
+            action: () => {
+                const sel = state.overlay && state.overlay.querySelector('[data-role="wp-bg-select"]');
+                if (sel)
+                    sel.focus();
+                else
+                    _status('Choose a reference image from the HUD dropdown.', false);
+            },
         };
         if (mode === 'settlement' || mode === 'town') {
             return [grid, ground, roads,
                 { title: 'Wall it in.', how: 'Biome layer, value "wall", along the '
                         + 'perimeter. Walls are structure: they never become places, '
                         + 'which is exactly what makes them walls.',
-                    done: wallCells > 0 },
+                    done: wallCells > 0,
+                    tool: 'paint',
+                    layer: 'biome',
+                    value: 'wall' },
                 { title: 'Open the gates.', how: 'Road layer, values "gate" and '
                         + '"bridge", on the wall line where a road leaves. This is how '
                         + 'a town gets more than one way in.',
-                    done: roadCells.some((k) => /gate|bridge|ford|tunnel/.test(String((layers.road || {})[k] || ''))) },
+                    done: roadCells.some((k) => /gate|bridge|ford|tunnel/.test(String((layers.road || {})[k] || ''))),
+                    tool: 'paint',
+                    layer: 'road',
+                    value: 'gate' },
                 { title: 'Place the buildings.', how: 'One cell each, from the '
                         + 'Buildings section of the value list. Buildings never merge, '
-                        + 'so a terrace stays a terrace.', done: buildingCells > 0 },
+                        + 'so a terrace stays a terrace.',
+                    done: buildingCells > 0,
+                    tool: 'paint',
+                    layer: 'biome',
+                    value: 'house' },
                 namesStep,
                 { title: 'Give the buildings interiors.', how: '➕ Add feature… '
                         + 'names a child scope (mode becomes interior), then 🏠 Feature '
-                        + 'places it on the building\'s cell.', done: children > 0 },
-                generate];
+                        + 'places it on the building\'s cell.',
+                    done: children > 0,
+                    tool: 'feature' },
+                generateStep];
         }
         if (mode === 'interior') {
-            return [grid, ground, roads, namesStep, generate];
+            return [grid, ground, roads, namesStep, generateStep];
         }
-        return [grid, reference, ground, roads, namesStep, generate];
+        return [grid, reference, ground, roads, namesStep, generateStep];
     }
     function _toolbar(p) {
         const wrap = _el('div', 'display:flex;flex-wrap:nowrap;gap:8px;align-items:center;' +
@@ -1136,10 +1571,12 @@
         layerSel.addEventListener('change', () => {
             state.layer = layerSel.value;
             state.value = _defaultValueForLayer(state.layer);
-            render();
+            _saveScopePrefs();
+            softRender();
         });
         _help(wrap.appendChild(layerSel), 'wp-layer');
         wrap.appendChild(_help(_valueControl(), 'wp-value'));
+        wrap.appendChild(_recentsRow());
         // Unified Grid control (task-876): combines exact-number dialog and on-canvas direct adjust.
         const gridBox = _el('div', 'position:relative;display:inline-flex;align-items:center;');
         const gridBtn = _btn((state.gridEdit ? '✔ ' : '▦ ') + (p.grid ? `${p.grid.w}×${p.grid.h}` : 'Grid') + ' ▾', () => {
@@ -1177,11 +1614,27 @@
         }, 'font-size:11px;' + (state.gridEdit ? 'outline:2px solid #7ab;background:#1e3550;' : ''), 'Grid settings: resize dimensions, presets, or adjust directly on canvas');
         gridBox.appendChild(gridBtn);
         wrap.appendChild(gridBox);
+        const lensBtn = _btn(state.visionLens ? '👁 Vision Lens: ON' : '👁 Vision Lens', () => {
+            state.visionLens = !state.visionLens;
+            if (state.visionLens && !state.visionOrigin && p.grid) {
+                state.visionOrigin = {
+                    x: Math.floor(p.grid.w / 2),
+                    y: Math.floor(p.grid.h / 2),
+                    floor: GM().tileFloor(p, Math.floor(p.grid.w / 2), Math.floor(p.grid.h / 2))
+                };
+            }
+            if (state.visionOrigin && state.payload) {
+                _recomputeVisionField(state.payload);
+            }
+            render();
+        }, 'font-size:11px;' + (state.visionLens ? 'outline:2px solid #58a6ff;background:#1f4a7d;' : ''), 'Toggle Character Vision Lens: highlight 2.5D raycast line-of-sight on grid');
+        lensBtn.setAttribute('data-role', 'wp-vision-lens');
+        wrap.appendChild(lensBtn);
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
         // Why this scope cannot be compiled yet, and what to do about it
         // (engine/world_compile.preflight). The compiler refuses the same
         // conditions, but it refuses them *after* the click and only states the
-        // rule — so a scope promoted from existing areas (always `baked`, never
+        // rule - so a scope promoted from existing areas (always `baked`, never
         // carrying paint) used to fail with a sentence that explained neither how
         // it got that way nor how out of it. Said here, the button and its
         // reason are side by side.
@@ -1193,7 +1646,7 @@
         // rooms onto a world map, which is a wall grid already says something.
         if (p.scope.mode === 'interior') {
             wrap.appendChild(_help(_btn('🏠 Paint an interior…', paintInterior, '', 'Paint a building type\'s floor plan in as cells: a tavern gets a '
-                + 'tap room, kitchen and cellar. It is a draft — edit the cells, '
+                + 'tap room, kitchen and cellar. It is a draft - edit the cells, '
                 + 'then Generate.'), 'wp-paint-interior'));
         }
         // Compile the painted grid into real area/way nodes (task-496/398).
@@ -1246,7 +1699,7 @@
         _help(wrap.appendChild(estEl), 'wp-estimate');
         const blocked = blockers.filter((b) => b && b.severity === 'block');
         wrap.appendChild(_help(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;', blocked.length
-            ? 'This scope cannot be compiled yet — ' + blocked.map((b) => b.text).join(' ')
+            ? 'This scope cannot be compiled yet - ' + blocked.map((b) => b.text).join(' ')
             : 'Turn this scope\'s painted cells into real areas and ways.'), 'wp-generate'));
         wrap.appendChild(_help(_btn('🧹 Ungenerate', () => ungenerate(), 'color:#c96;', 'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'), 'wp-ungenerate'));
         wrap.appendChild(_btn('⟳', () => load(state.scopeId)));
@@ -1299,12 +1752,12 @@
             'border-radius:3px;border:1px solid #555;flex:0 0 auto;');
         swatch.setAttribute('data-role', 'wp-value-swatch');
         wrap.appendChild(swatch);
-        const pick = _btn('', () => { state.paletteOpen = !state.paletteOpen; render(); }, 'min-width:150px;text-align:left;', 'Open the palette to choose what this layer paints (task-759).');
+        const pick = _btn('', () => { state.paletteOpen = !state.paletteOpen; _saveScopePrefs(); softRender(); }, 'min-width:150px;text-align:left;', 'Open the palette to choose what this layer paints (task-759).');
         pick.setAttribute('data-role', 'wp-value');
         wrap.appendChild(pick);
         // What the tile *is* and *does* (task-596): the palette used to be a wall
-        // of names; the detail line names the prose, the kind, the ground, and —
-        // for the road layer — the terrain it crosses and the verb you arrive
+        // of names; the detail line names the prose, the kind, the ground, and -
+        // for the road layer - the terrain it crosses and the verb you arrive
         // with, which is the difference between a bridge and a road.
         const detail = _el('div', 'font-size:11px;color:var(--text-muted,#999);' +
             'line-height:1.4;flex-basis:100%;max-width:460px;');
@@ -1322,8 +1775,8 @@
     /**
      * The palette surface (task-759): a category rail derived from the records'
      * own terrain/tags, a tile grid, a search box, and a detail panel. It is a
-     * view over the same vocabulary the compiler reads — no second read of
-     * `biomes.json` — and picking a tile sets `state.value` and nothing else.
+     * view over the same vocabulary the compiler reads - no second read of
+     * `biomes.json` - and picking a tile sets `state.value` and nothing else.
      *
      * Open state, category and query live on `state` so a render (which the panel
      * itself triggers on a pick) rebuilds it where the author left it.
@@ -1342,7 +1795,7 @@
         const head = _el('div', 'display:flex;align-items:center;gap:6px;');
         head.appendChild(_el('span', 'font-weight:600;font-size:13px;', 'Palette'));
         head.appendChild(_el('div', 'flex:1;'));
-        head.appendChild(_btn('✕', () => { state.paletteOpen = false; render(); }, 'padding:2px 8px;', 'Close the palette dock'));
+        head.appendChild(_btn('✕', () => { state.paletteOpen = false; _saveScopePrefs(); softRender(); }, 'padding:2px 8px;', 'Close the palette dock'));
         wrap.appendChild(head);
         const subHint = _el('div', 'font-size:11px;color:var(--text-muted,#999);line-height:1.2;', 'hover to preview · click to paint');
         wrap.appendChild(subHint);
@@ -1411,10 +1864,11 @@
                 b.addEventListener('focus', () => showDetail(t));
                 b.addEventListener('click', (ev) => {
                     state.value = t.id;
-                    state.paletteOpen = true;
+                    _pushRecent(layer, state.value);
+                    _saveScopePrefs();
                     // Drop focus so the next Space reaches the pan handler (bug-511).
                     ev.currentTarget.blur();
-                    render();
+                    softRender();
                 });
                 grid.appendChild(b);
             });
@@ -1429,7 +1883,8 @@
         search.addEventListener('keydown', (ev) => {
             if (ev.key === 'Escape') {
                 state.paletteOpen = false;
-                render();
+                _saveScopePrefs();
+                softRender();
             }
         });
         build();
@@ -1987,8 +2442,10 @@
     }
     function _captureView() {
         const stage = state.stage;
-        if (stage)
+        if (stage) {
             state.view = { x: stage.x(), y: stage.y(), scale: stage.scaleX() };
+            _saveScopePrefs();
+        }
     }
     function _redrawGrid() {
         if (state.stage)
@@ -2665,6 +3122,19 @@
         ctx.restore();
     }
     function _drawPaint(ctx, p) {
+        if (!p.grid)
+            return;
+        if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+            _ensurePaintCache(p);
+            if (state.paintCache) {
+                ctx.save();
+                ctx.globalAlpha = state.paintAlpha == null ? 1 : state.paintAlpha;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(state.paintCache, 0, 0, p.grid.w, p.grid.h, 0, 0, p.grid.w * CELL, p.grid.h * CELL);
+                ctx.restore();
+                return;
+            }
+        }
         ctx.save();
         ctx.globalAlpha = state.paintAlpha == null ? 1 : state.paintAlpha;
         const layers = p.layers || {};
@@ -2678,7 +3148,7 @@
                 if (!color)
                     return;
                 ctx.fillStyle = color;
-                ctx.fillRect(pos.x * CELL + 1, pos.y * CELL + 1, CELL - 2, CELL - 2);
+                ctx.fillRect(pos.x * CELL, pos.y * CELL, CELL, CELL);
             });
         });
         ctx.restore();
@@ -2738,10 +3208,98 @@
         const s = String(text == null ? '' : text);
         return s.length > max ? `${s.slice(0, max - 1)}…` : s;
     }
+    function _drawVisionDecor(ctx) {
+        if (state.tool !== 'vision' && !state.visionLens)
+            return;
+        // 1. Draw LoS field highlights (if lens active or vision tool has origin)
+        if (state.visionVisibleSet && (state.visionLens || state.tool === 'vision')) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(45, 85, 132, 0.28)';
+            state.visionVisibleSet.forEach((key) => {
+                const c = GM().parseCellKey(key);
+                if (c) {
+                    ctx.fillRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
+                }
+            });
+            ctx.restore();
+        }
+        // 2. Draw origin marker
+        if (state.visionOrigin) {
+            const ox = state.visionOrigin.x * CELL + CELL / 2;
+            const oy = state.visionOrigin.y * CELL + CELL / 2;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(ox, oy, CELL * 0.45, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(45, 85, 132, 0.7)';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#58a6ff';
+            ctx.stroke();
+            // Pupil / eye dot
+            ctx.beginPath();
+            ctx.arc(ox, oy, CELL * 0.18, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            // Facing cone arc indicator
+            if (state.visionFacing) {
+                const compassAngles = {
+                    e: 0, se: 45, s: 90, sw: 135,
+                    w: 180, nw: 225, n: 270, ne: 315
+                };
+                const f = state.visionFacing.toLowerCase();
+                if (compassAngles[f] != null) {
+                    const centerRad = (compassAngles[f] * Math.PI) / 180;
+                    const halfRad = (60 * Math.PI) / 180;
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.arc(ox, oy, CELL * 2.5, centerRad - halfRad, centerRad + halfRad);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(88, 166, 255, 0.18)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#58a6ff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+        // 3. Draw raycast line and steps
+        if (state.visionOrigin && state.visionTarget && state.visionRay) {
+            const ox = state.visionOrigin.x * CELL + CELL / 2;
+            const oy = state.visionOrigin.y * CELL + CELL / 2;
+            const tx = state.visionTarget.x * CELL + CELL / 2;
+            const ty = state.visionTarget.y * CELL + CELL / 2;
+            ctx.save();
+            // Highlight supercover steps
+            const steps = state.visionRay.steps || [];
+            steps.forEach((s) => {
+                ctx.fillStyle = s.blocked ? 'rgba(248, 81, 73, 0.35)' : 'rgba(63, 185, 80, 0.2)';
+                ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
+                if (s.blocked) {
+                    ctx.strokeStyle = '#f85149';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
+                }
+            });
+            // Ray line
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(tx, ty);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = state.visionRay.visible ? '#3fb950' : '#f85149';
+            ctx.stroke();
+            // Target marker
+            ctx.beginPath();
+            ctx.arc(tx, ty, 4, 0, Math.PI * 2);
+            ctx.fillStyle = state.visionRay.visible ? '#3fb950' : '#f85149';
+            ctx.fill();
+            ctx.restore();
+        }
+    }
     function _drawRoute(ctx) {
         // In-progress paint stroke (drag): drawn optimistically, committed on
         // mouse-up as one batch. Without this a brush drag felt like "click and
-        // wait" — now it paints a live trail.
+        // wait" - now it paints a live trail.
         if (state.stroke && state.stroke.length) {
             ctx.save();
             ctx.globalAlpha = state.paintAlpha == null ? 1 : state.paintAlpha;
@@ -2769,6 +3327,7 @@
             ctx.setLineDash([]);
             ctx.restore();
         }
+        _drawVisionDecor(ctx);
         const pts = state.route || [];
         if (!pts.length)
             return;
@@ -2837,6 +3396,9 @@
             _redrawDecor();
             return;
         }
+        if (layer && value !== null && value !== undefined) {
+            _pushRecent(layer, value);
+        }
         try {
             if (cells.length === 1) {
                 // Slim ack + optimistic patch (bug-545): the server returns
@@ -2853,16 +3415,9 @@
                         delete map[key];
                     else
                         map[key] = value;
+                    _patchPaintCache(state.payload, cells);
                     _notify(true);
-                    if (state.layers && state.layers.paint)
-                        state.layers.paint.batchDraw();
-                    _redrawDecor();
-                    const estEl = state.overlay && state.overlay.querySelector('[data-role="wp-estimate"]');
-                    if (estEl) {
-                        const est = GM().estimateCompile(state.payload, state.merge);
-                        estEl.textContent = `≈ ${est.areas} areas · ${est.ways} ways`
-                            + (est.links ? ` · 🔗 ${est.links} linked` : '');
-                    }
+                    softRender();
                     const hadNoPaint = Array.isArray(state.payload.blockers)
                         && state.payload.blockers.some((b) => b && b.code === 'no-paint');
                     if (hadNoPaint && Object.keys(map).length > 0) {
@@ -2875,15 +3430,22 @@
                     return;
                 }
                 // Old server (or unexpected shape): fall back to the payload.
-                if (ack && ('layers' in ack))
+                if (ack && ('layers' in ack)) {
                     state.payload = ack;
+                    _patchPaintCache(state.payload || p, cells);
+                    _notify(true);
+                    softRender();
+                    return;
+                }
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`, { layer, x: cells[0].x, y: cells[0].y, value });
+                _patchPaintCache(state.payload || p, cells);
             }
             else {
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
+                _patchPaintCache(state.payload || p, cells);
             }
             _notify(true);
-            render();
+            softRender();
         }
         catch (e) {
             _status(`Paint failed: ${errText(e)}`, true);
@@ -2895,7 +3457,7 @@
         let dragged = false;
         // Paint/erase drag = paint. Pan is space-drag (or the zoom buttons), so a
         // stroke is never interrupted by a pan. Select drag = marquee, decided by
-        // the active tool and nothing else — a drag means different things under
+        // the active tool and nothing else - a drag means different things under
         // different tools, and which one is always the tool the author can see.
         // In reference-adjust mode the drag belongs to the picture, so only space
         // pans there.
@@ -2934,7 +3496,9 @@
                 const val = GM().cellValue(p, state.layer, cell.x, cell.y);
                 if (val !== undefined && val !== null && val !== '') {
                     state.value = String(val);
-                    render();
+                    _pushRecent(state.layer, state.value);
+                    _saveScopePrefs();
+                    softRender();
                     _status(`Sampled ${state.layer} "${state.value}" from cell (${cell.x}, ${cell.y}).`, false);
                 }
                 else {
@@ -2957,6 +3521,7 @@
             _strokeAdd(p, _cellAtPointer(p));
             _redrawDecor();
         });
+        let moveRaf = null;
         stage.on('mousemove', () => {
             // The active grid drag tracks itself on the document (it must outlive
             // the pointer leaving the canvas); nothing else may claim the pointer.
@@ -2966,29 +3531,40 @@
                 _refMouseMove(p);
                 return;
             }
-            const cell = _cellAtPointer(p);
-            if (state.marquee && cell) {
-                if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
-                    state.marquee.to = cell;
+            if (moveRaf !== null)
+                return;
+            moveRaf = requestAnimationFrame(() => {
+                moveRaf = null;
+                if (!state.stage)
+                    return;
+                const cell = _cellAtPointer(p);
+                if (state.marquee && cell) {
+                    if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
+                        state.marquee.to = cell;
+                        _redrawDecor();
+                    }
+                    return;
+                }
+                if (state.stroking && _strokeAdd(p, cell))
+                    _redrawDecor();
+                else if (cell) {
+                    state.brushHover = _toolUsesBrush()
+                        ? _brushCells(p, cell.x, cell.y)
+                        : [{ x: cell.x, y: cell.y }];
                     _redrawDecor();
                 }
-                return;
-            }
-            if (state.stroking && _strokeAdd(p, cell))
-                _redrawDecor();
-            else if (cell) {
-                state.brushHover = _toolUsesBrush()
-                    ? _brushCells(p, cell.x, cell.y)
-                    : [{ x: cell.x, y: cell.y }];
-                _redrawDecor();
-            }
-            else {
-                state.brushHover = null;
-                _redrawDecor();
-            }
-            _updateCellInfo(p);
+                else {
+                    state.brushHover = null;
+                    _redrawDecor();
+                }
+                _updateCellInfo(p);
+            });
         });
         stage.on('mouseup mouseleave', () => {
+            if (moveRaf !== null) {
+                cancelAnimationFrame(moveRaf);
+                moveRaf = null;
+            }
             // No grid branch: the drag owns its own document mouseup, so a
             // `mouseleave` here would commit the resize the moment the pointer
             // left the frame.
@@ -3079,8 +3655,8 @@
      *
      * A move is *not* a paint of the destination on top of the source: the source
      * has to end up empty or the move is a smear, and a smear of a road leaves the
-     * map with two of them. So it is one batch — clear every source cell on every
-     * layer it has, then write each value at its new home — which means one undo
+     * map with two of them. So it is one batch - clear every source cell on every
+     * layer it has, then write each value at its new home - which means one undo
      * step, one request, and a rejection of the whole thing if any cell would land
      * off the grid. Clamping is what the task asks for and it is also the honest
      * behaviour: a cell shifted past the edge is dropped from the move, not
@@ -3089,7 +3665,7 @@
     async function _nudge(p, dx, dy) {
         const cells = _selectedCells(p);
         if (!cells.length) {
-            _status('Nothing selected — use the ⬚ Select tool first.', true);
+            _status('Nothing selected - use the ⬚ Select tool first.', true);
             return;
         }
         const layers = GM().PAINT_LAYERS;
@@ -3105,7 +3681,7 @@
             moving.push({ from: c, to: { x: nx, y: ny } });
         });
         if (!moving.length) {
-            _status('The whole selection is against that edge — nowhere to move it.');
+            _status('The whole selection is against that edge - nowhere to move it.');
             return;
         }
         // Clear first, then write: a value moving one cell east must not be
@@ -3130,8 +3706,9 @@
             const dropped = cells.length - moving.length;
             _status(`Moved ${moving.length} cell${moving.length === 1 ? '' : 's'}`
                 + (dropped ? `, ${dropped} left at the edge.` : '.'));
+            state.paintCacheValid = false;
             _notify(true);
-            render();
+            softRender();
         }
         catch (e) {
             _status(`Move failed: ${errText(e)}`, true);
@@ -3152,8 +3729,9 @@
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
             _status(`${state.tool === 'erase' ? 'Cleared' : 'Painted'} ${cells.length} `
                 + `cell${cells.length === 1 ? '' : 's'} on ${layer}.`);
+            state.paintCacheValid = false;
             _notify(true);
-            render();
+            softRender();
         }
         catch (e) {
             _status(`${state.tool === 'erase' ? 'Clear' : 'Paint'} failed: ${errText(e)}`, true);
@@ -3199,7 +3777,7 @@
         _status(n ? `${n} cell${n === 1 ? '' : 's'} selected.`
             : 'Selection cleared.');
         _redrawDecor();
-        render();
+        softRender();
     }
     function _gridClick(p, cell) {
         const fmap = GM().featureMap(p);
@@ -3262,7 +3840,7 @@
     }
     function inspectCell(p, x, y) {
         state.inspected = { x, y };
-        render();
+        softRender();
     }
     function _cellPanel(p) {
         const at = state.inspected;
@@ -3275,7 +3853,7 @@
         const head = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
         head.appendChild(_el('strong', null, `Cell (${info.x},${info.y})`));
         head.appendChild(_el('span', 'color:var(--text-muted,#999);', info.empty ? 'nothing on this cell' : 'what is on this cell'));
-        head.appendChild(_btn('✕', () => { state.inspected = null; render(); }, 'margin-left:auto;padding:1px 7px;', 'Close the cell panel'));
+        head.appendChild(_btn('✕', () => { state.inspected = null; softRender(); }, 'margin-left:auto;padding:1px 7px;', 'Close the cell panel'));
         wrap.appendChild(head);
         const rows = _el('div', 'display:flex;flex-direction:column;gap:2px;margin-top:6px;');
         const row = (label, value) => {
@@ -3284,19 +3862,19 @@
             r.appendChild(_el('span', null, value));
             rows.appendChild(r);
         };
-        row('biome', info.biome ? String(info.biome).replace(/_/g, ' ') : '—');
-        row('road', info.road ? String(info.road).replace(/_/g, ' ') : '—');
+        row('biome', info.biome ? String(info.biome).replace(/_/g, ' ') : '-');
+        row('road', info.road ? String(info.road).replace(/_/g, ' ') : '-');
         row('floor', GM().floorLabel(info.floor));
         // Structure is not a place, and saying so is the point: the author just
         // painted a wall and it will not appear in the graph (task-562).
         row('structure', info.kind
-            ? `not a place — ${STRUCTURE_NOTES[info.kind] || info.kind}`
-            : '—');
+            ? `not a place - ${STRUCTURE_NOTES[info.kind] || info.kind}`
+            : '-');
         // A building is entered with `in`; a shut one is the author's cue that it
         // still owes an interior (task-563).
-        row('enter', info.enter || '—');
-        row('area', info.area ? `${info.area.name} (${info.area.id})` : '—');
-        row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '—');
+        row('enter', info.enter || '-');
+        row('area', info.area ? `${info.area.name} (${info.area.id})` : '-');
+        row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '-');
         // Where you can leave this cell (task-596). Ways join adjacent cells, so
         // a cell's exits are its passable neighbours; a solid neighbour is a
         // wall to your face, and the map edge is not an exit at all.
@@ -3312,7 +3890,7 @@
         row('exits', ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
             .map((d) => `${d}: ${label(neighbours[d])}`).join(' · '));
         wrap.appendChild(rows);
-        // The cell's name (task-560) — what the place is *called*, which is what
+        // The cell's name (task-560) - what the place is *called*, which is what
         // it compiles to. First, because a painted town is a list of names, and
         // "Building 3,4" is not an address.
         const nameRow = _el('div', 'display:flex;gap:6px;align-items:center;margin-top:6px;');
@@ -3469,7 +4047,7 @@
                 ? `Named (${x},${y}) “${wanted}”.`
                 : `Cleared the name on (${x},${y}).`);
             _notify(true);
-            render();
+            softRender();
         }
         catch (e) {
             _status(`Name failed: ${errText(e)}`, true);
@@ -3545,9 +4123,11 @@
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
             state.route = [];
+            _patchPaintCache(state.payload || p, edits);
             _notify(true);
             const stats = GM().routeStats(edits.length);
             _status(`🧭 Painted ${stats.label} on ${state.layer}.`, false);
+            softRender();
         }
         catch (e) {
             _status(`Route failed: ${errText(e)}`, true);
@@ -3576,6 +4156,43 @@
             if (state.routeInfoEl)
                 state.routeInfoEl.textContent = _routeLabel();
             _redrawDecor();
+            return;
+        }
+        if (state.tool === 'vision') {
+            if (!state.visionOrigin) {
+                state.visionOrigin = { x, y, floor: GM().tileFloor(p, x, y) };
+                state.visionTarget = null;
+                state.visionRay = null;
+                _recomputeVisionField(p);
+                _redrawDecor();
+                render();
+                _status(`Vision origin set to (${x}, ${y}, floor ${state.visionOrigin.floor}). Click any target cell to cast ray, or click origin again to clear.`);
+                return;
+            }
+            if (state.visionOrigin.x === x && state.visionOrigin.y === y) {
+                state.visionOrigin = null;
+                state.visionTarget = null;
+                state.visionRay = null;
+                state.visionVisibleSet = null;
+                _redrawDecor();
+                render();
+                _status('Vision debugger cleared.');
+                return;
+            }
+            state.visionTarget = { x, y, floor: GM().tileFloor(p, x, y) };
+            const origin = [
+                state.visionOrigin.x,
+                state.visionOrigin.y,
+                state.visionOrigin.floor ?? 0
+            ];
+            const target = [x, y, state.visionTarget.floor ?? 0];
+            const ray = GM().castSightRay(p, origin, target);
+            state.visionRay = ray;
+            _redrawDecor();
+            render();
+            const lastStep = ray.steps && ray.steps.length ? ray.steps[ray.steps.length - 1] : null;
+            const obsStr = lastStep ? (lastStep.obscurity || 0).toFixed(2) : '0';
+            _status(`Ray (${origin[0]},${origin[1]},z=${origin[2]}) -> (${target[0]},${target[1]},z=${target[2]}): ${ray.visible ? 'CLEAR' : 'BLOCKED'} (${ray.steps.length} steps, cum_obs=${obsStr}${ray.reason ? ', ' + ray.reason : ''})`);
             return;
         }
         if (state.tool === 'feature') {
@@ -4206,7 +4823,7 @@
         state.status = text;
         state.statusError = !!isError;
         _log((isError ? '⚠ ' : '') + text, isError ? 'error-msg' : 'system-msg');
-        render();
+        _updateStatusBar();
     }
     window.VW = window.VW || {};
     window.VW.worldPainter = { open, close, refresh: () => (state.scopeId ? load(state.scopeId) : showChooser()) };

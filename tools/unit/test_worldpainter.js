@@ -549,7 +549,7 @@ test('the floor layer is a storey index, unbounded and whole', () => {
     // `climate` is the coarse enum of task-557, which compiles to a per-area
     // base_temperature. It must stay in this list or the backend drops the layer
     // on save (engine/world_grid.py normalises against the same tuple).
-    assertEq(GM.PAINT_LAYERS, ['biome', 'road', 'floor', 'climate'], 'layer list');
+    assertEq(GM.PAINT_LAYERS, ['biome', 'road', 'floor', 'climate', 'current'], 'layer list');
     assertEq(GM.floorNumber('3'), 3, 'above');
     assertEq(GM.floorNumber('-900'), -900, 'far below');
     assertEq(GM.floorNumber('80'), 80, 'far above');
@@ -957,5 +957,160 @@ test('Alt+click on canvas samples active layer value under cursor into brush (ta
     assertTrue(/Alt\+click samples the active layer value/.test(src),
         'Paint tool tooltip documents Alt+click sampler');
 });
+
+test('supercoverLine seals diagonal corners (task-882)', () => {
+    const pts = GM.supercoverLine({ x: 0, y: 0 }, { x: 1, y: 1 });
+    assertEq(pts.length, 4, 'four cells for 1-step diagonal');
+    const keys = pts.map(p => `${p.x},${p.y}`);
+    assertTrue(keys.includes('0,0'), 'start');
+    assertTrue(keys.includes('1,1'), 'end');
+    assertTrue(keys.includes('1,0') && keys.includes('0,1'), 'orthogonal joints sealed');
+});
+
+test('castSightRay calculates elevation clearance and front-face visibility (task-882)', () => {
+    const payload = {
+        grid: { w: 10, h: 5 },
+        layers: {
+            floor: { '0,0': 3, '2,0': 0, '8,0': 0 },
+            biome: { '2,0': 'wall' },
+        },
+    };
+    const resTower = GM.castSightRay({ x: 0, y: 0, z: 3 }, { x: 8, y: 0, z: 0 }, payload);
+    assertTrue(resTower.visible, 'tower ray clears wall');
+
+    const resGround = GM.castSightRay({ x: 0, y: 0, z: 0 }, { x: 8, y: 0, z: 0 }, payload);
+    assertFalse(resGround.visible, 'ground ray is blocked');
+    assertEq(resGround.blockedBy.x, 2, 'blocked at x=2');
+
+    const resWall = GM.castSightRay({ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }, payload);
+    assertTrue(resWall.visible, 'front face of wall is visible');
+});
+
+test('computeVisibleCells filters by directional facing arc (task-882)', () => {
+    const payload = {
+        grid: { w: 20, h: 20 },
+        layers: {},
+    };
+    const vis = GM.computeVisibleCells({ x: 10, y: 10 }, payload, 8, 'east', 120, 2);
+    assertTrue(vis.has('10,10'), 'origin is visible');
+    assertTrue(vis.has('15,10'), 'in-cone east cell is visible');
+    assertFalse(vis.has('3,10'), 'out-of-cone west cell beyond peripheral range is occluded');
+});
+
+test('computeVisibleCells sees tall landmark over lower cover (task-882)', () => {
+    const vocab = {
+        biomes: [
+            { id: 'wall', height: 2.0, obscurity: 1.0 },
+            { id: 'mountain', height: 6.0, obscurity: 1.0 },
+        ]
+    };
+    const payload = {
+        grid: { w: 10, h: 5 },
+        layers: {
+            floor: { '0,0': 0, '2,0': 0, '4,0': 0, '6,0': 6 },
+            biome: { '2,0': 'wall' },
+        }
+    };
+    const vis = GM.computeVisibleCells({ x: 0, y: 0 }, payload, 10, null, 360, 3, vocab);
+    assertTrue(vis.has('0,0'), 'origin is visible');
+    assertTrue(vis.has('2,0'), 'front face of wall is visible');
+    assertFalse(vis.has('4,0'), 'shadow behind wall is occluded');
+    assertTrue(vis.has('6,0'), 'mountain peaks over wall');
+});
+
+test('deriveWaterCurrent calculates flow vector and calibrated slope ladder (task-745)', () => {
+    const payload = {
+        grid: { w: 10, h: 10 },
+        layers: {
+            biome: {
+                '1,1': 'grass',
+                '2,1': 'river',
+                '3,1': 'river',
+                '4,1': 'river',
+                '5,1': 'waterfall',
+                '6,1': 'river',
+                '2,2': 'river',
+            },
+            floor: {
+                '2,1': 0,
+                '3,1': 0, // flat
+                '4,1': -1, // 1 storey drop from (3,1)
+                '5,1': -3, // 2 storey drop from (4,1)
+                '6,1': -7, // 4 storey drop from (5,1)
+            },
+            current: {
+                '2,2': { strength: 14, direction: 2 },
+            },
+        },
+    };
+
+    // 1. Non-water cell returns null
+    assertEq(GM.deriveWaterCurrent(payload, 1, 1), null, 'dry cell has no current');
+
+    // 2. Flat water (0 drop): strength 1, calm meander
+    const flat = GM.deriveWaterCurrent(payload, 2, 1);
+    assertTrue(!!flat, 'flat water cell resolves');
+    assertEq(flat.strength, 1, '0 drop yields strength 1');
+    assertEq(flat.drop, 0, '0 drop');
+
+    // 3. 1 storey drop from (3,1) to (4,1): strength 5 (swift current)
+    const swift = GM.deriveWaterCurrent(payload, 3, 1);
+    assertEq(swift.strength, 5, '1 storey drop yields strength 5');
+    assertEq(swift.drop, 1, 'drop is 1 storey');
+    assertEq(swift.bearing, 'e', 'flows east towards lower cell');
+    assertEq(swift.hazard_id, 'river', 'hazard is river');
+
+    // 4. 2 storey drop from (4,1) to (5,1): strength 10 (rapids)
+    const rapids = GM.deriveWaterCurrent(payload, 4, 1);
+    assertEq(rapids.strength, 10, '2 storey drop yields strength 10');
+    assertEq(rapids.drop, 2, 'drop is 2 storeys');
+    assertEq(rapids.hazard_id, 'rapids', 'hazard is rapids');
+
+    // 5. 4 storey drop from (5,1) to (6,1): strength 20 (waterfall)
+    const fall = GM.deriveWaterCurrent(payload, 5, 1);
+    assertEq(fall.strength, 20, '4 storey drop yields strength 20');
+    assertEq(fall.drop, 4, 'drop is 4 storeys');
+    assertEq(fall.hazard_id, 'fall', 'hazard is fall');
+
+    // 6. Manual current override: takes precedence
+    const manual = GM.deriveWaterCurrent(payload, 2, 2);
+    assertTrue(manual.manual_override, 'manual override flagged');
+    assertEq(manual.strength, 14, 'authored strength 14');
+    assertEq(manual.direction, 2, 'authored direction 2 (south)');
+    assertEq(manual.bearing, 's', 'bearing is south');
+});
+
+test('WorldPainter soft render, offscreen cache, actionable checklist, recents and fixed status bar (task-776)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+
+    // 1. Soft render and Konva stage retention
+    assertTrue(/function softRender\(\)/.test(src), 'editor defines softRender');
+    assertTrue(/_commitStroke[\s\S]*?softRender\(\)/.test(src), 'commitStroke invokes softRender instead of destroying shell');
+    assertTrue(/_nudge[\s\S]*?softRender\(\)/.test(src), 'nudge invokes softRender');
+    assertTrue(/_applyToSelection[\s\S]*?softRender\(\)/.test(src), 'applyToSelection invokes softRender');
+
+    // 2. Offscreen paint cache with nearest-neighbor scaling
+    assertTrue(/function _ensurePaintCache\(/.test(src), 'editor defines _ensurePaintCache');
+    assertTrue(/function _patchPaintCache\(/.test(src), 'editor defines _patchPaintCache');
+    assertTrue(/imageSmoothingEnabled\s*=\s*false/.test(src), 'paint rendering disables image smoothing for sharp pixel scaling');
+    assertTrue(/drawImage\(state\.paintCache/.test(src), '_drawPaint blits from offscreen paintCache');
+
+    // 3. Actionable checklist rows
+    assertTrue(/data-actionable/.test(src), 'undone checklist rows carry data-actionable attribute');
+    assertTrue(/row\.addEventListener\('click',\s*\(\)\s*=>\s*\{[\s\S]*?state\.tool\s*=\s*s\.tool/.test(src), 'clicking undone checklist row arms tool/layer/value');
+
+    // 4. Recents row and per-scope preferences persistence
+    assertTrue(/data-role="wp-recents"/.test(src), 'toolbar includes data-role wp-recents');
+    assertTrue(/function _saveScopePrefs\(\)/.test(src), 'editor defines _saveScopePrefs');
+    assertTrue(/function _loadScopePrefs\(/.test(src), 'editor defines _loadScopePrefs');
+    assertTrue(/wp_scope_prefs_/.test(src), 'scope preferences persisted by scope ID');
+    assertTrue(/wp_recents/.test(src), 'recents persisted to localStorage');
+
+    // 5. Fixed status bar outside scrollable box
+    assertTrue(/setAttribute\('data-role-fixed',\s*'wp-status-bar'\)/.test(src), 'fixed status bar element declared');
+    assertTrue(/function _updateStatusBar\(\)/.test(src), 'editor defines _updateStatusBar');
+    assertTrue(/function _status\(text,\s*isError\)\s*\{[\s\S]*?_updateStatusBar\(\);/.test(src), '_status updates status bar directly without calling render()');
+});
+
 
 
