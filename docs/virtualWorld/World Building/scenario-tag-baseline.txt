@@ -1,14 +1,10 @@
 # Known scenario/save dead-tag findings, accepted as-is.
 # Regenerate: python tools/scenario_tag_check.py --update-baseline
 # Lines are check_id|scenario|player|tag. --check fails only on NEW lines.
-dead_fears|kraktooth_goblin_camp.json|Arix|insects
-dead_fears|kraktooth_goblin_camp.json|Arix|predators
-dead_fears|kraktooth_goblin_camp.json|Arix|shackles
-dead_fears|kraktooth_goblin_camp.json|Arix|symbols
-dead_fears|kraktooth_goblin_camp.json|Arix|trapped
+dead_fears|kraktooth_goblin_camp.json|Belne|being_kicked_out_of_guild
+dead_fears|kraktooth_goblin_camp.json|Belne|violence
 dead_fears|kraktooth_goblin_camp.json|Croak-Mother|earth
 dead_fears|kraktooth_goblin_camp.json|Croak-Mother|firelight
-dead_fears|kraktooth_goblin_camp.json|Eldenford Blacksmith|creature
 dead_fears|kraktooth_goblin_camp.json|Eldenford Blacksmith|dark
 dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|abandoned
 dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|darkness
@@ -59,17 +55,22 @@ dead_fears|kraktooth_goblin_camp.json|Vekka|sky
 dead_fears|kraktooth_goblin_camp.json|Vekka|thrazz
 dead_fears|kraktooth_goblin_camp.json|Zikka|hunters
 dead_fears|kraktooth_goblin_camp.json|Zikka|shackles
-dead_interests|kraktooth_goblin_camp.json|Arix|chaos
-dead_interests|kraktooth_goblin_camp.json|Arix|coins
-dead_interests|kraktooth_goblin_camp.json|Arix|gems
-dead_interests|kraktooth_goblin_camp.json|Arix|jokes
-dead_interests|kraktooth_goblin_camp.json|Belne|belonging
-dead_interests|kraktooth_goblin_camp.json|Belne|kindness
+dead_interests|kraktooth_goblin_camp.json|Belne|being_dominated
+dead_interests|kraktooth_goblin_camp.json|Belne|breeding_talk
+dead_interests|kraktooth_goblin_camp.json|Belne|daily_life
+dead_interests|kraktooth_goblin_camp.json|Belne|fresh_warm_bread
+dead_interests|kraktooth_goblin_camp.json|Belne|habits
+dead_interests|kraktooth_goblin_camp.json|Belne|praise
 dead_interests|kraktooth_goblin_camp.json|Croak-Mother|health
 dead_interests|kraktooth_goblin_camp.json|Croak-Mother|marsh
 dead_interests|kraktooth_goblin_camp.json|Croak-Mother|spirits
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|camp
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|faeon
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|goblins
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|maps
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|monsters
+dead_interests|kraktooth_goblin_camp.json|Cullen Rutherford|the_squire
 dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|goblin_raids
-dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|iron
 dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|repair
 dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|temper
 dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|the_merchant
@@ -102,20 +103,12 @@ dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|the_road
 dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|the_trail
 dead_interests|kraktooth_goblin_camp.json|Gribba|game
 dead_interests|kraktooth_goblin_camp.json|Gribba|mushrooms
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|camp
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|faeon
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|goblins
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|maps
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|monsters
-dead_interests|kraktooth_goblin_camp.json|Jake Halloway|the_squire
 dead_interests|kraktooth_goblin_camp.json|Kiala|blade
 dead_interests|kraktooth_goblin_camp.json|Kiala|civilization
 dead_interests|kraktooth_goblin_camp.json|Kiala|master
 dead_interests|kraktooth_goblin_camp.json|Kiala|squire
 dead_interests|kraktooth_goblin_camp.json|Krikka|blades
-dead_interests|kraktooth_goblin_camp.json|Krikka|climbing
 dead_interests|kraktooth_goblin_camp.json|Krikka|gear
-dead_interests|kraktooth_goblin_camp.json|Krikka|rope
 dead_interests|kraktooth_goblin_camp.json|Krikka|secrets
 dead_interests|kraktooth_goblin_camp.json|Leslie|attention
 dead_interests|kraktooth_goblin_camp.json|Leslie|blade
@@ -133,7 +126,6 @@ dead_interests|kraktooth_goblin_camp.json|Rag-Tail|pelts
 dead_interests|kraktooth_goblin_camp.json|Rag-Tail|territory
 dead_interests|kraktooth_goblin_camp.json|Rikka|attention
 dead_interests|kraktooth_goblin_camp.json|Rikka|chaos
-dead_interests|kraktooth_goblin_camp.json|Rikka|drum
 dead_interests|kraktooth_goblin_camp.json|Rikka|fabrics
 dead_interests|kraktooth_goblin_camp.json|Rikka|fireworks
 dead_interests|kraktooth_goblin_camp.json|Rikka|jokes
@@ -147,12 +139,8 @@ dead_interests|kraktooth_goblin_camp.json|Silver-Talon|camp
 dead_interests|kraktooth_goblin_camp.json|Silver-Talon|food_scraps
 dead_interests|kraktooth_goblin_camp.json|Silver-Talon|messages
 dead_interests|kraktooth_goblin_camp.json|Thrazz|chief
-dead_interests|kraktooth_goblin_camp.json|Thrazz|goblin
-dead_interests|kraktooth_goblin_camp.json|Thrazz|goblin_camp
-dead_interests|kraktooth_goblin_camp.json|Thrazz|scout
 dead_interests|kraktooth_goblin_camp.json|Tusker|roots
 dead_interests|kraktooth_goblin_camp.json|Tusker|territory
-dead_interests|kraktooth_goblin_camp.json|Vekka|bow
 dead_interests|kraktooth_goblin_camp.json|Vekka|maps
 dead_interests|kraktooth_goblin_camp.json|Vekka|routes
 dead_interests|kraktooth_goblin_camp.json|Vekka|secrets
@@ -163,8 +151,16 @@ dead_interests|kraktooth_goblin_camp.json|Zikka|pelts
 dead_interests|kraktooth_goblin_camp.json|Zikka|prestige
 dead_interests|kraktooth_goblin_camp.json|Zikka|training
 dead_interests|kraktooth_goblin_camp.json|Zikka|weapons
+dead_interests|kraktooth_goblin_camp.json|zombie__9dcb3e|brains
+dead_interests|kraktooth_goblin_camp.json|zombie__9dcb3e|flesh
+dead_interests|kraktooth_goblin_camp.json|zombie__9dcb3e|noise
+dead_interests|kraktooth_goblin_camp.json|zombie__c4d808|brains
+dead_interests|kraktooth_goblin_camp.json|zombie__c4d808|flesh
+dead_interests|kraktooth_goblin_camp.json|zombie__c4d808|noise
+dead_interests|kraktooth_goblin_camp.json|zombie|brains
+dead_interests|kraktooth_goblin_camp.json|zombie|flesh
+dead_interests|kraktooth_goblin_camp.json|zombie|noise
 dead_interests|mansion.json|ghost|locket
-dead_interests|mansion.json|kyrie johansen|wrench
 dead_interests|violet_parr_scenario.json|Bob Parr|family
 dead_interests|violet_parr_scenario.json|Bob Parr|the amalgam
 dead_interests|violet_parr_scenario.json|Bob Parr|the woods
@@ -198,4 +194,3 @@ dead_interests|violet_parr_scenario.json|Vi Halloway|the barn
 dead_interests|violet_parr_scenario.json|Violet Parr|chemistry
 dead_interests|violet_parr_scenario.json|Violet Parr|jake
 dead_interests|violet_parr_scenario.json|Violet Parr|secrets
-dead_interests|world_template.json|Lyrie|shelter

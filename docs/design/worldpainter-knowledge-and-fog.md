@@ -619,15 +619,94 @@ those are built at runtime as `'wp-tool-' + id`. It has already paid for itself:
 it found that the **❓ Help button itself** carried `data-help="help"` with no tip
 behind it.
 
+## 2.5D Raycast Line-of-Sight and Obscurity (2026-10-19)
+
+Sightlines across exterior grids (`world` and `settlement` scopes; fine interiors remain strictly topological) are computed geometrically rather than by walking graph edges. Following road/way edges causes vision to bypass physical barriers (e.g. seeing an area behind a mountain ridge because a road circles around it).
+
+### Principles
+
+1. **Separation of Movement vs Vision:**
+   - **Movement:** Graph-based (A* traversal along ways, roads, doors).
+   - **Vision:** Coordinate-based (straight Bresenham rays in $(x, y, z)$ on the cell lattice).
+   - Vision never advances the clock, consumes slots, or causes time dilation.
+2. **$(x, y, z)$ Geometry with Elevation and Height:**
+   - Base elevation $z = \text{floor}$ (1 floor = 3m / 1 storey, via `METRES_PER_STOREY = 3`).
+   - Biome/structure properties declare:
+     - `height` (in floors): physical height of objects in the area (e.g. sparse woods = 2 floors, tower = 10 floors, mountain = 25 floors).
+     - `obscurity` (float $0.0 \dots 1.0$): visual density (open plain = $0.0$, sparse forest = $0.4$, dense forest = $1.0$, masonry wall = $1.0$).
+   - Ray elevation at distance $d$ along total distance $D$:
+     $$\text{RayElev}(d) = z_{\text{origin}} + (z_{\text{target}} - z_{\text{origin}}) \times \frac{d}{D}$$
+   - When $\text{RayElev}(d) > z_{\text{tile}} + \text{height}_{\text{tile}}$, sight passes freely over the obstacle.
+   - When $\text{RayElev}(d) \le z_{\text{tile}} + \text{height}_{\text{tile}}$, obscurity accumulates. Once cumulative obscurity reaches $\ge 1.0$, the ray is blocked.
+3. **Horizon Curvature:**
+   - Beyond 60 cells (~5 km at 1 cell = 80m / 1 min walk), effective target elevation drops by $-1$ floor per tile, dropping distant low-lying objects below the horizon.
+4. **Distance Level-of-Detail (LoD):**
+   - **Far range (20-60 cells):** High-elevation landmarks (mountains, spires, watchtowers).
+   - **Medium range (6-20 cells):** Settlement walls, large structures, terrain biomes.
+   - **Close range (1-5 cells):** Characters, items, immediate interactions.
+
+### Minimap & Scope Background Reveal
+
+The LoS calculation feeds the player minimap (task-677) and agent observation prompt:
+- **Bright / Active LoS:** Cells currently in the character's line of sight.
+- **Visited / Memory:** Cells previously entered (`player.visited_areas`), drawn muted.
+- **Shroud / Fog:** Unseen cells.
+- The scope's hand-painted background art is unmasked as the fog of war is cleared by LoS rays.
+
+### Agent Spatial Awareness Without Context Flooding
+
+To prevent 3,600 grid cells or hundreds of visited coordinate strings from blowing up the LLM's context window:
+1. **Passive Immediate Horizon (`room-context.ts`):**
+   - Injects a compact, 2-3 line section listing only prominent high-elevation landmarks or major terrain boundaries in active LoS (e.g. *"On the horizon: Kraktooth Spire (18 cells SE, high ground), Great River (6 cells S)"*).
+   - Cost: ~30 tokens per turn. Never lists raw coordinates or empty wilderness cells.
+2. **Active Spatial Query (Free-Tier `recall` Action):**
+   - Reuses the existing `FREE` tier action `recall` (`engine/action_tiers.py:125`, task-736).
+   - An agent queries its own mental map on demand without spending a turn: `recall path to <place>` or `recall landmarks`.
+   - Returns a compact natural-language summary from visited areas and belief-based travel memory (task-467): *"You recall the route to Eldenford: south along the wagon trail (about 12 minutes walk)."*
+
+### Performance & Caching Model
+
+- **Stationary Turns Cost Zero:** If the actor does not move or change elevation, the computed `visibleCells` set is cached and reused.
+- **Early Termination:** In dense wilderness or settlement grids, rays terminate within 4-12 cells upon hitting $\ge 1.0$ obscurity or terrain steps, so average ray cost is small (~8 steps).
+- **Radial Sweeps (Perimeter / Octant Shadowcasting):** Instead of testing 3,600 individual target cells, raycasting fires outward in 360 radial steps or uses 8-octant recursive shadowcasting (skipping shaded sectors), keeping total step operations well under $0.5\text{ms}$ per movement.
+
+### Numerical Realities, Edge Cases, and Performance Constraints (2026-10-19)
+
+1. **Diagonal Wall Leakage (Supercover Rasterization):**
+   - Standard Bresenham only samples $N$ cells. At steep diagonal angles, a ray passes directly through the corner joint between two diagonally adjacent walls (e.g. `(10, 10)` and `(11, 11)`) without touching either cell.
+   - *Fix:* Must use conservative supercover line rasterization so diagonal mountain ridges and settlement walls do not leak sightlines.
+2. **Observer Eye-Level Offset:**
+   - If a ray originates at ground elevation $z_{\text{origin}}$, standing on grass with a low hedge (`height: 1 floor` / 3m) would cause the ray to immediately hit the hedge at distance 0, rendering the observer blind.
+   - *Fix:* The ray origin must include character eye-height offset: $z_{\text{start}} = z_{\text{origin}} + \text{EyeHeight}$ (default $+0.5$ floors / 1.5m).
+3. **Front-Face Visibility vs Rear Shadow:**
+   - If an obstacle tile has `obscurity: 1.0` (or accumulates to $\ge 1.0$), the ray must mark the **blocking tile itself as visible** (you see the face of the mountain / wall), but block the ray from penetrating *beyond* it into the shadow.
+4. **Day/Night Ambient Light and Weather Clamping:**
+   - Perfect Euclidean geometry alone ignores darkness and weather.
+   - *Fix:* Theoretical LoS is clamped by the environment: clear daylight = up to 60 cells; dim dusk / moonlight = 15 cells; pitch-black night (`engine/lighting.py`) = 1 cell; dense fog / blizzard (`engine/weather.py`) = 2 cells.
+5. **Perspective Asymmetry (High-Angle vs Low-Angle Lookups):**
+   - A creature looking down from a high cliff passes through only a small vertical fraction of a forest tile's canopy (low accumulated obscurity).
+   - A character looking horizontally across the same forest passes through the full horizontal chord of multiple trees (high accumulated obscurity).
+   - Continuous 3D ray height interpolation handles this naturally as long as $z$ is tested per step.
+6. **Execution Budget & Performance (Minimap vs Soak):**
+   - A $60 \times 60$ grid contains 3,600 cells. Firing 3,600 individual rays per tick for 20 soak characters would cost over 2,000,000 operations per tick.
+   - *Optimization:* Full-grid 360-degree raycasting is reserved for the **active viewer** (human player / inspect focus). NPCs and soak runs check targeted raycasts on demand (e.g. "can guard A see intruder B?") or use coarse radial sector casting.
+7. **Scope Containment (World vs Settlement Horizon):**
+   - LoS is evaluated strictly within the active grid scope.
+   - On the `world` map, a settlement is viewed as a feature landmark tile.
+   - Inside a `settlement` scope, raycasts are bound by the settlement grid boundaries and perimeter walls, avoiding multi-tier recursive coordinate stitching.
+8. **Directional Facing Arc (Cone vs Peripheral Awareness):**
+   - Characters have a heading via `player.facing` (`room-context.ts:530`).
+   - Primary vision cone ($120^\circ$ forward arc): Full Level-of-Detail (characters, items, terrain).
+   - Peripheral / rear awareness ($240^\circ$ remainder): Limited range (2-3 cells for movement sounds; high-elevation horizon landmarks only). Enables stealth and rear ambush mechanics without artificial omniscience.
+9. **Dynamic Tile and Area Overrides:**
+   - If an Area node sits on a cell `(x, y)` (`properties.cell`), any authored `properties.height` or `properties.obscurity` overrides or stacks with the underlying biome tile.
+10. **Delta Caching and Movement Perception Events:**
+   - Stationary turns cost 0ms (cached `visible_cells` set reused).
+   - When moving, the engine evaluates `visible_new - visible_old` to fire arrival perception events ("You spot a goblin patrol 5 cells south!") without re-evaluating the entire world.
+
 ## Still open
 
-
-
-- ~~Grid-canonical vs baked (task-496) - blocking; must be decided before the
-  compiler is written.~~ **Decided 2026-09-24: per-zone `paint_policy`
-  (`canonical` default, `baked` opt-in); see above.**
-- Whether fog is tracked per cell, per area, or per scope (start at area/scope,
-  refine to cell only if a painted wilderness is ever walked at cell scale).
+- Line of sight past 60 areas: evaluate whether mount flight or extreme altitudes warrant an adaptive curvature formula.
 - How a path-from-item is authored: a trigger naming a target scope/cell, or a
   map item whose `use` writes the known set directly. task-499 prefers the second
   (reuse the teach path); task-467 needs the first for beliefs with no map.

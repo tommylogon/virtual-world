@@ -138,19 +138,20 @@ The `Generate` button and the preview surface are not built yet —
 
 - A **turn** is a timeframe of N game minutes. The world clock may run faster or
   slower than realtime; the pace is a chosen dial, not a constraint.
-- Inside a turn, **every** character performs an action flow that fills the
-  timeframe. Actions have durations.
-- The number of actions per turn is **emergent** — as many as fit — not a budget
-  handed out per turn.
+- Inside a turn, **every** character performs an action flow bounded by the turn's
+  action tiers (major: 1, minor: 1, free: 3, activity: 1, defined in `engine/action_tiers.py`).
+- The number of actions per turn is bounded by this fixed tier ceiling rather than
+  scaling with `time_per_tick_minutes`. Actions do not cost game minutes on the player path,
+  while background/soak simulation fills the timeframe using `TASK_TIERS` and task durations.
 
-So a 1-minute turn holds one one-minute action, and a 30-minute turn holds
-*eat (10) → walk (5) → talk (5) → wait (10)*. Four actions, not thirty. All
-characters, at all four levels, use the same clock and the same flows.
+So a 1-minute turn and a 15-minute turn offer the identical action slot budget for
+attended characters, while a soak character's flow fills the timeframe within the same
+action-tier ceiling.
 
-> **Superseded:** a per-turn *budget* of actions (`actions_per_turn = T`) described
-> one action per game minute. That assumed one-minute actions with no durations,
-> which turns a 30-minute turn into thirty eat/drink/socialise cycles — 1,440
-> actions per character per day. The timeframe-and-flow model replaces it.
+> **Superseded:** a per-turn *budget* of actions (`actions_per_turn = T`) derived
+> slots from minutes. That assumed one-minute actions with no durations, which turned
+> a 30-minute turn into thirty cycles. The action-tier model (task-352) fixes the slot
+> allowance per turn while task durations bound coarse background flows.
 
 ### Resolution order
 
