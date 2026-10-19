@@ -216,6 +216,53 @@
             }
         }
 
+        /** Export the active issues list to a JSON file. */
+        exportJson(): void {
+            const issues = this._lastIssues || [];
+            const data = {
+                exported_at: new Date().toISOString(),
+                total_issues: issues.length,
+                issues: issues
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `world_issues_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /** Export the active issues list to Markdown format. */
+        exportMarkdown(): void {
+            const issues = this._lastIssues || [];
+            const date = new Date().toISOString().slice(0, 10);
+            const lines: string[] = [
+                `# World Issues Report - ${date}`,
+                ``,
+                `**Total issues:** ${issues.length}`,
+                ``,
+                `| Severity | Code | Source Node | Message |`,
+                `|---|---|---|---|`,
+            ];
+
+            for (const i of issues) {
+                const sev = i.severity || 'info';
+                const code = i.code || '';
+                const node = i.source_node_id || '-';
+                const msg = String(i.message || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+                lines.push(`| ${sev} | ${code} | ${node} | ${msg} |`);
+            }
+
+            const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `world_issues_${date}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         /**
          * Way-orientation triage (task-395 rework):
          *   1. CLEAN — remove any values our OLD bulk-fill invented ("north"
