@@ -748,8 +748,11 @@ class TestCompileRoutes:
 
     def test_compile_needs_confirm_over_hand_prose(self):
         app = create_app({"TESTING": True})
-        app.world.player_manager.get_player("Lyrie").base_description = \
-            "A goblin someone described by hand."
+        desc = "A goblin someone described by hand."
+        app.world.player_manager.get_player("Lyrie").base_description = desc
+        node = app.world.graph.get_node(app.world._player_node_id("Lyrie"))
+        if node:
+            node.properties["base_description"] = desc
         client = app.test_client()
         client.put("/api/players/Lyrie/record", json={"record": RICH})
         body = client.post("/api/players/Lyrie/record/compile",

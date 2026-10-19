@@ -586,6 +586,55 @@ window.PromptBuilder = window.PromptBuilder || {};
                 `forward (${_facing}), and left/right/back turn you from there. ` +
                 `These name the same paths as the directions above.`
             : '';
+        let horizonStr = '';
+        if (!isBlind && level !== 'pitch_black') {
+            const curAreaNode = currentArea?.name ? worldState.getNodeByIdentifier(currentArea.name) : null;
+            const curProps = curAreaNode?.properties || {};
+            const curCell = curProps.cell;
+            const curScope = curProps.world_scope_id;
+            if (curCell && typeof curCell.x === 'number' && typeof curCell.y === 'number' && curScope) {
+                const allNodes = Object.values(worldState.graph?.nodes || {});
+                const landmarks = [];
+                for (const node of allNodes) {
+                    if (node.type !== 'area' || node.name === currentArea?.name)
+                        continue;
+                    const np = node.properties || {};
+                    if (np.world_scope_id !== curScope || !np.cell)
+                        continue;
+                    const dx = Number(np.cell.x) - Number(curCell.x);
+                    const dy = Number(np.cell.y) - Number(curCell.y);
+                    const dist = Math.hypot(dx, dy);
+                    const elev = Number(np.floor || 0);
+                    const isProminent = np.kind === 'landmark' || elev >= 2 || np.biome === 'mountain' || np.biome === 'tower';
+                    if (dist >= 2 && dist <= 30 && isProminent) {
+                        let dir = '';
+                        if (Math.abs(dy) > Math.abs(dx) * 1.5)
+                            dir = dy > 0 ? 'south' : 'north';
+                        else if (Math.abs(dx) > Math.abs(dy) * 1.5)
+                            dir = dx > 0 ? 'east' : 'west';
+                        else if (dx > 0 && dy > 0)
+                            dir = 'south-east';
+                        else if (dx > 0 && dy < 0)
+                            dir = 'north-east';
+                        else if (dx < 0 && dy > 0)
+                            dir = 'south-west';
+                        else
+                            dir = 'north-west';
+                        landmarks.push({
+                            name: node.name || 'Landmark',
+                            kind: np.biome || np.kind || 'landmark',
+                            dir,
+                            dist: Math.round(dist)
+                        });
+                    }
+                }
+                landmarks.sort((a, b) => a.dist - b.dist);
+                if (landmarks.length > 0) {
+                    const topL = landmarks.slice(0, 3).map(l => `${l.name} (${l.kind}, to the ${l.dir}, ~${l.dist} cells away)`);
+                    horizonStr = `\nOn the horizon: You can spot ${topL.join('; ')}.`;
+                }
+            }
+        }
         // Carrying line with per-item action brackets (drop/use/wear/examine...).
         // task-330-ish polish: each carried/worn item also shows its FULL
         // description (never truncated) plus whether you know what it is
@@ -865,9 +914,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         const body = `${bodyDesc}
 ${warn ? `\n${warn}` : ''}
 ${items ? `${itemHeader}\n` + items : noItemsLine}
-${peopleStr}${exitsStr}${facingStr}${witnessedEvents ? `${witnessedEvents}` : ''}`;
+${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessedEvents}` : ''}`;
         if (!agentFraming) {
-            const envLine = `${currentArea?.name || 'Area'} — ${lightFeel}, ${tempFeel}.${smellNote}`;
+            const envLine = `${currentArea?.name || 'Area'} - ${lightFeel}, ${tempFeel}.${smellNote}`;
             return { agentFraming: false, authoringText: `${envLine}\n\n${body.trim()}` };
         }
         const availableActions = PromptBuilder.buildAvailableActionsBlock(state, charName, player, currentArea, turnSlots(player));
@@ -883,7 +932,7 @@ ${peopleStr}${exitsStr}${facingStr}${witnessedEvents ? `${witnessedEvents}` : ''
             roomBody,
             items: itemsBlock,
             people: peopleStr,
-            exits: exitsStr,
+            exits: exitsStr + (facingStr ? '\n' + facingStr.trim() : '') + (horizonStr ? '\n' + horizonStr.trim() : ''),
             facing: facingStr,
             availableActions,
             witnessed: witnessedEvents || '',

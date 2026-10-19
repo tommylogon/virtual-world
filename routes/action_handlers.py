@@ -1030,6 +1030,49 @@ def handle_take_action(app):
                 f"Vitals:\n{readout}"
             )
 
+        elif cmd == "recall" or cmd.startswith("recall "):
+            player = world.player
+            arg = cmd[7:].strip() if cmd.startswith("recall ") else ""
+            if not arg or arg in ("map", "landmarks", "places"):
+                curr = world.current_area.name if world.current_area else "nowhere"
+                visited = getattr(player, "visited_areas", set()) or set()
+                charted = getattr(player, "charted_cells", {}) or {}
+                total_cells = sum(len(c) for c in charted.values())
+                sample = ", ".join(sorted(visited)[:5])
+                extra = f" (including {sample})" if sample else ""
+                add_output(
+                    f"Mental map: you are in {curr}. You have visited {len(visited)} areas{extra} "
+                    f"and surveyed {total_cells} grid cells across your travels."
+                )
+            elif arg.startswith("path ") or arg.startswith("path to ") or arg.startswith("to "):
+                target = arg
+                for prefix in ("path to ", "path ", "to "):
+                    if target.startswith(prefix):
+                        target = target[len(prefix):].strip()
+                        break
+                curr = world.current_area.name if world.current_area else ""
+                visited = getattr(player, "visited_areas", set()) or set()
+                from engine.spatial_memory import SpatialMemory
+                sm = SpatialMemory(world.graph)
+                route = sm.find_route(curr, target, visited)
+                if route:
+                    steps = [f"go {step['direction']} to {step['to']}" for step in route]
+                    add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")
+                else:
+                    add_output(f"You do not recall a known path from {curr} to {target}.")
+            else:
+                target = arg
+                curr = world.current_area.name if world.current_area else ""
+                visited = getattr(player, "visited_areas", set()) or set()
+                from engine.spatial_memory import SpatialMemory
+                sm = SpatialMemory(world.graph)
+                route = sm.find_route(curr, target, visited)
+                if route:
+                    steps = [f"go {step['direction']} to {step['to']}" for step in route]
+                    add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")
+                else:
+                    add_output(f"You do not recall having charted or visited '{target}'.")
+
         elif cmd in ("manifest", "vanish"):
             player = world.player
             if player and player.state == "dead" and world.ghost_mode:

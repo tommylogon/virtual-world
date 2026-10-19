@@ -1615,11 +1615,70 @@ def handle_get_player_map(app, name):
             "h": grid.get("h"),
         })
 
+    visible_cells = []
+    player_facing = getattr(player, "facing", None)
+    curr_scope = ""
+    curr_node = resolve_area_node(graph, current_area) if current_area else None
+    if curr_node is not None:
+        curr_props = curr_node.properties or {}
+        curr_cell = curr_props.get("cell")
+        curr_scope = str(curr_props.get("world_scope_id") or "")
+        if isinstance(curr_cell, dict) and "x" in curr_cell and "y" in curr_cell:
+            scope_rec = manifest.get(curr_scope) or {}
+            from engine import world_grid as wg
+            if wg.has_grid(scope_rec):
+                max_sight = 60
+                try:
+                    from engine.lighting import LightingManager
+                    lm = getattr(world, "lighting_manager", None) or LightingManager(graph)
+                    amb = lm.get_ambient_light(curr_node.id)
+                    can_see_dark = lm.can_see_in_dark(getattr(world, "player_manager", None), name)
+                    if amb < 15 and not can_see_dark:
+                        max_sight = 1
+                    elif amb < 40 and not can_see_dark:
+                        max_sight = 15
+                except Exception:
+                    pass
+
+                try:
+                    area_env = curr_props.get("environment") or {}
+                    weather_state = str(area_env.get("weather") or "").lower()
+                    if "fog" in weather_state or "blizzard" in weather_state:
+                        max_sight = min(max_sight, 2)
+                except Exception:
+                    pass
+
+                x = int(curr_cell["x"])
+                y = int(curr_cell["y"])
+                floor = int(curr_props.get("floor", 0) or 0)
+                vis_set = wg.compute_visible_cells(
+                    scope_rec,
+                    origin=(x, y, floor),
+                    max_range=max_sight,
+                    facing=player_facing,
+                    arc_degrees=120.0 if player_facing else 360.0,
+                    world=world,
+                )
+                visible_cells = [{"x": c[0], "y": c[1]} for c in sorted(vis_set)]
+                charted_dict = getattr(player, "charted_cells", None)
+                if charted_dict is None:
+                    player.charted_cells = charted_dict = {}
+                charted_dict.setdefault(curr_scope, set()).update(vis_set)
+
+    charted_cells = []
+    if curr_scope and hasattr(player, "charted_cells"):
+        charted_set = (getattr(player, "charted_cells", {}) or {}).get(curr_scope, set())
+        charted_cells = [{"x": c[0], "y": c[1]} for c in sorted(charted_set)]
+
     return jsonify({
         "player": name,
         "current_area": current_area,
+        "facing": player_facing,
         "tick": getattr(world, "time_ticks", 0),
         "areas": cells,
+        "visible_cells": visible_cells,
+        "charted_cells": charted_cells,
+        "visible_scope_id": curr_scope,
         "scopes": scopes,
     })
 

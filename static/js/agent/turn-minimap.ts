@@ -1,16 +1,16 @@
 /**
- * turn-minimap.js — "where you've been" for the human turn panel (task-677)
+ * turn-minimap.js - "where you've been" for the human turn panel (task-677)
  *
  * Fetches GET /api/players/<name>/map and draws the cells that character has
  * actually walked, per scope. Hovering a cell reports what was last observed
- * there — when, what, and who — and a way the character knows is blocked draws
+ * there - when, what, and who - and a way the character knows is blocked draws
  * a mark on the boundary between its two cells.
  *
  * Three rules this file exists to enforce, each of which was wrong in a draft:
  *
  * 1. **The unit is the cell, not the area.** `properties.cell` is not unique per
- *    area — the storey index is part of place identity (World Building/Grid to
- *    Graph.md:53) — so cells are keyed by x/y and a cell holding more than one
+ *    area - the storey index is part of place identity (World Building/Grid to
+ *    Graph.md:53) - so cells are keyed by x/y and a cell holding more than one
  *    area gets a stack badge instead of two overlapping squares.
  * 2. **A way mark straddles the boundary.** Ways carry a half-integer
  *    coordinate (engine/world_compile.py:2055), so the mark sits on the grid
@@ -22,8 +22,8 @@
  *
  * Load AFTER api.js and turn-scene-view.js, BEFORE human-turn-composer.js.
  *
- * @module agent/turn-minimap — visited-cell map for the turn panel
- * @contributes TurnMinimap: GET /api/players/<name>/map → per-scope visited lattice, hover detail, boundary marks, fullscreen
+ * @module agent/turn-minimap - visited-cell map for the turn panel
+ * @contributes TurnMinimap: GET /api/players/<name>/map -> per-scope visited lattice, hover detail, boundary marks, fullscreen
  * @powers Where you've been
  * @relates reads the same observation rows the scene view reads; mounted by human-turn-composer after renderScene
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
@@ -53,6 +53,8 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
     function legend(): HTMLElement {
         const foot = el('div', 'tmn-foot');
         foot.innerHTML = '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
+            + '<span><span class="tmn-sw" style="background:#2d5584"></span>in sight</span>'
+            + '<span><span class="tmn-sw" style="background:#1e293b"></span>charted</span>'
             + '<span><span class="tmn-sw" style="background:#1f4a7d"></span>you are here</span>'
             + '<span><span style="color:#f85149;font-weight:700">✖</span> way you know is blocked</span>';
         return foot;
@@ -72,7 +74,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
                                     flex-wrap:wrap; }
             .tmn-label { font-size:10px; text-transform:uppercase; letter-spacing:1.2px;
                                      color:#6b7686; }
-            /* Only the panel's header forces the label onto its own row — the
+            /* Only the panel's header forces the label onto its own row - the
                271px feed column needs it. The fullscreen bar is full-viewport
                wide and lays out on one line; forcing a 100% basis there
                collapsed the select and close button to zero width. */
@@ -88,7 +90,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             .tmn-grid { position:relative; overflow:hidden; background:#0a0e13;
                                     border:1px solid #333a45; border-radius:5px; }
             /* Scrollbars are hidden by default: a minimap scales to fit, so
-               anything scrolling is a map too large to shrink — and then the
+               anything scrolling is a map too large to shrink - and then the
                bar is worth seeing rather than a decorative stripe. */
             .tmn-grid::-webkit-scrollbar { width:0; height:0; }
             .tmn-grid { scrollbar-width:none; }
@@ -99,6 +101,10 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             .tmn-cell { position:absolute; box-sizing:border-box; background:#3b444f;
                                      border:1px solid #0a0e13; cursor:default; }
             .tmn-cell:hover { background:#4a5563; }
+            .tmn-cell.tmn-visible { background:#2d5584; }
+            .tmn-cell.tmn-visible:hover { background:#3b6a9f; }
+            .tmn-cell.tmn-charted { background:#1e293b; border-color:#0a0e13; }
+            .tmn-cell.tmn-charted:hover { background:#283548; }
             .tmn-cell.tmn-now { background:#1f4a7d; box-shadow:inset 0 0 0 2px #58a6ff; }
             .tmn-cell.tmn-pinned { box-shadow:inset 0 0 0 2px #e3b341; }
             .tmn-cell .tmn-n { position:absolute; top:0; right:1px; font-size:8px;
@@ -117,7 +123,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
                lower z-index put it behind the overlay's opaque background and it
                rendered while remaining invisible. */
             .tmn-tip { position:fixed; z-index:1600; max-width:320px; background:#0b0f14;
-                       border:1px solid #3a4350; border-radius:7px; padding:8px 10px;
+                       border:1px solid #333a45; border-radius:7px; padding:8px 10px;
                        box-shadow:0 10px 28px rgba(0,0,0,.7); pointer-events:none; display:none; }
             .tmn-tip h5 { margin:0 0 1px; font-size:12.5px; color:#e6edf3; }
             .tmn-tip .tmn-kind { font-size:9.5px; text-transform:uppercase; letter-spacing:1px;
@@ -218,9 +224,13 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
         const rows: string[][] = [];
         const seen = cell.current
             ? 'you are here'
-            : (cell.last_seen === tick || cell.last_seen === null || cell.last_seen === undefined
-                ? 'just now'
-                : 'tick ' + cell.last_seen);
+            : (cell.is_visible && (cell.last_seen === null || cell.last_seen === undefined)
+                ? 'in line of sight now'
+                : (cell.is_charted && (cell.last_seen === null || cell.last_seen === undefined)
+                    ? 'charted from afar'
+                    : (cell.last_seen === tick || cell.last_seen === null || cell.last_seen === undefined
+                        ? 'just now'
+                        : 'tick ' + cell.last_seen)));
         rows.push(['seen', seen]);
         rows.push(['last known', cell.items.length
             ? cell.items.map(function (i) { return i.name; }).join(', ')
@@ -246,10 +256,10 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
         // A known area you are not standing in can be walked to: hand the name to
         // the timeskip dialog as an intent=travel order (the engine takes the
         // span from the route). The click is wired in showTip().
-        const walk = (cell.name && !cell.current)
+        const walk = (cell.name && !cell.current && !cell.id.startsWith('__vis_'))
             ? '<div class="tmn-row"><span class="tmn-k"></span><span class="tmn-v">'
               + '<button type="button" class="tmn-walk" data-area="' + esc(cell.name)
-              + '" title="Travel here — opens the timeskip dialog">⏩ Walk here</button>'
+              + '" title="Travel here - opens the timeskip dialog">⏩ Walk here</button>'
               + '</span></div>'
             : '';
         return '<h5>' + esc(cell.name) + '</h5>'
@@ -269,7 +279,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             + '<div class="tmn-row"><span class="tmn-k">state</span><span class="tmn-v tmn-chips">'
             + '<span class="tmn-x">' + esc(way.real_state) + '</span></span></div>'
             + '<div class="tmn-row"><span class="tmn-k">you know</span>'
-            + '<span class="tmn-v">yes — you have found this yourself</span></div>';
+            + '<span class="tmn-v">yes - you have found this yourself</span></div>';
     }
 
     /**
@@ -277,7 +287,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
      *
      * Fitted to the cells the character has actually been in, NOT to the
      * scope's painted extent. An earlier draft used the extent and rendered a
-     * 680x340 box holding two squares — a megamap, which is the opposite of the
+     * 680x340 box holding two squares - a megamap, which is the opposite of the
      * point: a memory map should be tight around what you remember, and the
      * fullscreen button is the big view.
      *
@@ -293,8 +303,8 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
      *
      * Only kraktooth_goblin_camp ships painted cells; every other scenario is
      * hand-authored and has none, so without this the lattice is empty and there
-     * is nowhere to put a boundary mark. The payload is self-sufficient — each
-     * way carries its raw compass direction and its far end — so this is a BFS
+     * is nowhere to put a boundary mark. The payload is self-sufficient - each
+     * way carries its raw compass direction and its far end - so this is a BFS
      * over the visited set from the character's own position, and it agrees with
      * painted cells when a world has both.
      */
@@ -349,10 +359,10 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
     function drawScope(
         grid: HTMLElement, areas: MapCell[], tick: number, scopeId: string,
-        maxW = 268, maxH = 190, maxP = 20
+        maxW = 268, maxH = 190, maxP = 20, visibleCells?: MapCellXY[], chartedCells?: MapCellXY[]
     ): void {
         const painted = areas.filter(function (a) { return a.cell && typeof a.cell.x === 'number'; });
-        if (!painted.length) {
+        if (!painted.length && (!visibleCells || !visibleCells.length) && (!chartedCells || !chartedCells.length)) {
             // Unpainted world: derive cells from the ways out, then re-filter.
             const derived = placeUnpainted(areas).filter(function (a) {
                 return a.cell && typeof a.cell.x === 'number';
@@ -362,20 +372,87 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
                 grid.style.height = '0px';
                 return;
             }
-            drawPlaced(grid, derived, tick, scopeId, maxW, maxH, maxP);
+            drawPlaced(grid, derived, tick, scopeId, maxW, maxH, maxP, visibleCells, chartedCells);
             return;
         }
-        drawPlaced(grid, painted, tick, scopeId, maxW, maxH, maxP);
+        drawPlaced(grid, painted, tick, scopeId, maxW, maxH, maxP, visibleCells, chartedCells);
     }
 
     function drawPlaced(
         grid: HTMLElement, painted: MapCell[], tick: number, scopeId: string,
-        maxW: number, maxH: number, maxP: number
+        maxW: number, maxH: number, maxP: number, visibleCells?: MapCellXY[], chartedCells?: MapCellXY[]
     ): void {
+        const allCells = painted.slice();
+        const byCellCoord = new Set<string>();
+        allCells.forEach(function (a) {
+            if (a.cell) byCellCoord.add(a.cell.x + ',' + a.cell.y);
+        });
 
-        // Bounds are the visited cells, so the lattice never grows to the scope.
+        const visSet = new Set<string>();
+        if (Array.isArray(visibleCells)) {
+            visibleCells.forEach(function (vc) {
+                if (typeof vc.x === 'number' && typeof vc.y === 'number') {
+                    const key = vc.x + ',' + vc.y;
+                    visSet.add(key);
+                    if (!byCellCoord.has(key)) {
+                        byCellCoord.add(key);
+                        allCells.push({
+                            id: '__vis_' + vc.x + '_' + vc.y,
+                            name: 'Cell (' + vc.x + ', ' + vc.y + ')',
+                            cell: { x: vc.x, y: vc.y },
+                            floor: 0,
+                            scope_id: scopeId,
+                            is_visible: true,
+                            is_charted: true,
+                            last_seen: null,
+                            current: false,
+                            items: [],
+                            people: [],
+                            ways: [],
+                        });
+                    }
+                }
+            });
+        }
+
+        const chrSet = new Set<string>();
+        if (Array.isArray(chartedCells)) {
+            chartedCells.forEach(function (cc) {
+                if (typeof cc.x === 'number' && typeof cc.y === 'number') {
+                    const key = cc.x + ',' + cc.y;
+                    chrSet.add(key);
+                    if (!byCellCoord.has(key)) {
+                        byCellCoord.add(key);
+                        allCells.push({
+                            id: '__chr_' + cc.x + '_' + cc.y,
+                            name: 'Cell (' + cc.x + ', ' + cc.y + ')',
+                            cell: { x: cc.x, y: cc.y },
+                            floor: 0,
+                            scope_id: scopeId,
+                            is_visible: false,
+                            is_charted: true,
+                            last_seen: null,
+                            current: false,
+                            items: [],
+                            people: [],
+                            ways: [],
+                        });
+                    }
+                }
+            });
+        }
+
+        allCells.forEach(function (a) {
+            if (a.cell) {
+                const k = a.cell.x + ',' + a.cell.y;
+                if (visSet.has(k)) a.is_visible = true;
+                if (chrSet.has(k)) a.is_charted = true;
+            }
+        });
+
+        // Bounds are the visited and visible cells, so the lattice never grows to the scope.
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        painted.forEach(function (a) {
+        allCells.forEach(function (a) {
             minX = Math.min(minX, a.cell!.x);
             maxX = Math.max(maxX, a.cell!.x);
             minY = Math.min(minY, a.cell!.y);
@@ -386,7 +463,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
         // Scale to fit, so the map shows everything the character has seen.
         // An earlier draft fixed the pitch and scrolled whatever overflowed, and
-        // the result was a minimap wearing scrollbars — content you had to go
+        // the result was a minimap wearing scrollbars - content you had to go
         // hunting for. Fit first; only scroll once the cells hit the floor and
         // the map genuinely cannot shrink further.
         const MIN_P = 4;
@@ -406,7 +483,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
         // One square per cell; several areas in a cell stack into a badge.
         const byCell = new Map<string, MapCell[]>();
-        painted.forEach(function (a) {
+        allCells.forEach(function (a) {
             const key = a.cell!.x + ',' + a.cell!.y;
             if (!byCell.has(key)) byCell.set(key, []);
             (byCell.get(key) as MapCell[]).push(a);
@@ -417,7 +494,9 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             const cx = parseInt(parts[0] as string, 10);
             const cy = parseInt(parts[1] as string, 10);
             const head = stack[0] as MapCell;
-            const cell = el('div', 'tmn-cell' + (head.current ? ' tmn-now' : ''));
+            const isVis = stack.some(function (a) { return a.is_visible; });
+            const isChr = stack.some(function (a) { return a.is_charted; });
+            const cell = el('div', 'tmn-cell' + (head.current ? ' tmn-now' : (isVis ? ' tmn-visible' : (isChr ? ' tmn-charted' : ''))));
             cell.dataset.pin = scopeId + ':' + key;
             cell.style.left = ((cx - minX) * _pitch + PAD) + 'px';
             cell.style.top = ((cy - minY) * _pitch + PAD) + 'px';
@@ -492,7 +571,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
         if (!areas.length) {
             wrap.appendChild(el('div', 'tmn-empty',
-                'No map yet — this character has not been anywhere.'));
+                'No map yet - this character has not been anywhere.'));
             host.insertBefore(wrap, host.firstChild);
             return;
         }
@@ -531,7 +610,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             note.appendChild(el('b', undefined, 'No painted position: '));
             note.appendChild(document.createTextNode(
                 loose.map(function (a) { return a.name; }).join(', ')
-                + ' — these have no grid cell, so they are not on the lattice.'));
+                + ' - these have no grid cell, so they are not on the lattice.'));
             wrap.appendChild(note);
         }
 
@@ -546,24 +625,30 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             const inScope = areas.filter(function (a) {
                 return scopeId ? a.scope_id === scopeId : true;
             });
+            const visCells = (!payload.visible_scope_id || payload.visible_scope_id === scopeId)
+                ? payload.visible_cells
+                : undefined;
+            const chrCells = (!payload.visible_scope_id || payload.visible_scope_id === scopeId)
+                ? payload.charted_cells
+                : undefined;
             grid.textContent = '';
-            drawScope(grid, inScope, tick, scopeId);
+            drawScope(grid, inScope, tick, scopeId, 268, 190, 20, visCells, chrCells);
         }
 
         sel.addEventListener('change', paint);
-        fsBtn.addEventListener('click', function () { openFullscreen(areas, scopes, tick); });
+        fsBtn.addEventListener('click', function () { openFullscreen(areas, scopes, tick, payload); });
         paint();
     }
 
     /** The same lattice, over the whole viewport. Escape closes it. */
-    function openFullscreen(areas: MapCell[], scopes: MapScope[], tick: number): void {
+    function openFullscreen(areas: MapCell[], scopes: MapScope[], tick: number, payload?: MapPayload): void {
         const prev = document.querySelector('.tmn-full');
         if (prev) prev.remove();
         hideTip();
 
         const overlay = el('div', 'tmn-full');
         const bar = el('div', 'tmn-fullbar');
-        bar.appendChild(el('span', 'tmn-label', 'Map — fullscreen'));
+        bar.appendChild(el('span', 'tmn-label', 'Map - fullscreen'));
         bar.appendChild(el('span', 'tmn-sp'));
         const close = el('button', undefined, 'close ✕');
         bar.appendChild(close);
@@ -579,7 +664,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
         bar.insertBefore(sel, close);
 
         const grid = el('div', 'tmn-grid');
-        // No flex:1 — the overlay is a column, so growing would stretch the box
+        // No flex:1 - the overlay is a column, so growing would stretch the box
         // far past its cells and leave dead space under the lattice.
         overlay.appendChild(grid);
         overlay.appendChild(legend());
@@ -590,9 +675,15 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             const inScope = areas.filter(function (a) {
                 return scopeId ? a.scope_id === scopeId : true;
             });
+            const visCells = (payload && (!payload.visible_scope_id || payload.visible_scope_id === scopeId))
+                ? payload.visible_cells
+                : undefined;
+            const chrCells = (payload && (!payload.visible_scope_id || payload.visible_scope_id === scopeId))
+                ? payload.charted_cells
+                : undefined;
             grid.textContent = '';
             drawScope(grid, inScope, tick, scopeId, Math.max(360, window.innerWidth - 140),
-                Math.max(280, window.innerHeight - 220), 44);
+                Math.max(280, window.innerHeight - 220), 44, visCells, chrCells);
         }
 
         function shut(): void {
@@ -653,6 +744,8 @@ interface MapCell {
     kind?: string;
     last_seen?: number | null;
     current: boolean;
+    is_visible?: boolean;
+    is_charted?: boolean;
     items: Array<{ id: string; name: string }>;
     people: Array<{ id: string; name?: string | null; display: string }>;
     ways: MapWay[];
@@ -670,7 +763,12 @@ interface MapPayload {
     error?: string;
     player?: string;
     current_area?: string;
+    facing?: string | null;
     tick?: number;
     areas?: MapCell[];
+    visible_cells?: MapCellXY[];
+    charted_cells?: MapCellXY[];
+    visible_scope_id?: string;
     scopes?: MapScope[];
 }
+
