@@ -817,3 +817,159 @@ that planned UI exists or works today.
     assert "non-placeholder" in tasks.browser_ui_issue(template)
 
 
+# ── interactive menu ─────────────────────────────────────────────────────
+#
+# The menu is the surface a human uses by hand, so its state helpers are pure
+# and testable without a terminal, and the two policy gates (a stub needs an
+# explicit word, an unverified card needs one before `done`) are driven end to
+# end through cmd_interactive.
+
+
+def _feed(monkeypatch, *lines: str) -> None:
+    """Answer ``input()`` from ``lines``; running out is EOF, never a hang."""
+    queue = list(lines)
+
+    def fake_input(prompt: str = "") -> str:
+        if not queue:
+            raise EOFError
+        return queue.pop(0)
+
+    monkeypatch.setattr("builtins.input", fake_input)
+
+
+def test_resolve_cards_accepts_id_kind_prefix_and_title_fragment(tmp_path):
+    entries = tasks.iter_entries(_tree(tmp_path))
+    assert [e.id for e in tasks.resolve_cards(entries, "2")] == ["task-2"]
+    assert [e.id for e in tasks.resolve_cards(entries, "task 1")] == ["task-1"]
+    assert [e.id for e in tasks.resolve_cards(entries, "paint")] == ["task-1"]
+    assert tasks.resolve_cards(entries, "nothing like this") == []
+
+
+def test_resolve_cards_offers_the_other_kind_rather_than_not_found(tmp_path):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "bugs" / "bug-7-x.md",
+           "---\nstatus: todo\n---\n\n# bug-7: X\n")
+    entries = tasks.iter_entries(root)
+    assert [e.id for e in tasks.resolve_cards(entries, "task 7")] == ["bug-7"]
+
+
+def test_card_checkboxes_are_numbered_in_file_order_with_their_section():
+    text = ("---\nstatus: todo\n---\n## Acceptance\n\n- [ ] one\n- [x] two\n\n"
+            "## Steps to verify\n\n1. do it\n   - expected: yes\n")
+    boxes = tasks.card_checkboxes(text)
+    assert [b["number"] for b in boxes] == [1, 2]
+    assert [b["checked"] for b in boxes] == [False, True]
+    assert [b["section"] for b in boxes] == ["acceptance", "acceptance"]
+
+
+def test_set_checkbox_ticks_and_writes_observed_in_the_same_pass():
+    text = ("## Acceptance\n\n- [ ] a panel opens\n\n## Steps to verify\n\n"
+            "1. Click it.\n   - expected: a panel\n   - observed: TODO\n")
+    new, label = tasks.set_checkbox(text, 1, True, "a panel opened")
+    assert label == "a panel opens"
+    assert "- [x] a panel opens" in new
+    assert "- observed: a panel opened" in new
+    assert "   - observed: TODO" in new, "an unrelated step's observed line survives"
+
+
+def test_set_checkbox_inserts_the_observed_line_under_the_box():
+    new, _ = tasks.set_checkbox("## Acceptance\n\n- [ ] a\n", 1, True, "yes")
+    assert new.splitlines()[-2:] == ["- [x] a", "  - observed: yes"]
+
+
+def test_set_checkbox_rejects_a_number_the_card_does_not_have():
+    try:
+        tasks.set_checkbox("## Acceptance\n\n- [ ] a\n", 4)
+    except IndexError as exc:
+        assert "no checkbox 4" in str(exc)
+    else:
+        raise AssertionError("an out-of-range box must not silently no-op")
+
+
+def test_append_log_line_creates_then_extends_one_log_section():
+    text = "# t\n\n## What\n\nx\n"
+    once = tasks.append_log_line(text, "did  a thing", when="2026-10-19")
+    assert "## Log" in once
+    assert "- 2026-10-19 - did a thing" in once
+    twice = tasks.append_log_line(once, "did more", when="2026-10-19")
+    assert twice.count("## Log") == 1
+    assert twice.index("did a thing") < twice.index("did more")
+
+
+def test_append_log_line_keeps_a_later_section_after_the_log():
+    text = "# t\n\n## Log\n\n- old\n\n## Files\n\n- a.py\n"
+    new = tasks.append_log_line(text, "new", when="2026-10-19")
+    assert new.index("- old") < new.index("new") < new.index("## Files")
+
+
+def test_area_names_reads_the_folders_on_disk(tmp_path):
+    assert tasks.area_names(_tree(tmp_path)) == ["graph", "world"]
+
+
+def test_format_card_preview_marks_stubs_instead_of_printing_the_template():
+    card = ("---\nstatus: todo\narea: world\n---\n\n# task-1: T\n\n"
+            "## What\n\nreal content\n\n## Why\n\nTODO\n\n"
+            "## Browser UI and intended live verification\n\n"
+            f"{tasks.SECTION_STUBS['browser_ui']}\n")
+    preview = "\n".join(tasks.format_card_preview(card))
+    assert "real content" in preview
+    assert "why         (TODO stub)" in preview
+    assert "browser_ui  (TODO stub)" in preview
+    assert "name the page, panel" not in preview, "the template body is not the preview"
+
+
+def _gated_tree(tmp_path: Path) -> Path:
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "world" / "task-1-paint-a-world.md",
+           "---\nstatus: todo\narea: world\npriority: medium\n"
+           'wiki: "[[Feature Map]]"\n---\n\n# task-1: Paint a world\n\n'
+           "## What\n\nPaint it.\n\n## Acceptance\n\n- [ ] a world exists\n")
+    return root
+
+
+def test_menu_add_refuses_a_stub_without_the_explicit_word(tmp_path, monkeypatch):
+    root = _gated_tree(tmp_path)
+    _feed(monkeypatch, "a", "task", "world", "Second card", "todo", "medium",
+          "1", "the what", "", "x")
+    assert tasks.cmd_interactive(tasks.argparse.Namespace(root=root)) == 0
+    assert not list(root.rglob("task-2-*.md")), "a cancelled preview must write nothing"
+
+
+def test_menu_add_writes_the_wiki_that_was_asked_for(tmp_path, monkeypatch):
+    # The old menu hardcoded `wiki: "[[Feature Map]]"`. It must now be the
+    # answer, and a stub still needs the explicit word.
+    root = _gated_tree(tmp_path)
+    _feed(monkeypatch, "a", "task", "world", "Second card", "todo", "medium",
+          "[[World Building/Movement|Movement]]", "the what", "", "stub")
+    assert tasks.cmd_interactive(tasks.argparse.Namespace(root=root)) == 0
+    written = list(root.rglob("task-2-*.md"))
+    assert len(written) == 1
+    text = written[0].read_text(encoding="utf-8")
+    assert 'wiki: "[[World Building/Movement|Movement]]"' in text
+    assert "## What\n\nthe what" in text
+
+
+def test_menu_move_refuses_done_with_an_unchecked_box(tmp_path, monkeypatch):
+    root = _gated_tree(tmp_path)
+    _feed(monkeypatch, "m 1", "done", "")
+    assert tasks.cmd_interactive(tasks.argparse.Namespace(root=root)) == 0
+    assert (root / "todo" / "world" / "task-1-paint-a-world.md").exists()
+    assert not (root / "done").exists()
+
+
+def test_menu_move_files_done_when_the_operator_types_close(tmp_path, monkeypatch):
+    root = _gated_tree(tmp_path)
+    _feed(monkeypatch, "m 1", "done", "close")
+    assert tasks.cmd_interactive(tasks.argparse.Namespace(root=root)) == 0
+    assert (root / "done" / "world" / "task-1-paint-a-world.md").exists()
+
+
+def test_menu_undo_restores_a_card_it_cancelled_a_move_for(tmp_path, monkeypatch):
+    root = _gated_tree(tmp_path)
+    _feed(monkeypatch, "m 1", "review", "y", "z", "y")
+    assert tasks.cmd_interactive(tasks.argparse.Namespace(root=root)) == 0
+    restored = root / "todo" / "world" / "task-1-paint-a-world.md"
+    assert restored.exists()
+    assert restored.read_text(encoding="utf-8").count("status: todo") == 1
+
+

@@ -2162,12 +2162,14 @@ Commands:
     backfill  report the canonical-schema gap (including browser UI intent)
     help      show this guide, or `help <command>` for one command
 
-Run with no command for an interactive menu (type `q` to quit).
+Run with no command for the interactive menu: `?` lists the keys, `x` cancels
+one action, `q` quits. It keeps the card in hand, the kind and area last used,
+and an undo stack for this session; nothing is persisted.
 
 Statuses: todo / inprogress / review / done / cancelled
 Kinds:    task / bug
-Areas:    bugs characters conditions docs emotions gameplay graph items
-          library refactor testing triggers ui world
+Areas:    read from the folders that exist under each status, so the menu
+          lists the real ones. `--area` accepts any name and creates it.
 
 Typical flow:
   python tools/tasks.py next-id
@@ -2432,34 +2434,249 @@ def cmd_help(args) -> int:
 
 
 # ── interactive ──────────────────────────────────────────────────────────
+#
+# The menu is the surface a human uses by hand, so it holds a little state
+# between actions: the kind and area last used, the card in hand, and a journal
+# of what this session changed so a wrong keystroke can be reversed. Every
+# mutation still goes through the same ``cmd_*`` function the flags use, so the
+# two surfaces cannot drift apart. None of this is persisted: the session is a
+# convenience, never a second source of truth.
+
+CHECKBOX_RE = re.compile(r"^(\s*)-\s*\[([ xX])\]\s*(.*)$")
+SECTION_MARK_RE = re.compile(r"^##\s+(.+?)\s*$")
+MENU_ROW_LIMIT = 40
+LOG_HEADING = "## Log"
 
 
-INTERACTIVE_MENU = """\
-Dev-task helper — interactive mode
+class _Cancel(Exception):
+    """The user aborted one action (``x`` or Ctrl+C). Not an error."""
 
-  1) next-id    print the next free id
-  2) new        scaffold a new task/bug
-  3) move       move between status folders
-  4) list       list tasks/bugs
-  5) validate   check ids, filenames, folders and refs
-  6) index      rebuild/clear the frontmatter cache
-  7) help       show the full guide
-  q) quit
-"""
+
+class _Quit(Exception):
+    """End of input: leave the menu the same way ``q`` does."""
+
+
+def card_body(text: str) -> str:
+    """The body after the frontmatter block, or the whole text when absent."""
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            return text[end + 4:].lstrip("\n")
+    return text
+
+
+def card_checkboxes(text: str) -> List[Dict]:
+    """Every checkbox in a card, in file order, with the section it sits in.
+
+    ``line`` is the zero-based line in ``text`` (so a caller can rewrite that
+    exact line), ``section`` is the canonical key it belongs to or "" for a
+    section the schema does not own.
+    """
+    out: List[Dict] = []
+    section_key = ""
+    for i, line in enumerate(text.splitlines()):
+        mark = SECTION_MARK_RE.match(line)
+        if mark:
+            section_key = SECTION_KEY_BY_HEADING.get(mark.group(1).strip().lower(), "")
+            continue
+        box = CHECKBOX_RE.match(line)
+        if box:
+            out.append({"line": i,
+                        "number": len(out) + 1,
+                        "section": section_key,
+                        "checked": box.group(2).lower() == "x",
+                        "label": box.group(3).strip()})
+    return out
+
+
+def set_checkbox(text: str, number: int, checked: bool = True,
+                 observed: Optional[str] = None) -> Tuple[str, str]:
+    """Tick (or untick) one checkbox, optionally recording what was observed.
+
+    Returns ``(new_text, label)``. ``observed`` rewrites the ``- observed:``
+    line under the box when it already has one and inserts one when it does
+    not, so ticking a box and recording what was actually seen is one edit.
+    Raises ``IndexError`` for a number the card does not have.
+    """
+    boxes = card_checkboxes(text)
+    if number < 1 or number > len(boxes):
+        raise IndexError(f"no checkbox {number} (the card has {len(boxes)})")
+    box = boxes[number - 1]
+    lines = text.splitlines()
+    match = CHECKBOX_RE.match(lines[box["line"]])
+    gap = match.group(1) if match else ""
+    lines[box["line"]] = f"{gap}- [{'x' if checked else ' '}] {box['label']}"
+    if observed is not None:
+        note = re.sub(r"\s+", " ", str(observed)).strip()
+        obs = f"{gap}  - observed: {note}"
+        nxt = box["line"] + 1
+        if nxt < len(lines) and re.match(r"^\s*-\s*observed\s*:", lines[nxt], re.I):
+            lines[nxt] = obs
+        else:
+            lines.insert(nxt, obs)
+    return "\n".join(lines).rstrip("\n") + "\n", box["label"]
+
+
+def format_card_body(text: str) -> List[str]:
+    """The body lines with every checkbox numbered, so ``check 3`` is unambiguous."""
+    out: List[str] = []
+    number = 0
+    for line in card_body(text).splitlines():
+        box = CHECKBOX_RE.match(line)
+        if box:
+            number += 1
+            out.append(f"{box.group(1)}[{number}] "
+                       f"[{'x' if box.group(2).lower() == 'x' else ' '}] "
+                       f"{box.group(3)}")
+            continue
+        out.append(line)
+    return out
+
+
+def append_log_line(text: str, note: str,
+                    when: Optional[str] = None) -> str:
+    """Append a dated line to the card's ``## Log`` section, creating it.
+
+    The card is the log of the work (the tree's own rule), so recording what
+    happened must cost one line rather than an editor round trip.
+    """
+    note = re.sub(r"\s+", " ", str(note)).strip()
+    if not note:
+        raise ValueError("empty log note")
+    stamp = (when or _dt.date.today().isoformat()) + " - " + note
+    lines = text.rstrip("\n").splitlines()
+    start = next((i for i, line in enumerate(lines)
+                  if line.strip().lower() == LOG_HEADING.lower()), None)
+    if start is None:
+        return "\n".join(lines + ["", LOG_HEADING, "", "- " + stamp]) + "\n"
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if SECTION_MARK_RE.match(lines[j]):
+            end = j
+            break
+    body = lines[start + 1:end]
+    while body and not body[-1].strip():
+        body.pop()
+    body.append("- " + stamp)
+    tail = [""] + lines[end:] if end < len(lines) else []
+    return "\n".join(lines[:start + 1] + body + tail) + "\n"
+
+
+CARD_QUERY_RE = re.compile(r"^(?:(task|bug)\s*[-#]?\s*)?(\d+)$", re.IGNORECASE)
+
+
+def resolve_cards(entries: List[Entry], query: str,
+                  kind: Optional[str] = None) -> List[Entry]:
+    """Find the cards a typed reference could mean.
+
+    Accepts ``504``, ``task 504``, ``bug-12`` or a fragment of the title or
+    slug. An exact id wins outright; only when the query is not id-shaped is a
+    case-insensitive substring tried, so a number never returns a card that
+    merely mentions it.
+    """
+    q = str(query or "").strip()
+    if not q:
+        return []
+    cards = [e for e in entries if e.kind]
+    match = CARD_QUERY_RE.match(q)
+    if match:
+        wanted = (match.group(1) or kind or "").lower()
+        num = int(match.group(2))
+        hits = [e for e in cards
+                if e.num == num and (not wanted or e.kind == wanted)]
+        if hits:
+            return sorted(hits, key=lambda e: e.num)
+        # The id exists under the other kind: offer it rather than "not found".
+        return sorted([e for e in cards if e.num == num], key=lambda e: e.num)
+    needle = q.lower()
+    return sorted([e for e in cards
+                   if needle in e.title().lower() or needle in e.slug.lower()],
+                  key=lambda e: e.num)
+
+
+def card_age_days(entry: Entry, now: Optional[_dt.date] = None) -> int:
+    """Days since the card was last touched, or 0 when it cannot be read."""
+    try:
+        stamp = _dt.date.fromtimestamp(entry.path.stat().st_mtime)
+    except OSError:
+        return 0
+    return max(0, ((now or _dt.date.today()) - stamp).days)
+
+
+def area_names(root: Path) -> List[str]:
+    """The area folders that actually exist, sorted.
+
+    The disk is the source of truth here for the same reason the folder is
+    authoritative for status: a hardcoded list drifts from the tree it claims
+    to describe.
+    """
+    seen = set()
+    for status in STATUSES:
+        parent = root / status
+        if parent.is_dir():
+            seen.update(p.name for p in parent.iterdir() if p.is_dir())
+    return sorted(seen)
+
+
+def _as_int(raw: str) -> Optional[int]:
+    return int(raw) if raw.lstrip("-").isdigit() else None
+
+
+class Session:
+    """What the menu remembers between actions.
+
+    Deliberately small and in memory only: kind, area and the card in hand are
+    conveniences, and the journal is a this-session undo stack.
+    """
+
+    def __init__(self, root: Path):
+        self.root = root
+        self.kind = "task"
+        self.area = ""
+        self.current: Optional[Entry] = None
+        self.journal: List[Dict] = []
+        self.last_validate: Optional[Tuple[str, int]] = None
+
+    def entries(self) -> List[Entry]:
+        return iter_entries(self.root)
+
+    def record_write(self, path: Path) -> None:
+        """Snapshot a card before it is rewritten, so the write can be undone."""
+        self.journal.append({"op": "write", "path": path, "before": read_text(path)})
+
+    def record_move(self, src: Path, dst: Path) -> None:
+        self.journal.append({"op": "move", "src": src, "dst": dst})
+
+    def refresh_current(self) -> None:
+        if self.current is None:
+            return
+        hits = resolve_cards(self.entries(), self.current.id)
+        self.current = hits[0] if hits else None
+
+
+# ── menu input ───────────────────────────────────────────────────────────
 
 
 def _menu_input(prompt: str, default: str = "") -> str:
+    hint = f" [{default}]" if default else ""
+    tail = "" if prompt.endswith((" ", ">")) else ": "
     try:
-        value = input(prompt).strip()
-    except (EOFError, KeyboardInterrupt):
+        value = input(f"{prompt}{hint}{tail}")
+    except EOFError:
         print()
-        raise SystemExit(0)
+        raise _Quit
+    except KeyboardInterrupt:
+        print()
+        raise _Cancel
+    value = value.strip()
+    if value.lower() in ("x", "cancel", ":q"):
+        raise _Cancel
     return value or default
 
 
 def _menu_choice(prompt: str, choices, default: str) -> str:
     while True:
-        raw = _menu_input(f"{prompt} [{'/'.join(choices)}] ({default}): ", default).lower()
+        raw = _menu_input(f"{prompt} [{'/'.join(choices)}]", default).lower()
         if raw in choices:
             return raw
         print(f"  please enter one of: {', '.join(choices)}")
@@ -2467,7 +2684,7 @@ def _menu_choice(prompt: str, choices, default: str) -> str:
 
 def _menu_optional_choice(prompt: str, choices):
     while True:
-        raw = _menu_input(f"{prompt} [{'/'.join(choices)}] (blank = any): ").lower()
+        raw = _menu_input(f"{prompt} [{'/'.join(choices)}] (blank = any)").lower()
         if not raw:
             return None
         if raw in choices:
@@ -2475,62 +2692,706 @@ def _menu_optional_choice(prompt: str, choices):
         print(f"  please enter one of: {', '.join(choices)} (or blank)")
 
 
-def _menu_int(prompt: str) -> int:
+def _menu_int(prompt: str, lo: Optional[int] = None,
+              hi: Optional[int] = None) -> Optional[int]:
     while True:
         raw = _menu_input(prompt)
-        if raw.isdigit():
-            return int(raw)
-        print("  please enter a number")
+        if not raw:
+            return None
+        value = _as_int(raw)
+        if value is not None and (lo is None or value >= lo) and (hi is None or value <= hi):
+            return value
+        span = f"{lo}-{hi}" if lo is not None and hi is not None else "a number"
+        print(f"  please enter {span}, or blank to cancel")
+
+
+def _menu_multiline(prompt: str) -> str:
+    print(f"  {prompt} (end with a single `.` on its own line)")
+    lines: List[str] = []
+    while True:
+        line = _menu_input("  | ")
+        if line == ".":
+            break
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def _prompt(session: Session) -> str:
+    counts = Counter(e.status for e in session.entries() if e.kind)
+    hand = (f"{session.current.id} {session.current.status}"
+            if session.current else "no card in hand")
+    return (f"\n{counts.get('todo', 0)} todo | {counts.get('inprogress', 0)} active"
+            f" | {counts.get('review', 0)} review  [{hand}] > ")
+
+
+def _print_header(session: Session) -> None:
+    counts = Counter(e.status or "?" for e in session.entries() if e.kind)
+    print()
+    print("  " + "  ".join(f"{s} {counts.get(s, 0)}" for s in STATUSES))
+    if session.last_validate:
+        stamp, code = session.last_validate
+        print(f"  last validate at {stamp}: " + ("clean" if code == 0 else "errors, run v"))
+
+
+def _print_session_end(session: Session) -> None:
+    if not session.journal:
+        print("  no changes this session")
+        return
+    print(f"  {len(session.journal)} change(s) this session:")
+    for item in session.journal[-10:]:
+        if item["op"] == "write":
+            print(f"   write  {item['path'].name}")
+        else:
+            print(f"   move   {item['src'].name} -> {item['dst'].parent.parent.name}")
+
+
+def _paged(lines: List[str]) -> None:
+    """Print with a pager when a human is at the terminal; never when piped."""
+    if not sys.stdin.isatty():
+        print("\n".join(lines))
+        return
+    height = max(10, shutil.get_terminal_size((100, 30)).lines - 4)
+    i = 0
+    while i < len(lines):
+        print("\n".join(lines[i:i + height]))
+        i += height
+        if i < len(lines):
+            try:
+                if input("  -- more -- (enter, or q) ").strip().lower() == "q":
+                    print()
+                    return
+            except (EOFError, KeyboardInterrupt):
+                print()
+                return
+
+
+# ── card lookups ─────────────────────────────────────────────────────────
+
+
+def _pick_card(session: Session, query: str,
+               kind: Optional[str] = None) -> Optional[Entry]:
+    """Resolve one card from a typed reference, asking when it is ambiguous."""
+    hits = resolve_cards(session.entries(), query, kind=kind)
+    if not hits:
+        print(f"  no card matches {query!r}")
+        return None
+    if len(hits) == 1:
+        return hits[0]
+    shown = hits[:MENU_ROW_LIMIT]
+    for i, entry in enumerate(shown, 1):
+        print(f"  {i:>2}) {entry.id:<10} {entry.status:<10} "
+              f"{entry.area:<12} {entry.title()}")
+    if len(hits) > len(shown):
+        print(f"  ... and {len(hits) - len(shown)} more; narrow the query")
+    pick = _menu_int("which", 1, len(shown))
+    return shown[pick - 1] if pick else None
+
+
+def _card_in_hand(session: Session) -> Optional[Entry]:
+    if session.current is not None:
+        return session.current
+    card = _pick_card(session, _menu_input("card (id, or part of the title)"))
+    if card:
+        session.current = card
+    return card
+
+
+def _target(session: Session, query: str = "") -> Optional[Entry]:
+    """The card a command acts on: the typed one, else the one in hand."""
+    if not query:
+        return _card_in_hand(session)
+    card = _pick_card(session, query)
+    if card:
+        session.current = card
+    return card
+
+
+def format_card_preview(text: str) -> List[str]:
+    """A compact scaffold preview: the frontmatter, then each section's state.
+
+    Printing the whole stub template buries the two decisions that matter (what
+    the card says and how much of it is still placeholder), so the preview shows
+    the shape and marks each empty section instead.
+    """
+    out: List[str] = []
+    head = _split_frontmatter(text)
+    if head is not None:
+        out.append("---")
+        out.extend(head.strip("\n").splitlines())
+        out.append("---")
+    body = card_body(text)
+    title = next((line for line in body.splitlines() if line.startswith("# ")), "")
+    if title:
+        out.append(title)
+    sections = body_sections(text)
+    for key, _heading, _aliases in CANONICAL_SECTIONS:
+        value = (sections.get(key) or "").strip()
+        stub_text = SECTION_STUBS.get(key, "").strip()
+        if not value:
+            state = "(missing)"
+        elif _is_stub(value) or (stub_text and value == stub_text):
+            state = "(TODO stub)"
+        else:
+            state = " ".join(value.split())[:60]
+        out.append(f"  {key:<11} {state}")
+    return out
+
+
+def _recent_wikis(session: Session, limit: int = 8) -> List[str]:
+    counts = Counter(str(e.frontmatter().get("wiki") or "").strip()
+                     for e in session.entries() if e.kind)
+    counts.pop("", None)
+    return [wiki for wiki, _n in counts.most_common(limit)]
+
+
+def _done_blockers(card: Entry) -> List[str]:
+    """Why a card should not be filed as done yet, in the schema's own terms."""
+    text = read_text(card.path)
+    out: List[str] = []
+    unchecked = [b for b in card_checkboxes(text) if not b["checked"]]
+    if unchecked:
+        out.append(f"{len(unchecked)} unchecked box(es)")
+    verify = body_sections(text).get("verify", "")
+    if re.search(r"observed\s*:\s*TODO", verify, re.IGNORECASE):
+        out.append("observed: TODO in Steps to verify")
+    return out
+
+
+def _show_card(card: Entry, session: Session) -> None:
+    text = read_text(card.path)
+    fm = card.frontmatter()
+    print()
+    print(f"{card.id}  {card.title()}")
+    print(f"  status={card.status}  area={card.area or '-'}  "
+          f"priority={fm.get('priority') or '-'}  horizon={fm.get('horizon') or '-'}")
+    print(f"  wiki={fm.get('wiki') or '-'}")
+    for key in DEPENDENCY_KEYS:
+        refs = _as_refs(fm.get(key))
+        if refs:
+            print(f"  {key.replace('_', ' ')}: {', '.join(refs)}")
+    print(f"  path={card.path.relative_to(session.root).as_posix()}")
+    gaps = _schema_warnings([card])
+    if gaps:
+        print(f"  {len(gaps)} schema gap(s):")
+        for gap in gaps:
+            print(f"    - {gap}")
+    print()
+    _paged(format_card_body(text))
+
+
+# ── menu actions ─────────────────────────────────────────────────────────
+
+
+def _cmd_show(session: Session, query: str = "") -> None:
+    card = (_target(session, query) if query
+            else _pick_card(session, _menu_input("card (blank = in hand)")))
+    if card:
+        session.current = card
+        _show_card(card, session)
+
+
+def _cmd_use(session: Session, query: str = "") -> None:
+    card = _pick_card(session, query or _menu_input("card"))
+    if card:
+        session.current = card
+        print(f"  in hand: {card.id}  {card.title()}")
+
+
+def _cmd_check(session: Session, query: str = "") -> None:
+    card = _target(session, query)
+    if not card:
+        return
+    text = read_text(card.path)
+    boxes = card_checkboxes(text)
+    if not boxes:
+        print("  this card has no checkboxes")
+        return
+    print(f"  {card.id}  {card.title()}")
+    for box in boxes:
+        print(f"  [{box['number']}] [{'x' if box['checked'] else ' '}] "
+              f"{box['label']}  ({box['section'] or 'unsectioned'})")
+    number = _menu_int("tick which", 1, len(boxes))
+    if number is None:
+        return
+    observed = None
+    if boxes[number - 1]["section"] in ("verify", "acceptance"):
+        observed = _menu_input("observed (blank = leave the line alone)")
+    try:
+        new_text, label = set_checkbox(text, number, True, observed or None)
+    except IndexError as exc:
+        print(f"  {exc}")
+        return
+    session.record_write(card.path)
+    _write_card(card.path, new_text)
+    print(f"  ticked: {label}")
+
+
+def _cmd_note(session: Session, query: str = "") -> None:
+    card = _target(session, query)
+    if not card:
+        return
+    note = _menu_input("note")
+    if not note:
+        print("  nothing recorded")
+        return
+    session.record_write(card.path)
+    _write_card(card.path, append_log_line(read_text(card.path), note))
+    print(f"  logged on {card.id}")
+
+
+_FLOW = {"todo": "inprogress", "inprogress": "review", "review": "done",
+         "done": "done", "cancelled": "todo"}
+
+
+def _cmd_move(session: Session, query: str = "") -> None:
+    card = _target(session, query)
+    if not card:
+        return
+    if not card.status:
+        print(f"  {card.path} is not under a status folder")
+        return
+    status = _menu_choice("to status", STATUSES,
+                          _FLOW.get(card.status, "todo"))
+    if status == card.status:
+        print(f"  {card.id} is already in {status}")
+        return
+    print(f"  {card.id}  {card.status} -> {status}   {card.title()}")
+    blockers = _done_blockers(card) if status == "done" else []
+    if blockers:
+        print("  not verified: " + "; ".join(blockers))
+        if _menu_input('type "close" to file it anyway').lower() != "close":
+            print("  cancelled")
+            return
+    elif _menu_input("move it", "y").lower() not in ("y", "yes"):
+        print("  cancelled")
+        return
+    dst = session.root / status / card.path.relative_to(session.root / card.status)
+    if cmd_move(argparse.Namespace(root=session.root, kind=card.kind,
+                                   id=card.num, status=status)) != 0:
+        return
+    session.record_move(card.path, dst)
+    card.path, card.status = dst, status
+
+
+def _menu_area(session: Session) -> str:
+    areas = area_names(session.root)
+    if areas:
+        print("  areas on disk: " + ", ".join(areas))
+    raw = _menu_input("area", session.area)
+    if not raw:
+        return ""
+    if raw not in areas:
+        print(f"  note: {raw!r} is not an existing area folder; it will be created")
+    session.area = raw
+    return raw
+
+
+def _menu_wiki(session: Session) -> str:
+    recent = _recent_wikis(session)
+    if recent:
+        print("  recently used notes:")
+        for i, wiki in enumerate(recent, 1):
+            print(f"  {i}) {wiki}")
+    raw = _menu_input("wiki note, e.g. [[Feature Map]]")
+    if not raw:
+        return ""
+    if raw.isdigit() and recent and 1 <= int(raw) <= len(recent):
+        return recent[int(raw) - 1]
+    if not raw.startswith("[["):
+        raw = f"[[{raw.strip('[]').strip()}]]"
+    return raw
+
+
+def _cmd_add(session: Session) -> None:
+    """Scaffold a card, showing exactly what stubs it will carry first."""
+    kind = _menu_choice("kind", KINDS, session.kind)
+    area = _menu_area(session)
+    if not area:
+        return
+    title = _menu_input("title")
+    if not title:
+        print("  title is required")
+        return
+    status = _menu_choice("status", STATUSES, "todo")
+    priority = _menu_choice("priority", PRIORITIES, "medium")
+    wiki = _menu_wiki(session)
+    if not wiki:
+        print("  a card must name the note it concerns (that is the wiki policy)")
+        return
+    what = _menu_input("what is it, one line (blank = TODO)")
+    horizon = _menu_optional_choice("horizon", HORIZONS)
+
+    num = next_id(session.root, kind)
+    payload: Dict = {"wiki": wiki}
+    if what:
+        payload["what"] = what
+    if horizon:
+        payload["horizon"] = horizon
+    preview = render_card(kind=kind, num=num, title=title, status=status,
+                          area=area, priority=priority,
+                          filed=_dt.date.today().isoformat(),
+                          wiki=wiki, payload=payload,
+                          stems=dep_stems(session.root))
+    stubs = [key for key in SECTION_TITLE_BY_KEY if not payload.get(key)]
+    print()
+    _paged(format_card_preview(preview))
+    print()
+    print(f"  {len(stubs)} of {len(SECTION_TITLE_BY_KEY)} section(s) would be "
+          f"TODO stubs: {', '.join(stubs)}")
+    print("  the tree rejects stub cards unless the stub is explicit "
+          "(filing discipline in AGENTS.md).")
+    if _menu_input('type "stub" to file it anyway').lower() != "stub":
+        print("  cancelled, nothing written")
+        return
+    if cmd_new(argparse.Namespace(
+            root=session.root, kind=kind, area=area, title=title,
+            status=status, priority=priority, related="", goal="",
+            wiki=wiki, json=json.dumps(payload), allow_stubs=True,
+            force=False)) != 0:
+        return
+    session.kind, session.area = kind, area
+    hits = resolve_cards(session.entries(), f"{kind}-{num}")
+    session.current = hits[0] if hits else None
+    print("  next: `w` to write a section, or `m` to move it.")
+
+
+def _cmd_list(session: Session) -> None:
+    status = _menu_optional_choice("status", STATUSES)
+    area = _menu_input("area (blank = any)") or None
+    kind = _menu_optional_choice("kind", KINDS)
+    rows = [e for e in session.entries() if e.kind]
+    if status:
+        rows = [e for e in rows if e.status == status]
+    if area:
+        rows = [e for e in rows if e.area == area]
+    if kind:
+        rows = [e for e in rows if e.kind == kind]
+    rows.sort(key=lambda e: (e.kind, e.num))
+    print(f"  {len(rows)} card(s)")
+    shown = rows[:MENU_ROW_LIMIT]
+    for i, entry in enumerate(shown, 1):
+        print(f"  {i:>3}) {entry.id:<10} {entry.status:<10} "
+              f"{entry.area:<12} {entry.title()}")
+    if len(rows) > len(shown):
+        print(f"  ... {len(rows) - len(shown)} more; add a filter to see them")
+    if not shown:
+        return
+    pick = _menu_int("open which", 1, len(shown))
+    if pick:
+        session.current = shown[pick - 1]
+        _show_card(session.current, session)
+
+
+def _cmd_review(session: Session) -> None:
+    rows = [e for e in session.entries() if e.kind and e.status == "review"]
+    rows.sort(key=card_age_days, reverse=True)
+    if not rows:
+        print("  the verification queue is empty")
+        return
+    print(f"  {len(rows)} card(s) in review, oldest first")
+    shown = rows[:15]
+    for i, entry in enumerate(shown, 1):
+        print(f"  {i:>2}) {entry.id:<10} {card_age_days(entry):>4}d "
+              f"{entry.area:<12} {entry.title()}")
+    pick = _menu_int("open which", 1, len(shown))
+    if pick:
+        session.current = shown[pick - 1]
+        _show_card(session.current, session)
+
+
+def _cmd_next(session: Session) -> None:
+    print()
+    cmd_next(argparse.Namespace(root=session.root, limit=None, json=False))
+    print("  put one in hand with `u <id>`")
+
+
+def _cmd_status(session: Session) -> None:
+    print()
+    cmd_status(argparse.Namespace(root=session.root, json=False))
+
+
+def _cmd_roadmap(session: Session) -> None:
+    print()
+    cmd_roadmap(argparse.Namespace(root=session.root, out=None))
+
+
+def _cmd_graph(session: Session) -> None:
+    print()
+    cmd_graph(argparse.Namespace(root=session.root, json=False))
+
+
+def _set_namespace(root: Path, kind: str, num: int, **over) -> argparse.Namespace:
+    """A ``cmd_set`` namespace with every flag the parser can supply."""
+    base: Dict = {"root": root, "kind": kind, "id": num, "area": None,
+                  "priority": None, "horizon": None, "effort": None,
+                  "goal": None, "wiki": None, "section": None, "value": None,
+                  "value_file": None}
+    for key in DEPENDENCY_KEYS:
+        base[key] = None
+    base.update(over)
+    return argparse.Namespace(**base)
+
+
+def _journaled_set(session: Session, card: Entry,
+                   namespace: argparse.Namespace) -> None:
+    """Run ``cmd_set`` and keep the undo entry only when it actually wrote."""
+    session.record_write(card.path)
+    if cmd_set(namespace) != 0:
+        session.journal.pop()
+
+
+def _cmd_set(session: Session, query: str = "") -> None:
+    card = _target(session, query)
+    if not card:
+        return
+    fields = ("area", "priority", "horizon", "effort", "goal", "wiki")
+    print("  frontmatter: " + " ".join(fields))
+    print("  deps: " + " ".join(DEPENDENCY_KEYS))
+    print("  section: " + " ".join(key for key, _title, _alias in CANONICAL_SECTIONS))
+    key = _menu_input("field or section").lower()
+    if not key:
+        return
+    if key in fields:
+        value = _menu_input(key)
+        if not value:
+            print("  nothing changed")
+            return
+        _journaled_set(session, card, _set_namespace(
+            session.root, card.kind, card.num, **{key: value}))
+        return
+    if key in DEPENDENCY_KEYS:
+        value = _menu_input(f"{key} (comma separated ids, blank = clear)")
+        _journaled_set(session, card, _set_namespace(
+            session.root, card.kind, card.num, **{key: value}))
+        return
+    if key not in SECTION_TITLE_BY_KEY:
+        print(f"  {key!r} is not a field, dependency or canonical section")
+        return
+    current = body_sections(read_text(card.path)).get(key, "")
+    print(f"\n  current {SECTION_TITLE_BY_KEY[key]}:\n")
+    _paged(format_card_body(current) if current else ["  (empty)"])
+    print()
+    body = _menu_multiline(f"new body for {SECTION_TITLE_BY_KEY[key]}")
+    if not body:
+        print("  nothing changed")
+        return
+    _journaled_set(session, card, _set_namespace(
+        session.root, card.kind, card.num, section=key, value=body))
+
+
+def _cmd_deps(session: Session) -> None:
+    print()
+    cmd_link_deps(argparse.Namespace(root=session.root, status=None,
+                                     write=False, json=False))
+    if _menu_input("write these", "n").lower() in ("y", "yes"):
+        cmd_link_deps(argparse.Namespace(root=session.root, status=None,
+                                         write=True, json=False))
+        print("  dependency links are derived from frontmatter, so `d` rebuilds "
+              "rather than undoes them")
+
+
+def _cmd_validate(session: Session) -> None:
+    print()
+    code = cmd_validate(argparse.Namespace(root=session.root, quiet=False,
+                                           schema=False))
+    session.last_validate = (_dt.datetime.now().strftime("%H:%M"), code)
+    gaps = _schema_warnings(session.entries())
+    if not gaps:
+        print("no canonical-schema gaps")
+        return
+    print(f"\n{len(gaps)} canonical-schema gap(s)")
+    if _menu_input("list them", "n").lower() in ("y", "yes"):
+        for gap in gaps:
+            print("  " + gap)
+
+
+def _cmd_gates(session: Session) -> None:
+    print("\n== validate ==")
+    code = cmd_validate(argparse.Namespace(root=session.root, quiet=False,
+                                           schema=False))
+    print("\n== dependency links (dry run) ==")
+    cmd_link_deps(argparse.Namespace(root=session.root, status=None,
+                                     write=False, json=False))
+    print("\n== wikilinks ==")
+    links = cmd_links(argparse.Namespace(root=session.root, report=False))
+    session.last_validate = (_dt.datetime.now().strftime("%H:%M"), code)
+    print("\n" + ("gates clean" if code == 0 and links == 0
+                  else "gates report problems above"))
+
+
+def _cmd_index(session: Session) -> None:
+    action = _menu_choice("cache action", ("rebuild", "clear"), "rebuild")
+    cmd_index(argparse.Namespace(root=session.root,
+                                 clear=action == "clear"))
+
+
+def _cmd_next_id(session: Session) -> None:
+    kind = _menu_choice("kind", KINDS, session.kind)
+    session.kind = kind
+    cmd_next_id(argparse.Namespace(root=session.root, kind=kind))
+
+
+def _cmd_help(session: Session) -> None:
+    topic = _menu_input("command (blank = full guide)")
+    if topic and topic not in HELP_TOPICS:
+        print(f"  no help for {topic!r}; topics: {', '.join(sorted(HELP_TOPICS))}")
+        return
+    cmd_help(argparse.Namespace(topic=topic or None))
+
+
+def _undo_last(session: Session) -> None:
+    if not session.journal:
+        print("  nothing to undo in this session")
+        return
+    item = session.journal[-1]
+    label = (item["path"].name if item["op"] == "write"
+             else f"move {item['dst'].name} to {item['dst'].parent.parent.name}")
+    if _menu_input(f"undo {label}", "y").lower() not in ("y", "yes"):
+        return
+    session.journal.pop()
+    if item["op"] == "write":
+        _write_card(item["path"], item["before"])
+        print(f"  restored {item['path'].name}")
+    else:
+        src, dst = item["src"], item["dst"]
+        if not dst.exists():
+            print("  the moved file is gone; nothing restored")
+            return
+        src.parent.mkdir(parents=True, exist_ok=True)
+        if not git_mv(dst, src, session.root):
+            shutil.move(str(dst), str(src))
+        _rewrite_status(src, src.relative_to(session.root).parts[0])
+        print(f"  moved {dst.name} back to {src.parent.parent.name}")
+    session.refresh_current()
+
+
+INTERACTIVE_MENU = """\
+the card in hand (set it with `u`) is the default target
+
+  s show CARD     body with numbered boxes, plus this card's schema gaps
+  u use CARD      put a card in hand
+  c check         tick a box and record what you actually observed
+  o note          append a dated line to the card's Log
+
+  n next          startable cards, ranked by what they unblock
+  r review        verification queue, oldest first
+  l list          filter, numbered, open one by number
+  t status        counts by status / area / horizon
+  p roadmap       now / next / later, critical path
+  g graph         dependency edges and cycles
+
+  a add           scaffold a task or bug (preview, then confirm)
+  m move          change the status folder, refusing an unverified done
+  w set           one frontmatter field, dep, or a whole section
+  d deps          render dependency links (dry run first)
+
+  v validate      tree check, then the per-card gaps
+  f gates         validate + deps + wikilinks in one pass
+  i index         rebuild or clear the frontmatter cache
+  e help [cmd]    the full guide, or one command's flags
+
+  z undo last write/move    ? or blank menu    x cancel    q quit
+"""
+
+_ALIASES = {
+    "1": "next-id", "2": "add", "3": "move", "4": "list",
+    "5": "validate", "6": "index", "7": "help",
+    "s": "show", "u": "use", "c": "check", "o": "note",
+    "n": "next", "r": "review", "l": "list", "t": "status",
+    "p": "roadmap", "g": "graph", "a": "add", "m": "move",
+    "w": "set", "d": "deps", "v": "validate", "f": "gates",
+    "i": "index", "e": "help", "z": "undo",
+    "show": "show", "cat": "show", "open": "show", "use": "use",
+    "check": "check", "note": "note", "log": "note",
+    "next": "next", "review": "review", "list": "list",
+    "status": "status", "roadmap": "roadmap", "graph": "graph",
+    "new": "add", "add": "add", "move": "move", "set": "set",
+    "write": "set", "deps": "deps", "link-deps": "deps",
+    "validate": "validate", "gates": "gates", "index": "index",
+    "help": "help", "undo": "undo",
+}
+
+
+def _dispatch(session: Session, choice: str) -> None:
+    parts = choice.split(None, 1)
+    action = _ALIASES.get(parts[0], parts[0])
+    rest = parts[1].strip() if len(parts) > 1 else ""
+    if action == "show":
+        _cmd_show(session, rest)
+    elif action == "use":
+        _cmd_use(session, rest)
+    elif action == "check":
+        _cmd_check(session, rest)
+    elif action == "note":
+        _cmd_note(session, rest)
+    elif action == "next":
+        _cmd_next(session)
+    elif action == "review":
+        _cmd_review(session)
+    elif action == "list":
+        _cmd_list(session)
+    elif action == "status":
+        _cmd_status(session)
+    elif action == "roadmap":
+        _cmd_roadmap(session)
+    elif action == "graph":
+        _cmd_graph(session)
+    elif action == "add":
+        _cmd_add(session)
+    elif action == "move":
+        _cmd_move(session, rest)
+    elif action == "set":
+        _cmd_set(session, rest)
+    elif action == "deps":
+        _cmd_deps(session)
+    elif action == "validate":
+        _cmd_validate(session)
+    elif action == "gates":
+        _cmd_gates(session)
+    elif action == "index":
+        _cmd_index(session)
+    elif action == "next-id":
+        _cmd_next_id(session)
+    elif action == "help":
+        _cmd_help(session)
+    elif action == "undo":
+        _undo_last(session)
+    else:
+        print(f"  unknown choice {choice!r}; blank or `?` shows the menu")
 
 
 def cmd_interactive(args) -> int:
+    if not Path(args.root).is_dir():
+        print(f"error: dev_tasks root not found: {args.root}", file=sys.stderr)
+        return 1
+    session = Session(args.root)
     print(f"dev_tasks root: {args.root}")
+    _print_header(session)
+    print("  `?` menu, `x` cancels an action, `q` quits")
     while True:
-        print()
-        print(INTERACTIVE_MENU, end="")
-        choice = _menu_input("choice: ").lower()
-
-        if choice in ("q", "quit", "exit"):
+        try:
+            choice = _menu_input(_prompt(session)).strip().lower()
+        except _Cancel:
+            continue
+        except _Quit:
+            _print_session_end(session)
             return 0
-        if choice in ("1", "next-id"):
-            kind = _menu_choice("kind", KINDS, "task")
-            cmd_next_id(argparse.Namespace(root=args.root, kind=kind))
-        elif choice in ("2", "new"):
-            kind = _menu_choice("kind", KINDS, "task")
-            area = _menu_input("area (e.g. gameplay, ui): ")
-            if not area:
-                print("  area is required")
-                continue
-            title = _menu_input("title: ")
-            if not title:
-                print("  title is required")
-                continue
-            status = _menu_choice("status", STATUSES, "todo")
-            priority = _menu_input("priority (medium): ", "medium")
-            related = _menu_input("related (blank = none): ")
-            goal = _menu_input("goal (blank = TODO): ")
-            cmd_new(argparse.Namespace(
-                root=args.root, kind=kind, area=area, title=title, status=status,
-                priority=priority, related=related, goal=goal, force=False,
-                wiki="[[Feature Map]]", allow_stubs=True))
-        elif choice in ("3", "move"):
-            kind = _menu_choice("kind", KINDS, "task")
-            num = _menu_int(f"{kind} id: ")
-            status = _menu_choice("status", STATUSES, "todo")
-            cmd_move(argparse.Namespace(root=args.root, kind=kind, id=num, status=status))
-        elif choice in ("4", "list"):
-            status = _menu_optional_choice("status", STATUSES)
-            area = _menu_input("area (blank = any): ") or None
-            kind = _menu_optional_choice("kind", KINDS)
-            cmd_list(argparse.Namespace(root=args.root, status=status, area=area, kind=kind))
-        elif choice in ("5", "validate"):
-            cmd_validate(argparse.Namespace(root=args.root, quiet=False))
-        elif choice in ("6", "index"):
-            cmd_index(argparse.Namespace(root=args.root, clear=False))
-        elif choice in ("7", "help"):
-            cmd_help(argparse.Namespace(topic=None))
-        else:
-            print("  unknown choice")
+        if choice in ("q", "quit", "exit"):
+            _print_session_end(session)
+            return 0
+        if choice in ("", "?", "menu"):
+            print()
+            _print_header(session)
+            print(INTERACTIVE_MENU, end="")
+            continue
+        try:
+            _dispatch(session, choice)
+        except _Cancel:
+            print("  cancelled")
+        except _Quit:
+            _print_session_end(session)
+            return 0
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
