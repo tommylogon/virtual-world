@@ -40,7 +40,11 @@ In WorldPainter, whole-world painting is guided by an authored reference image, 
    - Ruin catastrophe decay filters generating realistic structural failures, flooded lower tiers, and monster nests.
 4. **Subterranean Biome Taxonomy (`data/library/biomes/`):**
    - Suite of 18 subterranean and dwarven biomes covering industrial, civic, sepulchral, mining, and structural portal roles.
-5. **NL Integration:**
+5. **WorldPainter Storey Adjuster Rail (`static/js/worldpainter/`):**
+   - Vertical rail on the canvas margin allowing switching active sibling floor scopes (`kind: "floor"`), with translucent ghost-layer onion-skinning of adjacent floors.
+6. **Corner Door Compilation (`engine/world_compile.py`):**
+   - Extend `door_pairs` opposite-pair scanning to include diagonal offsets `((1, 1), (1, -1))` guarded by solid wall flanking checks.
+7. **NL Integration:**
    - Route WorldPainter generation prompts through `static/js/nl-editor/` to parse layout instructions into batch grid paint operations.
 
 ## Browser UI and intended live verification
@@ -78,6 +82,8 @@ This section defines intended access and live acceptance. It is not a claim that
 - [ ] Dungeon and ruin generator enforces landmark reachability via spanning tree and respects the partitioned gold budget.
 - [ ] Ruin catastrophe pass applies structural collapse, chasm severance, or flooded tiers.
 - [ ] 18 subterranean and dwarven biomes in `data/library/biomes/` compile into standard areas and way connections.
+- [ ] WorldPainter Storey Adjuster rail enables stepping through sibling floor scopes with ghost-layer onion skinning.
+- [ ] Doorway compiler opposite scan supports diagonal chamfered doors when flanked by solid wall cells.
 - [ ] NL Editor can execute child-scope layout commands with diff staging.
 - [ ] All generation outputs write standard paint layers (`biome`, `road`, `floor`, `hazards`) that compile cleanly through `engine/world_compile.py`.
 

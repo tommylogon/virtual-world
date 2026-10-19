@@ -79,9 +79,43 @@ To represent multi-level subterranean ruins without breaking the 2D Konva canvas
    - Different storeys are painted in disjoint coordinate bands or horizontal slices, with stairwell cells (`cell_kind: passable`, `stair: true`) connecting them across floor levels.
 
 ### 2.4 Diagonal Traversal and Wall Clipping
-- In `world_compile.py:143`, cardinal doors are standard, but diagonal doors on wall corners are forbidden.
+- In `world_compile.py:143`, cardinal doors were originally standard, and diagonal doors on wall corners were skipped.
 - Walking diagonally between `(0,0)` and `(1,1)` when `(1,0)` and `(0,1)` are solid stone walls clips through solid matter.
-- **Rule:** The generator must enforce cardinal adjacency for standard closed corridors and doorways. Diagonal connections are permitted only in wide caverns or open chambers where corner clearance is verified (both orthogonal adjacent cells are passable).
+- In pure simulation graph topology, an area node is an unconstrained graph vertex that can connect to arbitrarily many ways. The limitation is purely geometric rasterization on the 2D grid.
+
+### 2.5 WorldPainter Storey Adjuster Rail and Sibling Floor Scopes
+The user proposed adding a vertical storey/floor adjuster to the side of the WorldPainter canvas, enabling seamless authoring of multi-level structures.
+
+1. **UX Presentation (The Storey Rail):**
+   - A vertical rail on the left/right canvas margin displaying active floor levels (e.g. `+2, +1, Ground (0), -1, -2, -3`).
+   - Clicking a floor index smoothly steps the canvas viewport to that storey.
+   - An "Add Floor Above / Add Floor Below" affordance creates the next subterranean depth with matching grid dimensions.
+2. **Underlying Architecture (Sibling Child Scopes):**
+   - Each floor level is stored as a sibling child scope (`kind: "floor"`, e.g. `dwarven_ruins_floor_0`, `dwarven_ruins_floor_minus_1`) under the parent structure scope (`dwarven_ruins`, `kind: "structure"`).
+   - *Why this is the cleanest engineering choice:*
+     - It leaves the sparse 2D layer storage format in `engine/world_grid.py` completely intact without risking a breaking rewrite.
+     - Konva and vis.js only render one floor at a time, preventing memory exhaustion on huge dungeons.
+     - Scopes already natively support `kind: "floor"` and hierarchical projection (`engine/world_scopes.py`).
+3. **Ghost Layer / Onion-Skinning:**
+   - When viewing `floor -1`, the editor renders a faint, non-interactive translucent overlay of `floor 0` (showing walls, stairwells, and lift shafts).
+   - This allows authors and procedural tools to visually line up vertical connections.
+4. **Vertical Gateway Auto-Compilation:**
+   - Placing a stairwell or lift cell (`cell_kind: passable`, `stair: true`) at `(x, y)` on `floor 0` and at the matching `(x, y)` on `floor -1` causes the compiler to automatically mint a vertical gateway way (`way_gateway_...`) connecting the two levels.
+
+### 2.6 Corner Doors and Chamfered Diagonal Portals
+In graph space, any area node can have an arbitrary number of way edges. The restriction on diagonal doorways in `world_compile.py` was due to the opposite-pair scan looking only at cardinal offsets:
+```python
+for dx, dy in ((0, 1), (1, 0)):  # vertical pair, then horizontal
+    before = (cell[0] - dx, cell[1] - dy)
+    after = (cell[0] + dx, cell[1] + dy)
+```
+1. **Extending the Compiler for Corner Doors:**
+   - The opposite-pair scan in `world_compile.py:1877` can be extended to support diagonal pairs:
+     `((0, 1), (1, 0), (1, 1), (1, -1))`
+   - *Safety Guard (The Chamfer Rule):* When checking a diagonal opposite pair `(1, 1)` (connecting `(x-1, y-1)` to `(x+1, y+1)` through `(x, y)`), the two flanking cells `(x-1, y)` and `(x, y-1)` must be solid wall cells (`cell_kind: solid`). This represents a classic 45-degree chamfered archway cut into the corner of a stone wall, rather than an accidental breach.
+2. **Procedural Router Application:**
+   - Wide subterranean halls and natural cavern junctions can emit diagonal open passages (`_SCAN_DIRECTIONS` already supports `southeast` and `southwest`).
+   - Reinforced dwarven masonry chambers can place chamfered corner doors using `dwarven_archway` or `dwarven_runic_grille` on diagonal wall corners with verified flanking stone.
 
 ---
 
