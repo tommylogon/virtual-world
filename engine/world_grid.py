@@ -117,7 +117,8 @@ is stable across runs because it is derived from the two area ids.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+import math
+from typing import Dict, List, Optional, Set, Tuple
 
 #: The three editor modes (task-495, task-883). A world grid paints zones as cells, a settlement
 #: grid paints walls/gates/roads/buildings, an interior grid paints rooms/doors.
@@ -142,7 +143,7 @@ MODES = ("world", "settlement", "interior")
 #: The deleted ``elevation`` layer lived here once and warns against the obvious
 #: mistake: one word must not mean two things. ``floor`` is a storey index, and
 #: elevation as a painted *height* is gone because "elevation" said both.
-PAINT_LAYERS = ("biome", "road", "floor", "climate")
+PAINT_LAYERS = ("biome", "road", "floor", "climate", "current")
 
 #: One storey step on the floor layer equals 3 metres (task-877).
 #:
@@ -1121,3 +1122,516 @@ def validate(manifest: Dict[str, dict]) -> List[str]:
             else:
                 seen_cells[cell] = child_id
     return problems
+
+
+# ─────────────────────────── line of sight ────────────────────────────────
+
+EYE_HEIGHT_FLOORS: float = 0.5
+MAX_SIGHT_RANGE: int = 60
+#: Past this many cells every top drops by HORIZON_DROP_PER_CELL floors per cell.
+#: It must sit below MAX_SIGHT_RANGE or the drop can never apply.
+HORIZON_CURVATURE_START: int = 40
+HORIZON_DROP_PER_CELL: float = 1.0
+#: Floors of obstacle height that still show in the peripheral arc.
+PERIPHERAL_LANDMARK_HEIGHT: float = 5.0
+#: Slope comparison slack, so a grazing line is decided the same way each run.
+VISIBILITY_EPS: float = 1e-9
+
+FACING_ANGLES: Dict[str, float] = {
+    "east": 0.0,
+    "e": 0.0,
+    "southeast": 45.0,
+    "se": 45.0,
+    "south": 90.0,
+    "s": 90.0,
+    "southwest": 135.0,
+    "sw": 135.0,
+    "west": 180.0,
+    "w": 180.0,
+    "northwest": -135.0,
+    "nw": -135.0,
+    "north": -90.0,
+    "n": -90.0,
+    "northeast": -45.0,
+    "ne": -45.0,
+}
+
+
+def supercover_line(x0: int, y0: int, x1: int, y1: int) -> List[Tuple[int, int]]:
+    """Conservative supercover line rasterization from (x0, y0) to (x1, y1).
+
+    Unlike basic Bresenham which only yields N cells, conservative supercover
+    visits every cell a ray passes through. Crucially, when stepping diagonally
+    across a corner joint (e.g. between (10, 10) and (11, 11)), both orthogonal
+    cells (11, 10) and (10, 11) are visited, preventing sightlines from leaking
+    through diagonally adjacent walls or cliffs (task-882).
+    """
+    x0, y0, x1, y1 = int(x0), int(y0), int(x1), int(y1)
+    dx = x1 - x0
+    dy = y1 - y0
+    nx = abs(dx)
+    ny = abs(dy)
+    sign_x = 1 if dx > 0 else -1 if dx < 0 else 0
+    sign_y = 1 if dy > 0 else -1 if dy < 0 else 0
+
+    p_x, p_y = x0, y0
+    points: List[Tuple[int, int]] = [(p_x, p_y)]
+    if nx == 0 and ny == 0:
+        return points
+
+    ix = 0
+    iy = 0
+    while ix < nx or iy < ny:
+        decision = (1 + 2 * ix) * ny - (1 + 2 * iy) * nx
+        if decision == 0:
+            # Corner transit: add both orthogonal cells to seal diagonal wall joints
+            points.append((p_x + sign_x, p_y))
+            points.append((p_x, p_y + sign_y))
+            p_x += sign_x
+            p_y += sign_y
+            ix += 1
+            iy += 1
+        elif decision < 0:
+            p_x += sign_x
+            ix += 1
+        else:
+            p_y += sign_y
+            iy += 1
+        points.append((p_x, p_y))
+    return points
+
+
+def cell_elevation(record: dict, x: int, y: int) -> float:
+    """The floor elevation of cell (x, y) as a float (default 0.0)."""
+    val = (record.get("layers", {}).get("floor", {}) or {}).get(cell_key(x, y), 0)
+    try:
+        return float(val or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def cell_biome(record: dict, x: int, y: int) -> str:
+    """The biome id painted at cell (x, y), or empty string."""
+    return str((record.get("layers", {}).get("biome", {}) or {}).get(cell_key(x, y), "") or "")
+
+
+def cell_obstacle_properties(record: dict, x: int, y: int, world: Optional[object] = None) -> Tuple[float, float, float]:
+    """Returns (floor_elevation, obstacle_height, obscurity) for cell (x, y).
+
+    Reads the floor layer, biome properties from taxonomy, and any Area node
+    properties that occupy this cell (task-882).
+    """
+    from engine import biomes as biomes_mod
+    floor_elev = cell_elevation(record, x, y)
+    b_id = cell_biome(record, x, y)
+    obs_h = biomes_mod.biome_height(b_id) if b_id else 0.0
+    obs_val = biomes_mod.biome_obscurity(b_id) if b_id else 0.0
+
+    # Area node dynamic property override if world graph is available
+    if world is not None and hasattr(world, "graph"):
+        area_placements = record.get("area_placements") or {}
+        for node_id, pos in area_placements.items():
+            if isinstance(pos, dict) and pos.get("x") == x and pos.get("y") == y:
+                node = world.graph.get_node(node_id)
+                if node and getattr(node, "properties", None):
+                    p = node.properties
+                    if "height" in p:
+                        try:
+                            obs_h = float(p["height"])
+                        except (TypeError, ValueError):
+                            pass
+                    if "obscurity" in p:
+                        try:
+                            obs_val = float(p["obscurity"])
+                        except (TypeError, ValueError):
+                            pass
+                break
+
+    return floor_elev, obs_h, obs_val
+
+
+def cast_sight_ray(
+    record: dict,
+    origin: Tuple[int, int] | Tuple[int, int, float],
+    target: Tuple[int, int] | Tuple[int, int, float],
+    eye_height: float = EYE_HEIGHT_FLOORS,
+    max_range: int = MAX_SIGHT_RANGE,
+    world: Optional[object] = None,
+) -> dict:
+    """Cast a 2.5D line-of-sight ray from origin to target (task-882).
+
+    The target is the top of its cell (floor plus obstacle height), so a tall
+    landmark can be seen over lower cover. A cell is seen when its top is not
+    hidden by anything in front of it: ground and fully opaque cover hide
+    everything whose silhouette is at or below theirs, and translucent cover
+    (forest) adds its obscurity until the total reaches 1.0.
+
+    An explicit target z replaces the target cell's floor elevation.
+
+    Returns:
+      - visible: bool
+      - blocked_by: (x, y) of the cell doing the hiding, or None
+      - blocked_elevation: top of that cell, when blocked
+      - obscurity: obscurity accumulated in front of the target
+      - cells: every (x, y) the ray crosses
+      - steps: one dict per crossed cell (x, y, top, height, obscurity, seen, blocked)
+      - reason: a short sentence for a debugger, empty when clear
+    """
+    x0, y0 = int(origin[0]), int(origin[1])
+    z0 = float(origin[2]) if len(origin) > 2 else cell_elevation(record, x0, y0)
+    z_eye = z0 + float(eye_height)
+
+    x1, y1 = int(target[0]), int(target[1])
+    explicit_z1 = float(target[2]) if len(target) > 2 else None
+
+    if x0 == x1 and y0 == y1:
+        return {"visible": True, "blocked_by": None, "obscurity": 0.0,
+                "cells": [(x0, y0)], "steps": [], "reason": ""}
+
+    dist_total = math.hypot(x1 - x0, y1 - y0)
+    if dist_total > max_range:
+        return {"visible": False, "blocked_by": None, "obscurity": 1.0,
+                "cells": [], "steps": [],
+                "reason": "out of range (%.1f > %d cells)" % (dist_total, max_range)}
+
+    def props(cx: int, cy: int) -> Tuple[float, float, float]:
+        floor_e, obs_h, obs_v = cell_obstacle_properties(record, cx, cy, world)
+        if explicit_z1 is not None and cx == x1 and cy == y1:
+            floor_e = explicit_z1
+        return floor_e, obs_h, obs_v
+
+    cells = supercover_line(x0, y0, x1, y1)
+    steps: List[dict] = []
+    result_visible = True
+    blocked_by: Optional[Tuple[int, int]] = None
+    obscurity = 0.0
+    for cx, cy, d, seen, hidden, blocker in _scan_ray(cells, x0, y0, z_eye, max_range, props):
+        floor_e, obs_h, obs_v = props(cx, cy)
+        steps.append({"x": cx, "y": cy, "top": floor_e + obs_h, "height": obs_h,
+                      "obscurity": obs_v, "seen": seen, "blocked": False})
+        if cx == x1 and cy == y1:
+            result_visible = seen
+            obscurity = hidden
+            if not seen:
+                blocked_by = blocker
+    if blocked_by is not None:
+        blocked_top = None
+        for st in steps:
+            if (st["x"], st["y"]) == blocked_by:
+                st["blocked"] = True
+                blocked_top = st["top"]
+        reason = "hidden behind (%d,%d): its top (%.1f) is above your sight line" % (
+            blocked_by[0], blocked_by[1], blocked_top if blocked_top is not None else 0.0)
+        return {"visible": False, "blocked_by": blocked_by,
+                "blocked_elevation": blocked_top,
+                "obscurity": obscurity, "cells": cells, "steps": steps, "reason": reason}
+    return {"visible": result_visible, "blocked_by": None, "obscurity": obscurity,
+            "cells": cells, "steps": steps, "reason": ""}
+
+
+def _scan_ray(cells, x0, y0, z_eye, max_range, props):
+    """Walk a supercover line outward from the observer (task-882).
+
+    Yields ``(x, y, distance, seen, hidden, blocker)`` per cell. Each cell is
+    judged by what stands in front of it only, so an obstacle is itself seen
+    (its front face) while the cells in its shadow are not.
+
+    This is a slope sweep, not a ray aimed at one height. A cell's top has a
+    slope ``(top - eye) / distance`` from the observer, and a nearer occluder
+    hides every farther top whose slope is not higher than its own. That is what
+    lets a tower show above a hedge and a ridge hide a valley, with one pass
+    per ray instead of one ray per target.
+
+    Ground is opaque: terrain at floor N hides what is behind it. Cover adds its
+    obscurity (translucent) or, at 1.0, hides outright. Past
+    HORIZON_CURVATURE_START cells every top drops 1 floor per cell.
+    """
+    opaque_slope: Optional[float] = None
+    opaque_cell: Optional[Tuple[int, int]] = None
+    partial: List[Tuple[float, float, Tuple[int, int]]] = []
+    for cx, cy in cells:
+        if cx == x0 and cy == y0:
+            continue
+        d = math.hypot(cx - x0, cy - y0)
+        if d > max_range:
+            return
+        floor_e, obs_h, obs_v = props(cx, cy)
+        drop = max(0.0, d - HORIZON_CURVATURE_START) * HORIZON_DROP_PER_CELL
+        slope = (floor_e + obs_h - drop - z_eye) / d
+
+        hidden = 0.0
+        blocker: Optional[Tuple[int, int]] = None
+        if opaque_slope is not None and opaque_slope >= slope - VISIBILITY_EPS:
+            hidden, blocker = 1.0, opaque_cell
+        else:
+            for s_o, o_v, o_cell in partial:
+                if s_o >= slope - VISIBILITY_EPS:
+                    hidden += o_v
+                    blocker = o_cell
+            if hidden < 1.0:
+                blocker = None
+        yield cx, cy, d, hidden < 1.0, hidden, blocker
+
+        ground_slope = (floor_e - drop - z_eye) / d
+        if opaque_slope is None or ground_slope > opaque_slope:
+            opaque_slope, opaque_cell = ground_slope, (cx, cy)
+        if obs_h > 0 and obs_v > 0:
+            if obs_v >= 1.0:
+                if slope > opaque_slope:
+                    opaque_slope, opaque_cell = slope, (cx, cy)
+            else:
+                partial.append((slope, obs_v, (cx, cy)))
+
+
+def compute_visible_cells(
+    record: dict,
+    origin: Tuple[int, int] | Tuple[int, int, float],
+    max_range: int = MAX_SIGHT_RANGE,
+    facing: Optional[str] = None,
+    arc_degrees: float = 360.0,
+    world: Optional[object] = None,
+    peripheral_range: int = 3,
+) -> Set[Tuple[int, int]]:
+    """Compute the full set of grid cells visible from origin (task-882).
+
+    Fires one slope sweep (see ``_scan_ray``) along a supercover line to every
+    cell on the perimeter of the sight box.
+
+    If facing is provided and arc_degrees < 360, respects the directional cone:
+      - Primary cone: full max_range.
+      - Peripheral arc: limited to peripheral_range, except tall landmarks
+        (obstacle height >= PERIPHERAL_LANDMARK_HEIGHT), which still show.
+    A cell outside the cone still occludes; it is only left out of the result.
+    """
+    x0, y0 = int(origin[0]), int(origin[1])
+    grid = record.get("grid") or {}
+    w, h = _as_int(grid.get("w")), _as_int(grid.get("h"))
+    if not w or not h:
+        return {(x0, y0)}
+
+    visible: Set[Tuple[int, int]] = {(x0, y0)}
+    heading_angle: Optional[float] = None
+    if facing and arc_degrees < 360.0:
+        heading_angle = FACING_ANGLES.get(str(facing).lower())
+
+    half_arc = float(arc_degrees) / 2.0 if heading_angle is not None else 180.0
+    r = min(int(max_range), max(w, h))
+
+    min_x = max(0, x0 - r)
+    max_x = min(w - 1, x0 + r)
+    min_y = max(0, y0 - r)
+    max_y = min(h - 1, y0 + r)
+
+    perimeter_targets: Set[Tuple[int, int]] = set()
+    for x in range(min_x, max_x + 1):
+        perimeter_targets.add((x, min_y))
+        perimeter_targets.add((x, max_y))
+    for y in range(min_y, max_y + 1):
+        perimeter_targets.add((min_x, y))
+        perimeter_targets.add((max_x, y))
+
+    z0 = float(origin[2]) if len(origin) > 2 else cell_elevation(record, x0, y0)
+    z_eye = z0 + EYE_HEIGHT_FLOORS
+
+    # Rays overlap heavily near the observer, so each cell is read once.
+    memo: Dict[Tuple[int, int], Tuple[float, float, float]] = {}
+
+    def props(cx: int, cy: int) -> Tuple[float, float, float]:
+        got = memo.get((cx, cy))
+        if got is None:
+            got = cell_obstacle_properties(record, cx, cy, world)
+            memo[(cx, cy)] = got
+        return got
+
+    for tx, ty in perimeter_targets:
+        if tx == x0 and ty == y0:
+            continue
+        ray_cells = supercover_line(x0, y0, tx, ty)
+        # Stop at the grid edge: the sweep must not read cells that do not exist.
+        inside = []
+        for c in ray_cells:
+            if not (0 <= c[0] < w and 0 <= c[1] < h):
+                break
+            inside.append(c)
+        for cx, cy, d, seen, _hidden, _blocker in _scan_ray(inside, x0, y0, z_eye, max_range, props):
+            if not seen:
+                continue
+            if heading_angle is not None:
+                cell_angle = math.degrees(math.atan2(cy - y0, cx - x0))
+                angle_diff = abs((cell_angle - heading_angle + 180.0) % 360.0 - 180.0)
+                if angle_diff > half_arc:
+                    _, obs_h, _ = props(cx, cy)
+                    if d > peripheral_range and obs_h < PERIPHERAL_LANDMARK_HEIGHT:
+                        continue
+            visible.add((cx, cy))
+
+    return visible
+
+
+# ───────────────────────── Hydrology & Gradient Flow (task-745) ─────────────
+
+COMPASS_8_OFFSETS = [
+    (1, 0),    # 0: East
+    (1, 1),    # 1: Southeast
+    (0, 1),    # 2: South
+    (-1, 1),   # 3: Southwest
+    (-1, 0),   # 4: West
+    (-1, -1),  # 5: Northwest
+    (0, -1),   # 6: North
+    (1, -1),   # 7: Northeast
+]
+COMPASS_8_BEARINGS = ("e", "se", "s", "sw", "w", "nw", "n", "ne")
+
+CELL_WALK_METRES: float = 80.0    # 1 cell = 1 minute walk ≈ 80m across
+STOREY_DROP_METRES: float = 3.0  # 1 storey = 3m vertical drop
+
+
+def is_water_cell(record: dict, x: int, y: int) -> bool:
+    """Check if cell (x, y) carries a water biome, surface, or tag."""
+    b_id = cell_biome(record, x, y)
+    if not b_id:
+        return False
+    b_str = str(b_id).lower()
+    if any(w in b_str for w in ("river", "water", "lake", "ocean", "stream", "rapids", "waterfall", "sea")):
+        return True
+    from engine import biomes as biomes_mod
+    rec = biomes_mod.biome(b_id) or {}
+    if rec.get("terrain") == "water":
+        return True
+    if rec.get("surface") in ("shallow_water", "deep_water"):
+        return True
+    tags = [str(t).lower() for t in (rec.get("tags") or [])]
+    return any(t in ("water", "river", "stream", "lake", "ocean", "rapids", "waterfall") for t in tags)
+
+
+def slope_to_current_strength(drop_storeys: int) -> int:
+    """Map storey elevation drop across contiguous cells to current strength ladder (1-20).
+
+    Calibrated Hydrology Model (task-745):
+      - 0 storeys drop (0% slope): calm meander -> strength 1 (routine, DC 8)
+      - 1 storey drop (~1.9-3.7% slope): swift current / riffle -> strength 5 (DC 10-12)
+      - 2-3 storeys drop (~7.5-11% slope): whitewater rapids -> strength 10 (DC 15-18)
+      - 4+ storeys drop (>15% slope): waterfall / cataract -> strength 20 (DC 20-25)
+    """
+    if drop_storeys <= 0:
+        return 1
+    if drop_storeys == 1:
+        return 5
+    if drop_storeys in (2, 3):
+        return 10
+    return 20
+
+
+def derive_water_current(
+    record: dict,
+    x: int,
+    y: int,
+    world: Optional[object] = None,
+) -> Optional[dict]:
+    """Derive flow direction, velocity strength, and hazard for a water cell.
+
+    Water flows downhill. Derives flow vector and velocity from the gradient of the
+    floor storey layer across contiguous water cells using the calibrated slope model:
+      - 0 storeys drop: calm meander (strength 1)
+      - 1 storey drop (3m over 80-160m, ~1.9-3.7% slope): swift current (strength 5)
+      - 2-3 storeys drop (6-9m over 80m, ~7.5-11% slope): rapids (strength 10)
+      - 4+ storeys drop (>=12m over 80m, >15% slope): waterfall / cataract (strength 20)
+
+    A manual 'current' paint layer override takes precedence (used for whirlpools,
+    conduits, surges).
+
+    Returns None if cell is not water; otherwise returns dict:
+      - direction: int (0-7 compass index: 0=E, 1=SE, 2=S, 3=SW, 4=W, 5=NW, 6=N, 7=NE)
+      - bearing: str ("e", "se", "s", "sw", "w", "nw", "n", "ne")
+      - strength: int (1-20)
+      - drop: int (elevation drop in storeys to downstream neighbor)
+      - hazard_id: Optional[str] (e.g. "river", "rapids", "fall")
+      - slope_percent: float
+      - manual_override: bool
+    """
+    if not is_water_cell(record, x, y):
+        return None
+
+    layers = record.get("layers") or {}
+    current_layer = layers.get("current") or {}
+    key = f"{x},{y}"
+    manual = None
+    if key in current_layer:
+        manual_val = current_layer[key]
+        if isinstance(manual_val, dict):
+            manual = manual_val
+        elif isinstance(manual_val, (int, float)):
+            manual = {"strength": int(manual_val), "direction": 0}
+
+    from engine import biomes as biomes_mod
+    b_id = cell_biome(record, x, y)
+    b_hazard = biomes_mod.biome_hazard(b_id) if b_id else None
+
+    if manual is not None:
+        str_val = max(1, min(20, int(manual.get("strength", 5))))
+        dir_val = int(manual.get("direction", 0)) % 8
+        bearing_val = COMPASS_8_BEARINGS[dir_val]
+        return {
+            "direction": dir_val,
+            "bearing": bearing_val,
+            "strength": str_val,
+            "drop": 0,
+            "hazard_id": manual.get("hazard_id") or b_hazard or "river",
+            "slope_percent": 0.0,
+            "manual_override": True,
+        }
+
+    z0 = cell_elevation(record, x, y)
+    best_drop = -999999
+    best_idx = 0
+    best_dist = CELL_WALK_METRES
+    downstream_found = False
+
+    for idx, (dx, dy) in enumerate(COMPASS_8_OFFSETS):
+        nx, ny = x + dx, y + dy
+        if not is_water_cell(record, nx, ny):
+            continue
+        nz = cell_elevation(record, nx, ny)
+        drop = z0 - nz
+        dist = CELL_WALK_METRES if (dx == 0 or dy == 0) else (CELL_WALK_METRES * 1.41421356)
+        if drop > 0:
+            downstream_found = True
+            grad = drop / dist
+            best_grad = best_drop / best_dist if best_drop > 0 else -1.0
+            if grad > best_grad:
+                best_drop = drop
+                best_idx = idx
+                best_dist = dist
+        elif not downstream_found and drop == 0 and best_drop < 0:
+            best_drop = 0
+            best_idx = idx
+            best_dist = dist
+
+    if best_drop < 0:
+        best_drop = 0
+        best_idx = 0
+        best_dist = CELL_WALK_METRES
+
+    strength = slope_to_current_strength(best_drop)
+    slope_pct = (best_drop * STOREY_DROP_METRES / best_dist) * 100.0 if best_drop > 0 else 0.0
+
+    if best_drop >= 4 or b_id == "waterfall":
+        hazard_id = "fall"
+    elif best_drop in (2, 3) or b_id == "river_rapids":
+        hazard_id = "rapids"
+    elif b_hazard:
+        hazard_id = b_hazard
+    elif best_drop == 1 or b_id in ("river_swift", "river"):
+        hazard_id = "river"
+    else:
+        hazard_id = None
+
+    return {
+        "direction": best_idx,
+        "bearing": COMPASS_8_BEARINGS[best_idx],
+        "strength": strength,
+        "drop": max(0, best_drop),
+        "hazard_id": hazard_id,
+        "slope_percent": round(slope_pct, 2),
+        "manual_override": False,
+    }

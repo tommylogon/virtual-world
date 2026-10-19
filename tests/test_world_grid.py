@@ -490,3 +490,146 @@ def test_metres_per_storey_is_three():
     assert hasattr(wg, "METRES_PER_STOREY")
     assert wg.METRES_PER_STOREY == 3
     assert isinstance(wg.METRES_PER_STOREY, int)
+
+
+# ─────────────────────────── line of sight tests ──────────────────────────
+
+
+def test_supercover_line_seals_diagonal_corners():
+    # Corner transit between (0, 0) and (1, 1) must include both (1, 0) and (0, 1)
+    pts = wg.supercover_line(0, 0, 1, 1)
+    assert (0, 0) in pts
+    assert (1, 1) in pts
+    assert (1, 0) in pts
+    assert (0, 1) in pts
+    assert len(pts) == 4
+
+
+def test_cast_sight_ray_elevation_clearance():
+    # Watchtower at (0, 0) floor 3 (eye height 3.5).
+    # Hedge at (2, 0) floor 0, height 2.0 (top = 2.0).
+    # Target at (10, 0) floor 0.
+    # At d=2, D=10: t=0.2. Ray elev = 3.5 + (0.0 - 3.5)*0.2 = 2.8 > 2.0.
+    # Ray clears the wall cleanly!
+    rec = {
+        "grid": {"w": 15, "h": 5},
+        "layers": {
+            "floor": {wg.cell_key(0, 0): 3, wg.cell_key(2, 0): 0, wg.cell_key(10, 0): 0},
+            "biome": {wg.cell_key(2, 0): "wall"},
+        }
+    }
+    res = wg.cast_sight_ray(rec, origin=(0, 0, 3), target=(10, 0, 0))
+    assert res["visible"] is True
+    assert res["blocked_by"] is None
+
+    # From ground level (0, 0, 0), ray elev at d=2 is 0.4 <= 2.0 -> blocked!
+    res_ground = wg.cast_sight_ray(rec, origin=(0, 0, 0), target=(10, 0, 0))
+    assert res_ground["visible"] is False
+    assert res_ground["blocked_by"] == (2, 0)
+
+
+def test_cast_sight_ray_eye_level_offset_prevents_self_tile_occlusion():
+    rec = {
+        "grid": {"w": 5, "h": 5},
+        "layers": {
+            "floor": {wg.cell_key(0, 0): 0, wg.cell_key(1, 0): 0},
+            "biome": {wg.cell_key(0, 0): "sparse_forest"},
+        }
+    }
+    res = wg.cast_sight_ray(rec, origin=(0, 0), target=(1, 0))
+    assert res["visible"] is True
+
+
+def test_cast_sight_ray_front_face_visibility_and_shadow():
+    rec = {
+        "grid": {"w": 5, "h": 5},
+        "layers": {
+            "floor": {wg.cell_key(0, 0): 0, wg.cell_key(2, 0): 0, wg.cell_key(3, 0): 0},
+            "biome": {wg.cell_key(2, 0): "wall"},
+        }
+    }
+    # Front face of the wall is visible
+    res_wall = wg.cast_sight_ray(rec, origin=(0, 0), target=(2, 0))
+    assert res_wall["visible"] is True
+
+    # Behind the wall is blocked
+    res_behind = wg.cast_sight_ray(rec, origin=(0, 0), target=(3, 0))
+    assert res_behind["visible"] is False
+    assert res_behind["blocked_by"] == (2, 0)
+
+
+def test_cast_sight_ray_obscurity_accumulation():
+    # sparse_forest has obscurity 0.4.
+    # 2 sparse forests accumulate 0.8 < 1.0 -> visible.
+    # 3 sparse forests accumulate 1.2 >= 1.0 -> 4th cell behind them is blocked.
+    rec = {
+        "grid": {"w": 6, "h": 2},
+        "layers": {
+            "biome": {
+                wg.cell_key(1, 0): "sparse_forest",
+                wg.cell_key(2, 0): "sparse_forest",
+                wg.cell_key(3, 0): "sparse_forest",
+            }
+        }
+    }
+    res_two = wg.cast_sight_ray(rec, origin=(0, 0), target=(2, 0))
+    assert res_two["visible"] is True
+
+    res_four = wg.cast_sight_ray(rec, origin=(0, 0), target=(4, 0))
+    assert res_four["visible"] is False
+    assert res_four["blocked_by"] == (3, 0)
+
+
+def test_compute_visible_cells_directional_facing_arc():
+    rec = {
+        "grid": {"w": 20, "h": 20},
+        "layers": {}
+    }
+    vis = wg.compute_visible_cells(rec, origin=(10, 10), max_range=8, facing="east", arc_degrees=120.0, peripheral_range=2)
+    assert (10, 10) in vis
+    assert (15, 10) in vis  # 5 cells east, in primary cone
+    assert (3, 10) not in vis  # 7 cells west, behind observer and beyond peripheral range (2)
+
+
+def test_compute_visible_cells_tall_landmark_over_low_cover():
+    # Observer at (0, 0) ground (eye 0.5).
+    # Wall at (2, 0) height 2.0 (top 2.0, slope = (2.0 - 0.5) / 2 = 0.75).
+    # Hidden valley at (4, 0) ground 0 (top 0.0, slope = -0.125 < 0.75) -> hidden.
+    # Tall mountain at (6, 0) floor 6 (top 6.0, slope = (6.0 - 0.5) / 6 = 0.917 > 0.75) -> seen above wall!
+    rec = {
+        "grid": {"w": 10, "h": 5},
+        "layers": {
+            "floor": {wg.cell_key(0, 0): 0, wg.cell_key(2, 0): 0, wg.cell_key(4, 0): 0, wg.cell_key(6, 0): 6},
+            "biome": {wg.cell_key(2, 0): "wall"},
+        }
+    }
+    vis = wg.compute_visible_cells(rec, origin=(0, 0), max_range=10)
+    assert (0, 0) in vis
+    assert (2, 0) in vis  # front face of wall
+    assert (4, 0) not in vis  # shadow behind wall
+    assert (6, 0) in vis  # mountain peaks over wall
+
+
+def test_compute_visible_cells_peripheral_tall_landmark():
+    # Observer at (10, 10) facing east.
+    # Cell (5, 10) is directly behind (west, 5 cells away > peripheral_range=2).
+    # Low wall: excluded from viewshed.
+    rec_low = {
+        "grid": {"w": 20, "h": 20},
+        "layers": {
+            "biome": {wg.cell_key(5, 10): "wall"}  # wall height is 1.0 < 5.0
+        }
+    }
+    vis_low = wg.compute_visible_cells(rec_low, origin=(10, 10), facing="east", arc_degrees=120.0, peripheral_range=2)
+    assert (5, 10) not in vis_low
+
+    # Tall tower / mountain: mountain biome has height 6.0 >= 5.0 -> visible even behind!
+    rec_tall = {
+        "grid": {"w": 20, "h": 20},
+        "layers": {
+            "biome": {wg.cell_key(5, 10): "mountain"}
+        }
+    }
+    vis_tall = wg.compute_visible_cells(rec_tall, origin=(10, 10), facing="east", arc_degrees=120.0, peripheral_range=2)
+    assert (5, 10) in vis_tall
+

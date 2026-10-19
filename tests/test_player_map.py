@@ -386,3 +386,70 @@ def test_unknown_player_is_a_404():
     world = _Stub(g, {})
     with _flask.app_context():
         assert handle_get_player_map(_App(world), "nobody")[1] == 404
+
+
+def test_player_map_returns_visible_cells_and_scope_id():
+    g = make_graph()
+    cook = make_player()
+    observe_area(cook, _GS(g))
+
+    scopes = {
+        "camp": {
+            "id": "camp",
+            "name": "Camp",
+            "mode": "settlement",
+            "grid": {
+                "w": 10,
+                "h": 10,
+                "cells": {
+                    "3,2": {"layers": {"ground": "grass", "floor": "0"}},
+                    "3,3": {"layers": {"ground": "grass", "floor": "0"}},
+                },
+            },
+        }
+    }
+    body, status = call(g, cook, scopes=scopes)
+    assert status == 200
+    assert body["visible_scope_id"] == "camp"
+    assert isinstance(body["visible_cells"], list)
+    assert len(body["visible_cells"]) > 0
+    # The observer's own cell is always visible
+    coords = [(c["x"], c["y"]) for c in body["visible_cells"]]
+    assert (3, 2) in coords
+    # Charted cells are also populated and returned
+    assert isinstance(body["charted_cells"], list)
+    assert (3, 2) in [(c["x"], c["y"]) for c in body["charted_cells"]]
+
+
+def test_player_map_charted_cells_persist_across_los_changes():
+    g = make_graph()
+    cook = make_player()
+    observe_area(cook, _GS(g))
+
+    scopes = {
+        "camp": {
+            "id": "camp",
+            "name": "Camp",
+            "mode": "settlement",
+            "grid": {
+                "w": 10,
+                "h": 10,
+            },
+        }
+    }
+    # First pass: facing east
+    cook.facing = "east"
+    body1, _ = call(g, cook, scopes=scopes)
+    assert (7, 2) in [(c["x"], c["y"]) for c in body1["visible_cells"]]
+
+    # Second pass: turned around facing west
+    cook.facing = "west"
+    body2, _ = call(g, cook, scopes=scopes)
+    vis2 = [(c["x"], c["y"]) for c in body2["visible_cells"]]
+    charted2 = [(c["x"], c["y"]) for c in body2["charted_cells"]]
+
+    # Cell (7, 2) is now behind the character (west facing) and beyond peripheral range (3), so not in visible_cells...
+    assert (7, 2) not in vis2
+    # ...but remains charted in persistent memory!
+    assert (7, 2) in charted2
+

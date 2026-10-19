@@ -131,6 +131,8 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
         DefinitionField("known_way_aspects", "knowledge", ON_PLAYER, False),
         DefinitionField("visited_areas", "knowledge", ON_PLAYER, False,
                         "a set; runtime accumulation"),
+        DefinitionField("charted_cells", "knowledge", ON_PLAYER, False,
+                        "dict of scope_id to set of (x, y) cells seen in line of sight"),
         DefinitionField("discovered_items", "knowledge", ON_PLAYER, False,
                         "a set; runtime accumulation"),
     ],

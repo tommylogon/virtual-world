@@ -160,4 +160,35 @@ def observe_area(player, gs, tick=None) -> dict:
             location=area_node.name, importance=IMPORTANCE.get(kind, 3),
         )
         result["seen"] += 1
+
+    # Chart visible grid cells (task-882): if this area is placed on a grid scope
+    try:
+        props = getattr(area_node, "properties", None) or {}
+        cell = props.get("cell")
+        scope_id = str(props.get("world_scope_id") or "")
+        if isinstance(cell, dict) and "x" in cell and "y" in cell and scope_id:
+            world = getattr(gs, "world", None) or getattr(gs, "_world", None) or gs
+            manifest = getattr(world, "world_scopes", None)
+            if manifest and scope_id in manifest:
+                scope_rec = manifest[scope_id]
+                from engine import world_grid as wg
+                if wg.has_grid(scope_rec):
+                    x, y = int(cell["x"]), int(cell["y"])
+                    floor = int(props.get("floor", 0) or 0)
+                    facing = getattr(player, "facing", None)
+                    vis = wg.compute_visible_cells(
+                        scope_rec,
+                        origin=(x, y, floor),
+                        max_range=60,
+                        facing=facing,
+                        arc_degrees=120.0 if facing else 360.0,
+                        world=world,
+                    )
+                    charted_dict = getattr(player, "charted_cells", None)
+                    if charted_dict is None:
+                        player.charted_cells = charted_dict = {}
+                    charted_dict.setdefault(scope_id, set()).update(vis)
+    except Exception:
+        pass
+
     return result

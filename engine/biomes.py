@@ -402,6 +402,13 @@ def biome_obscurity(biome_id, path: Optional[str] = None) -> float:
     return 0.0
 
 
+def biome_hazard(biome_id, path: Optional[str] = None) -> Optional[str]:
+    """Return default hazard_id registered on this biome, or None (task-745)."""
+    rec = biome(biome_id, path) or {}
+    hid = rec.get("hazard_id")
+    return str(hid).strip() if hid else None
+
+
 def entry_phrases(record_id, path: Optional[str] = None) -> Optional[dict]:
     """The narrative move a record asks for when you enter it (task-529).
 
@@ -605,6 +612,13 @@ def record_problems(bid: str, rec: dict) -> List[str]:
         out.append(f"biome {bid}: missing surface (ground material)")
     if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
         out.append(f"biome {bid}: no description fragments")
+    hazard_id = rec.get("hazard_id")
+    if hazard_id is not None:
+        from engine import hazards
+        if not isinstance(hazard_id, str) or not hazard_id.strip():
+            out.append(f"biome {bid}: empty or invalid hazard_id")
+        elif hazard_id not in hazards.hazards():
+            out.append(f"biome {bid}: unknown hazard_id '{hazard_id}'")
     out.extend(_climate_problems(bid, rec))
     out.extend(_neighbour_problems(bid, rec))
     return out

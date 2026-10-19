@@ -87,7 +87,7 @@ def test_no_routes_for_unknown_current_area():
 def test_deep_route_included_with_max_depth():
     g = make_graph()
     sm = SpatialMemory(g)
-    # Visit all four areas — Study is 2 hops from Living Area
+    # Visit all four areas - Study is 2 hops from Living Area
     block = sm.build_known_routes(
         "Living Area",
         {"Living Area", "Hallway", "Study"},
@@ -96,3 +96,20 @@ def test_deep_route_included_with_max_depth():
     assert "Study" in block
     assert "north" in block
     assert "east" in block
+
+
+def test_find_route_to_target():
+    g = make_graph()
+    sm = SpatialMemory(g)
+    # Target Study from Living Area via Hallway
+    route = sm.find_route("Living Area", "Study", {"Living Area", "Hallway", "Study"})
+    assert route is not None
+    assert len(route) == 2
+    assert route[0]["direction"] == "north"
+    assert route[0]["to"] == "Hallway"
+    assert route[1]["direction"] == "east"
+    assert route[1]["to"] == "Study"
+
+    # Unvisited target unreachable
+    assert sm.find_route("Living Area", "Cellar", {"Living Area"}) is None
+

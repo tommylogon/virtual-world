@@ -370,6 +370,8 @@ class Player:
         self.known_way_aspects = {}
         # Track areas the character has visited (for Entertainment novelty bonus)
         self.visited_areas = set()
+        # Track grid cells seen in line-of-sight per scope (task-882): {scope_id: set of (x, y) tuples}
+        self.charted_cells = {}
         # Track items the character has discovered (for Entertainment novelty bonus)
         self.discovered_items = set()
         # AUTHORED knowledge (not runtime discovery): entity ids this character
@@ -1373,6 +1375,10 @@ class Player:
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),
+            "charted_cells": {
+                sid: sorted([list(c) for c in (cells or [])])
+                for sid, cells in (getattr(self, "charted_cells", {}) or {}).items()
+            },
             "discovered_items": list(self.discovered_items),
             "memory_index": dict(self.memory_index),
             "patrol_route": list(getattr(self, "patrol_route", [])),

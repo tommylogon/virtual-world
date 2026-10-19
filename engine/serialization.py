@@ -204,6 +204,10 @@ class WorldSerializer:
                 getattr(p, 'lived_log_memorized_through', 0) or 0),
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
+            "charted_cells": {
+                sid: sorted([list(c) for c in (cells or [])])
+                for sid, cells in (getattr(p, "charted_cells", {}) or {}).items()
+            },
             "schedule": list(getattr(p, 'schedule', []) or []),
             "goals": _goals_payload(self.graph, self.player_manager, p, pname),
             "goal_log": [dict(e) for e in (getattr(p, 'goal_log', []) or [])],
@@ -476,6 +480,11 @@ class WorldSerializer:
         p.discovered_exits = {
             tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
         }
+        p.charted_cells = {
+            sid: {tuple(c) for c in (cells or []) if isinstance(c, (list, tuple)) and len(c) == 2}
+            for sid, cells in (pdata.get("charted_cells", {}) or {}).items()
+            if isinstance(cells, list)
+        }
         p.interest_tags = list(pdata.get("interest_tags", []))
         p.fear_tags = list(pdata.get("fear_tags", []))
         p.carcass_item = pdata.get("carcass_item")
@@ -584,6 +593,7 @@ class WorldSerializer:
         data.pop("commons", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+            pdata.pop("charted_cells", None)
             # A character does not *author* their lived history, so it is runtime
             # state in the same way recent_hearing is (task-542). Keeping it would
             # grow a scenario file by 200 entries per character on the first save.
