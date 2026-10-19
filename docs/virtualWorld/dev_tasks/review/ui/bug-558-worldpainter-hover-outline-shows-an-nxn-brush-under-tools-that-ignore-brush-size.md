@@ -1,6 +1,6 @@
 ---
 type: bug
-status: inprogress
+status: review
 area: ui
 priority: medium
 wiki: "[[World Building/WorldPainter]]"
@@ -31,7 +31,7 @@ Add a helper that says which tools consume the brush (paint, erase, route) and h
 
 Intended UI home: WorldPainter, any scope with a grid, left tool rail and canvas
 
-Current availability: Defect is live today; the fix is not yet implemented.
+Current availability: The fix is implemented in `editor.ts`, compiled to `editor.js`, guarded by unit tests in `test_worldpainter.js`, and live-verified via browser driver.
 
 Live steps when available:
 1. Open WorldPainter on deep_woods, choose Paint, set the brush to 5x5, then press A for the Area tool and hover the canvas. expected: a one-cell outline. observed before fix: a 5x5 outline.

@@ -13,22 +13,29 @@ wiki: "[[World Building/WorldPainter]]"
 
 ## What
 
-Turn painted terrain into consequences, not just DCs. Two halves. (1) A current paint layer beside biome/road/floor/climate: a per-cell flow direction and a strength 1-20, following task-557's precedent for adding a layer (whitelist in engine/world_grid.PAINT_LAYERS, editor tool, compiler read). Storey gradient may supply the direction/speed default when the author paints no current. (2) data/worldpainter/hazards.json, a category registry like biomes.json: river/rapids, cliff/fall, thorns, pit, bridge-jump, each {skill, dc ladder by strength, on_fail effects, success/fail message templates}. A --check gate validates it the way way_property_index does. Policy is data: the 5/20 ladder is author-tunable, not code.
+Turn painted terrain into consequences, not just DCs. Three interconnected parts:
+
+1. **Biome-integrated hazard defaults & expanded water vocabulary**: Biomes in `data/worldpainter/biomes.json` declare default `hazard_id` references (e.g. `river` -> `river`, `rapids` -> `rapids`, `mountain_cliff` -> `cliff`, `briar_patch` -> `thorns`). Expand river/water biomes to distinct archetypes (`river_calm`, `river_swift`, `river_rapids`, `river_gorge`) that carry distinct default surfaces and hazard couplings without cluttering engine code.
+2. **Floor elevation gradient as the primary flow driver**: Water flows downhill. Rather than forcing manual authoring of flow direction and strength across every single water cell, the compiler and editor derive flow vector and velocity from the gradient of the `floor` (storey) layer across contiguous water cells.
+   - **Calibrated Hydrology Model (1 cell = 1 minute walk ≈ 80m across; 1 storey = 3m drop)**:
+     - *0 storeys drop* (0m / 80m, 0%): Calm / Meandering (`river_calm`), no roll (routine take-10).
+     - *1 storey drop* (3m over 80–160m, ~1.9–3.7% slope): Swift current / riffle (`river_swift`), DC 10 Athletics / wading check.
+     - *2–3 storeys drop* (6–9m over 80m, ~7.5–11% slope): Whitewater rapids (`river_rapids`), DC 15 Athletics check; failure sweeps actor downstream into next cell.
+     - *4+ storeys drop or sheer cliff step* (≥12m over 80m or cliff seam, >15% to 90°): Waterfall / Cataract (`waterfall` / `cataract`), impassable upstream; DC 20 plunge check.
+   - Manual `current` layer paint overrides are reserved for special non-gravity features (whirlpools, subterranean conduits, tidal surges).
+3. **Smart assistant validation for river layering & slope continuity**: A validator tool and painter lint alert (`tools/river_flow_lint.py` and editor assistant) that inspects contiguous river runs and detects physical impossibilities: water running uphill without pressure, drops of 4+ storeys missing a waterfall/cataract classification, disconnected pooling, and river branches that dead-end without an outflow sink.
+4. **Data-driven hazard consequences**: `data/worldpainter/hazards.json` category registry maps hazard types to abilities, strength-to-DC ladders (5-20), and `on_fail` consequences (damage, conditions, forced movement downstream).
 
 ## Acceptance
 
-- [x] `data/worldpainter/hazards.json` - a category registry (river, rapids,
-      cliff, fall, thorns, pit, bridge_jump), each with the ability check, a
-      5/20 strength->DC ladder, `on_fail` conditions/tags, and success/fail prose.
-- [x] `engine/hazards.py` reads it; `dc_for(id, strength)` picks the highest rung
-      `<= strength` (clamped at both ends); `validate()` enforces the shape.
+- [x] `data/worldpainter/hazards.json` - a category registry (river, rapids, cliff, fall, thorns, pit, bridge_jump), each with ability check, 5/20 strength->DC ladder, `on_fail` conditions/tags, and success/fail prose.
+- [x] `engine/hazards.py` reads it; `dc_for(id, strength)` picks the highest rung `<= strength` (clamped at both ends); `validate()` enforces the shape.
 - [x] `tools/hazard_index.py --check` is a gate (green: 7 hazards).
-- [x] `tests/test_hazards.py` - 8 tests (ladder selection, unknown ability /
-      empty ladder rejected, ladder tolerance).
-- [ ] The current/strength **paint layer** (`world_grid.PAINT_LAYERS` whitelist,
-      editor tool, compiler read).
-- [ ] The compiler attaches hazard ids to generated ways/areas - that is
-      task-747, the consumer of this registry.
+- [x] `tests/test_hazards.py` - 8 tests (ladder selection, unknown ability / empty ladder rejected, ladder tolerance).
+- [ ] Biomes in `data/worldpainter/biomes.json` can declare an optional `hazard_id` property, and new water/river archetypes are registered.
+- [ ] Flow direction and strength auto-derive from the `floor` storey layer gradient across adjacent water cells when no manual current layer override is painted.
+- [ ] River flow assistant / linting tool checks water runs for uphill flow, abrupt jumps, and dead ends.
+- [ ] Compiler (task-747) stamps derived or painted hazards onto generated ways/areas.
 
 ## Progress (2026-10-09)
 

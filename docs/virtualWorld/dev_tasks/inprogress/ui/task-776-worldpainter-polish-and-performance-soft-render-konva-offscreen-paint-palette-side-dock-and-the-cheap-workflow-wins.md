@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: ui
 priority: high
+wiki: "[[UI Reference/Rendering & UI Modules]]"
 ---
 
 # task-776: WorldPainter polish and performance: soft render, Konva/offscreen paint, palette side-dock, and the cheap workflow wins

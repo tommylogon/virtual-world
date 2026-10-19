@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: graph
 priority: high
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # task-769: Unify the map and graph coordinate systems
@@ -54,6 +55,12 @@ placement.
   is honoured **only inside the painted frame**; else no seed. `buildNodeConfig`
   and `loadGraphData` route through it. This guards the handful of nodes no
   relation can place.
+- In `graph-background.ts` (`persistPositionsToWorld`), guard uncelled ways, triggers, and
+  room-anchored children from having solver positions written to `properties.x/y`.
+- In `relative-layout.ts` (`apply`), uncelled ways positioned at rooms' midpoint are
+  pinned (`fixed: true, physics: false`) so Barnes-Hut repulsion cannot drift them off-center.
+- Gateway ways spanning disparate scopes snap to their scope's boundary room rather
+  than floating in the inter-scope void.
 
 ## Browser UI and intended live verification
 
@@ -88,10 +95,10 @@ This section defines the intended access point and acceptance path. It is not a 
 - [x] Ways placed without the solver (uncelled -> rooms' midpoint).
 - [x] `on`/`at` relations anchor a loose node to its area in both paths.
 - [x] Offline proof: 887 -> 0 long edges on the real data.
+- [ ] Persistence guard in `persistPositionsToWorld`: derived/uncelled/anchored nodes never persist 10⁴ solver coordinates to `properties.x/y`.
+- [ ] Midpoint uncelled ways are pinned to avoid solver repulsion drift.
+- [ ] Cross-scope gateways anchor cleanly to boundary rooms rather than empty space.
 - [ ] Live confirmation (reload a scope with physics off, no fan).
-- [ ] The **persistence** side is still open: something writes 10⁴-scale physics
-      coordinates into `properties.x/y` (bug-52's creep). Seeding no longer trusts
-      an out-of-frame value, but the write should stop too.
 
 ## Files
 

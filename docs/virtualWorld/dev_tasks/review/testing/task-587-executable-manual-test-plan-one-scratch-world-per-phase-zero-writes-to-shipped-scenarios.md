@@ -1,10 +1,11 @@
 ---
 type: task
-status: inprogress
+status: review
 area: testing
 priority: high
 supersedes: test-plan-100-items.md
 related: [task-586, task-444, task-572, task-574, bug-54]
+wiki: "[[Feature Map]]"
 ---
 
 # task-587: Executable manual test plan - one scratch world per phase, zero writes to shipped scenarios

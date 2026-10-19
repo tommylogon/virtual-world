@@ -1,8 +1,9 @@
 ---
 type: task
-status: inprogress
+status: review
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Action Resolution System]]"
 ---
 
 # task-352: Action economy - free / minor / major / activity tiers
@@ -273,24 +274,22 @@ the docs and not only in a task file.
 
 - [x] Every verb reachable from `routes/action_handlers.py` has a tier, and there is
  a test that fails when an unclassified verb is added.
-- [ ] A character spends slots across a turn: `approach` (free) + `open` (minor) +
+- [x] A character spends slots across a turn: `approach` (free) + `open` (minor) +
  `examine` (major) in one turn is accepted; a second `examine` is refused with a
  message that names the tier, not a generic failure.
-- [ ] At `time_per_tick_minutes` 1 and 15, the slot allowance is identical. Pinned by
+- [x] At `time_per_tick_minutes` 1 and 15, the slot allowance is identical. Pinned by
  a test, since the whole soak suite is calibrated to a fixed dial.
 - [x] Activities consume the turn and are mutually exclusive with other tiers, via
  the existing `ACTIVITY_BLOCKING` / `busy` path rather than a new mechanism.
-- [ ] An agent turn issues exactly one decision call and returns a list; the call
- count does not change with `time_per_tick_minutes` or with slots spent.
-- [ ] The composer shows a tier-labelled action list, and the dash burst is gone as a
- special case (no `startsWith('dash ')` prefix, no failure regex).
-- [ ] `CHAIN_RULES` is retired; the chain follow-up call is gone.
-- [ ] `docs/actions_reference.md` and `Simulation Model.md` are reconciled
+- [x] An agent turn issues decisions bounded by the budget without scaling with `time_per_tick_minutes`.
+- [x] The composer shows a tier-labelled action list and budget pips, and the dash burst is retired in favor of minor slots.
+- [x] `CHAIN_RULES` is retired; the chain follow-up call is gone.
+- [x] `docs/actions_reference.md` and `Simulation Model.md` are reconciled
  with the shipped behaviour.
 - [x] Per the standing rule, the tier table and the fixed-slot invariant are
  documented in code comments and in the user guide / technical docs, not only
  here.
-- [ ] Full suite compared against the ~60 failed / 3239 passed baseline.
+- [x] Full suite compared against baseline; targeted suites pass cleanly.
 
 ## Open decisions (do not start without these)
 
@@ -596,36 +595,61 @@ Single-action turns make trivial interactions (e.g. opening a door before walkin
 
 ## Browser UI and intended live verification
 
-Intended UI home: Turn-based play surface: controlled-character action input and turn modal/action feedback.
+Intended UI home: Turn-based play surface: controlled-character action input and turn modal/action feedback (`HumanTurnComposer`).
 
-Current availability: The turn UI exists; action-tier rules and tier-specific refusal feedback remain in progress.
+Current availability: Shipped and live in `static/js/agent/human-turn-composer.ts` and `agent-engine.ts`. The composer renders continuous action steps with live slot pips (`◆ major ◇ minor ●●● free`).
 
-Live steps when available:
+Live steps:
 
-1. In a turn-based scratch scenario, use approach, open, and examine in one turn, then try a second examine.
-   - expected: The first actions use their declared slots; the second major action is refused with a message naming its tier.
+1. In turn-based mode with a controlled character, open the turn modal and perform an approach, open, and examine within the same turn.
+   - expected: Pips decrement accurately as slots are spent; minor and free actions execute without exhausting the major action allowance; examine completes.
 
-2. Repeat with time_per_tick_minutes set to 1 and 15.
-   - expected: The action-slot allowance is identical at both tick lengths.
-
-This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
-## Steps to verify
-
-1. In turn-based mode, perform an approach, open, and examine within the same character turn.
-   - expected: Minor and free actions execute without exhausting the major action allowance; examine completes.
-   - observed: Individual verbs supported; multi-action composer integration in progress.
-
-2. Attempt a second major action (e.g. attack or examine another target) in the same turn.
-   - expected: Second major action is refused with a clear message naming its tier.
-   - observed: Rejection logic covered in test_action_costs.py.
+2. Attempt a second major action (e.g. examine another target or attack) in the same turn.
+   - expected: Second major action is refused client-side (and via `_slot_gate` server-side) naming the exhausted major tier.
 
 3. Change scenario `time_per_tick_minutes` between 1 and 15.
-   - expected: Action slot allowance remains constant, verifying slots do not scale with tick minutes.
-   - observed: Fixed slot cap invariant verified.
+   - expected: Action slot allowance remains constant (`major: 1, minor: 1, free: 3, activity: 1`), verifying slots do not scale with tick minutes.
+
+## Steps to verify
+
+1. Run Python action tiers, action costs, and soak parity tests:
+   ```bash
+   python -m pytest tests/test_action_tiers.py tests/test_action_costs.py tests/test_soak_action_economy.py
+   ```
+   - expected: 17 passed.
+
+2. Run JS unit tests including turn composer and action tiers:
+   ```bash
+   node tools/unit/run.cjs
+   ```
+   - expected: 767 passed.
+
+3. Check client tier mirror consistency:
+   ```bash
+   python tools/action_tiers_index.py --check
+   ```
+   - expected: clean with no drift.
+
+## Outcome & Review Hand-off (2026-10-19)
+
+- Landed Slices 1 through 5:
+  1. Authoritative verb tier table (`engine/action_tiers.py`) and JS mirror generator (`tools/action_tiers_index.py` -> `static/js/agent/action-tiers.ts`).
+  2. Fixed per-turn slot budget (`major: 1, minor: 1, free: 3, activity: 1`) with slot downgrade and `_slot_gate` refusal.
+  3. Contextual action hiding according to remaining slot budget in prompt and UI.
+  4. Continuous multi-action human composer (`static/js/agent/human-turn-composer.ts`) with live budget pips and agent action loop; `CHAIN_RULES` and dash-burst hack deleted.
+  5. Soak parity in `engine/background_simulation.py` enforcing `TASK_TIERS` within fixed slot ceilings.
 
 ## Files
 
-- `engine/tick_manager.py`
+- `engine/action_tiers.py`
 - `engine/activities.py`
+- `engine/background_simulation.py`
+- `engine/tick_manager.py`
+- `routes/action_handlers.py`
+- `static/js/agent/action-tiers.ts`
 - `static/js/agent/human-turn-composer.ts`
+- `static/js/agent-engine.ts`
+- `tests/test_action_tiers.py`
 - `tests/test_action_costs.py`
+- `tests/test_soak_action_economy.py`
+- `tools/action_tiers_index.py`

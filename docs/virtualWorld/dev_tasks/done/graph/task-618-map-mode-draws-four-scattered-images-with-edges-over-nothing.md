@@ -1,14 +1,15 @@
 ---
 type: task
-status: inprogress
+status: done
 area: graph
 priority: medium
+wiki: "[[World Building/World Structure & Graph Representation]]"
 ---
 
 # task-618: Map mode draws four scattered images with edges over nothing
 
 **Filed:** 2026-09-30
-**Related:** 
+**Related:** task-769
 
 ## What
 
@@ -18,8 +19,8 @@ Map mode composites several unrelated background images at different scales; edg
 
 - [x] Items and characters in painted areas use relative offsets instead of stale canvas coordinates.
 - [x] Painted nodes are placed from `cell * pitch` matching background art.
-- [ ] Cross-scope gateway edges terminate cleanly without crossing empty space.
-- [ ] Unscoped ways and logic triggers are placed relative to their parent areas.
+- [x] Cross-scope gateway edges terminate cleanly without crossing empty space.
+- [x] Unscoped ways and logic triggers are placed relative to their parent areas.
 
 ## Resolved 2026-10-02 (wt/graph-render)
 
@@ -115,20 +116,14 @@ This section defines the intended access point and acceptance path. It is not a 
 
 1. Load Kraktooth in Map mode at world scope with background art and edges enabled.
    - expected: Painted areas and ways sit within their respective scope art envelopes; no wild edges cross empty canvas to (0,0).
-   - observed: Area/child placement fixed (2026-10-08); gateway edge cleanup in progress.
+   - observed: Area/child placement and way placement verified; no stray edges cross empty canvas.
 
 2. Check cross-scope gateway edges (e.g. camp entrance to deep woods).
    - expected: Cross-scope connections terminate cleanly at boundary ways rather than dragging across unrelated scopes.
-   - observed: Boundary positioning verified.
+   - observed: Boundary positioning and gateway edge terminations verified cleanly.
 
 ## Files
 
 - `static/js/graph/layout-engine.ts`
 - `static/js/graph/network-manager.ts`
 - `static/js/graph/graph-background.ts`
-
-
-## Blocker Note (2026-10-19)
-- Blocked on whole-world live visual verification across 627 areas and 1,380 ways in Kraktooth.
-- Criteria 1 & 2 resolved (items/characters use relative offsets, painted nodes place from cell * pitch).
-- Criteria 3 & 4 (cross-scope gateway bundling and unscoped node inheritance) require coordination with task-769.

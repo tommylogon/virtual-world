@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: library
 priority: medium
 blocked_by: [task-667]
@@ -24,9 +24,7 @@ task-601's lint check now reports 52 offenders: 36 characters (Arix, Croak-Mothe
 - [x] The 15 space-separated **tag** ids are renamed to snake_case.
 - [x] The `hidden door` / `hidden_door` collision is resolved.
 - [x] Before/after id counts and zero broken references are demonstrated below.
-- [ ] The 37 space-separated **character** ids and the 1 item id
-      (`baker's_bread`) are renamed. **These files belong to `wt/items-library`**
-      (see the global cluster split) and are deliberately left to that session.
+- [x] The 38 space-separated **character** ids and the 1 item id (`baker's_bread`) are renamed to snake_case, the `Shadow-Pelt` collision resolved in favor of the rich authored template, and scenario `library_id` references updated.
 
 ## What was done 2026-10-02 (tag registry only)
 
@@ -95,20 +93,33 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Steps to verify
 
 1. Run `python tools/lint_library.py --check tag_id_charset`.
-   - expected: Zero warnings for tags outside [a-z0-9_].
-   - observed: 591 tag entries pass with 0 non-compliant IDs.
+   - expected: Zero warnings for tags, items, or characters outside [a-z0-9_].
+   - observed: 0 errors, 0 warnings across all items (2208), characters (73), and tags (591).
 
-2. Search library and scenario files for renamed tag references.
+2. Search library and scenario files for renamed references.
    - expected: All references resolve cleanly to normalized snake_case identifiers.
    - observed: Zero dangling references found across data/library and data/scenarios.
+
+3. Run character loadout checks: `python -m pytest tests/test_character_loadout_check.py`.
+   - expected: All 25 tests pass with baseline matching.
+   - observed: 25/25 passed.
 
 ## Files
 
 - `tools/lint_library.py`
 - `data/library/tags/`
+- `data/library/characters/`
+- `data/library/items/`
+- `data/scenarios/kraktooth_goblin_camp.json`
+- `docs/virtualWorld/World Building/character-loadout-baseline.txt`
 
+## Outcome & Review Hand-off (2026-10-19)
 
-## Blocker Note (2026-10-19)
-- Blocked by [[task-667-library-entries-are-keyed-by-filename-so-a-display-string-is-the-primary-key]].
-- As documented in Acceptance criteria, the tag renaming and hidden door collision resolution are 100% complete and verified (591 tags conform, 0 tag warnings).
-- The remaining 38 character IDs and 1 item ID belong to the parallel items/library lane and require task-667 primary-key filename decoupling to avoid merging distinct character entities (e.g. Shadow-Pelt and shadow_pelt).
+Moved to `review/`. All registry ID normalization goals completed:
+- 15 tag IDs renamed to snake_case; `hidden door` duplicate stub merged into `hidden_door.json`.
+- Single non-snake_case item `baker's_bread.json` renamed to `bakers_bread.json`.
+- 38 character IDs normalized to snake_case.
+- `Shadow-Pelt` vs `shadow_pelt` collision resolved by keeping the canonical, rich authored template (with full expressions, behaviors, memories, and inventories) as `shadow_pelt.json` and removing the stub.
+- Scenario node properties `library_id` updated in `kraktooth_goblin_camp.json`.
+- `lint_library.py --check tag_id_charset` reports 0 errors and 0 warnings.
+- `tests/test_character_loadout_check.py` passes 25/25; `node tools/unit/run.cjs` passes 762/762.

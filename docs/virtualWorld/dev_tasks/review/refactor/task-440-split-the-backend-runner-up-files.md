@@ -1,8 +1,9 @@
 ---
 type: task
-status: inprogress
+status: review
 area: refactor
 priority: medium
+wiki: "[[Feature Map]]"
 ---
 
 # task-440: Split the backend runner-up files
@@ -103,15 +104,17 @@ Backend hosts above ~1.5k lines hold multiple operation families in one module, 
      - observed: 2026-10-16 extraction #4 - `engine/world_compile_stable.py` (43 lines) from `engine/world_compile.py`. Deterministic primitives extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
      - observed: 2026-10-16 extraction #5 - `engine/world_compile_directions.py` (51 lines) from `engine/world_compile.py`. Direction constants/helpers extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
      - observed: 2026-10-16 extraction #6 - `engine/world_compile_blocking.py` (55 lines) from `engine/world_compile.py` (committed 4ac63acc). Way-blocking helpers extracted: `BLOCKED_WAY_PERCENT`, `BLOCKERS_BY_TERRAIN`, `DEFAULT_BLOCKER`, `_blocker_for`, `_is_blocked_way`, `_reachable_areas`, `_apply_way_blocking`; re-exported. Combined verification `tests/test_disposition.py tests/test_traits.py tests/test_trigger_system.py tests/test_world_compile.py` 387/387 pass; `import app` clean.
-     - observed: 2026-10-17 extraction #7 - `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 → 2552 (−172).
+     - observed: 2026-10-17 extraction #7 - `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 -> 2552 (-172).
+     - observed: 2026-10-19 extraction #8 - `routes/graph_image_ops.py` (207 lines) from `routes/graph_ops.py`. Extracted node expression images (`handle_upload_node_image`, `handle_remove_node_image`, `_delete_managed_image`, `_expression_slug`, `IMAGE_KINDS`) and background map uploads and multi-layer metadata (`handle_upload_background_image`, `handle_save_background`). Re-exported from `routes/graph_ops.py` and maintained in `routes/graph.py` with zero import churn. `tests/test_node_image.py`, `tests/test_character_expressions.py`, `tests/test_graph_background_layers.py` 18/18 pass; `import app` clean. Host `routes/graph_ops.py` 2021 -> 1838 (-183).
 3. Import the package and the extracted module in a clean process.
     - expected: no cycle / import-time side effect; stable public API still exposed.
     - observed: 2026-10-17 - `import app` clean after extraction #7; `engine.world_compile_regions` imports cleanly in isolation and re-exports resolve through `world_compile.py` with no cycle.
+    - observed: 2026-10-19 - `import app` clean after extraction #8; `routes.graph_image_ops` imports cleanly and re-exports resolve with no cycles.
 
 ## Files
 
 - `engine/world_compile.py`, `tick_manager.py`, `movement.py`, `traits.py`, `equipment.py`, `background_simulation.py`, `background_social.py`, `matching.py`, `trigger_validator.py`, `serialization.py`, `player_conditions.py`
-- `routes/graph_ops.py`, `player_ops.py`, `action_handlers.py`, `library_ops.py`
+- `routes/graph_ops.py`, `routes/graph_image_ops.py`, `player_ops.py`, `action_handlers.py`, `library_ops.py`
 - `virtual_world_engine.py`, `player.py` (only if a clean seam is proven)
 - new extracted modules under `engine/` / `routes/` as recorded per split
 
@@ -133,12 +136,7 @@ Alternative verification steps:
 
 This section is not a claim that planned UI exists or works today.
 
-
-
-
 ## Current Status Note (2026-10-19)
 - Standing refactor tracking card across backend runner-up modules.
-- Extraction #7 completed in world_compile.py (world_compile_regions.py).
-- Further single-file extractions (e.g. 
-outes/graph_ops.py, 
-outes/player_ops.py) are queued sequentially as isolated refactor passes per the Refactor Discipline.
+- Extraction #8 completed in routes/graph_ops.py (routes/graph_image_ops.py, -183 lines).
+- Further single-file extractions (e.g. routes/player_ops.py, routes/action_handlers.py) continue sequentially per Refactor Discipline.

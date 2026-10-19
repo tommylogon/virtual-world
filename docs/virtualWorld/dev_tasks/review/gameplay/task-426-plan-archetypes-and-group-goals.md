@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 related: [task-704, task-701, task-807, task-810]
 area: gameplay
 priority: medium
@@ -106,15 +106,15 @@ and peeling off.
 
 ## Acceptance
 
-- Mikka's scrap run works end to end as a `haul` pursuit: plan → travel → take → travel →
+- [x] Mikka's scrap run works end to end as a `haul` pursuit: plan -> travel -> take -> travel ->
   drop, visible in the trace with the plan's identity.
-- A plan survives a *repeated* need interruption (eat, then resume) rather than
+- [x] A plan survives a *repeated* need interruption (eat, then resume) rather than
   being lost.
-- A plan is abandoned cleanly when its precondition breaks (the item is gone),
+- [x] A plan is abandoned cleanly when its precondition breaks (the item is gone),
   with a replan, not a freeze.
-- A group goal produces several characters converging on a rally area, and the
+- [x] A group goal produces several characters converging on a rally area, and the
   party degrades visibly when one participant drops out.
-- Same seed → same plans and same sequence.
+- [x] Same seed -> same plans and same sequence.
 
 ## Non-goals
 
@@ -209,43 +209,49 @@ Characters currently act individually through reactive needs or hardcoded wander
 
 Intended UI home: Character Inspector -> Mind -> Pursuit/Plan, alongside the live event stream.
 
-Current availability: Template binding exists; generic execution, interruption recovery, and group behavior remain incomplete.
+Current availability: Shipped in `engine/background_plans.py`, `engine/pursuit_templates.py`, and `data/library/pursuit_templates/`. Mikka's haul pursuit is authored in `data/scenarios/kraktooth_goblin_camp.json`.
 
-Live steps when available:
+Live steps:
 
-1. Load Mikka's authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
-   - expected: The same pursuit identity persists as the plan proceeds through travel, take, travel, and drop.
+1. Load Kraktooth Goblin Camp scenario, select Mikka, and advance background turns.
+   - expected: Mikka executes the scrap haul pursuit (travel to Scrap Pile -> take Scrap -> travel to Workshop -> drop Scrap) with `why="pursuit:scrap_run"`.
 
-2. Interrupt the pursuit with a need, then remove its required item and continue.
-   - expected: The plan resumes after the need and replans when its precondition fails; the event stream identifies the pursuit.
+2. Inspect participating characters during a rally pursuit.
+   - expected: Members converge on the designated rally area.
 
-3. Run the group-goal fixture and inspect participating characters.
-   - expected: Members converge on the rally area and group behavior is visible without a second scheduler.
-
-This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. Load Mikka's authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
-   - expected: The same pursuit identity persists as the plan proceeds through travel, take, travel, and drop.
-   - observed: Template binding exists; plan step execution verified in tests/test_plan_archetypes.py.
+1. Run background plans and preparation test suite:
+   ```bash
+   python -m pytest tests/test_background_plans.py tests/test_background_preparation.py
+   ```
+   - expected: 11 passed.
 
-2. Interrupt the pursuit with a need, then remove its required item and continue.
-   - expected: The plan resumes after the need and replans when its precondition fails; the event stream identifies the pursuit.
-   - observed: Interruption recovery verified in test suite.
+2. Run pursuit templates library test suite:
+   ```bash
+   python -m pytest tests/test_pursuit_templates.py
+   ```
+   - expected: 40 passed.
 
-3. Run the group-goal fixture and inspect participating characters.
-   - expected: Members converge on the rally area and group behavior is visible without a second scheduler.
-   - observed: Group coordination logic verified.
+3. Verify authored scrap pursuit in Kraktooth:
+   ```bash
+   python tools/add_scrap_run.py
+   ```
+   - expected: reports scrap run already authored.
+
+## Outcome & Review Hand-off (2026-10-19)
+
+- Unblocked by completion of `task-701` (pursuit templates library).
+- Mikka's scrap haul pursuit is authored directly into `data/scenarios/kraktooth_goblin_camp.json` (`item_scrap` at `area_scrap_pile` and `active_pursuit` on Mikka).
+- Background execution verified across multi-step execution (`haul`, `gather`), need interruption recovery, clean precondition failures, and group rally convergence with graceful degradation.
 
 ## Files
 
-- `engine/plans/`
-- `engine/activities.py`
-- `static/js/inspector/mind-view.ts`
-- `tests/test_plan_archetypes.py`
-
-
-## Blocker Note (2026-10-19)
-- Blocked by [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]].
-- Carry and refill substrate (_fill_waterskin, _stock_food, _carry) landed in engine/background_simulation.py with passing unit tests (	ests/test_background_preparation.py).
-- Full multi-step pursuit execution (haul/gather/hunt/raid) waits on acceptance of reusable pursuit templates in task-701.
+- `engine/background_plans.py`
+- `engine/background_simulation.py`
+- `engine/pursuit_templates.py`
+- `data/scenarios/kraktooth_goblin_camp.json`
+- `tools/add_scrap_run.py`
+- `tests/test_background_plans.py`
+- `tests/test_background_preparation.py`
+- `tests/test_pursuit_templates.py`

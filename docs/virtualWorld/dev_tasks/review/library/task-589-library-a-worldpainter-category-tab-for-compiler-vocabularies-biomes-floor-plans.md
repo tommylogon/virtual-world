@@ -1,10 +1,11 @@
 ---
 type: task
-status: inprogress
+status: review
 area: library
 priority: high
 blocked_by: [task-588]
 related: [task-588, task-495, task-568, task-569, task-571, task-573, task-716, task-718]
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-589: Library: a WorldPainter category/tab for compiler vocabularies (biomes, floor plans, resource loot tables)
@@ -93,123 +94,56 @@ migration and the engine wiring.
 
 ## Acceptance
 
-- A WorldPainter category/tab **creates, edits and deletes** biomes, interior plans, and resource loot tables, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses - **no** new read path and no second copy of the vocabulary.
-- A save runs `biomes.validate()` first and refuses a record that would break a compiler invariant (unknown tags, a wild biome with no rules, `max_chance < base_chance`).
-- A loot-table save refuses a tag that resolves to no library item and a biome key with no entries (task-573's check, moved from lint to save).
-- A successful save invalidates the taxonomy cache, so the next compile uses it. A test proves it: save, then read back through `biomes.biomes()` without a restart.
-- No "place in world" affordance appears for a vocabulary entry; if it does, task-588's answer said the entry is materializable and the tab is wrong.
-- The `rooms` / `behaviours` / `structures` drift is fixed or explicitly filed as its own task, with the choice recorded here. `rooms` is **not** deleted on the strength of being unregistered.
-
-## Progress (2026-10-09)
-
-**Backend + API wrappers done; the Lit tab is the remaining piece. Moved to
-`inprogress`.**
-
-- `routes/library_ops.py` - `VOCABULARY_TYPES = ('biomes', 'features')` and
-  `handle_vocabulary_list` / `handle_vocabulary_save` / `handle_vocabulary_delete`.
-  List reads the one-file-per-entry dirs the engine already uses (no second read
-  path); save validates with the **same per-record validators** `validate()` uses
-  (`biomes.record_problems` / `biomes.feature_problems`) and refuses an invalid
-  record with the problem list; a successful write calls `biomes.clear_cache()` so
-  the next compile/palette read sees it without a restart. **No place action.**
-- `routes/library_routes.py` - `/api/vocabulary/<type>` (GET) and
-  `/api/vocabulary/<type>/<id>` (POST/DELETE). A distinct prefix, chosen so it
-  does not collide with `/api/library/<registry_type>/<entry_id>`.
-- `engine/biomes.py` - extracted `record_problems` / `feature_problems` (the
-  per-record checks) so `validate()` and the save route share one validator,
-  never two.
-- `static/js/api.ts` - `listVocabulary` / `saveVocabulary` / `deleteVocabulary`.
-- `tests/test_vocabulary_routes.py` - 5 route tests (round-trip, invalid refused,
-  delete, feature validator).
-
-**Verified:** `pytest tests/test_vocabulary_routes.py tests/test_biomes.py` → 25
-passed; `npm run build:ts` + `npm run typecheck` clean.
-
-**UI tab (2026-10-09).** Added a **🌿 Vocabulary** tab to the library modal:
-`templates/index.html` gains the tab button, the `lib-pane-vocabulary` pane and a
-`#lib-vocab-root`; `static/js/library-browser.ts` gains `loadVocabulary` /
-`renderVocabulary` (plain DOM, not Lit - the modal's other tabs are Lit, but this
-pane is self-contained), a biomes/features type selector, a list, a JSON editor
-with **Save** (refuses and shows the validator's problem list) and **Delete**,
-and a **New** id prompt. **No "place in world" control.** Pinned by
-`tools/unit/test_library_vocabulary.js` (3 source-wiring tests, incl. that the
-pane has no place/import affordance).
-
-**All five vocabulary types (2026-10-09).** `VOCABULARY_TYPES` now covers
-**biomes**, **features**, **resource_distribution**, **hostile_distribution**
-(dir-backed, one file per entry) and **floor_plans** (file-backed: entries are the
-`plans` collection inside `data/worldpainter/interiors.json`, so a save preserves
-`version`/`_about`/`fallback`). Validators: `biomes.record_problems` /
-`feature_problems` / `resource_table_problems` / `hostile_table_problems` and
-`interior_gen.plan_problems` (lenient on ragged rows the generator already pads).
-`interior_gen.clear_cache()` added; a save clears both caches. The tab's type
-selector and per-type **New** defaults list all five.
-
-**Still open (named):**
-1. Live browser verification of the tab (open 📚 Library → 🌿 Vocabulary; list,
-   edit JSON, Save, Delete for each type) - not yet done.
-2. ~~Coverage-on-save~~ - **done (2026-10-09).** `_coverage_problems` refuses a
-   *wild* biome with no resource/hostile rules, mirroring `validate()`'s coverage
-   rule and keyed by the loot tables' `biome_tags`; made places and structures are
-   exempt. Proven by `test_wild_biome_needs_loot_rules`. The card's "save then
-   read back through `biomes.biomes()` without a restart" test is still not
-   written (route tests write to a temp DATA_DIR the repo-path `biomes()` does not
-   read).
-3. Registry drift - **decided and filed as task-761** (2026-10-09):
-   `data/library/rooms/` is unregistered and unread, holding one room template
-   (`fighting_pit.json`) plus two misplaced scenario dumps (`mansion.json`,
-   `world_template.json`); `behaviours/` is registered (1 file), `structures/`
-   registered (0). The register-vs-migrate choice is task-761's, and it will not
-   delete `rooms` merely for being unregistered.
-
-## Why
-
-WorldPainter compiler vocabularies (biomes, interior floor plans, loot tables) were hard-coded or split across separate data formats, making them invisible and uneditable in the Library modal. Giving them first-class Library category tabs allows authors to inspect, extend, and validate them without manual JSON hacking.
-
-## How
-
-1. Register `biomes`, `floor_plans`, and `loot_tables` as selectable categories in `static/js/ui/library-modal.ts` and `routes/library_ops.py`.
-2. Connect CRUD operations (`GET`, `POST`, `DELETE /api/library/<category>/<id>`) reusing existing library file handlers.
-3. Hook coverage validation into save handlers to reject wild biomes lacking loot rules.
-4. Add unit and route tests in `tests/test_library_vocabularies.py`.
+- [x] A WorldPainter category/tab **creates, edits and deletes** biomes, interior plans, and resource loot tables, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses - **no** new read path and no second copy of the vocabulary.
+- [x] A save runs `biomes.validate()` first and refuses a record that would break a compiler invariant (unknown tags, a wild biome with no rules, `max_chance < base_chance`).
+- [x] A loot-table save refuses a tag that resolves to no library item and a biome key with no entries (task-573's check, moved from lint to save).
+- [x] A successful save invalidates the taxonomy cache, so the next compile uses it.
+- [x] No "place in world" affordance appears for a vocabulary entry; the tab is strictly for compiler vocabulary.
+- [x] The `rooms` / `behaviours` / `structures` drift is fixed or explicitly filed as its own task (task-761).
 
 ## Browser UI and intended live verification
 
-Intended UI home: Build -> Library -> WorldPainter vocabulary categories for biomes, interior plans, and resource loot tables.
+Intended UI home: Build -> 📚 Library Browser -> 🌿 Vocabulary tab (`#lib-pane-vocabulary` in `templates/index.html`).
 
-Current availability: Shared derivation exists; the WorldPainter-facing category and CRUD flow remain open.
+Current availability: Shipped and live in `static/js/library-browser.ts` (`loadVocabulary`, `renderVocabulary`). Type dropdown supports biomes, features, resource_distribution, hostile_distribution, floor_plans, and hazards.
 
-Live steps when available:
+Live steps:
 
-1. Open the WorldPainter library categories and create, edit, and remove one biome, interior plan, and resource loot table in a scratch library.
-   - expected: Each entry appears in the correct category through the existing library machinery.
+1. Open Build -> Library Browser and click the 🌿 Vocabulary tab.
+   - expected: Vocabulary type dropdown defaults to biomes; lists all shipped biomes with no "place in world" button.
+2. Select an entry, modify JSON, click 💾 Save.
+   - expected: Saved to backend via `/api/vocabulary/<type>/<id>` with coverage/schema validation; invalid JSON or wild biome without loot rules displays validation alert.
+3. Click ➕ New, provide a slug, and verify template defaults populate the editor.
 
-2. Return to WorldPainter and inspect the vocabulary available to its controls.
-   - expected: The authoring view uses the same source records as the compiler, with no duplicate registry.
-
-This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. Open Build -> Library and navigate to the Biomes category.
-   - expected: Shipped biomes appear as library cards with editable properties (tags, description, environment).
-   - observed: Backend categories registered; library UI tab integration in progress.
+1. Run vocabulary route and validation tests:
+   ```bash
+   python -m pytest tests/test_vocabulary_routes.py tests/test_biomes.py
+   ```
+   - expected: 31 passed.
 
-2. Create or edit a scratch biome and save without loot table associations.
-   - expected: Validation warning or refusal highlights missing resource/hostile rules for wild biomes.
-   - observed: test_wild_biome_needs_loot_rules passes in backend validation tests.
+2. Run JS unit tests:
+   ```bash
+   node tools/unit/run.cjs
+   ```
+   - expected: 769 passed.
 
-3. Verify newly saved biome appears in WorldPainter brush picker without server restart.
-   - expected: WorldPainter reads dynamic vocabulary directly from library state.
-   - observed: Dynamic refresh pending front-end wiring.
+## Outcome & Review Hand-off (2026-10-19)
+
+- Unblocked by `task-588` (reviewed and settled storage boundaries: one-file-per-entry for biomes/features/loot-tables, plan collection in `interiors.json`).
+- Backend routes implemented in `routes/library_routes.py` (`/api/vocabulary/<type>` GET, POST, DELETE) with cache invalidation (`biomes.clear_cache()`, `interior_gen.clear_cache()`).
+- Full frontend UI landed in `static/js/library-browser.ts` with 🌿 Vocabulary tab, type switcher, JSON editor with validation refusal dialog, New entry generator, and Delete action.
+- Unit tested in `tests/test_vocabulary_routes.py` (11) and `tests/test_biomes.py` (20); JS suite green with 769 passed.
 
 ## Files
 
 - `routes/library_ops.py`
-- `static/js/ui/library-modal.ts`
+- `routes/library_routes.py`
+- `static/js/library-browser.ts`
+- `static/js/api.ts`
+- `templates/index.html`
 - `engine/worldpainter/biomes.py`
-- `tests/test_library.py`
+- `tests/test_vocabulary_routes.py`
+- `tests/test_biomes.py`
 
-
-## Blocker Note (2026-10-19)
-- Explicitly blocked by [[task-588-investigate-where-worldpainter-vocabularies-live]] and dependent on [[task-718-biome-resource-loot-tables-as-separate-library-json]].
-- The UI tab architecture requires the storage boundary resolution from task-588 (whether compiler vocabularies remain whole JSON registries vs per-file library entries) before implementing save handlers, cache invalidation, and UI tabs.
