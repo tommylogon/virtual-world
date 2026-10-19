@@ -349,6 +349,59 @@ def is_stair(biome_id, path: Optional[str] = None) -> bool:
     return STAIR_TAG in area_tags(biome_id, path)
 
 
+def biome_height(biome_id, path: Optional[str] = None) -> float:
+    """Physical height of this biome in floors / storeys (task-882)."""
+    rec = biome(biome_id, path) or {}
+    if "height" in rec:
+        try:
+            return float(rec["height"])
+        except (TypeError, ValueError):
+            pass
+    tags = [str(t).lower() for t in (rec.get("tags") or [])]
+    b_id = str(biome_id).lower()
+    if "mountain" in tags or "peak" in tags or "cliff" in tags or "mountain" in b_id or "peak" in b_id:
+        return 20.0
+    if "hill" in tags or "hills" in tags or "hill" in b_id:
+        return 5.0
+    if is_building(biome_id, path) or "building" in tags:
+        return 2.0
+    if "wall" in tags or "wall" in b_id:
+        return 2.0
+    if "dense_forest" in b_id or "jungle" in tags or "dense" in tags:
+        return 3.0
+    if "sparse_forest" in b_id or "forest" in tags or "wood" in tags or "grove" in tags or "orchard" in tags:
+        return 2.0
+    if "marsh" in tags or "swamp" in tags or "scrub" in tags:
+        return 1.0
+    return 0.0
+
+
+def biome_obscurity(biome_id, path: Optional[str] = None) -> float:
+    """Visual obscurity (0.0 to 1.0) accumulated per cell transit (task-882)."""
+    rec = biome(biome_id, path) or {}
+    if "obscurity" in rec:
+        try:
+            val = float(rec["obscurity"])
+            return max(0.0, min(1.0, val))
+        except (TypeError, ValueError):
+            pass
+    tags = [str(t).lower() for t in (rec.get("tags") or [])]
+    b_id = str(biome_id).lower()
+    if "mountain" in tags or "peak" in tags or "cliff" in tags or "mountain" in b_id:
+        return 1.0
+    if is_building(biome_id, path) or "building" in tags or "wall" in tags or "wall" in b_id:
+        return 1.0
+    if "dense_forest" in b_id or "jungle" in tags or "dense" in tags:
+        return 0.8
+    if "sparse_forest" in b_id or "forest" in tags or "woods" in tags or "grove" in tags:
+        return 0.4
+    if "marsh" in tags or "swamp" in tags or "scrub" in tags:
+        return 0.2
+    if "hill" in tags or "hills" in tags or "hill" in b_id:
+        return 0.3
+    return 0.0
+
+
 def entry_phrases(record_id, path: Optional[str] = None) -> Optional[dict]:
     """The narrative move a record asks for when you enter it (task-529).
 

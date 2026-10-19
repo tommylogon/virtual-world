@@ -346,10 +346,12 @@ def handle_painter_vocabulary(app):
                     "natural_neighbors": list((rec or {}).get("natural_neighbors") or []),
                     "unlikely_neighbors": list((rec or {}).get("unlikely_neighbors") or []),
                     "transition_biomes": list((rec or {}).get("transition_biomes") or []),
+                    "height": biomes_mod.biome_height(key),
+                    "obscurity": biomes_mod.biome_obscurity(key),
                     # What this building's door says when it has no interior to go
                     # into (task-563). Sent from the same function the compiler
                     # uses, so the line the painter reads in the cell inspector is
-                    # the line the world gives — one implementation, not two.
+                    # the line the world gives - one implementation, not two.
                     "refusal": (world_compile.building_refusal(key)
                                 if biomes_mod.is_building(key) else "")}
                    for key, rec in sorted(biomes_mod.biomes().items())],
