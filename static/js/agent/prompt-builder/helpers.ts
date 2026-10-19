@@ -108,7 +108,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * never masked as a stranger (task-154), for faces AND for voices.
      */
     function isKnownToViewer(charName: string, targetName: string): boolean {
-        if (worldState.hasMet(charName, targetName)) return true;
+        if (typeof worldState?.hasMet === 'function' && worldState.hasMet(charName, targetName)) return true;
         const viewer = worldState.data?.players?.[charName];
         const known = new Set<string>((viewer?.known || []).map((value: unknown) => String(value)));
         const knownLower = new Set<string>([...known].map((value: string) => value.toLowerCase()));

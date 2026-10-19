@@ -41,12 +41,15 @@ structured action object (see `agent-engine.js:_normalizeStructuredAction`).
 | Guess Time | `guess time` | `guess time` | Survival check; DC varies by weather |
 
 ## Rules
-- **One action per turn.** Do not combine commands *in a single turn* - this is a
-  limitation of the composer, not of the engine. A turn is a timeframe
-  (`docs/virtualWorld/Simulation Model.md:52-68`), and the engine's one-action-per-
-  turn-per-character model for agents and background characters is being replaced
-  by a budgeted action economy in task-352. Once that lands, several actions per
-  turn will be legal and this line changes.
+- **Tiered action economy per turn.** Characters have a fixed action budget per turn
+  (1 major, 1 minor, 3 free, 1 activity) defined in `engine/action_tiers.py`.
+  - **Free**: look, open, close, drop, stop, recall, emote/speak.
+  - **Minor**: grab, toggle, lead, approach, flee, stand, wake.
+  - **Major**: examine, take, put, attack, use, craft, go/crawl/climb/jump.
+  - **Activity**: sleep, rest, wait, meditate, bathe, work (consumes the turn).
+  The human turn composer displays live budget pips and allows multiple actions in a
+  continuous loop before ending the turn. Higher slots can pay for lower actions
+  (e.g. spending a major slot to make an extra minor or free action).
 - **`go` always needs a destination.** `go north`, not just `go`.
 - **Only use `take`.** Not `pick up`, `grab`, `get`.
 - **Examine only on listed items.** If it's not in the `Items:` list, you can't interact with it.

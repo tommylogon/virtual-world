@@ -35,6 +35,7 @@ const win = {
     // (which needs the DOM) or the event-stream singleton.
     VW: {},
     config: {},
+    Lit: { html: (strings, ...values) => strings.join('') },
     // A real (tiny) bus, not a no-op: turn-feed's ring subscribes to 'log' and
     // silently installs nothing when `on` is missing, so a log-only stub would
     // make its filtering tests pass for the wrong reason. The real
@@ -163,6 +164,7 @@ load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-grounding.js');
 load('static/js/agent/action-tiers.js');
+load('static/js/agent/human-turn-composer.js');
 load('static/js/llm-client.js');
 load('static/js/commons/commons-api.js');
 load('static/js/commons/commons-state.js');

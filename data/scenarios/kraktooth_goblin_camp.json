@@ -10797,7 +10797,19 @@
         },
         "goals": []
       },
-      "active_pursuit": null,
+      "active_pursuit": {
+        "assignment_id": "pursuit_mikka_scrap_run",
+        "template_id": "haul",
+        "label": "scrap_run",
+        "reason": "Move scrap to the workshop for repairs.",
+        "bindings": {
+          "source": "Scrap Pile",
+          "item": "scrap",
+          "sink": "Workshop"
+        },
+        "step_index": 0,
+        "repeat": false
+      },
       "plan": null,
       "completed_pursuits": [],
       "simple_npc": false,
@@ -64685,7 +64697,7 @@
         "properties": {
           "base_description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
           "description": "A broad, soot-stained blacksmith with calloused hands.",
-          "library_id": "Harren Cobb",
+          "library_id": "harren_cobb",
           "personality": "You are the Eldenford blacksmith. Gruff, practical, and proud of your work. You have lost tools to goblin raids and you know good metal when you see it.",
           "tags": [
             "male",
@@ -64708,7 +64720,7 @@
         "properties": {
           "base_description": "Older human leader. Grey hair, practical clothes, carries a wooden staff.",
           "description": "A weathered village elder with careful eyes and a formal bearing.",
-          "library_id": "Gareth Ollen",
+          "library_id": "gareth_ollen",
           "personality": "You are the Eldenford Village Elder. Pragmatic, cautious, and tired. You balance village safety against economic necessity. You distrust goblins but understand trade.",
           "tags": [
             "male",
@@ -64731,7 +64743,7 @@
         "properties": {
           "base_description": "Human farmer. Weatherbeaten, practical, suspicious. Wears worn work clothes and carries a shotgun.",
           "description": "A weatherbeaten farmer in worn work clothes, watching the tree line.",
-          "library_id": "Tobin Marsh",
+          "library_id": "tobin_marsh",
           "personality": "You are an Eldenford farmer. Gruff, practical, and unimpressed by goblins. You lose livestock to raids, you know the forest and marsh, and you have traps, dogs, and a shotgun.",
           "tags": [
             "male",
@@ -64754,7 +64766,7 @@
         "properties": {
           "base_description": "Human merchant. Clean clothes, many pockets, a smile that never quite reaches the eyes.",
           "description": "A sharp-eyed merchant in clean, travel-stained clothes.",
-          "library_id": "Pell Ardin",
+          "library_id": "pell_ardin",
           "personality": "You are the Eldenford merchant. Talkative, curious, and always looking for an advantage. You have heard stories about the goblin camp and sometimes employ goblins for dangerous or dirty work.",
           "tags": [
             "male",
@@ -64777,7 +64789,7 @@
         "properties": {
           "base_description": "Human guard captain. Worn armor, weatherbeaten face, alert posture.",
           "description": "A tired road captain in worn armor, scanning the tree line.",
-          "library_id": "Corvin Hale",
+          "library_id": "corvin_hale",
           "personality": "You are the Eldenford Road Guard Captain. Disciplined, tired, and pragmatic. You know where goblin trails cross the road. You have an unspoken arrangement with the goblins: conflict, but also predictable rules.",
           "tags": [
             "male",

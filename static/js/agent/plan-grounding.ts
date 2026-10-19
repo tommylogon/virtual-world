@@ -33,7 +33,7 @@
     'use strict';
 
     /**
-     * The plan-step verbs the contract allows — the engine's own verb list
+     * The plan-step verbs the contract allows - the engine's own verb list
      * (task-491's single source of truth), because a plan that cannot say
      * "escape" is useless to a character who is being held. The grounding
      * rules per act follow in groundStep().
@@ -45,10 +45,11 @@
         'take', 'drop', 'use', 'use_on', 'examine', 'search', 'look',
         'listen', 'read', 'open', 'close', 'put', 'craft', 'make',
         'combine', 'split', 'wear', 'remove', 'stow',
+        'eat', 'drink',
         // people
         'give', 'steal', 'grab', 'lead', 'attack', 'escape', 'struggle',
         // sustained / state
-        'speak', 'perform', 'wait', 'stand', 'rest', 'relieve',
+        'speak', 'perform', 'wait', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
     ]);
 
     const STOP_WORDS = new Set([
@@ -95,28 +96,86 @@
         player: any,
         areaName: string,
     ): { areaItems: string[]; carried: string[]; people: string[]; exits: string[]; knownAreas: string[] } {
-        const ws = (window as unknown as {
-            worldState?: {
-                getItemsInArea?(name: string): Array<{ name?: string }>;
-                getInventory?(name: string): string[];
-            };
-        }).worldState;
+        const win = window as any;
+        const ws = win.worldState;
+        const pb = win.PromptBuilder;
+
         const areaItems = (areaName && ws?.getItemsInArea?.(areaName) || [])
             .map((n: { name?: string }) => String(n.name || ''))
             .filter(Boolean);
-        const carried = (ws?.getInventory?.(charName) || (player?.inventory || []))
-            .map(String).filter(Boolean);
-        const people = ((state?.players_in_area || []) as Array<{ name?: string }>)
-            .map((p: { name?: string }) => String(p.name || ''))
-            .filter((n: string) => n && n !== charName);
+
+        // Include contained items from reachable containers if itemContainment is present
+        if (typeof win.itemContainment === 'function' && ws?.graph?.edges) {
+            const topLevel = (areaName && ws?.getItemsInArea?.(areaName) || []);
+            for (const item of topLevel) {
+                if (!item?.id) continue;
+                try {
+                    const contained = win.itemContainment().collectReachable([item.id], {
+                        getNode: (id: string) => ws.getNode(id),
+                        edges: ws.graph?.edges || [],
+                    }).filter((ci: { depth?: number }) => (ci.depth || 0) > 0);
+                    for (const ci of contained) {
+                        if (ci?.name && !areaItems.includes(ci.name)) areaItems.push(String(ci.name));
+                    }
+                } catch { /* containment walk optional */ }
+            }
+        }
+
+        const carriedList: string[] = [];
+        const rawCarried = ws?.getInventory?.(charName) || (player?.inventory || []);
+        for (const item of rawCarried) {
+            const name = typeof item === 'string' ? item : item?.name;
+            if (name && !carriedList.includes(name)) carriedList.push(String(name));
+        }
+        // Include worn/equipped items so stow/remove/examine on equipped gear grounds
+        if (player?.equipment && typeof player.equipment === 'object') {
+            for (const val of Object.values(player.equipment)) {
+                const name = typeof val === 'string' ? val : (val as any)?.name;
+                if (name && !carriedList.includes(name)) carriedList.push(String(name));
+            }
+        }
+        const carried = carriedList.filter(Boolean);
+
+        // Stranger-masked people matching what room-context.ts presents (bug-523)
+        const peopleList: string[] = [];
+        const areaPlayers = (state?.players_in_area || []) as Array<{ name?: string; description?: string; aliases?: string[] }>;
+        for (const p of areaPlayers) {
+            const pName = String(p.name || '').trim();
+            if (!pName || pName === charName) continue;
+            let displayHandle = pName;
+            if (pb && typeof pb.anonymousName === 'function') {
+                const pDesc = p.description || state?.players?.[pName]?.description || '';
+                displayHandle = pb.anonymousName(charName, pName, pDesc);
+            }
+            if (displayHandle && !peopleList.includes(displayHandle)) {
+                peopleList.push(displayHandle);
+            }
+            // Add known aliases so [aka Viper] grounds
+            const pAliases = p.aliases || state?.players?.[pName]?.aliases || [];
+            if (Array.isArray(pAliases)) {
+                for (const alias of pAliases) {
+                    const aStr = String(alias || '').trim();
+                    if (aStr && !peopleList.includes(aStr)) peopleList.push(aStr);
+                }
+            }
+        }
+        const people = peopleList.filter(Boolean);
+
         const area = (areaName && state?.areas?.[areaName]) || {};
         const exitSource = area.exits_authoring || area.exits || {};
-        const exits = Object.keys(exitSource || {})
-            .map(String)
-            .filter(Boolean);
-        for (const e of Object.values(exitSource || {}) as Array<{ direction?: string }>) {
-            if (e?.direction && !exits.includes(e.direction)) exits.push(e.direction);
+        const exitList: string[] = [];
+        for (const [dir, exitData] of Object.entries(exitSource as Record<string, any>)) {
+            if (dir && !exitList.includes(dir)) exitList.push(dir);
+            if (exitData?.direction && !exitList.includes(exitData.direction)) exitList.push(exitData.direction);
+            // Collect authored way handles matching prompt-builder presentation
+            if (pb && typeof pb.wayHandle === 'function' && exitData?.way_id) {
+                const doorNode = typeof ws?.getNode === 'function' ? ws.getNode(exitData.way_id) : null;
+                const handle = pb.wayHandle({ ...exitData, label: dir }, doorNode, areaName);
+                if (handle && !exitList.includes(handle)) exitList.push(handle);
+            }
         }
+        const exits = exitList.filter(Boolean);
+
         const knownAreas = ((player?.known || []) as unknown[]).map(String)
             .filter(Boolean);
         if (areaName && !knownAreas.includes(areaName)) knownAreas.unshift(areaName);
@@ -187,6 +246,8 @@
                 return null;
             }
             case 'use':
+            case 'eat':
+            case 'drink':
             case 'craft':
             case 'make': {
                 if (!String(item).trim()) return `${act} needs an item`;

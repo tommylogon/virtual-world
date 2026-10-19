@@ -185,6 +185,47 @@ const HumanTurnComposerModule = (() => {
         return out;
     }
 
+    /**
+     * Feedback hint when typed text in the do field will be spoken rather than run as an action (task-878).
+     *
+     * When raw text has speech but no action and does not start with a deliberate volume word (scream, shout, whisper),
+     * returns a warning string with suggestions. Otherwise returns null.
+     */
+    function doHint(raw: string): string | null {
+        const t = (raw || '').trim();
+        if (!t) return null;
+        const lower = t.toLowerCase();
+        for (const vol of VOLUME_WORDS) {
+            if (lower.startsWith(vol + ' ') || lower === vol) return null;
+        }
+        const parsed = parseCmd(t);
+        if (parsed.speech && !parsed.action) {
+            const verb = lower.split(/\s+/)[0];
+            const ALIASES: Record<string, string> = {
+                walk: 'go, approach',
+                run: 'dash, go',
+                move: 'go',
+                travel: 'go',
+                head: 'go',
+                grab: 'take, grab',
+                pick: 'take',
+                get: 'take',
+                hit: 'attack',
+                strike: 'attack',
+                fight: 'attack',
+                consume: 'eat, drink',
+                ingest: 'eat, drink',
+                sip: 'drink',
+                quaff: 'drink',
+                talk: 'say (use say box)',
+                speak: 'say (use say box)',
+            };
+            const suggest = ALIASES[verb] || VERBS.filter((v) => v.startsWith(verb.slice(0, 2))).slice(0, 3).join(', ');
+            return `"${t}" will be spoken aloud. (Did you mean: ${suggest || 'go, look, take, use, attack'}?)`;
+        }
+        return null;
+    }
+
     /** Build the payload from the current rows. */
     function buildPayload(): TurnPayload {
         const m = _modal as HTMLElement;
@@ -411,6 +452,7 @@ const HumanTurnComposerModule = (() => {
               <input id="htc-do" type="text" list="htc-names" placeholder='action — click a thing above, or type "eat berries", "open door"…' autocomplete="off">
               <button type="button" id="htc-clear-do" title="clear">✕</button>
             </div>
+            <div id="htc-do-hint" style="display:none;font-size:11px;color:#c96;margin:-4px 0 6px 54px;line-height:1.3;"></div>
             <div class="htc-crow">
               <span class="lbl">🗨 say</span>
               <input id="htc-speech" type="text" placeholder="what they say — free, stacks with the action" autocomplete="off">
@@ -470,8 +512,24 @@ const HumanTurnComposerModule = (() => {
                 htcGlobals.Timeskip.openDialog();
             }
         });
+        const updateDoHint = () => {
+            const hintEl = q('#htc-do-hint');
+            if (!hintEl) return;
+            const text = (q('#htc-do') as HTMLInputElement).value;
+            const hint = doHint(text);
+            if (hint) {
+                hintEl.textContent = hint;
+                hintEl.style.display = 'block';
+            } else {
+                hintEl.textContent = '';
+                hintEl.style.display = 'none';
+            }
+        };
+        q('#htc-do').addEventListener('input', updateDoHint);
+
         q('#htc-clear-do').addEventListener('click', () => {
             (q('#htc-do') as HTMLInputElement).value = '';
+            updateDoHint();
         });
         q('#htc-emote-toggle').addEventListener('click', () => {
             EmotePicker.toggle(q('#htc-emote-palette'), {
@@ -585,12 +643,16 @@ const HumanTurnComposerModule = (() => {
         }
         (q('#htc-relation') as HTMLSelectElement).value = '';
         _pendingSpeechTarget = null;
+        const hintEl = q('#htc-do-hint');
+        if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
     }
 
     function applyDraft(parts: Record<string, any> | null | undefined) {
         if (!parts || _phase === 'react') return;
         (q('#htc-do') as HTMLInputElement).value = [parts.action, parts.item, parts.target]
             .filter(Boolean).join(' ');
+        const hintEl = q('#htc-do-hint');
+        if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
         q('#htc-speech').focus();
     }
 
@@ -675,7 +737,7 @@ const HumanTurnComposerModule = (() => {
         }
     }
 
-    return { request, react, closeTurn };
+    return { request, react, closeTurn, parseCmd, doHint, VERBS };
 })();
 
 (window as unknown as { HumanTurnComposer: typeof HumanTurnComposerModule }).HumanTurnComposer = HumanTurnComposerModule;

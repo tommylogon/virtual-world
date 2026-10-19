@@ -139,8 +139,53 @@ test('drop resolves carried items', () => {
 test('every engine verb is a legal act', () => {
     const engineVerbs = ['go', 'dash', 'crawl', 'climb', 'jump', 'take', 'drop', 'use', 'use_on',
         'examine', 'open', 'close', 'attack', 'grab', 'lead', 'escape', 'struggle', 'read', 'search',
-        'look', 'listen', 'fumble', 'stand', 'rest', 'wait', 'relieve', 'stow', 'put', 'combine',
-        'split', 'craft', 'make', 'give', 'steal', 'speak', 'perform', 'wear', 'remove', 'approach'];
+        'look', 'listen', 'fumble', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'wait', 'relieve',
+        'stow', 'put', 'combine', 'split', 'craft', 'make', 'give', 'steal', 'speak', 'perform',
+        'wear', 'remove', 'approach', 'eat', 'drink'];
     const missing = engineVerbs.filter((v) => !PlanGrounding.ACTS.has(v));
     assertEq(missing.length, 0, 'plan contract missing verbs: ' + missing.join(', '));
 });
+
+test('eat and drink ground against carried or area items', () => {
+    const facts = { ...FACTS_MINE_ACCESS, carried: ['woodpigeon_meat', 'spring_water'] };
+    assertEq(PlanGrounding.groundStep({ act: 'eat', item: 'woodpigeon_meat' }, facts, 'Mine Access'), null, 'eat grounds on carried');
+    assertEq(PlanGrounding.groundStep({ act: 'drink', item: 'spring_water' }, facts, 'Mine Access'), null, 'drink grounds on carried');
+    const missing = PlanGrounding.groundStep({ act: 'eat', item: 'roast_boar' }, facts, 'Mine Access');
+    assertTrue(/no interactable "roast_boar"/.test(missing), 'missing food rejected with interactable message');
+});
+
+test('collectFacts stranger masking resolves masked handles (bug-523)', () => {
+    const fakeState = {
+        players_in_area: [
+            { name: 'Belne' },
+            { name: 'Leslie', description: 'A slender dancer with auburn hair.' },
+            { name: 'Mikka', aliases: ['The Viper'] },
+        ],
+        players: {
+            Belne: { current_area: 'Mine Access' },
+            Leslie: { current_area: 'Mine Access', description: 'A slender dancer with auburn hair.', tags: ['female'] },
+            Mikka: { current_area: 'Mine Access', tags: ['male'], aliases: ['The Viper'] },
+        },
+        areas: {
+            'Mine Access': {
+                exits: {
+                    east: { direction: 'east', way_id: 'way_1' },
+                },
+            },
+        },
+    };
+    const player = { inventory: ['bread'], known: [] };
+
+    // With PromptBuilder available
+    const oldData = worldState.data;
+    worldState.data = fakeState;
+    try {
+        const facts = PlanGrounding.collectFacts('Belne', fakeState, player, 'Mine Access');
+        assertTrue(facts.people.includes('the woman') || facts.people.includes('Leslie'), 'Leslie is in people pool');
+        assertTrue(facts.people.includes('The Viper'), 'Mikka alias is in people pool');
+        assertEq(PlanGrounding.groundStep({ act: 'give', item: 'bread', target: 'The Viper' }, facts, 'Mine Access'), null, 'give to alias grounds');
+    } finally {
+        worldState.data = oldData;
+    }
+});
+
