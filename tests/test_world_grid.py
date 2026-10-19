@@ -192,6 +192,7 @@ def test_normalise_grid_is_tolerant():
            "placements": {"a": {"x": 1, "y": 2}, "b": "nope"}}
     wg.normalise_grid(rec)
     assert rec["grid"] == {"w": 4, "h": 3}
+    assert rec["mode"] == "settlement"
     assert rec["layers"] == {"biome": {"1,1": "dense_forest"}}
     assert rec["placements"] == {"a": {"x": 1, "y": 2}}
 

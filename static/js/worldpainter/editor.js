@@ -746,13 +746,6 @@
         const legend = _climateLegend();
         if (legend)
             box.appendChild(legend);
-        // The palette panel (task-759) sits under the toolbar that opens it, so
-        // the rail, grid and detail are read next to the layer/value they set.
-        if (state.paletteOpen) {
-            const palette = _palettePanel();
-            if (palette)
-                box.appendChild(palette);
-        }
         if (!p.scope.has_grid) {
             box.appendChild(_noGridPanel(p));
             box.appendChild(_checklist(p));
@@ -762,11 +755,17 @@
         box.appendChild(_featureBar(p));
         if (state.tool === 'area')
             box.appendChild(_areaBar(p));
-        // Rail beside the canvas, not above it: the tool column and the map it
-        // acts on are read together, and the map gets the width back (task-536).
+        // Studio row: Tool rail on left, Canvas in center, Palette dock on right (task-881).
+        // Docking the palette beside the canvas means opening it never shoves the
+        // canvas below the fold or forces vertical scrolling to paint.
         const withRail = _el('div', 'display:flex;gap:10px;align-items:stretch;flex:1 1 auto;min-height:0;');
         withRail.appendChild(_toolRail(p));
         withRail.appendChild(_grid(p));
+        if (state.paletteOpen) {
+            const palette = _palettePanel();
+            if (palette)
+                withRail.appendChild(palette);
+        }
         box.appendChild(withRail);
         const panel = _cellPanel(p);
         if (panel)
@@ -1014,8 +1013,8 @@
         return n('biome') + n('road');
     }
     function _checklistIntro(mode) {
-        if (mode === 'town') {
-            return 'A town is painted inside-out: the ground it stands on, the streets '
+        if (mode === 'settlement' || mode === 'town') {
+            return 'A settlement is painted inside-out: the ground it stands on, the streets '
                 + 'across it, the wall around it, then the buildings on it, then the '
                 + 'names that make them addressable. Every painted cell becomes a '
                 + 'place; walls are structure and never do, which is what makes them '
@@ -1089,7 +1088,7 @@
                 + "image's aspect and a cell is the same place in both.",
             done: !!(p.reference && p.reference.image),
         };
-        if (mode === 'town') {
+        if (mode === 'settlement' || mode === 'town') {
             return [grid, ground, roads,
                 { title: 'Wall it in.', how: 'Biome layer, value "wall", along the '
                         + 'perimeter. Walls are structure: they never become places, '
@@ -1337,15 +1336,17 @@
         if (!sections.length)
             return null;
         const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
-            'padding:8px;margin-bottom:8px;background:var(--bg-card,#23232b);');
+            'padding:8px;background:var(--bg-card,#23232b);width:320px;flex:0 0 320px;' +
+            'display:flex;flex-direction:column;gap:6px;max-height:560px;overflow:hidden;');
         wrap.setAttribute('data-role', 'wp-palette');
-        const head = _el('div', 'display:flex;align-items:center;gap:8px;margin-bottom:6px;');
+        const head = _el('div', 'display:flex;align-items:center;gap:6px;');
         head.appendChild(_el('span', 'font-weight:600;font-size:13px;', 'Palette'));
-        head.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'hover a tile to read it · click to paint'));
         head.appendChild(_el('div', 'flex:1;'));
-        head.appendChild(_btn('✕', () => { state.paletteOpen = false; render(); }, 'padding:2px 8px;', 'Close the palette'));
+        head.appendChild(_btn('✕', () => { state.paletteOpen = false; render(); }, 'padding:2px 8px;', 'Close the palette dock'));
         wrap.appendChild(head);
-        const search = _el('input', 'width:220px;padding:3px 6px;border-radius:5px;' +
+        const subHint = _el('div', 'font-size:11px;color:var(--text-muted,#999);line-height:1.2;', 'hover to preview · click to paint');
+        wrap.appendChild(subHint);
+        const search = _el('input', 'width:100%;box-sizing:border-box;padding:3px 6px;border-radius:5px;' +
             'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
         search.type = 'search';
         search.placeholder = 'Search tiles by name or id…';
@@ -1353,15 +1354,15 @@
         search.setAttribute('data-role', 'wp-palette-search');
         search.setAttribute('aria-label', 'Search palette tiles by name or id');
         wrap.appendChild(search);
-        const rail = _el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;');
+        const rail = _el('div', 'display:flex;gap:4px;flex-wrap:wrap;max-height:90px;overflow-y:auto;padding-bottom:2px;');
         rail.setAttribute('data-role', 'wp-palette-rail');
         wrap.appendChild(rail);
-        const grid = _el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));' +
-            'gap:4px;max-height:280px;overflow:auto;padding:2px;');
+        const grid = _el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));' +
+            'gap:4px;flex:1 1 auto;overflow-y:auto;padding:2px;min-height:120px;');
         grid.setAttribute('data-role', 'wp-palette-grid');
         wrap.appendChild(grid);
         const detailBox = _el('div', 'font-size:11px;color:var(--text-muted,#999);line-height:1.45;' +
-            'margin-top:6px;border-top:1px solid var(--border,#333);padding-top:6px;min-height:44px;');
+            'border-top:1px solid var(--border,#333);padding-top:6px;min-height:50px;flex:0 0 auto;');
         detailBox.setAttribute('data-role', 'wp-palette-detail');
         wrap.appendChild(detailBox);
         const showDetail = (t) => {
@@ -3308,7 +3309,7 @@
             const what = noun ? `${noun}${solid}` : 'empty';
             return n.name ? `${what} “${n.name}”` : what;
         };
-        row('exits', ['N', 'E', 'S', 'W']
+        row('exits', ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
             .map((d) => `${d}: ${label(neighbours[d])}`).join(' · '));
         wrap.appendChild(rows);
         // The cell's name (task-560) — what the place is *called*, which is what

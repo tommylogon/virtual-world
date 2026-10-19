@@ -409,6 +409,8 @@ def handle_create_scope(app):
         return _error(f"Parent scope '{parent_id}' not found")
 
     mode = data.get("mode")
+    if mode == "town":
+        mode = "settlement"
     if mode is not None and mode not in world_grid.MODES:
         return _error(f"unknown mode {mode!r}; expected one of {world_grid.MODES}")
 
@@ -457,6 +459,8 @@ def handle_set_scope_grid(app, scope_id):
     except (TypeError, ValueError):
         return _error("w and h are required integers")
     mode = data.get("mode", record.get("mode"))
+    if mode == "town":
+        mode = "settlement"
     if mode is not None and mode not in world_grid.MODES:
         return _error(f"unknown mode {mode!r}; expected one of {world_grid.MODES}")
 

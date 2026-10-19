@@ -1532,7 +1532,7 @@ def preflight(manifest: Dict[str, dict], scope_id: str, *,
     # for it, so a scope with nothing named at all is not nagged. The one
     # wilderness case worth raising is a half-named map: the author named the
     # road that matters and left the other fifty.
-    naming_expected = str(record.get("mode") or "world") in ("town", "interior") or bool(names)
+    naming_expected = str(record.get("mode") or "world") in ("town", "settlement", "interior") or bool(names)
     if cells and naming_expected and len(names) < len(cells):
         add("unnamed", WARN,
             f"{len(cells) - len(names)} of {len(cells)} painted places have no "

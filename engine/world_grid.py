@@ -119,9 +119,9 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
-#: The three editor modes (task-495). A world grid paints zones as cells, a town
+#: The three editor modes (task-495, task-883). A world grid paints zones as cells, a settlement
 #: grid paints walls/gates/roads/buildings, an interior grid paints rooms/doors.
-MODES = ("world", "town", "interior")
+MODES = ("world", "settlement", "interior")
 
 #: Paint layers a grid may carry. ``feature`` is *derived* from placements, not
 #: stored, so it is not listed here.
@@ -333,7 +333,10 @@ def normalise_grid(record: dict) -> dict:
             record.pop("sibling_traversal", None)
 
     mode = record.get("mode")
-    if mode is not None and str(mode) not in MODES:
+    if mode == "town":
+        mode = "settlement"
+        record["mode"] = "settlement"
+    elif mode is not None and str(mode) not in MODES:
         record.pop("mode", None)
     return record
 
@@ -433,6 +436,8 @@ def ensure_grid(record: dict, w: int, h: int,
     w, h = int(w), int(h)
     if w <= 0 or h <= 0:
         raise ValueError("grid must be at least 1x1")
+    if mode == "town":
+        mode = "settlement"
     if mode is not None and mode not in MODES:
         raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
     record["grid"] = {"w": w, "h": h}
