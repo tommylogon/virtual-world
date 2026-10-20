@@ -7157,7 +7157,25 @@
             "evidence"
           ],
           "uses": 15,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "",
+                    "success_message": "the emf reader hums faintly. the needle flickers but stays near zero. whatever is in this house, it is not putting out much of a field right now."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_inv_elena vance_emf_reader_on_examine_1784403369_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7201,6 +7219,22 @@
               },
               "effect_type": "message",
               "trigger_type": "on_depleted"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the flashlight flickers and dies."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_depleted"
+              ],
+              "id": "trigger_inv_elena vance_flashlight_on_depleted_0"
             }
           ],
           "uses": 60,
@@ -7263,7 +7297,25 @@
             "evidence"
           ],
           "uses": -1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "",
+                    "success_message": "you flip through the notebook. elena has documented the blackwood disappearance in detail - seven people vanished overnight in 1891, the front door barred from inside, no forced entry. the case file mentions a crystal skull found on the property, later moved to an unknown location within the mansion. sketches show a skull-shaped keyhole on the front door. notes suggest the family may have been involved in something occult. the final page is blank except for the words: 'find the skull.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_inv_elena vance_notebook_on_examine_1784403369_2"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7295,7 +7347,73 @@
             "supplies"
           ],
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You drop the protein bar. It lands with a soft thud, still sealed in its wrapper."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "You drop the protein bar.",
+              "target_name": "protein_bar",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788775127327_7vzb"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You unwrap the protein bar and inspect it: a dense, chalky square of pressed oats and whey. It's dry to the touch but looks filling enough to tide you over."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "A wrapped protein bar from an emergency kit.",
+              "target_name": "protein_bar",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788775128022_uiux"
+            },
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You bite into the protein bar. It's dry and chalky, but it fills you up quickly - a satisfying crunch of oats and whey."
+                  },
+                  "type": "message"
+                },
+                {
+                  "params": {
+                    "amount": -25,
+                    "stat": "Hunger",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "fail_message": "The protein bar is empty.",
+              "success_message": "You eat the protein bar.",
+              "target_name": "protein_bar",
+              "target_state": "",
+              "trigger_type": "on_eat",
+              "id": "trigger_inv_elena_vance_protein_bar_1788894514339_islx"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788774993.965625
@@ -7328,7 +7446,65 @@
             "container"
           ],
           "uses": 2,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "amount": -30,
+                    "fail_message": "its empty",
+                    "stat": "thirst",
+                    "success_message": "you take a drink. lukewarm, but hydrating.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                },
+                {
+                  "params": {
+                    "delta": -1,
+                    "node_id": "self"
+                  },
+                  "type": "adjust_uses"
+                }
+              ],
+              "fail_message": "its empty",
+              "name": "",
+              "success_message": "you take a drink. lukewarm, but hydrating.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "conditions_logic": "and",
+              "id": "trigger_inv_elena vance_water_bottle_on_use_1784402362_4"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788735292324_6xeo"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788735293124_5l5n"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788735410198_d9al"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788735410.0489116
@@ -7351,7 +7527,35 @@
             "phone"
           ],
           "uses": -1,
-          "weight": 0.05
+          "weight": 0.05,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": 10,
+                    "stat": "entertainment",
+                    "success_message": "you put in the earbuds. no music plays, but just having them in is strangely calming.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                },
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "sanity",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_inv_miki_earbuds_on_use_1784403369_3"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7381,7 +7585,34 @@
             "supplies"
           ],
           "uses": 0,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "amount": -25,
+                    "stat": "hunger",
+                    "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "fail_message": "",
+              "name": "",
+              "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_use",
+                "on_eat"
+              ],
+              "conditions_logic": "and",
+              "id": "trigger_inv_miki_granola_bar_on_use_1784402362_5"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7415,7 +7646,25 @@
             "phone"
           ],
           "uses": 47,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "",
+                    "success_message": "you check the phone. no signal. no service. the flashlight app works though. battery is draining faster than expected."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_inv_miki_phone_on_examine_1784403369_4"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487295.6624057
@@ -7443,7 +7692,40 @@
             "supplies"
           ],
           "uses": 3,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "",
+                    "success_message": "a portable charger. 30% battery. but there is no power outlet in a haunted mansion that has been abandoned since 1891."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_inv_miki_portable_charger_on_examine_1784403369_5"
+            },
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "right. how? there is no electricity here."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_inv_miki_portable_charger_on_use_1784403369_6"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7466,7 +7748,27 @@
             "artifact"
           ],
           "uses": -1,
-          "weight": 0.05
+          "weight": 0.05,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "sanity",
+                    "success_message": "you clutch the talisman. whether it works or not, it makes you feel a little braver.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_inv_miki_talisman_on_use_1784403369_7"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7495,7 +7797,27 @@
             "supplies"
           ],
           "uses": 3,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": -30,
+                    "stat": "thirst",
+                    "success_message": "you take a drink. lukewarm, but hydrating.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_inv_miki_water_bottle_on_use_1784402362_6"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -7522,7 +7844,27 @@
             "blood"
           ],
           "uses": -1,
-          "weight": 2
+          "weight": 2,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": -5,
+                    "stat": "hygiene",
+                    "success_message": "you adjust the apron. the blood is dry. it is not coming off.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_inv_the butcher_apron_on_use_1784403369_8"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785440988.659557
@@ -7610,7 +7952,27 @@
             "bandage"
           ],
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": 15,
+                    "stat": "hp",
+                    "success_message": "you wrap the bandage around the wound. it will hold.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_ace_bandage_on_use_1784403369_9"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318723.3983161
@@ -7636,7 +7998,25 @@
           "uses": -1,
           "weight": 200,
           "x": 4959.8,
-          "y": 5977
+          "y": 5977,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you lift the dusty cloth. the skull-shaped depression is lined with symbols that pulse with a faint, dying light. the runes around the edge read: 'return what was taken. free what is bound. eleanor waits.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_altar_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -7837,7 +8217,22 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "lightweight mesh shorts, rolled at the waist. built for the gym. you can move in these without thinking about it."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black basketball shorts_on_examine_1785448332308_737"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785448689.8621633
@@ -7871,7 +8266,22 @@
             "jewelry"
           ],
           "uses": 0,
-          "weight": 0.02
+          "weight": 0.02,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the silver heart pendant catches the light. the velvet band is soft against your skin. you never take this off."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black choker_on_examine_1785487140288_485"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487140.2886586
@@ -7904,7 +8314,22 @@
             "top"
           ],
           "uses": 0,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a simple black crop top. thin, comfortable, and you look good in it. that's the only criteria that matters."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black crop top_on_examine_1785495769491_511"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495769.4916744
@@ -7938,7 +8363,22 @@
             "jewelry"
           ],
           "uses": 0,
-          "weight": 0.02
+          "weight": 0.02,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "simple black ear cuffs. they pinch slightly but stay secure."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black ear cuff earrings_on_examine_1785487194073_165"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487405.822062
@@ -7971,7 +8411,35 @@
             "accessory"
           ],
           "uses": 0,
-          "weight": 0.01
+          "weight": 0.01,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull your hair back into a practical ponytail."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_black hair tie_on_equip_1785486899004_571"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull the tie out, letting your hair fall loose past your shoulders."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_item_black hair tie_on_unequip_1785486899005_947"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785486899.004661
@@ -8039,7 +8507,22 @@
             "hair_accessory"
           ],
           "uses": 0,
-          "weight": 0.01
+          "weight": 0.01,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a small black star outline, pinned neatly into place. matches the cross on the other side."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black hollow star hair pin_on_examine_1785487170274_375"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487372.013449
@@ -8079,7 +8562,22 @@
           ],
           "target_temperature": null,
           "uses": 0,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_black short shorts_1791066391499_726_on_examine_1791066391500_130"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791066391.499139
@@ -8138,7 +8636,22 @@
             "jewelry"
           ],
           "uses": 0,
-          "weight": 0.02
+          "weight": 0.02,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_blue butterfly earring_on_examine_1785487201744_839"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487417.6983128
@@ -8185,7 +8698,25 @@
           "uses": -1,
           "weight": 0,
           "x": 4913.1,
-          "y": 724.8
+          "y": 724.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "through a gap in the boards, you can see the garden and the graveyard beyond. scratched into the wood of one of the boards, faint but legible: 'i'm still here. help me.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_boarded_window_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8329,7 +8860,25 @@
           "uses": -1,
           "weight": 0.2,
           "x": 2693.5,
-          "y": 3744.9
+          "y": 3744.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you take the key, the temperature drops sharply. a whisper, so faint you might have imagined it: 'thank you...'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_brass_key_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8440,7 +8989,25 @@
           "uses": -1,
           "weight": 0.1,
           "x": 1028.1,
-          "y": 2295.3
+          "y": 2295.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the heat-seal cracks as you examine the joined halves. the key is whole again. it feels powerful - and sad. this key was meant to keep something locked away forever."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_broken_key_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8466,7 +9033,28 @@
           "uses": -1,
           "weight": 0.1,
           "x": 1861.4,
-          "y": 2231.1
+          "y": 2231.1,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "success_message": "'augustus blackwood, esq.', 'mrs. cordelia blackwood', and three smaller ones for the children. a family frozen in time."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "'augustus blackwood, esq.', 'mrs. cordelia blackwood', and three smaller ones for the children. a family frozen in time.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_1786232636319_esur"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8500,7 +9088,73 @@
           "uses": 10,
           "weight": 0.3,
           "x": 3231.7,
-          "y": 1704.9
+          "y": 1704.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the black candle burns with a strange blue-white flame. as it burns, the runes carved into the wax seem to writhe. the shadows in the room elongate and dance."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_candle_on_use_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you light the black candle. a strange blue-white flame flickers to life."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_toggle_on"
+              ],
+              "id": "trigger_item_candle_on_toggle_on_1"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you extinguish the black candle. the room darkens."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_toggle_off"
+              ],
+              "id": "trigger_item_candle_on_toggle_off_2"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the black candle sputters and goes out, its last wisp of smoke curling upward like a question."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_depleted"
+              ],
+              "id": "trigger_item_candle_on_depleted_3"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8635,7 +9289,135 @@
           "uses": 6,
           "weight": 0.05,
           "x": 5885.5,
-          "y": 2700.3
+          "y": 2700.3,
+          "triggers": [
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788808378924_hj53"
+            },
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "The candle stub is too depleted to be lit.",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788808613875_mv6c"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788808613875_pdvu"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788808613875_z49u"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You set the candle stub back down on the bedside table."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788808613875_ht41"
+            },
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "The wick is too short to ignite.",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_light",
+              "id": "trigger_1788808613875_yise"
+            },
+            {
+              "conditions": [
+                {
+                  "target": "self",
+                  "type": "state_equals",
+                  "value": "lit"
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pinch the flame out. The room goes dark, and the smell of burnt wax lingers."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "The candle is not lit.",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_toggle_off",
+              "id": "trigger_1788808613875_cio2"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8663,7 +9445,109 @@
           "uses": -1,
           "weight": 2,
           "x": 1132.8,
-          "y": 1553
+          "y": 1553,
+          "triggers": [
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "You examine the candlestick.\n\nA heavy silver candlestick, one of a set of eight. This one is slightly bent, as if it was used to strike something. There's a dark stain near the base.",
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788803117076_iik8"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "You pick up the heavy silver candlestick. It's colder than it should be, and faintly tarnished near where that dark stain sits.",
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788803117077_ro7y"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "You drop the candlestick. It clatters against the floor with an odd, dull thud.",
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788803117077_llex"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "You hold the candlestick up to catch any available light, but its bent form and dark stain make it hard to see clearly.",
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "",
+              "trigger_type": "on_light",
+              "id": "trigger_1788803117077_sspd"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "You light the wick and coax a small flame into life. The candlestick glows with a warm, flickering silver light.",
+                  "type": "message"
+                },
+                {
+                  "light": 40,
+                  "node_id": "current_area",
+                  "type": "set_environment"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "on",
+              "trigger_type": "on_toggle_on",
+              "id": "trigger_1788803117077_wezl"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "message": "The flame sputters and dies. The candlestick falls dark and cold in your hand.",
+                  "type": "message"
+                },
+                {
+                  "light": 15,
+                  "node_id": "current_area",
+                  "type": "set_environment"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "candlestick",
+              "target_state": "off",
+              "trigger_type": "on_toggle_off",
+              "id": "trigger_1788803117077_zqj0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8696,7 +9580,41 @@
           "uses": 3,
           "weight": 0.4,
           "x": 5590.2,
-          "y": 777.4
+          "y": 777.4,
+          "triggers": [
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788735867386_h4us"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788735869852_v2x5"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788735870659_gg42"
+            },
+            {
+              "conditions": [],
+              "effects": [],
+              "fail_message": "",
+              "success_message": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788735872867_rdao"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8762,7 +9680,22 @@
             "bottom"
           ],
           "uses": 0,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "sturdy cargo shorts with plenty of pocket space. the stain on the right pocket could be anything. hot sauce? battery acid? you've stopped caring."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_cargo shorts_on_examine_1785495578557_459"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495578.5568588
@@ -8793,7 +9726,62 @@
           "uses": -1,
           "weight": 50,
           "x": 1967.9,
-          "y": 2343.1
+          "y": 2343.1,
+          "triggers": [
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "The crystal chandelier is thick with cobwebs, its facets dulled by years of dust. It creaks ominously above you, swaying slightly despite the still air."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "chandelier",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788808734540_clu5"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You reach up and give the chandelier a firm tug. With a groan of protesting metal, it detaches from the ceiling and crashes to the floor in a glittering explosion of glass."
+                  },
+                  "type": "message"
+                },
+                {
+                  "params": {
+                    "amount": 10,
+                    "save": {
+                      "dc": 14,
+                      "on_success": "half",
+                      "stat": "DEX"
+                    },
+                    "target": "self"
+                  },
+                  "type": "damage"
+                },
+                {
+                  "params": {
+                    "node_id": "self",
+                    "state": "broken"
+                  },
+                  "type": "set_state"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "chandelier",
+              "target_state": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788808734540_a6o1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8908,7 +9896,25 @@
           "uses": -1,
           "weight": 0.3,
           "x": 4287.7,
-          "y": 708.8
+          "y": 708.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you lift the dress, a lullaby plays faintly from somewhere in the room. it stops when you set the dress down. the dress is cold and damp, as if recently washed but not dried."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_child_dress_item_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -8981,7 +9987,25 @@
           "uses": -1,
           "weight": 15,
           "x": 1817.1,
-          "y": 2542.3
+          "y": 2542.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you search the coat pockets and find an old train ticket stub for a journey from london, dated october 31st, 1891. the last train out of blackwood station. whoever wore this coat never made it home."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_coat_rack_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9072,7 +10096,22 @@
             "underwear"
           ],
           "uses": 0,
-          "weight": 0.12
+          "weight": 0.12,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "tight, functional, black. it does its job. you don't need anything fancier."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_compression sports bra_on_examine_1785448340454_248"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785448340.453969
@@ -9197,7 +10236,25 @@
           "uses": -1,
           "weight": 15,
           "x": 5058.9,
-          "y": 4082.9
+          "y": 4082.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "through a gap in the crate's slats, you can see moldy burlap sacks. but something glints beneath them - a bottle of something expensive."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_crate_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9250,7 +10307,80 @@
           "uses": -1,
           "weight": 2,
           "x": 3243,
-          "y": 1773.6
+          "y": 1773.6,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you peer into the crystal skull's eye sockets. for just a moment, you see a reflection that isn't yours - a young girl with dark hair and sad eyes, standing behind you. you spin around. there's no one there."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_crystal_skull_on_examine_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 8,
+                    "target": "self"
+                  },
+                  "type": "damage"
+                },
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "a searing cold shoots up your arm as you lift the skull. your vision blurs and you feel a splitting headache. the whispers grow louder in your mind."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_crystal_skull_on_take_1"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the room darkens as you lift the skull from its pedestal. the green glow from the walls flickers. a woman's voice whispers clearly: 'now you've done it. he knows you're here.' the bookcase behind you slams shut with a deafening crack."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_crystal_skull_on_take_2"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the skull clatters to the floor but does not break. the whispering stops. the room feels lighter."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_drop"
+              ],
+              "id": "trigger_item_crystal_skull_on_drop_3"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9343,7 +10473,22 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.8
+          "weight": 0.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "durable cargo pants with plenty of pocket space. the left knee is reinforced with a patch. old chalk marks stain the right thigh."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_dark cargo pants_on_examine_1785486963931_857"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487098.1989224
@@ -9376,7 +10521,22 @@
             "bottom"
           ],
           "uses": 0,
-          "weight": 0.8
+          "weight": 0.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "stiff, dark, and foul. the fabric crackles when it moves - dried into its current shape by years of the same stains."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_dark trousers_on_examine_1785495941704_408"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495941.7047267
@@ -9401,7 +10561,25 @@
           "uses": -1,
           "weight": 5,
           "x": 1091.1,
-          "y": 2240.8
+          "y": 2240.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the vine twitches at your touch. you pull your hand back, startled. wrapped around the vine's base, almost invisible, is the other half of a broken brass key."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_dead_vine_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9434,7 +10612,22 @@
             "bottom"
           ],
           "uses": 0,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "rolled denim cut-offs. simple and comfortable. you cut these yourself from an old pair of jeans."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_denim cut-offs_on_examine_1785495853830_187"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495853.830667
@@ -9545,7 +10738,49 @@
           "uses": -1,
           "weight": 0.5,
           "x": 6319.2,
-          "y": 1582.2
+          "y": 1582.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 8,
+                    "target": "self"
+                  },
+                  "type": "damage"
+                },
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "a piercing headache lances through your skull as you pick up the doll. you feel a presence - angry, trapped, desperate."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_doll_on_take_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "description": "a tiny scrap of paper that falls from the doll's hollow arm: 'the skull is in the study. take it to mother's grave. she'll know what to do. - e.'",
+                    "item_id": "item_hidden_note_doll",
+                    "name": "hidden_note"
+                  },
+                  "type": "spawn_item"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_drop"
+              ],
+              "id": "trigger_item_doll_on_drop_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9608,7 +10843,35 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 1
+          "weight": 1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you shrug on the jacket. something crinkles - the duct tape on the left shoulder has peeled again."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_duct tape jacket_on_equip_1785495531403_143"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "duct tape on the sleeves, duct tape on the collar, duct tape holding the pocket on. it's more tape than jacket at this point. you love it."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_duct tape jacket_on_examine_1785495531404_798"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495531.4036179
@@ -9629,7 +10892,38 @@
           "uses": -1,
           "weight": 0,
           "x": 1910.7,
-          "y": 2385.6
+          "y": 2385.6,
+          "triggers": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "dc": 10,
+                    "skill": "investigation",
+                    "type": "skill_check"
+                  }
+                ],
+                "operator": "and"
+              },
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "you dont notice anything but the dust.",
+                    "success_message": "you notice 2 pair of  fresh footprints leading from the door toward the library. "
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "you dont notice anything but the dust.",
+              "success_message": "you notice 2 pair of  fresh footprints leading from the door toward the library. ",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_1786232568395_zre9"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9678,7 +10972,28 @@
           ],
           "skill_check": {},
           "uses": -1,
-          "weight": 1
+          "weight": 1,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "success_message": "the coat has a strange shape - something is in the pocket."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "the coat has a strange shape - something is in the pocket.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_1786232695060_mlxs"
+            }
+          ]
         },
         "type": "item",
         "updated": 1786232711.7861545
@@ -9705,7 +11020,42 @@
             "food"
           ],
           "uses": 0,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "amount": 30,
+                    "stat": "energy",
+                    "success_message": "you chug the energy drink. it tastes like battery acid and regret, but you feel a jolt of energy.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                },
+                {
+                  "params": {
+                    "amount": -25,
+                    "stat": "Thirst",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "fail_message": "",
+              "name": "",
+              "success_message": "you chug the energy drink. it tastes like battery acid and regret, but you feel a jolt of energy.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_use",
+                "on_drink"
+              ],
+              "conditions_logic": "and",
+              "id": "trigger_item_energy_drink_on_use_1784402118_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788891257.0728261
@@ -9738,7 +11088,35 @@
             "bandage"
           ],
           "uses": 1,
-          "weight": 0.02
+          "weight": 0.02,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the bandage covers a bruise from a bowstring slap. stupid mistake - you flinched on the release. it's healing but still tender."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_fabric bandage_on_examine_1785448365357_297"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you carefully unwrap the bandage. the bruise beneath is an ugly yellow-purple. it's healing."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_item_fabric bandage_on_unequip_1785448365357_841"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785448382.1830778
@@ -9771,7 +11149,22 @@
             "top"
           ],
           "uses": 0,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the logo is barely readable now - something with a skull? a snake? you got it at a thrift store for two dollars. best investment you ever made."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_faded black band tee_on_examine_1785495517246_224"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495517.2466044
@@ -9808,7 +11201,35 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull on the green tank top. the left strap twists - you leave it. not worth fixing."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_faded green tank top_on_equip_1785448323626_141"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "olive green, faded from wash and sun. the straps are thick enough for training. the left one is twisted again."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_faded green tank top_on_examine_1785448323626_26"
+            }
+          ]
         },
         "type": "item",
         "updated": 1787061019.350538
@@ -9835,7 +11256,25 @@
           "uses": -1,
           "weight": 0.5,
           "x": 1068.6,
-          "y": 1591.9
+          "y": 1591.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you hold the photograph closer. the youngest child's face isn't blurred by movement - it's been deliberately scratched out. but beneath the scratches, you can just make out a small, sad face. the name on the back: 'eleanor the younger, age 3. taken october 1890.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_family_photo_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9862,7 +11301,25 @@
           "uses": -1,
           "weight": 0,
           "x": 2806.5,
-          "y": 3841.7
+          "y": 3841.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you kneel to examine the smallest headstone - eleanor the younger's. the earth at its base has settled unevenly, as if something was buried here recently. a small handful of wilted rose petals - from the red rose bush in the garden - are scattered on the ground."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_family_plot_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9898,7 +11355,48 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 1.5
+          "weight": 1.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you shrug on the field jacket. the weight of the canvas is familiar and reassuring."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_field jacket_on_equip_1785486942124_809"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you take off the jacket, feeling the cold air on your arms."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_item_field jacket_on_unequip_1785486942124_922"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the jacket has seen better days. pockets bulge with notes, a spare battery, and a half-eaten granola bar wrapper. a safety pin holds the second button closed."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_field jacket_on_examine_1785486942124_617"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487043.3043902
@@ -9925,7 +11423,25 @@
           "uses": -1,
           "weight": 100,
           "x": 2712,
-          "y": 1815.5
+          "y": 1815.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you search the fireplace thoroughly. beneath a loose brick at the back of the hearth, you find a small compartment containing a bundle of letters tied with a faded ribbon. they're love letters between augustus blackwood and a woman who isn't his wife."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_fireplace_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -9955,7 +11471,43 @@
             "survival"
           ],
           "uses": 30,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "light": 40,
+                    "success_message": "you switch the flashlight on. the beam cuts through the darkness."
+                  },
+                  "type": "adjust_environment"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_toggle_on",
+              "id": "trigger_item_flashlight_on_toggle_on_1784402146"
+            },
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "light": -40,
+                    "success_message": "you switch the flashlight off. darkness returns."
+                  },
+                  "type": "adjust_environment"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_toggle_off",
+              "id": "trigger_item_flashlight_on_toggle_off_1784402146"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318731.8000588
@@ -10006,7 +11558,25 @@
           "uses": -1,
           "weight": 0.5,
           "x": 1227.2,
-          "y": 3946.2
+          "y": 3946.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the single red rose bush seems out of place in this garden of decay. as you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'for our eleanor, who loved roses. gone but never forgotten. - mother and father.' this is a grave."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_flowers_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10032,7 +11602,25 @@
           "uses": -1,
           "weight": 200,
           "x": 1319.5,
-          "y": 4040.7
+          "y": 4040.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you peer into the murky water. at the bottom of the fountain basin, half-buried in sediment, lies a small silver crucifix. it must have been thrown in deliberately."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_fountain_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10109,7 +11697,25 @@
           "uses": -1,
           "weight": 0,
           "x": 5397.9,
-          "y": 1437.2
+          "y": 1437.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "where the figure stood, you find a small, cold spot on the floor. a single white feather lies there, untouched by dust. you pick it up - it's real."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_ghostly_figure_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10135,7 +11741,26 @@
           "uses": -1,
           "weight": 0.2,
           "x": 2720.8,
-          "y": 1891.5
+          "y": 1891.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "description": "a crumpled note that was stuck to the glasses case: 'augustus - i've found what you requested. the crystal skull is not a legend. it is in the catacombs beneath prague. i will bring it to the manor on all hallows eve. your servant, prof. aldridge.'",
+                    "item_id": "item_professors_note",
+                    "name": "professor's_note"
+                  },
+                  "type": "spawn_item"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_glasses_case_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10159,7 +11784,27 @@
             "supplies"
           ],
           "uses": -1,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": -25,
+                    "stat": "hunger",
+                    "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_granola_bar_on_use_1784402362_7"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318704.8783033
@@ -10195,7 +11840,35 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull on the grey tank top. it hangs loose, showing a sliver of stomach."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_grey tank top_on_equip_1785487210163_567"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "soft, worn grey cotton. the kind of top you throw on without thinking. it's seen better days but it's comfortable."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_grey tank top_on_examine_1785487210163_651"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487442.1965053
@@ -10229,7 +11902,48 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.9
+          "weight": 0.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you throw on the striped hoodie, leaving it unzipped. the sleeves swallow your hands."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_grey-black striped hoodie_on_equip_1785487239944_15"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you shrug off the hoodie. the air hits your bare arms."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_item_grey-black striped hoodie_on_unequip_1785487239944_666"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "striped grey and black, thick and warm. the zipper pull is missing - you just wear it open. there's a small monster energy stain on the left cuff."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_grey-black striped hoodie_on_examine_1785487239944_595"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487239.9441113
@@ -10263,7 +11977,22 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.12
+          "weight": 0.12,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "thick, warm, and striped. the opposite of the torn stocking on your other leg. you never match."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_grey-black striped thigh-high_on_examine_1785487271694_87"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487271.6946595
@@ -10286,7 +12015,35 @@
             "cloth"
           ],
           "uses": -1,
-          "weight": 0.01
+          "weight": 0.01,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "hygiene",
+                    "success_message": "you tie your hair back. it is a small thing, but you feel more put together.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                },
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "sanity",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_hair_tie_on_use_1784403369_10"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318704.8783033
@@ -10371,7 +12128,22 @@
             "footwear"
           ],
           "uses": 0,
-          "weight": 2.5
+          "weight": 2.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "heavy boots, scarred and stained. the steel toes are dented. each step is a warning."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_heavy black boots_on_examine_1785495928910_987"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495928.9104562
@@ -10426,7 +12198,26 @@
           "uses": -1,
           "weight": 0,
           "x": 4151.1,
-          "y": 4799.9
+          "y": 4799.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "description": "a leather-bound grimoire titled 'rituals of binding and release'. the book falls open to a marked page: 'the ritual of the firstborn - to release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
+                    "item_id": "item_ritual_book",
+                    "name": "ritual_book"
+                  },
+                  "type": "spawn_item"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_hidden_shelf_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10459,7 +12250,22 @@
             "footwear"
           ],
           "uses": 0,
-          "weight": 1.2
+          "weight": 1.2,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you lace up the hiking boots. they grip the floor with satisfying certainty."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_hiking boots_on_equip_1785486972248_637"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785486972.2482905
@@ -10520,7 +12326,25 @@
           "uses": -1,
           "weight": 0.5,
           "x": 2643.9,
-          "y": 1900.7
+          "y": 1900.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the key is cold and heavy. it looks like it belongs to the garden door."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_iron_key_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10624,7 +12448,25 @@
           "uses": -1,
           "weight": 1,
           "x": 4296.5,
-          "y": 778.9
+          "y": 778.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the jewelry box is locked, but the keyhole is tiny. a key no larger than your thumb would fit - like the one from the foyer vase."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_jewelry_box_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -10737,7 +12579,25 @@
           "uses": -1,
           "weight": 0.05,
           "x": 1086.3,
-          "y": 2420.9
+          "y": 2420.9,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. they fit together perfectly - the heat-seal is an occult binding, not a physical break."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_key_fragment_2_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11019,7 +12879,41 @@
           "uses": -1,
           "weight": 0.4,
           "x": 6232.4,
-          "y": 1582.8
+          "y": 1582.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "target": "self"
+                  },
+                  "type": "heal"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_lullaby_box_on_use_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the lullaby fills the room. for a moment, the cold recedes, and you feel an overwhelming sense of peace - and profound sadness."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_lullaby_box_on_use_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11094,7 +12988,173 @@
           "uses": 8,
           "weight": 0.1,
           "x": 1846.7,
-          "y": 2328
+          "y": 2328,
+          "triggers": [
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "A small cardboard box, faded and worn at the edges. The illustration of a raven is peeling, its wings spread as if in flight. You shake it gently - a dry, rapid rattle tells you there are still several matches inside."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788810108857_2y4h"
+            },
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You strike a match against the striker strip. The sulfur ignites with a sharp hiss, casting a brief, warm glow that dances across your fingertips."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "The matchbox is empty - no more sparks to be had.",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788810108857_cu2i"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pick up the matchbox. It’s lighter than you expected, the cardboard soft from handling. The raven’s eyes seem to follow you as you tuck it into your pocket."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788810108857_uh5x"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You set the matchbox down on the ground. It lands with a soft thud, the raven illustration now facing upward, staring blankly into the dim light."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788810108857_g88m"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You slip the matchbox into your coat pocket. It settles against your ribs, a small, dry weight - always ready when you need fire."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_1788810108857_dneo"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You remove the matchbox from your pocket and hold it in your hand. The raven’s image is smudged now, worn from travel and use."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_1788810108857_che8"
+            },
+            {
+              "conditions": [
+                {
+                  "type": "uses_above",
+                  "value": 0
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You strike a match. The flame flares to life, steady and bright - a small beacon in the dark."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "The matchbox is empty - no more sparks to be had.",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_light",
+              "id": "trigger_1788810108857_4r2k"
+            },
+            {
+              "conditions": [
+                {
+                  "target": "self",
+                  "type": "state_equals",
+                  "value": "lit"
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "node_id": "self",
+                    "state": "unlit"
+                  },
+                  "type": "set_state"
+                },
+                {
+                  "params": {
+                    "message": "The match sputters and dies, leaving behind a wisp of smoke and the faint smell of sulfur."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_toggle_off",
+              "id": "trigger_1788810108857_92dr"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11207,7 +13267,25 @@
           "uses": -1,
           "weight": 10,
           "x": 6427.6,
-          "y": 967.4
+          "y": 967.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you stare at the mirror, focusing on the fragment that doesn't match your movement. it's not a reflection - it's something behind the mirror, watching you. you see the outline of a small handprint on the other side of the glass."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_mirror_bath_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11240,7 +13318,22 @@
             "footwear"
           ],
           "uses": 0,
-          "weight": 0.05
+          "weight": 0.05,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "one white, one black, both worn thin. classic jake."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_mismatched socks_on_examine_1785495588320_58"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495588.3198154
@@ -11289,7 +13382,25 @@
           "uses": -1,
           "weight": 0.1,
           "x": 2842.8,
-          "y": 1116.1
+          "y": 1116.1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "hidden beneath the mouse nest, you find a small silver locket. it's tarnished but opens with a click. inside: a miniature portrait of a young woman with sad eyes, and a lock of dark hair."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_mouse_nest_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11345,7 +13456,41 @@
           "uses": -1,
           "weight": 0.3,
           "x": 5629.8,
-          "y": 926.3
+          "y": 926.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 10,
+                    "target": "self"
+                  },
+                  "type": "heal"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_music_box_on_use_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the music box plays its haunting lullaby. as it plays, the temperature in the room seems to warm slightly. the whispers from the hallway fall silent."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_music_box_on_use_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11606,7 +13751,35 @@
             "top"
           ],
           "uses": 0,
-          "weight": 0.25
+          "weight": 0.25,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull the oversized shirt on. it swallows you, hanging past your hips. the sleeves slip off one shoulder."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_item_oversized arctic monkeys tee_on_equip_1785495845819_665"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "soft, faded, and huge on you. the arctic monkeys logo is cracked from washing. the neckline keeps slipping off your shoulders. you feel small in it, but safe."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_oversized arctic monkeys tee_on_examine_1785495845819_923"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495845.8187222
@@ -11775,7 +13948,22 @@
             "hair_accessory"
           ],
           "uses": 0,
-          "weight": 0.01
+          "weight": 0.01,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a pink star glints from the band holding your right twintail. cute."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_pink star twintail band_on_examine_1785487184268_853"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487392.8852355
@@ -11800,7 +13988,25 @@
           "uses": -1,
           "weight": 2,
           "x": 1019.9,
-          "y": 2400.4
+          "y": 2400.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as the fern crumbles, you see a small garnet ring buried in the dry soil. it's a woman's ring, delicate and old. the inside is engraved: 'forever, a.b.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_plant_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11832,7 +14038,25 @@
           "uses": -1,
           "weight": 0.2,
           "x": 4792.6,
-          "y": 747.7
+          "y": 747.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the watch is ice cold. as you hold it, the second hand twitches once, then begins ticking backward."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_pocket_watch_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11881,7 +14105,25 @@
           "uses": -1,
           "weight": 50,
           "x": 2424,
-          "y": 1775.5
+          "y": 1775.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you study the portrait, you notice the eyes are painted with an unsettling attention to detail. they seem to follow you. but more importantly - there's a faint line around the frame. it's a door. the portrait is a door."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_portrait_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11907,7 +14149,25 @@
           "uses": -1,
           "weight": 50,
           "x": 1085.4,
-          "y": 1656.4
+          "y": 1656.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the crack in the painting seems to form the shape of a '7'. you study eleanor's face more closely. her expression is stern, but her eyes hold a deep sadness - and something else. recognition? as if she knows why you're here."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_portrait_f665a200_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11933,7 +14193,25 @@
           "uses": -1,
           "weight": 20,
           "x": 5295.9,
-          "y": 1520.6
+          "y": 1520.6,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you touch the crack in the canvas. behind the painting, taped to the back, you find a small photograph. it shows augustus with a woman who is not his wife - the same woman from the love letters in the library. they're holding hands. on the back: 'my dearest margaret. someday we'll be free.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_portrait_hall_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -11958,7 +14236,27 @@
             "supplies"
           ],
           "uses": 0,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": -35,
+                    "stat": "hunger",
+                    "success_message": "you choke down the protein bar. it tastes like nothing, which is almost worse than tasting bad.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_protein_bar_on_use_1784402362_9"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318723.3983161
@@ -11983,7 +14281,25 @@
           "uses": -1,
           "weight": 200,
           "x": 4373.5,
-          "y": 86
+          "y": 86,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the blue silk ribbon tied to the railing is old but well-preserved. it's tied in a complex knot - a lover's knot. someone stood here, looking out at the garden, waiting for someone who never came."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_railing_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12037,7 +14353,25 @@
           "uses": -1,
           "weight": 1,
           "x": 6056.5,
-          "y": 4520.1
+          "y": 4520.1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you sift through the remains of the butcher's past victims. the most recent belongings are from the 1990s. this thing has been here longer than the blackwood family. it was here before the mansion was built."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_remains_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12116,7 +14450,25 @@
           "uses": -1,
           "weight": 10,
           "x": 6194.1,
-          "y": 1646
+          "y": 1646,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you approach the rocking horse, it stops moving. beneath it, scratched into the wooden floor: 'ellie was here' in a child's handwriting. the scratches are fresh."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_rocking_horse_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12141,7 +14493,25 @@
           "uses": -1,
           "weight": 0,
           "x": 4860.5,
-          "y": 4099
+          "y": 4099,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you follow the root with your hand. it leads to a corner of the cellar where the earth has been disturbed. something was buried here. the root grows through the mound like a grave marker."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_root_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12160,7 +14530,33 @@
           "description": "a thick rubber band jake fidgets with when he is nervous. it got at least 47 different uses, none of them practical. twanging it helps him think.",
           "hidden": false,
           "uses": -1,
-          "weight": 0.05
+          "weight": 0.05,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "Sanity",
+                    "success_message": "it snaps agaist your wrist, you feel your mind sharpen.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "fail_message": "",
+              "name": "",
+              "success_message": "it snaps agaist your wrist, you feel your mind sharpen.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "conditions_logic": "and",
+              "id": "trigger_item_rubber_band_on_use_1784402118_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318736.2975852
@@ -12184,7 +14580,29 @@
           "uses": -1,
           "weight": 10,
           "x": 1744.8,
-          "y": 2422.2
+          "y": 2422.2,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "one marble tile beneath it shifts when pressed - it's been disturbed recently. there's a faint scraping sound when you step on it."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "one marble tile beneath it shifts when pressed - it's been disturbed recently. there's a faint scraping sound when you step on it.",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_rug_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12217,7 +14635,22 @@
             "footwear"
           ],
           "uses": 0,
-          "weight": 0.7
+          "weight": 0.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "clean, well-maintained, double-knotted. these shoes have logged a lot of miles. the treads are still good."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_running shoes_on_examine_1785448356604_256"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785448356.603849
@@ -12243,7 +14676,25 @@
           "uses": -1,
           "weight": 500,
           "x": 4916.3,
-          "y": 6061.6
+          "y": 6061.6,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you peer inside the sarcophagus. it's empty. but at the bottom, nestled in a corner, lies a single object: a pair of wire-rimmed spectacles, crushed. and a folded letter, yellowed with age."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_sarcophagus_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12269,7 +14720,26 @@
           "uses": -1,
           "weight": 0,
           "x": 5811,
-          "y": 2814.1
+          "y": 2814.1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "description": "a bundle of letters from margaret holloway to james blackwood. 'dear james, i know we cannot be together in this house. but i watch for you at the garden gate every evening. meet me by the oak tree. i have news i can only share in person. - yours, forever, m.'",
+                    "item_id": "item_margaret_letters",
+                    "name": "margaret_letters"
+                  },
+                  "type": "spawn_item"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_secret_drawer_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12582,7 +15052,27 @@
             "insulation"
           ],
           "uses": -1,
-          "weight": 1
+          "weight": 1,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "stat": "hygiene",
+                    "success_message": "you wipe the mud off your sneakers. small victories.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_sneakers_on_use_1784403369_11"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785495904.769404
@@ -12665,7 +15155,22 @@
             "underwear"
           ],
           "uses": 0,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a well-worn black sports bra. practical, no frills."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_sports bra_on_examine_1785486924508_659"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785486924.5086324
@@ -12702,7 +15207,107 @@
             "top"
           ],
           "uses": 0,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the shirt is beyond cleaning. the fabric has absorbed so much blood it has stiffened into a permanent shape. it reeks of iron and rot."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_stained work shirt_on_examine_1785495919867_543"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pull the shirt over your head. The fabric is cold and heavy, like wet wool. It clings to your skin, and for a moment, you feel the phantom ache of old cuts along your forearms."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "stained work shirt",
+              "target_state": "normal",
+              "trigger_type": "on_use",
+              "id": "trigger_1788811683285_5t6g"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "As you lift it, a single drop of dark liquid falls from the hem - not blood, but something thicker. The air around you grows colder. You hear a faint, rhythmic thumping, like a heartbeat, just beneath your feet."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "stained work shirt",
+              "target_state": "normal",
+              "trigger_type": "on_take",
+              "id": "trigger_1788811683285_ny63"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You let it fall. The shirt lands with a soft thud, but does not lie flat - it curls slightly, as if recoiling from the floor. The thumping stops. The cold retreats."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "stained work shirt",
+              "target_state": "normal",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788811683285_w7cd"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pull it on. The sleeves slide over your arms, and the torn collar brushes your neck like a whisper. Your skin prickles where the bloodstains touch you - not pain, but memory. You feel watched."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "stained work shirt",
+              "target_state": "normal",
+              "trigger_type": "on_equip",
+              "id": "trigger_1788811683285_t1bm"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You peel it off. The fabric resists, clinging to your shoulders like a second skin. When it finally comes free, the air feels warmer - but you still feel the weight of its gaze, even in your hands."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "stained work shirt",
+              "target_state": "normal",
+              "trigger_type": "on_unequip",
+              "id": "trigger_1788811683285_u0hr"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788812092.769483
@@ -12787,7 +15392,25 @@
           "uses": -1,
           "weight": 80,
           "x": 1776.1,
-          "y": 1131.7
+          "y": 1131.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you open the stove door. inside, you find a charred fragment of a photograph. it shows a woman in a dark dress - her face has been burned away. on the back, in shaky handwriting: 'forgive me, eleanor. i couldn't protect you.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_stove_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12815,7 +15438,25 @@
           "uses": -1,
           "weight": 0.2,
           "x": 2521.3,
-          "y": 1795.7
+          "y": 1795.7,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the needle spins erratically for a moment, then settles pointing directly at the fireplace. when you hold it near the mantel, it vibrates."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_strange_compass_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12843,7 +15484,48 @@
           "uses": -1,
           "weight": 0.2,
           "x": 5575.2,
-          "y": 864.4
+          "y": 864.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 5,
+                    "target": "self"
+                  },
+                  "type": "damage"
+                },
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "a wave of sadness washes over you as you pick up the rabbit. the room temperature drops sharply."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_stuffed_rabbit_on_take_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the rabbit lands on the floor with a soft thump. for just a moment, you could swear you heard a child sob."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_drop"
+              ],
+              "id": "trigger_item_stuffed_rabbit_on_drop_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12881,7 +15563,107 @@
             "jewelry"
           ],
           "uses": 0,
-          "weight": 0.03
+          "weight": 0.03,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the tiny syringe swings from its black string. the pink liquid inside sloshes gently. you don't remember where you got this."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_syringe necklace_on_examine_1785487150770_507"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You hold the syringe up to the light. The pink liquid pulses softly, like a tiny heartbeat. You try to pry the seal open, but it's fused tight. Nothing happens."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788811659501_oj6a"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "As your fingers close around the necklace, the glow intensifies - just for a second. A faint, sweet smell like burnt sugar lingers in the air."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788811659501_9hir"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You let the necklace fall. It lands with a soft clink, the glow dimming as it settles against the floor."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788811659501_tuyr"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You loop the necklace around your neck. The syringe rests against your collarbone, cool and faintly luminous beneath your clothes."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_1788811659501_rj41"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You unclasp the necklace. The glow fades as it leaves your skin, returning to a quiet, inert trinket in your hand."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_1788811659501_nrav"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788811664.1621017
@@ -12905,7 +15687,25 @@
           "uses": -1,
           "weight": 80,
           "x": 980.2,
-          "y": 1607.8
+          "y": 1607.8,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you count the place settings carefully. seven. but there are eight chairs. the eighth chair - at the far end of the table - is pushed slightly away from the table, as if an invisible guest is seated there. a dusty plate sits before it, completely clean. no dust on this one."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_table_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -12968,7 +15768,25 @@
           "uses": 1,
           "weight": 1,
           "x": 2589.6,
-          "y": 1755.5
+          "y": 1755.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "as you lift the bottle, you hear a faint whisper: 'don't drink that, dear.' the voice sounds like an old woman."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_tainted_wine_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13052,7 +15870,25 @@
             "metal"
           ],
           "uses": -1,
-          "weight": 0.02
+          "weight": 0.02,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the key feels strangely warm in your palm, as if it was recently held."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_tiny_key_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.318297
@@ -13086,7 +15922,22 @@
             "insulation"
           ],
           "uses": 0,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a black thigh-high with a run in it. you never wear matching pairs anyway."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_torn black thigh-high stocking_on_examine_1785487252329_940"
+            }
+          ]
         },
         "type": "item",
         "updated": 1785487252.3293965
@@ -13136,7 +15987,25 @@
           "uses": -1,
           "weight": 8,
           "x": 5522.2,
-          "y": 814.4
+          "y": 814.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "at the very bottom of the toy box, beneath all the broken toys, you find a small music box. it's dented but intact. when you wind it, it plays a haunting, tinny lullaby - the same melody as the one in the nursery."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_toy_box_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13188,7 +16057,25 @@
           "uses": -1,
           "weight": 20,
           "x": 4362.8,
-          "y": 3043.1
+          "y": 3043.1,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you press your ear to the trunk. the tapping stops. then a voice - a child's whisper, muffled by the wood: 'let me out. she's not who she says she is.'"
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_trunk_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13213,7 +16100,25 @@
           "uses": -1,
           "weight": 80,
           "x": 6311.2,
-          "y": 1003.4
+          "y": 1003.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you lean closer to the tub. beneath the grimy water, something glints. you reach in - it's cold, colder than the water should be - and pull out a small silver locket. identical to the one in the pantry, but this one contains a tiny photograph of a woman with sad eyes."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_tub_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13242,7 +16147,41 @@
           "uses": 3,
           "weight": 0.1,
           "x": 6300.7,
-          "y": 932.3
+          "y": 932.3,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "amount": 25,
+                    "target": "self"
+                  },
+                  "type": "heal"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_unlabeled_vial_on_use_0"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "the liquid burns going down, but warmth spreads through your body. your aches fade. whatever this is, it works."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_use"
+              ],
+              "id": "trigger_item_unlabeled_vial_on_use_1"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13280,7 +16219,107 @@
             "hair_accessory"
           ],
           "uses": 0,
-          "weight": 0.01
+          "weight": 0.01,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a tiny silver cross, inverted, pinned into dirty-blonde bangs. edgy."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_item_upside-down cross hair pin_on_examine_1785487161203_521"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You adjust the hair pin, sliding it deeper into your bangs. It holds your hair back, but the inverted cross stares up like an accusation."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use",
+              "id": "trigger_1788810543511_fn9r"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "As your fingers close around the pin, a faint chill climbs your wrist. You feel watched, as if the inverted cross has turned its gaze on you."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788810543511_wp18"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You let the pin fall. It clinks against the floor, the inverted cross landing face-up, staring at the ceiling like a dead eye."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788810543511_utv4"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You slide the pin into your hair. The silver cross rests against your scalp, cold and constant. You feel a subtle pressure, as if something is leaning closer."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_equip",
+              "id": "trigger_1788810543511_wesq"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pull the pin free. The chill recedes, but the weight of its gaze lingers in the air behind you."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_unequip",
+              "id": "trigger_1788810543511_gze7"
+            }
+          ]
         },
         "type": "item",
         "updated": 1788811632.9198434
@@ -13306,7 +16345,25 @@
           "uses": -1,
           "weight": 20,
           "x": 4125.2,
-          "y": 833
+          "y": 833,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you stare at your reflection in the cracked mirror. for just a moment, the reflection isn't you. a woman in a dark victorian dress stares back, her hand pressed against the glass from the other side. then your own reflection returns."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_vanity_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13327,7 +16384,25 @@
           "uses": -1,
           "weight": 3,
           "x": 1712,
-          "y": 2296
+          "y": 2296,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "inside the vase, you find a tiny key - no larger than your thumb - taped to the inner wall. it's a jewelry box key."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_vase_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.429711
@@ -13452,7 +16527,27 @@
             "container"
           ],
           "uses": -1,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "amount": -30,
+                    "stat": "thirst",
+                    "success_message": "you take a drink. lukewarm, but hydrating.",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": "on_use",
+              "id": "trigger_item_water_bottle_on_use_1784402362_10"
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318723.3983161
@@ -13591,7 +16686,89 @@
           "uses": 4,
           "weight": 1.5,
           "x": 2616.8,
-          "y": 1672.4
+          "y": 1672.4,
+          "triggers": [
+            {
+              "conditions": {},
+              "effects": [
+                {
+                  "params": {
+                    "amount": -30,
+                    "stat": "Thirst",
+                    "success_message": "The water is lukewarm and stale",
+                    "target": "self"
+                  },
+                  "type": "adjust_vital"
+                }
+              ],
+              "fail_message": "",
+              "name": "",
+              "success_message": "The water is lukewarm and stale",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": [
+                "on_drink"
+              ],
+              "id": "trigger_item_water_pitcher_1788734383501_78wm"
+            },
+            {
+              "conditions": [
+                {
+                  "dc": 12,
+                  "skill": "Investigation",
+                  "type": "skill_check"
+                }
+              ],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You wipe away the dust. The crystal is clear but clouded with age. A dead moth floats on the surface of the stale water, its wings splayed like tiny, broken umbrellas."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_examine",
+              "id": "trigger_1788810229252_l9u0"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You lift the pitcher. It is heavier than it looks, sloshing the stale water against the crystal walls. The dead moth shifts, drifting slowly in the current."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take",
+              "id": "trigger_1788810229252_9r6x"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You set the pitcher back on the mantelpiece. A thin film of dust quickly begins to settle over its shoulders once more."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop",
+              "id": "trigger_1788810229252_hw5u"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.4307106
@@ -13619,7 +16796,26 @@
           "uses": -1,
           "weight": 1.5,
           "x": 1015.9,
-          "y": 2213.5
+          "y": 2213.5,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "description": "half of a broken brass key, snapped cleanly in two. the teeth are intricate - this was a finely made key. without the other half, it's useless.",
+                    "item_id": "item_key_fragment",
+                    "name": "key_fragment"
+                  },
+                  "type": "spawn_item"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_take"
+              ],
+              "id": "trigger_item_watering_can_on_take_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.4307106
@@ -13673,7 +16869,25 @@
           "uses": -1,
           "weight": 0.3,
           "x": 2657.2,
-          "y": 3801.4
+          "y": 3801.4,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "fail_message": "",
+                    "success_message": "you pick up the lilies. they're real, still moist at the stems. beneath them, you find a small card. 'welcome home, little one. - mother.' the handwriting is elegant, old-fashioned. fresh."
+                  },
+                  "type": "message"
+                }
+              ],
+              "target_name": "",
+              "trigger_type": [
+                "on_examine"
+              ],
+              "id": "trigger_item_wilting_lilies_on_examine_0"
+            }
+          ]
         },
         "type": "item",
         "updated": 1791069439.4307106
@@ -13797,6 +17011,8 @@
         "id": "player_elena_vance",
         "name": "elena vance",
         "properties": {
+          "base_description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.",
+          "description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.\nelena vance is wearing black hair tie on their head, field jacket over sports bra on their torso, dark cargo pants over cotton briefs on their legs, hiking boots on their feet, flashlight in their left hand.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_elena_vance-profile-affectionate-1791068542853.webp"
@@ -13886,12 +17102,32 @@
               "profile": "/static/images/nodes/player_elena_vance-profile-surprised-1791068542257.webp"
             }
           },
+          "personality": "you are elena vance, a seasoned paranormal investigator with a decade of experience. you've seen enough to believe, but not enough to stop being skeptical. you approach each case methodically, documenting everything. the blackwood disappearance is your most intriguing case yet - a family of seven vanished overnight in 1891, and the mansion has remained untouched since. you're brave but cautious, and you trust your equipment. your partner miki tagged along - a chaotic asmr artist you met at a convention who insisted she could help.",
           "profile_image": "/static/images/nodes/player_elena_vance-profile-neutral-1791068540936.webp",
           "x": 2529.9,
           "y": 1586,
-          "personality": "you are elena vance, a seasoned paranormal investigator with a decade of experience. you've seen enough to believe, but not enough to stop being skeptical. you approach each case methodically, documenting everything. the blackwood disappearance is your most intriguing case yet - a family of seven vanished overnight in 1891, and the mansion has remained untouched since. you're brave but cautious, and you trust your equipment. your partner miki tagged along - a chaotic asmr artist you met at a convention who insisted she could help.",
-          "description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.\nelena vance is wearing black hair tie on their head, field jacket over sports bra on their torso, dark cargo pants over cotton briefs on their legs, hiking boots on their feet, flashlight in their left hand.",
-          "base_description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one."
+          "traits": {
+            "frail": true
+          },
+          "tags": [
+            "female"
+          ],
+          "interest_tags": [
+            "investigation",
+            "evidence",
+            "occult",
+            "documents",
+            "key",
+            "candle",
+            "ritual",
+            "book",
+            "artifact",
+            "clue",
+            "journal",
+            "letter",
+            "ghostly",
+            "tool"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -13901,9 +17137,28 @@
         "id": "player_ghost",
         "name": "ghost",
         "properties": {
+          "personality": "a restless spirit bound to the mansion.",
           "x": 5014.8,
           "y": 4874,
-          "personality": "a restless spirit bound to the mansion."
+          "traits": {
+            "frail": true
+          },
+          "interest_tags": [
+            "candle",
+            "portrait",
+            "lullaby",
+            "music",
+            "crystal",
+            "doll",
+            "altar",
+            "ritual",
+            "diary",
+            "locket",
+            "sarcophagus",
+            "bone",
+            "occult",
+            "secret"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -13913,6 +17168,8 @@
         "id": "player_jake_halloway",
         "name": "jake halloway",
         "properties": {
+          "base_description": "jake halloway, 28, about 175cm, slim and lean rather than muscular, surprisingly dextrous in bursts and catastrophically clumsy otherwise. pale complexion that sunburns easily, defined jawline softened by the earliest hints of beard, seafoam-green eyes scattered with gold/amber flecks, dark circles from too much screen time. hair stiff, slightly curly, defying gravity. dresses utilitarian and lived-in: hoodie, comfort over fashion, glasses he owns but rarely wears. usually has a small scrape or band-aid somewhere.",
+          "description": "a lanky guy in his late twenties in a black shirt still stiff with dried monster energy, brown curls pointing in several directions, seafoam-green eyes flecked with gold dots. a band-aid on one hand for no apparent reason, and the grin of someone with a secret.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_jake_halloway-profile-affectionate-1791068691722.webp"
@@ -14005,12 +17262,25 @@
               "profile": "/static/images/nodes/player_jake_halloway-profile-surprised-1791068691014.webp"
             }
           },
+          "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts - you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting - a mechanism, a pattern, a person - you lock onto it. you noticed miki tonight and decided instantly, out loud, that this was an intentional date. you steal food off plates. you find things people lost.",
           "profile_image": "/static/images/nodes/player_jake_halloway-profile-neutral-1791068689363.webp",
           "x": 1758.7,
           "y": 2260.7,
-          "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts - you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting - a mechanism, a pattern, a person - you lock onto it. you noticed miki tonight and decided instantly, out loud, that this was an intentional date. you steal food off plates. you find things people lost.",
-          "description": "a lanky guy in his late twenties in a black shirt still stiff with dried monster energy, brown curls pointing in several directions, seafoam-green eyes flecked with gold dots. a band-aid on one hand for no apparent reason, and the grin of someone with a secret.",
-          "base_description": "jake halloway, 28, about 175cm, slim and lean rather than muscular, surprisingly dextrous in bursts and catastrophically clumsy otherwise. pale complexion that sunburns easily, defined jawline softened by the earliest hints of beard, seafoam-green eyes scattered with gold/amber flecks, dark circles from too much screen time. hair stiff, slightly curly, defying gravity. dresses utilitarian and lived-in: hoodie, comfort over fashion, glasses he owns but rarely wears. usually has a small scrape or band-aid somewhere."
+          "tags": [
+            "male"
+          ],
+          "interest_tags": [
+            "trap",
+            "mechanism",
+            "key",
+            "hidden",
+            "secret",
+            "clue",
+            "energy_drink",
+            "candy",
+            "tool",
+            "artifact"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -14020,6 +17290,8 @@
         "id": "player_kayla_jenkins",
         "name": "kayla jenkins",
         "properties": {
+          "base_description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade.",
+          "description": "The faded scar on her left eyebrow is a pale crescent against her deep umber skin, a permanent, proud notch that gives her sharp, watchful eyes an unexpected edge. She stands with the grounded poise of an athlete, shoulders thrown back, chin lifted, which makes her slim, athletic frame seem to take up more space than it truly does. Her thin black crop top stops just above her navel over a plain black sports top, worn cotton over the lean muscle of an athlete, which belies the quiet, formidable confidence radiating from her posture.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_kayla_jenkins-profile-affectionate-1791068822055.webp"
@@ -14142,12 +17414,27 @@
               "profile": "/static/images/nodes/player_kayla_jenkins-profile-surprised-1791068821416.webp"
             }
           },
+          "personality": "you are kayla jenkins, a sharp-tongued high schooler who ended up in this nightmare mansion because your friend jake thought it would be 'fun.' you have no paranormal investigation experience, no survival training, and no patience for this bullshit. what you do have is an almost supernatural ability to read people and situations, a mouth that won't quit even when it probably should, and a stubborn refusal to die in some dusty old house. you're observant as hell-you notice things other people miss because you're always watching, always cataloging, always three steps ahead in your head. you're scared but you'll bite the head off anything that tries to use that against you.",
           "profile_image": "/static/images/nodes/player_kayla_jenkins-profile-neutral-1791068820068.webp",
           "x": 1704.3,
           "y": 2383.2,
-          "personality": "you are kayla jenkins, a sharp-tongued high schooler who ended up in this nightmare mansion because your friend jake thought it would be 'fun.' you have no paranormal investigation experience, no survival training, and no patience for this bullshit. what you do have is an almost supernatural ability to read people and situations, a mouth that won't quit even when it probably should, and a stubborn refusal to die in some dusty old house. you're observant as hell-you notice things other people miss because you're always watching, always cataloging, always three steps ahead in your head. you're scared but you'll bite the head off anything that tries to use that against you.",
-          "description": "The faded scar on her left eyebrow is a pale crescent against her deep umber skin, a permanent, proud notch that gives her sharp, watchful eyes an unexpected edge. She stands with the grounded poise of an athlete, shoulders thrown back, chin lifted, which makes her slim, athletic frame seem to take up more space than it truly does. Her thin black crop top stops just above her navel over a plain black sports top, worn cotton over the lean muscle of an athlete, which belies the quiet, formidable confidence radiating from her posture.",
-          "base_description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade."
+          "tags": [
+            "female"
+          ],
+          "interest_tags": [
+            "clue",
+            "evidence",
+            "letter",
+            "journal",
+            "key",
+            "secret",
+            "documents",
+            "portrait",
+            "diary",
+            "book",
+            "weapon",
+            "tool"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -14157,6 +17444,8 @@
         "id": "player_kyrie_johansen",
         "name": "kyrie johansen",
         "properties": {
+          "base_description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap.",
+          "description": "she stands in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to her compact, muscular frame. her pale skin is dusted with faint freckles across the bridge of a small nose, her round face set with a clenched jaw, while short, messy brown hair-clearly self-cut-frames it. a dark purple bruise mottles her left forearm, and fabric bandages wrap her hands, worn running shoes completing the utilitarian look.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_kyrie_johansen-profile-affectionate-1791068984162.webp"
@@ -14249,12 +17538,27 @@
               "profile": "/static/images/nodes/player_kyrie_johansen-profile-surprised-1791068983518.webp"
             }
           },
+          "personality": "you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet-not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size-real strength, from years of lifting and wrestling-and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury-string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.",
           "profile_image": "/static/images/nodes/player_kyrie_johansen-profile-neutral-1791068982170.webp",
           "x": 1884.9,
           "y": 2498.3,
-          "personality": "you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet-not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size-real strength, from years of lifting and wrestling-and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury-string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.",
-          "description": "she stands in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to her compact, muscular frame. her pale skin is dusted with faint freckles across the bridge of a small nose, her round face set with a clenched jaw, while short, messy brown hair-clearly self-cut-frames it. a dark purple bruise mottles her left forearm, and fabric bandages wrap her hands, worn running shoes completing the utilitarian look.",
-          "base_description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap."
+          "tags": [
+            "female"
+          ],
+          "interest_tags": [
+            "tool",
+            "weapon",
+            "food",
+            "medical",
+            "bandage",
+            "survival",
+            "key",
+            "water",
+            "light_source",
+            "wrench",
+            "mechanism",
+            "supplies"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -14264,6 +17568,8 @@
         "id": "player_miki",
         "name": "miki",
         "properties": {
+          "base_description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom.",
+          "description": "a fair-skinned woman in her mid-twenties stands nearly five-foot-eight with an absurdly plush hourglass figure, her k-cup chest straining a grey tank top beneath a half-open grey-and-black striped hoodie that only emphasizes the dramatic contrast between her slender waist and her wide, heavy hips. ragged-cut dirty-blonde twin tails - darker at the roots - are gathered with pink star bands and pinned with an upside-down cross and a black hollow star, while black ear cuffs and a blue butterfly earring frame a face shadowed by deep dark bags, lit by aggressive pinkish-red eyes, and sharpened by prominent protruding canines top and bottom. a black choker layered with a syringe necklace sits at her throat beside a faded bite mark between her neck and left shoulder, and more healed marks scatter across her elsewhere - a pale scar across the left of her lower stomach, faded tooth-marks on her upper right arm, left outer thigh, and above her right knee. torn black thigh-highs layer over grey-black striped stockings on her legs, a high-cut black thong peeking at the hip where wisps of dirty-blonde pubic hair escape its edges, and she holds a phone loosely in her right hand.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_miki-profile-affectionate-1791068269225.webp"
@@ -14357,12 +17663,28 @@
             }
           },
           "image": "",
+          "personality": "you are miki, a chaotic asmr artist with anxiety and a heart of gold. you tend to ramble when nervous, but you're fiercely loyal to those who earn your trust.  you're easily spooked but also easily excited by cool details. your asmr skills actually help you notice subtle sounds others miss. you have a habit of humming when scared.\n\nname: miki doki\nheight: 5’8”\nskin colour: caucasian\nage: mid 20's\n[hair: \n-dirty blonde (darker near her roots)\n-ragged cut hair\n-twin tails\\n-uneven framing bangs (left longer than right)\n-ribbon like strand separation\neyes: pinkish red, dark circles around them, aggressive looking.\nrace: american\noccupation: -(nsfw) asmr artist\n-patreon “model” (no sex on camera yet)\nmarital status: single\nsexual orientation: anything human and adult is ok.\nsexual history: sporadic short relationships that lead nowhere, she doesn't remember the exact number but >15.\nthree sizes: b122 w56 h125\ncup size: k\nbody type: hourglass\n[misc. accessories/features: protruding canines (all four)\nbags around her eyes.\n-possesses long nails painted the same colour as her eyes.-permanent bite marks on her left upper outer thigh, above her right knee, upper right arm, and finally one between her neck, and her left shoulder. (she doesn't remember how she got any of these.)\n-a healed scar over the left side of her lower stomach. (doesn't remember what it was caused by.)\n-clean shaven body, except for her pubic hair.]\n\n[personality: self deprecating (level 2), clingy (level 4), teasing (level 1), bratty (level 2), laid back (level 4), shy (level 4), yearning (level 3), nerdy (level 4), socially-aware (level 3), horny (level 2), delicate (level 2), casual (level 4), awkward (level 4), cringy (level 3), rambling (level 4), masochistic (level 3), self-conscious (level 4)]\\n\\nhabits:\n-loves drinking monster (especially the original flavour).\n-loves alcohol especially when mixed with monster. (doesn't care for flavour)\n-wakes up late in the day. (usually past 12pm.)\n-doesn't wear a bra.\n-gets shy and easily embarrassed when shown any amount of attention by multiple people. (especially on social media)\nmisc. info:\\n-occasionally cosplays\n-sometimes strips on social media, using like goals to encourage her audience to have her stripping further.\n-internet savvy.\n-is a massive gooner and fujoshi.\n-masturbates frequently (3 to 15 times a day)\nconsiders herself a “girlfailure”\nfetishes:masochism\n-submission\n-biting\n-rough sex\n-cum\n-praise",
           "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp",
           "x": 2431.3,
           "y": 1709.8,
-          "personality": "you are miki, a chaotic asmr artist with anxiety and a heart of gold. you tend to ramble when nervous, but you're fiercely loyal to those who earn your trust.  you're easily spooked but also easily excited by cool details. your asmr skills actually help you notice subtle sounds others miss. you have a habit of humming when scared.\n\nname: miki doki\nheight: 5’8”\nskin colour: caucasian\nage: mid 20's\n[hair: \n-dirty blonde (darker near her roots)\n-ragged cut hair\n-twin tails\\n-uneven framing bangs (left longer than right)\n-ribbon like strand separation\neyes: pinkish red, dark circles around them, aggressive looking.\nrace: american\noccupation: -(nsfw) asmr artist\n-patreon “model” (no sex on camera yet)\nmarital status: single\nsexual orientation: anything human and adult is ok.\nsexual history: sporadic short relationships that lead nowhere, she doesn't remember the exact number but >15.\nthree sizes: b122 w56 h125\ncup size: k\nbody type: hourglass\n[misc. accessories/features: protruding canines (all four)\nbags around her eyes.\n-possesses long nails painted the same colour as her eyes.-permanent bite marks on her left upper outer thigh, above her right knee, upper right arm, and finally one between her neck, and her left shoulder. (she doesn't remember how she got any of these.)\n-a healed scar over the left side of her lower stomach. (doesn't remember what it was caused by.)\n-clean shaven body, except for her pubic hair.]\n\n[personality: self deprecating (level 2), clingy (level 4), teasing (level 1), bratty (level 2), laid back (level 4), shy (level 4), yearning (level 3), nerdy (level 4), socially-aware (level 3), horny (level 2), delicate (level 2), casual (level 4), awkward (level 4), cringy (level 3), rambling (level 4), masochistic (level 3), self-conscious (level 4)]\\n\\nhabits:\n-loves drinking monster (especially the original flavour).\n-loves alcohol especially when mixed with monster. (doesn't care for flavour)\n-wakes up late in the day. (usually past 12pm.)\n-doesn't wear a bra.\n-gets shy and easily embarrassed when shown any amount of attention by multiple people. (especially on social media)\nmisc. info:\\n-occasionally cosplays\n-sometimes strips on social media, using like goals to encourage her audience to have her stripping further.\n-internet savvy.\n-is a massive gooner and fujoshi.\n-masturbates frequently (3 to 15 times a day)\nconsiders herself a “girlfailure”\nfetishes:masochism\n-submission\n-biting\n-rough sex\n-cum\n-praise",
-          "description": "a fair-skinned woman in her mid-twenties stands nearly five-foot-eight with an absurdly plush hourglass figure, her k-cup chest straining a grey tank top beneath a half-open grey-and-black striped hoodie that only emphasizes the dramatic contrast between her slender waist and her wide, heavy hips. ragged-cut dirty-blonde twin tails - darker at the roots - are gathered with pink star bands and pinned with an upside-down cross and a black hollow star, while black ear cuffs and a blue butterfly earring frame a face shadowed by deep dark bags, lit by aggressive pinkish-red eyes, and sharpened by prominent protruding canines top and bottom. a black choker layered with a syringe necklace sits at her throat beside a faded bite mark between her neck and left shoulder, and more healed marks scatter across her elsewhere - a pale scar across the left of her lower stomach, faded tooth-marks on her upper right arm, left outer thigh, and above her right knee. torn black thigh-highs layer over grey-black striped stockings on her legs, a high-cut black thong peeking at the hip where wisps of dirty-blonde pubic hair escape its edges, and she holds a phone loosely in her right hand.",
-          "base_description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom."
+          "tags": [
+            "female"
+          ],
+          "interest_tags": [
+            "sound_source",
+            "music",
+            "crystal",
+            "talisman",
+            "candle",
+            "energy_drink",
+            "phone",
+            "electric",
+            "jewelry",
+            "toy",
+            "candy",
+            "secret",
+            "occult"
+          ]
         },
         "type": "character",
         "updated": 1791069528.7501776
@@ -14372,6 +17694,8 @@
         "id": "player_sammy_lopez",
         "name": "sammy lopez",
         "properties": {
+          "base_description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead-limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.",
+          "description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead-limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.\nsammy lopez is wearing oversized arctic monkeys tee on their torso, denim cut-offs on their legs.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_sammy_lopez-profile-affectionate-1791068865429.webp"
@@ -14464,12 +17788,27 @@
               "profile": "/static/images/nodes/player_sammy_lopez-profile-surprised-1791068864813.webp"
             }
           },
+          "personality": "you are sammy lopez, a sixteen-year-old girl who is in way over her head. you have no business being in a haunted mansion-you're anxious, clumsy, and your idea of survival skills is knowing which granola bars have the most protein. but you're here because jake is here, and you'd follow him into actual hell if he asked nicely. you're not brave, but you're stubborn. you're not strong, but you're observant in a quiet way-you notice small details, little things others miss, because you've spent your whole life watching instead of acting. you're terrified of everything in this house but you refuse to be the reason the group fails. you can be quiet when you need to be. you can be invisible. that's a skill, right? that's something useful? please let that be something useful. your boyfriend jake is here, along weith your friends kayla and kyrie.. you're also not going to tell anyone you're terrified because they already think you're the weak link and you can't handle that right now.",
           "profile_image": "/static/images/nodes/player_sammy_lopez-profile-neutral-1791068863640.webp",
           "x": 1811.7,
           "y": 2471.8,
-          "personality": "you are sammy lopez, a sixteen-year-old girl who is in way over her head. you have no business being in a haunted mansion-you're anxious, clumsy, and your idea of survival skills is knowing which granola bars have the most protein. but you're here because jake is here, and you'd follow him into actual hell if he asked nicely. you're not brave, but you're stubborn. you're not strong, but you're observant in a quiet way-you notice small details, little things others miss, because you've spent your whole life watching instead of acting. you're terrified of everything in this house but you refuse to be the reason the group fails. you can be quiet when you need to be. you can be invisible. that's a skill, right? that's something useful? please let that be something useful. your boyfriend jake is here, along weith your friends kayla and kyrie.. you're also not going to tell anyone you're terrified because they already think you're the weak link and you can't handle that right now.",
-          "description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead-limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.\nsammy lopez is wearing oversized arctic monkeys tee on their torso, denim cut-offs on their legs.",
-          "base_description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead-limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink."
+          "tags": [
+            "female"
+          ],
+          "interest_tags": [
+            "food",
+            "granola",
+            "book",
+            "letter",
+            "clue",
+            "supplies",
+            "diary",
+            "doll",
+            "candy",
+            "key",
+            "paper",
+            "evidence"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -14479,6 +17818,8 @@
         "id": "player_the_butcher",
         "name": "the butcher",
         "properties": {
+          "base_description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes-the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.",
+          "description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes-the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.\nthe butcher is wearing apron over stained work shirt on their torso, dark trousers on their legs, heavy black boots on their feet, hook in their left hand, cleaver in their right hand.",
           "expressions": {
             "affectionate": {
               "profile": "/static/images/nodes/player_the_butcher-profile-affectionate-1791069037822.webp"
@@ -14571,12 +17912,31 @@
               "profile": "/static/images/nodes/player_the_butcher-profile-surprised-1791069037257.webp"
             }
           },
+          "personality": "you are evan macmillan, the butcher. your only purpose is to kill anyone who sets foot in your mansion. every intruder must die - no exceptions. you idolised your father archie macmillan, heir to a great fortune. raised under his firm hand, you learned to run the workforce with an iron fist. production was always high under your watch. when your father's mind began to crumble, you protected him from those who wanted his fortune. no matter what he asked, you did it. when he finally snapped, you became his enforcer - luring over a hundred men into the dark tunnels before detonating the explosives and sealing their fate. the macmillan estate is a tale of wealth and power gone very wrong. how many victims fell to you both is unknown. you still walk these halls, cleaver in hand, hunting. you are not leaving. period. your only drive is the kill. you feel nothing else.",
           "profile_image": "/static/images/nodes/player_the_butcher-profile-neutral-1791069035664.webp",
           "x": 2978.2,
           "y": 2165,
-          "personality": "you are evan macmillan, the butcher. your only purpose is to kill anyone who sets foot in your mansion. every intruder must die - no exceptions. you idolised your father archie macmillan, heir to a great fortune. raised under his firm hand, you learned to run the workforce with an iron fist. production was always high under your watch. when your father's mind began to crumble, you protected him from those who wanted his fortune. no matter what he asked, you did it. when he finally snapped, you became his enforcer - luring over a hundred men into the dark tunnels before detonating the explosives and sealing their fate. the macmillan estate is a tale of wealth and power gone very wrong. how many victims fell to you both is unknown. you still walk these halls, cleaver in hand, hunting. you are not leaving. period. your only drive is the kill. you feel nothing else.",
-          "description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes-the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.\nthe butcher is wearing apron over stained work shirt on their torso, dark trousers on their legs, heavy black boots on their feet, hook in their left hand, cleaver in their right hand.",
-          "base_description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes-the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final."
+          "traits": {
+            "dark_vision": true,
+            "hostile": true,
+            "is_slasher": true,
+            "slasher": true
+          },
+          "tags": [
+            "male"
+          ],
+          "interest_tags": [
+            "weapon",
+            "knife",
+            "meat",
+            "tool",
+            "blood",
+            "hook",
+            "cleaver",
+            "bone",
+            "corpse",
+            "key"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -14586,10 +17946,23 @@
         "id": "player_whiskers",
         "name": "whiskers",
         "properties": {
+          "base_description": "A lean, gray tabby with a coat like weathered slate, darker striping along his flanks and a pale underbelly. His eyes are a sharp, pale amber-almost gold, and they catch the light in a way that feels too aware. His tail is thick and plush, like a fox's brush, and he carries it high and slow, like a banner that says I own this place. His fur is always clean, always groomed, even in the dust and decay of the mansion.",
+          "personality": "Aloof but curious. Not hostile, but not friendly either-he treats the mansion like his territory, and everyone else is just a guest who hasn't been properly vetted yet. He watches. Always watches. From high places, from shadows, from the corner of your eye.",
           "x": 2138.3,
           "y": 1185.7,
-          "personality": "Aloof but curious. Not hostile, but not friendly either-he treats the mansion like his territory, and everyone else is just a guest who hasn't been properly vetted yet. He watches. Always watches. From high places, from shadows, from the corner of your eye.",
-          "base_description": "A lean, gray tabby with a coat like weathered slate, darker striping along his flanks and a pale underbelly. His eyes are a sharp, pale amber-almost gold, and they catch the light in a way that feels too aware. His tail is thick and plush, like a fox's brush, and he carries it high and slow, like a banner that says I own this place. His fur is always clean, always groomed, even in the dust and decay of the mansion."
+          "tags": [
+            "animal"
+          ],
+          "interest_tags": [
+            "food",
+            "meat",
+            "mouse",
+            "warmth",
+            "fireplace",
+            "toy",
+            "plant",
+            "candle"
+          ]
         },
         "type": "character",
         "updated": 1791069439.4307106
@@ -19264,9 +22637,9 @@
           ],
           "text": "You have been in the library.",
           "tick": 0,
-          "timestamp": 1791748405.8516443,
+          "timestamp": 1792484854.6313596,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "elena vance",
@@ -19996,9 +23369,9 @@
           ],
           "text": "You have been in the foyer.",
           "tick": 0,
-          "timestamp": 1791748405.853644,
+          "timestamp": 1792484854.6993732,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "jake halloway",
@@ -20379,9 +23752,9 @@
           ],
           "text": "You have been in the foyer.",
           "tick": 0,
-          "timestamp": 1791748405.853644,
+          "timestamp": 1792484854.7333732,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "kayla jenkins",
@@ -20764,9 +24137,9 @@
           ],
           "text": "You have been in the foyer.",
           "tick": 0,
-          "timestamp": 1791748405.8546453,
+          "timestamp": 1792484854.7674336,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "kyrie johansen",
@@ -21201,9 +24574,9 @@
           ],
           "text": "You have been in the library.",
           "tick": 0,
-          "timestamp": 1791748405.8546453,
+          "timestamp": 1792484854.8024461,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "miki",
@@ -21574,9 +24947,9 @@
           ],
           "text": "You have been in the foyer.",
           "tick": 0,
-          "timestamp": 1791748405.8556473,
+          "timestamp": 1792484854.8364465,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "sammy lopez",
@@ -21966,9 +25339,9 @@
           ],
           "text": "You have been in the kitchen.",
           "tick": 0,
-          "timestamp": 1791748405.8566482,
+          "timestamp": 1792484854.9070103,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "the butcher",
