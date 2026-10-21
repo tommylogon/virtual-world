@@ -6,7 +6,7 @@ priority: high
 wiki: "[[Developer Tooling]]"
 ---
 
-# task-824: LLM benchmark page: capture a turn prompt for one character, run across selected models/providers, score speed/format/hallucinations, surface a run dashboard
+# task-894: LLM benchmark page: capture a turn prompt for one character, run across selected models/providers, score speed/format/hallucinations, surface a run dashboard
 
 **Filed:** 2026-10-16
 **Related:**
