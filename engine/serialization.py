@@ -4,7 +4,7 @@ import uuid
 import logging
 from typing import Optional
 
-from graph import EDGE_CONNECTION, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
+from graph import EDGE_CONNECTION, EDGE_EQUIPPED, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
 from player import Player
 from area import Area
 from engine.conditions import perceived_conditions
@@ -177,6 +177,14 @@ class WorldSerializer:
         base = {
             "name": p.name,
             "id": getattr(p, 'id', ''),
+            # Worn gear is authoritative on the EDGE_EQUIPPED edges (task-654);
+            # this map is their read projection and the live payload has to
+            # publish it. The paperdoll, the inventory list, the equip picker
+            # and the equipment narrative all read `player.equipped` - drop the
+            # key and every slot renders empty while worn items are counted as
+            # carried, which is what the inspector showed for months.
+            "equipped": dict(getattr(p, 'equipped', {}) or {}),
+            "skills": dict(getattr(p, 'skills', {}) or {}),
             "stats": p.stats,
             "vitals": p.vitals,
             "state": p.state,
@@ -738,6 +746,12 @@ class WorldSerializer:
             pdata.pop("description", None)
             pdata.pop("tags", None)
             pdata.pop("traits", None)
+            # task-654: worn gear is authoritative on the EDGE_EQUIPPED edges
+            # (each edge carries its slot). The live payload publishes the map
+            # for the UI; a saved file must not carry a second copy of it in
+            # the players block, or the loader would rebuild the edges from it
+            # and the file would hold two records of one fact.
+            pdata.pop("equipped", None)
             # Location is authoritative on the graph 'in' edge; current_area and
             # current_area_id are derived and recomputed on load.
             pdata.pop("current_area", None)
@@ -933,16 +947,29 @@ class WorldSerializer:
                 for item_id in stack:
                     if isinstance(item_id, str) and not item_id.startswith("__"):
                         if self.graph.get_node(item_id):
+                            # An `equipped` edge, not a `connection` one. A
+                            # connection is a way between two areas; an item
+                            # worn by a character is the EDGE_EQUIPPED record
+                            # every equipment reader looks for. Writing the
+                            # wrong type here (the slip that shipped in
+                            # task-7's refactor) left worn gear invisible to
+                            # those readers and littered the graph with
+                            # item->character ways.
                             self.graph.add_edge(Edge(
                                 source=item_id,
                                 target=pnode_id,
-                                type=EDGE_CONNECTION,
+                                type=EDGE_EQUIPPED,
                                 properties={"slot": slot_name}
                             ))
 
         for pname, p in self.player_manager.players.items():
             pnode_id = self.player_manager.player_node_id(pname)
             self.legacy.equipment._sync_equipped_from_graph(p, pnode_id)
+
+        # task-450: an item holds at most one of carrying/equipped per
+        # character. The equipped edges just built (or loaded) make the
+        # carrying edge for the same item a second, contradictory record.
+        self.graph.normalize_item_hold_state()
 
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})

@@ -120,9 +120,17 @@ class EquipmentSystem:
 
         player_id = self.player_manager.get_player_node_id(self.player_manager.active_player)
         is_carried = False
-        for edge in self.graph.get_edges_for_target(player_id, EDGE_CARRYING):
-            if edge.source == item_node.id:
-                is_carried = True
+        # Worn counts as carried. A character has an item if it is in their
+        # pack OR on their body; checking only EDGE_CARRYING made a worn item
+        # read as absent, so equipping something the character was already
+        # wearing answered "You aren't carrying 'X'." instead of the "You're
+        # already wearing the X." the check below says.
+        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in self.graph.get_edges_for_target(player_id, edge_type):
+                if edge.source == item_node.id:
+                    is_carried = True
+                    break
+            if is_carried:
                 break
         if not is_carried:
             # Check if it's inside a container that the player carries or wears

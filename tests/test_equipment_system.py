@@ -112,18 +112,22 @@ class TestEquipmentBasic:
         assert len(player.equipped["head"]) == 0
 
     def test_equip_same_item_twice_refused(self, basic_setup):
-        """Equipping an item that is already worn is refused. Equipping moves
-        the item out of inventory (the carrying edge is removed), so a second
-        equip fails as 'not carrying' — you can't equip something you're no
-        longer holding. This kills the old stack-duplication quirk
-        ('Earring over Earring', 2026-08-24 taco_bell run)."""
+        """Equipping an item that is already worn is refused.
+
+        Equipping moves the item out of inventory (the carrying edge is
+        removed), so a second equip finds the item on the character rather
+        than in the pack. The refusal stands - one instance per name, which
+        kills the old stack-duplication quirk ('Earring over Earring',
+        2026-08-24 taco_bell run) - and it now names the real reason. It used
+        to answer "You aren't carrying" because the carry check only read the
+        carrying edges, so a worn item read as absent.
+        """
         graph, pm, equipment = basic_setup
         add_carried_item(graph, pm, "item_duplicate_helm", "Duplicate Helm",
                           equip_slots=["head"])
         equipment.equip_item("Duplicate Helm")
-        # Equipping removed the carrying edge, so the item is no longer held;
-        # a second equip is refused because it isn't being carried.
-        with pytest.raises(ValueError, match="You aren't carrying"):
+        # The item is worn, not carried, so a second equip is refused.
+        with pytest.raises(ValueError, match="already wearing"):
             equipment.equip_item("Duplicate Helm")
         player = pm.players[pm.active_player]
         assert len(player.equipped["head"]) == 1
@@ -200,7 +204,7 @@ class TestEquipmentLayering:
 
     def test_cannot_wear_second_copy_of_same_item(self, basic_setup):
         """Two copies of the same-named item stack nonsense ('Earring over
-        Earring' — taco_bell 2026-08-24); the second wear is refused.
+        Earring', taco_bell 2026-08-24); the second wear is refused.
         Different-named items on the same slot still layer (see tests below)."""
         graph, pm, equipment = basic_setup
         add_carried_item(graph, pm, "item_earring_1", "Blue Butterfly Earring",

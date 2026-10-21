@@ -668,10 +668,15 @@ window.InspectorPaperdoll = (() => {
         const equippable = inventory.filter((n) => {
             const node = worldState.getNodeByIdentifier(n);
             const slots = node?.properties?.equip_slots || [];
-            return slots.includes(slot) && !equippedIds.has(node?.id || n);
+            // 'all' is the "Equip from Inventory" button's slot: it means any
+            // slot the item declares. Matching it literally (slots.includes
+            // ('all')) matched nothing, so the button only ever toasted
+            // "No items in inventory that can be equipped to all."
+            const slotFits = slot === 'all' ? slots.length > 0 : slots.includes(slot);
+            return slotFits && !equippedIds.has(node?.id || n);
         });
         if (equippable.length === 0) {
-            toastInfo(`No items in inventory that can be equipped to ${slot}.`);
+            toastInfo(`No items in inventory that can be equipped to ${slot === 'all' ? 'wear' : slot}.`);
             return;
         }
         const picker = document.createElement('div');
@@ -681,7 +686,7 @@ window.InspectorPaperdoll = (() => {
             📦 ${n} <span style="font-size:10px;color:var(--accent);">Equip</span>
         </div>`);
         window.Lit.render(paperdollTag `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:300px;">
-            <h3 style="margin:0 0 12px 0;">Equip to ${slot}</h3>
+            <h3 style="margin:0 0 12px 0;">Equip to ${slot === 'all' ? 'any slot' : slot}</h3>
             ${slotItems}
             <button class="btn btn-sm" @click=${(e) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
         </div>`, picker);
