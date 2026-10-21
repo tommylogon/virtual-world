@@ -783,6 +783,7 @@ async function newScenario() {
         clock_start_hour: 8, clock_start_minute: 0
     };
     try {
+        agent.cancel();
         const resp = await fetch('/api/load', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(voidWorld)
@@ -799,12 +800,13 @@ async function newScenario() {
         const bg = window.GraphBackground;
         if (bg && typeof bg.reset === 'function')
             bg.reset();
+        agent.reset();
         try {
             events.clearAll();
         }
         catch (e) { }
         toastInfo('New empty scenario created.');
-        await worldState.fetch();
+        await SaveLoadView.refreshReplacedWorld();
         const scStatus = window.ScenarioStatus;
         if (scStatus && typeof scStatus.refresh === 'function')
             scStatus.refresh();

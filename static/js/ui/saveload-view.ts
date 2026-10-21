@@ -146,12 +146,33 @@ window.SaveLoadView = (() => {
      */
     function inspectImport(data: any) {
         var isTemplate = ('player' in data) && !('players' in data);
-        var areaNames: string[] = [];
         var areas = data.areas || {};
-        Object.keys(areas).forEach(function(k) { areaNames.push(String(k)); });
         var areaKeys: Record<string, boolean> = {};
-        areaNames.forEach(function(n) { areaKeys[n.toLowerCase()] = true; });
-        var roomCount = areaNames.length;
+        var roomCount = 0;
+        var graph = data.graph || {};
+        var nodes = graph.nodes || {};
+
+        // Authoring templates store areas in `areas`; saved world states use
+        // graph area nodes as the single source of truth.
+        function addArea(id: any, name: any) {
+            var aliases = [id, name].filter(function(value) {
+                return value !== undefined && value !== null && String(value).trim();
+            }).map(function(value) { return String(value).toLowerCase(); });
+            var alreadyCounted = aliases.some(function(alias) { return !!areaKeys[alias]; });
+            aliases.forEach(function(alias) { areaKeys[alias] = true; });
+            if (!alreadyCounted) roomCount += 1;
+        }
+
+        if (isTemplate) {
+            Object.keys(areas).forEach(function(k) {
+                var area = areas[k] || {};
+                addArea(area.id || k, area.name);
+            });
+        }
+        Object.keys(nodes).forEach(function(id) {
+            var node = nodes[id];
+            if (node && node.type === 'area') addArea(node.id || id, node.name);
+        });
         var itemCount = 0, wayCount = 0, playerNames = [];
 
         function countExits(exits: any) {
@@ -177,31 +198,33 @@ window.SaveLoadView = (() => {
                 }
             });
         } else {
-            var graph = data.graph || {};
-            Object.keys(graph.nodes || {}).forEach(function(id) {
-                var node = graph.nodes[id];
+            Object.keys(nodes).forEach(function(id) {
+                var node = nodes[id];
                 if (!node) return;
                 if (node.type === 'item') itemCount += 1;
                 else if (node.type === 'way') wayCount += 1;
             });
             Object.keys(data.players || {}).forEach(function(pname) { playerNames.push(pname); });
         }
-        // Item counts live in areas[].items for template/hybrid files and in
-        // graph nodes for plain world-state files  -  count the former too.
-        Object.keys(areas).forEach(function(aname) {
-            var a = areas[aname] || {};
-            (a.items || []).forEach(function(it: any) {
-                itemCount += 1;
-                itemCount += (it && it.contents ? it.contents.length : 0);
+        // Template items and exits still use the authoring `areas` shape.
+        // World-state imports count graph nodes only.
+        if (isTemplate) {
+            Object.keys(areas).forEach(function(aname) {
+                var a = areas[aname] || {};
+                (a.items || []).forEach(function(it: any) {
+                    itemCount += 1;
+                    itemCount += (it && it.contents ? it.contents.length : 0);
+                });
             });
-        });
-        Object.keys(areas).forEach(function(aname) {
-            wayCount += countExits((areas[aname] || {}).exits);
-        });
+            Object.keys(areas).forEach(function(aname) {
+                wayCount += countExits((areas[aname] || {}).exits);
+            });
+        }
         if (!isTemplate) {
             Object.values(data.players || {}).forEach(function(p: any) {
-                if (p && p.current_area && !areaKeys[String(p.current_area).toLowerCase()]) {
-                    issues.push('- Player "' + p.name + '" is in missing area "' + p.current_area + '".');
+                var currentArea = p && (p.current_area || p.current_area_id);
+                if (currentArea && !areaKeys[String(currentArea).toLowerCase()]) {
+                    issues.push('- Player "' + p.name + '" is in missing area "' + currentArea + '".');
                 }
             });
         }
@@ -216,6 +239,21 @@ window.SaveLoadView = (() => {
             players: playerNames,
             issues: issues
         };
+    }
+
+    /** Refresh every client view after the server replaces the world. */
+    async function refreshReplacedWorld() {
+        worldState.setRuntimeFocus([]);
+        var gm = (window as any).graphManager;
+        if (gm) {
+            gm._scopeFilter = null;
+            if (typeof gm._persistScopeFilter === 'function') gm._persistScopeFilter();
+            if (typeof gm.loadScopeFilterOptions === 'function') await gm.loadScopeFilterOptions();
+        }
+        await worldState.fetch();
+        if (gm && typeof gm.loadGraphData === 'function') await gm.loadGraphData();
+        var playMode = (window as any).PlayMode;
+        if (playMode && typeof playMode.checkStatus === 'function') await playMode.checkStatus();
     }
 
     /**
@@ -314,11 +352,11 @@ window.SaveLoadView = (() => {
         var apply = document.createElement('button');
         apply.className = 'btn btn-sm btn-green';
         apply.textContent = '✅ Apply (Undo protects)';
-        apply.onclick = function() {
+        apply.onclick = async function() {
             overlay.remove();
             data._scenario_name = scenarioName;
             data.persist = true;  // GUI apply: keep the scenario file as the source
-            api.loadWorld(data).then(function(resp: any) {
+            api.loadWorld(data).then(async function(resp: any) {
                 if (resp && resp.error) {
                     toastError('Load failed: ' + resp.error);
                     events.log('❌ Load failed: ' + resp.error, 'error-msg');
@@ -326,10 +364,10 @@ window.SaveLoadView = (() => {
                 }
                 document.body.dataset.scenarioName = scenarioName;
                 if (resp.schema_notice) toastInfo(resp.schema_notice);
-                events.log('World loaded!', 'system-msg');
                 events.clearAll();
                 agent.reset();
-                worldState.fetch();
+                await refreshReplacedWorld();
+                events.log('World loaded!', 'system-msg');
             }).catch(function(err: any) {
                 toastError('Network error: ' + err.message);
                 events.log('❌ Load network error: ' + err.message, 'error-msg');
@@ -516,13 +554,7 @@ window.SaveLoadView = (() => {
             events.log('📂 Game loaded: ' + filename, 'system-msg');
             events.clearAll();
             agent.reset();
-            // A loaded world has its own scopes: drop the stale graph scope
-            // pick and rebuild the picker (task-397).
-            if (typeof graphManager !== 'undefined' && graphManager) {
-                graphManager._scopeFilter = null;
-                graphManager.loadScopeFilterOptions();
-            }
-            worldState.fetch();
+            await refreshReplacedWorld();
             var modal = document.getElementById('load-game-modal');
             if (modal) modal.style.display = 'none';
         } else {
@@ -594,7 +626,7 @@ window.SaveLoadView = (() => {
             var data = await resp.json();
             if (data.status === 'success') {
                 agent.reset();
-                await worldState.fetch();
+                await refreshReplacedWorld();
                 // Clear AFTER fetch: any straggler bubble the aborted step
                 // managed to log while the async fetch was resolving is wiped
                 // here too, leaving only the reset banner below.
@@ -686,6 +718,7 @@ window.SaveLoadView = (() => {
         doDeleteSave: doDeleteSave,
         confirmDeleteAllSaves: confirmDeleteAllSaves,
         restartScenario: restartScenario,
+        refreshReplacedWorld: refreshReplacedWorld,
         toggleSpectator: toggleSpectator,
         updateTimePerTick: updateTimePerTick,
         updateClockStart: updateClockStart,
