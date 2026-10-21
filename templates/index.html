@@ -32,7 +32,7 @@
     <link rel="stylesheet" href="/static/css/vendor/choices/choices-10.2.0.min.css">
     <link rel="stylesheet" href="/static/css/vendor/animate.css/animate-4.1.1.min.css">
 </head>
-<body data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}">
+<body data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}" data-client-version="{{ client_version or '' }}">
     <a href="#command-input" class="skip-link">Skip to command input</a>
 
     <!-- ===== TOP BAR ===== -->
@@ -1541,6 +1541,7 @@
     <script src="/static/js/sky-scape.js"></script>
     <script src="/static/js/graph/scope-tree.js"></script>
     <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>
+    <script src="/static/js/ui/source-version.js"></script>
     <script src="/static/js/main.js"></script>
 </body>
 </html>
