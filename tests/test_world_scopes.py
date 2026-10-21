@@ -9,7 +9,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pytest
 
 from engine import world_scopes
-from graph import Edge, Node, WorldGraph
+from graph import (
+    EDGE_CARRYING,
+    EDGE_EQUIPPED,
+    EDGE_IN,
+    EDGE_UNLOCKS,
+    Edge,
+    Node,
+    WorldGraph,
+)
 
 MANIFEST = {
     "millbrook_falls": {"id": "millbrook_falls", "name": "Millbrook Falls",
@@ -172,6 +180,47 @@ def test_project_subgraph_respects_include_items():
                                         include_items=False)
     assert "item_sofa" not in out["nodes"]
     assert out["edges"] == []
+
+
+def test_project_subgraph_includes_inventory_by_graph_relations():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    g = _graph()
+    g.add_node(Node(id="player_alice", type="player", name="Alice"))
+    g.add_edge(Edge(source="player_alice", target="area_3b_living", type=EDGE_IN))
+    g.add_node(Node(id="item_biscuits", type="item", name="Biscuits"))
+    g.add_edge(Edge(source="item_biscuits", target="player_alice", type=EDGE_CARRYING))
+    g.add_node(Node(id="item_helmet", type="item", name="Helmet"))
+    g.add_edge(Edge(source="item_helmet", target="player_alice", type=EDGE_EQUIPPED))
+    g.add_node(Node(id="item_bag", type="item", name="Bag"))
+    g.add_edge(Edge(source="item_bag", target="player_alice", type=EDGE_CARRYING))
+    g.add_node(Node(id="item_key", type="item", name="Key"))
+    g.add_edge(Edge(source="item_key", target="item_bag", type=EDGE_IN))
+    g.add_edge(Edge(source="item_key", target="way_outside", type=EDGE_UNLOCKS))
+    spatial_contents = set()
+    for edge_type in world_scopes.SPATIAL_TYPES - {EDGE_IN}:
+        item_id = f"item_{edge_type}"
+        spatial_contents.add(item_id)
+        g.add_node(Node(id=item_id, type="item", name=edge_type.title()))
+        g.add_edge(Edge(source=item_id, target="item_bag", type=edge_type))
+    g.add_node(Node(id="item_elsewhere", type="item", name="Elsewhere"))
+    g.add_edge(Edge(source="item_elsewhere", target="area_hall3", type=EDGE_IN))
+
+    out = world_scopes.project_subgraph(m, g, _players(), "apartment_3b")
+
+    assert {"player_alice", "item_biscuits", "item_helmet", "item_bag", "item_key"} | spatial_contents <= set(out["nodes"])
+    assert "item_elsewhere" not in out["nodes"]
+    assert "way_outside" not in out["nodes"]
+    assert {("item_biscuits", "player_alice", EDGE_CARRYING),
+            ("item_helmet", "player_alice", EDGE_EQUIPPED),
+            ("item_bag", "player_alice", EDGE_CARRYING),
+            ("item_key", "item_bag", EDGE_IN)} | {
+                (item_id, "item_bag", edge_type)
+                for edge_type in world_scopes.SPATIAL_TYPES - {EDGE_IN}
+                for item_id in (f"item_{edge_type}",)
+            } <= {
+                (edge["source"], edge["target"], edge["type"])
+                for edge in out["edges"]
+            }
 
 
 def test_flat_scopes_lists_depth_first_with_depth():

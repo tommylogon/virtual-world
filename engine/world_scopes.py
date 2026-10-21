@@ -14,9 +14,17 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from engine import world_grid
-from graph import EDGE_CONNECTION, Edge, Node
+from graph import (
+    EDGE_CARRYING,
+    EDGE_CONNECTION,
+    EDGE_EQUIPPED,
+    EDGE_IN,
+    SPATIAL_EDGE_TYPES,
+    Edge,
+    Node,
+)
 
-SPATIAL_TYPES = {"in", "on", "under", "behind", "beside", "at"}
+SPATIAL_TYPES = {EDGE_IN, *SPATIAL_EDGE_TYPES}
 
 DEFAULT_KIND = "scope"
 DEFAULT_STATE = "materialized"
@@ -821,13 +829,19 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
     cell (carrying ``child_scope_id``), not its whole interior. Pass
     ``descendants=True`` for the recursive subtree (what "Whole world" uses).
 
-    Membership:
+    Membership follows physical attachment, not an item's own scope property:
 
-    - every ``area`` whose ``world_scope_id`` is this scope (or, when
-      ``descendants``, elsewhere in its subtree);
+    - every ``area`` owned by this scope (or, when ``descendants``, elsewhere
+      in its subtree);
     - a ``way`` whose **both** endpoints are included;
     - a ``character``/``player`` standing in an included area;
-    - an ``item`` attached to an included area, when ``include_items`` is true.
+    - when ``include_items`` is true, items attached to an included area,
+      character, way or item through ``in``, ``on``, ``under``, ``behind``,
+      ``beside`` or ``at`` edges, plus items carried or equipped by an included
+      character. Item relations are followed recursively.
+
+Knowledge and action edges do not define physical scope membership. They are
+emitted only when both endpoints were included by the rules above.
 
     Only edges with both endpoints included are emitted, so no edge ever
     dangles to a node the browser never received.
@@ -897,6 +911,36 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
             if ntype in ("character", "player") or (
                     include_items and ntype == "item"):
                 add(node)
+
+    # Scope membership follows physical attachment relations. A character's
+    # held items and an item's spatially attached contents belong in the same
+    # view without acquiring their own scope property. This also includes items
+    # placed relative to an in-scope character or way, not only items in an area.
+    if include_items:
+        pending_targets = list(included)
+        visited_targets = set()
+        while pending_targets:
+            target_id = pending_targets.pop()
+            if target_id in visited_targets:
+                continue
+            visited_targets.add(target_id)
+
+            target = graph.get_node(target_id)
+            if getattr(target, "type", "") in ("character", "player"):
+                for edge in graph.get_edges_for_target(
+                        target_id, (EDGE_CARRYING, EDGE_EQUIPPED)):
+                    item = graph.get_node(edge.source)
+                    if getattr(item, "type", "") != "item":
+                        continue
+                    add(item)
+                    pending_targets.append(item.id)
+
+            for edge in graph.get_edges_for_target(target_id, tuple(SPATIAL_TYPES)):
+                item = graph.get_node(edge.source)
+                if getattr(item, "type", "") != "item":
+                    continue
+                add(item)
+                pending_targets.append(item.id)
 
     seen_edges = set()
     edges = []
