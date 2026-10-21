@@ -134,31 +134,55 @@ def observe_area(player, gs, tick=None) -> dict:
     now = gs.time_ticks if tick is None else tick
     area_id = area_node.id
 
-    # The area itself is unconditional: you know which room you are in even
-    # with the lights out, and this is the subject novelty/Entertainment uses.
+    # Area-level novelty measured before refresh.
     if not player.has_seen(area_id):
         result["novel"].append(area_id)
     result["freshness"][area_id] = freshness(player, area_id, now,
                                              window=effective_window(player))
-    player.record_observation(
-        area_id, f"You have been in the {area_node.name}.", now,
-        kind=AREA, location=area_node.name, importance=IMPORTANCE[AREA],
+
+    # Perceived items (only if can perceive). Collect first so novelty is
+    # measured before any refresh.
+    visible_items = []
+    if can_perceive(player, gs, area_node):
+        try:
+            visible_items = list(visible_area_items(gs.graph, area_node.id, player=player))
+        except Exception:
+            visible_items = []
+    item_ids = [n.id for n in visible_items]
+    for sid in item_ids:
+        if not player.has_seen(sid):
+            result["novel"].append(sid)
+        result["freshness"][sid] = freshness(player, sid, now,
+                                            window=effective_window(player))
+
+    # Consolidated scene memory (task-789): one record per area visit, with
+    # items/exits/environment in data instead of N flat memories.
+    env = getattr(area_node, "properties", {}).get("environment", {}) or {}
+    exits_seen = []
+    try:
+        for d, ed in (getattr(area_node, "properties", {}).get("exits", {}) or {}).items():
+            target = ed.get("target") if isinstance(ed, dict) else None
+            exits_seen.append({"direction": d, "target": target})
+    except Exception:
+        exits_seen = []
+    item_names = [getattr(n, "name", str(n.id)) for n in visible_items]
+    text = "Observed {}: {}.".format(
+        area_node.name,
+        ", ".join(item_names) if item_names else "nothing notable",
     )
-    result["seen"] += 1
-
-    if not can_perceive(player, gs, area_node):
-        return result
-
-    for subject_id, kind, text, tags in perceivable_subjects(player, gs, area_node):
-        if not player.has_seen(subject_id):
-            result["novel"].append(subject_id)
-        result["freshness"][subject_id] = freshness(player, subject_id, now,
-                                                    window=effective_window(player))
-        player.record_observation(
-            subject_id, text, now, kind=kind, tags=tags,
-            location=area_node.name, importance=IMPORTANCE.get(kind, 3),
-        )
-        result["seen"] += 1
+    if exits_seen:
+        text += " Exits: {}.".format(", ".join(
+            "{} -> {}".format(e.get("direction"), e.get("target")) for e in exits_seen
+        ))
+    tags = ["observed", "area:{}".format(area_node.name)]
+    for n in visible_items:
+        tags = tags + _item_tags(n)
+    player.record_scene_observation(
+        area_id, item_ids, text, now, location=area_node.name,
+        environment=env, exits=exits_seen, tags=tags,
+        importance=IMPORTANCE[AREA],
+    )
+    result["seen"] = 1 + len(item_ids)
 
     # Chart visible grid cells (task-882): if this area is placed on a grid scope
     try:

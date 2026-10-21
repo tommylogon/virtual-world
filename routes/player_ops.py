@@ -1464,6 +1464,16 @@ def _observed_by_location(player):
     for m in getattr(player, "memories", []) or []:
         if not isinstance(m, dict) or m.get("superseded_by"):
             continue
+        data = m.get("data") or {}
+        if data.get("event") == "scene_observed":
+            area_id = data.get("area")
+            where = str(m.get("location") or "")
+            if area_id:
+                areas[str(area_id)] = {"id": str(area_id), "name": where, "last_seen": m.get("tick")}
+            for sid in (data.get("items_seen") or []):
+                if where:
+                    items.setdefault(where, {})[str(sid)] = str(sid)
+            continue
         kind = m.get("kind")
         where = str(m.get("location") or "")
         ids = [str(e) for e in (m.get("entity_ids") or []) if e]

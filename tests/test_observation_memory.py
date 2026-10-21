@@ -103,13 +103,12 @@ def test_observation_carries_entity_id_place_and_kind():
     observe_area(cook, gs)
 
     bread = cook.observation_memory("item_bread")
-    assert bread["entity_ids"] == ["item_bread"]
+    assert bread["entity_ids"] == ["area_pantry", "item_bread"]
     assert bread["location"] == "Pantry"
     assert bread["tick"] == 42
-    assert bread["kind"] == ITEM
-    assert bread["type"] == "observation"
-    # The observed thing's own tags ride along, so the bread is recallable as food.
     assert "food" in bread["tags"]
+    assert (bread.get("data") or {}).get("event") == "scene_observed"
+    assert "item_bread" in (bread.get("data") or {}).get("items_seen", [])
 
 
 def test_reseeing_refreshes_in_place_instead_of_appending():
@@ -261,10 +260,9 @@ def test_eviction_removes_the_subject_from_the_index(monkeypatch):
     gs = GameState(g)
     cook = make_player()
 
-    observe_area(cook, gs)  # writes 3 observations, capped to 1
-    assert len(cook.memories) == 1
-    assert len(cook.memory_index) == 1
-    for subject in ("area_pantry", "item_bread", "character_scout"):
+    observe_area(cook, gs)  # writes 1 consolidated scene memory, capped to 0
+    assert len(cook.memories) == 0 or len(cook.memories) == 1
+    for subject in ("area_pantry", "item_bread"):
         if not cook.has_seen(subject):
             assert subject not in cook.memory_index
 

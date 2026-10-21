@@ -1025,7 +1025,7 @@ class Player:
         from engine.relationships import describe
         return describe(self, other_name)
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None):
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None, data=None):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] - optional keyword labels for targeting via trigger effects.
@@ -1056,6 +1056,8 @@ class Player:
         }
         if category:
             entry["category"] = str(category)
+        if data is not None:
+            entry["data"] = data
         if confidence is not None:
             entry["confidence"] = max(0.0, min(1.0, float(confidence)))
         try:
@@ -1122,6 +1124,52 @@ class Player:
         self.memory_index[str(subject_id)] = entry["id"]
         return entry
 
+    def record_scene_observation(self, area_id: str, item_ids, text: str, tick: int,
+                                location: str = "", environment=None, exits=None,
+                                tags=None, importance: int = 4, source: str = "observation") -> dict:
+        """Consolidate an area visit into ONE scene memory (task-789).
+
+        Per-item sightings are stored in ``data.items_seen`` rather than as
+        separate memory rows. Reinforces in place on revisit.
+        """
+        item_ids = [str(i) for i in (item_ids or []) if i]
+        subject_ids = [str(area_id)] + [i for i in item_ids if i != str(area_id)]
+        data = {
+            "event": "scene_observed",
+            "area": str(area_id),
+            "environment": environment or {},
+            "items_seen": item_ids,
+            "exits_seen": exits or [],
+        }
+        existing = self.observation_memory(str(area_id))
+        if existing is not None:
+            existing["text"] = text
+            existing["tick"] = tick
+            existing["timestamp"] = time.time()
+            existing["location"] = location or existing.get("location", "")
+            existing["visits"] = int(existing.get("visits", 1)) + 1
+            if tags:
+                existing["tags"] = sorted(set(existing.get("tags") or []) | set(tags))
+            existing["entity_ids"] = subject_ids
+            existing["data"] = data
+            self.memory_index[str(area_id)] = existing["id"]
+            for sid in item_ids:
+                self.memory_index[str(sid)] = existing["id"]
+            return existing
+
+        entry = self.add_memory(
+            text, tick, importance=importance, memory_type="observation",
+            tags=(["observed"] + list(tags or [])), source=source,
+            entity_ids=subject_ids, location=location, data=data,
+        )
+        entry["kind"] = "area"
+        entry["visits"] = 1
+        entry["data"] = data
+        self.memory_index[str(area_id)] = entry["id"]
+        for sid in item_ids:
+            self.memory_index[str(sid)] = entry["id"]
+        return entry
+
     def observation_memory(self, subject_id: str):
         """The live observation memory about ``subject_id``, or None.
 
@@ -1182,6 +1230,16 @@ class Player:
         names = set()
         for m in self.memories:
             if m.get("superseded_by"):
+                continue
+            data = m.get("data") or {}
+            if data.get("event") == "scene_observed":
+                for eid in (data.get("items_seen") or []):
+                    if graph is not None:
+                        node = graph.get_node(eid)
+                        if node and getattr(node, "name", None):
+                            names.add(node.name)
+                            continue
+                    names.add(str(eid))
                 continue
             if m.get("kind") == "item":
                 for eid in (m.get("entity_ids") or []):
