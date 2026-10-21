@@ -108,6 +108,42 @@ def test_play_mode_isolation_and_revert_on_stop(client):
     assert data["has_snapshot"] is False
 
 
+def test_loading_scenario_while_playing_discards_old_checkpoint(client):
+    c, app = client
+    payload = app.world.to_dict()
+    payload["_scenario_name"] = "replacement"
+    payload["persist"] = False
+    payload["players"] = {}
+    payload["graph"] = {
+        "nodes": {
+            "area_replacement": {
+                "id": "area_replacement",
+                "name": "Replacement Room",
+                "type": "area",
+                "properties": {},
+            }
+        },
+        "edges": [],
+    }
+
+    assert c.post("/api/play_mode/enter").get_json()["play_mode"] is True
+    app.world.time_ticks += 42
+
+    loaded = c.post("/api/load", json=payload)
+    assert loaded.status_code == 200
+    assert app.world.graph.get_node("area_replacement") is not None
+    assert app.play_mode is False
+    assert app._play_mode_snapshot is None
+
+    stopped = c.post("/api/play_mode/stop")
+    assert stopped.status_code == 200
+    assert app.world.graph.get_node("area_replacement") is not None
+    assert c.get("/api/play_mode/status").get_json() == {
+        "play_mode": False,
+        "has_snapshot": False,
+    }
+
+
 def test_play_mode_blocks_scenario_commit(client):
     c, app = client
 

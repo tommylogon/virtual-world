@@ -188,6 +188,15 @@ def register_saveload_routes(app):
             start = time.time()
             _push_undo_snapshot(app, label=f"load{' savegame' if '_save_metadata' in data else ' scenario'} <{data.get('_scenario_name') or data.get('name') or 'unnamed'}>")
             app.world.load_from_dict(data)
+            # Replacing the world invalidates the Play Mode checkpoint. Keep
+            # Stop from restoring the world that was open before this load.
+            was_play_mode = bool(getattr(app, 'play_mode', False))
+            app.play_mode = False
+            app._play_mode_snapshot = None
+            app.world.is_play_mode = False
+            if was_play_mode:
+                from engine.world_events import hub
+                hub.publish({"event": "play_mode_changed", "play_mode": False})
             # A savegame is a runtime snapshot: adopt it (clear the scenario
             # source, name it from the payload, refresh the autosave) so a later
             # Commit cannot overwrite the previously open scenario (bug-41).
