@@ -47,3 +47,28 @@ test('bug-517: room-context.ts does not call playerSpeak', () => {
     assertEq(src.includes('playerSpeak'), false, 'room-context must not invoke playerSpeak');
 });
 
+test('bug-559: available actions prompt block omits major verbs when major budget is 0', () => {
+    const pb = window.PromptBuilder;
+    const state = {
+        players: {},
+        players_in_area: [{ name: 'Belne', description: 'goblin' }]
+    };
+    const player = { name: 'Arix', vitals: { Energy: 80, Bladder: 10 } };
+    const area = { name: 'Food Storage', ambient_light: 50, exits: {} };
+    
+    // With full budget: attack is present
+    const fullBlock = pb.buildAvailableActionsBlock(state, 'Arix', player, area, { major: 1, minor: 1, free: 3, activity: 1 });
+    assertTrue(fullBlock.includes('attack  -  fight'), 'Full budget should have attack');
+
+    // With major: 0: attack is omitted, note is present
+    const spentMajorBlock = pb.buildAvailableActionsBlock(state, 'Arix', player, area, { major: 0, minor: 1, free: 3, activity: 1 });
+    assertFalse(spentMajorBlock.includes('attack  -  fight'), 'Exhausted major budget should omit attack');
+    assertTrue(spentMajorBlock.includes('Major actions exhausted this turn'), 'Should explain major actions exhausted');
+    assertTrue(spentMajorBlock.includes('grab  -  seize'), 'Minor action grab should remain');
+
+    // With major: 0 and minor: 0: grab omitted, exhausted both note present
+    const spentBothBlock = pb.buildAvailableActionsBlock(state, 'Arix', player, area, { major: 0, minor: 0, free: 3, activity: 1 });
+    assertFalse(spentBothBlock.includes('grab  -  seize'), 'Exhausted minor budget should omit grab');
+    assertTrue(spentBothBlock.includes('Major and minor actions exhausted this turn'), 'Should explain both exhausted');
+    assertTrue(spentBothBlock.includes('wait  -  wait or hold still'), 'Wait should remain');
+});

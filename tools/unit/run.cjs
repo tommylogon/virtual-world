@@ -197,6 +197,7 @@ load('static/js/agent/prompt-builder/conversation-context.js');
 // turn-prompts.js only needs window.PromptBuilder at eval time; its phase
 // builders reach for the other prompt-builder modules at call time. Loading it
 // makes the prompt-section helpers (e.g. summaryLine, task-479) unit-testable.
+load('static/js/agent/prompt-builder/contextual-actions.js');
 load('static/js/agent/prompt-builder/turn-prompts.js');
 load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');

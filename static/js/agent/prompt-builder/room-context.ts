@@ -299,6 +299,20 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         } else {
             includePlan = includePlanOrOptions !== false;
         }
+        // The room context belongs to THIS character. `state.current_area` is
+        // the server's single active-player view, so a caller that passes it
+        // for another agent shows that agent the wrong room - items, people,
+        // exits and action brackets all follow the wrong area (bug-565). The
+        // player's own `current_area` wins. Preview/lens callers may inspect
+        // another area on purpose, so they are exempt.
+        if (!preview) {
+            const ownAreaName = String((player as any)?.current_area || '').trim();
+            const givenAreaName = String((currentArea as any)?.name || '').trim();
+            if (ownAreaName && ownAreaName !== givenAreaName) {
+                const ownArea = (state as any)?.areas?.[ownAreaName];
+                if (ownArea) currentArea = ownArea;
+            }
+        }
         const light = (currentArea as Record<string, any>)?.ambient_light
             ?? (currentArea as Record<string, any>)?.environment?.light ?? 50;
         const level = PromptBuilder.lightToLevel(light);
@@ -469,7 +483,16 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                 const forced = !!exitData.needs_force_known;
                 const locked = !!exitData.known_locked;
                 const blocked = !!exitData.known_blocked;
-                let doorHint = ' (you can go through it, approach it, dash, or open it)';
+                const pSlots = turnSlots(player);
+                const canGo = !pSlots || typeof pSlots.major !== 'number' || pSlots.major > 0;
+                const canApproach = !pSlots || typeof pSlots.minor !== 'number' || pSlots.minor > 0;
+
+                const closedVerbs: string[] = [];
+                if (canGo) closedVerbs.push('go through it');
+                if (canApproach) closedVerbs.push('approach it');
+                if (canGo) closedVerbs.push('dash');
+                closedVerbs.push('or open it');
+                let doorHint = ` (you can ${closedVerbs.join(', ')})`;
                 if (forced) doorHint = ' (you can force it open)';
                 else if (locked) doorHint = " (it's locked  -  you'd need to unlock it first)";
                 else if (blocked) doorHint = ' (it is blocked  -  you will need to clear it)';
@@ -485,7 +508,15 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                     const doorTags = (doorNode.properties?.tags || []).map((t: unknown) => String(t).toLowerCase().trim());
                     const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
-                    const actionHint = ` (you can go through it, approach it, dash, examine${closeHint})`;
+                    const openVerbs: string[] = [];
+                    if (canGo) openVerbs.push('go through it');
+                    if (canApproach) openVerbs.push('approach it');
+                    if (canGo) openVerbs.push('dash');
+                    if (canGo) openVerbs.push('examine');
+                    const baseOpen = openVerbs.join(', ');
+                    const actionHint = baseOpen
+                        ? ` (you can ${baseOpen}${closeHint})`
+                        : (closeHint ? ` (you can${closeHint})` : '');
                     if (viewDirection) {
                         exitLines.push(`[${handle}] ${openWord}  -  ${viewDirection}${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
                     } else {

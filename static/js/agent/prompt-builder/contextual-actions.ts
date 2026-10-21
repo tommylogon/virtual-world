@@ -274,6 +274,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const cached = _recipeCache[charName];
         if (cached && Date.now() - cached.at < 60000) return;
         _recipeCache[charName] = { at: Date.now(), list: cached ? cached.list : [] };
+        if (typeof fetch !== 'function') return;
         fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
             headers: { 'Accept': 'application/json' }
         }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
@@ -393,8 +394,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         // to end the turn, and hiding it would strand the character.
         lines.push('wait  -  wait or hold still');
 
+        let note = '';
+        if (slots && typeof slots.major === 'number' && slots.major <= 0) {
+            if (typeof slots.minor === 'number' && slots.minor <= 0) {
+                note = '\n(Major and minor actions exhausted this turn. Only free actions, speech, or wait remain.)';
+            } else {
+                note = '\n(Major actions exhausted this turn. You can still use minor/free actions, speak, or wait.)';
+            }
+        }
+
         const intro = 'Other than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:';
-        return `\n=== AVAILABLE ACTIONS ===\n${intro}\n${lines.join('\n')}`;
+        return `\n=== AVAILABLE ACTIONS ===\n${intro}\n${lines.join('\n')}${note}`;
     }
 
     Object.assign(window.PromptBuilder, {

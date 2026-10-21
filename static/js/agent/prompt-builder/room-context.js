@@ -506,7 +506,18 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const forced = !!exitData.needs_force_known;
                 const locked = !!exitData.known_locked;
                 const blocked = !!exitData.known_blocked;
-                let doorHint = ' (you can go through it, approach it, dash, or open it)';
+                const pSlots = turnSlots(player);
+                const canGo = !pSlots || typeof pSlots.major !== 'number' || pSlots.major > 0;
+                const canApproach = !pSlots || typeof pSlots.minor !== 'number' || pSlots.minor > 0;
+                const closedVerbs = [];
+                if (canGo)
+                    closedVerbs.push('go through it');
+                if (canApproach)
+                    closedVerbs.push('approach it');
+                if (canGo)
+                    closedVerbs.push('dash');
+                closedVerbs.push('or open it');
+                let doorHint = ` (you can ${closedVerbs.join(', ')})`;
                 if (forced)
                     doorHint = ' (you can force it open)';
                 else if (locked)
@@ -525,7 +536,19 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const doorTags = (doorNode.properties?.tags || []).map((t) => String(t).toLowerCase().trim());
                     const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
-                    const actionHint = ` (you can go through it, approach it, dash, examine${closeHint})`;
+                    const openVerbs = [];
+                    if (canGo)
+                        openVerbs.push('go through it');
+                    if (canApproach)
+                        openVerbs.push('approach it');
+                    if (canGo)
+                        openVerbs.push('dash');
+                    if (canGo)
+                        openVerbs.push('examine');
+                    const baseOpen = openVerbs.join(', ');
+                    const actionHint = baseOpen
+                        ? ` (you can ${baseOpen}${closeHint})`
+                        : (closeHint ? ` (you can${closeHint})` : '');
                     if (viewDirection) {
                         exitLines.push(`[${handle}] ${openWord}  -  ${viewDirection}${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
                     }
