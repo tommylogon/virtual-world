@@ -537,6 +537,7 @@ declare const GraphNetwork: {
     _nodeProjection(...args: any[]): any;
     _posTrace(...args: any[]): any;
     _edgeSig(...args: any[]): any;
+    _scopedEdgeSig(...args: any[]): any;
     mapCompact(...args: any[]): any;
     mapSizeScale(...args: any[]): any;
     nodeSizeScale(...args: any[]): any;

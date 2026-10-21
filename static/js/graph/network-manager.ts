@@ -722,6 +722,37 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
+     * Edge changes that can alter a scoped graph: any relation between loaded
+     * nodes, plus physical membership edges aimed at a loaded node. Connection
+     * edges incident to a loaded area are included because they can add or
+     * remove a way whose two endpoints belong to the scope.
+     */
+    _scopedEdgeSig(edgesArr: any[], worldNodes: Record<string, any>, scopedNodes: Record<string, any>): string {
+        const loadedIds = new Set(Object.keys(scopedNodes || {}));
+        const spatialTypes = new Set(['in', 'on', 'under', 'behind', 'beside', 'at']);
+        const holdingTypes = new Set(['carrying', 'equipped']);
+        const relevant = (edgesArr || []).filter(edge => {
+            const bothLoaded = loadedIds.has(edge.source) && loadedIds.has(edge.target);
+            const source = worldNodes?.[edge.source] || scopedNodes?.[edge.source];
+            const target = worldNodes?.[edge.target] || scopedNodes?.[edge.target];
+            const sourceType = source?.type;
+            const targetType = target?.type;
+            const spatialAttachment = spatialTypes.has(edge.type)
+                && loadedIds.has(edge.target)
+                && (sourceType === 'item' || sourceType === 'character' || sourceType === 'player');
+            const characterHolding = holdingTypes.has(edge.type)
+                && loadedIds.has(edge.target)
+                && sourceType === 'item'
+                && (targetType === 'character' || targetType === 'player');
+            const scopedConnection = edge.type === 'connection'
+                && (loadedIds.has(edge.source) || loadedIds.has(edge.target))
+                && (sourceType === 'area' || targetType === 'area');
+            return bothLoaded || spatialAttachment || characterHolding || scopedConnection;
+        });
+        return GraphNetwork._edgeSig(relevant);
+    },
+
+    /**
      * Fetches node and edge data from the API and updates the vis.js network.
      * Includes a signature-based deduplication to skip redundant reloads,
      * preserves node positions when possible, and applies cardinal layout
@@ -808,6 +839,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
             const visEdges = [];
             graphManager._graphNodesObj = nodesObj;
             graphManager._graphEdgesArr = edgesArr;
+            const stateGraph = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
+            graphManager._scopeEdgeWatchSig = scopeId && stateGraph
+                ? GraphNetwork._scopedEdgeSig(stateGraph.edges || [], stateGraph.nodes || {}, nodesObj)
+                : null;
             graphManager._edgeTooltipHtml = {};
 
             // Decide the map pitch before anything reads it: node sizes, the
@@ -1160,6 +1195,18 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const next = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
         if (!next || !next.nodes) return;
         const scoped = !!gm._scopeFilter;
+
+        if (scoped) {
+            const edgeWatchSig = GraphNetwork._scopedEdgeSig(
+                next.edges || [], next.nodes, loaded
+            );
+            if (edgeWatchSig !== gm._scopeEdgeWatchSig) {
+                gm._scopeEdgeWatchSig = edgeWatchSig;
+                gm._lastSig = '';
+                GraphNetwork.loadGraphData();
+                return;
+            }
+        }
 
         // Whole-world view: the payload and the view share a node/edge set, so
         // a changed set is a real structural change. A scoped view is a slice,
