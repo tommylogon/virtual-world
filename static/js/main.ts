@@ -1034,10 +1034,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize narration mode select from backend
                 (async () => {
                     try {
-                        await (window as any).narrationUI._initPromise;
+                        const narrationUi = (window as any).narrationUI;
+                        await narrationUi._initPromise;
                         const select = (document.getElementById('narration-select') as HTMLInputElement);
                         if (select) {
-                            select.value = (window as any).narrationUI.getMode();
+                            select.value = narrationUi.getMode();
+                            select.onchange = () => { void narrationUi.setMode(select.value); };
                         }
                     } catch (e) {
                         console.warn('Narration init:', e);
