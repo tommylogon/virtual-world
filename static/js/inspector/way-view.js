@@ -300,8 +300,9 @@ window.InspectorWayView = (() => {
                 <div class="field">
                     <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('current_state', wayView._getLockedFields(props), escapedId)} State</label>
                     <select id="way-passage-state-${escapedId}">
-                        ${STATE_OPTIONS.map(opt => htmlTag `<option value=${opt} ?selected=${state === opt}>${opt}</option>`)}
+                        ${STATE_OPTIONS.map(opt => htmlTag `<option value=${opt} ?selected=${state === opt}>${opt === 'closed' ? 'closed (unlocked, still shut)' : opt}</option>`)}
                     </select>
+                    <div class="section-hint">A locked way becomes closed when unlocked. Choose “closed” to leave it unlocked but shut; opening it is a separate action.</div>
                 </div>
                 <div class="field">
                     <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('requires', wayView._getLockedFields(props), escapedId)} Required movement verb</label>

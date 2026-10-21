@@ -474,7 +474,7 @@ const CreateModal: ThisType<{
             <label style="font-weight:600;">Initial Way State</label>
             <select id="conn-state">
                 <option value="open">🚪 Open</option>
-                <option value="closed">🚪 Closed</option>
+                <option value="closed">🚪 Closed (unlocked, still shut)</option>
                 <option value="locked">🔒 Locked</option>
                 <option value="blocked">⛔ Blocked</option>
                 <option value="broken">💥 Broken</option>

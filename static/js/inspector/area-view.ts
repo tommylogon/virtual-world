@@ -574,8 +574,12 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
      * @returns {TemplateResult}
      */
     RV._renderExitItem = function(exitName: string, exitData: AreaViewExitData, actualNodeId: string): TemplateResult {
-        const state = exitData.state || 'closed';
         const wayId = exitData.way_id || '';
+        const doorNode = wayId ? worldState.getNode(wayId) : null;
+        // The graph node is authoritative. `exits_authoring` is a derived
+        // projection and can lag a property-only way edit while its cache is
+        // being invalidated.
+        const state = doorNode?.properties?.current_state || exitData.state || 'closed';
         let stateIcon: string, stateColor: string;
         if (state === 'open') { stateIcon = '🟢'; stateColor = 'var(--green)'; }
         else if (state === 'closed') { stateIcon = '🟡'; stateColor = 'var(--yellow)'; }
@@ -585,7 +589,6 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
         else if (state === 'broken') { stateIcon = '💥'; stateColor = 'var(--orange)'; }
         else { stateIcon = '❓'; stateColor = 'var(--text-muted)'; }
 
-        const doorNode = wayId ? worldState.getNode(wayId) : null;
         const description = exitData.description || (doorNode?.properties?.description) || '';
         const resolvedDesc = doorNode
             ? InspectorHelpers.resolveWayParams(description, doorNode.properties?.parameters || {})

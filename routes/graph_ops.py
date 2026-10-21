@@ -380,6 +380,10 @@ def handle_update_node(app, node_id):
     if 'name' in data:
         node.name = data['name']
     node.updated = time.time()
+    # Node properties are edited in place above, but graph-derived caches
+    # (including authoring exits) invalidate on the graph revision. Re-stamp
+    # the node through Graph so property-only edits invalidate those caches too.
+    app.world.graph.replace_node(node)
 
     warnings = []
     if 'properties' in data and 'tags' in data['properties']:

@@ -171,7 +171,7 @@ const WayAuthoringModule = (() => {
     WA.collectExitBadges = function(exitData: Record<string, unknown> | null | undefined, wayNode: WayNode | null | undefined): WayBadge[] {
         const badges: WayBadge[] = [];
         const wayId = String(exitData?.way_id || wayNode?.id || '');
-        const state = String(exitData?.state || wayNode?.properties?.current_state || 'closed');
+        const state = String(wayNode?.properties?.current_state || exitData?.state || 'closed');
         const stateStyle = WA.STATE_STYLE[state] || { icon: '❓', color: 'var(--text-muted)', label: state };
 
         badges.push({
