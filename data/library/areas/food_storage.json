@@ -1,21 +1,275 @@
 {
-  "name": "Food Storage",
   "description": "Stone shelves, hanging racks, pits, sealed pots, and leather bags hold dried meat, mushrooms, berries, and spices. Some stores are hidden in secondary chambers known only to a few goblins.",
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "dried meat, mushrooms, spices; urine",
+    "temperature": 17.9
+  },
+  "exits": [
+    {
+      "direction": "south passage",
+      "target_room_hint": "Cooking Area",
+      "description": "A cooler passage leading to food storage.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "items": [
+    {
+      "name": "bacon_rasher",
+      "description": "A rasher of bacon, thick-cut and salted.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.4,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "meat"
+      ]
+    },
+    {
+      "name": "Hanging Dried Meats",
+      "description": "Strips of dried, salted meat hanging from hooks. They look preserved and edible.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "cooking",
+        "kitchen"
+      ]
+    },
+    {
+      "name": "cheddar_cheese",
+      "description": "A cheese, a whole wheel, waxed and scraped and the better for it.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "dairy"
+      ]
+    },
+    {
+      "name": "heather_honey",
+      "description": "Heather honey, the dark one, and it tastes of the moor it came from.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "sweet",
+        "preserve"
+      ]
+    },
+    {
+      "name": "honeycomb",
+      "description": "A piece of honeycomb, the wax and a little honey caught in the cells.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.4,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "preserve",
+        "sweet"
+      ]
+    },
+    {
+      "name": "cod",
+      "description": "A cod, white and flaky, salted already.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.6,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "fish"
+      ]
+    },
+    {
+      "name": "apple",
+      "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 4,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "acorn_meal",
+      "description": "Acorn meal, and the bitterness is mostly gone and what is left is the point of it.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "nut",
+        "grain"
+      ]
+    },
+    {
+      "name": "beef_roast",
+      "description": "A roast of beef, salted and tied, ready for the spit.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.6,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "meat"
+      ]
+    },
+    {
+      "name": "bean_stew",
+      "description": "Bean stew, pottage with beans in it and bread to soak it.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.4,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "stew",
+        "legume"
+      ]
+    },
+    {
+      "name": "porridge",
+      "description": "Porridge, grey and thick, with the salt barely making it edible.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.4,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "food",
+        "grain"
+      ]
+    },
+    {
+      "name": "Salt Chunk",
+      "description": "A chunk of rock salt scraped from the cave walls. Coarse and crystalline, it makes everything taste less like cave water.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "ingredient",
+        "seasoning",
+        "mineral"
+      ]
+    },
+    {
+      "name": "Shiny Coin",
+      "description": "A foreign coin with an unfamiliar face. It gleams in the light.",
+      "actions": [
+        "take",
+        "drop",
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "shiny",
+        "trade",
+        "coin"
+      ]
+    }
+  ],
+  "name": "Food Storage",
   "tags": [
     "interior",
     "cave",
     "goblin_camp",
     "food",
-    "storage"
+    "held_by:goblin"
   ],
-  "environment": {
-    "air": "stale",
-    "light": "dim",
-    "noise": "quiet",
-    "smell": "dried meat, mushrooms, spices",
-    "temperature": 14
-  },
-  "items": [],
-  "exits": [],
   "triggers": []
 }

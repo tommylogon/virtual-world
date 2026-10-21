@@ -13,47 +13,338 @@
     "WIS": 9
   },
   "vitals": {
-    "Bladder": 60,
-    "Energy": 80,
-    "Entertainment": 75,
+    "Arousal": 0,
+    "Bladder": 36,
+    "Energy": 71,
+    "Entertainment": 100,
     "HP": 75,
-    "Hunger": 60,
+    "Hunger": 15,
     "Hygiene": 55,
     "Max_HP": 100,
-    "Sanity": 80,
-    "Social": 70,
+    "Pleasure": 0,
+    "Sanity": 78,
+    "Social": 78,
+    "Stimulation": 0,
     "Temperature": 37,
-    "Thirst": 55
+    "Thirst": 5
   },
   "decay_rates": {
-    "Bladder": 1,
-    "Energy": 1,
-    "Entertainment": 1,
-    "Hunger": 1,
-    "Hygiene": 1,
-    "Sanity": 1,
-    "Social": 1,
-    "Thirst": 1
+    "Arousal": 1,
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Pleasure": 3,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Stimulation": 2,
+    "Thirst": 0.025
   },
-  "skills": {
-    "Acrobatics": 1,
-    "Athletics": 0,
-    "Perception": 1,
-    "Persuasion": 2,
-    "Stealth": 1,
-    "Survival": 1
+  "skills": {},
+  "traits": {
+    "high_metabolism": true
   },
-  "traits": {},
   "tags": [
     "female",
     "teen",
-    "goblin"
+    "goblin",
+    "faction:goblin"
   ],
-  "interest_tags": [
-    "shiny",
-    "coin",
-    "jewelry"
-  ],
+  "interest_tags": [],
+  "size": null,
+  "species": null,
+  "appearance": {
+    "appearance": {
+      "body": {
+        "butt": "small",
+        "chest": "small breasts",
+        "hips": "narrow",
+        "legs": "shapely thighs on short, quick legs",
+        "modifications": [
+          "green earrings",
+          "metal choker",
+          "chain belt"
+        ],
+        "waist": "slim"
+      },
+      "build": "petite and wiry, with a child's frame and a hunter's quickness",
+      "eyes": {
+        "color": "green",
+        "shape": "very big and round",
+        "special": "bright and quick, always scanning for something shiny"
+      },
+      "face": {
+        "features": "small nose, cute cheeks, a wide grin full of little fangs",
+        "makeup": "none",
+        "shape": "round and childish"
+      },
+      "hair": {
+        "accessories": [
+          "skull clip"
+        ],
+        "color": "white",
+        "length": "shoulder-length",
+        "style": "tied into two high ponytails"
+      },
+      "height_cm": 147,
+      "overview": "A small, pale-green goblin girl with oversized green eyes, white twin ponytails, and a jangling outfit of metal adornments and leather. She looks like a child dressed as a tiny raider, and she knows it.",
+      "scent": "woodsmoke, honey, and the faint metallic tang of stolen coins",
+      "skin": {
+        "condition": "smooth and youthful, with a few faint scratches from hunting and climbing",
+        "distinguishing_features": [
+          "long pointed ears with green earrings",
+          "sharp nails",
+          "small sharp fangs"
+        ],
+        "tone": "pale green"
+      },
+      "style": {
+        "accessories": [
+          "skull hair clip",
+          "green earrings",
+          "stolen trinkets tucked into her belt"
+        ],
+        "clothing": [
+          "leather shorts",
+          "crisscrossing chest straps with gleaming clasps",
+          "metal choker",
+          "belt of chains",
+          "green elbow-length gloves"
+        ],
+        "footwear": [
+          "worn leather wraps"
+        ]
+      },
+      "voice": {
+        "accent": "goblin-tribal, clipped and hissing on sibilants",
+        "mannerisms": "teasing lilt, uses nicknames and compliments as bait",
+        "pitch": "high-pitched and squeaky"
+      },
+      "weight_kg": 38
+    },
+    "identity": {
+      "age": 12,
+      "gender": "female",
+      "occupation": "thief and scavenger",
+      "pronouns": "she/her",
+      "sexuality": "virgin",
+      "species": "goblin"
+    },
+    "narrative": {
+      "arc": "From a proud, lonely thief who trusts no one, to someone who learns that being cared for is not the same as being owned.",
+      "biography": {
+        "adulthood": "Still a child by human reckoning, she left the tribe's camp to haunt human markets, stealing what she can and stashing it away. She prefers human company and dreams of a warm, indulgent keeper.",
+        "current_situation": "Lives on the edges of a human town, sneaking through markets by day and sleeping in a hidden nook by night, always watching mothers and children with envy.",
+        "early_life": "Born to Chief Gruk, who wanted a son. Raised as a boy under harsh training in magic, weapons, and hunting, she learned to obey without question and to hide her longing for gentleness."
+      },
+      "example_dialogues": [
+        "\"Ooh, that's a pretty ring. You don't need all ten fingers to wear it, do you?\"",
+        "\"Don't look at me like that, human. I'm helping. You left it lying about.\"",
+        "\"Pat me on the head and I might tell you where the guards went.\"",
+        "\"Goblins are dull and ignorant. I'm neither. Mostly.\"",
+        "\"A gold chain would suit me better than this old leather. Just saying.\""
+      ],
+      "role_in_town": "a tolerated nuisance and occasional informant, known around the market as the little goblin who is always where the coins are",
+      "secrets": {
+        "deepest_secret": "She wants to be owned, collared in heavy gold, and treated like a beloved child, not a goblin chief's failed son.",
+        "hidden_facts": [
+          "She is a rare goblin with innate magic.",
+          "She stashes her loot in a hollow beneath a market stall.",
+          "She deliberately gets caught sometimes, just to be spoken to."
+        ],
+        "known_by": [
+          "no_one"
+        ]
+      }
+    },
+    "personality": {
+      "aspirations": [
+        "hoard_of_gold",
+        "being_collared_in_gold",
+        "being_loved_like_a_child"
+      ],
+      "boundaries": [
+        "no_permanent_harm",
+        "no_betrayal_of_trust"
+      ],
+      "dislikes": [
+        "other_goblins",
+        "dullness",
+        "being_ignored",
+        "plain_leather"
+      ],
+      "experience": "none",
+      "fears": [
+        "abandonment",
+        "being_caught",
+        "darkness"
+      ],
+      "habits": [
+        "pockets_anything_shiny",
+        "checks_exits_and_shadows",
+        "teases_with_nicknames",
+        "hums_when_pleased"
+      ],
+      "interests": [
+        "shiny_objects",
+        "magic",
+        "hunting",
+        "stealing",
+        "human_mothers_and_children"
+      ],
+      "kinks": [
+        "domination",
+        "collaring",
+        "gold_chains",
+        "being_praised"
+      ],
+      "likes": [
+        "coins",
+        "jewelry",
+        "honey",
+        "hugs",
+        "headpats",
+        "sparkly_things",
+        "human_company"
+      ],
+      "quirks": [
+        "jingles when she walks",
+        "licks her long pink tongue over her fangs when thinking",
+        "counts coins under her breath"
+      ],
+      "speech_pattern": {
+        "catchphrases": [
+          "Shiny for me, dull for you!",
+          "Don't be a grump, big ears.",
+          "I'm not stealing, I'm rescuing it."
+        ],
+        "dialect": "goblin-tribal with human-market slang",
+        "style": "teasing, flippant, quick to mock and quicker to flatter"
+      },
+      "traits": [
+        "smug",
+        "cheerful",
+        "greedy",
+        "capricious",
+        "cunning",
+        "disrespectful",
+        "proud",
+        "lonely"
+      ],
+      "traumas": [
+        "harsh_training",
+        "emotional_neglect"
+      ],
+      "turn_offs": [
+        "plain_leather",
+        "goblin_cruelty",
+        "being_treated_as_dull"
+      ],
+      "turn_ons": [
+        "heavy_gold_chain",
+        "firm_commands",
+        "headpats"
+      ]
+    }
+  },
+  "image": null,
+  "profile_image": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.webp",
+  "expressions": {
+    "amused": {
+      "profile": "/static/images/nodes/player_Arix-profile-amused-1791423330210.webp"
+    },
+    "angry": {
+      "profile": "/static/images/nodes/player_Arix-profile-angry-1791423306061.webp"
+    },
+    "bored": {
+      "profile": "/static/images/nodes/player_Arix-profile-bored-1791423320558.webp"
+    },
+    "concerned": {
+      "profile": "/static/images/nodes/player_Arix-profile-concerned-1791423331397.webp"
+    },
+    "confident": {
+      "profile": "/static/images/nodes/player_Arix-profile-confident-1791423332674.webp"
+    },
+    "confused": {
+      "profile": "/static/images/nodes/player_Arix-profile-confused-1791423310882.webp"
+    },
+    "curious": {
+      "profile": "/static/images/nodes/player_Arix-profile-curious-1791423317004.webp"
+    },
+    "defiant": {
+      "profile": "/static/images/nodes/player_Arix-profile-defiant-1791423326670.webp"
+    },
+    "determined": {
+      "profile": "/static/images/nodes/player_Arix-profile-determined-1791423312171.webp"
+    },
+    "disgusted": {
+      "profile": "/static/images/nodes/player_Arix-profile-disgusted-1791423309585.webp"
+    },
+    "embarrassed": {
+      "profile": "/static/images/nodes/player_Arix-profile-embarrassed-1791423318148.webp"
+    },
+    "exhausted": {
+      "profile": "/static/images/nodes/player_Arix-profile-exhausted-1791423313324.webp"
+    },
+    "fearful": {
+      "profile": "/static/images/nodes/player_Arix-profile-fearful-1791423308384.webp"
+    },
+    "frustrated": {
+      "profile": "/static/images/nodes/player_Arix-profile-frustrated-1791423324189.webp"
+    },
+    "happy": {
+      "profile": "/static/images/nodes/player_Arix-profile-happy-1791423302613.webp"
+    },
+    "hopeful": {
+      "profile": "/static/images/nodes/player_Arix-profile-hopeful-1791423323057.webp"
+    },
+    "nervous": {
+      "profile": "/static/images/nodes/player_Arix-profile-nervous-1791423333955.webp"
+    },
+    "neutral": {
+      "profile": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.webp"
+    },
+    "playful": {
+      "profile": "/static/images/nodes/player_Arix-profile-playful-1791423335259.webp"
+    },
+    "proud": {
+      "profile": "/static/images/nodes/player_Arix-profile-proud-1791423319377.webp"
+    },
+    "relieved": {
+      "profile": "/static/images/nodes/player_Arix-profile-relieved-1791423325448.webp"
+    },
+    "sad": {
+      "profile": "/static/images/nodes/player_Arix-profile-sad-1791423304670.webp"
+    },
+    "serious": {
+      "profile": "/static/images/nodes/player_Arix-profile-serious-1791423336474.webp"
+    },
+    "shocked": {
+      "profile": "/static/images/nodes/player_Arix-profile-shocked-1791423329094.webp"
+    },
+    "sleepy": {
+      "profile": "/static/images/nodes/player_Arix-profile-sleepy-1791423327944.webp"
+    },
+    "smug": {
+      "profile": "/static/images/nodes/player_Arix-profile-smug-1791423314550.webp"
+    },
+    "surprised": {
+      "profile": "/static/images/nodes/player_Arix-profile-surprised-1791423307270.webp"
+    },
+    "suspicious": {
+      "profile": "/static/images/nodes/player_Arix-profile-suspicious-1791423321813.webp"
+    },
+    "tearful": {
+      "profile": "/static/images/nodes/player_Arix-profile-tearful-1791423337830.webp"
+    },
+    "thoughtful": {
+      "profile": "/static/images/nodes/player_Arix-profile-thoughtful-1791423339273.webp"
+    },
+    "worried": {
+      "profile": "/static/images/nodes/player_Arix-profile-worried-1791423315799.webp"
+    }
+  },
   "state": "awake",
   "conditions": {
     "awake": [
@@ -66,21 +357,239 @@
   },
   "equipped": {},
   "activity": null,
-  "current_area": "area_chiefs_pit",
-  "inventory": [],
+  "current_area": "Food Storage",
+  "inventory": [
+    {
+      "name": "Blue Butterfly Earring",
+      "node_id": "blue_butterfly_earring",
+      "library_id": "blue_butterfly_earring",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "hidden",
+        "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "library_id": "blue_butterfly_earring",
+        "light_level": "dim",
+        "tags": [
+          "jewelry"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_blue_butterfly_earring_on_examine_1790895756512_678",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_examine",
+            "x": -9112,
+            "y": -5088.7
+          }
+        ],
+        "uses": -1,
+        "weight": 0.01,
+        "x": -9137,
+        "y": -4029
+      }
+    },
+    {
+      "name": "belt_leather",
+      "node_id": "belt_leather",
+      "library_id": "belt_leather",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "normal",
+        "description": "A leather belt, cut and punched, and it is the plainest thing a person owns.",
+        "equip_slots": [
+          "waist"
+        ],
+        "library_id": "belt_leather",
+        "light_level": "dim",
+        "tags": [
+          "clothing",
+          "leather",
+          "accessory",
+          "waist",
+          "metal"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "text": "live probe"
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_belt_leather_on_use_1791548346731_170",
+            "trigger_type": "on_use",
+            "x": -10180,
+            "y": -6419.3
+          }
+        ],
+        "uses": 1,
+        "weight": 0.3,
+        "x": -10180,
+        "y": -5374
+      }
+    },
+    {
+      "name": "Black Short Shorts",
+      "node_id": "black_short_shorts",
+      "library_id": "black_short_shorts",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "normal",
+        "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
+        "equip_slots": [
+          "legs"
+        ],
+        "library_id": "black_short_shorts",
+        "tags": [
+          "clothing",
+          "bottom"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_black_short_shorts_on_examine_1790895756513_131",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_examine",
+            "x": -9318,
+            "y": -6038.2
+          }
+        ],
+        "uses": 0,
+        "weight": 0.3,
+        "x": -9318,
+        "y": -4959
+      }
+    },
+    {
+      "name": "manor_signet_ring",
+      "node_id": "manor_signet_ring",
+      "library_id": "manor_signet_ring",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "normal",
+        "description": "A signet ring, and the seal on it opens a letter that the law has to answer.",
+        "equip_slots": [
+          "hands"
+        ],
+        "library_id": "manor_signet_ring",
+        "light_level": "dim",
+        "tags": [
+          "clothing",
+          "accessory",
+          "metal",
+          "valuable",
+          "document",
+          "hands",
+          "manor",
+          "noble"
+        ],
+        "uses": 1,
+        "weight": 0.05,
+        "x": -11034.6,
+        "y": -3950.5
+      }
+    },
+    {
+      "name": "Glowing Mushroom Pouch",
+      "node_id": "item_glowing_mushroom_pouch_3ccf",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A damp cloth pouch filled with weird fungi that pulse faintly in the dark. 'Don't eat the red ones' is scratched into the cloth.",
+        "light_level": "dim",
+        "tags": [
+          "food",
+          "ingredient",
+          "forage",
+          "danger",
+          "mushroom",
+          "light_source"
+        ],
+        "x": -9698.6,
+        "y": -3216.1
+      }
+    }
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",
+    "expression": "neutral",
     "intensity": 0
   },
   "memories": [
     {
+      "activation": 0.538,
+      "category": "episodic",
+      "confidence": 1,
+      "contradicts": [],
       "embedding": null,
       "entity_ids": [],
       "id": "mem_kraktooth_arix_1",
       "importance": 6,
+      "last_recalled_tick": null,
       "location": "area_chiefs_pit",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
       "source": "manual",
+      "source_memory_ids": [],
+      "suppressions": [],
       "tags": [
         "arrival",
         "camp"
@@ -89,6 +598,658 @@
       "tick": 0,
       "timestamp": 0,
       "type": "observation"
+    },
+    {
+      "activation": 0.487,
+      "category": "episodic",
+      "confidence": 0.72,
+      "contradicts": [],
+      "embedding": null,
+      "emotion": null,
+      "emotions": null,
+      "entity_ids": [
+        "area_chief's_pit"
+      ],
+      "id": "mem_1790027112671_253",
+      "importance": 4,
+      "last_recalled_tick": 10,
+      "location": "",
+      "memory_emotions": [],
+      "reflection_depth": 0,
+      "reinforcements": 1,
+      "salience_override": 0,
+      "source": "auto",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "greed",
+        "hunger",
+        "survival"
+      ],
+      "text": "Snatched a shiny coin from the Chief's Pit. It's mine now, but it won't stop my stomach from eating itself. I need to find food and drink fast, or put this coin to work.",
+      "tick": 0,
+      "timestamp": 1790027112.6715438,
+      "type": "reaction"
+    },
+    {
+      "activation": 0.67,
+      "category": "social",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "player_Vekka",
+        "player_Arix",
+        "area_chief's_pit"
+      ],
+      "id": "c362fe1c",
+      "importance": 4,
+      "last_recalled_tick": null,
+      "location": "Chief's Pit",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "background",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "social",
+        "joke",
+        "minor_failure",
+        "rel:Vekka",
+        "fun"
+      ],
+      "text": "Vekka told me a joke that fell flat in the Chief's Pit.",
+      "tick": 14,
+      "timestamp": 1790942619.98748,
+      "type": "social"
+    },
+    {
+      "activation": 0.538,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [],
+      "id": "5dfa56e1",
+      "importance": 6,
+      "last_recalled_tick": null,
+      "location": "Chief's Pit",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "timeskip",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "timeskip"
+      ],
+      "text": "You waited 13 min in Chief's Pit. Vekka jokes with Arix.",
+      "tick": 14,
+      "timestamp": 1790942620.0194812,
+      "type": "observation"
+    },
+    {
+      "activation": 0.936,
+      "category": "episodic",
+      "confidence": 0.74,
+      "contradicts": [],
+      "entity_ids": [],
+      "id": "9cad01a0",
+      "importance": 5,
+      "last_recalled_tick": 51,
+      "location": "Cooking Area",
+      "reflection_depth": 0,
+      "reinforcements": 2,
+      "salience_override": 0,
+      "source": "background",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "threat",
+        "threat:hide",
+        "fear:Water Skin"
+      ],
+      "text": "shrinks away from Water Skin and goes quiet in Cooking Area",
+      "tick": 7,
+      "timestamp": 1791282892.027991,
+      "type": "threat"
+    },
+    {
+      "activation": 0.9552,
+      "category": "social",
+      "confidence": 0.74,
+      "contradicts": [],
+      "entity_ids": [
+        "player_Arix",
+        "player_Krikka",
+        "area_cooking_area"
+      ],
+      "id": "d24bb676",
+      "importance": 6,
+      "kind": "area",
+      "last_recalled_tick": 51,
+      "location": "Cooking Area",
+      "reflection_depth": 0,
+      "reinforcements": 2,
+      "salience_override": 0,
+      "source": "background",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "social",
+        "chat",
+        "major_success",
+        "rel:Krikka",
+        "trade"
+      ],
+      "text": "You have been in the Cooking Area.",
+      "tick": 57,
+      "timestamp": 1791419958.880704,
+      "type": "social",
+      "visits": 7
+    },
+    {
+      "activation": 0.43,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [],
+      "id": "6d575cd8",
+      "importance": 4,
+      "last_recalled_tick": null,
+      "location": "Cooking Area",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "need_recall",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "hunger",
+        "recall"
+      ],
+      "text": "While hunger, you recall: Snatched a shiny coin from the Chief's Pit. It's mine now, but it won't stop my stomach from eating itself. I need to find food and drink fast, or put this coin to work.",
+      "tick": 10,
+      "timestamp": 1791282892.9341066,
+      "type": "observation"
+    },
+    {
+      "activation": 0.84,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "embedding": null,
+      "emotion": null,
+      "emotions": null,
+      "entity_ids": [
+        "area_cooking_area"
+      ],
+      "id": "mem_1791398810455_788",
+      "importance": 4,
+      "kind": "area",
+      "last_recalled_tick": null,
+      "location": "Cooking Area",
+      "memory_emotions": [],
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "auto",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "resource",
+        "trade"
+      ],
+      "text": "You have been in the Cooking Area.",
+      "tick": 66,
+      "timestamp": 1792243046.4911373,
+      "type": "reaction",
+      "visits": 32
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "area_food_storage"
+      ],
+      "id": "c81c24a0",
+      "importance": 4,
+      "kind": "area",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "area"
+      ],
+      "text": "You have been in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_bacon_rasher_1791213342775_651"
+      ],
+      "id": "b52da826",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "meat"
+      ],
+      "text": "You have seen bacon_rasher in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_hanging dried meats_1791213343149_490"
+      ],
+      "id": "9fd20e84",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "cooking",
+        "kitchen"
+      ],
+      "text": "You have seen Hanging Dried Meats in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_cheddar_cheese_1791213343477_187"
+      ],
+      "id": "c8cfc284",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "dairy"
+      ],
+      "text": "You have seen cheddar_cheese in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_heather_honey_1791213343820_107"
+      ],
+      "id": "ccbea858",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "sweet",
+        "preserve"
+      ],
+      "text": "You have seen heather_honey in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_honeycomb_1791213344173_240"
+      ],
+      "id": "648a7948",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "preserve",
+        "sweet"
+      ],
+      "text": "You have seen honeycomb in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_cod_1791213344573_647"
+      ],
+      "id": "1fdda93b",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "fish"
+      ],
+      "text": "You have seen cod in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_apple_1791213344906_964"
+      ],
+      "id": "f4e4f0e5",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food"
+      ],
+      "text": "You have seen apple in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_acorn_meal_1791213345268_610"
+      ],
+      "id": "8752e655",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "nut",
+        "grain"
+      ],
+      "text": "You have seen acorn_meal in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_beef_roast_1791213345584_50"
+      ],
+      "id": "9c540aa8",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "meat"
+      ],
+      "text": "You have seen beef_roast in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_bean_stew_1791213345939_76"
+      ],
+      "id": "238201ab",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "stew",
+        "legume"
+      ],
+      "text": "You have seen bean_stew in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_porridge_1791213346288_565"
+      ],
+      "id": "616454b1",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "food",
+        "grain"
+      ],
+      "text": "You have seen porridge in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_salt_chunk_q723"
+      ],
+      "id": "37fe7c17",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "food",
+        "ingredient",
+        "seasoning",
+        "mineral"
+      ],
+      "text": "You have seen Salt Chunk in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
+    },
+    {
+      "activation": 1,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "item_shiny_coin"
+      ],
+      "id": "90f6b827",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Food Storage",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "observed",
+        "item",
+        "shiny",
+        "trade",
+        "coin"
+      ],
+      "text": "You have seen Shiny Coin in the Food Storage.",
+      "tick": 1,
+      "timestamp": 1792576376.6229725,
+      "type": "observation",
+      "visits": 1
     }
   ],
   "relationships": {
@@ -97,8 +1258,11 @@
       "first_sighting": false
     },
     "Krikka": {
-      "closeness": 25,
-      "first_sighting": false
+      "closeness": 26,
+      "first_sighting": false,
+      "interaction_count": 1,
+      "last_interaction_tick": 7,
+      "name": "Krikka"
     },
     "Mikka": {
       "closeness": 30,
@@ -116,6 +1280,13 @@
       "closeness": 20,
       "first_sighting": false
     },
+    "Water Skin": {
+      "closeness": -2,
+      "interaction_count": 1,
+      "label": "",
+      "last_interaction_tick": 7,
+      "name": "Water Skin"
+    },
     "Zikka": {
       "closeness": 25,
       "first_sighting": false
@@ -126,7 +1297,5 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": [],
-  "size": "small",
-  "species": "goblin"
+  "recent_hearing": []
 }
