@@ -53,9 +53,10 @@ class StreamRawLLM {
         bubble.setAttribute('data-stream-area', areaName || '');
         const header = document.createElement('div');
         header.className = 'rawllm-chip-header';
+        this._bus._nextLineLabel(bubble); // stamps data-seq
         window.Lit.render(window.Lit.html `
             <span class="bubble-icon">${icon}</span>
-            <span class="bubble-tick">[${this._bus._nextLineLabel(bubble)}]</span>
+            <span class="bubble-tick">[Tick ${tick} | ${this._bus.tickToTime(tick)}]</span>
             <span class="bubble-actor bubble-rawllm-actor">${labelText}</span>
             <span class="rawllm-toggle">▸</span>`, header);
         const body = document.createElement('pre');
@@ -73,6 +74,16 @@ class StreamRawLLM {
     /** Log raw LLM request — collapsed chip with token estimate. */
     logRequest(phaseName, messages, estTokens) {
         const tick = VW?.state?.tick || 0;
+        // Active character + area for this LLM call (bug-560): chips must carry
+        // the real actor/area so the Event Stream filters do not hide them.
+        const actorLabel = String((VW?.agent && typeof VW.agent.getCurrentTurnCharacter === 'function'
+            ? VW.agent.getCurrentTurnCharacter()
+            : null)
+            || (typeof config !== 'undefined' ? config.controllingPlayer : null)
+            || 'LLM');
+        const areaName = String((worldState.players && worldState.players[actorLabel] && worldState.players[actorLabel].current_area)
+            || (worldState.data && worldState.data.players && worldState.data.players[actorLabel] && worldState.data.players[actorLabel].current_area)
+            || '');
         const tokens = estTokens != null ? estTokens : StreamRawLLM.estimateTokens(messages);
         const warn = tokens >= this.TOKEN_WARN;
         const tokSpan = window.Lit.html `<span class=${'tok-meter' + (warn ? ' warn' : '')} title=${warn ? 'Near the context ceiling — history pruning imminent' : 'Estimated tokens'}>~${(tokens / 1000).toFixed(1)}k tok${warn ? ' ⚠' : ''}</span>`;
@@ -84,12 +95,12 @@ class StreamRawLLM {
         const recall = (recallStats && (Date.now() - (recallStats.at || 0)) < 30000)
             ? recallStats : null;
         const thisCallRecalls = recall && messages.some((m) => /=== I REMEMBER ===/.test(String(m.content || '')));
-        this._chipBubble(tick, 'LLM', '📤', window.Lit.html `LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html ` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`, (body) => {
+        this._chipBubble(tick, actorLabel, '📤', window.Lit.html `LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html ` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`, (body) => {
             // Body is PURELY the prompt text (for display). The retrieval
             // "why" is NOT included here — it lives on the separate always-
             // visible stream line, so it can never be mistaken for prompt text.
             body.textContent = messages.map((m) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
-        }, '');
+        }, areaName);
     }
     /** Log raw LLM response with explicit label — collapsed chip. */
     logResponse(label, content) {

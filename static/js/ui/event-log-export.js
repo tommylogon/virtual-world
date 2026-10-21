@@ -166,7 +166,7 @@ window.EventLogExport = (() => {
                 area: clean(bubble.getAttribute('data-stream-area')),
                 type: typeOf(bubble),
                 text: text,
-                icon: firstText(bubble, '.bubble-icon') || undefined,
+                icon: isRaw ? undefined : (firstText(bubble, '.bubble-icon') || undefined),
                 outcome: outcome,
                 payload: payload
             };
