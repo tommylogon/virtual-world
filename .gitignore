@@ -58,6 +58,20 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Combined vault exports (tools/docs_to_md.py, tools/docs_to_pdf.py). Generated
+# from docs/virtualWorld/, 3.3 MB of output that has no reader and already
+# arrived encoding-corrupted once. Regenerate on demand.
+docs_combined.md
+docs_combined.pdf
+tools/docs_combined.pdf
+
+# Sandbox autosave: a runtime snapshot of whatever was open, like data/autosave.json
+data/sandbox_autosave.json
+
+# Headless benchmark output (tools/model_bench.py). task-894 retires the Python
+# harness; the in-app bench keeps its runs in IndexedDB. Never authoring data.
+data/model_bench/
 data/library/characters/jessica.json
 data/autosave.json
 data/embeddings.json
