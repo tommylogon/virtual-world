@@ -261,8 +261,8 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
             ? 'You use The Commons as a town notice board and private letters. The board is public; letters are direct conversations. Delivery is immediate inside The Commons; do not invent physical delivery, devices, or travel. Message text is hidden until you explicitly choose read_chat.'
             : 'You are using the same phone as this character. The list contains only conversations you can access. Message text is hidden until you explicitly choose read_chat.';
         const actions = isTownBoard
-            ? 'Choose one: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, or think to stay quiet. Group conversations are unavailable.'
-            : 'Choose one: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, or think to stay quiet.';
+            ? 'Available tools: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, and remember to save something worth retaining. Group conversations are unavailable.'
+            : 'Available tools: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, and remember to save something worth retaining.';
         return `${persona}
 === YOUR STATE ===
 ${String(context || '').trim()}
@@ -273,11 +273,10 @@ ${contextLine} Use only the conversation ids shown below.
 ${channelLines}
 
 === COMMUNICATION TURN ===
-${actions} Do not take physical world actions on this turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
+${actions} You may call zero or more tools. Make one call at a time. After a read_chat result, consider what you want to do next; replying is optional, not expected. Stop by returning no tool call when you are done or want to stay quiet. Do not take physical world actions on this turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
 Characters whose names you know and may contact: ${names || 'none'}
 
-Respond ONLY as JSON:
-{"inner_monologue":"brief private thought","communication":{"action":"read_chat|send_chat|start_dm${isTownBoard ? '' : '|start_group'}|think","channel_id":null,"recipient":null,"group_name":null,"recipients":[],"text":"","read_mode":"all","n":5,"from_id":null,"to_id":null},"memory":null}`;
+Use tool calls for all communication. Plain response text is private thought only and ends the turn; it never sends a message.`;
     }
     /**
      * Invalid-action auto-retry prompt (task-361): feed back the failed action

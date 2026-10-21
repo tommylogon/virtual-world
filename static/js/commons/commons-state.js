@@ -1,7 +1,7 @@
 "use strict";
 /**
- * @module commons-state - authorized conversation state and polling
- * @contributes CommonsState: selected perspective, channels, messages, polling
+ * @module commons-state - authorized conversation state and live updates
+ * @contributes CommonsState: selected perspective, channels, messages, SSE updates
  * @powers The Commons reactive data flow
  * @relates CommonsApi, CommonsUI
  * @docs docs/virtualWorld/Gameplay/The Commons.md
@@ -17,7 +17,7 @@
         // only after the user explicitly resumes the conversation.
         static manualPaused = true;
         static visibilityPaused = false;
-        static pollingTimer = null;
+        static liveEvents = null;
         static perspective = 'User';
         static selectedChannelId = 'public';
         static theme = 'live_social';
@@ -48,6 +48,7 @@
                 const data = await window.CommonsApi.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
+                window.CommonsAgent?.reconcileParticipants?.();
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
                 if (!this.channels.some((channel) => channel.id === this.selectedChannelId)) {
@@ -107,30 +108,44 @@
             else {
                 window.CommonsAgent.resume();
             }
-            if (this.visibilityPaused) {
-                this.stopPolling();
-            }
-            else if (!this.pollingTimer) {
-                this.startPolling(2500);
-            }
+            if (this.visibilityPaused)
+                this.stopLiveUpdates();
+            else
+                this.startLiveUpdates();
             window.CommonsUI?.renderPauseState();
             this.emit();
         }
-        static startPolling(intervalMs = 2500) {
-            this.stopPolling();
-            if (this.visibilityPaused)
+        static startLiveUpdates() {
+            if (this.visibilityPaused || this.liveEvents || typeof EventSource === 'undefined')
                 return;
-            void this.sync();
-            this.pollingTimer = setInterval(() => {
-                if (!this.visibilityPaused)
-                    void this.sync();
-            }, intervalMs);
+            const source = new EventSource('/api/events');
+            this.liveEvents = source;
+            // Re-sync after opening or reconnecting so changes made while this tab
+            // was disconnected are not lost.
+            source.onopen = () => { void this.sync(); };
+            source.onmessage = (message) => {
+                try {
+                    const event = JSON.parse(message.data);
+                    if (event?.type === 'world_changed'
+                        && String(event.path || '').startsWith('/api/commons/'))
+                        void this.sync();
+                }
+                catch (error) {
+                    console.warn('[CommonsState] Ignoring malformed live event:', error);
+                }
+            };
         }
-        static stopPolling() {
-            if (this.pollingTimer) {
-                clearInterval(this.pollingTimer);
-                this.pollingTimer = null;
-            }
+        static stopLiveUpdates() {
+            this.liveEvents?.close();
+            this.liveEvents = null;
+        }
+        static receiveMessage(message) {
+            if (!message || message.channel_id !== this.selectedChannelId)
+                return;
+            if (this.messages.some((existing) => existing.id === message.id))
+                return;
+            this.messages.push(message);
+            this.emit();
         }
         static recordTurn(charName, turn) {
             if (!this.characterTurns[charName])

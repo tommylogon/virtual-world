@@ -14,6 +14,7 @@
         static remainingMs = {};
         static controllers = {};
         static isRunning = false;
+        static participantSignature = '';
         static getTalkativeness(name) {
             const config = window.config;
             if (config?.getTalkativeness)
@@ -30,6 +31,13 @@
                 void config.setTalkativeness(name, pace);
             this.resetTimer(name);
             return pace;
+        }
+        static randomizeTalkativeness(name, persist = true) {
+            const mode = window.VWSimultaneous;
+            const min = mode?.TALKATIVENESS_MIN_SECONDS || 5;
+            const max = mode?.TALKATIVENESS_MAX_SECONDS || 120;
+            const pace = Math.floor(Math.random() * (max - min + 1)) + min;
+            return this.setTalkativeness(name, pace, persist);
         }
         static start() {
             this.isRunning = true;
@@ -73,7 +81,7 @@
             delete this.deadlines[charName];
             const state = window.CommonsState;
             const participant = state.participants?.[charName];
-            if (!this.isRunning || state.isPaused || !participant?.active || participant.blocked) {
+            if (!this.isRunning || state.isPaused || participant?.control_mode !== 'llm' || !participant.active || participant.blocked) {
                 delete this.remainingMs[charName];
                 return;
             }
@@ -102,23 +110,137 @@
                     this.resetTimer(name);
             }
         }
+        static reconcileParticipants() {
+            const state = window.CommonsState;
+            const participants = state.participants || {};
+            const signature = Object.keys(participants).sort().map(name => {
+                const participant = participants[name];
+                return `${name}:${participant.control_mode || 'unavailable'}:${participant.active ? 1 : 0}:${participant.blocked ? 1 : 0}`;
+            }).join('|');
+            if (signature === this.participantSignature)
+                return;
+            this.participantSignature = signature;
+            for (const [name, controller] of Object.entries(this.controllers)) {
+                const participant = participants[name];
+                if (participant?.control_mode !== 'llm' || !participant.active || participant.blocked)
+                    controller.abort();
+            }
+            if (this.isRunning && !state.isPaused)
+                this.scheduleAll();
+        }
         static async stepOne(charName) {
             const state = window.CommonsState;
             const participants = state.participants || {};
-            const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].active && !participants[n].blocked);
-            if (available.length === 0)
+            const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].control_mode === 'llm' && participants[n].active && !participants[n].blocked);
+            const manuallySelected = charName && available.includes(charName);
+            if (!manuallySelected && available.length === 0)
                 return;
-            const chosen = (charName && available.includes(charName))
+            const chosen = manuallySelected
                 ? charName
                 : available[Math.floor(Math.random() * available.length)];
             await this.actCharacter(chosen, true);
+        }
+        static communicationTools(theme) {
+            const tools = [
+                { type: 'function', function: { name: 'read_chat', description: 'Read messages from a channel you belong to. Use this before responding to messages you have not seen.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, mode: { type: 'string', enum: ['all', 'latest', 'range'] }, n: { type: 'integer', minimum: 1, maximum: 20 }, from_id: { type: 'integer' }, to_id: { type: 'integer' } }, required: ['channel_id'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'send_chat', description: 'Send a message to a channel you belong to. Replying is optional.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, text: { type: 'string' } }, required: ['channel_id', 'text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'start_dm', description: 'Start or find a direct conversation and send its first message.', parameters: { type: 'object', properties: { recipient: { type: 'string' }, text: { type: 'string' } }, required: ['recipient', 'text'], additionalProperties: false } } },
+                { type: 'function', function: { name: 'remember', description: 'Save a conversation fact or commitment worth remembering. Use only when useful.', parameters: { type: 'object', properties: { text: { type: 'string' }, importance: { type: 'integer', minimum: 1, maximum: 10 }, tags: { type: 'array', items: { type: 'string' } } }, required: ['text'], additionalProperties: false } } },
+            ];
+            if (theme !== 'town_board')
+                tools.push({ type: 'function', function: { name: 'start_group', description: 'Create a group conversation with known characters and send its first message.', parameters: { type: 'object', properties: { group_name: { type: 'string' }, recipients: { type: 'array', items: { type: 'string' } }, text: { type: 'string' } }, required: ['group_name', 'recipients', 'text'], additionalProperties: false } } });
+            return tools;
+        }
+        static async executeCommunicationTool(charName, call, channels, knownCharacters, theme, api, signal) {
+            const name = String(call?.function?.name || '');
+            let args;
+            try {
+                args = typeof call?.function?.arguments === 'string' ? JSON.parse(call.function.arguments) : call?.function?.arguments;
+            }
+            catch (_) {
+                return { result: { ok: false, error: 'Arguments were not valid JSON.' }, summary: '', readMessages: [] };
+            }
+            if (!args || typeof args !== 'object')
+                return { result: { ok: false, error: 'Arguments must be an object.' }, summary: '', readMessages: [] };
+            const channelFor = (id) => channels.find(channel => channel.id === String(id || ''));
+            const text = typeof args.text === 'string' ? args.text.trim().slice(0, 4000) : '';
+            try {
+                if (name === 'read_chat') {
+                    const channel = channelFor(args.channel_id);
+                    if (!channel)
+                        throw new Error('That channel is not available to this character.');
+                    const mode = ['all', 'latest', 'range'].includes(args.mode) ? args.mode : 'all';
+                    const n = Math.max(1, Math.min(20, Number(args.n) || 5));
+                    const read = await api.readMessages(charName, channel.id, mode, n, args.from_id, args.to_id, signal);
+                    const messages = Array.isArray(read?.messages) ? read.messages : [];
+                    return {
+                        result: { ok: true, channel: channel.name, messages: messages.slice(-20).map((message) => ({ id: message.id, author: message.author, text: String(message.text || '').slice(0, 1000) })) },
+                        summary: `read ${messages.length} message${messages.length === 1 ? '' : 's'} in #${channel.name || 'chat'}`,
+                        readMessages: messages,
+                    };
+                }
+                if (name === 'send_chat') {
+                    const channel = channelFor(args.channel_id);
+                    if (!channel)
+                        throw new Error('That channel is not available to this character.');
+                    if (!text)
+                        throw new Error('Message text is required.');
+                    if (channel.kind !== 'public' && Array.isArray(channel.members) && !channel.members.includes(charName))
+                        throw new Error('This character is not a member of that channel.');
+                    const posted = await api.postMessage(charName, text, channel.id, signal);
+                    return { result: { ok: true, message_id: posted?.message?.id || posted?.id || null }, summary: `sent a message to #${channel.name || 'chat'}`, readMessages: [] };
+                }
+                if (name === 'start_dm') {
+                    const recipient = String(args.recipient || '');
+                    if (!knownCharacters.includes(recipient))
+                        throw new Error('That recipient is not a known character.');
+                    if (!text)
+                        throw new Error('Message text is required.');
+                    const created = await api.createChannel({ creator: charName, kind: 'dm', other: recipient }, signal);
+                    const channel = created?.channel;
+                    if (!channel?.id)
+                        throw new Error('The direct conversation could not be created.');
+                    const posted = await api.postMessage(charName, text, channel.id, signal);
+                    return { result: { ok: true, channel_id: channel.id, message_id: posted?.message?.id || posted?.id || null }, summary: `started a direct conversation with ${recipient}`, readMessages: [] };
+                }
+                if (name === 'start_group') {
+                    if (theme === 'town_board')
+                        throw new Error('Group conversations are unavailable on the town board.');
+                    const groupName = String(args.group_name || '').trim().slice(0, 100);
+                    const recipients = Array.isArray(args.recipients) ? [...new Set(args.recipients.map(String))] : [];
+                    if (!groupName || !text)
+                        throw new Error('A group name and first message are required.');
+                    if (!recipients.length || recipients.some(recipient => recipient === charName || !knownCharacters.includes(recipient)))
+                        throw new Error('Choose one or more known characters other than yourself.');
+                    const created = await api.createChannel({ creator: charName, kind: 'group', name: groupName, members: [charName, ...recipients] }, signal);
+                    const channel = created?.channel;
+                    if (!channel?.id)
+                        throw new Error('The group conversation could not be created.');
+                    const posted = await api.postMessage(charName, text, channel.id, signal);
+                    return { result: { ok: true, channel_id: channel.id, message_id: posted?.message?.id || posted?.id || null }, summary: `started group #${groupName}`, readMessages: [] };
+                }
+                if (name === 'remember') {
+                    if (!text)
+                        throw new Error('Memory text is required.');
+                    const importance = Math.max(1, Math.min(10, Number(args.importance) || 5));
+                    const tags = Array.isArray(args.tags) ? args.tags.map(String).slice(0, 10) : ['conversation', 'chat'];
+                    await api.storeMemory(charName, text, importance, tags, signal);
+                    return { result: { ok: true }, summary: 'saved a conversation memory', readMessages: [] };
+                }
+                throw new Error(`Unknown communication tool: ${name || '(empty)'}`);
+            }
+            catch (error) {
+                if (signal.aborted)
+                    throw error;
+                return { result: { ok: false, error: String(error?.message || error) }, summary: '', readMessages: [] };
+            }
         }
         static async actCharacter(charName, isManualStep = false) {
             const state = window.CommonsState;
             if (!isManualStep && state.isPaused)
                 return;
             const participant = state.participants?.[charName];
-            if (!participant || !participant.active || participant.blocked)
+            if (!participant || participant.control_mode !== 'llm' || !participant.active || participant.blocked)
                 return;
             if (this.controllers[charName])
                 return;
@@ -149,114 +271,72 @@
                     ? phone.known_characters.filter((name) => typeof name === 'string' && name !== charName && name !== 'User')
                     : [];
                 const promptBuilder = window.PromptBuilder;
-                const responseParser = window.ResponseParser;
-                if (typeof promptBuilder?.buildCommunicationPrompt !== 'function'
-                    || typeof responseParser?.parseCommunication !== 'function') {
-                    throw new Error('Shared character prompt/parser modules are unavailable');
-                }
+                if (typeof promptBuilder?.buildCommunicationPrompt !== 'function')
+                    throw new Error('Shared character prompt module is unavailable');
                 const userPrompt = promptBuilder.buildCommunicationPrompt(player, memoryText, channels, knownCharacters, theme);
-                if (!llm || typeof llm.chat !== 'function')
-                    throw new Error('LLM client is not available');
-                const reply = await llm.chat([
+                if (!llm || typeof llm.chatWithTools !== 'function')
+                    throw new Error('LLM tool-calling client is not available');
+                const messages = [
                     {
                         role: 'system',
                         content: theme === 'town_board'
-                            ? 'Use the existing character identity and state in the user context. This is a town-board and private-letter turn within The Commons: only choose a communication action. Do not invent physical delivery or claim messages you have not explicitly read.'
-                            : 'Use the existing character identity and state in the user context. This is a phone communication turn: only choose a communication action. Do not claim messages you have not explicitly read.',
+                            ? 'Use the existing character identity and state in the user context. This is a town-board communication turn. Use the communication tools when useful, one at a time. Reading does not require replying. You may stop without taking an action. Do not invent physical delivery or claim messages you have not explicitly read.'
+                            : 'Use the existing character identity and state in the user context. This is a phone communication turn. Use the communication tools when useful, one at a time. Reading does not require replying. You may stop without taking an action. Do not claim messages you have not explicitly read.',
                     },
                     { role: 'user', content: userPrompt },
-                ], {
-                    streaming: false,
-                    max_tokens: 360,
-                    signal,
-                    label: 'commons/communication',
-                });
-                if ((!isManualStep && state.isPaused) || signal.aborted || !reply)
-                    return;
-                const decision = responseParser.parseCommunication(reply);
-                if (decision.parseError) {
-                    console.warn(`[CommonsAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
-                    return;
-                }
-                let actionSummary = 'chose not to speak';
-                if (decision.action === 'send_chat') {
-                    const ch = channels.find((c) => c.id === decision.channelId);
-                    actionSummary = `posted to #${ch?.name || 'chat'}`;
-                }
-                else if (decision.action === 'read_chat') {
-                    const ch = channels.find((c) => c.id === decision.channelId)
-                        || channels.find((c) => c.unread_count > 0);
-                    actionSummary = `read messages in #${ch?.name || 'chat'}`;
-                }
-                else if (decision.action === 'start_dm') {
-                    actionSummary = `sent direct message to ${decision.recipient || 'someone'}`;
-                }
-                else if (decision.action === 'start_group') {
-                    actionSummary = `created group "${decision.groupName || 'group'}"`;
-                }
-                if (typeof state.recordTurn === 'function') {
-                    state.recordTurn(charName, {
-                        inner: decision.inner || '',
-                        action: decision.action,
-                        summary: actionSummary,
-                        detail: {
-                            text: decision.text,
-                            channelId: decision.channelId,
-                            recipient: decision.recipient,
-                            groupName: decision.groupName,
-                            memory: decision.memory,
-                        }
+                ];
+                const tools = this.communicationTools(theme);
+                const summaries = [];
+                const readMessages = [];
+                let inner = '';
+                const maxToolRounds = 6;
+                for (let round = 0; round < maxToolRounds; round++) {
+                    const reply = await llm.chatWithTools(messages, {
+                        withTools: true, tools, tool_choice: 'auto', streaming: false, max_tokens: 360,
+                        signal, label: 'commons/communication',
                     });
-                }
-                if (state.characterContextCache) {
-                    state.characterContextCache[charName] = player;
-                }
-                let readMessages = [];
-                if (decision.action === 'read_chat') {
-                    const selected = channels.find((channel) => channel.id === decision.channelId)
-                        || channels.find((channel) => channel.unread_count > 0);
-                    if (selected) {
-                        const result = await api.readMessages(charName, selected.id, decision.readMode, decision.n, decision.fromId, decision.toId, signal);
-                        readMessages = result.messages || [];
+                    if ((!isManualStep && state.isPaused) || signal.aborted || !reply)
+                        return;
+                    if (typeof reply.content === 'string')
+                        inner = reply.content.slice(0, 1000);
+                    const calls = Array.isArray(reply.tool_calls) ? reply.tool_calls : [];
+                    if (!calls.length)
+                        break;
+                    messages.push({ role: 'assistant', content: reply.content || '', tool_calls: calls });
+                    for (let index = 0; index < calls.length; index++) {
+                        let outcome;
+                        if (index > 0) {
+                            outcome = { result: { ok: false, error: 'Only the first tool call was run. Review its result before choosing another action.' }, summary: '', readMessages: [] };
+                        }
+                        else {
+                            outcome = await this.executeCommunicationTool(charName, calls[index], channels, knownCharacters, theme, api, signal);
+                            if (outcome.summary)
+                                summaries.push(outcome.summary);
+                            readMessages.push(...outcome.readMessages);
+                        }
+                        messages.push({ role: 'tool', tool_call_id: calls[index].id, content: JSON.stringify(outcome.result) });
                     }
-                }
-                else if (decision.action === 'send_chat' && decision.text) {
-                    const selected = channels.find((channel) => channel.id === decision.channelId);
-                    if (selected)
-                        await api.postMessage(charName, decision.text, selected.id, signal);
-                }
-                else if (decision.action === 'start_dm' && decision.recipient
-                    && knownCharacters.includes(decision.recipient) && decision.text) {
-                    const result = await api.createChannel({
-                        creator: charName,
-                        kind: 'dm',
-                        other: decision.recipient,
-                    }, signal);
-                    await api.postMessage(charName, decision.text, result.channel.id, signal);
-                }
-                else if (decision.action === 'start_group' && decision.groupName
-                    && theme !== 'town_board'
-                    && decision.recipients.length > 0 && decision.text
-                    && decision.recipients.every((name) => name !== charName && knownCharacters.includes(name))) {
-                    const result = await api.createChannel({
-                        creator: charName,
-                        kind: 'group',
-                        name: decision.groupName,
-                        members: [charName, ...decision.recipients],
-                    }, signal);
-                    await api.postMessage(charName, decision.text, result.channel.id, signal);
                 }
                 if ((!isManualStep && state.isPaused) || signal.aborted)
                     return;
+                if (state.characterContextCache) {
+                    state.characterContextCache[charName] = player;
+                }
                 const memoriesToStore = [];
                 if (readMessages.length) {
                     const summary = readMessages.slice(-4).map((message) => `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ').slice(0, 180)}`).join('; ');
                     memoriesToStore.push(`I read the conversation: ${summary}.`);
                 }
-                if (decision.memory?.text)
-                    memoriesToStore.push(decision.memory.text);
                 if (memoriesToStore.length) {
-                    await api.storeMemory(charName, memoriesToStore.join(' '), decision.memory?.importance || 5, decision.memory?.tags?.length ? decision.memory.tags : ['conversation', 'chat'], signal);
+                    await api.storeMemory(charName, memoriesToStore.join(' '), 5, ['conversation', 'chat'], signal);
+                }
+                if (typeof state.recordTurn === 'function') {
+                    state.recordTurn(charName, {
+                        inner,
+                        action: summaries.length ? summaries.join(' -> ') : 'think',
+                        summary: summaries.length ? summaries.join('; ') : 'chose to stay quiet',
+                        detail: { actions: summaries },
+                    });
                 }
             }
             catch (error) {

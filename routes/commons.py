@@ -84,10 +84,22 @@ def register_commons_routes(app):
             and player is not None and hasattr(player, "knows_name")
             and player.knows_name(name)
         ]
-        participant_data = {
-            name: {"active": bool(row.get("active", True)), "blocked": bool(row.get("blocked", False))}
-            for name, row in chat.participants.items()
-        }
+        participant_data = {}
+        for name, row in chat.participants.items():
+            character = (getattr(world, "players", {}) or {}).get(name)
+            if character is None:
+                control_mode = "unavailable"
+            elif getattr(character, "simple_npc", False):
+                control_mode = "npc"
+            elif not bool(getattr(character, "autonomy", True)):
+                control_mode = "human"
+            else:
+                control_mode = "llm"
+            participant_data[name] = {
+                "active": bool(row.get("active", True)),
+                "blocked": bool(row.get("blocked", False)),
+                "control_mode": control_mode,
+            }
         return jsonify({
             "perspective": perspective,
             "channels": [

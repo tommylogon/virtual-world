@@ -11,7 +11,7 @@ function commonsHarness(reply, knownCharacters = ['Lysa'], theme = 'live_social'
     window.CommonsState = Object.assign(Object.create(saved.state || {}), {
         manualPaused: false,
         visibilityPaused: false,
-        participants: { Mira: { active: true, blocked: false } },
+        participants: { Mira: { active: true, blocked: false, control_mode: 'llm' } },
         characterTurns: {},
         lastActed: null,
         selectedDrawerCharacter: null,
@@ -58,14 +58,32 @@ function commonsHarness(reply, knownCharacters = ['Lysa'], theme = 'live_social'
         },
         storeMemory: async (name, text) => {
             calls.push(['memory', name]);
-            memoryWritten = text;
+            memoryWritten += `${memoryWritten ? ' ' : ''}${text}`;
         },
     };
     window.llmClient = {
-        chat: async (messages) => {
-            calls.push(['llm']);
-            decisionPrompt = messages[1].content;
-            return JSON.stringify(reply);
+        chatWithTools: async (messages) => {
+            calls.push(['llm-tool-turn', messages.length]);
+            if (messages.length === 2) {
+                decisionPrompt = messages[1].content;
+                const action = reply.communication?.action;
+                if (action && action !== 'think') {
+                    const fields = { ...reply.communication };
+                    delete fields.action;
+                    const map = { read_mode: 'mode', from_id: 'from_id', to_id: 'to_id', group_name: 'group_name' };
+                    const args = {};
+                    for (const [key, value] of Object.entries(fields)) args[map[key] || key] = value;
+                    return { content: '', tool_calls: [{ id: 'legacy-action', function: { name: action, arguments: JSON.stringify(args) } }] };
+                }
+                if (reply.memory?.text) return { content: '', tool_calls: [{ id: 'remember', function: { name: 'remember', arguments: JSON.stringify(reply.memory) } }] };
+                return { content: reply.inner_monologue || '', tool_calls: [] };
+            }
+            const actionMessages = messages.filter(message => message.role === 'assistant' && message.tool_calls?.length);
+            const actionCall = actionMessages[actionMessages.length - 1]?.tool_calls?.[0];
+            if (actionCall?.function?.name !== 'remember' && reply.memory?.text) {
+                return { content: '', tool_calls: [{ id: 'remember', function: { name: 'remember', arguments: JSON.stringify(reply.memory) } }] };
+            }
+            return { content: reply.inner_monologue || '', tool_calls: [] };
         },
     };
     return {
@@ -122,6 +140,32 @@ test('the commons: send routes only to the selected authorized channel', async (
         ]);
         assertFalse(h.calls.some(call => call[0] === 'read'));
     } finally {
+        h.restore();
+    }
+});
+
+test('the commons: a character can read and then optionally reply in the same turn', async () => {
+    const h = commonsHarness({ inner_monologue: 'I will consider what she said.', communication: { action: 'think' }, memory: null });
+    const original = window.llmClient.chatWithTools;
+    let calls = 0;
+    try {
+        window.llmClient.chatWithTools = async (messages) => {
+            calls++;
+            if (calls === 1) return { content: '', tool_calls: [{ id: 'read-first', function: { name: 'read_chat', arguments: JSON.stringify({ channel_id: 'group-night', mode: 'latest', n: 5 }) } }] };
+            if (calls === 2) {
+                assertTrue(messages.some(message => message.role === 'tool' && message.content.includes('The door is open.')));
+                return { content: '', tool_calls: [{ id: 'reply-second', function: { name: 'send_chat', arguments: JSON.stringify({ channel_id: 'group-night', text: 'I am on my way.' }) } }] };
+            }
+            return { content: 'I should go help.', tool_calls: [] };
+        };
+        await CommonsAgent.actCharacter('Mira');
+        assertEq(calls, 3);
+        assertTrue(h.calls.some(call => call[0] === 'read' && call[2] === 'group-night'));
+        assertTrue(h.calls.some(call => call[0] === 'post' && call[2] === 'I am on my way.'));
+        assertTrue(window.CommonsState.lastActed.summary.includes('read 1 message'));
+        assertTrue(window.CommonsState.lastActed.summary.includes('sent a message'));
+    } finally {
+        window.llmClient.chatWithTools = original;
         h.restore();
     }
 });
@@ -275,6 +319,53 @@ test('the commons: stepOne allows a character to act when simulation is paused',
     }
 });
 
+test('the commons: human and simple NPC control modes never receive Commons LLM turns', async () => {
+    for (const controlMode of ['human', 'npc']) {
+        const h = commonsHarness({
+            inner_monologue: 'This must not be generated.',
+            communication: { action: 'send_chat', channel_id: 'group-night', text: 'Must not be sent.' },
+            memory: null,
+        });
+        try {
+            window.CommonsState.participants.Mira.control_mode = controlMode;
+            CommonsAgent.isRunning = true;
+            CommonsAgent.resetTimer('Mira');
+            const inFlight = new AbortController();
+            CommonsAgent.controllers.Mira = inFlight;
+            CommonsAgent.reconcileParticipants();
+            assertTrue(inFlight.signal.aborted);
+            delete CommonsAgent.controllers.Mira;
+            await CommonsAgent.stepOne('Mira');
+            await CommonsAgent.actCharacter('Mira');
+            assertFalse(CommonsAgent.timers.Mira);
+            assertFalse(h.calls.some(call => call[0] === 'llm-tool-turn'));
+            assertFalse(h.calls.some(call => ['read', 'post'].includes(call[0])));
+        } finally {
+            CommonsAgent.isRunning = false;
+            CommonsAgent.timers = {};
+            CommonsAgent.deadlines = {};
+            h.restore();
+        }
+    }
+});
+
+test('the commons: random talkativeness picks a persistable cooldown inside the slider range', () => {
+    const originalRandom = Math.random;
+    const originalPaces = window.config.talkativenessByCharacter;
+    window.config.talkativenessByCharacter = {};
+    try {
+        Math.random = () => 0;
+        assertEq(CommonsAgent.randomizeTalkativeness('Mira', false), 5);
+        Math.random = () => 0.999999;
+        assertEq(CommonsAgent.randomizeTalkativeness('Mira', false), 120);
+        assertEq(window.config.talkativenessByCharacter.Mira, 120);
+    } finally {
+        Math.random = originalRandom;
+        if (originalPaces === undefined) delete window.config.talkativenessByCharacter;
+        else window.config.talkativenessByCharacter = originalPaces;
+    }
+});
+
 test('the commons: shared prompt builder uses existing Player persona and hides message bodies', () => {
     const prompt = PromptBuilder.buildCommunicationPrompt(
         { name: 'Mira', personality: 'careful and dry-witted', traits: { patient: true }, state: 'awake' },
@@ -405,11 +496,11 @@ test('the commons: actCharacter records inner monologue and updates lastActed an
     try {
         await CommonsAgent.actCharacter('Mira');
         assertEq(window.CommonsState.lastActed.charName, 'Mira');
-        assertEq(window.CommonsState.lastActed.action, 'send_chat');
+        assertTrue(window.CommonsState.lastActed.action.includes('sent a message'));
         const turns = window.CommonsState.characterTurns['Mira'];
         assertTrue(Array.isArray(turns) && turns.length > 0);
         assertEq(turns[0].inner, 'The trail is getting colder; I should ask if anyone saw tracks.');
-        assertEq(turns[0].action, 'send_chat');
+        assertTrue(turns[0].action.includes('sent a message'));
 
         window.CommonsState.openDrawer('Mira');
         assertEq(window.CommonsState.selectedDrawerCharacter, 'Mira');

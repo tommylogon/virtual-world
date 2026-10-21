@@ -27,8 +27,8 @@
                 if (input)
                     input.value = '';
                 try {
-                    await window.CommonsApi.postMessage(state.perspective, text, state.selectedChannelId);
-                    await state.sync();
+                    const result = await window.CommonsApi.postMessage(state.perspective, text, state.selectedChannelId);
+                    state.receiveMessage(result.message);
                 }
                 catch (error) {
                     console.error('Failed to post message:', error);
@@ -63,10 +63,24 @@
             });
             if (participantList) {
                 participantList.addEventListener('click', (event) => {
-                    const button = event.target.closest('[data-role="act"]');
-                    const name = button?.dataset.character;
+                    const target = event.target;
+                    const randomButton = target.closest('[data-role="pace-random"]');
+                    const name = randomButton?.dataset.character;
                     if (name) {
-                        void window.CommonsAgent.stepOne(name);
+                        const pace = window.CommonsAgent.randomizeTalkativeness(name, true);
+                        const slider = participantList.querySelector(`input[data-role="pace"][data-character="${CSS.escape(name)}"]`);
+                        if (slider)
+                            slider.value = String(pace);
+                        const output = participantList.querySelector(`[data-pace-for="${CSS.escape(name)}"]`);
+                        if (output)
+                            output.textContent = `${pace}s`;
+                        this.renderRateEstimate();
+                        return;
+                    }
+                    const button = target.closest('[data-role="act"]');
+                    const actName = button?.dataset.character;
+                    if (actName) {
+                        void window.CommonsAgent.stepOne(actName);
                     }
                 });
                 participantList.addEventListener('change', (event) => {
@@ -362,15 +376,19 @@
                 const participant = participants[name];
                 const pace = window.CommonsAgent.getTalkativeness(name);
                 const isActing = Boolean(window.CommonsAgent.controllers?.[name]);
+                const controlMode = participant.control_mode || 'unavailable';
+                const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
+                const canUseLlm = controlMode === 'llm';
+                const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
                 return `<div class="participant-item"><div class="participant-row">
-                    <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}</span>
+                    <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}${controlLabel ? ` <span class="commons-control-badge">${controlLabel}</span>` : ''}</span>
                     <span class="participant-presence ${isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : ''}">${isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
-                    <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="Trigger a turn for ${escapeHtml(name)}" ${isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
+                    <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="${escapeHtml(actTitle)}" ${!canUseLlm || isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
                 </div><div class="participant-controls">
                     <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="active" ${participant.active ? 'checked' : ''}> In chat</label>
                     <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
-                </div><div class="talkativeness-control"><div class="talkativeness-label"><span>Reply pace</span><span data-pace-for="${escapeHtml(name)}">${pace}s</span></div>
-                    <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} reply cooldown"></div></div>`;
+                </div>${canUseLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
+                    <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
             }).join('');
         }
         static renderGroupRoster() {
@@ -472,7 +490,7 @@
             if (!estimate)
                 return;
             const participants = window.CommonsState.participants || {};
-            const active = Object.keys(participants).filter(name => name !== 'User' && participants[name].active && !participants[name].blocked);
+            const active = Object.keys(participants).filter(name => name !== 'User' && participants[name].control_mode === 'llm' && participants[name].active && !participants[name].blocked);
             const perMinute = active.reduce((sum, name) => sum + 60 / window.CommonsAgent.getTalkativeness(name), 0);
             estimate.textContent = `${active.length} active · about ${perMinute.toFixed(1)} scheduled turns/min`;
         }

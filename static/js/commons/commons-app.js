@@ -14,7 +14,7 @@
         window.llmClient?.configure(config?.toLLMConfig?.());
         window.CommonsUI.init();
         await window.CommonsState.sync();
-        window.CommonsState.startPolling(2500);
+        window.CommonsState.startLiveUpdates();
         window.CommonsAgent.start();
         // Auto-pause when tab is hidden, resume when visible
         document.addEventListener('visibilitychange', () => {

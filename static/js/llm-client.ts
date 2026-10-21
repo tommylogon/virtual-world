@@ -10,6 +10,10 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
+// Shared by editor and standalone pages. The LLM client logs into VW when the
+// editor namespace is available, but communication pages also use this client.
+(window as any).VW = (window as any).VW || {};
+
 /** How many times a length-stopped response is re-requested with a larger
  *  budget before the caller is told the answer is genuinely incomplete. */
 const MAX_TRUNCATION_RETRIES = 3;

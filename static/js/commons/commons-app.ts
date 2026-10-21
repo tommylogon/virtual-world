@@ -15,7 +15,7 @@
         (window as any).llmClient?.configure(config?.toLLMConfig?.());
         (window as any).CommonsUI.init();
         await (window as any).CommonsState.sync();
-        (window as any).CommonsState.startPolling(2500);
+        (window as any).CommonsState.startLiveUpdates();
         (window as any).CommonsAgent.start();
 
         // Auto-pause when tab is hidden, resume when visible

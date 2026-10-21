@@ -10,6 +10,9 @@
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Shared by editor and standalone pages. The LLM client logs into VW when the
+// editor namespace is available, but communication pages also use this client.
+window.VW = window.VW || {};
 /** How many times a length-stopped response is re-requested with a larger
  *  budget before the caller is told the answer is genuinely incomplete. */
 const MAX_TRUNCATION_RETRIES = 3;

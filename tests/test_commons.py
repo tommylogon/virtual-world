@@ -186,6 +186,10 @@ def test_commons_theme_route_rejects_unknown_or_non_string_modes():
 
 def test_commons_state_lists_only_characters_whose_names_the_perspective_knows():
     mira = Player("Mira")
+    lysa = Player("Lysa")
+    lysa.autonomy = False
+    stranger = Player("Stranger")
+    stranger.simple_npc = True
     mira.relationships = {
         "Lysa": {"first_sighting": False},
         "Stranger": {"first_sighting": True},
@@ -195,8 +199,8 @@ def test_commons_state_lists_only_characters_whose_names_the_perspective_knows()
     app.world = SimpleNamespace(
         players={
             "Mira": mira,
-            "Lysa": Player("Lysa"),
-            "Stranger": Player("Stranger"),
+            "Lysa": lysa,
+            "Stranger": stranger,
         },
         commons=Commons(),
         time_ticks=0,
@@ -207,6 +211,10 @@ def test_commons_state_lists_only_characters_whose_names_the_perspective_knows()
 
     assert response.status_code == 200
     assert response.get_json()["known_characters"] == ["Lysa"]
+    participants = response.get_json()["participants"]
+    assert participants["Mira"]["control_mode"] == "llm"
+    assert participants["Lysa"]["control_mode"] == "human"
+    assert participants["Stranger"]["control_mode"] == "npc"
 
 
 def test_former_page_url_redirects_to_commons():
