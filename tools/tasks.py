@@ -57,6 +57,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from collections import Counter, deque
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -1257,7 +1258,23 @@ def _rewrite_status(path: Path, status: str) -> None:
         head = re.sub(r"^status:\s*.*$", f"status: {status}", head, count=1, flags=re.MULTILINE)
     else:
         head = head.rstrip("\n") + f"\nstatus: {status}"
-    path.write_text("---" + head + text[end:], encoding="utf-8")
+    body = "---" + head + text[end:]
+    # Right after `git mv`, a vault watcher (Obsidian's indexer, the Windows
+    # indexer or Defender) can still hold the renamed file, and the first
+    # write then fails with `OSError: [Errno 22] Invalid argument` on Windows.
+    # That used to leave the card moved but its frontmatter still saying
+    # `status: review`, and abort `move` before it retargeted inbound links.
+    # Retry a few times before giving up.
+    last: Optional[OSError] = None
+    for attempt in range(6):
+        try:
+            path.write_text(body, encoding="utf-8")
+            return
+        except OSError as exc:
+            last = exc
+            time.sleep(0.15 * (attempt + 1))
+    raise last if last else RuntimeError("status rewrite failed")
+
 
 
 def cmd_move(args) -> int:
