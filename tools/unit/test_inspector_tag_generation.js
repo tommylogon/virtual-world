@@ -144,24 +144,25 @@ test('a character tag is live for a fear and idle for an interest', () => {
 });
 
 test('item tags are read from the id-keyed object the endpoint actually returns', async () => {
-    // GET /api/library/items answers {acorn: {...}, adze: {...}, ...}, not a
-    // list. The original generator read it as an array, silently got an empty
-    // set, and fell through to its graph fallback — so for a while the
-    // "library vocabulary" it offered the model was never the library at all.
-    window.fetch = (url) => {
-        if (url === '/api/library/items') {
-            return Promise.resolve({ json: () => Promise.resolve({
-                acorn: { tags: ['food', 'plant'] },
-                adze: { tags: ['Tool', 'scrap'] }
-            }) });
-        }
-        if (url === '/api/tags/search') {
-            return Promise.resolve({ json: () => Promise.resolve([{ id: 'food' }]) });
-        }
-        throw new Error(`unexpected fetch: ${url}`);
-    };
-    assertEq([...(await AV._collectItemTags())].sort(), ['food', 'plant', 'scrap', 'tool'],
-        '439 item tags in the real library, not zero');
+    const origFetch = window.fetch;
+    try {
+        window.fetch = (url) => {
+            if (url === '/api/library/items') {
+                return Promise.resolve({ json: () => Promise.resolve({
+                    acorn: { tags: ['food', 'plant'] },
+                    adze: { tags: ['Tool', 'scrap'] }
+                }) });
+            }
+            if (url === '/api/tags/search') {
+                return Promise.resolve({ json: () => Promise.resolve([{ id: 'food' }]) });
+            }
+            throw new Error(`unexpected fetch: ${url}`);
+        };
+        assertEq([...(await AV._collectItemTags())].sort(), ['food', 'plant', 'scrap', 'tool'],
+            '439 item tags in the real library, not zero');
+    } finally {
+        window.fetch = origFetch;
+    }
 });
 
 // ───────────────── the write that follows an LLM round-trip ─────────────────
