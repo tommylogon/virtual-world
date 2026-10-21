@@ -48,11 +48,11 @@ kyrie johansenkyrie johansen slowly sweeps their gaze across the dim hall, high 
 ▶️
 kyrie johansenlook
 🔎
-kyrie johansenThe light is dim — you can just make out the shapes of things here, details lost in shadow. a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier...
+kyrie johansenThe light is dim  -  you can just make out the shapes of things here, details lost in shadow. a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier...
 🎭
 kyrie johansenkyrie johansen swallows dryly, eyes drifting from the skull-locked door over to the water bottle in sammy's hands.
 💬
-kyrie johansenSammy — hey. Please tell me that water bottle's full. My throat's killing me, I'll owe you big. Share a sip?
+kyrie johansenSammy  -  hey. Please tell me that water bottle's full. My throat's killing me, I'll owe you big. Share a sip?
 said
 🎭
 kyrie johansenkyrie johansen crosses the foyer toward the coat rack, rubbing their throat.
@@ -65,3 +65,10 @@ kyrie johansenkyrie johansen swallows dryly, eyes fixed on sammy's hands, rockin
 
 becomming 
 Kyrie presses a palm against their dry mouth, scanning the dim entrance hall for anything that might hold water. They quietly approach a nearby vase and peer inside, only to find nothing useful. Frustrated and increasingly thirsty, they wipe the dust from their fingertips and survey the room, their attention eventually settling on the water bottle in Sammy's hands. Swallowing painfully, Kyrie approaches Sammy and asks if the bottle is full, pleading for a sip and promising to repay the favor. They stand before Sammy, eyes fixed on the bottle, shifting nervously as they wait for an answer.
+
+
+
+sprite editor
+1. allow drag to resize each grid after making the cells to be sliced
+2. save the image to allow it to be reedited at a later time
+

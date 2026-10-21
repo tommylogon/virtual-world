@@ -1614,7 +1614,7 @@ const InspectorMindView = (() => {
         const player = (worldState.players || {})[name];
         // One-liner is authored identity prose, never equipment projection.
         const prose = ((player?.base_description || '') as string);
-        const oneLiner = prose ? esc(prose.split('\n')[0].slice(0, 160)) : '';
+        const oneLiner = prose ? esc(prose.split('\n')[0]) : '';
         return `<div class="pf-head">
             <div class="pf-head-main">
                 <div class="pf-head-name">${esc(name)}</div>

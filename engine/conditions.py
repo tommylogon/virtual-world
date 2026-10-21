@@ -318,6 +318,14 @@ class ConditionsSystem:
         player.remove_condition(condition)
         # task-486: removal can also change appearance (e.g. blushing fades).
         self._refresh_description(player)
+        if condition == 'dead':
+            try:
+                from engine.lived_log import record as lived_record
+                lived_record(player, getattr(self.player_manager, 'time_ticks', 0), 'resurrection', 'restored to life', why='condition:remove_dead', area=getattr(player, 'current_area', ''), salient=True)
+                from engine import lived_log_memory
+                lived_log_memory.bridge(player)
+            except Exception as e:
+                logger.warning('[resurrection] lived_record %s: %s', player_name, e)
 
     def has_condition(self, player_name: str, condition: str) -> bool:
         """Check if a player has a condition (any instance present)."""

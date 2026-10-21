@@ -1,7 +1,7 @@
 /**
- * task-700 — plan-grounding: typed plan steps must resolve against the facts
+ * task-700 - plan-grounding: typed plan steps must resolve against the facts
  * the plan prompt was built from. The Vekka regression: a plan step that
- * references room-description flavor ("use hanging meat" — the meat hangs in
+ * references room-description flavor ("use hanging meat" - the meat hangs in
  * the prose but is NOT an interactable item) is REJECTED at plan time instead
  * of burning a turn on "You don't have 'hanging meat'".
  */
@@ -176,16 +176,85 @@ test('collectFacts stranger masking resolves masked handles (bug-523)', () => {
     };
     const player = { inventory: ['bread'], known: [] };
 
-    // With PromptBuilder available
+    // Mock door node for way handle
+    const oldGetNode = worldState.getNode;
+    const oldGetItems = worldState.getItemsInArea;
+    const oldGraph = worldState.graph;
     const oldData = worldState.data;
     worldState.data = fakeState;
+    worldState.getNode = (id) => {
+        if (id === 'way_1') return { id: 'way_1', name: 'Mine Access - heavy oak door' };
+        if (id === 'cont_1') return { id: 'cont_1', name: 'iron chest' };
+        if (id === 'item_1') return { id: 'item_1', name: 'silver dagger' };
+        return null;
+    };
+    worldState.getItemsInArea = (area) => {
+        if (area === 'Mine Access') return [{ id: 'cont_1', name: 'iron chest' }];
+        return [];
+    };
+    worldState.graph = { edges: [{ source: 'item_1', target: 'cont_1', type: 'in' }] };
+
+    const oldItemContainment = window.ItemContainment;
+    window.ItemContainment = {
+        collectReachable: (ids, ctx) => {
+            if (ids.includes('cont_1')) {
+                return [{ id: 'item_1', name: 'silver dagger', depth: 1 }];
+            }
+            return [];
+        },
+    };
+
     try {
-        const facts = PlanGrounding.collectFacts('Belne', fakeState, player, 'Mine Access');
-        assertTrue(facts.people.includes('the woman') || facts.people.includes('Leslie'), 'Leslie is in people pool');
+        const playerWithEquip = {
+            inventory: ['bread'],
+            known: [],
+            equipment: { head: 'iron helmet', mainhand: { name: 'bronze sword' } },
+        };
+        const facts = PlanGrounding.collectFacts('Belne', fakeState, playerWithEquip, 'Mine Access');
+
+        // Unmet strangers MUST be masked and must NEVER leak real database names
+        assertTrue(facts.people.includes('the woman'), 'Leslie masked as the woman');
+        assertTrue(facts.people.includes('the man'), 'Mikka masked as the man');
         assertTrue(facts.people.includes('The Viper'), 'Mikka alias is in people pool');
+        assertFalse(facts.people.includes('Leslie'), 'Leslie real name must NOT be in facts.people');
+        assertFalse(facts.people.includes('Mikka'), 'Mikka real name must NOT be in facts.people');
+
+        // Plan steps targeting masked handles and aliases ground cleanly
+        assertEq(PlanGrounding.groundStep({ act: 'approach', target: 'the woman' }, facts, 'Mine Access'), null, 'approach the woman grounds');
+        assertEq(PlanGrounding.groundStep({ act: 'give', item: 'bread', target: 'the woman' }, facts, 'Mine Access'), null, 'give to the woman grounds');
         assertEq(PlanGrounding.groundStep({ act: 'give', item: 'bread', target: 'The Viper' }, facts, 'Mine Access'), null, 'give to alias grounds');
+
+        // Plan step targeting unmet real name is rejected and rejection does NOT leak real name
+        const rejectedLeslie = PlanGrounding.groundStep({ act: 'approach', target: 'Leslie' }, facts, 'Mine Access');
+        assertTrue(rejectedLeslie !== null, 'targeting unmet real name is rejected');
+        assertTrue(/the woman/.test(rejectedLeslie), 'rejection lists visible masked stranger');
+        assertFalse(/here:.*Leslie/.test(rejectedLeslie), 'rejection list does NOT leak Leslie');
+
+        // Once met, real name is used and grounds
+        const knownPlayer = { inventory: ['bread'], known: ['Leslie'] };
+        const factsKnown = PlanGrounding.collectFacts('Belne', fakeState, knownPlayer, 'Mine Access');
+        assertTrue(factsKnown.people.includes('Leslie'), 'met character uses real name');
+        assertFalse(factsKnown.people.includes('the woman'), 'met character is no longer masked');
+        assertEq(PlanGrounding.groundStep({ act: 'approach', target: 'Leslie' }, factsKnown, 'Mine Access'), null, 'approach known character grounds');
+
+        // Contained items are collected in areaItems
+        assertTrue(facts.areaItems.includes('silver dagger'), 'contained item in open chest is collected');
+        assertEq(PlanGrounding.groundStep({ act: 'take', item: 'silver dagger' }, facts, 'Mine Access'), null, 'take contained item grounds');
+
+        // Authored way handles are collected in exits
+        assertTrue(facts.exits.includes('heavy oak door'), 'authored way handle is collected in exits');
+        assertEq(PlanGrounding.groundStep({ act: 'go', target: 'heavy oak door' }, facts, 'Mine Access'), null, 'go through way handle grounds');
+
+        // Equipped/worn gear is collected in carried
+        assertTrue(facts.carried.includes('iron helmet'), 'equipped gear is collected in carried');
+        assertTrue(facts.carried.includes('bronze sword'), 'equipped weapon is collected in carried');
+        assertEq(PlanGrounding.groundStep({ act: 'remove', item: 'iron helmet' }, facts, 'Mine Access'), null, 'remove equipped item grounds');
     } finally {
         worldState.data = oldData;
+        worldState.getNode = oldGetNode;
+        worldState.getItemsInArea = oldGetItems;
+        worldState.graph = oldGraph;
+        window.ItemContainment = oldItemContainment;
     }
 });
 

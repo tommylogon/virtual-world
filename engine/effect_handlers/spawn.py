@@ -300,9 +300,49 @@ def handle_remove_item(self, params, context, item_node=None, game_state=None):
     return [params.get("message", f"{remove_id} vanishes!")]
 
 
+def handle_despawn_character(self, params, context, item_node=None, game_state=None):
+    """Remove a character from the world entirely (task-708).
+
+    Honours the standard ``target`` vocabulary:
+      - ``"self"`` or omitted: active character in game_state
+      - explicit character name, key, or opaque id
+      - ``params["character_id"]`` / ``params["character_name"]`` fallback
+
+    Performs the full 4-step teardown via player_manager.remove_player.
+    Negative case (unknown / already despawned) reports miss and removes nothing.
+    """
+    if game_state is None:
+        return []
+
+    target_ref = params.get("target") or params.get("character_name") or params.get("character_id")
+    if target_ref in (None, "", "self"):
+        target_player = getattr(game_state, "player", None)
+        target_ref = target_player or getattr(game_state, "active_player", None)
+
+    pm = getattr(game_state, "player_manager", None)
+    removed = False
+    target_name = str(target_ref)
+    if pm and hasattr(pm, "remove_player"):
+        player_obj = pm.get_player(target_ref)
+        if player_obj:
+            target_name = getattr(player_obj, "name", target_name)
+        removed = pm.remove_player(target_ref)
+    elif hasattr(game_state, "remove_player"):
+        removed = game_state.remove_player(target_ref)
+
+    if not removed:
+        return []
+
+    msg = params.get("message")
+    if msg:
+        return [msg.replace("{character_name}", target_name).replace("{name}", target_name)]
+    return []
+
+
 HANDLERS = {
     "spawn_item": handle_spawn_item,
     "give_item": handle_give_item,
     "spawn_character": handle_spawn_character,
     "remove_item": handle_remove_item,
+    "despawn_character": handle_despawn_character,
 }

@@ -1,9 +1,9 @@
 /**
- * WayAuthoring — shared helpers for way inspector, area exits, graph tooltips, agent lens.
+ * WayAuthoring  -  shared helpers for way inspector, area exits, graph tooltips, agent lens.
  *
- * @module inspector/way-authoring — shared way/door authoring helpers
+ * @module inspector/way-authoring  -  shared way/door authoring helpers
  * @contributes WayAuthoring: way naming, state, cardinal/direction helpers, vis edge tooltips
- * @powers Way authoring — consistent way editing across the way inspector, area exits, graph tooltips, and agent lens
+ * @powers Way authoring  -  consistent way editing across the way inspector, area exits, graph tooltips, and agent lens
  * @relates used by way-view + area-view + graph/network-manager (edge tooltips)
  * @docs docs/virtualWorld/World Building/Ways.md
  */
@@ -78,6 +78,83 @@ const WayAuthoringModule = (() => {
             to: sides[1]?.areaName || sides[0]?.targetAreaName || null,
             sides,
         };
+    };
+
+    /**
+     * The one place a cardinal becomes a glyph.
+     *
+     * Two surfaces show a way's cardinal - the area inspector's exit badge and
+     * the graph's Cardinal overlay - and they used to disagree: the overlay
+     * drew `⬆N`, the badge drew a generic compass plus the raw word. One map,
+     * one answer.
+     *
+     * The vertical pair is deliberately distinct from the horizontal one:
+     * `up`/`down` are not on the rotation ring (a character who climbs a ladder
+     * does not end up facing north), so they get their own arrows rather than
+     * borrowing the north/south ones.
+     */
+    WA.CARDINAL_ICON = {
+        north: '⬆N', south: '⬇S', east: '➡E', west: '⬅W',
+        northeast: '⬈NE', northwest: '⬉NW', southeast: '⬊SE', southwest: '⬋SW',
+        up: '⤒U', down: '⤓D',
+        // A scope gateway is authored with 'in' / 'out' rather than a heading
+        // (engine/world_compile.py writes cardinal "in" on the way in and "out"
+        // on the way back), and a few ways spell the vertical pair as
+        // 'upstream' / 'downstream'. They are cardinals in the data, so they
+        // get glyphs rather than falling through to the raw word.
+        in: '↘IN', out: '↗OUT',
+        upstream: '⤒U', downstream: '⤓D',
+    };
+
+    /**
+     * The glyph for a cardinal.
+     *
+     * @param cardinal the cardinal word, in any case
+     * @returns the glyph, or the word itself when it is not a known cardinal
+     *   (an authored value the map does not know still shows what it says
+     *   rather than being hidden), or '' when there is no cardinal at all.
+     */
+    WA.cardinalIcon = function(cardinal: unknown): string {
+        const word = String(cardinal ?? '').trim();
+        if (!word) return '';
+        return WA.CARDINAL_ICON[word.toLowerCase()] || word;
+    };
+
+    /**
+     * The cardinal of a way, read from where it actually lives.
+     *
+     * A way's cardinal is a property of its *connection edge* (the
+     * area-to-way edge), not of the way node: 5030 edges carry one in the
+     * Kraktooth camp and 0 way nodes do. So a caller that looks at
+     * `node.properties.cardinal` finds nothing and renders a placeholder.
+     *
+     * When the edge has no `cardinal`, the edge's `direction` is used if it is
+     * itself a heading. That fallback is the engine's, not a convenience:
+     * `engine/facing.py`'s `edge_cardinal()` reads `cardinal` first and falls
+     * back to `direction`, and the map layout does the same
+     * (`graph/layout-engine.ts`). A prose direction ("downward tunnel") is not
+     * a heading, so it is left off - a way with no cardinal keeps its "?", which
+     * is the honest answer and is what the World Issues validator's
+     * `way_missing_cardinal` check reports.
+     *
+     * @param wayId the way node id
+     * @returns the way's cardinal, or '' when it has none.
+     */
+    WA.wayCardinal = function(wayId: string): string {
+        const edges: WayEdge[] = worldState.graph?.edges || [];
+        const wayLower = String(wayId).toLowerCase();
+        let fallback = '';
+        for (const edge of edges) {
+            if (edge.type !== 'connection') continue;
+            if (String(edge.target).toLowerCase() !== wayLower) continue;
+            const cardinal = String(edge.properties?.cardinal || '').trim();
+            if (cardinal) return cardinal;
+            if (!fallback) {
+                const direction = String(edge.properties?.direction || '').trim().toLowerCase();
+                if (WA.CARDINAL_ICON[direction]) fallback = direction;
+            }
+        }
+        return fallback;
     };
 
     WA.movementHint = function(wayNode: WayNode | null | undefined, command: string): string {
@@ -157,7 +234,7 @@ const WayAuthoringModule = (() => {
                 else if (b.kind === 'param') label += ' param preview';
                 const title = esc(b.title);
                 return `<button type="button" class="btn btn-sm btn-ghost way-exit-badge"
-                    title="${title} — click to open way inspector"
+                    title="${title}  -  click to open way inspector"
                     style="font-size:10px;padding:1px 6px;line-height:1.4;cursor:pointer;"
                     onclick="VW.inspector.showNode('${escWay}')">${label}</button>`;
             }).join('')}
@@ -173,10 +250,10 @@ const WayAuthoringModule = (() => {
         const state = String(props.current_state || 'closed');
 
         if (req === 'jump' && tags.includes('clearance')) {
-            warnings.push('clearance tag on a jump passage — usually belongs on a door, not a jump pit');
+            warnings.push('clearance tag on a jump passage  -  usually belongs on a door, not a jump pit');
         }
         if (req === 'climb' && tags.includes('clearance')) {
-            warnings.push('clearance tag on a climb passage — double-check this is intentional');
+            warnings.push('clearance tag on a climb passage  -  double-check this is intentional');
         }
         if (state === 'locked' && !tags.length) {
             const triggerEdges = (worldState.graph?.edges || []).filter((e: WayEdge) =>
@@ -254,8 +331,8 @@ const WayAuthoringModule = (() => {
         const req = String(props.requires || '').toLowerCase();
         const reqMeta = WA.REQUIRES_LABEL[req];
         const movement = reqMeta ? `${reqMeta.label} (${reqMeta.hint})` : 'go (default)';
-        const tags = (props.tags || []).join(', ') || '—';
-        const viewSnippet = view ? (view.length > 80 ? view.substring(0, 80) + '…' : view) : '—';
+        const tags = (props.tags || []).join(', ') || ' - ';
+        const viewSnippet = view ? (view.length > 80 ? view.substring(0, 80) + '…' : view) : ' - ';
 
         const plain = [
             `🔗 ${areaName} ↔ ${wayName}`,
@@ -268,7 +345,7 @@ const WayAuthoringModule = (() => {
 
         let html = '<div style="font-size:10px;min-width:200px;line-height:1.45;">';
         html += `<div style="font-weight:600;margin-bottom:4px;">🔗 ${esc(areaName)} ↔ ${esc(wayName)}</div>`;
-        html += `<div style="font-size:9px;color:var(--text-muted);margin-bottom:4px;">One graph edge — area→way + return path collapsed</div>`;
+        html += `<div style="font-size:9px;color:var(--text-muted);margin-bottom:4px;">One graph edge  -  area→way + return path collapsed</div>`;
         html += `<div><span style="color:var(--text-dim);">Command (from ${esc(areaName)}):</span> go "${esc(command)}" → ${esc(targetAreaName)}</div>`;
         html += `<div><span style="color:var(--text-dim);">Way state:</span> ${esc(state)}</div>`;
         html += `<div><span style="color:var(--text-dim);">Movement:</span> ${esc(movement)}</div>`;
@@ -378,6 +455,9 @@ interface EdgeTooltip {
 interface WayAuthoringApi {
     STATE_STYLE: Record<string, { icon: string; color: string; label: string }>;
     REQUIRES_LABEL: Record<string, { emoji: string; label: string; hint: string }>;
+    CARDINAL_ICON: Record<string, string>;
+    cardinalIcon(cardinal: unknown): string;
+    wayCardinal(wayId: string): string;
     getWaySides(wayId: string): WaySide[];
     getWayAreaPair(wayId: string): WayAreaPair;
     movementHint(wayNode: WayNode | null | undefined, command: string): string;

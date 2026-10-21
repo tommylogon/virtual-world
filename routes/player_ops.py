@@ -71,7 +71,7 @@ def handle_spike_emotion(app, name):
             valid = tuple(player._FELT_TO_DIM.keys())
     # task-652: one normaliser for a declared feeling. This route used
     # `map_label`, which substring-matches, so an LLM saying "hangry" became
-    # "angry" on a coincidence — the exact failure task-505 was filed to prevent,
+    # "angry" on a coincidence - the exact failure task-505 was filed to prevent,
     # and the reason `felt_from_llm` exists. Using it here means the authored
     # vocabulary is consulted too: "terrified", "furious" and "sadness" are
     # declared aliases in engine/emotion.py and were being dropped here.
@@ -125,7 +125,7 @@ def handle_map_player_emotions(app, name):
         - mapped:  optional client-side semantic {dimension: delta} if the
                    caller already resolved it via embedding.
         - vitals:  optional explicit {vital: delta} to apply verbatim.
-        - toward:  optional speaker name — when it resolves to a known person,
+        - toward:  optional speaker name - when it resolves to a known person,
                    the recalled memory also nudges the relationship toward them.
     Resolution order: supplied `mapped`, else server keyword ``map_label``.
     Unknown labels are a graceful no-op (no spike, no vital change).
@@ -191,7 +191,7 @@ def handle_map_player_emotions(app, name):
     # --- Relationship nudge toward the speaker (name-gated) ---
     # Only when the recalled memory is attributed to a real, resolvable speaker.
     # An anonymized voice label ("a woman's voice") resolves to None and is left
-    # as a pure re-feel — we never invent a relationship with an unknown person.
+    # as a pure re-feel - we never invent a relationship with an unknown person.
     toward = str(data.get("toward") or "").strip()
     if toward and dim_deltas:
         speaker = _resolve_other(app, name, toward)
@@ -212,13 +212,13 @@ def handle_map_player_emotions(app, name):
                 try:
                     # N6: the recall writer used to store a contentless placeholder
                     # ("I was reminded of something…"). The client now sends the
-                    # triggering memory as `reason` — no reason, no memory: the
+                    # triggering memory as `reason` - no reason, no memory: the
                     # affect spike already happened; a junk entry helps nobody.
                     reason = str(data.get("reason") or "").strip()
                     if not reason:
                         return jsonify({"emotions": player.emotions_map(), "vitals": player.vitals})
                     player.add_memory(
-                        f'Remembered: "{reason}" — it made me feel this way toward {speaker}.',
+                        f'Remembered: "{reason}" - it made me feel this way toward {speaker}.',
                         tick=getattr(app.world, "time_ticks", 0),
                         importance=6,
                         memory_type="emotion",
@@ -354,7 +354,7 @@ def handle_learn_names(app, name):
     """Learn names this player has confirmed/deduced this turn (task-350).
 
     Body: {"names": ["Rex", ...]}. Only names of actual present players are
-    accepted — the engine validates, so the agent cannot invent a name tag.
+    accepted - the engine validates, so the agent cannot invent a name tag.
     Each valid name clears the player's name-unknown (stranger) flag via
     learn_name, exactly as if they had heard it.
     """
@@ -476,7 +476,7 @@ def handle_kill_player(app, name):
 
     player = app.world.players[name]
     # task-538: the single death path, so a scripted kill is the same event a
-    # killing blow is — body, dropped items, lived-log record and all.
+    # killing blow is - body, dropped items, lived-log record and all.
     resolved = app.world.player_manager.relationship_key(name)
     _log_resolved_identity(app, 'kill_player', name,
                            resolved_key=resolved,
@@ -596,15 +596,20 @@ def handle_update_player(app, name):
     if "base_description" in data:
         player.base_description = data["base_description"]
     # The character node owns authored definition (personality, appearance
-    # prose); the Player copy above is the running-world cache. Mirror the write
+    # prose, tags, traits); the Player copy above is the running-world cache. Mirror the write
     # to the node so the single persisted home is updated and a save round-trips.
     _def_node = None
-    for _key in ("personality", "description", "base_description"):
+    for _key in ("personality", "description", "base_description", "tags", "traits"):
         if _key in data:
             if _def_node is None:
                 _def_node = _character_node(app, name)
             if _def_node is not None:
-                _def_node.properties[_key] = data[_key]
+                if _key == "tags":
+                    _def_node.properties[_key] = list(data[_key])
+                elif _key == "traits":
+                    _def_node.properties[_key] = dict(data[_key])
+                else:
+                    _def_node.properties[_key] = data[_key]
     if "stats" in data:
         player.stats = normalize_stat_block(data["stats"]) or player.stats
     if "skills" in data:
@@ -634,7 +639,7 @@ def handle_update_player(app, name):
         player.tags = data["tags"]
         player.sync_vitals_with_tags()
     # task-549: species is a free-text kind ("goblin", "forest goblin"), not a
-    # closed enum — the whole point is that an author can name a species nobody
+    # closed enum - the whole point is that an author can name a species nobody
     # registered. It is normalised and stored, never validated away, because an
     # unknown species permits everything rather than nothing.
     if "species" in data:
@@ -760,7 +765,7 @@ def handle_import_player(app):
     if 'base_description' in data:
         player.base_description = data.get('base_description', '')
     if 'equipped' in data:
-        # task-654: edges too — see the update route above.
+        # task-654: edges too - see the update route above.
         app.world.equipment.set_equipped_payload(
             player, data.get('equipped', player.equipped))
     player.state = data.get('state', player.state) or 'awake'
@@ -889,16 +894,16 @@ def handle_get_character_record(app, name):
 def handle_set_character_record(app, name):
     """Validate and store the structured block, then render prose once.
 
-    ``{"record": {...}, "render": true}`` — ``render`` defaults to true because
+    ``{"record": {...}, "render": true}`` - ``render`` defaults to true because
     the task's flow is "set the fields, then generate the description ONCE", and
     a caller that has just filled a whole card almost always wants the prose with
     it. Pass ``false`` to fill fields in stages.
 
-    ``{"record": {...}, "compile": true}`` (task-828) — project the whole
+    ``{"record": {...}, "compile": true}`` (task-828) - project the whole
     block via ``compile_persona``: ``base_description`` + ``personality``
     prose plus ``interest_tags`` / ``fear_tags``. Hand prose is kept unless
     ``force`` is true; without force the response carries a ``preview``
-    instead of writing. The compiled ``traits`` list is prose for display —
+    instead of writing. The compiled ``traits`` list is prose for display -
     it is NOT merged into ``player.traits``, which is the mechanical
     boolean/parameterized trait dict (e.g. ``{"allergic": "pollen"}``).
     """
@@ -1029,7 +1034,7 @@ def handle_compile_character_record(app, name):
     With force: applies the projection like ``PUT record`` with
     ``compile:true, force:true``.
 
-    With ``{"record": {...}}``: dry-run — validates and compiles the
+    With ``{"record": {...}}``: dry-run - validates and compiles the
     GIVEN block without storing anything (the Persona tab's live Codex
     preview compiles the unsaved form). Failures 400 naming the field.
     """
@@ -1064,7 +1069,7 @@ def handle_compile_character_record(app, name):
 def handle_character_recipes(app, name):
     """Known recipes for the Mind panel (task-841 procedural knowledge).
 
-    One projection per character — id, name, source (global / taught /
+    One projection per character - id, name, source (global / taught /
     discovered / cookbook / skill), skill, DC, duration. Reads the
     registry plus knowledge; stores nothing.
     """
@@ -1076,14 +1081,14 @@ def handle_character_recipes(app, name):
 def handle_set_body_baseline(app, name):
     """Author body baselines and starting wounds (task-848, task-851).
 
-    ``{"sensitivity": {region: 0..1}}`` — writes
+    ``{"sensitivity": {region: 0..1}}`` - writes
     ``player.body_state[region]["sensitivity"]``, the same value
     ``pleasure_actions`` already reads.
-    ``{"injuries": [{region, level 1..3, bleeding=false}]}`` — seeds the
+    ``{"injuries": [{region, level 1..3, bleeding=false}]}`` - seeds the
     same ``injured``/``bleeding`` instances combat makes (same call, same
     mechanics: speed, symptoms, healing). ``source`` defaults to
     ``"authored"``.
-    ``{"missing": [region]}`` — seeds the ``missing`` condition:
+    ``{"missing": [region]}`` - seeds the ``missing`` condition:
     the mechanical fact of absence. A hook or peg leg itself is an
     appearance modification, not a condition.
     Region ids are validated against the ``body_parts`` catalog; anything
@@ -1168,7 +1173,7 @@ def handle_clear_character_record(app, name):
         return jsonify({"error": "No character node"}), 404
     ca.clear_record(node)
     # The lifecycle clock reads the block to resolve birth; without the
-    # block the character is ageless again — clear the derived clock
+    # block the character is ageless again - clear the derived clock
     # state too, or prose-only keeps reporting an age.
     player = app.world.players[name]
     player.birth_tick = None
@@ -1210,7 +1215,7 @@ def handle_get_vital(app, name, vital_name):
     value = player.vitals[vital_name]
     # task-538: the ceiling is the character's own. The old lookup was
     # `Max_HP if HP else Max_{vital}`, which is the resolver's first rule with
-    # the fallback spelled out — and it spelled 100 out again for anything that
+    # the fallback spelled out - and it spelled 100 out again for anything that
     # had not declared a maximum.
     max_val = ceiling(player.vitals, vital_name)
     if vital_name == "Temperature":
@@ -1399,7 +1404,7 @@ def handle_update_vital(app, name, vital_name):
     # task-538: writing a `Max_*` companion also re-clamps the vital it bounds.
     # Setting Max_HP to 8 while HP sits at 100 otherwise leaves the character at
     # 1250% of its maximum, which every later clamp would silently repair and
-    # every reader would find surprising — the same reason
+    # every reader would find surprising - the same reason
     # `modify_vital_max` brings the current value back under a lowered ceiling.
     paired = None
     if vital_name.startswith("Max_"):
@@ -1443,7 +1448,7 @@ def handle_update_vital(app, name, vital_name):
 # turn panel uses (``engine/scene_snapshot.py``): a locked or blocked way reads
 # as ``closed`` until the character has learned that aspect, and hidden ways
 # stay out entirely. Emitting ``way_blocked`` as one server-computed boolean is
-# deliberate — a client-side copy of that rule is how a panel ends up leaking
+# deliberate - a client-side copy of that rule is how a panel ends up leaking
 # what the composer withholds.
 
 
@@ -1452,7 +1457,7 @@ def _observed_by_location(player):
 
     Areas are keyed by node id and carry their own name in ``location``; items
     and people are keyed by that same area *name*, because that is the field
-    the observation rows share. Superseded rows are dropped — that is how a
+    the observation rows share. Superseded rows are dropped - that is how a
     belief that stopped being true stops being reported.
     """
     areas, items, people = {}, {}, {}
@@ -1618,57 +1623,136 @@ def handle_get_player_map(app, name):
     visible_cells = []
     player_facing = getattr(player, "facing", None)
     curr_scope = ""
+    scope_mode = ""
     curr_node = resolve_area_node(graph, current_area) if current_area else None
     if curr_node is not None:
         curr_props = curr_node.properties or {}
         curr_cell = curr_props.get("cell")
         curr_scope = str(curr_props.get("world_scope_id") or "")
+        scope_rec = manifest.get(curr_scope) or {}
+        scope_mode = str(scope_rec.get("mode") or "").lower()
+
         if isinstance(curr_cell, dict) and "x" in curr_cell and "y" in curr_cell:
-            scope_rec = manifest.get(curr_scope) or {}
-            from engine import world_grid as wg
-            if wg.has_grid(scope_rec):
-                max_sight = 60
-                try:
-                    from engine.lighting import LightingManager
-                    lm = getattr(world, "lighting_manager", None) or LightingManager(graph)
-                    amb = lm.get_ambient_light(curr_node.id)
-                    can_see_dark = lm.can_see_in_dark(getattr(world, "player_manager", None), name)
-                    if amb < 15 and not can_see_dark:
-                        max_sight = 1
-                    elif amb < 40 and not can_see_dark:
-                        max_sight = 15
-                except Exception:
-                    pass
+            x = int(curr_cell["x"])
+            y = int(curr_cell["y"])
+            vis_set = {(x, y)}
 
-                try:
-                    area_env = curr_props.get("environment") or {}
-                    weather_state = str(area_env.get("weather") or "").lower()
-                    if "fog" in weather_state or "blizzard" in weather_state:
-                        max_sight = min(max_sight, 2)
-                except Exception:
-                    pass
+            if scope_mode == "interior":
+                # task-882: Fine interiors remain strictly topological (docs/design/worldpainter-knowledge-and-fog.md:624).
+                # Geometric raycasting must NOT sweep across unpainted interior grids.
+                # Vision is strictly 1-hop topological: current area + adjacent areas in the same scope
+                # connected by open or see-through ways.
+                seen_area_ids = {c["id"] for c in cells}
+                for edge in graph.get_edges_for_source(curr_node.id, EDGE_CONNECTION):
+                    way_node = graph.get_node(edge.target)
+                    if not way_node or not getattr(way_node, "properties", None):
+                        continue
+                    w_props = way_node.properties
+                    w_state = str(w_props.get("current_state", "closed")).lower()
+                    see_through = bool(w_props.get("see_through", False))
+                    if w_state == "open" or see_through:
+                        for conn in graph.get_edges_for_source(way_node.id, EDGE_CONNECTION):
+                            if conn.target != curr_node.id:
+                                adj_node = graph.get_node(conn.target)
+                                if adj_node and getattr(adj_node, "properties", None):
+                                    adj_props = adj_node.properties
+                                    adj_scope = str(adj_props.get("world_scope_id") or "")
+                                    if adj_scope == curr_scope:
+                                        adj_cell = adj_props.get("cell")
+                                        if isinstance(adj_cell, dict) and "x" in adj_cell and "y" in adj_cell:
+                                            ax = int(adj_cell["x"])
+                                            ay = int(adj_cell["y"])
+                                            vis_set.add((ax, ay))
+                                            if adj_node.id not in seen_area_ids:
+                                                seen_area_ids.add(adj_node.id)
+                                                cells.append({
+                                                    "id": adj_node.id,
+                                                    "name": adj_node.name,
+                                                    "cell": {"x": ax, "y": ay},
+                                                    "floor": int(adj_props.get("floor", 0) or 0),
+                                                    "scope_id": curr_scope,
+                                                    "biome": str(adj_props.get("biome") or ""),
+                                                    "kind": str(adj_props.get("kind") or ""),
+                                                    "last_seen": None,
+                                                    "current": False,
+                                                    "items": [],
+                                                    "people": [],
+                                                    "ways": _map_ways(world, player, adj_node.id, adj_node.name),
+                                                })
+            else:
+                from engine import world_grid as wg
+                if wg.has_grid(scope_rec):
+                    max_sight = 60
+                    try:
+                        from engine.lighting import LightingManager
+                        lm = getattr(world, "lighting_manager", None) or LightingManager(graph)
+                        amb = lm.get_ambient_light(curr_node.id)
+                        can_see_dark = lm.can_see_in_dark(getattr(world, "player_manager", None), name)
+                        if amb < 15 and not can_see_dark:
+                            max_sight = 1
+                        elif amb < 40 and not can_see_dark:
+                            max_sight = 15
+                    except Exception:
+                        pass
 
-                x = int(curr_cell["x"])
-                y = int(curr_cell["y"])
-                floor = int(curr_props.get("floor", 0) or 0)
-                vis_set = wg.compute_visible_cells(
-                    scope_rec,
-                    origin=(x, y, floor),
-                    max_range=max_sight,
-                    facing=player_facing,
-                    arc_degrees=120.0 if player_facing else 360.0,
-                    world=world,
-                )
-                visible_cells = [{"x": c[0], "y": c[1]} for c in sorted(vis_set)]
-                charted_dict = getattr(player, "charted_cells", None)
-                if charted_dict is None:
-                    player.charted_cells = charted_dict = {}
-                charted_dict.setdefault(curr_scope, set()).update(vis_set)
+                    try:
+                        area_env = curr_props.get("environment") or {}
+                        weather_state = str(area_env.get("weather") or "").lower()
+                        if "fog" in weather_state or "blizzard" in weather_state:
+                            max_sight = min(max_sight, 2)
+                    except Exception:
+                        pass
+
+                    floor = int(curr_props.get("floor", 0) or 0)
+                    raw_vis = wg.compute_visible_cells(
+                        scope_rec,
+                        origin=(x, y, floor),
+                        max_range=max_sight,
+                        facing=player_facing,
+                        arc_degrees=120.0 if player_facing else 360.0,
+                        world=world,
+                    )
+                    layers = scope_rec.get("layers", {}) or {}
+                    biome_layer = layers.get("biome", {}) or {}
+                    road_layer = layers.get("road", {}) or {}
+                    placed_coords = set()
+                    for n in graph.nodes.values():
+                        if n and getattr(n, "type", None) == "area":
+                            np = getattr(n, "properties", {}) or {}
+                            if str(np.get("world_scope_id") or "") == curr_scope:
+                                c = np.get("cell")
+                                if isinstance(c, dict) and "x" in c and "y" in c:
+                                    placed_coords.add((int(c["x"]), int(c["y"])))
+
+                    if biome_layer:
+                        for cx, cy in raw_vis:
+                            ck = wg.cell_key(cx, cy)
+                            if ck in biome_layer or ck in road_layer or (cx, cy) in placed_coords:
+                                vis_set.add((cx, cy))
+                    else:
+                        vis_set.update(raw_vis)
+
+            visible_cells = [{"x": c[0], "y": c[1]} for c in sorted(vis_set)]
+            charted_dict = getattr(player, "charted_cells", None)
+            if charted_dict is None:
+                player.charted_cells = charted_dict = {}
+            charted_dict.setdefault(curr_scope, set()).update(vis_set)
 
     charted_cells = []
     if curr_scope and hasattr(player, "charted_cells"):
-        charted_set = (getattr(player, "charted_cells", {}) or {}).get(curr_scope, set())
-        charted_cells = [{"x": c[0], "y": c[1]} for c in sorted(charted_set)]
+        raw_charted = (getattr(player, "charted_cells", {}) or {}).get(curr_scope, set())
+        if scope_mode == "interior":
+            valid_interior_coords = set()
+            for n in graph.nodes.values():
+                if n and getattr(n, "type", None) == "area":
+                    np = getattr(n, "properties", {}) or {}
+                    if str(np.get("world_scope_id") or "") == curr_scope:
+                        c = np.get("cell")
+                        if isinstance(c, dict) and "x" in c and "y" in c:
+                            valid_interior_coords.add((int(c["x"]), int(c["y"])))
+            raw_charted = raw_charted & valid_interior_coords
+            player.charted_cells[curr_scope] = raw_charted
+        charted_cells = [{"x": c[0], "y": c[1]} for c in sorted(raw_charted)]
 
     return jsonify({
         "player": name,
@@ -1686,12 +1770,10 @@ def handle_get_player_map(app, name):
 def handle_mark_visited(app, name):
     """Seed a character's map with places they have been.
 
-    Writes the *same* row an arrival writes — ``Player.record_observation``
-    with ``kind="area"`` — rather than appending to a parallel registry, so the
+    Writes the *same* row an arrival writes - ``Player.record_observation``
+    with ``kind="area"`` - rather than appending to a parallel registry, so the
     map, the memory store, recall and anything added later all read one fact.
-    Also mirrors the name into ``visited_areas``, which is what the known-routes
-    prose and the adventurous-traveller bonus still read; when task-430 retires
-    that set in favour of these rows, this line goes with it.
+    Known-routes and map charting derive directly from these rows (task-430).
 
     Accepts ``{"areas": [...]}`` or ``{"areas": "A, B"}``. An area that does
     not resolve is reported in ``unresolved`` rather than silently dropped: a
@@ -1736,9 +1818,7 @@ def handle_mark_visited(app, name):
             kind="area",
             location=node.name,
         )
-        visited = getattr(player, "visited_areas", None)
-        if isinstance(visited, set):
-            visited.add(node.name)
+
 
         seeded_items = []
         if observe:
@@ -1770,8 +1850,8 @@ def handle_mark_visited(app, name):
 def _temperature_drift_desc(direction, rate, eff_temp):
     if direction == "stable":
         if 15 <= eff_temp <= 30:
-            return "Comfortable temperature — body is stable"
+            return "Comfortable temperature - body is stable"
         return "Temperature is stable"
     if direction == "cooling":
-        return f"Cooling at {rate}°C per turn — seek warmth"
-    return f"Heating up at {rate}°C per turn — cool down needed"
+        return f"Cooling at {rate}°C per turn - seek warmth"
+    return f"Heating up at {rate}°C per turn - cool down needed"

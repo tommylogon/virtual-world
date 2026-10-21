@@ -1,6 +1,6 @@
 "use strict";
 /**
- * action-normalizer.js — Action schema translation and validation
+ * action-normalizer.js  -  Action schema translation and validation
  *
  * Converts structured LLM action fields {action, item, target, relation}
  * into the free-text command strings the backend expects, and validates
@@ -8,9 +8,9 @@
  *
  * Load BEFORE agent-engine.js.
  *
- * @module agent/action-normalizer — LLM action → backend command translation
+ * @module agent/action-normalizer  -  LLM action → backend command translation
  * @contributes ActionNormalizer: field→command-string mapping plus verb validation
- * @powers Use / use on — turning the LLM's structured action JSON into a command the engine can execute
+ * @powers Use / use on  -  turning the LLM's structured action JSON into a command the engine can execute
  * @relates used by agent-engine; mirrors the verb list advertised in the system prompt
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -19,21 +19,23 @@
 // types/globals.d.ts) so the two do not collide in the build's scope.
 const ActionNormalizerModule = (() => {
     'use strict';
-    const VALID_VERBS = new Set([
+    const _registry = window.ActionVerbs;
+    const VALID_VERBS = _registry?.VALID_SET || new Set(_registry?.VALID_VERBS || [
         'do', 'go', 'dash', 'crawl', 'climb', 'jump', 'grab', 'escape', 'struggle',
         'open', 'close', 'take', 'get', 'pickup', 'drop', 'put', 'place', 'give', 'hand',
         'steal', 'use', 'eat', 'drink', 'examine', 'speak', 'say', 'look', 'inventory',
         'i', 'inv', 'stats', 'status', 'rest', 'sleep', 'fumble', 'toggle', 'attack',
         'manifest', 'vanish', 'relieve', 'read', 'search', 'inspect', 'check', 'light',
-        'ignite', 'grab', 'snatch', 'collect', 'hit', 'strike', 'punch', 'yell', 'shout',
+        'ignite', 'snatch', 'collect', 'hit', 'strike', 'punch', 'yell', 'shout',
         'whisper', 'scream', 'pick', 'wear', 'equip', 'remove', 'unequip', 'wait',
         'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach',
         'stow', 'combine', 'split', 'craft', 'make', 'teach',
-        'bind', 'enchant', 'fear', 'interest', 'write', 'inscribe'
+        'bind', 'enchant', 'fear', 'interest', 'write', 'inscribe',
+        'use_on', 'consume', 'quaff', 'release', 'wake'
     ]);
     // task-211: intimacy verbs are only valid actions in mature worlds. Kept
     // out of the base set so non-mature scenarios never accept/emit them.
-    const MATURE_VERBS = new Set(['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
+    const MATURE_VERBS = _registry?.MATURE_SET || new Set(_registry?.MATURE_VERBS || ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
     const INTENSITY_ADVERBS = { light: 'gently', firm: 'firmly' };
     function matureEnabled() {
         // MUST stay `window.config`, not bare `config`: the bare form throws
@@ -45,6 +47,9 @@ const ActionNormalizerModule = (() => {
     }
     let _matureCache = null;
     function allVerbs() {
+        if (_registry && _registry.allVerbs) {
+            return _registry.allVerbs(matureEnabled());
+        }
         if (!matureEnabled())
             return VALID_VERBS;
         if (!_matureCache)

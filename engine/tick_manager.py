@@ -671,7 +671,9 @@ class TickManager:
                 if TraitSystem.has_effect(p, "patient"):
                     ent_mod += 1 * LEGACY_PER_TICK
                 if TraitSystem.has_effect(p, "adventurous") and p.current_area:
-                    if p.current_area not in getattr(p, 'visited_areas', set()):
+                    area_id = getattr(p, "current_area_id", None) or f"area_{p.current_area.lower().replace(' ', '_')}"
+                    mem = p.observation_memory(area_id) if hasattr(p, "observation_memory") else None
+                    if mem and mem.get("visits", 1) == 1:
                         ent_mod += 2 * LEGACY_PER_TICK
                 if ent_mod:
                     self._decay(p, "Entertainment", ent_mod)

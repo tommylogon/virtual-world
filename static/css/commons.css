@@ -398,3 +398,294 @@ html.commons-doc body {
 .participant-presence.online {
     color: #7ee0a0;
 }
+
+.commons-status.thinking {
+    color: #e0b0ff;
+    background: #321c4d;
+    animation: commons-pulse 1.4s infinite ease-in-out;
+}
+.commons-status.paused {
+    color: #ffd175;
+    background: #3d3012;
+}
+.commons-act-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    background: #705cdd;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: opacity 0.15s ease;
+}
+.commons-act-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.commons-act-btn:not(:disabled):hover {
+    background: #5d49cc;
+}
+.participant-presence.thinking {
+    color: #a78bfa;
+    font-weight: 600;
+    animation: commons-pulse 1.2s infinite ease-in-out;
+}
+@keyframes commons-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* task-888: Actor chip in topbar */
+.commons-actor-chip {
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: #f1effe;
+    color: #5d49cc;
+    font-size: 11px;
+    font-weight: 600;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 1px solid #e1dcfa;
+    transition: all 0.2s ease;
+}
+.commons-actor-chip.acting {
+    background: #4b367c;
+    color: #e9d5ff;
+    border-color: #7c5cbf;
+    animation: commons-pulse 1.3s infinite ease-in-out;
+}
+.commons-actor-chip.idle {
+    color: #6c6875;
+    background: #f4f3f2;
+    border-color: #e5e3e0;
+}
+
+/* task-888: Character triggers */
+.commons-char-trigger {
+    cursor: pointer;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+.commons-char-trigger:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+}
+
+/* task-888: Inner World Drawer */
+.commons-drawer-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 16, 24, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 900;
+    transition: opacity 0.2s ease;
+}
+.commons-drawer-scrim[hidden] {
+    display: none;
+}
+.commons-inner-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 390px;
+    max-width: 90vw;
+    background: #ffffff;
+    box-shadow: -6px 0 28px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: commons-slide-in 0.22s ease-out;
+}
+.commons-inner-drawer[hidden] {
+    display: none;
+}
+@keyframes commons-slide-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.commons-drawer-header {
+    padding: 18px 20px 14px;
+    background: #fbfaf9;
+    border-bottom: 1px solid #ebe8e4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.commons-drawer-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.commons-drawer-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+.commons-drawer-identity {
+    flex: 1;
+    min-width: 0;
+}
+.commons-drawer-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 750;
+    color: #2b2833;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.commons-drawer-presence {
+    font-size: 11px;
+    color: #77737d;
+    margin-top: 2px;
+}
+.commons-drawer-presence.thinking {
+    color: #705cdd;
+    font-weight: 600;
+}
+.commons-drawer-close {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    border-radius: 8px;
+}
+.commons-drawer-personality {
+    margin: 0;
+    font-size: 11.5px;
+    color: #55515e;
+    line-height: 1.45;
+}
+.commons-drawer-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.commons-trait-badge {
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #eeebff;
+    color: #5b48cb;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.commons-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.commons-drawer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.commons-drawer-section-title {
+    font-size: 10px;
+    font-weight: 750;
+    color: #938f9c;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+.commons-inner-quote {
+    margin: 0;
+    padding: 12px 14px;
+    background: #fbf9fe;
+    border-left: 3px solid #705cdd;
+    border-radius: 0 8px 8px 0;
+    font-size: 12.5px;
+    color: #383442;
+    font-style: italic;
+    line-height: 1.5;
+}
+.commons-inner-time {
+    font-size: 10px;
+    color: #9e9aa7;
+    margin-top: 4px;
+    text-align: right;
+}
+.commons-decision-card {
+    padding: 10px 12px;
+    border: 1px solid #ebe8e4;
+    border-radius: 8px;
+    background: #fdfdfc;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.commons-decision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.commons-decision-action {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    background: #eef2ff;
+    color: #4338ca;
+}
+.commons-decision-action.small {
+    font-size: 9px;
+    padding: 1px 5px;
+}
+.commons-decision-action.send_chat { background: #e0f2fe; color: #0369a1; }
+.commons-decision-action.read_chat { background: #fef3c7; color: #b45309; }
+.commons-decision-action.think { background: #f3f4f6; color: #4b5563; }
+.commons-decision-action.start_dm { background: #fdf4ff; color: #a21caf; }
+.commons-decision-action.start_group { background: #ecfdf5; color: #047857; }
+.commons-decision-summary {
+    font-size: 11px;
+    color: #635f6d;
+}
+.commons-decision-text {
+    font-size: 11.5px;
+    color: #3e3b47;
+    padding: 6px 8px;
+    background: #f7f6f5;
+    border-radius: 6px;
+}
+.commons-drawer-empty-state {
+    font-size: 11.5px;
+    color: #8c8896;
+    font-style: italic;
+    padding: 8px 0;
+}
+.commons-history-row {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0eeeb;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.commons-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.commons-history-header time {
+    font-size: 10px;
+    color: #9995a0;
+}
+.commons-history-thought {
+    font-size: 11px;
+    color: #55515e;
+    font-style: italic;
+    line-height: 1.4;
+}

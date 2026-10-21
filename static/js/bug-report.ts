@@ -1,9 +1,9 @@
 /**
- * bug-report — file what you are looking at as a real dev-task file.
+ * bug-report  -  file what you are looking at as a real dev-task file.
  *
- * @module bug-report — the 🐞 dialog: description, screenshot, picked DOM elements
+ * @module bug-report  -  the 🐞 dialog: description, screenshot, picked DOM elements
  * @contributes BugReport: the report dialog, the DOM element picker, and the multipart POST to /api/bugs/report
- * @powers Report a bug — "🐞 Report a bug": turn the current view, a screenshot and any picked DOM elements into a task file under docs/virtualWorld/dev_tasks/todo
+ * @powers Report a bug  -  "🐞 Report a bug": turn the current view, a screenshot and any picked DOM elements into a task file under docs/virtualWorld/dev_tasks/todo
  * @relates reads graphManager mode/pitch/camera and the vis canvas; captures the picture with GraphExport.snapshotView; posts multipart to /api/bugs/report
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  *
@@ -38,7 +38,7 @@
     const AREAS = ['bugs', 'ui', 'graph', 'world', 'gameplay', 'items', 'characters',
         'conditions', 'docs', 'library', 'refactor', 'testing', 'triggers'];
 
-    /** Computed properties worth having in a bug report — the ones that decide
+    /** Computed properties worth having in a bug report  -  the ones that decide
      *  whether something is visible, clickable, or on top of something else. */
     const STYLE_KEYS = ['display', 'position', 'visibility', 'opacity', 'zIndex',
         'width', 'height', 'overflow', 'pointerEvents', 'color', 'backgroundColor',
@@ -80,7 +80,7 @@
     }
 
     function _truncate(text: string, limit: number): string {
-        return text.length > limit ? `${text.slice(0, limit)}\n… (truncated)` : text;
+        return text.length > limit ? `${text}\n… (truncated)` : text;
     }
 
     function _modal(): HTMLElement | null {
@@ -160,7 +160,7 @@
         return parts.join(' > ');
     }
 
-    /** The ancestor chain, nearest first — the "inside what" an element needs. */
+    /** The ancestor chain, nearest first  -  the "inside what" an element needs. */
     function _ancestors(target: Element): string[] {
         const chain: string[] = [];
         let node = target.parentElement;
@@ -348,12 +348,12 @@
                 GraphExport?: { snapshotView?: () => Promise<Blob | null> };
             }).GraphExport;
             if (!exportApi || typeof exportApi.snapshotView !== 'function') {
-                _setStatus('Graph export module is not loaded — paste a screenshot instead.');
+                _setStatus('Graph export module is not loaded  -  paste a screenshot instead.');
                 return;
             }
             const blob = await exportApi.snapshotView();
             if (!blob) {
-                _setStatus('Nothing to capture — paste a screenshot instead.');
+                _setStatus('Nothing to capture  -  paste a screenshot instead.');
                 return;
             }
             _setScreenshot({ blob, name: 'current-view.png', source: 'captured view' });
@@ -460,7 +460,7 @@
                 return;
             }
             closeDialog();
-            _toast(`Filed ${payload.id} — ${payload.path}`);
+            _toast(`Filed ${payload.id}  -  ${payload.path}`);
         } catch (error) {
             _setStatus('Filing failed: ' + ((error as Error)?.message || String(error)));
         } finally {

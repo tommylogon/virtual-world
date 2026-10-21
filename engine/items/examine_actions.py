@@ -356,10 +356,10 @@ class ExamineActionsMixin:
                                 # the looking was never credited with meeting it. Both
                                 # halves are needed and they are different: the state flip
                                 # above is about what the world shows, this is about what
-                                # *this* character has seen. The three readers that
-                                # render "known" - contextual-actions.js isDiscovered,
-                                # room-context.js and memory-context.js - all read
-                                # `player.discovered_items`, so the stamp is what makes the
+                                # *this* character has seen. The readers that
+                                # render "known" (contextual-actions.js, room-context.js,
+                                # memory-context.js) all read observation memories via
+                                # memory_index / has_seen, so the stamp is what makes the
                                 # reveal mean anything to the player. Idempotent: a second
                                 # examine of the same chest refreshes the observation in
                                 # place and grants no further novelty.

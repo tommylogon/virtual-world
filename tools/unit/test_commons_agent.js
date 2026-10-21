@@ -8,10 +8,14 @@ function commonsHarness(reply, knownCharacters = ['Lysa'], theme = 'live_social'
     const calls = [];
     let decisionPrompt = '';
     let memoryWritten = '';
-    window.CommonsState = {
-        isPaused: false,
+    window.CommonsState = Object.assign(Object.create(saved.state || {}), {
+        manualPaused: false,
+        visibilityPaused: false,
         participants: { Mira: { active: true, blocked: false } },
-    };
+        characterTurns: {},
+        lastActed: null,
+        selectedDrawerCharacter: null,
+    });
     window.PromptBuilder.buildCommunicationPrompt = (player, memories, channels, known) => {
         decisionPrompt = JSON.stringify({ player, memories, channels, known });
         return decisionPrompt;
@@ -253,6 +257,24 @@ test('the commons: think action does not read, send, or create a conversation', 
     }
 });
 
+test('the commons: stepOne allows a character to act when simulation is paused', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'I should send a quick update.',
+        communication: { action: 'send_chat', channel_id: 'group-night', text: 'Taking one step.' },
+        memory: null,
+    });
+    window.CommonsState.manualPaused = true;
+    try {
+        await CommonsAgent.stepOne();
+        assertTrue(window.CommonsState.isPaused);
+        assertEq(h.calls.find(call => call[0] === 'post'), [
+            'post', 'Mira', 'Taking one step.', 'group-night',
+        ]);
+    } finally {
+        h.restore();
+    }
+});
+
 test('the commons: shared prompt builder uses existing Player persona and hides message bodies', () => {
     const prompt = PromptBuilder.buildCommunicationPrompt(
         { name: 'Mira', personality: 'careful and dry-witted', traits: { patient: true }, state: 'awake' },
@@ -351,25 +373,49 @@ test('the commons: recall uses the standard Player memory retrieval endpoint', a
             max_results: 5,
             reinforce: true,
         });
-
-        test('the commons: communication mode selection uses its world settings endpoint', async () => {
-            const realFetch = window.fetch;
-            let request = null;
-            window.fetch = async (url, options) => {
-                request = { url, options };
-                return { ok: true, json: async () => ({ theme: 'town_board' }) };
-            };
-            try {
-                const result = await CommonsApi.setTheme('town_board');
-                assertEq(request.url, '/api/commons/theme');
-                assertEq(request.options.method, 'POST');
-                assertEq(JSON.parse(request.options.body), { theme: 'town_board' });
-                assertEq(result.theme, 'town_board');
-            } finally {
-                window.fetch = realFetch;
-            }
-        });
     } finally {
         window.fetch = realFetch;
+    }
+});
+
+test('the commons: communication mode selection uses its world settings endpoint', async () => {
+    const realFetch = window.fetch;
+    let request = null;
+    window.fetch = async (url, options) => {
+        request = { url, options };
+        return { ok: true, json: async () => ({ theme: 'town_board' }) };
+    };
+    try {
+        const result = await CommonsApi.setTheme('town_board');
+        assertEq(request.url, '/api/commons/theme');
+        assertEq(request.options.method, 'POST');
+        assertEq(JSON.parse(request.options.body), { theme: 'town_board' });
+        assertEq(result.theme, 'town_board');
+    } finally {
+        window.fetch = realFetch;
+    }
+});
+
+test('the commons: actCharacter records inner monologue and updates lastActed and drawer state', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'The trail is getting colder; I should ask if anyone saw tracks.',
+        communication: { action: 'send_chat', channel_id: 'group-night', text: 'Did anyone see tracks?' },
+        memory: null,
+    });
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertEq(window.CommonsState.lastActed.charName, 'Mira');
+        assertEq(window.CommonsState.lastActed.action, 'send_chat');
+        const turns = window.CommonsState.characterTurns['Mira'];
+        assertTrue(Array.isArray(turns) && turns.length > 0);
+        assertEq(turns[0].inner, 'The trail is getting colder; I should ask if anyone saw tracks.');
+        assertEq(turns[0].action, 'send_chat');
+
+        window.CommonsState.openDrawer('Mira');
+        assertEq(window.CommonsState.selectedDrawerCharacter, 'Mira');
+        window.CommonsState.closeDrawer();
+        assertEq(window.CommonsState.selectedDrawerCharacter, null);
+    } finally {
+        h.restore();
     }
 });

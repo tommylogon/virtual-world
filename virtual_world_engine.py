@@ -568,6 +568,8 @@ class VirtualWorld:
             lived_record(player, self.time_ticks, "death",
                          f"died of {cause}", why="cause:death",
                          area=getattr(player, "current_area", ""), salient=True)
+            from engine import lived_log_memory
+            lived_log_memory.bridge(player, self)
         except Exception as e:
             logger.warning("[death] lived_record %s: %s", player_name, e)
 
@@ -955,9 +957,6 @@ class VirtualWorld:
     def _get_path_to_area(self, from_area: str, to_area: str) -> Optional[str]:
         return self.npc_behaviors._get_path_to_area(from_area, to_area)
 
-    def slasher_hunt(self, slasher_name: str) -> str:
-        return self.npc_behaviors.slasher_hunt(slasher_name)
-
     def _player_attack(self, attacker_name: str, target_name: str, weapon_node=None,
                        where=None) -> str:
         return self.combat.player_attack(attacker_name, target_name, weapon_node, where=where)
@@ -970,6 +969,10 @@ class VirtualWorld:
         return self.combat.find_weapon_in_inventory(player_name, weapon_name)
     def add_player(self, player_obj):
         return self.player_manager.add_player(player_obj)
+
+    def remove_player(self, player_ref) -> bool:
+        """Completely remove a player from the roster and the graph (task-708)."""
+        return self.player_manager.remove_player(player_ref)
 
     def get_player(self, player_name: str) -> Optional[Player]:
         """Resolve a player object by name (delegates to player_manager).

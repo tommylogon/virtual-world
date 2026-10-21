@@ -1,5 +1,5 @@
 /**
- * @module commons-agent — communication actions for existing Players
+ * @module commons-agent - communication actions for existing Players
  * @contributes paced read, send, and direct-message actions
  * @powers autonomous character participation in The Commons
  * @relates CommonsApi, CommonsState, PromptBuilder, ResponseParser
@@ -103,25 +103,28 @@
             }
         }
 
-        static async stepOne() {
+        static async stepOne(charName?: string) {
             const state = (window as any).CommonsState;
-            if (state.isPaused) return;
             const participants = state.participants || {};
             const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].active && !participants[n].blocked);
             if (available.length === 0) return;
-            const chosen = available[Math.floor(Math.random() * available.length)];
-            await this.actCharacter(chosen);
+            const chosen = (charName && available.includes(charName))
+                ? charName
+                : available[Math.floor(Math.random() * available.length)];
+            await this.actCharacter(chosen, true);
         }
 
-        static async actCharacter(charName: string) {
+        static async actCharacter(charName: string, isManualStep: boolean = false) {
             const state = (window as any).CommonsState;
-            if (state.isPaused) return;
+            if (!isManualStep && state.isPaused) return;
             const participant = state.participants?.[charName];
             if (!participant || !participant.active || participant.blocked) return;
             if (this.controllers[charName]) return;
 
             const controller = new AbortController();
             this.controllers[charName] = controller;
+            state.actingCharacter = charName;
+            (window as any).CommonsState?.emit?.();
             const signal = controller.signal;
             const api = (window as any).CommonsApi;
             const llm = (window as any).llmClient;
@@ -132,7 +135,7 @@
                     api.retrieveMemories(charName, 'conversation friends messages group chat', signal),
                     api.getState(charName),
                 ]);
-                if (state.isPaused || signal.aborted) return;
+                if ((!isManualStep && state.isPaused) || signal.aborted) return;
 
                 const memoryText = (memories.memories || [])
                     .map((memory: any) => String(memory.text || '').trim())
@@ -169,12 +172,44 @@
                     signal,
                     label: 'commons/communication',
                 });
-                if (state.isPaused || signal.aborted || !reply) return;
+                if ((!isManualStep && state.isPaused) || signal.aborted || !reply) return;
 
                 const decision = responseParser.parseCommunication(reply);
                 if (decision.parseError) {
                     console.warn(`[CommonsAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
                     return;
+                }
+
+                let actionSummary = 'chose not to speak';
+                if (decision.action === 'send_chat') {
+                    const ch = channels.find((c: any) => c.id === decision.channelId);
+                    actionSummary = `posted to #${ch?.name || 'chat'}`;
+                } else if (decision.action === 'read_chat') {
+                    const ch = channels.find((c: any) => c.id === decision.channelId)
+                        || channels.find((c: any) => c.unread_count > 0);
+                    actionSummary = `read messages in #${ch?.name || 'chat'}`;
+                } else if (decision.action === 'start_dm') {
+                    actionSummary = `sent direct message to ${decision.recipient || 'someone'}`;
+                } else if (decision.action === 'start_group') {
+                    actionSummary = `created group "${decision.groupName || 'group'}"`;
+                }
+
+                if (typeof state.recordTurn === 'function') {
+                    state.recordTurn(charName, {
+                        inner: decision.inner || '',
+                        action: decision.action,
+                        summary: actionSummary,
+                        detail: {
+                            text: decision.text,
+                            channelId: decision.channelId,
+                            recipient: decision.recipient,
+                            groupName: decision.groupName,
+                            memory: decision.memory,
+                        }
+                    });
+                }
+                if (state.characterContextCache) {
+                    state.characterContextCache[charName] = player;
                 }
 
                 let readMessages: any[] = [];
@@ -212,7 +247,7 @@
                     await api.postMessage(charName, decision.text, result.channel.id, signal);
                 }
 
-                if (state.isPaused || signal.aborted) return;
+                if ((!isManualStep && state.isPaused) || signal.aborted) return;
                 const memoriesToStore: string[] = [];
                 if (readMessages.length) {
                     const summary = readMessages.slice(-4).map((message: any) =>
@@ -233,7 +268,11 @@
             } catch (error) {
                 if (!signal.aborted) console.error(`[CommonsAgent] Communication turn failed for ${charName}:`, error);
             } finally {
-                if (this.controllers[charName] === controller) delete this.controllers[charName];
+                if (this.controllers[charName] === controller) {
+                    delete this.controllers[charName];
+                    if (state.actingCharacter === charName) state.actingCharacter = null;
+                }
+                (window as any).CommonsState?.emit?.();
             }
         }
     }

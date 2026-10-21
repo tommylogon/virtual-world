@@ -1,13 +1,13 @@
 /**
- * tools.js — Tool catalog and Overlay Graph View for Natural-Language Editor (task-387).
+ * tools.js  -  Tool catalog and Overlay Graph View for Natural-Language Editor (task-387).
  *
  * Implements the catalog tools with an OverlayGraphView that seamlessly merges
  * live worldState with uncommitted staged operations (including bulk
  * update_matching_nodes patches and roster/list reads).
  *
- * @module nl-editor/tools — the tool catalog + overlay graph view
+ * @module nl-editor/tools  -  the tool catalog + overlay graph view
  * @contributes NLEditorTools + OverlayGraphView: merge live worldState with uncommitted staged ops, list_nodes/matchNodes roster reads, update_matching_nodes bulk patches, library_upsert/library_delete template editing
- * @powers NL editor — what the NL agent can actually do, previewed against the real graph
+ * @powers NL editor  -  what the NL agent can actually do, previewed against the real graph
  * @relates called by agent-loop.js; reads staging.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -255,7 +255,7 @@ window.NLEditorTools = (() => {
                 lines.push(`- Area [${a.name}] (id: ${a.id}${a.staged ? ', STAGED' : ''})${a.tags ? ` [tags: ${a.tags}]` : ''}`);
             }
             if (areaEntries.length > shownAreas.length) {
-                lines.push(`…and ${areaEntries.length - shownAreas.length} more areas — call search_graph_nodes or list_nodes to find others.`);
+                lines.push(`…and ${areaEntries.length - shownAreas.length} more areas  -  call search_graph_nodes or list_nodes to find others.`);
             }
             lines.push(`Counts: ${counts.area} areas, ${counts.character} characters, ${counts.item} items, ${counts.way} ways${counts.logic_trigger ? `, ${counts.logic_trigger} triggers` : ''}.`);
 
@@ -268,7 +268,7 @@ window.NLEditorTools = (() => {
                     lines.push(`- ${entry.name}${entry.area ? ` @ ${entry.area}` : ''} (id: ${entry.id})`);
                 }
                 if (roster.length > shown.length) {
-                    lines.push(`…and ${roster.length - shown.length} more characters — call list_nodes {kind:'character'}.`);
+                    lines.push(`…and ${roster.length - shown.length} more characters  -  call list_nodes {kind:'character'}.`);
                 }
             }
 
@@ -334,7 +334,7 @@ window.NLEditorTools = (() => {
         }
 
         /**
-         * Resolve a bulk selector to node views — uncapped, deterministic. The
+         * Resolve a bulk selector to node views  -  uncapped, deterministic. The
          * selector mirrors the server's `_select_nodes` so the affected set the
          * user reviews is the set the apply will touch:
          * {kind|type, tags|tag, require_all_tags, area|area_id,
@@ -492,7 +492,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'list_nodes',
-                description: 'List/count nodes by kind, tag, area or name — the roster read. Use for "who is in area X", "how many goblins", "all items tagged lantern", and to preview a bulk selector before update_matching_nodes. Paged.',
+                description: 'List/count nodes by kind, tag, area or name  -  the roster read. Use for "who is in area X", "how many goblins", "all items tagged lantern", and to preview a bulk selector before update_matching_nodes. Paged.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -512,7 +512,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'list_world_issues',
-                description: 'List authoring issues from the World Issues validator (the Issues tab): empty triggers, orphan/dangling trigger edges, ways with no cardinal or pass message, nodes drifted from their library, orphaned nodes. Use this to find what to fix, stage fixes with the normal tools, then re-run to confirm they cleared. Read-only; it never dismisses — that is the UI tab.',
+                description: 'List authoring issues from the World Issues validator (the Issues tab): empty triggers, orphan/dangling trigger edges, ways with no cardinal or pass message, nodes drifted from their library, orphaned nodes. Use this to find what to fix, stage fixes with the normal tools, then re-run to confirm they cleared. Read-only; it never dismisses  -  that is the UI tab.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -551,7 +551,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'rename_character',
-                description: "Rename a character everywhere the name is used: the players registry key, the Player name, the node display name, and other characters' relationship keys. Use this for 'rename X to Y' — do NOT use update_node {name}, which only changes the node and leaves the roster/inspector/relationships on the old name (task-447/619).",
+                description: "Rename a character everywhere the name is used: the players registry key, the Player name, the node display name, and other characters' relationship keys. Use this for 'rename X to Y'  -  do NOT use update_node {name}, which only changes the node and leaves the roster/inspector/relationships on the old name (task-447/619).",
                 parameters: {
                     type: 'object',
                     properties: {
@@ -755,12 +755,12 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'upsert_library_entry',
-                description: 'Stage creating or updating a shared library template (archetype) for items, characters, areas, ways or traits — e.g. "all goblins have darkvision" as an archetype change. Future spawns inherit it; link/refresh existing nodes to push it to the world. Validated before Apply (id slug, known fields, mature gate).',
+                description: 'Stage creating or updating a shared library template (archetype) for items, characters, areas, ways or traits  -  e.g. "all goblins have darkvision" as an archetype change. Future spawns inherit it; link/refresh existing nodes to push it to the world. Validated before Apply (id slug, known fields, mature gate).',
                 parameters: {
                     type: 'object',
                     properties: {
                         registry_type: { type: 'string', enum: ['items', 'characters', 'areas', 'ways', 'traits'], description: 'Which library registry' },
-                        id: { type: 'string', description: 'Template id — a lowercase slug (a-z, 0-9, _)' },
+                        id: { type: 'string', description: 'Template id  -  a lowercase slug (a-z, 0-9, _)' },
                         data: { type: 'object', description: 'The template body, same schema as the registry read (name, description, tags, effects/triggers/properties, ...)' }
                     },
                     required: ['registry_type', 'id', 'data']
@@ -905,7 +905,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'update_matching_nodes',
-                description: 'Stage ONE patch applied to every node matching a selector — use for bulk intents ("give all goblins darkvision"). The affected entities are resolved immediately and listed for review before Apply; dict-valued fields (traits, stats, environment) merge key-by-key. Prefer this over many update_node calls.',
+                description: 'Stage ONE patch applied to every node matching a selector  -  use for bulk intents ("give all goblins darkvision"). The affected entities are resolved immediately and listed for review before Apply; dict-valued fields (traits, stats, environment) merge key-by-key. Prefer this over many update_node calls.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -946,7 +946,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'attach',
-                description: 'Stage a relation edge between two nodes — placement (into/onto), giving an item to a character (their inventory), or equipping it.',
+                description: 'Stage a relation edge between two nodes  -  placement (into/onto), giving an item to a character (their inventory), or equipping it.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -1035,7 +1035,7 @@ window.NLEditorTools = (() => {
     // ─────────────────────── Mechanic inference (task-387) ───────────────────────
     // When the model creates an item, common-sense mechanics are bound from the
     // name so e.g. a "glowing crystal" actually lights the room and a "roast
-    // chicken" can be eaten — without asking the model to know every detail.
+    // chicken" can be eaten  -  without asking the model to know every detail.
     const _ACTIONS_BASE = 'examine,take,use';
 
     function _appendAction(actions: string[] | string | undefined, action: string) {
@@ -1052,7 +1052,7 @@ window.NLEditorTools = (() => {
         const hasTag = (t: string) => (p.tags as string[]).includes(t);
         const nameL = String(name || '').toLowerCase();
 
-        // 💡 Light sources — engine counts tag light_source + lit/on state.
+        // 💡 Light sources  -  engine counts tag light_source + lit/on state.
         if (/(candle|lamp|lantern|torch|brazier|hearth|fire|flame|sconce|wisp|glowing|crystal|lamp|glow)/.test(nameL) && !hasTag('light_source')) {
             p.tags.push('light_source');
             if (p.light_level === undefined) {
@@ -1406,7 +1406,7 @@ window.NLEditorTools = (() => {
                                 .find((p: any) => String(p?.name || '') === key);
                         if (!entry) return { error: `No character '${args.character}'.` };
                         const beh = Array.isArray(entry.behaviors) ? entry.behaviors : [];
-                        return { character: entry.name || key, count: beh.length, behaviors: beh.slice(0, 50) };
+                        return { character: entry.name || key, count: beh.length, behaviors: beh };
                     }
                     case 'compile_behaviours': {
                         const TG = (window as unknown as { TriggerGraph?: {
@@ -1432,7 +1432,7 @@ window.NLEditorTools = (() => {
                             const compact = traits.slice(0, 30).map(t => ({
                                 id: t.id,
                                 name: t.name || t.id,
-                                description: (t.description || '').slice(0, 100),
+                                description: (t.description || ''),
                                 effects: t.effects || {}
                             }));
                             return { count: compact.length, traits: compact };
@@ -1477,7 +1477,7 @@ window.NLEditorTools = (() => {
                             rotation: bg.rotation ?? null,
                             opacity: bg.opacity ?? null,
                             locked: !!bg.locked,
-                            note: 'A flat reference image rendered under the node graph. Its pixels are not visible to you — use it for layout context only.'
+                            note: 'A flat reference image rendered under the node graph. Its pixels are not visible to you  -  use it for layout context only.'
                         };
                     }
                     case 'search_library_areas': {
@@ -1499,7 +1499,7 @@ window.NLEditorTools = (() => {
                             }
                             const compact = areas.slice(0, 10).map(a => ({
                                 id: a.id, name: a.name, tags: a.tags || [],
-                                description: (a.description || '').slice(0, 80)
+                                description: (a.description || '')
                             }));
                             return { count: compact.length, areas: compact };
                         } catch (e: any) {
@@ -1559,7 +1559,7 @@ window.NLEditorTools = (() => {
                             const res = await apiGet('/api/library/entities');
                             const parts = [];
                             for (const [t, info] of Object.entries(res || {}) as Array<[string, any]>) parts.push(`${t}: ${info?.count ?? '?'}`);
-                            return { summary: `Library registries — ${parts.join(', ')}.` };
+                            return { summary: `Library registries  -  ${parts.join(', ')}.` };
                         } catch (e: any) {
                             return { summary: 'Library summary unavailable.', error: e.message };
                         }
@@ -1610,7 +1610,7 @@ window.NLEditorTools = (() => {
                         const name = args.name || 'Unnamed';
                         if (kind === 'character') {
                             // bug-527: a character is Player-backed. Stage a
-                            // create_character op — the apply registers a Player and
+                            // create_character op  -  the apply registers a Player and
                             // mints the canonical `player_<name>` node. A bare
                             // `character_*` node is rejected as an unregistered player.
                             const pid = ('player_' + name).replace(/ /g, '_');
@@ -1706,7 +1706,7 @@ window.NLEditorTools = (() => {
                         }
                         const matches = this.overlay.matchNodes(selector);
                         if (!matches.length) {
-                            return { error: 'No nodes matched the selector — nothing staged.' };
+                            return { error: 'No nodes matched the selector  -  nothing staged.' };
                         }
                         const ids = matches.map(m => m.id);
                         const selectorLabel = Object.entries(selector)

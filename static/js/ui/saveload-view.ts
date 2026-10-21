@@ -1,5 +1,5 @@
 /**
- * saveload-view.js — Save/load game UI module
+ * saveload-view.js  -  Save/load game UI module
  * Extracted from main.js. Provides SaveLoadView singleton.
  *
  * Dependencies:
@@ -12,7 +12,7 @@
  *   - Global: toastSuccess, toastError, toastInfo (from ui-helpers.js)
  *   - DOM elements: #save-game-list, #save-game-name-input, #load-game-modal, etc.
  *
- * @module ui/saveload-view — save/load game UI
+ * @module ui/saveload-view  -  save/load game UI
  * @contributes SaveLoadView: save list, save/load/delete, named saves
  * @powers keeping and restoring your world (extracted from main.js)
  * @relates uses api + events + config; delegates downloads to shared WorldExport
@@ -23,7 +23,7 @@
 const saveLoadViewTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
 
 // ui-helpers.js stamps toastSuccess on window, but it has no
-// globals.d.ts declaration — call it through a cast at call time.
+// globals.d.ts declaration  -  call it through a cast at call time.
 function saveloadToastSuccess(message: string) {
     (window as unknown as { toastSuccess: (message: string) => void }).toastSuccess(message);
 }
@@ -73,7 +73,7 @@ window.SaveLoadView = (() => {
     /**
      * Persist the scenario name on the SERVER.
      *
-     * The name is not cosmetic — it decides where a commit writes (so a world
+     * The name is not cosmetic  -  it decides where a commit writes (so a world
      * booted from a shared template stops committing into that template), and it
      * keys the per-scenario graph-background cache. The server is the source of
      * truth, so a failure reverts the chip rather than lying to the user.
@@ -117,7 +117,7 @@ window.SaveLoadView = (() => {
     }
 
     /**
-     * Upload/load a world from a user-selected JSON file — WITH a preview.
+     * Upload/load a world from a user-selected JSON file  -  WITH a preview.
      * Shows counts + sanity issues before anything touches the live world.
      * @param {Event} event - The file input change event
      */
@@ -142,7 +142,7 @@ window.SaveLoadView = (() => {
 
     /**
      * Rough counts + sanity pass over an incoming world/template dict.
-     * Never blocks — the preview is informational; Apply is undo-protected.
+     * Never blocks  -  the preview is informational; Apply is undo-protected.
      */
     function inspectImport(data: any) {
         var isTemplate = ('player' in data) && !('players' in data);
@@ -187,7 +187,7 @@ window.SaveLoadView = (() => {
             Object.keys(data.players || {}).forEach(function(pname) { playerNames.push(pname); });
         }
         // Item counts live in areas[].items for template/hybrid files and in
-        // graph nodes for plain world-state files — count the former too.
+        // graph nodes for plain world-state files  -  count the former too.
         Object.keys(areas).forEach(function(aname) {
             var a = areas[aname] || {};
             (a.items || []).forEach(function(it: any) {
@@ -205,7 +205,7 @@ window.SaveLoadView = (() => {
                 }
             });
         }
-        if (!roomCount) issues.push('- No areas found — the world will be empty after load.');
+        if (!roomCount) issues.push('- No areas found  -  the world will be empty after load.');
         if (!playerNames.length) issues.push('- No players found.');
         return {
             file: null as string | null,
@@ -234,7 +234,7 @@ window.SaveLoadView = (() => {
         header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
         var title = document.createElement('h3');
         title.style.cssText = 'margin:0;font-size:14px;';
-        title.textContent = '📂 Import Preview — ' + fileName;
+        title.textContent = '📂 Import Preview  -  ' + fileName;
         var close = document.createElement('button');
         close.className = 'btn btn-sm';
         close.textContent = '\u2715';
@@ -251,7 +251,7 @@ window.SaveLoadView = (() => {
             info.players.length + '</strong> characters<br>' +
             '<span style="font-size:10px;color:var(--text-muted);">' +
             (info.isTemplate ? 'format: authoring template' : 'format: world state') +
-            ' — the current world will be replaced (↩ Undo restores it).</span>';
+            '  -  the current world will be replaced (↩ Undo restores it).</span>';
         box.appendChild(counts);
 
         var issuesBox: HTMLElement | null = null;
@@ -294,13 +294,13 @@ window.SaveLoadView = (() => {
                 if (j.error) { toastError(j.error); return; }
                 var sev = j.severities || {};
                 var parts = [];
-                if (j.count === 0) parts.push('<span style="color:#3fb950;">✅ Full audit passed — no trigger/authoring issues.</span>');
+                if (j.count === 0) parts.push('<span style="color:#3fb950;">✅ Full audit passed  -  no trigger/authoring issues.</span>');
                 if (sev.error) parts.push(sev.error + ' error(s)');
                 if (sev.warning) parts.push(sev.warning + ' warning(s)');
                 if (sev.info) parts.push(sev.info + ' info note(s)');
                 var detail = (j.issues || []).slice(0, 6).map(function(i: any) {
                     return (i.severity === 'error' ? '✕ ' : i.severity === 'warning' ? '⚠ ' : 'ℹ ') +
-                        String(i.message || '').slice(0, 160);
+                        String(i.message || '');
                 }).join('<br>');
                 issuesBox!.innerHTML = '<strong>🔬 Deep audit:</strong> ' + (j.count === 0 ? parts[0] : parts.join(' · ')) +
                     (detail ? '<br>' + detail : '') +

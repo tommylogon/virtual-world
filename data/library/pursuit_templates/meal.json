@@ -1,26 +1,44 @@
 {
   "id": "meal",
-  "version": 2,
+  "version": 1,
   "name": "Make and eat a meal",
   "purpose": "Gather food, bring it home, and eat it.",
   "parameters": {
     "food_spec": {
       "type": "item_spec",
-      "required": false,
-      "description": "What the character is gathering to eat (supply check only; the recipe defines the cook)."
+      "required": true,
+      "description": "What the character is gathering to eat."
     },
     "home": {
       "type": "area",
       "required": true,
-      "description": "Where the character cooks and eats."
+      "description": "Where the character eats."
     }
   },
   "requirements": [
     {
       "type": "in_area",
-      "target": "self",
       "area": {
         "$binding": "home"
+      }
+    }
+  ],
+  "supplies": [
+    {
+      "tags": [
+        "food"
+      ],
+      "name": null
+    }
+  ],
+  "progress": [
+    {
+      "id": "fed",
+      "description": "The character has eaten and is no longer hungry.",
+      "check": {
+        "type": "vital_below",
+        "stat": "Hunger",
+        "value": 40
       }
     }
   ],
@@ -34,18 +52,11 @@
     },
     {
       "kind": "activity",
-      "activity": "cooking",
-      "recipe": "barley_pottage"
-    },
-    {
-      "kind": "activity",
-      "activity": "eating",
-      "duration_minutes": 10
+      "activity": "eating"
     }
   ],
   "tags": [
     "gathering",
-    "cooking",
     "eating",
     "survival"
   ]

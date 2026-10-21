@@ -1,149 +1,111 @@
 ---
 type: bug
-status: todo
+status: review
 area: prompting
-priority: low
-wiki: "[[Feature Map]]"
+priority: medium
+wiki: "[[AI & Narration/Narration System]]"
 ---
 
-# bug-517: AI room narration is broadcast as the character's own spoken line, polluting every listener's recent_hearing
+# bug-517: DM-style AI narration is broadcast as character speech instead of replacing systemic action results
 
-**Filed:** 2026-10-04
-**Related:** task-692
+**Filed:** 2026-10-04 (Updated: 2026-10-20)
+**Related:** task-692, task-340
 
 ## What
 
-Stop the narrated room description from being sent to
-`/api/players/<name>/speak`, which attributes it to the character as
-speech and appends a hearing entry to every listener.
+AI narration is intended as a DM (Dungeon Master) presentation layer that replaces dry systemic messages and action results with immersive, second-person narration in the event feed. Instead, room narration is currently routed through `/api/players/<name>/speak`, forcing the character to literally vocalize the DM prose into the room as speech, which mutates Social vitals and pollutes every nearby character's `recent_hearing` memory.
 
-## Measured 2026-10-04, by reading the call chain
+The fix requires:
+1. Eliminating the `playerSpeak` call from `buildNarratedRoomContext` entirely.
+2. Routing systemic action results and engine messages (`data.output`, `data.system_messages`) through the DM narration layer to produce unified narrative action outcomes in the event feed instead of raw mechanical status messages.
 
-`static/js/agent/prompt-builder/room-context.ts:886-887`, inside
-`buildNarratedRoomContext`:
+## Measured 2026-10-04 and 2026-10-20
+### Reconciliation (2026-10-20)
 
-    const narratedDescription = await narrationUi()!.getNarratedRoomContext(contextObject, charName);
-    if (narratedDescription) {
-        contextString = contextString.replace(/^Description: .*/m, `Description: ${narratedDescription}`);
-        try { await apiClient().playerSpeak(charName, `*${narratedDescription}*`, currentArea?.name as string); }
-        catch(innerError) {}
-    }
+Current code state:
+- static/js/agent/prompt-builder/room-context.ts:942 still calls wait apiClient().playerSpeak(charName, **, currentArea?.name as string); when narrated description is produced (3 total matches including type declaration at line 976). This call mutates the world via POST /api/players/<name>/speak, affecting Social vitals, 
+ecent_hearing, and on_speech_heard hooks.
+- static/js/agent-engine.ts:854-856 logs raw data.system_messages as system-msg even when narration is attempted. Narration consumes only outputText at line 863 and replaces it at 864; raw system messages remain emitted separately (855), so systemic messages are not absorbed into the narrated outcome.
+- static/js/narration-ui.ts: 0 matches for playerSpeak.
+- No done tasks reference bug-517; code unchanged relative to measured state.
 
-`playerSpeak` (`static/js/api.ts:187`) POSTs to
-`/api/players/<name>/speak` → `routes/player_ops.py:471
-handle_player_speak` → `app.world.broadcast_speech(name, text,
-area_name=target_area.name)` (`engine/speech.py:191`).
+Verdict: **STILL_VALID**. No newer work has fixed the broadcast of room narration as speech or bundled systemic messages into the narrated outcome. The card remains accurate; cited lines are current.
 
-`broadcast_speech`'s docstring states it "mutates the speaker's and
-listeners' `Social` vital and appends hearing entries to each player's
-`recent_hearing` list. Also triggers `on_speech_heard` NPC behaviors."
+## Plan position (2026-10-20)
 
-So the third-person prose the LLM wrote about the room is:
+**Which NEWER cards (higher number, in `done/` or `review/`) bear on this card, and what did each one actually do?**
+- No done/review cards with higher number than 517 were found to touch narration/speech routing. task-692 is related (todo, lower priority context) but not done/review. task-340 related but older.
 
-- attributed to the character as something they **said**,
-- heard by every other character in the area, who each get a
-  `recent_hearing` entry (capped at 20, `engine/speech.py:324`),
-- able to fire `on_speech_heard` NPC behavior hooks,
-- and — since `eed00a72` landed memory dynamics — eligible to be
-  picked up by reinforcement/decay as a thing the character recalls.
+**Did that newer work CHANGE THE APPROACH of this card, or does it merely IMPLEMENT PART OF IT, or is it UNRELATED?**
+- Unrelated to newer done/review work.
 
-In Kraktooth's Cooking Area, walking in as Jake Halloway makes Jake
-appear to say a paragraph about the Cooking Area, and the cook, the
-tinkerer, and anyone else present each form a memory of Jake saying it.
+**Does this card still stand as a DISTINCT piece of the overall plan, or has a newer card absorbed its scope?**
+- Stands as a distinct piece. No newer card absorbed its scope.
 
-## Why this is a bug and not a feature
+**Verdict:** holds, distinct.
 
-The `*asterisks*` are the app's emote convention, so the *shape* is
-deliberate — the narration is meant to render as an emote in the event
-stream. But routing it through `/speak` to achieve a display effect
-means the display effect is implemented as a **world mutation**. The
-two are not the same thing, and only one of them is what was intended.
+### 1. In-world speech pollution (room-context.ts)
+In `static/js/agent/prompt-builder/room-context.ts:941-943`:
 
-Compounding it: this fires on **every** room context build for **every**
-character, not once per room. A tick where several NPCs move through the
-same area has each of them emit a spoken paragraph.
+```typescript
+const narratedDescription = await narrationUi()!.getNarratedRoomContext(contextObject, charName);
+if (narratedDescription) {
+    contextString = contextString.replace(/^Description: .*/m, `Description: ${narratedDescription}`);
+    try { await apiClient().playerSpeak(charName, `*${narratedDescription}*`, currentArea?.name as string); }
+    catch(innerError) {}
+}
+```
 
-## How
+`apiClient().playerSpeak` calls `POST /api/players/<name>/speak` -> `app.world.broadcast_speech` (`engine/speech.py:191`).
+`broadcast_speech` mutates `Social` vitals for the speaker and all listeners, appends hearing records to each player's `recent_hearing` list (capped at 20), triggers `on_speech_heard` hooks, and seeds memories.
 
-Render the narration as an emote in the event stream locally (the
-`events.log(..., 'system-msg')` call in `_generateAINarration` already
-does this — see the duplicate) and do not post it as speech. If the
-narration genuinely needs to be visible to other characters as an
-observation rather than a spoken line, that is a different endpoint and
-a deliberate decision, not a side effect of wanting italics.
+In Kraktooth's Cooking Area, Jake Halloway entering the room causes Jake to appear to shout a paragraph describing the pots and walls. The cook, the tinkerer, and any bystander each record a memory that Jake said it.
 
-## Acceptance
+### 2. Disconnected systemic results (agent-engine.ts)
+In `static/js/agent-engine.ts:850-874`:
+Action outcomes receive engine results and log `system_messages` mechanically:
 
-- Reproduce: enter a room with at least one other character, with
-  narration mode `ai` and a configured model. Assert that character's
-  `recent_hearing` gains an entry naming the speaker and the narrated
-  text.
-- After the fix: same steps, `recent_hearing` unchanged, and the
-  narration still renders as an emote in the event stream.
-- Assert `on_speech_heard` does not fire for narration.
-- Confirm no duplicate: `_generateAINarration` already calls
-  `events.log(\`[AI Narration] ${cleaned}\`, 'system-msg')`, so today the
-  text appears twice — once from that log, once as the broadcast. State
-  which one survives.
-- Regression guard: a test that a narrated room context build performs
-  no `POST /api/players/*/speak`.
+```typescript
+actionResult = data?.output || '';
+actionSucceeded = data?.success !== false;
+if (data?.system_messages) {
+    data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
+}
+```
 
-## Why
+When AI narration is enabled, `getNarratedActionResult` runs only on `outputText` (`data.output`), while `data.system_messages` bypass narration and get dumped as bare engine strings. The player sees disjointed engine logging alongside or before the narration, instead of the DM rephrasing the complete action outcome (action + consequences + systemic messages) into a coherent narrative beat.
 
-The narrated description is environmental context for the character and the
-human-facing event stream. Sending it through the speech endpoint turns a
-display effect into a world event and falsely attributes the prose to the
-character. Keep the existing single local narration event; do not create a
-second speech, memory, or narration store.
+## Why this is a defect
 
-## Steps to verify
+Narration is a **presentation/DM layer**, not an **in-world physical action**:
+- The DM describing what happened or setting the scene is commentary for the player/observer. It must NEVER become in-world dialogue spoken by the character.
+- Routing display text through `/speak` turns a client-side presentation effect into a world mutation, corrupting character relationships, vitals, and conversation histories.
+- The intended role of the narrator is to replace the dry systemic messages of action outcomes (e.g. "Door unlocked. Moved east.") with descriptive prose (e.g. "The iron key turns with a sharp click, and you push into the shadowy corridor.").
 
-1. Add/run a focused regression that builds AI room context and checks that
-   `/api/players/<name>/speak` is not called for the narration.
-   - expected: no speech request, listener-hearing mutation, or
-     `on_speech_heard` branch.
-   - observed: not run; bug remains open.
-2. Follow the intended browser path below when the narration fix is available.
-   - expected: one local emote remains visible while listeners receive no
-     speech event.
-   - observed: not run; this card records the acceptance path.
+## How to fix
 
-## Browser UI and intended live verification
+1. **Remove playerSpeak from room-context.ts:**
+   Delete line 942's call to `apiClient().playerSpeak`. Room narration updates `contextString` for the character's prompt and logs to the event stream via `events.log` (already in `narration-ui.ts:204` as a system/DM message), with zero world mutation.
+2. **Feed systemic messages into action narration:**
+   In `static/js/agent-engine.ts`:
+   When `narrationMode` is active (`'ai'` or `'player'`), combine `actionResult` and `data.system_messages` into the input context given to `narrationUI.getNarratedActionResult(combinedText, charName, finalAction)`.
+3. **Suppress raw systemic logs when narrated:**
+   When `narratedText` successfully resolves, render `narratedText` as `msg-narrated` in the event feed and suppress the duplicate raw `system_messages` display. If narration is off (`'none'`) or fails/skips, fall back to logging raw `system_messages` and `msg-result`.
+4. **Ensure DM perspective in narration prompts:**
+   Confirm that prompt instructions in `narration-ui.ts` clearly prompt the model as the Dungeon Master describing the results of the action to the player, rather than character thoughts or spoken lines.
 
-Intended UI home: top-bar **Narration mode** selector and the existing event
-stream; listener-side consequences are checked through the character's normal
-Mind and memory surfaces.
+## Acceptance criteria
 
-Current availability: selector and local narration presentation exist; the
-room-context speech fix is not implemented.
-
-Live steps when available:
-
-The control is the existing top-bar **Narration mode** selector
-(`narration-select`); the visible result belongs in the event stream. Keep the
-selector and the local narration presentation. The fix must stop the narrated
-room description from reaching listeners as speech.
-
-1. Run a scratch copy of Kraktooth's Goblin Camp with a configured AI narration
-   provider. Set **Narration mode** to **AI**.
-2. Arrange for Jake Halloway and at least one other character to be in the
-   Cooking Area, then enter/build room context so the AI room narration runs.
-3. Inspect the event stream and the listener's **🧠 Mind → Memories** panel.
-   Compare the listener's `recent_hearing` before and after in `/api/state`.
-   - expected after the fix: one local narration emote is visible; no new
-     `recent_hearing` entry attributes that paragraph to Jake; no
-     `on_speech_heard` behavior is caused by the narration.
-4. Repeat a room-context build for Jake without moving the other character.
-   - expected: it does not create another speech/hearing event. The narration
-     remains local to the existing event-stream presentation.
-
-The API comparison is supporting evidence for the world mutation. The event
-stream and character Mind panel are the visible UI checks. These steps define
-intended access and live acceptance; they are not a claim that the fix works
-today. No browser run is recorded for this updated card.
+- **Zero speech pollution:** Triggering room narration or action narration never makes a network request to `POST /api/players/*/speak`.
+- **Clean listener memory:** Characters in the same area as the acting player experience 0 additions to `recent_hearing` from narration events.
+- **No on_speech_heard triggers:** Narration text never fires NPC conversational triggers or alters Social vitals.
+- **Systemic message replacement:** When narration mode is `ai` or `player`, engine `system_messages` are absorbed into the narrated outcome rather than printed as separate mechanical lines in the event feed.
+- **Fallback safety:** If narration mode is `none`, or if the AI provider fails/skips, the standard engine `system_messages` and `msg-result` render exactly as they do today.
+- **Unit test guard:** A targeted test asserts `buildNarratedRoomContext` does not call `apiClient().playerSpeak`, and action-result handling properly bundles systemic messages when narration is active.
 
 ## Files
 
 - `static/js/agent/prompt-builder/room-context.ts`
-- `static/js/narration-ui.js` (existing local event rendering)
+- `static/js/agent-engine.ts`
+- `static/js/narration-ui.ts`
 - Targeted prompt-builder/narration tests

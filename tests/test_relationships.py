@@ -3,7 +3,7 @@
 Relationship state was written from combat, first-meeting registration, the
 foreground loop and the `label` command, each touching the dict itself. Two
 consequences: no *cause* was recorded (a beating looked like a shared meal), and
-the two fidelity tiers could disagree about how the same scalar evolves — so at a
+the two fidelity tiers could disagree about how the same scalar evolves  -  so at a
 promotion/demotion the value could jump.
 
 `apply_relationship_delta` is now the only writer of `closeness`. It clamps in
@@ -169,7 +169,7 @@ def test_a_delta_creates_the_record_it_needs():
 
 
 def test_combat_betrayal_still_costs_thirty():
-    """The 'psychotic friend' case at engine/combat.py — regression."""
+    """The 'psychotic friend' case at engine/combat.py  -  regression."""
     a, b = _pair(0)
     b.relationships["Rikka"] = {"closeness": 50, "last_interaction_tick": 0,
                                 "interaction_count": 0}
@@ -201,7 +201,7 @@ def test_register_first_meeting_marks_the_first_sighting():
 
 
 #: Files allowed to assign a whole relationship record. Both replace the store
-#: from an incoming payload (a savegame or a PUT import) — that is
+#: from an incoming payload (a savegame or a PUT import)  -  that is
 #: deserialization, not a relationship *mutation*, and no closeness is computed
 #: there. Everything else must go through engine/relationships.py.
 _ALLOWED_IMPORT_SITES = {
@@ -232,3 +232,29 @@ def test_relationships_are_written_only_through_the_one_path():
     assert "engine/relationships.py" in sites
     for allowed in _ALLOWED_IMPORT_SITES:
         assert allowed in sites, f"{allowed} no longer imports; drop it from the allowlist"
+
+def test_rename_player_rekeys_relationships_across_all_players():
+    """task-619: renaming character A updates character B's relationship key to A."""
+    from engine.player_manager import PlayerManager
+    from graph import WorldGraph
+
+    g = WorldGraph()
+    pm = PlayerManager(g)
+    alice = Player("Alice")
+    bob = Player("Bob")
+    pm.add_player(alice)
+    pm.add_player(bob)
+
+    # Establish relationship from Bob -> Alice
+    apply_relationship_delta(bob, "Alice", 25, cause="meeting")
+    assert bob.relationships["Alice"]["closeness"] == 25
+
+    # Rename Alice -> Alicia
+    pm.rename_player("Alice", "Alicia")
+
+    # Verify Bob's relationship is re-keyed to Alicia with preserved closeness
+    assert "Alice" not in bob.relationships
+    assert "Alicia" in bob.relationships
+    assert bob.relationships["Alicia"]["closeness"] == 25
+    assert bob.relationships["Alicia"]["name"] == "Alicia"
+

@@ -138,40 +138,42 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
             tags = [str(t).strip().lower() for t in tags]
         return tags
 
-    if verb in ('take', 'get', 'grab'):
+    from engine.action_verbs import AUTOCOMPLETE_GROUPS
+
+    if verb in AUTOCOMPLETE_GROUPS['take']:
         for item in room_items:
             acts = _get_actions(item)
             takeable = item.properties.get('takeable', True)
             if 'take' in acts or verb in acts or takeable:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in ('examine', 'search', 'inspect', 'check', 'x', 'read'):
+    elif verb in AUTOCOMPLETE_GROUPS['examine']:
         for item in room_items + carried_items + known_items + room_ways:
             _add(item.properties.get('name') or item.id)
         for cname in area_chars:
             _add(cname)
 
-    elif verb in ('use',):
+    elif verb in AUTOCOMPLETE_GROUPS['use']:
         for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
             if 'use' in acts or verb in acts or item in carried_items or item in known_items:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in ('open', 'close', 'unlock', 'lock'):
+    elif verb in AUTOCOMPLETE_GROUPS['door']:
         for way in room_ways:
             _add(way.properties.get('name') or way.id)
         for d in way_directions:
             _add(d)
 
-    elif verb in ('drop', 'stow', 'put'):
+    elif verb in AUTOCOMPLETE_GROUPS['drop']:
         for item in carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in ('combine',):
+    elif verb in AUTOCOMPLETE_GROUPS['combine']:
         for item in carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in ('split',):
+    elif verb in AUTOCOMPLETE_GROUPS['split']:
         for item in carried_items:
             props = item.properties or {}
             attempts = 0
@@ -182,41 +184,41 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
             if attempts >= 2:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in ('craft', 'make'):
+    elif verb in AUTOCOMPLETE_GROUPS['craft']:
         for recipe in vw._recipe_known_names(player_name):
             _add(recipe)
 
-    elif verb in ('eat', 'drink'):
+    elif verb in AUTOCOMPLETE_GROUPS['consume']:
         for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
             if verb in acts or any(t in ('food', 'drink', 'consumable', 'edible') for t in tags):
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in ('toggle',):
+    elif verb in AUTOCOMPLETE_GROUPS['toggle']:
         for item in room_items + carried_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
             if 'toggleable' in tags or 'toggle' in acts:
                 _add(item.properties.get('name') or item.id)
 
-    elif verb in ('attack', 'kill', 'speak', 'say', 'talk', 'whisper', 'shout'):
+    elif verb in AUTOCOMPLETE_GROUPS['char_target']:
         for cname in area_chars:
             _add(cname)
 
-    elif verb in ('name', 'label'):
+    elif verb in AUTOCOMPLETE_GROUPS['name']:
         for cname in area_chars:
             _add(cname)
         for item in room_items + carried_items:
             _add(item.properties.get('name') or item.id)
 
-    elif verb in ('go', 'walk', 'move', 'enter'):
+    elif verb in AUTOCOMPLETE_GROUPS['go']:
         for way in room_ways:
             _add(way.properties.get('name') or way.id)
         for d in way_directions:
             _add(d)
 
-    elif verb in ('find', 'forage'):
+    elif verb in AUTOCOMPLETE_GROUPS['find']:
         # `find <skill>` (task-471/483): suggest the search skills by name so the
         # affordance is discoverable, not something a player has to guess.
         from engine import foraging

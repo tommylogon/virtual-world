@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: characters
 priority: high
 related: ['task-349', 'task-350', 'task-420', 'task-734']

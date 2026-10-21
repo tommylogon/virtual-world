@@ -1,8 +1,8 @@
-"""Player map route — the cells a character has actually been in (task-677).
+"""Player map route - the cells a character has actually been in (task-677).
 
 The point of these tests is that the map needs **no producer of its own**. Every
 row they assert on is written by the real ``engine.observation.observe_area`` on
-arrival, exactly as it is in play — so a test that passes here is evidence the
+arrival, exactly as it is in play - so a test that passes here is evidence the
 map is wired, not just that a payload can be shaped.
 
 The negative cases matter as much as the positive ones. The map must not report
@@ -83,7 +83,7 @@ def make_graph():
     g.add_node(Node(id="area_cellar", type="area", name="Cellar", properties={
         "cell": {"x": 3, "y": 3}, "world_scope_id": "camp", "floor": -1,
     }))
-    # No painted cell at all — the map must still report it and let the client
+    # No painted cell at all - the map must still report it and let the client
     # fall back to the cardinal layout.
     g.add_node(Node(id="area_yard", type="area", name="Yard", properties={
         "world_scope_id": "camp", "floor": 0,
@@ -138,7 +138,7 @@ def test_a_character_who_never_moved_gets_one_cell_not_the_scope():
     """The acceptance case: knowing where you are is not knowing the map."""
     g = make_graph()
     cook = make_player()
-    # The load-time observation pass every character gets — standing still.
+    # The load-time observation pass every character gets - standing still.
     observe_area(cook, _GS(g))
 
     body = call(g, cook)[0]
@@ -192,7 +192,7 @@ def test_last_seen_carries_the_contents_and_the_people():
     g = make_graph()
     cook = make_player()
     observe_area(cook, _GS(g))
-    # People are stamped on *meeting*, not on arrival — observation.py:96-105
+    # People are stamped on *meeting*, not on arrival - observation.py:96-105
     # excludes characters deliberately (arrival-stamping them saturated camp
     # Entertainment at 87/100). So the map's who-was-there is populated by the
     # meeting, and a room containing someone you have never met stays empty
@@ -309,7 +309,7 @@ def test_marking_visited_writes_the_row_the_map_already_reads():
     assert row["location"] == "Cellar"
     assert "Cellar" in row["text"]
     # And the set the known-routes prose still reads.
-    assert "Cellar" in cook.visited_areas
+    assert "Cellar" in cook.visited_area_names()
 
 
 def test_marking_visited_accepts_a_comma_string():
@@ -318,7 +318,7 @@ def test_marking_visited_accepts_a_comma_string():
     _, status = mark(g, cook, "Cellar, Yard")
 
     assert status == 200
-    assert set(cook.visited_areas) == {"Cellar", "Yard"}
+    assert set(cook.visited_area_names()) == {"Cellar", "Yard"}
 
 
 def test_marking_visited_is_idempotent():
@@ -352,7 +352,7 @@ def test_marking_visited_for_an_unknown_player_is_a_404():
 
 
 def test_seeding_alone_does_not_invent_what_was_there():
-    """"Was here" is not "saw these things" — the two are separate claims."""
+    """"Was here" is not "saw these things" - the two are separate claims."""
     g = make_graph()
     cook = make_player()
     mark(g, cook, ["Pantry"])
@@ -453,3 +453,59 @@ def test_player_map_charted_cells_persist_across_los_changes():
     # ...but remains charted in persistent memory!
     assert (7, 2) in charted2
 
+
+
+def test_interior_scope_is_strictly_topological_and_never_reveals_empty_cells():
+    """Fine interiors remain strictly topological (task-882, worldpainter-knowledge-and-fog.md).
+    A character in an interior scope must NOT cast geometric rays over empty grid cells.
+    Sight is 1-hop topological: current area + adjacent areas via open ways.
+    """
+    g = WorldGraph()
+    g.add_node(Node(id="area_room_a", type="area", name="Room A", properties={
+        "cell": {"x": 2, "y": 2}, "world_scope_id": "interior_keep", "floor": 0,
+    }))
+    g.add_node(Node(id="area_room_b", type="area", name="Room B", properties={
+        "cell": {"x": 4, "y": 4}, "world_scope_id": "interior_keep", "floor": 0,
+    }))
+    g.add_node(Node(id="area_room_c", type="area", name="Room C", properties={
+        "cell": {"x": 8, "y": 8}, "world_scope_id": "interior_keep", "floor": 0,
+    }))
+    # Open doorway between Room A and Room B
+    g.add_node(Node(id="way_a_b", type="way", name="archway", properties={"current_state": "open"}))
+    g.add_edge(Edge(source="area_room_a", target="way_a_b", type=EDGE_CONNECTION, properties={"direction": "east"}))
+    g.add_edge(Edge(source="way_a_b", target="area_room_b", type=EDGE_CONNECTION, properties={"direction": "west"}))
+
+    # Closed heavy door between Room A and Room C
+    g.add_node(Node(id="way_a_c", type="way", name="iron door", properties={"current_state": "closed"}))
+    g.add_edge(Edge(source="area_room_a", target="way_a_c", type=EDGE_CONNECTION, properties={"direction": "north"}))
+    g.add_edge(Edge(source="way_a_c", target="area_room_c", type=EDGE_CONNECTION, properties={"direction": "south"}))
+
+    hero = make_player("Hero", "Room A")
+    observe_area(hero, _GS(g))
+
+    scopes = {
+        "interior_keep": {
+            "id": "interior_keep",
+            "name": "Keep Interior",
+            "mode": "interior",
+            "grid": {"w": 20, "h": 20},
+        }
+    }
+
+    body, _ = call(g, hero, scopes=scopes)
+    vis_coords = {(c["x"], c["y"]) for c in body["visible_cells"]}
+
+    # Room A (current) is visible
+    assert (2, 2) in vis_coords
+    # Room B (connected via open archway) is visible
+    assert (4, 4) in vis_coords
+    # Room C (blocked by closed iron door) is NOT visible
+    assert (8, 8) not in vis_coords
+    # Empty unplaced cells across the 20x20 grid are NEVER visible
+    assert (13, 3) not in vis_coords
+    assert (0, 0) not in vis_coords
+    assert len(vis_coords) == 2
+
+    # Charted cells should only contain the 2 visible room coordinates, never empty cells
+    charted_coords = {(c["x"], c["y"]) for c in body["charted_cells"]}
+    assert charted_coords == {(2, 2), (4, 4)}

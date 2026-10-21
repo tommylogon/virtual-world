@@ -1,11 +1,11 @@
 /**
- * InspectorAreaView — Area inspector (showArea, improveRoomWithAI, environment editing)
+ * InspectorAreaView  -  Area inspector (showArea, improveRoomWithAI, environment editing)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  *
- * @module inspector/area-view — the area (room) inspector
+ * @module inspector/area-view  -  the area (room) inspector
  * @contributes InspectorAreaView: description/environment/light/noise editing, scope membership, AI room improvement
- * @powers Node inspectors, Look around — inspecting and editing a room, its scope membership and its exits
+ * @powers Node inspectors, Look around  -  inspecting and editing a room, its scope membership and its exits
  * @relates renders through InspectorPanel; uses inspector/helpers + way-authoring; scope list via api.getWorldScopes
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */
@@ -32,7 +32,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
      * classic script, so it is a global lexical binding and NOT a window
      * property. Read it bare, exactly as the code always has, under a scoped
      * @ts-ignore. Note the guard at its only call site tests
-     * `window.libraryBrowser`, which is therefore always falsy — that is
+     * `window.libraryBrowser`, which is therefore always falsy  -  that is
      * pre-existing behaviour and is preserved here rather than "fixed".
      */
     function libraryBrowserRef(): LibraryBrowserApi {
@@ -64,7 +64,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
             if (found) actualNodeId = found[0];
         }
 
-        // Exits — authoring view includes hidden/undiscovered ways; the
+        // Exits  -  authoring view includes hidden/undiscovered ways; the
         // gameplay-filtered list stays available as `exits` for reference.
         const areaData = worldState.areas?.[name];
         const exits = areaData?.exits_authoring || areaData?.exits || {};
@@ -200,7 +200,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
                 <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
                     <div style="display:flex;gap:2px;align-items:center;">
                         ${InspectorHelpers.isGeneratedNode(actualNodeId)
-                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id — owned by the world compiler; it is regenerated on recompile and cannot be renamed">${actualNodeId}</span>`
+                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id  -  owned by the world compiler; it is regenerated on recompile and cannot be renamed">${actualNodeId}</span>`
                             : htmlTag`<input type="text" .value=${actualNodeId} @change=${(ev: Event) => InspectorHelpers.renameNode(actualNodeId, (ev.target as HTMLInputElement).value)} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;" title="Change node ID (lowercase, no spaces)">
                                 <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(actualNodeId, name)} title="Sync ID from name">🔄</button>`}
                     </div>
@@ -236,7 +236,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
      * @returns {TemplateResult}
      */
     RV._renderEnvironmentSection = function(env: AreaEnv, actualNodeId: string): TemplateResult {
-        // `light` is numeric (0-100) in some areas and an enum word in others —
+        // `light` is numeric (0-100) in some areas and an enum word in others  - 
         // both are valid and `engine/lighting.py`'s get_light_int reads either.
         // A select could only show the enum half, and a numeric 80 selected no
         // option at all (silently showing "pitch black"). A text field with the
@@ -252,7 +252,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
         // `noise` is free text in the data ("busy", "dripping water"), so a
         // closed select loses what is there and cannot represent it. Suggestions
         // cover both the engine's mechanical vocabulary (silent/quiet/normal/
-        // loud/chaotic — engine/sound.py `_noise_levels`) and the descriptive
+        // loud/chaotic  -  engine/sound.py `_noise_levels`) and the descriptive
         // words already authored (task-640).
         const noiseValue = env.noise || 'quiet';
         const noisePresets = ['silent', 'quiet', 'normal', 'loud', 'chaotic', 'dripping', 'humming', 'windy'];
@@ -279,7 +279,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
 return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Light</label>
-                <input type="text" id="room-light" list="room-light-presets" .value=${lightValue} style="flex:1;font-size:11px;" title="A number 0–100 or a preset word — the engine reads either" @change=${(ev: Event) => RV._updateEnvLight(actualNodeId, (ev.target as HTMLInputElement).value)}>
+                <input type="text" id="room-light" list="room-light-presets" .value=${lightValue} style="flex:1;font-size:11px;" title="A number 0–100 or a preset word  -  the engine reads either" @change=${(ev: Event) => RV._updateEnvLight(actualNodeId, (ev.target as HTMLInputElement).value)}>
                 <datalist id="room-light-presets">${lightPresets.map(lightName => htmlTag`<option value=${lightName}></option>`)}</datalist>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
@@ -303,7 +303,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 <label style="min-width:50px;">Weather</label>
                 <select @change=${(ev: Event) => RV._updateEnv(actualNodeId, 'weather', (ev.target as HTMLInputElement).value)} style="flex:1;">
                     ${['', 'clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w =>
-                        htmlTag`<option value=${w} ?selected=${(env.weather || '') === w}>${w === '' ? '— none (no weather line) —' : w}</option>`)}
+                        htmlTag`<option value=${w} ?selected=${(env.weather || '') === w}>${w === '' ? ' -  none (no weather line)  - ' : w}</option>`)}
                 </select>
                 <span style="font-size:10px;color:var(--text-muted);white-space:nowrap;" title="This area's weather drives its prose only. The world forecast (top bar) drives daylight and the sky; it is a separate field and is not overridden here.">world: ${worldWeather}</span>
             </div>
@@ -330,7 +330,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
     };
 
     /**
-     * task-379: environment presets — save the current env as a named preset,
+     * task-379: environment presets  -  save the current env as a named preset,
      * apply a preset to this area / area + open-way neighbours / all areas.
      * Presets live in localStorage; applies go through api.updateNode so the
      * existing undo snapshots cover them.
@@ -339,7 +339,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
         const presets = (window as unknown as AreaViewWindow).EnvPresets ? (window as unknown as AreaViewWindow).EnvPresets.list() : [];
         const options = presets.length
             ? presets.map(name => htmlTag`<option value=${name}>${name}</option>`)
-            : htmlTag`<option value="">— no presets saved —</option>`;
+            : htmlTag`<option value=""> -  no presets saved  - </option>`;
         return htmlTag`<div class="field" style="border-top:1px dashed var(--border);padding-top:8px;margin-top:8px;">
             <label style="font-size:10px;color:var(--text-muted);">🧴 Presets</label>
             <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
@@ -393,7 +393,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
 
     /**
      * task-173: fill the 🔊 Sounds readout from the engine (active sound
-     * sources in this area — level + pattern, like the graph overlay).
+     * sources in this area  -  level + pattern, like the graph overlay).
      * @param {HTMLElement} el - Target span
      * @param {string} areaId - Graph node id of the area
      */
@@ -403,27 +403,27 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             .then(r => (r.ok ? r.json() : { sounds: [] }))
             .then(data => {
                 const sounds = data.sounds || [];
-                if (!sounds.length) { el.textContent = 'quiet — no active sound sources.'; return; }
+                if (!sounds.length) { el.textContent = 'quiet  -  no active sound sources.'; return; }
                 const levelWord: Record<number, string> = { 1: 'nearby', 2: 'loud', 3: 'carrying' };
                 el.textContent = (sounds as AreaSound[]).map((s: AreaSound) =>
                     `${s.pattern}${s.name ? ` (${s.name})` : ''}` +
-                    (levelWord[s.level!] ? ` — ${levelWord[s.level!]}` : '')
+                    (levelWord[s.level!] ? `  -  ${levelWord[s.level!]}` : '')
                 ).join(' · ');
             })
-            .catch(() => { el.textContent = '—'; });
+            .catch(() => { el.textContent = ' - '; });
     };
 
     /**
      * Render the floor section
      *
      * `floor` is a **storey index**: 0 is the ground plane, 1 one storey up, -1
-     * one down, and it is deliberately *unbounded* — three stacked rooms, the
+     * one down, and it is deliberately *unbounded*  -  three stacked rooms, the
      * bottom of a lake, an 80-storey tower, a hole to hell at -900. So there is
      * no min/max on the input (a clamp to ±10 quietly caps a skyscraper at ten
      * floors); the browser's own number spinner is enough. A non-numeric value
      * is a save written before the material moved to `surface`, and reads as
      * ground. The ground *material* is shown under it, read from
-     * `properties.surface` — which is where the WorldPainter compiler puts it.
+     * `properties.surface`  -  which is where the WorldPainter compiler puts it.
      *
      * @param {object} props - Node properties
      * @param {string} actualNodeId - Graph node id
@@ -441,7 +441,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 <span style="font-size:10px;color:var(--text-muted);">${label}</span>
             </div>
             <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
-                Storey: 0 is ground, 1 one up, -1 one down — no upper or lower limit.
+                Storey: 0 is ground, 1 one up, -1 one down  -  no upper or lower limit.
             </div>
             ${props.surface ? htmlTag`<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
                 Standing on: ${String(props.surface).replace(/_/g, ' ')}
@@ -452,8 +452,8 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
     /**
      * Render the scope-membership section (task-539).
      *
-     * `world_scope_id` *is* membership — the WorldPainter and the graph's scope
-     * views read nothing else — so it belongs here, next to the area, instead of
+     * `world_scope_id` *is* membership  -  the WorldPainter and the graph's scope
+     * views read nothing else  -  so it belongs here, next to the area, instead of
      * being something you can only change by parking the area on a painted cell
      * (which is placement, a different thing). Map placement is shown in the same
      * section so the two are read as one fact rather than two hidden ones.
@@ -469,14 +469,14 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <select id="area-scope-${actualNodeId}" style="flex:1;"
                     title="Which scope this area belongs to. Membership decides what
-                           each scope's view lists — it is not the same as putting the
+                           each scope's view lists  -  it is not the same as putting the
                            area on a painted cell.">
                     <option value="">loading scopes…</option>
                 </select>
             </div>
             <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">
                 ${placement
-                    ? htmlTag`On the map at ${placement} — <button class="btn btn-sm btn-ghost" style="font-size:9px;" @click=${() => RV._openInPainter(actualNodeId, props)}>open in WorldPainter</button>`
+                    ? htmlTag`On the map at ${placement}  -  <button class="btn btn-sm btn-ghost" style="font-size:9px;" @click=${() => RV._openInPainter(actualNodeId, props)}>open in WorldPainter</button>`
                     : 'Not placed on any painted cell. Membership alone decides which scope lists it.'}
             </div>
         </div>`;
@@ -498,7 +498,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             live.innerHTML = '';
             const none = document.createElement('option');
             none.value = '';
-            none.textContent = '— no scope —';
+            none.textContent = ' -  no scope  - ';
             live.appendChild(none);
             (scopes as ScopeOption[]).forEach((s) => {
                 const opt = document.createElement('option');
@@ -527,7 +527,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 const previous = currentScopeId;
                 if (target === previous) return;
                 try {
-                    // "— no scope —" has no id to post to, so the *current* scope
+                    // " -  no scope  - " has no id to post to, so the *current* scope
                     // is the route and the area goes in `remove`.
                     const routeId = target || previous;
                     if (!routeId) throw new Error('this area belongs to no scope to remove it from');
@@ -535,7 +535,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                         target ? [] : [actualNodeId]);
                     await worldState.fetch();
                     if ((window as unknown as AreaViewWindow).worldSync) (window as unknown as AreaViewWindow).worldSync.refresh();
-                    // The name, not the id — the author just picked it from a list
+                    // The name, not the id  -  the author just picked it from a list
                     // of names, and a raw id in the log reads as "nothing renamed".
                     RV._toast(target
                         ? `Moved into ${nameOf(target)}.`
@@ -591,9 +591,15 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             ? InspectorHelpers.resolveWayParams(description, doorNode.properties?.parameters || {})
             : description;
         // task-240: cardinal direction badge (map-layout data) when present.
+        // The glyph comes from the shared map so this badge and the graph's
+        // Cardinal overlay read the same: a stairway shows the vertical arrow,
+        // not a generic compass plus the raw word.
         const cardinal = exitData.cardinal || '';
+        const cardinalIcon = typeof WayAuthoring !== 'undefined'
+            ? WayAuthoring.cardinalIcon(cardinal)
+            : cardinal;
         const cardinalBadge = cardinal
-            ? htmlTag`<span class="state-badge" style="font-size:9px;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.4);padding:1px 6px;border-radius:4px;font-weight:600;" title="Map cardinal: ${cardinal}">🧭 ${cardinal}</span>`
+            ? htmlTag`<span class="state-badge" style="font-size:9px;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.4);padding:1px 6px;border-radius:4px;font-weight:600;" title="Map cardinal: ${cardinal}">🧭 ${cardinalIcon}</span>`
             : (window as unknown as AreaViewWindow).Lit.nothing;
         const badges = typeof WayAuthoring !== 'undefined'
             ? WayAuthoring.collectExitBadges(exitData, doorNode).filter((b: { kind: string }) => b.kind !== 'state')
@@ -682,7 +688,7 @@ Current environment:
 - smell: ${env.smell || 'neutral'}
 - noise: ${env.noise || 'quiet'}
 
-Improve this area's description and environment settings. Make the description much richer — paint a vivid picture with sensory details (sights, sounds, smells, textures, atmosphere). Suggest appropriate environment values that match the mood. Return the full area as JSON with name, description, and environment fields.`;
+Improve this area's description and environment settings. Make the description much richer  -  paint a vivid picture with sensory details (sights, sounds, smells, textures, atmosphere). Suggest appropriate environment values that match the mood. Return the full area as JSON with name, description, and environment fields.`;
         };
 
         const apply = (parsed: Record<string, any>, node: AreaViewGraphNode, lockedFields: string[], update: Record<string, any>) => {

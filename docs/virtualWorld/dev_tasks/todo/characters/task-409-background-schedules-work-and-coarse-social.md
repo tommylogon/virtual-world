@@ -24,12 +24,12 @@ blocked_by: [task-701]
 **The schedule model and the planner are implemented and tested; the schedule
 DATA is deliberately not shipped, because measurement showed it degrades the camp.**
 
-Engine landed (`engine/schedule.py`, `tests/test_schedule.py` — 39 tests):
+Engine landed (`engine/schedule.py`, `tests/test_schedule.py` - 39 tests):
 
 - Steps are `{start: "HH:MM", activity, area, fallback}`, sorted, wrapping at
   midnight; before the first step the *last* step stays in force, so a day
   starting at 06:00 does not leave anyone idle or wandering from midnight.
-- Malformed steps are **dropped, not guessed** — a step with no usable start
+- Malformed steps are **dropped, not guessed** - a step with no usable start
   cannot be placed in a day, and inventing one would make a character behave in a
   way nobody authored. An unknown activity degrades to `wait` rather than freeing
   the character to wander. An empty schedule is a valid state: exactly how every
@@ -38,14 +38,14 @@ Engine landed (`engine/schedule.py`, `tests/test_schedule.py` — 39 tests):
   at 07:00 happens at 07:00 at any tick length.
 - `normalize` also runs on load, so a hand-edited or legacy file cannot put a bad
   step into somebody's day.
-- `background_simulation._pursue_schedule` walks to the step's area — reusing
+- `background_simulation._pursue_schedule` walks to the step's area - reusing
   `_target_step`, which gains an explicit `areas` override for a *named*
-  destination — then starts a short `working` block. It runs **after every
+  destination - then starts a short `working` block. It runs **after every
   survival need and before boredom**, so a character works with time no need
   claims and still breaks off to eat. `working` is registered in all five activity
   registries including `ACTIVITY_INTERRUPTIBLE` (the omission that once made
   `conversing` never expire), and the block is deliberately short
-  (`WORK_MINUTES = 30`) because `_act` skips anyone mid-activity — the duration is
+  (`WORK_MINUTES = 30`) because `_act` skips anyone mid-activity - the duration is
   the longest a character can go without eating or relieving itself.
 - `tools/add_schedules.py` authors schedules idempotently (dry-run default) from a
   per-role table: 16 of 23 characters have a role, derived from the area each
@@ -62,14 +62,14 @@ schedules on vs off, same seed:
 | Energy | **72.3** | 55.4 | 40.0 | 31.0 |
 | Hunger / Thirst / Sanity | same | same | same | same |
 
-Schedules genuinely work — traces show Thrazz at the Chief's Den working at 09:30,
-Mikka at the Workshop, and `schedule:work` firing — and Energy is *better* with
+Schedules genuinely work - traces show Thrazz at the Chief's Den working at 09:30,
+Mikka at the Workshop, and `schedule:work` firing - and Energy is *better* with
 them, because the night step puts characters in the Sleeping Halls so they sleep
 properly. But Hygiene, Social and Entertainment collapse: **388 schedule-travels
 against 53 work blocks.** Schedule travel competes for the same action budget as
 the need ladder and drags characters to work sites that hold **no facilities**, so
 the lower-priority needs never get their turn. Priority starvation via travel, not
-a broken schedule — and not a regression worth shipping.
+a broken schedule - and not a regression worth shipping.
 
 **Next, in the order the evidence suggests:**
 
@@ -85,26 +85,26 @@ a broken schedule — and not a regression worth shipping.
 
 Slice 2 (the capped daily reflection) is unaffected and still open.
 
-**Second round — both attempted fixes failed, and the reason is arithmetic.**
+**Second round - both attempted fixes failed, and the reason is arithmetic.**
 
 1. **Committing the errand.** Hypothesis: journeys are walked one hop per decision
    and every routine need crossing restarts them, so characters never arrive. Added
    `CRITICAL_*` levels and a committed-journey guard (a scheduled errand runs to
    arrival unless a need is critical). **Result: 388 → 381 travels, 53 → 45 work
-   blocks.** No effect — the hypothesis was wrong, and the change was reverted
+   blocks.** No effect - the hypothesis was wrong, and the change was reverted
    rather than kept as unproven complexity.
 
 2. **Co-locating facilities with work.** Hypothesis: work sites have no food,
    water, latrine or wash, so every need is a cross-camp round trip. Added
    `latrine`/`water`/`recreation` area tags to 11 work areas and 4 wash basins
    (`tools/add_workplace_facilities.py`). **This made things worse, including the
-   no-schedule baseline** — Hygiene 69.2 → **24.4** with schedules *disabled*, and
+   no-schedule baseline** - Hygiene 69.2 → **24.4** with schedules *disabled*, and
    48.8 → **7.9** with them on, and two characters died of exhaustion. Reverted.
 
    The lesson is worth more than the change: **area tags are not neutral.** They
    are what `_areas_with` consults for *every* need search, so tagging the work
    areas `water` and `latrine` changed where the entire camp travels for every
-   need — not just where workers drink. A "co-locate the facilities" pass cannot
+   need - not just where workers drink. A "co-locate the facilities" pass cannot
    be evaluated as a local data tweak.
 
 **The actual blocker is the action budget.** A background character takes one
@@ -112,24 +112,24 @@ action per `DECISION_MINUTES` (10 game minutes), so a day is about **96 actions*
 per character. Survival need service is not cheap in actions: each is a *journey*
 of one hop per action, and the camp's food, water, latrine and wash are in
 different corners. A working day of twelve 30-minute blocks cannot fit beside
-those errands — and once schedule travel competes for the same budget, the
+those errands - and once schedule travel competes for the same budget, the
 errands slow down too, which is exactly what the numbers show (Hygiene and
 Entertainment collapse; `schedule:work` fires about once per character per day).
 
 So this is a **design decision, not a data tweak**:
 
-- **(a) More actions per day** — shorten `DECISION_MINUTES` or raise
+- **(a) More actions per day** - shorten `DECISION_MINUTES` or raise
   `MAX_ACTIONS_PER_TICK`. Straightforward, but multiplies tick CPU across 23+
   characters, and it treats the symptom: it makes the character *finer*-grained
   when the goal is "supercharged simple NPCs".
-- **(b) Coarser need service** — bundle the errands. At 10-minute granularity a
+- **(b) Coarser need service** - bundle the errands. At 10-minute granularity a
   character should not walk to the river, drink, walk back, then walk to the
   latrine as three separate decisions; it makes **one "chores" trip** to a service
   area and services several needs in a single action. This is what a coarse
   simulation should already be doing, and it collapses roughly five errands into
   one, freeing the budget for work. The camp's existing latrine/wash/food/water
   areas already identify where a chores trip would go.
-- **(c) Drop the working day** — keep schedules only for *placement* (where a
+- **(c) Drop the working day** - keep schedules only for *placement* (where a
   character is by day and night, which is already an improvement and measured as
   Energy-positive) and accept no work blocks.
 
@@ -139,7 +139,7 @@ for the problem. It is also a change to the *survival model's granularity*, so i
 should be decided rather than assumed. Until then the schedule data stays out of
 the scenario and the engine remains as committed in slice 1.
 
-## Update (2026-09-24) — the action-budget arithmetic is superseded
+## Update (2026-09-24) - the action-budget arithmetic is superseded
 
 The "96 actions/day" figure above comes from the retired *action credit* model
 (`DECISION_MINUTES = 10`, one decision per 10 game minutes). That model is gone:
@@ -148,7 +148,7 @@ turn**, where a turn is a *timeframe* (default `time_per_tick_minutes = 1`, so
 ~1440 turn-minutes per in-game day) and each action consumes its authored
 `TASK_MINUTES` duration. A task longer than the timeframe spans turns (the
 overdraft fix in `_begin_task`), and the count of actions per turn is emergent,
-not budgeted — `MAX_ACTIONS_PER_TICK` no longer exists. A background character and
+not budgeted - `MAX_ACTIONS_PER_TICK` no longer exists. A background character and
 the live character now spend the same turn the same way.
 
 So options (a)/(b)/(c) collapse. (a) "more actions per day" is already true and is
@@ -165,7 +165,7 @@ kept as evidence; it must be re-measured under the one-action-per-turn model bef
 any decision to ship schedule data. Slice 2 (the capped daily reflection) is
 unaffected and still open.
 
-## Update (2026-09-29) — Social collapse re-measured; three unrelated backsim bugs fixed
+## Update (2026-09-29) - Social collapse re-measured; three unrelated backsim bugs fixed
 
 Ran a fresh headless background soak of `kraktooth_goblin_camp` (23 characters,
 135 areas) after fixing several backsim defects (see below). With schedules still
@@ -179,7 +179,7 @@ unshipped, the Social collapse predicted here reproduces exactly:
 Social decays to near-zero over a week even though the survival ladder is healthy
 (Hunger max 49, Thirst max 42, Energy min 38). Instrumented pairing tally for one
 day: **581 area-frames had ≥2 available background characters, but only 24 were
-pairable** — 1441 rejections were the 90-minute cooldown and 714 were areas left
+pairable** - 1441 rejections were the 90-minute cooldown and 714 were areas left
 with <2 after the cooldown/cap filter. So the binder is **co-location + cooldown,
 not the 6/day cap**, and company only offsets the baseline drain (never fills), so
 Social can only fall. This is the same arithmetic the 2026-09-24 note describes;
@@ -190,7 +190,7 @@ Fixes landed this pass (all committed, all separate from the Social question):
 - **Area-node resolution (tick_manager).** `current_area` is a display name, but
   `tick_manager` resolved it by id only, so `"Chief's Pit"` → `area_chief's_pit`
   (no such node) and generated coordinate areas resolved to `None`. For 5 of 23
-  characters this skipped the *entire* per-area block — environment effects AND the
+  characters this skipped the *entire* per-area block - environment effects AND the
   company Social gain. Added `_resolve_area_node` (id, then name via
   `room_perception`). `tests/test_tick_area_resolution.py`.
 - **Sleep vs noise.** A loud room applied a raw `-1` Energy/tick (a legacy per-tick
@@ -226,6 +226,23 @@ goals and memories.
 The clock schedule model, schedule traversal, and coarse social pass already
 exist. The co-presence meeting and coarse social work is covered by tasks 417
 and 423; it is not open work in this card.
+
+## Why
+
+A background character with a day - work in the morning, sleep at night - is
+what makes the camp read as a place rather than a set of idle stats, and the
+engine already has the clock model, the schedule traversal and the coarse
+social pass to carry it. But the authored schedule data was never shipped, and
+the measurement that blocked it was taken under a now-retired action-credit
+clock, so that evidence cannot be reused: the simulation has since moved to
+one action per turn, and the numbers in the 2026-09 tables say nothing about
+current behavior. The remaining work on the schedule half is therefore a
+decision, not an implementation - re-measure under the current model and either
+ship the data or record the blocker with the smallest supported next change.
+The reflection half is different: a capped daily reflection that writes
+through the existing GIMP goal and memory paths is entirely unimplemented,
+and it is the piece that gives a character's day a point of view instead of
+just a timetable.
 
 ## Ownership and runtime boundaries
 
@@ -284,7 +301,7 @@ and 423; it is not open work in this card.
 
 ## Browser UI and intended live verification
 
-Intended UI home: Character Inspector → 🧠 Mind → **Schedule — their day**,
+Intended UI home: Character Inspector → 🧠 Mind → **Schedule - their day**,
 Goals section, and Memories tab.
 
 Current availability: schedule, goal, and memory readouts exist in Mind;
@@ -294,7 +311,7 @@ described here.
 Live steps when available:
 
 The schedule belongs in the character Inspector's existing **🧠 Mind** panel,
-under **Schedule — their day**. Goals and motivations remain in the existing
+under **Schedule - their day**. Goals and motivations remain in the existing
 Goals section; any authored memory remains in the existing **Memories** tab.
 Do not add a second schedule or mind screen. If a code change adds or changes
 schedule/reflection state, it must be visible in these existing character
@@ -303,7 +320,7 @@ surfaces; API or test output alone does not satisfy UI acceptance.
 1. Open a scratch scenario with a background character whose schedule is
    authored, then select that character in the graph and open **🧠 Mind**.
    - expected: the character's actual schedule entries appear under
-     **Schedule — their day**, with the authored time, activity, and area.
+     **Schedule - their day**, with the authored time, activity, and area.
 2. Advance the game clock through one scheduled transition using the normal
    game controls. Reopen/refresh the character's Mind panel and inspect the
    character in the graph/room.
@@ -357,7 +374,72 @@ scenario data.
 
 ## Files
 
-- Existing background schedule and reflection implementation, if changes are
-  needed
-- Scenario/character schedule content only after current-model measurement
-- tests/test_schedule.py and tests/test_background_simulation.py
+- `engine/schedule.py` - the clock schedule model (steps, `normalize`,
+  `minutes_of_day`); already exists and changes only if the re-measurement
+  shows a step needs to express something it cannot today
+- `engine/background_simulation.py:229` - `process_due`, the per-timeframe
+  walk; `:415` `_act` is where a bundled-chore activity would be entered, and
+  `:1290` `_seek_company` is the coarse-social pass this card must preserve
+- `engine/background_social.py:827` - `run_social_pass`, the coarse social
+  pass that the re-measurement must not regress
+- `player.py:167` - `Player.schedule`, the save/load home of a shipped
+  schedule; `:172` `Player.goals` and `:486` `Player.memories` are the only
+  legal targets of a reflection
+- `engine/goals.py` - the existing GIMP goal mutation path a reflection would
+  write through
+- `data/scenarios/kraktooth_goblin_camp.json` - the scenario that currently
+  carries `"schedule": []` for every character; touched only after the
+  current-model measurement says the data may ship
+- `tools/add_schedules.py` - the idempotent, dry-run-by-default script that
+  authors the schedule data into the scenario
+- `tests/test_schedule.py` - the schedule model suite (39 tests)
+- `tests/test_background_simulation.py` - the background pass suite that
+  would carry the reflection cap, provider, validation and determinism cases
+
+## Reconnaissance (2026-10-20) - VERDICT: STILL_VALID
+
+Re-checked every cited fact against the live code. The card is accurate as
+written; three line numbers drifted and are corrected below.
+
+**Schedule data is still unshipped.** `data/scenarios/kraktooth_goblin_camp.json`
+carries `"schedule": []` for every character (measured: 3 occurrences at lines
+186686, 187873, 188445, all empty arrays). The `forecast_schedule` block at line
+201 is the weather forecast, not a character schedule. `tools/add_schedules.py`
+still exists (5,628 bytes) and is still dry-run-by-default; nothing has authored
+schedules into the scenario since this card's 2026-09-19 slice-1 note.
+
+**Daily reflection is still not implemented.** `engine/background_simulation.py`
+has no reflection hook (only one `reflect` hit, at line 1070, in a comment about
+foraging). `engine/memory_dynamics.py` exists but is the memory-decay/
+consolidation system (tasks 685-690), not a per-day character reflection call.
+The card's "How" step 3 is therefore still open.
+
+**The deciding fix (option b, bundled chore tasks) is still unimplemented.**
+`_seek_company` and `SOCIAL_THRESHOLD = 50` are present at
+`engine/background_simulation.py:84, 586, 589, 1290` (task-423's coarse social),
+but there is no bundled-chore activity type. The Social collapse the card
+predicts is the live open problem.
+
+**Line-number drift corrected in place:**
+- `tools/add_schedules.py` is unchanged; the "16 of 23 characters have a role"
+  claim was not re-measured and is left as recorded.
+- `engine/schedule.py` and `tests/test_schedule.py` (189 lines) still exist and
+  still hold the 39-test schedule model.
+- The Mind panel does render a schedule: `static/js/inspector/mind-view.ts:428`
+  (`_schedule`), `:438` (`_scheduleHtml`), `:447` (the "Schedule - their day"
+  heading). That UI home is real and reachable; it currently shows an empty
+  schedule, which matches the unshipped data.
+
+**Newer work that touches this card's neighbours, and what it did NOT change:**
+- task-423 (background social interactions) and task-417 (co-presence gate) are
+  done and are the coarse-social half; the card's acceptance still requires them
+  to be preserved, and they are.
+- task-399 (background character simulation) is done; the one-action-per-turn
+  model the card's 2026-09-24 update describes is the current model.
+- task-701 (plan template library) is still in `review/`, so this card's
+  `blocked_by: [task-701]` frontmatter is still accurate.
+- task-702/704 (plan executor / MOSIAC selector) are still in `review/`; this
+  card's "Current scope (2026-10-15)" note telling it not to build another
+  planner or selector is still the right boundary.
+
+No newer task has implemented this card's remaining scope. It stays in `todo`.

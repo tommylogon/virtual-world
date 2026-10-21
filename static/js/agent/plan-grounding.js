@@ -1,12 +1,12 @@
 "use strict";
 /**
- * plan-grounding.js — Grounding validator for LLM plan steps (task-700)
+ * plan-grounding.js - Grounding validator for LLM plan steps (task-700)
  *
  * The plan phase used to emit freeform prose steps, and prose references
  * scenery: Vekka planned "eat hanging meat" against room description text and
  * burned a turn on "You don't have 'hanging meat'". This module is the fix's
  * fact side: plan steps arrive TYPED (act/item/target), and every referenced
- * entity is checked against the facts the plan prompt was built from —
+ * entity is checked against the facts the plan prompt was built from -
  * interactable items in the area, carried items, people present, visible
  * paths, and known areas. A step whose facts do not resolve is REJECTED with
  * the reason and the fact list, so the LLM re-composes from what exists.
@@ -21,9 +21,9 @@
  * The facts are deliberately prompt-shaped (what the LLM could see), not
  * world-truth: the engine's own visibility rules still gate the real action.
  *
- * @module agent/plan-grounding — typed plan-step grounding validator
+ * @module agent/plan-grounding - typed plan-step grounding validator
  * @contributes PlanGrounding.collectFacts() + .ground() + .groundStep() + .render()
- * @powers NPC behaviour — plans composed from verifiable facts instead of prose
+ * @powers NPC behaviour - plans composed from verifiable facts instead of prose
  * @relates consumed by agent/plan-manager (task-700); the plan executor
  *       (task-702) will consume the same typed steps; rejects what bug-185's
  *       step tracker used to forgive
@@ -96,14 +96,15 @@ window.PlanGrounding = (() => {
         const areaItems = (areaName && ws?.getItemsInArea?.(areaName) || [])
             .map((n) => String(n.name || ''))
             .filter(Boolean);
-        // Include contained items from reachable containers if itemContainment is present
-        if (typeof win.itemContainment === 'function' && ws?.graph?.edges) {
+        // Include contained items from reachable containers if ItemContainment is present
+        const ic = win.ItemContainment;
+        if (ic && typeof ic.collectReachable === 'function' && ws?.graph?.edges) {
             const topLevel = (areaName && ws?.getItemsInArea?.(areaName) || []);
             for (const item of topLevel) {
                 if (!item?.id)
                     continue;
                 try {
-                    const contained = win.itemContainment().collectReachable([item.id], {
+                    const contained = ic.collectReachable([item.id], {
                         getNode: (id) => ws.getNode(id),
                         edges: ws.graph?.edges || [],
                     }).filter((ci) => (ci.depth || 0) > 0);
@@ -133,15 +134,60 @@ window.PlanGrounding = (() => {
         const carried = carriedList.filter(Boolean);
         // Stranger-masked people matching what room-context.ts presents (bug-523)
         const peopleList = [];
+        const isKnown = (targetName) => {
+            if (typeof ws?.hasMet === 'function' && ws.hasMet(charName, targetName))
+                return true;
+            const viewerKnown = (player?.known || state?.players?.[charName]?.known || ws?.data?.players?.[charName]?.known || []);
+            const knownLower = new Set(viewerKnown.map(v => String(v || '').toLowerCase()));
+            const slug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
+            return knownLower.has(String(targetName || '').toLowerCase())
+                || knownLower.has('player_' + slug)
+                || knownLower.has('character_' + slug);
+        };
         const areaPlayers = (state?.players_in_area || []);
         for (const p of areaPlayers) {
             const pName = String(p.name || '').trim();
             if (!pName || pName === charName)
                 continue;
-            let displayHandle = pName;
-            if (pb && typeof pb.anonymousName === 'function') {
+            const known = isKnown(pName);
+            let displayHandle = '';
+            if (known) {
+                displayHandle = pName;
+            }
+            else if (pb && typeof pb.anonymousName === 'function') {
                 const pDesc = p.description || state?.players?.[pName]?.description || '';
                 displayHandle = pb.anonymousName(charName, pName, pDesc);
+                if (displayHandle === pName) {
+                    displayHandle = '';
+                }
+            }
+            if (!displayHandle) {
+                if (known) {
+                    displayHandle = pName;
+                }
+                else {
+                    const targetPlayer = state?.players?.[pName] || {};
+                    const tags = (targetPlayer.tags || []).map(t => String(t || '').toLowerCase());
+                    if (tags.includes('female') || tags.includes('woman')) {
+                        displayHandle = 'the woman';
+                    }
+                    else if (tags.includes('male') || tags.includes('man')) {
+                        displayHandle = 'the man';
+                    }
+                    else {
+                        const pDesc = p.description || targetPlayer.description || '';
+                        const firstSentence = pDesc.split(/[.!?]/)[0].trim();
+                        if (firstSentence) {
+                            const wordsList = firstSentence.split(/\s+/);
+                            const lead = wordsList[0]?.toLowerCase();
+                            const stripped = (lead === 'a' || lead === 'an' || lead === 'the') ? wordsList.slice(1).join(' ') : firstSentence;
+                            displayHandle = `the ${stripped.toLowerCase()}`;
+                        }
+                        else {
+                            displayHandle = 'the stranger';
+                        }
+                    }
+                }
             }
             if (displayHandle && !peopleList.includes(displayHandle)) {
                 peopleList.push(displayHandle);
@@ -151,8 +197,9 @@ window.PlanGrounding = (() => {
             if (Array.isArray(pAliases)) {
                 for (const alias of pAliases) {
                     const aStr = String(alias || '').trim();
-                    if (aStr && !peopleList.includes(aStr))
+                    if (aStr && !peopleList.includes(aStr) && (known || aStr.toLowerCase() !== pName.toLowerCase())) {
                         peopleList.push(aStr);
+                    }
                 }
             }
         }
@@ -165,12 +212,23 @@ window.PlanGrounding = (() => {
                 exitList.push(dir);
             if (exitData?.direction && !exitList.includes(exitData.direction))
                 exitList.push(exitData.direction);
+            if (exitData?.label && !exitList.includes(exitData.label))
+                exitList.push(exitData.label);
             // Collect authored way handles matching prompt-builder presentation
-            if (pb && typeof pb.wayHandle === 'function' && exitData?.way_id) {
-                const doorNode = typeof ws?.getNode === 'function' ? ws.getNode(exitData.way_id) : null;
-                const handle = pb.wayHandle({ ...exitData, label: dir }, doorNode, areaName);
+            const doorNode = exitData?.way_id && typeof ws?.getNode === 'function' ? ws.getNode(exitData.way_id) : null;
+            if (pb && typeof pb.wayHandle === 'function') {
+                const handle = pb.wayHandle(exitData, doorNode, areaName);
                 if (handle && !exitList.includes(handle))
                     exitList.push(handle);
+            }
+            if (doorNode?.name) {
+                let dName = String(doorNode.name).trim();
+                if (areaName && dName.toLowerCase().startsWith(`${String(areaName).toLowerCase()} - `)) {
+                    dName = dName.slice(areaName.length + 3).trim();
+                }
+                dName = dName.replace(/_/g, ' ').trim();
+                if (dName && !exitList.includes(dName))
+                    exitList.push(dName);
             }
         }
         const exits = exitList.filter(Boolean);

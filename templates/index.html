@@ -1,4 +1,4 @@
-<!-- index.html — Observability Dashboard with Turn/Clock/Initiative Display -->
+<!-- index.html  -  Observability Dashboard with Turn/Clock/Initiative Display -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +50,7 @@
             </label>
             <div style="font-size:9px;color:var(--text-dim);margin-left:4px;cursor:help;" title="Spectator mode polls the world state every 1.5s so you can watch the simulation unfold without clicking anything.">?</div>
             <div class="menu-anchor">
-                <button class="btn btn-sm" data-help="game-menu" onclick="toggleTopMenu(event,'game-menu')" aria-label="Game menu — save, load, import, new scenario">🎮 Game ▾</button>
+                <button class="btn btn-sm" data-help="game-menu" onclick="toggleTopMenu(event,'game-menu')" aria-label="Game menu  -  save, load, import, new scenario">🎮 Game ▾</button>
                 <div id="game-menu" class="dropdown-menu top-menu" style="display:none;" role="menu" aria-label="Game actions">
                     <button class="dropdown-item" onclick="saveGame();closeTopMenus()" role="menuitem">💾 Save Game</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('load-game-modal').style.display='flex'; loadGameList()" role="menuitem">📂 Load Game…</button>
@@ -71,7 +71,7 @@
                     <button class="dropdown-item" onclick="closeTopMenus();if(confirm('New scenario? This will clear ALL world state and start fresh with an empty world.')){ newScenario(); }" role="menuitem">🆕 New Scenario…</button>
                 </div>
             </div>
-            <button class="btn btn-sm" onclick="CommandPalette.open()" title="Command palette — jump anywhere (Ctrl+K)">⚡</button>
+            <button class="btn btn-sm" onclick="CommandPalette.open()" title="Command palette  -  jump anywhere (Ctrl+K)">⚡</button>
             <button class="btn btn-sm btn-red" onclick="if(confirm('Restart scenario? This will reset all world state.')){ restartScenario(); }" aria-label="Restart scenario">🔄 Restart</button>
             <button class="btn btn-sm" data-help="settings" onclick="document.getElementById('settings-modal').style.display='flex'; setTimeout(populateSettingsForm, 50);" aria-label="Agent Settings">⚙️ Settings</button>
             <button class="btn btn-sm" data-help="help" onclick="HelpCenter.openIndex()" title="Help & guided tours (F1)" aria-label="Help">❓ Help</button>
@@ -94,7 +94,7 @@
                 <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
                 <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>
                 <button class="sim-btn" id="sim-cancel" onclick="cancelStep()" title="Cancel current step" style="display:none;color:var(--red);">✕</button>
-                <button class="sim-btn" id="sim-end-round" onclick="endSimRoundNow()" title="End round — pass your turn and advance the world" style="display:none;">⏭️</button>
+                <button class="sim-btn" id="sim-end-round" onclick="endSimRoundNow()" title="End round  -  pass your turn and advance the world" style="display:none;">⏭️</button>
                 <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max steps before auto-stop (0 = unlimited)">
                 <span class="sim-steps-label" title="Max steps before auto-stop (0 = unlimited)">steps</span>
                 <span id="sim-rate-limit" class="sim-rate-limit" hidden aria-live="polite" title="API rate limit cooldown"></span>
@@ -102,7 +102,7 @@
             <div id="turn-info-bar" class="turn-info-bar">
                 <span id="turn-display" class="turn-label">Turn: 0</span>
                 <span id="step-display" class="step-label">Step: 0/0</span>
-                <span id="active-char-display" class="active-char-label">Active: —</span>
+                <span id="active-char-display" class="active-char-label">Active:  - </span>
             </div>
             <div id="left-tabs" class="left-tabs" role="tablist" aria-label="Left panel views">
                 <button class="left-tab active" data-tab="agents" role="tab" onclick="ui.switchLeftTab('agents')">🧍 Agents</button>
@@ -126,7 +126,7 @@
                 <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
                     <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
                     <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" data-help="turn-model" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
-                    <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous (async) — independent cooldowns</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
+                    <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential  -  one at a time</option><option value="random">Random  -  reshuffled each round</option><option value="initiative">Initiative  -  d20 + DEX</option><option value="simultaneous">Simultaneous (async)  -  independent cooldowns</option><option value="simultaneous_room">Simultaneous per room  -  rooms independent, order within a room</option></select></div>
                     <div id="sim-rate-estimate" class="sim-rate-estimate" hidden aria-live="polite"></div>
                     <details class="sim-pacing-details">
                         <summary>Per-character cooldowns</summary>
@@ -136,7 +136,7 @@
             </div>
             <div id="left-tab-outline" class="left-tab-pane" role="tabpanel">
                 <!-- task-592: the scope hierarchy is the top of this tab, so the
-                     world reads as one tree — world, then scope, then the areas
+                     world reads as one tree  -  world, then scope, then the areas
                      inside it. `renderOutlinePanel` owns the area rows below and
                      replaces this container's children, so the scope host is
                      re-created and re-rendered after every outline paint. -->
@@ -181,7 +181,7 @@
             <div id="alert-section">
                 <h4 class="panel-heading">⚠️ Alerts</h4>
                 <!-- Container must stay EMPTY: UIController.renderAlerts owns it via
-                     Lit.render (lit-html v1 append semantics) — a static placeholder
+                     Lit.render (lit-html v1 append semantics)  -  a static placeholder
                      is never cleared and renders "No alerts" forever above real alerts. -->
                 <div id="alert-list" class="alert-list"></div>
             </div>
@@ -195,9 +195,9 @@
                  disclosure. The bar used to be ~36 peer controls; rare settings
                  live in the View popover and session actions in More. State is
                  shown with aria-selected / aria-pressed, never by renaming a
-                 button — see static/js/graph/toolbar.js. -->
+                 button  -  see static/js/graph/toolbar.js. -->
             <div id="graph-toolbar" class="editor-toolbar" role="toolbar" aria-label="Graph tools">
-                <!-- DO — create and history -->
+                <!-- DO  -  create and history -->
                 <div class="toolbar-zone" aria-label="Create and history">
                     <div class="toolbar-dropdown menu-anchor">
                         <button class="toolbar-btn toolbar-btn-primary" id="btn-build" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'build-menu')" title="Create an area, item or way, or open a library">➕ Build ▾</button>
@@ -220,9 +220,9 @@
                     </div>
                 </div>
                 <span class="toolbar-divider"></span>
-                <!-- WHERE — what is loaded, and finding things in it -->
+                <!-- WHERE  -  what is loaded, and finding things in it -->
                 <div class="toolbar-zone toolbar-zone-where" aria-label="Scope and search">
-                    <div class="scope-chip" title="Load one world scope into the graph — a painted world is too large to load whole">
+                    <div class="scope-chip" title="Load one world scope into the graph  -  a painted world is too large to load whole">
                         <span class="scope-chip-icon" aria-hidden="true">🌍</span>
                         <select id="graph-scope-filter" data-help="scope-filter" onchange="graphManager.setScopeFilter(this.value)" aria-label="Loaded world scope" title="Load only one world scope into the graph"></select>
                     </div>
@@ -237,24 +237,24 @@
                     </div>
                 </div>
                 <span class="toolbar-divider"></span>
-                <!-- LOOK — layout, overlays, visibility, labels -->
+                <!-- LOOK  -  layout, overlays, visibility, labels -->
                 <div class="toolbar-zone" aria-label="Look">
                     <div class="toolbar-segment" id="layout-segment" role="tablist" aria-label="Layout mode">
-                        <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout — nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
+                        <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout  -  nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
                         <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
-                        <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout — nodes sit by relation level, physics off">🌳 Hierarchical</button>
+                        <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout  -  nodes sit by relation level, physics off">🌳 Hierarchical</button>
                     </div>
                     <div class="toolbar-dropdown menu-anchor">
                         <button class="toolbar-btn" id="btn-overlays" data-help="overlays" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'view-menu')" title="Overlays, what is shown on the canvas, labels and the legend">👁 View ▾</button>
                         <div id="view-menu" class="dropdown-menu toolbar-menu toolbar-view-menu" role="menu" aria-label="View options">
                             <div class="menu-heading">Overlay</div>
                             <div class="menu-grid">
-                                <button class="menu-toggle overlay-toggle" data-overlay="none" aria-pressed="true" onclick="GraphToolbar.setOverlay('none')" title="No overlay — the structural graph">None</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="none" aria-pressed="true" onclick="GraphToolbar.setOverlay('none')" title="No overlay  -  the structural graph">None</button>
                                 <button class="menu-toggle overlay-toggle" data-overlay="light" aria-pressed="false" onclick="GraphToolbar.setOverlay('light')" title="Color areas by ambient light">💡 Light</button>
                                 <button class="menu-toggle overlay-toggle" data-overlay="heat" aria-pressed="false" onclick="GraphToolbar.setOverlay('heat')" title="Color areas by temperature">🌡️ Heat</button>
                                 <button class="menu-toggle overlay-toggle" data-overlay="sound" aria-pressed="false" onclick="GraphToolbar.setOverlay('sound')" title="Color areas by noise level">🔊 Sound</button>
                                 <button class="menu-toggle overlay-toggle" data-overlay="trigger" aria-pressed="false" onclick="GraphToolbar.setOverlay('trigger')" title="Highlight trigger sources and targets">⚡ Triggers</button>
-                                <button class="menu-toggle overlay-toggle" data-overlay="cardinal" aria-pressed="false" onclick="GraphToolbar.setOverlay('cardinal')" title="Label ways with their compass direction (a label overlay — it does not change the layout)">🧭 Way directions</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="cardinal" aria-pressed="false" onclick="GraphToolbar.setOverlay('cardinal')" title="Label ways with their compass direction (a label overlay  -  it does not change the layout)">🧭 Way directions</button>
                             </div>
                             <div class="menu-heading">Show on canvas</div>
                             <div class="menu-grid">
@@ -282,7 +282,7 @@
                             </div>
                             <div class="menu-heading">Map grid</div>
                             <div class="menu-grid">
-                                <span class="stepper" title="Map layout only — pixels per painted cell (the padding between areas). Auto derives it from the canvas size (about ten cells across); nudge to take it over. Marks and names are sized as fractions of the cell, so a place always fits its own cell.">
+                                <span class="stepper" title="Map layout only  -  pixels per painted cell (the padding between areas). Auto derives it from the canvas size (about ten cells across); nudge to take it over. Marks and names are sized as fractions of the cell, so a place always fits its own cell.">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(-20)" aria-label="Tighter map spacing">−</button>
                                     <span id="map-spacing" class="stepper-value">40</span>
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
@@ -297,7 +297,7 @@
                          and look parameters are dragged while the graph reacts.
                          The modal keeps its own markup over the same config keys. -->
                     <div class="toolbar-dropdown menu-anchor">
-                        <button class="toolbar-btn" id="btn-tuning" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.toggleTuning(event)" title="Physics, separation and edge tuning — every slider applies live while you watch the canvas (the same settings as ⚙ Settings → Graph)">⚙ Tune ▾</button>
+                        <button class="toolbar-btn" id="btn-tuning" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.toggleTuning(event)" title="Physics, separation and edge tuning  -  every slider applies live while you watch the canvas (the same settings as ⚙ Settings → Graph)">⚙ Tune ▾</button>
                         <div id="graph-tuning-menu" class="dropdown-menu toolbar-menu toolbar-tuning-menu" role="menu" aria-label="Graph tuning"></div>
                     </div>
                     <button class="toolbar-btn" id="btn-fit" data-overflow-label="Fit all nodes" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞</button>
@@ -340,7 +340,7 @@
                 <nav id="scope-breadcrumb" class="scope-breadcrumb" aria-label="Scope path"></nav>
                 <span id="scope-bar-stats" class="scope-bar-stats" aria-live="polite"></span>
                 <span class="toolbar-spacer"></span>
-                <button class="scope-bar-btn" id="scope-open-painter" onclick="GraphToolbar.openScopeInWorldPainter()" title="Open this scope in the WorldPainter — the only surface that can paint or generate it">🖌 Open in WorldPainter</button>
+                <button class="scope-bar-btn" id="scope-open-painter" onclick="GraphToolbar.openScopeInWorldPainter()" title="Open this scope in the WorldPainter  -  the only surface that can paint or generate it">🖌 Open in WorldPainter</button>
                 <button class="scope-bar-btn" id="scope-show-whole" onclick="GraphToolbar.showWholeWorld()" title="Unload this scope and put every area, way and character back on the canvas">← Show whole world</button>
             </div>
             <div id="graph-container" role="img" aria-label="Interactive relationship graph">
@@ -352,7 +352,7 @@
             <!-- task-397 step 4 put the scope hierarchy here, under the graph, and
                  task-592 moved it: three separate ways to pick a scope (this tree,
                  the toolbar dropdown, the breadcrumb) had grown, and the one panel
-                 that already holds a hierarchy — the Outline tab — held only the
+                 that already holds a hierarchy  -  the Outline tab  -  held only the
                  bottom of one. Scopes are now the TOP of the Outline tab and areas
                  nest under them, so the world reads as one tree in one place. The
                  breadcrumb stays in the graph, because "where am I" is a question
@@ -380,7 +380,7 @@
                         <span class="stream-mode-toggle" title="Stream density / story mode">
                             <button id="stream-mode-cards" class="btn-icon active" title="Card mode" onclick="events.setStreamMode('cards')" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--text);">&#9636;</button>
                             <button id="stream-mode-compact" class="btn-icon" title="Compact mode" onclick="events.setStreamMode('compact')" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--text);">&#9637;</button>
-                            <button id="stream-mode-story" class="btn-icon" title="Story mode — read the session as fiction" onclick="events.setStreamMode('story')" style="background:transparent;border:none;cursor:pointer;font-size:13px;">📖</button>
+                            <button id="stream-mode-story" class="btn-icon" title="Story mode  -  read the session as fiction" onclick="events.setStreamMode('story')" style="background:transparent;border:none;cursor:pointer;font-size:13px;">📖</button>
                         </span>
                     </div>
                 </div>
@@ -397,10 +397,10 @@
                 </div>
                 <div id="event-stream" class="event-stream" role="log" aria-live="polite" tabindex="0"></div>
                 <div class="input-row" style="display:flex; gap:4px;">
-                    <input type="text" id="speak-input" placeholder="💬 Speak as guest — talk to the characters here…" autocomplete="off" title="Your line is spoken in the active area and logged as speech" style="flex:1;">
+                    <input type="text" id="speak-input" placeholder="💬 Speak as guest  -  talk to the characters here…" autocomplete="off" title="Your line is spoken in the active area and logged as speech" style="flex:1;">
                     <button class="btn btn-sm btn-purple" onclick="speakAsGuest()">💬 Speak</button>
                     <label for="command-input" class="sr-only">Enter game command</label>
-                    <input type="text" id="command-input" placeholder="⚡ Override — engine command (verb + target, Tab completes)" autocomplete="off" title="Runs an engine command directly, e.g. 'go kitchen', 'take lantern'. Press Tab to autocomplete targets." style="flex:1;">
+                    <input type="text" id="command-input" placeholder="⚡ Override  -  engine command (verb + target, Tab completes)" autocomplete="off" title="Runs an engine command directly, e.g. 'go kitchen', 'take lantern'. Press Tab to autocomplete targets." style="flex:1;">
                 </div>
             </div>
         </main>
@@ -472,8 +472,8 @@
                         <div class="settings-group-title"><span class="group-icon">🔧</span> LLM Parameters</div>
                         <div class="settings-field" style="display:flex;gap:8px;align-items:flex-start;">
                             <div style="flex:1;"><label for="agent-temperature">Temperature <span id="agent-temperature-val" class="range-value">0.70</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Precise</span><input type="range" id="agent-temperature" min="0" max="2" step="0.05" value="0.7" style="flex:1;" oninput="config.temperature=parseFloat(this.value);document.getElementById('agent-temperature-val').textContent=parseFloat(this.value).toFixed(2);config.save();"><span style="font-size:10px;color:var(--text-muted);">Creative</span></div><div class="field-hint">Lower = more predictable</div></div>
-                            <div style="flex:1;"><label for="max-tokens-input">Max Tokens (hard)</label><input type="number" id="max-tokens-input" value="512" min="64" max="4096" step="64" onchange="config.maxTokens=parseInt(this.value);config.save();"><div class="field-hint">Hard API cap — LM Studio stops here</div></div>
-                            <div style="flex:1;"><label for="soft-max-tokens-input">Max Tokens (soft)</label><input type="number" id="soft-max-tokens-input" value="0" min="0" max="4096" step="64" onchange="config.softMaxTokens=parseInt(this.value);config.save();"><div class="field-hint">System prompt instruction — 0 = use hard limit</div></div>
+                            <div style="flex:1;"><label for="max-tokens-input">Max Tokens (hard)</label><input type="number" id="max-tokens-input" value="512" min="64" max="4096" step="64" onchange="config.maxTokens=parseInt(this.value);config.save();"><div class="field-hint">Hard API cap  -  LM Studio stops here</div></div>
+                            <div style="flex:1;"><label for="soft-max-tokens-input">Max Tokens (soft)</label><input type="number" id="soft-max-tokens-input" value="0" min="0" max="4096" step="64" onchange="config.softMaxTokens=parseInt(this.value);config.save();"><div class="field-hint">System prompt instruction  -  0 = use hard limit</div></div>
                         </div>
                     </div>
                     <div class="settings-group">
@@ -487,16 +487,16 @@
                 <div id="tab-graph" class="tab-pane">
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">📏</span> Length of connections</div>
-                        <div class="settings-field"><label for="graph-item-edge-length">Contents length <span id="graph-item-edge-length-val" class="range-value">60</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Hug Parent</span><input type="range" id="graph-item-edge-length" min="20" max="200" step="5" value="60" style="flex:1;" oninput="config.graphItemEdgeLength=parseInt(this.value);document.getElementById('graph-item-edge-length-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Stretched</span></div><div class="field-hint">Rest length for the edges that hold things (in/on/carrying/equipped) — lower = contents hug what holds them. Room↔room ways size themselves to their labels instead.</div></div>
-                        <div class="settings-field"><label for="graph-spring-constant">Snappiness <span id="graph-spring-constant-val" class="range-value">0.02</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Soft</span><input type="range" id="graph-spring-constant" min="0.01" max="0.15" step="0.01" value="0.02" style="flex:1;" oninput="config.graphSpringConstant=parseFloat(this.value);document.getElementById('graph-spring-constant-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Rigid</span></div><div class="field-hint">How strongly an edge pulls its two nodes to that length — higher = rigid spacing, lower = soft and stretchy.</div></div>
+                        <div class="settings-field"><label for="graph-item-edge-length">Contents length <span id="graph-item-edge-length-val" class="range-value">60</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Hug Parent</span><input type="range" id="graph-item-edge-length" min="20" max="200" step="5" value="60" style="flex:1;" oninput="config.graphItemEdgeLength=parseInt(this.value);document.getElementById('graph-item-edge-length-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Stretched</span></div><div class="field-hint">Rest length for the edges that hold things (in/on/carrying/equipped)  -  lower = contents hug what holds them. Room↔room ways size themselves to their labels instead.</div></div>
+                        <div class="settings-field"><label for="graph-spring-constant">Snappiness <span id="graph-spring-constant-val" class="range-value">0.02</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Soft</span><input type="range" id="graph-spring-constant" min="0.01" max="0.15" step="0.01" value="0.02" style="flex:1;" oninput="config.graphSpringConstant=parseFloat(this.value);document.getElementById('graph-spring-constant-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Rigid</span></div><div class="field-hint">How strongly an edge pulls its two nodes to that length  -  higher = rigid spacing, lower = soft and stretchy.</div></div>
                     </div>
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">🧲</span> Pushing apart</div>
                         <div class="settings-field"><label for="graph-repulsion">Spread <span id="graph-repulsion-val" class="range-value">-40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Weak</span><input type="range" id="graph-repulsion" min="-500" max="-5" step="5" value="-40" style="flex:1;" oninput="config.graphGravitationalConstant=parseInt(this.value);document.getElementById('graph-repulsion-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Strong</span></div><div class="field-hint">How hard every node pushes every other away. Connected pairs are held at their edge length; unconnected ones spread out under this.</div></div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-repel-enabled" onchange="config.graphRepelEnabled=this.checked;config.save();GraphNetwork.applyGraphSettings();"> 🧲 Overlap guard</label><span class="toggle-desc">Push overlapping nodes apart even when no edge joins them — a second pass on top of the spread force.</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-repel-enabled" onchange="config.graphRepelEnabled=this.checked;config.save();GraphNetwork.applyGraphSettings();"> 🧲 Overlap guard</label><span class="toggle-desc">Push overlapping nodes apart even when no edge joins them  -  a second pass on top of the spread force.</span></div>
                         <div class="settings-field"><label for="graph-repel-strength">Guard strength <span id="graph-repel-strength-val" class="range-value">0.60</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Soft</span><input type="range" id="graph-repel-strength" min="0.05" max="1" step="0.05" value="0.6" style="flex:1;" oninput="config.graphRepelStrength=parseFloat(this.value);document.getElementById('graph-repel-strength-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Firm</span></div><div class="field-hint">How hard the overlap guard pushes a pair apart.</div></div>
-                        <div class="settings-field"><label for="graph-repel-min">Push apart when closer than <span id="graph-repel-min-val" class="range-value">55</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Overlap</span><input type="range" id="graph-repel-min" min="20" max="180" step="5" value="55" style="flex:1;" oninput="config.graphRepelMin=parseInt(this.value);document.getElementById('graph-repel-min-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Spaced</span></div><div class="field-hint">The guard only acts on pairs closer than this. A floor — long names need room, so it grows with the label.</div></div>
-                        <div class="settings-field"><label for="graph-repel-max">Stop pushing beyond <span id="graph-repel-max-val" class="range-value">220</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Near</span><input type="range" id="graph-repel-max" min="60" max="600" step="10" value="220" style="flex:1;" oninput="config.graphRepelMax=parseInt(this.value);document.getElementById('graph-repel-max-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Far</span></div><div class="field-hint">Pairs further apart than this are ignored — keeps the pass cheap on a big graph.</div></div>
+                        <div class="settings-field"><label for="graph-repel-min">Push apart when closer than <span id="graph-repel-min-val" class="range-value">55</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Overlap</span><input type="range" id="graph-repel-min" min="20" max="180" step="5" value="55" style="flex:1;" oninput="config.graphRepelMin=parseInt(this.value);document.getElementById('graph-repel-min-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Spaced</span></div><div class="field-hint">The guard only acts on pairs closer than this. A floor  -  long names need room, so it grows with the label.</div></div>
+                        <div class="settings-field"><label for="graph-repel-max">Stop pushing beyond <span id="graph-repel-max-val" class="range-value">220</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Near</span><input type="range" id="graph-repel-max" min="60" max="600" step="10" value="220" style="flex:1;" oninput="config.graphRepelMax=parseInt(this.value);document.getElementById('graph-repel-max-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Far</span></div><div class="field-hint">Pairs further apart than this are ignored  -  keeps the pass cheap on a big graph.</div></div>
                         <div class="settings-field"><label for="graph-repel-pull">Pull strays back <span id="graph-repel-pull-val" class="range-value">0.12</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Loose</span><input type="range" id="graph-repel-pull" min="0" max="0.4" step="0.01" value="0.12" style="flex:1;" oninput="config.graphRepelPull=parseFloat(this.value);document.getElementById('graph-repel-pull-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Hugging</span></div><div class="field-hint">How strongly a node the guard pushed away is reeled back toward what holds it. Edge-joined pairs are never pushed in the first place.</div></div>
                     </div>
                     <div class="settings-group">
@@ -507,7 +507,7 @@
                     </div>
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">⚙️</span> Engine (advanced)</div>
-                        <div class="settings-field"><label for="graph-damping">Settle speed <span id="graph-damping-val" class="range-value">0.40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Swings</span><input type="range" id="graph-damping" min="0" max="1" step="0.05" value="0.4" style="flex:1;" oninput="config.graphDamping=parseFloat(this.value);document.getElementById('graph-damping-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Calms fast</span></div><div class="field-hint">How fast movement dies down — higher calms the layout sooner, lower keeps it swinging.</div></div>
+                        <div class="settings-field"><label for="graph-damping">Settle speed <span id="graph-damping-val" class="range-value">0.40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Swings</span><input type="range" id="graph-damping" min="0" max="1" step="0.05" value="0.4" style="flex:1;" oninput="config.graphDamping=parseFloat(this.value);document.getElementById('graph-damping-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Calms fast</span></div><div class="field-hint">How fast movement dies down  -  higher calms the layout sooner, lower keeps it swinging.</div></div>
                         <div class="settings-field"><label for="graph-solver">Physics solver</label><select id="graph-solver" style="width:180px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.graphSolver=this.value;config.save();GraphNetwork.applyGraphSettings();"><option value="forceAtlas2Based">Force Atlas 2</option><option value="barnesHut">Barnes-Hut</option><option value="repulsion">Repulsion</option></select><div class="field-hint">Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs.</div></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-improved-layout" onchange="config.graphImprovedLayout=this.checked;config.save();GraphNetwork.applyGraphSettings();"> 🧩 Improved layout</label><span class="toggle-desc">Better initial node placement (may shift positions).</span></div>
                     </div>
@@ -519,7 +519,7 @@
                 <div id="tab-embedding" class="tab-pane">
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled — keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled  -  keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
                         <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI…). Called directly from the browser.</div></div>
                         <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
                         <div class="settings-field" style="display:flex;gap:8px;">
@@ -544,13 +544,13 @@
                         <div class="toggle-row" id="thinking-effort-row" style="display:none;"><label class="toggle-label"><select id="agent-thinking-effort" style="width:120px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.thinkingEffort=this.value;config.save();"><option value="none">none (off)</option><option value="low">low</option><option value="high" selected>high</option><option value="xhigh">xhigh</option><option value="max">max</option></select> Thinking Effort</label><span class="toggle-desc">Reasoning effort level (none disables; low / high / xhigh / max). DeepSeek maps minimal→low, medium→high, xhigh→high, max→max.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-suppress-local-thinking" onchange="config.suppressLocalThinking=this.checked;config.save();"> 🚫 Suppress Local Thinking</label><span class="toggle-desc">Inject empty assistant message to bypass Qwen 3.5 reasoning in LM Studio (API ignores disable flags)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-raw-llm" onchange="config.showRawLLM=this.checked;config.save();events.log('🔬 Raw LLM capture '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔬 Show Raw LLM</label><span class="toggle-desc">Capture the full request/response JSON (status, headers, usage, reasoning tokens, error bodies) for the 🔬 LLM inspector. Authorization is redacted.</span></div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" onchange="config.endOfTurnMemory=this.checked;config.save();events.log('🧠 End-of-turn memory '+(this.checked?'enabled':'disabled'),'system-msg');"> 🧠 End-of-turn Memory</label><span class="toggle-desc">Ask the character to write a memory after its action resolves. Off by default — memories are normally written at the <b>start</b> of a turn.</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" onchange="config.endOfTurnMemory=this.checked;config.save();events.log('🧠 End-of-turn memory '+(this.checked?'enabled':'disabled'),'system-msg');"> 🧠 End-of-turn Memory</label><span class="toggle-desc">Ask the character to write a memory after its action resolves. Off by default  -  memories are normally written at the <b>start</b> of a turn.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions</option><option value="responses">Responses API</option></select> API Format</label><span class="toggle-desc">Responses API: /v1/responses for LM Studio / DeepSeek reasoning models (stateful chat &amp; MCP not supported)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();if(window.GraphToolbar)GraphToolbar.syncAll();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in the graph toolbar under ⋯ More.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-retry-invalid" onchange="config.autoRetryInvalid=this.checked;config.save();events.log('🔁 Invalid-action auto-retry '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔁 Auto-Retry Invalid Actions</label><span class="toggle-desc">Give the agent one same-turn retry when its action fails (error fed back)</span></div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-structured-output" onchange="config.structuredOutput=this.checked;config.save();events.log('🧱 Structured output '+(this.checked?'enabled':'disabled')+(this.checked?'':' — back to plain JSON prompts'),'system-msg');"> 🧱 Structured Output</label><span class="toggle-desc">Send response_format (JSON schema) with every structured LLM call — provider-enforced valid JSON instead of prompt-begging. Auto-falls back if the provider rejects it.</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-structured-output" onchange="config.structuredOutput=this.checked;config.save();events.log('🧱 Structured output '+(this.checked?'enabled':'disabled')+(this.checked?'':'  -  back to plain JSON prompts'),'system-msg');"> 🧱 Structured Output</label><span class="toggle-desc">Send response_format (JSON schema) with every structured LLM call  -  provider-enforced valid JSON instead of prompt-begging. Auto-falls back if the provider rejects it.</span></div>
                     </div>
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">👻</span> Ghost Mode</div>
@@ -886,7 +886,7 @@
     <div id="manual-prompt-modal" class="modal" style="display:none;">
         <div class="modal-content" style="width:800px;">
             <div class="modal-header">
-                <h3>✋ Manual Response — <span id="manual-phase-name">combined</span></h3>
+                <h3>✋ Manual Response  -  <span id="manual-phase-name">combined</span></h3>
                 <button class="modal-close" id="manual-modal-close">&times;</button>
             </div>
             <div style="padding:16px 20px;max-height:75vh;overflow-y:auto;">
@@ -918,7 +918,7 @@
             </div>
             <div style="padding:16px 20px;max-height:60vh;overflow-y:auto;">
                 <div style="margin-bottom:12px;display:flex;gap:6px;align-items:center;">
-                    <input type="text" id="save-game-name-input" placeholder="Save name — creates a new save..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
+                    <input type="text" id="save-game-name-input" placeholder="Save name  -  creates a new save..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
                     <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save as New</button>
                     <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">🗑 All</button>
                 </div>
@@ -1000,19 +1000,19 @@
                 <div id="timeskip-intent-block">
                     <div style="font-weight:600;margin-bottom:6px;">Intent</div>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="timeskip-intent" value="idle" checked> Wait here — do nothing; vitals keep running
+                        <input type="radio" name="timeskip-intent" value="idle" checked> Wait here  -  do nothing; vitals keep running
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="timeskip-intent" value="leisure"> Mingle / leisure — eat, drink, roam the area
+                        <input type="radio" name="timeskip-intent" value="leisure"> Mingle / leisure  -  eat, drink, roam the area
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="timeskip-intent" value="search"> Search — for an item (set a target or tags)
+                        <input type="radio" name="timeskip-intent" value="search"> Search  -  for an item (set a target or tags)
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="timeskip-intent" value="explore"> Explore — head into the frontier
+                        <input type="radio" name="timeskip-intent" value="explore"> Explore  -  head into the frontier
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-                        <input type="radio" name="timeskip-intent" value="travel"> Travel — to a known place, or a heading
+                        <input type="radio" name="timeskip-intent" value="travel"> Travel  -  to a known place, or a heading
                     </label>
                 </div>
                 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -1041,7 +1041,7 @@
                     </div>
                 </div>
                 <div id="timeskip-tags-block">
-                    <div style="font-weight:600;margin-bottom:4px;">Watch tags <span style="color:var(--text-muted);">(comma separated — stop on discovery)</span></div>
+                    <div style="font-weight:600;margin-bottom:4px;">Watch tags <span style="color:var(--text-muted);">(comma separated  -  stop on discovery)</span></div>
                     <input id="timeskip-tags" type="text" placeholder="relic, treasure" style="width:100%;padding:3px 6px;">
                 </div>
                 <div id="timeskip-status" style="color:var(--text-muted);min-height:14px;"></div>
@@ -1066,7 +1066,7 @@
                     <label for="bug-report-area" style="white-space:nowrap;">Area</label>
                     <select id="bug-report-area" style="flex:1;"></select>
                 </div>
-                <input id="bug-report-title" type="text" placeholder="Short title (optional — taken from the first line if left blank)">
+                <input id="bug-report-title" type="text" placeholder="Short title (optional  -  taken from the first line if left blank)">
                 <textarea id="bug-report-message" rows="5" placeholder="What went wrong, and what did you expect instead? This becomes the task's Goal."></textarea>
 
                 <div style="display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--border-light);border-radius:4px;">
@@ -1079,7 +1079,7 @@
                         <button class="btn btn-secondary" id="bug-report-shot-clear">Clear</button>
                         <input id="bug-report-attach" type="file" accept="image/*" style="display:none;">
                     </div>
-                    <div style="color:var(--text-dim);font-size:10px;">The graph and WorldPainter grid are canvas; the panels around them are DOM. “Capture view” grabs the canvas and the map art — paste (Ctrl+V) or attach for the whole window.</div>
+                    <div style="color:var(--text-dim);font-size:10px;">The graph and WorldPainter grid are canvas; the panels around them are DOM. “Capture view” grabs the canvas and the map art  -  paste (Ctrl+V) or attach for the whole window.</div>
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--border-light);border-radius:4px;">
@@ -1150,20 +1150,20 @@
                 if (isTemp) {
                     rateHtml = '';
                 } else if (rate <= 0) {
-                    rateHtml = '<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Stable — it does not change on its own over time.</div>';
+                    rateHtml = '<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Stable  -  it does not change on its own over time.</div>';
                 } else if (polarity === 'drive') {
                     const remaining = Math.max(0, Number(data.max) - Number(data.value));
                     const turns = fmtVitalNum(remaining / rate);
                     const reach = remaining <= 0
-                        ? 'it is already at the top — most urgent.'
+                        ? 'it is already at the top  -  most urgent.'
                         : `it reaches the top (most urgent) in about ${turns} turns.`;
-                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Fills toward ${escVital(data.max)} at ${rateWords} — ${reach}</div>`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Fills toward ${escVital(data.max)} at ${rateWords}  -  ${reach}</div>`;
                 } else {
                     const turns = fmtVitalNum(Number(data.value) / rate);
                     const reach = Number(data.value) <= 0
                         ? 'it is already empty.'
                         : `it empties in about ${turns} turns.`;
-                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Drains toward 0 at ${rateWords} — ${reach}</div>`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Drains toward 0 at ${rateWords}  -  ${reach}</div>`;
                 }
 
                 // Natural-language read, from the same helper the vital hover
@@ -1217,8 +1217,8 @@
                           }).join('')
                         : '<span style="font-size:11px;color:var(--text-muted);">No damage per turn</span>';
 
-                    const roomTemp = data.room_temperature != null ? data.room_temperature + '°C' : '—';
-                    const effTemp = data.effective_temperature != null ? data.effective_temperature + '°C' : '—';
+                    const roomTemp = data.room_temperature != null ? data.room_temperature + '°C' : ' - ';
+                    const effTemp = data.effective_temperature != null ? data.effective_temperature + '°C' : ' - ';
 
                     const equipHtml = data.equipment?.items?.length > 0
                         ? data.equipment.items.map(e =>
@@ -1276,7 +1276,7 @@
                     ${nlHtml}
                     ${rateHtml}
                     <details style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">
-                        <summary style="cursor:pointer;font-size:11px;color:var(--text-muted);">Advanced — edit value${isTemp ? '' : ' &amp; rate'}</summary>
+                        <summary style="cursor:pointer;font-size:11px;color:var(--text-muted);">Advanced  -  edit value${isTemp ? '' : ' &amp; rate'}</summary>
                         <div style="margin-top:8px;">
                             <div class="field">
                                 <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
@@ -1290,7 +1290,7 @@
                                 <label>Rate (per turn)</label>
                                 <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
                                 <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
-                                    Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : 'none — using base'}
+                                    Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : 'none  -  using base'}
                                 </div>
                             </div>` : ''}
                         </div>
@@ -1419,6 +1419,7 @@
     <script src="/static/js/shared/tag-multiselect.js"></script>
     <script src="/static/js/shared/template-sync.js"></script>
     <script src="/static/js/shared/diff-modal.js"></script>
+    <script src="/static/js/agent/action-verbs.generated.js"></script>
     <script src="/static/js/agent/action-normalizer.js"></script>
     <script src="/static/js/agent/response-parser.js"></script>
     <script src="/static/js/character-art.js"></script>

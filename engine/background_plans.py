@@ -29,7 +29,7 @@ The assignment has this shape (``Player.active_pursuit``):
 
 The runner **resumes** the character's own assignment; it does not scan the graph
 for ``pursuit`` nodes (that node type is retired). A plan never fabricates an item
-- if the source holds nothing matching, ``take`` fails and the plan is abandoned
+ -  if the source holds nothing matching, ``take`` fails and the plan is abandoned
 with a trace.
 
 Trace vocabulary: each progressed short-term step writes
@@ -48,13 +48,6 @@ logger = logging.getLogger(__name__)
 
 TRAVEL_MINUTES = 1
 TAKE_MINUTES = 2
-#: Consecutive refused travel actions before an approach admits failure. One
-#: refused way is routed around for 30 game minutes (`traversal.AVOID_MINUTES`);
-#: a refused action serves no time itself, so the clock between attempts is
-#: driven by the other layers, and 36 attempts therefore span well over one
-#: full avoid window at any tick granularity - enough to re-route, not enough
-#: to sit at a wall forever.
-_STALL_ACTIONS = 36
 
 #: Spatial relations an item can sit in, for "is it already here" checks.
 _SPATIAL = ("in", "on", "under", "behind", "beside", "at")
@@ -80,7 +73,7 @@ def build_plan(pursuit):
     if instance is None:
         return None
     label = str(pursuit.get("label") or template_id or "pursuit")
-    return {
+    plan = {
         "assignment_id": pursuit.get("assignment_id"),
         "pursuit_template": template_id,
         "template_version": instance["template_version"],
@@ -91,6 +84,16 @@ def build_plan(pursuit):
         "index": 0,
         "steps": instance["steps"],
     }
+    # The structured undertaking fields reach the plan instead of being dropped
+    # between the instance and the runner. An author who writes `timing` or
+    # `stop_conditions` must be able to see them on the live plan; a field the
+    # validator accepts and the builder discards is a field that reads as
+    # authored while doing nothing.
+    for key in ("requirements", "supplies", "timing", "progress",
+                "stop_conditions", "duration", "recipe"):
+        if key in instance:
+            plan[key] = instance[key]
+    return plan
 
 
 # ───────────────────────────── matching ─────────────────────────────────────
@@ -231,23 +234,12 @@ def _run(sim, p, plan, step):
         else:
             moved = sim._travel_toward(p, step["tags"], why)
         if moved:
-            plan.pop("_stall", None)
             return TRAVEL_MINUTES
-        # No route this action: not a failure, the plan waits. A refused
-        # crossing - a failed hazard roll ("the forest turns you back"), a
-        # blocked way, every exit being avoided - is the traversal retry
-        # queue's business (task-475 fronts it at the way level), not the
-        # end of an undertaking. Run 9 killed a pursuit on its first bad
-        # roll; the stall counter instead lets the retry machinery work
-        # and fails the approach only after _STALL_ACTIONS consecutive
-        # refused actions - well over one avoid window.
+        # No route this action: not a failure, the plan waits. But if we are
+        # already at a tags-source, the satisfied check above handles it.
         if _satisfied(sim, p, step):
             return None
-        plan["_stall"] = int(plan.get("_stall", 0) or 0) + 1
-        if int(plan.get("_stall", 0)) >= _STALL_ACTIONS:
-            plan.pop("_stall", None)
-            return "failed"
-        return None
+        return "failed"
 
     if kind == "take":
         node = _in_area_matching(sim, p, step["spec"])
@@ -288,34 +280,8 @@ def _run(sim, p, plan, step):
         current = (getattr(p, "activity", None) or {}).get("type", "").lower()
         if current == want:
             return None
-        # task-701: a step carrying a recipe reference opens the existing
-        # timed-cooking flow (CraftingSystem.start_cooking) instead of starting
-        # the bare activity - the same path a human's "Make X" and the hungry
-        # character's _cook_meal take. It is check-first: knowledge, inputs and
-        # conditions are verified there, and a miss raises into the failure
-        # trace below rather than starting a half-cooked meal.
-        recipe_ref = str(step.get("recipe") or "").strip()
-        if recipe_ref:
-            active = getattr(sim.gs, "active_player", None)
-            try:
-                sim.gs.active_player = p.name
-                msg = sim.gs.crafting.start_cooking(sim.gs, recipe_ref)
-            except Exception as exc:
-                record(p, sim.gs.time_ticks, "plan",
-                       f"could not cook {recipe_ref} for {plan['label']}: {exc}",
-                       why=f"{why}:failed", area=p.current_area, tags=["plan"])
-                return "failed"
-            finally:
-                try:
-                    sim.gs.active_player = active
-                except Exception:
-                    pass
-            record(p, sim.gs.time_ticks, "plan",
-                   f"started cooking {recipe_ref} for {plan['label']}: {msg}",
-                   why=why, area=p.current_area, tags=["plan"])
-            return None
         target_item = step.get("target_item")
-        # task-726: keep the units separate - a minutes value must never be
+        # task-726: keep the units separate  -  a minutes value must never be
         # passed as a tick count.
         dur_ticks = step.get("duration_ticks")
         try:
@@ -328,15 +294,11 @@ def _run(sim, p, plan, step):
         except (TypeError, ValueError):
             dur_minutes = None
         catch_target = step.get("catch_count_target")
-        start_kwargs = {}
-        if dur_minutes is not None:
-            start_kwargs["duration_minutes"] = dur_minutes
-        if catch_target is not None:
-            start_kwargs["catch_count_target"] = catch_target
         try:
             msg = sim.gs.activities.start_activity(
                 p.name, want, target_item, dur_ticks,
-                **start_kwargs,
+                duration_minutes=dur_minutes,
+                catch_count_target=catch_target,
             )
             record(p, sim.gs.time_ticks, "plan",
                    f"started {want} for {plan['label']}: {msg}",
@@ -367,18 +329,14 @@ def _finish(sim, p, plan, outcome):
            why=f"pursuit:{plan['label']}:{outcome}",
            area=p.current_area, tags=["pursuit"])
     active = getattr(p, "active_pursuit", None)
-    # Terminal means unmounted. Plans are built in exactly one place
-    # (``build_plan``) and keyed by ``assignment_id``; comparing anything else
-    # is what left a finished pursuit mounted, so the next ``maybe_assign``
-    # rebuilt a plan already at its last index and re-completed the pursuit
-    # every tick forever. There is no node-keyed plan form to honour: the
-    # graph-node pursuit path was retired by task-818 and code that reads it
-    # was removed with this fix, not kept around for callers that no longer
-    # exist.
-    if isinstance(active, dict) and \
-            active.get("assignment_id") == plan.get("assignment_id"):
+    # Match on ``assignment_id``, the key the plan and the pursuit actually
+    # share. This read ``node_id`` until task-818 retired the pursuit node type,
+    # and a plan has never carried that key, so the comparison was permanently
+    # False: the finished pursuit stayed on the character and ``maybe_assign``
+    # rebuilt it from ``step_index`` every tick, re-finishing the same
+    # undertaking forever.
+    if isinstance(active, dict) and active.get("assignment_id") == plan.get("assignment_id"):
         p.active_pursuit = None
-    plan.pop("_stall", None)
     p.plan = None
 
 
@@ -387,127 +345,6 @@ def _sync_pursuit_step(p, plan):
     pursuit = getattr(p, "active_pursuit", None)
     if isinstance(pursuit, dict) and pursuit.get("assignment_id") == plan.get("assignment_id"):
         pursuit["step_index"] = int(plan.get("index", 0) or 0)
-
-
-def _check_progress(sim, p, plan):
-    """Evaluate the pursuit's declarable progress checks (task-701).
-
-    Two authored sources speak progress: the template's ``progress`` list of
-    condition leaves (validated against the shared vocabulary at load) and the
-    assignment's own ``progress`` status dict. This is the leaf vocabulary's
-    runtime caller for pursuits: each pending entry in the assignment's
-    progress dict whose id a template check also declares is evaluated through
-    the trigger system's leaf registry - one evaluator, not a copy - and a
-    satisfied check flips ``status: pending`` to ``done`` with the tick.
-    Nothing flips an already-done entry, and a progress id the assignment does
-    not carry is not invented. Returns the ids that flipped.
-    """
-    pursuit = getattr(p, "active_pursuit", None)
-    progress = pursuit.get("progress") if isinstance(pursuit, dict) else None
-    if not isinstance(progress, dict) or sim.gs is None \
-            or getattr(sim.gs, "triggers", None) is None:
-        return []
-    from engine import pursuit_templates as _templates
-    entry = _templates.load().get(
-        str(pursuit.get("template_id") or "").strip().lower())
-    if not entry:
-        return []
-    system = sim.gs.triggers
-    flipped = []
-    for item in entry.get("progress") or []:
-        pid = str(item.get("id") or "").strip()
-        check = item.get("check")
-        rec = progress.get(pid)
-        if not pid or not isinstance(check, dict) or not isinstance(rec, dict):
-            continue
-        if str(rec.get("status") or "pending").strip().lower() == "done":
-            continue
-        # "self" in a pursuit check means the pursuer, not the focused player.
-        leaf = dict(check)
-        if not str(leaf.get("target") or leaf.get("actor") or "").strip():
-            leaf["target"] = p.name
-        try:
-            met = system._evaluate_trigger_condition(leaf, None, sim.gs)
-        except Exception:
-            met = False
-        if met:
-            rec["status"] = "done"
-            rec["done_tick"] = sim.gs.time_ticks
-            flipped.append(pid)
-            record(p, sim.gs.time_ticks, "pursuit",
-                   f"pursuit {plan['label']} progress: {pid}",
-                   why=f"pursuit:{plan['label']}:progress:{pid}",
-                   area=p.current_area, tags=["pursuit"])
-    return flipped
-
-
-def _deliver_report(sim, p, plan):
-    """Deliver a pursuit's report when the approach completes (task-701).
-
-    The assignment's ``report_condition`` names the recipient the reporter
-    must stand with when the approach is done; ``progress.report_delivered``
-    is the receipt. The check is the shared ``met_character`` leaf: a report
-    is a spatial fact, evaluated through the same leaf registry as every
-    other condition. A satisfied check flips the receipt to done and writes
-    the report onto the recipient as a memory in their own store - the
-    recipient now holds the information, exactly as if they were told. An
-    absent recipient leaves the receipt pending with a trace saying so: the
-    reporter has walked home, but nobody was there to tell.
-    """
-    pursuit = getattr(p, "active_pursuit", None)
-    if not isinstance(pursuit, dict) or sim.gs is None \
-            or getattr(sim.gs, "triggers", None) is None:
-        return False
-    report_condition = pursuit.get("report_condition")
-    progress = pursuit.get("progress")
-    receipt = (progress or {}).get("report_delivered")
-    recipient_id = ""
-    if isinstance(report_condition, dict):
-        recipient_id = (report_condition.get("requires_character_id")
-                        or report_condition.get("character") or "")
-    if not recipient_id and isinstance(pursuit.get("objective"), dict):
-        recipient_id = pursuit["objective"].get("report_to_character_id") or ""
-    if not recipient_id or not isinstance(receipt, dict):
-        return False
-    if str(receipt.get("status") or "pending").strip().lower() == "done":
-        return False
-    system = sim.gs.triggers
-    leaf = {"type": "met_character", "actor": p.name,
-            "character": recipient_id}
-    try:
-        met = system._evaluate_trigger_condition(leaf, None, sim.gs)
-    except Exception:
-        met = False
-    label = str(plan.get("label") or pursuit.get("label") or "pursuit")
-    if not met:
-        record(p, sim.gs.time_ticks, "pursuit",
-               f"pursuit {label} done, but no one to report to here",
-               why=f"pursuit:{label}:report:undelivered",
-               area=p.current_area, tags=["pursuit"])
-        return False
-    receipt["status"] = "done"
-    receipt["done_tick"] = sim.gs.time_ticks
-    recipient = system._resolve_named_character(recipient_id, sim.gs)
-    if recipient is not None and getattr(recipient, "name", recipient_id) != p.name:
-        text = (pursuit.get("report_text")
-                or pursuit.get("goal")
-                or plan.get("reason")
-                or f"{p.name} reports on {label}.")
-        try:
-            from engine.agent_memory import AgentMind
-            AgentMind(recipient, getattr(sim.gs, "graph", None), sim.gs).remember(
-                f"{p.name} reports: {text}",
-                tick=sim.gs.time_ticks, importance=6,
-                tags=["report"], source="heard",
-                location=p.current_area,
-                entity_ids=[pursuit.get("assignment_id") or ""])
-        except Exception:
-            pass
-    record(p, sim.gs.time_ticks, "pursuit",
-           f"reported {label} to {recipient_id}",
-           why=f"pursuit:{label}:report:delivered",
-           area=p.current_area, tags=["pursuit"])
-    return True
 
 
 def advance(sim, p):
@@ -519,7 +356,8 @@ def advance(sim, p):
     while True:
         idx = int(plan.get("index", 0))
         if idx >= len(steps):
-            break
+            _finish(sim, p, plan, "done")
+            return None
         step = steps[idx]
         if _satisfied(sim, p, step):
             plan["index"] = idx + 1
@@ -537,18 +375,8 @@ def advance(sim, p):
             plan["index"] = idx + 1
             _sync_pursuit_step(p, plan)
             if plan["index"] >= len(steps):
-                break
-        _check_progress(sim, p, plan)
+                _finish(sim, p, plan, "done")
         return outcome
-    # Completion: run the pursuit's own progress checks and the report receipt
-    # while the assignment is still mounted, then take it off the character.
-    # Both are idempotent (done entries never re-flip), so a plan that enters
-    # with its index already at the end - a resume after a crash - cannot
-    # double-deliver.
-    _check_progress(sim, p, plan)
-    _deliver_report(sim, p, plan)
-    _finish(sim, p, plan, "done")
-    return None
 
 
 # ───────────────────────────── resume ───────────────────────────────────────
@@ -567,26 +395,7 @@ def maybe_assign(sim, p):
     pursuit = getattr(p, "active_pursuit", None)
     if not isinstance(pursuit, dict):
         return False
-    # A terminal assignment does not resume: a pursuit whose id is already in
-    # ``completed_pursuits`` is finished (or failed); rebuilding its plan
-    # re-runs the tail of the approach every tick forever. An authored
-    # ``repeat: true`` invites the next cycle on purpose.
-    assignment_id = pursuit.get("assignment_id")
-    if assignment_id and assignment_id in list(
-            getattr(p, "completed_pursuits", []) or []) \
-            and not pursuit.get("repeat"):
-        return False
     if getattr(p, "plan", None):
-        return False
-    # task-701: a template's ``timing`` block gates the START of the
-    # undertaking, read from the world's own clock. A character already
-    # mid-approach is not stopped by dusk (``advance`` does not consult this);
-    # a window that closes mid-run only makes the next resume wait for it to
-    # reopen. No template entry (or no timing block) is always timely.
-    from engine import pursuit_templates as _templates
-    template_id = str(pursuit.get("template_id") or "").strip().lower()
-    entry = _templates.load().get(template_id)
-    if entry is not None and not _templates.timing_matches(entry, sim.gs):
         return False
     plan = build_plan(pursuit)
     if not plan or plan.get("pursuit_template") != pursuit.get("template_id"):

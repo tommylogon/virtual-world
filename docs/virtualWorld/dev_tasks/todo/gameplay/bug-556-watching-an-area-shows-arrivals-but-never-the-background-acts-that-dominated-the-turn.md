@@ -54,3 +54,24 @@ Intended UI home: the inspector's `📜 Area Event Log (who did what)` section o
 - `engine/lived_log.py (_tap fan-out point) or engine/logging_events.py`
 - `engine/background_simulation.py (the kinds it records)`
 - `static/js/world-state.ts (_syncTurnEvents) if the merge happens client-side`
+
+## Reconciliation (2026-10-20) - STILL_VALID, re-measured
+
+**Verdict: STILL_VALID.** The area ledger is still fed only by `turn_events`; the background acts are still only in `lived_log`.
+
+**Re-measured 2026-10-20.**
+- `static/js/inspector/area-view.ts:78` - still renders exactly one store: `const roomEvents = events.getAreaEvents(name);` (the `📜 Area Event Log` section at lines 117-136). No lived-log merge was added.
+- `engine/lived_log.py:75-90` - `_tap` is still the single fan-out point and still fans out only to `engine.soak_telemetry.active_recorder`. The area ledger is still not among its targets.
+- `engine/logging_events.py:68-117` - `record_turn_event` still appends to `self.turn_events` and still prunes to the current turn (`_MAX_TURN_EVENTS = 2000`, line 21); a world advance still never calls `clear_turn_events`.
+
+**Counts (the four checks from the repo's "never infer runtime behaviour from existence" rule).**
+1. **Is anything calling it?** `grep -c "record_turn_event" engine/background_simulation.py engine/background_plans.py` → 0 in both. The background tier still never writes to the witness ledger. Total `record_turn_event` call sites across `engine/`: 52, all in attended-action modules (`movement.py`, `items/*`, `speech.py`, `npc_behaviors.py`, `activities.py`, `skills.py`, `combat.py`, `crafting.py`, `grapple.py`, `equipment.py`, `lifecycle.py`, `soak.py`, `toggleable_items.py`, `background_social.py`).
+2. **Is it reading the right object?** `area-view.ts:78` reads `events.getAreaEvents(name)`, which `world-state.ts:66-93` fills from `state.turn_events` plus the client's own `logAreaEvent` calls. `lived_log` is not in that path.
+3. **Is any data authored that exercises it?** The card's own measurement (924 `turn_events` vs 577 `lived_log` entries, `act 352` / `need 21`) still stands as the ratio; nothing newer has added authored background acts to the ledger.
+4. **Does the guard's signature match?** `_tap(character, tick, kind, what, why, area)` (`lived_log.py:75`) takes the full decision tuple; nothing on the area-log side reads that shape.
+
+**Newer work checked.** `git log --oneline -10 -- engine/lived_log.py engine/logging_events.py engine/background_simulation.py engine/background_plans.py static/js/inspector/area-view.ts` returns `bbd4fc9f`, `8a1f0143`, `cb297187`, `0a697ef7`, `948b6a74`, `709331f7`, `b0e6cf5d`, `476734fa`, `8bdfe970`, `fb82e36b` - all older than the card's 2026-10-18 filing. The related cards `task-861` (streaming per-tick deltas) and `task-862` (no surface reads a character lived log) are both still `review`/`todo` and were re-read: neither implements the area-ledger projection the card asks for.
+
+**Cited line drift.** `world-state.ts:66-93` is still correct. `area-view.ts:78` is still correct. `logging_events.py:104-117` is now `:104-117` (unchanged). `lived_log.py:75-97` is now `:75-90` for `_tap` itself (the function body shrank when the soak-telemetry import was moved inside the try); the card's `_tap` reference is still to the right function. `movement.py:770-775` has drifted - the shared traversal path now records at `movement.py:784` and `:789`. Corrected above.
+
+**Status:** left in `todo`. The card's `How` still describes the two viable designs and the single-store-per-concept constraint; neither has been implemented.

@@ -1,6 +1,6 @@
 "use strict";
 /**
- * prompt-builder/contextual-actions.js — Non-redundant action availability.
+ * prompt-builder/contextual-actions.js  -  Non-redundant action availability.
  *
  * Computes the === AVAILABLE ACTIONS === block: only the actions that aren't
  * already bracketed on doors/items/people in the room context (the universal
@@ -8,7 +8,7 @@
  * the always-on examine-room/look/inventory/stats/wait). This is the
  * "contextual" replacement for the old static ACTIONS table.
  *
- * Gating is guidance, not enforcement — the backend still resolves verbs
+ * Gating is guidance, not enforcement  -  the backend still resolves verbs
  * leniently, so a missed gate only hides a verb from the prompt, never breaks
  * resolution.
  *
@@ -18,9 +18,9 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/contextual-actions — the "=== AVAILABLE ACTIONS ===" block
+ * @module prompt-builder/contextual-actions  -  the "=== AVAILABLE ACTIONS ===" block
  * @contributes computeItemActions, buildAvailableActionsBlock, carriedItemNodes, useOnTargetName, gating helpers
- * @powers The human turn — per-turn verb availability — only verbs not already bracketed in the room context
+ * @powers The human turn  -  per-turn verb availability  -  only verbs not already bracketed in the room context
  * @relates uses helpers.js; complements room-context.js; gates are guidance, the backend resolves leniently
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -29,8 +29,9 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
     // Canonical display order for item action brackets.
-    const BRACKET_ORDER = ['take', 'use', 'use_on', 'open', 'close', 'eat', 'drink', 'read', 'wear', 'remove', 'toggle', 'drop', 'examine'];
-    // Mirror of engine/item_actions.py:INVERSE_ACTIONS — an item that declares
+    const _registryBO = window.ActionVerbs?.BRACKET_ORDER;
+    const BRACKET_ORDER = _registryBO || ['take', 'use', 'use_on', 'open', 'close', 'eat', 'drink', 'read', 'wear', 'remove', 'toggle', 'drop', 'examine'];
+    // Mirror of engine/item_actions.py:INVERSE_ACTIONS  -  an item that declares
     // one side of a pair is also credited with the other (take→drop, equip→
     // unequip, open→close). Kept in sync so the prompt agrees with the backend.
     const INVERSE_ACTIONS = {
@@ -65,7 +66,7 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
     /**
      * task-352: can the remaining turn slots pay for *verb* on *props*?
-     * Guidance only — the engine's `_slot_gate` is the enforcement. With no
+     * Guidance only  -  the engine's `_slot_gate` is the enforcement. With no
      * budget published (older callers, no `turn_slots`) nothing is hidden, so
      * this degrades to the pre-budget rendering.
      */
@@ -131,7 +132,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 continue;
             // Consistent worlds have exactly ONE edge per item (equip removes the
             // carrying edge). Legacy data can carry both; equipped is the
-            // stronger state and wins — "wearing" is just equipped.
+            // stronger state and wins  -  "wearing" is just equipped.
             const equipped = edge.type === 'equipped' || bySource.get(edge.source)?.equipped === true;
             bySource.set(edge.source, { id: edge.source, name: node.name, properties: node.properties, equipped });
         }
@@ -151,10 +152,27 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return items;
     }
-    /** Whether a character has already examined/discovered an item by name. */
-    function isDiscovered(player, itemName) {
-        return new Set((player?.discovered_items || []).map((n) => String(n).toLowerCase().trim()))
-            .has(String(itemName || '').toLowerCase().trim());
+    /**
+     * Whether a character has already examined/discovered an item by name or id.
+     * Checks memory_index (subject_id -> memory_id) and observation memories (kind == "item").
+     */
+    function isDiscovered(player, itemNameOrId) {
+        if (!player || !itemNameOrId)
+            return false;
+        const target = String(itemNameOrId).toLowerCase().trim();
+        if (player.memory_index && player.memory_index[itemNameOrId])
+            return true;
+        if (Array.isArray(player.memories)) {
+            for (const m of player.memories) {
+                if (m && m.kind === 'item') {
+                    if (String(m.subject_id || '').toLowerCase().trim() === target)
+                        return true;
+                    if (String(m.name || '').toLowerCase().trim() === target)
+                        return true;
+                }
+            }
+        }
+        return false;
     }
     /**
      * True when an item is an intrinsic ability (a spell/talent/power) rather
@@ -171,7 +189,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Mirrors engine/trigger_system.py:_get_available_actions, client-side.
      *
      * @param item  - { id, name, properties } (as returned by getItemsInArea)
-     * @param player - Player data (discovered_items)
+     * @param player - Player data (memory_index, memories)
      * @param carry - { equipped } when the item is carried/equipped
      * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
      * @returns verbs in BRACKET_ORDER
@@ -201,7 +219,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             verbs.add('read');
         // wear/remove are the prompt display names for the equip/unequip pair.
         // Equippable when the item declares the pair, is tagged wearable, OR has
-        // non-empty equip_slots (the engine's gate — equipment.py equips anything
+        // non-empty equip_slots (the engine's gate  -  equipment.py equips anything
         // with slots). An empty equip_slots array must never imply wearability.
         const intrinsic = isIntrinsicAbility(props);
         const equipSlots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
@@ -214,7 +232,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             verbs.add('toggle');
         if (carry && actions.includes('drop') && !isIntrinsicAbility(props))
             verbs.add('drop');
-        // examine — shown unless the character has already examined/discovered it,
+        // examine  -  shown unless the character has already examined/discovered it,
         // the item is an intrinsic ability the character always knows, or the item
         // is currently equipped/worn: the engine's item matcher only reaches
         // carrying + area items (matching._match_item_name), so an examine on
@@ -223,7 +241,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             verbs.add('examine');
         const list = BRACKET_ORDER.filter(v => verbs.has(v));
         // task-352: drop verbs the remaining turn_slots cannot pay for. Guidance
-        // only — the engine's `_slot_gate` still enforces. No budget → no hide.
+        // only  -  the engine's `_slot_gate` still enforces. No budget → no hide.
         if (!slots)
             return list;
         return list.filter(v => affordable(v, props, slots));
@@ -249,7 +267,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param player - Player data
      * @param currentArea - Current area data object (exits, name)
      * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
-     * @returns The block ('' if nothing would be listed — never happens)
+     * @returns The block ('' if nothing would be listed  -  never happens)
      */
     /**
      * task-840: craftable-now recipe suggestions. Reads the known-recipes
@@ -306,7 +324,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (missing.length)
                 continue;
             const mins = Number(recipe.duration_min || 0);
-            out.push(`make ${recipe.name} — cook ${String(recipe.name).toLowerCase()}${mins > 0 ? ` (${mins} min)` : ''}`);
+            out.push(`make ${recipe.name}  -  cook ${String(recipe.name).toLowerCase()}${mins > 0 ? ` (${mins} min)` : ''}`);
             if (out.length >= 5)
                 break;
         }
@@ -326,7 +344,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
         // task-352: `keep` drops a suggested verb the remaining turn_slots cannot
-        // pay for (guidance only — the engine's `_slot_gate` enforces). No budget
+        // pay for (guidance only  -  the engine's `_slot_gate` enforces). No budget
         // published → nothing hidden. `wait` is exempt (see below): it is the
         // turn's exit.
         const keep = (verb, line) => {
@@ -340,11 +358,11 @@ window.PromptBuilder = window.PromptBuilder || {};
             // Requirement-gated passage verbs aren't in the door's standard
             // bracket list, so they live here to stay visible.
             if (req === 'crawl')
-                keep('crawl', `crawl — crawl through the ${handle}`);
+                keep('crawl', `crawl  -  crawl through the ${handle}`);
             else if (req === 'climb')
-                keep('climb', `climb — climb the ${handle}`);
+                keep('climb', `climb  -  climb the ${handle}`);
             else if (req === 'jump')
-                keep('jump', `jump — jump across the ${handle}`);
+                keep('jump', `jump  -  jump across the ${handle}`);
         }
         const others = (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
         if (others.length) {
@@ -353,40 +371,40 @@ window.PromptBuilder = window.PromptBuilder || {};
             // narrowing expressed so the index type is a string.
             PromptBuilder.anonymousName(charName, p.name || '', worldState.data?.players?.[p.name || '']?.description || p.description || '')).filter(Boolean);
             const target = names.join(', ');
-            keep('attack', `attack — fight ${target}`);
-            keep('grab', `grab — seize ${target}`);
-            keep('lead', `lead — guide ${target}`);
+            keep('attack', `attack  -  fight ${target}`);
+            keep('grab', `grab  -  seize ${target}`);
+            keep('lead', `lead  -  guide ${target}`);
             if (carried.length)
-                keep('give', `give — hand an item to ${target}`);
-            keep('steal', `steal — take from ${target}`);
+                keep('give', `give  -  hand an item to ${target}`);
+            keep('steal', `steal  -  take from ${target}`);
         }
         if (player?.grappled_by)
-            keep('escape', 'escape — break free (you are being held)');
+            keep('escape', 'escape  -  break free (you are being held)');
         if ((player?.state === 'prone') || !!(player?.conditions?.prone))
-            keep('stand', 'stand — get back up (you are prone)');
+            keep('stand', 'stand  -  get back up (you are prone)');
         const energy = vitals.Energy;
         if (energy !== undefined && energy < 50)
-            keep('rest', 'rest — rest to recover energy (you are tired)');
+            keep('rest', 'rest  -  rest to recover energy (you are tired)');
         const bladder = vitals.Bladder;
         if (bladder !== undefined && bladder >= 65)
-            keep('relieve', 'relieve — relieve yourself (your bladder is full)');
+            keep('relieve', 'relieve  -  relieve yourself (your bladder is full)');
         if (blind)
-            keep('listen', 'listen — listen hard (you are blind)');
+            keep('listen', 'listen  -  listen hard (you are blind)');
         if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim'))
-            keep('fumble', 'fumble — blind search in the darkness');
+            keep('fumble', 'fumble  -  blind search in the darkness');
         if (currentArea?.name)
-            keep('examine', `examine — examine ${currentArea.name}`);
-        keep('look', 'look — look around');
-        keep('inventory', 'inventory — check your inventory');
-        keep('stats', 'stats — check your stats');
+            keep('examine', `examine  -  examine ${currentArea.name}`);
+        keep('look', 'look  -  look around');
+        keep('inventory', 'inventory  -  check your inventory');
+        keep('stats', 'stats  -  check your stats');
         // task-840: craftable-now recipes as guidance (backend resolves
-        // leniently, so this only suggests — never gates).
+        // leniently, so this only suggests  -  never gates).
         for (const line of craftableLines(charName, player, currentArea)) {
             keep('make', line);
         }
         // The turn's exit. Never hidden: with no slots left this is the only way
         // to end the turn, and hiding it would strand the character.
-        lines.push('wait — wait or hold still');
+        lines.push('wait  -  wait or hold still');
         const intro = 'Other than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:';
         return `\n=== AVAILABLE ACTIONS ===\n${intro}\n${lines.join('\n')}`;
     }

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 #: Kinds with no other memory writer. See the module docstring for the kinds
 #: that ARE covered elsewhere, so this list must not repeat them.
-MEMORIZABLE_KINDS = ("death", "relationship", "pursuit")
+MEMORIZABLE_KINDS = ("death", "resurrection", "relationship", "pursuit")
 
 
 def _closeness_text(entry) -> str:
@@ -65,7 +65,11 @@ def phrase(entry) -> str:
     if kind == "death":
         cause = what[len("died of "):] if what.startswith("died of ") else what
         cause = cause.strip()
-        return f"I died \u2014 {cause}." if cause else "I died."
+        return f"I died - {cause}." if cause else "I died."
+    if kind == "resurrection":
+        cause = what[len("resurrected: "):] if what.startswith("resurrected: ") else what
+        cause = cause.strip()
+        return f"I was brought back from death - {cause}." if cause else "I was brought back from death."
     if kind == "pursuit":
         text = _capitalize(what)
         return text + ("." if text and not text.endswith(".") else "")
@@ -75,7 +79,10 @@ def phrase(entry) -> str:
 def _importance(entry) -> int:
     if entry.get("salient"):
         return 8
-    return 5 if str(entry.get("kind") or "") == "death" else 4
+    kind = str(entry.get("kind") or "")
+    if kind in ("death", "resurrection"):
+        return 5
+    return 4
 
 
 def bridge(player, gs=None) -> int:

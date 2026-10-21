@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Commons — VirtualWorld</title>
+    <title>The Commons - VirtualWorld</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/commons.css">
 </head>
@@ -24,6 +24,7 @@
         <label class="commons-perspective-label" for="commons-perspective" id="commons-perspective-label">Phone owner</label>
         <select id="commons-perspective" class="commons-select" aria-label="View conversations as"></select>
         <span id="commons-status-chip" class="commons-status">Active</span>
+        <span id="commons-actor-chip" class="commons-actor-chip" aria-live="polite">Idle</span>
         <span id="commons-rate-estimate" class="commons-rate-estimate" aria-live="polite"></span>
     </div>
     <div class="commons-top-actions">
@@ -76,6 +77,35 @@
         <div id="commons-member-editor" class="commons-member-editor"></div>
         <div class="commons-details-note" id="commons-details-note">Private conversations are visible only from a member’s phone.</div>
     </aside>
+    <aside id="commons-inner-drawer" class="commons-inner-drawer" aria-label="Character inner world" hidden>
+        <div class="commons-drawer-header">
+            <div class="commons-drawer-title-row">
+                <div class="commons-drawer-avatar" id="commons-drawer-avatar">?</div>
+                <div class="commons-drawer-identity">
+                    <h3 id="commons-drawer-name" class="commons-drawer-name">Character</h3>
+                    <div id="commons-drawer-presence" class="commons-drawer-presence">In conversation</div>
+                </div>
+                <button type="button" id="commons-drawer-close" class="commons-icon-btn commons-drawer-close" aria-label="Close drawer">×</button>
+            </div>
+            <p id="commons-drawer-personality" class="commons-drawer-personality"></p>
+            <div id="commons-drawer-traits" class="commons-drawer-traits"></div>
+        </div>
+        <div class="commons-drawer-body">
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Current Inner Stream</div>
+                <div id="commons-drawer-monologue" class="commons-drawer-monologue"></div>
+            </section>
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Latest Decision & Action</div>
+                <div id="commons-drawer-decision" class="commons-drawer-decision"></div>
+            </section>
+            <section class="commons-drawer-section">
+                <div class="commons-drawer-section-title">Recent Turn Thoughts</div>
+                <div id="commons-drawer-history" class="commons-drawer-history"></div>
+            </section>
+        </div>
+    </aside>
+    <div id="commons-drawer-scrim" class="commons-drawer-scrim" hidden></div>
 </main>
 
 <dialog id="commons-group-dialog" class="commons-dialog">

@@ -1,12 +1,12 @@
 "use strict";
 /**
- * InspectorWayView — Way inspector (showWay, reconnectWays)
+ * InspectorWayView  -  Way inspector (showWay, reconnectWays)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  *
- * @module inspector/way-view — the way (door/passage) inspector
+ * @module inspector/way-view  -  the way (door/passage) inspector
  * @contributes InspectorWayView: showWay, state, cardinal/direction, connections, reconnectWays
- * @powers Way authoring — inspecting and editing doors/passages and what they connect
+ * @powers Way authoring  -  inspecting and editing doors/passages and what they connect
  * @relates renders through InspectorPanel; delegates to way-view-connections + way-view-triggers
  * @docs docs/virtualWorld/World Building/Ways.md
  */
@@ -17,7 +17,7 @@ window.InspectorWayView = (() => {
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
     const esc = InspectorHelpers.esc;
     // getElementById hands back HTMLElement; the way inspector's controls are
-    // text inputs / selects / textareas / checkboxes — cast at the read sites.
+    // text inputs / selects / textareas / checkboxes  -  cast at the read sites.
     const inputById = (id) => document.getElementById(id);
     const selectById = (id) => document.getElementById(id);
     const STATE_OPTIONS = ['open', 'closed', 'locked', 'blocked', 'broken', 'hidden'];
@@ -51,11 +51,28 @@ window.InspectorWayView = (() => {
         { value: 'west', label: 'W', angle: 270 },
         { value: 'northwest', label: 'NW', angle: 315 },
     ];
+    // Vertical is not on the dial. A stairway or a tunnel goes up or down; it
+    // does not point north. The engine already carries 'up' and 'down' as
+    // cardinals (engine/facing.py keeps them off the rotation ring, and the map
+    // layout offsets them by two rows), and the area inspector's badge renders
+    // them - but this dial could not select one, so a vertical way showed no
+    // selection at all and clicking any button overwrote its 'down' with a
+    // horizontal heading. They get their own column beside the dial.
+    const VERTICAL_COMPASS = [
+        { value: 'up', label: '⬆', title: 'up' },
+        { value: 'down', label: '⬇', title: 'down' },
+    ];
     wayView._renderCompassSelector = function (prefix, escapedId, cardinal) {
         const radius = 55;
         const centerX = 65;
         const centerY = 65;
         const btnSize = 36;
+        const btnStyle = (isSelected) => `width:${btnSize}px;height:${btnSize}px;border-radius:50%;` +
+            `background:${isSelected ? 'var(--accent)' : 'var(--bg-input)'};` +
+            `color:${isSelected ? '#fff' : 'var(--text)'};` +
+            `border:2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};` +
+            `cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;` +
+            `justify-content:center;transition:all 0.15s;`;
         let buttonsHtml = '';
         RADIAL_COMPASS.forEach(dir => {
             const rad = (dir.angle - 90) * Math.PI / 180;
@@ -63,14 +80,28 @@ window.InspectorWayView = (() => {
             const y = centerY + radius * Math.sin(rad) - btnSize / 2;
             const isSelected = cardinal === dir.value;
             buttonsHtml += `<div class="compass-radial-btn" data-cardinal="${dir.value}" onclick="InspectorWayView._selectCompassDirection('${prefix}','${escapedId}',this.dataset.cardinal)"
-                style="position:absolute;left:${x}px;top:${y}px;width:${btnSize}px;height:${btnSize}px;border-radius:50%;background:${isSelected ? 'var(--accent)' : 'var(--bg-input)'};color:${isSelected ? '#fff' : 'var(--text)'};border:2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
+                style="position:absolute;left:${x}px;top:${y}px;${btnStyle(isSelected)}"
                 title="${dir.value}">${dir.label}</div>`;
         });
         const clearStyle = !cardinal ? 'background:var(--red);color:#fff;border-color:var(--red);' : '';
         buttonsHtml += `<div class="compass-radial-btn" data-cardinal="" onclick="InspectorWayView._selectCompassDirection('${prefix}','${escapedId}',this.dataset.cardinal)"
-            style="position:absolute;left:${centerX - btnSize / 2}px;top:${centerY - btnSize / 2}px;width:${btnSize}px;height:${btnSize}px;border-radius:50%;background:${clearStyle || 'var(--bg-input)'};color:${clearStyle || 'var(--text)'};border:2px solid ${clearStyle ? 'var(--red)' : 'var(--border)'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
+            style="position:absolute;left:${centerX - btnSize / 2}px;top:${centerY - btnSize / 2}px;width:${btnSize}px;height:${btnSize}px;border-radius:50%;${clearStyle || 'background:var(--bg-input);color:var(--text);border:2px solid var(--border);'}cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
             title="Clear direction">✕</div>`;
-        return `<div style="position:relative;width:130px;height:130px;display:inline-block;">
+        // The vertical column sits to the right of the dial, so a stairway is
+        // visibly a different axis from a heading rather than another point on
+        // the same circle. It clears the dial by 8px: the dial's own buttons
+        // overrun their 130px box by 8px on every side (the N button's top
+        // edge is at y=-8), so a column at x=130 would clip the E button.
+        let verticalHtml = '';
+        VERTICAL_COMPASS.forEach((dir, i) => {
+            const isSelected = cardinal === dir.value;
+            verticalHtml += `<div class="compass-radial-btn compass-vertical-btn" data-cardinal="${dir.value}" onclick="InspectorWayView._selectCompassDirection('${prefix}','${escapedId}',this.dataset.cardinal)"
+                style="position:absolute;left:${i * (btnSize + 6)}px;top:${centerY - btnSize / 2}px;${btnStyle(isSelected)}font-size:15px;"
+                title="${dir.title}">${dir.label}</div>`;
+        });
+        const verticalWidth = VERTICAL_COMPASS.length * (btnSize + 6);
+        const columnLeft = 146;
+        return `<div style="position:relative;width:${columnLeft + verticalWidth}px;height:130px;display:inline-block;">
             <svg width="130" height="130" style="position:absolute;top:0;left:0;pointer-events:none;">
                 <circle cx="65" cy="65" r="${radius}" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
                 <line x1="65" y1="10" x2="65" y2="20" stroke="var(--text-muted)" stroke-width="1"/>
@@ -79,6 +110,9 @@ window.InspectorWayView = (() => {
                 <line x1="110" y1="65" x2="120" y2="65" stroke="var(--text-muted)" stroke-width="1"/>
             </svg>
             ${buttonsHtml}
+            <div style="position:absolute;left:${columnLeft}px;top:0;width:${verticalWidth}px;height:130px;">
+                ${verticalHtml}
+            </div>
         </div>`;
     };
     wayView._selectCompassDirection = function (prefix, escapedId, cardinal) {
@@ -154,7 +188,7 @@ window.InspectorWayView = (() => {
         const impl = window.InspectorWayViewConnections && window.InspectorWayViewConnections._reconnectWays;
         if (typeof impl === 'function')
             return impl(wayId);
-        console.error('InspectorWayViewConnections._reconnectWays missing — did way-view-connections.js fail to load?');
+        console.error('InspectorWayViewConnections._reconnectWays missing  -  did way-view-connections.js fail to load?');
         return null;
     };
     // Trigger extraction lives in way-view-triggers.js (module
@@ -165,7 +199,7 @@ window.InspectorWayView = (() => {
         const impl = triggerHost && triggerHost._extractTriggersFromEdges;
         if (typeof impl === 'function')
             return impl(nodeId);
-        console.error('InspectorWayViewTriggers._extractTriggersFromEdges missing — did way-view-triggers.js fail to load?');
+        console.error('InspectorWayViewTriggers._extractTriggersFromEdges missing  -  did way-view-triggers.js fail to load?');
         return [];
     };
     wayView._refreshParamPreview = function (wayId) {
@@ -255,7 +289,7 @@ window.InspectorWayView = (() => {
         return htmlTag `
             <div class="inspector-section" style="background:var(--bg-inset);border-radius:6px;margin-bottom:8px;">
                 <h3 style="font-size:11px;">PREVIEW</h3>
-                <div class="section-hint" style="margin-bottom:6px;">What players/agents see from ${esc(roomAName || 'side A')} — updates after Save.</div>
+                <div class="section-hint" style="margin-bottom:6px;">What players/agents see from ${esc(roomAName || 'side A')}  -  updates after Save.</div>
                 <div style="font-size:10px;color:var(--text-dim);">Closed glance:</div>
                 <div style="font-size:10px;margin-bottom:6px;">${esc(closedPreview || '(empty)')}</div>
                 <div style="font-size:10px;color:var(--text-dim);">Open glance:</div>
@@ -272,7 +306,7 @@ window.InspectorWayView = (() => {
                 <div class="field">
                     <label style="display:flex;align-items:center;gap:4px;">${wayView._renderLockToggle('requires', wayView._getLockedFields(props), escapedId)} Required movement verb</label>
                     <select id="way-passage-requires-${escapedId}">
-                        <option value="" ?selected=${!props.requires || props.requires === 'none'}>None (walk through — go)</option>
+                        <option value="" ?selected=${!props.requires || props.requires === 'none'}>None (walk through  -  go)</option>
                         <option value="crawl" ?selected=${props.requires === 'crawl'}>Crawl (go auto-crawls)</option>
                         <option value="climb" ?selected=${props.requires === 'climb'}>Climb (climb &lt;dir&gt;)</option>
                         <option value="jump" ?selected=${props.requires === 'jump'}>Jump (jump &lt;dir&gt;)</option>
@@ -304,7 +338,7 @@ window.InspectorWayView = (() => {
                         <input type="checkbox" id="way-passage-prevent-close-${escapedId}" ?checked=${!!props.prevent_close}> 🔒 Prevent closing (open passage)
                     </label>
                 </div>
-                <div class="section-hint">Jump/climb/crawl passages are always uncloseable. <b>Prevent closing</b> extends that to any way — the state can then only be changed by triggers.</div>
+                <div class="section-hint">Jump/climb/crawl passages are always uncloseable. <b>Prevent closing</b> extends that to any way  -  the state can then only be changed by triggers.</div>
                 ${wayView._renderParametersSection(props, escapedId)}
                 ${sanityHtml ? window.Lit.unsafeHTML(sanityHtml) : ''}
             </div>
@@ -417,7 +451,7 @@ window.InspectorWayView = (() => {
                     <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
                         <div style="display:flex;gap:2px;align-items:center;">
                             ${InspectorHelpers.isGeneratedNode(nodeId)
-            ? htmlTag `<span style="font-size:10px;color:var(--text-muted);width:100%;" title="Generated node id — owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
+            ? htmlTag `<span style="font-size:10px;color:var(--text-muted);width:100%;" title="Generated node id  -  owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
             : htmlTag `<input type="text" .value=${nodeId} @change=${(ev) => InspectorHelpers.renameNode(nodeId, ev.target.value)} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);width:100%;cursor:text;" title="Change node ID (lowercase, no spaces)">
                                     <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(nodeId, name)} title="Sync ID from name">🔄</button>`}
                         </div>
@@ -521,7 +555,7 @@ window.InspectorWayView = (() => {
     /**
      * Parse connection edges to extract area A/B info.
      * Prefers the way's area_from/area_to props when they resolve to areas
-     * among the connection edges — stale edges from an old connect (3+ areas
+     * among the connection edges  -  stale edges from an old connect (3+ areas
      * wired to one way) would otherwise surface the wrong pair as side A/B.
      * @param {Array} connEdges - Connection edges
      * @param {string} nodeId - Way node ID
@@ -740,7 +774,7 @@ window.InspectorWayView = (() => {
             events.log(`Saved "${name}" to library.`, 'system-msg');
             return;
         }
-        // Conflict — show DiffModal
+        // Conflict  -  show DiffModal
         const sections = [
             { key: 'name', label: 'Name' },
             { key: 'description', label: 'Description' },
@@ -791,7 +825,7 @@ window.InspectorWayView = (() => {
     wayView._refreshFromLibrary = async function (nodeId) {
         const node = worldState.getNode(nodeId);
         if (!node || node.type !== 'way') {
-            toastInfo('No library_id — cannot refresh.');
+            toastInfo('No library_id  -  cannot refresh.');
             return;
         }
         const props = node.properties || {};
@@ -863,7 +897,7 @@ window.InspectorWayView = (() => {
     wayView.improveWayWithAI = async function (nodeId) {
         const system = `You are a procedural way enhancer for a text adventure game. A "way" is a door, passage, or path between two areas. The way data schema supports:
 
-PROPERTIES: current_state (open/closed/locked/blocked/broken/hidden), pass_message (text shown when passing through), needs_open (object with enabled boolean, skill name, and dc number), auto_close (boolean), see_through (boolean), one_way (boolean), requires (passage mode: empty/crawl/climb/jump), max_size (largest size that fits through: empty/tiny/small/normal/huge/giant/titanic), sound_barrier (optional number: how much speech penetration this door blocks when closed/blocked/locked — 1 = normal door, 2 = vault-thick, omit for default), edge_length (number 20-500 for graph layout)
+PROPERTIES: current_state (open/closed/locked/blocked/broken/hidden), pass_message (text shown when passing through), needs_open (object with enabled boolean, skill name, and dc number), auto_close (boolean), see_through (boolean), one_way (boolean), requires (passage mode: empty/crawl/climb/jump), max_size (largest size that fits through: empty/tiny/small/normal/huge/giant/titanic), sound_barrier (optional number: how much speech penetration this door blocks when closed/blocked/locked  -  1 = normal door, 2 = vault-thick, omit for default), edge_length (number 20-500 for graph layout)
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`;
         const buildPrompt = (node, lockedFields) => {
@@ -898,7 +932,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             if (!lockedFields.includes('parameters'))
                 promptLines.push(`- parameters: ${JSON.stringify(props.parameters || {})}`);
             promptLines.push('');
-            promptLines.push('Improve this way\'s description and properties. Make the description richer and more atmospheric — describe how the way looks, feels, sounds. Suggest appropriate state, pass messages, skill checks, passage requirements (requires: crawl/climb/jump if the passage physically demands it), size limits (max_size for tight gaps), and behavior flags that match the mood. Return the full way as JSON with name, description, current_state, pass_message, needs_open, auto_close, see_through, one_way, requires, max_size, edge_length, tags, and parameters fields.');
+            promptLines.push('Improve this way\'s description and properties. Make the description richer and more atmospheric  -  describe how the way looks, feels, sounds. Suggest appropriate state, pass messages, skill checks, passage requirements (requires: crawl/climb/jump if the passage physically demands it), size limits (max_size for tight gaps), and behavior flags that match the mood. Return the full way as JSON with name, description, current_state, pass_message, needs_open, auto_close, see_through, one_way, requires, max_size, edge_length, tags, and parameters fields.');
             return promptLines.join('\n');
         };
         const apply = (parsed, node, lockedFields, update) => {

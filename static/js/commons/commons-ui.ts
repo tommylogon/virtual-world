@@ -1,5 +1,5 @@
 /**
- * @module commons-ui — social conversation UI for The Commons
+ * @module commons-ui - social conversation UI for The Commons
  * @contributes conversation list, messages, membership controls, and inputs
  * @powers The Commons phone/social surface
  * @relates CommonsState, CommonsApi, CommonsAgent
@@ -63,6 +63,13 @@
             });
 
             if (participantList) {
+                participantList.addEventListener('click', (event: Event) => {
+                    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-role="act"]');
+                    const name = button?.dataset.character;
+                    if (name) {
+                        void (window as any).CommonsAgent.stepOne(name);
+                    }
+                });
                 participantList.addEventListener('change', (event: Event) => {
                     const target = event.target as HTMLInputElement | null;
                     const name = target?.dataset.character;
@@ -115,6 +122,25 @@
                 if (button.dataset.memberAction === 'remove') void this.changeMember(button.dataset.name || '', false);
             });
 
+            document.getElementById('commons-drawer-close')?.addEventListener('click', () => {
+                (window as any).CommonsState.closeDrawer();
+            });
+            document.getElementById('commons-drawer-scrim')?.addEventListener('click', () => {
+                (window as any).CommonsState.closeDrawer();
+            });
+            document.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Escape' && (window as any).CommonsState.selectedDrawerCharacter) {
+                    (window as any).CommonsState.closeDrawer();
+                }
+            });
+            document.addEventListener('click', (event: Event) => {
+                const trigger = (event.target as HTMLElement).closest<HTMLElement>('.commons-char-trigger');
+                const charName = trigger?.dataset.character;
+                if (charName && charName !== 'User') {
+                    (window as any).CommonsState.openDrawer(charName);
+                }
+            });
+
             (window as any).CommonsState.subscribe(() => this.render());
         }
 
@@ -127,6 +153,8 @@
             this.renderParticipants();
             this.renderRateEstimate();
             this.renderPauseState();
+            this.renderActorChip();
+            void this.renderDrawer();
         }
 
         static renderTheme() {
@@ -252,7 +280,7 @@
                 : 'Write a message…';
             if (membersList) {
                 membersList.innerHTML = members.map((name: string, index: number) =>
-                    `<span class="commons-member-chip"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`
+                    `<span class="commons-member-chip commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`
                 ).join('') || '<div class="commons-empty-note">No members listed.</div>';
             }
             this.renderMemberEditor(channel);
@@ -291,8 +319,8 @@
                 const own = message.author === (window as any).CommonsState.perspective;
                 const time = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 return `<article class="chat-msg ${own ? 'own' : ''}">
-                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6}">${escapeHtml(initials(message.author))}</div>
-                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author">${escapeHtml(message.author)}</span><time>${time}</time></div>
+                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>
+                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time></div>
                     <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>
                 </article>`;
             }).join('') || ((window as any).CommonsState.theme === 'town_board'
@@ -311,9 +339,11 @@
             list.innerHTML = names.map(name => {
                 const participant = participants[name];
                 const pace = (window as any).CommonsAgent.getTalkativeness(name);
+                const isActing = Boolean((window as any).CommonsAgent.controllers?.[name]);
                 return `<div class="participant-item"><div class="participant-row">
-                    <span class="participant-name">${escapeHtml(name)}</span>
-                    <span class="participant-presence ${participant.active && !participant.blocked ? 'online' : ''}">${participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
+                    <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}</span>
+                    <span class="participant-presence ${isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : ''}">${isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
+                    <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="Trigger a turn for ${escapeHtml(name)}" ${isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
                 </div><div class="participant-controls">
                     <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="active" ${participant.active ? 'checked' : ''}> In chat</label>
                     <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
@@ -337,8 +367,18 @@
             const select = document.getElementById('commons-dm-recipient') as HTMLSelectElement | null;
             const state = (window as any).CommonsState;
             if (!select) return;
-            const names = Object.keys(state.participants || {}).filter((name: string) => name !== 'User' && name !== state.perspective);
-            select.innerHTML = names.map((name: string) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            let eligibleNames: string[] = [];
+            if (state.perspective === 'User') {
+                eligibleNames = Object.keys(state.participants || {}).filter(name => name !== 'User');
+            } else {
+                const known = Array.isArray(state.knownCharacters) ? state.knownCharacters : [];
+                eligibleNames = known.filter((name: string) => name !== 'User' && name !== state.perspective);
+            }
+            if (eligibleNames.length === 0) {
+                select.innerHTML = '<option value="" disabled selected>No known characters to contact</option>';
+            } else {
+                select.innerHTML = eligibleNames.map((name: string) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            }
             const error = document.getElementById('commons-dm-error');
             if (error) error.textContent = '';
         }
@@ -416,8 +456,133 @@
             const chip = document.getElementById('commons-status-chip');
             const step = document.getElementById('commons-step-btn') as HTMLButtonElement | null;
             if (pause) pause.textContent = state.isPaused ? '▶ Resume' : '⏸ Pause';
-            if (chip) chip.textContent = state.isPaused ? (state.visibilityPaused ? 'Paused · tab hidden' : 'Paused') : 'Active';
-            if (step) step.disabled = state.isPaused;
+
+            const actingNames = Object.keys((window as any).CommonsAgent?.controllers || {});
+            if (chip) {
+                if (actingNames.length > 0) {
+                    chip.textContent = `${actingNames[0]} thinking...`;
+                    chip.className = 'commons-status thinking';
+                } else if (state.isPaused) {
+                    chip.textContent = state.visibilityPaused ? 'Paused · tab hidden' : 'Paused';
+                    chip.className = 'commons-status paused';
+                } else {
+                    chip.textContent = 'Active';
+                    chip.className = 'commons-status active';
+                }
+            }
+            if (step) step.disabled = !state.isPaused || actingNames.length > 0;
+        }
+
+        static renderActorChip() {
+            const chip = document.getElementById('commons-actor-chip');
+            if (!chip) return;
+            const state = (window as any).CommonsState;
+            const acting = state.actingCharacter;
+            if (acting) {
+                chip.textContent = `Acting: ${acting}...`;
+                chip.className = 'commons-actor-chip acting';
+            } else if (state.lastActed) {
+                chip.textContent = `Last acted: ${state.lastActed.charName} (${state.lastActed.summary})`;
+                chip.className = 'commons-actor-chip idle';
+            } else {
+                chip.textContent = 'Idle';
+                chip.className = 'commons-actor-chip idle';
+            }
+        }
+
+        static async renderDrawer() {
+            const drawer = document.getElementById('commons-inner-drawer');
+            const scrim = document.getElementById('commons-drawer-scrim');
+            if (!drawer || !scrim) return;
+            const state = (window as any).CommonsState;
+            const charName = state.selectedDrawerCharacter;
+            if (!charName) {
+                drawer.hidden = true;
+                scrim.hidden = true;
+                return;
+            }
+            drawer.hidden = false;
+            scrim.hidden = false;
+
+            const nameEl = document.getElementById('commons-drawer-name');
+            const presenceEl = document.getElementById('commons-drawer-presence');
+            const avatarEl = document.getElementById('commons-drawer-avatar');
+            const personalityEl = document.getElementById('commons-drawer-personality');
+            const traitsEl = document.getElementById('commons-drawer-traits');
+            const monologueEl = document.getElementById('commons-drawer-monologue');
+            const decisionEl = document.getElementById('commons-drawer-decision');
+            const historyEl = document.getElementById('commons-drawer-history');
+
+            if (nameEl) nameEl.textContent = charName;
+            if (avatarEl) {
+                avatarEl.textContent = initials(charName);
+                avatarEl.className = `commons-drawer-avatar avatar-${hash(charName) % 6}`;
+            }
+
+            const isActing = Boolean((window as any).CommonsAgent?.controllers?.[charName]);
+            if (presenceEl) {
+                presenceEl.textContent = isActing ? 'Thinking right now...' : 'In conversation';
+                presenceEl.className = `commons-drawer-presence ${isActing ? 'thinking' : 'active'}`;
+            }
+
+            // Fetch or get context
+            let context = state.characterContextCache?.[charName];
+            if (!context && (window as any).CommonsApi?.getCharacterContext) {
+                try {
+                    context = await (window as any).CommonsApi.getCharacterContext(charName);
+                    state.characterContextCache[charName] = context;
+                } catch (e) {}
+            }
+
+            if (personalityEl) {
+                personalityEl.textContent = context?.personality || context?.description || 'No personality profile recorded.';
+            }
+            if (traitsEl) {
+                const traitKeys = Object.keys(context?.traits || {}).filter(k => context.traits[k]);
+                traitsEl.innerHTML = traitKeys.map((t: string) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
+            }
+
+            // Render turn history and monologue
+            const turns = state.characterTurns?.[charName] || [];
+            const latest = turns[0];
+            if (monologueEl) {
+                if (latest?.inner) {
+                    monologueEl.innerHTML = `<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
+                    <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`;
+                } else {
+                    monologueEl.innerHTML = `<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`;
+                }
+            }
+
+            if (decisionEl) {
+                if (latest) {
+                    decisionEl.innerHTML = `<div class="commons-decision-card">
+                        <div class="commons-decision-header">
+                            <span class="commons-decision-action ${escapeHtml(latest.action)}">${escapeHtml(latest.action.replace('_', ' '))}</span>
+                            <span class="commons-decision-summary">${escapeHtml(latest.summary)}</span>
+                        </div>
+                        ${latest.detail?.text ? `<div class="commons-decision-text">"${escapeHtml(latest.detail.text)}"</div>` : ''}
+                    </div>`;
+                } else {
+                    decisionEl.innerHTML = `<div class="commons-drawer-empty-state">No recent decisions.</div>`;
+                }
+            }
+
+            if (historyEl) {
+                if (turns.length > 1) {
+                    historyEl.innerHTML = turns.slice(1, 8).map((t: any) => `
+                        <div class="commons-history-row">
+                            <div class="commons-history-header">
+                                <span class="commons-decision-action small ${escapeHtml(t.action)}">${escapeHtml(t.action.replace('_', ' '))}</span>
+                                <time>${new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+                            </div>
+                            ${t.inner ? `<div class="commons-history-thought">"${escapeHtml(t.inner)}"</div>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    historyEl.innerHTML = `<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`;
+                }
+            }
         }
     }
 

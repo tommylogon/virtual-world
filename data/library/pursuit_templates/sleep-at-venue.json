@@ -18,10 +18,29 @@
   "requirements": [
     {
       "type": "in_area",
-      "target": "self",
       "area": {
         "$binding": "venue"
       }
+    }
+  ],
+  "timing": {
+    "sun": "down"
+  },
+  "progress": [
+    {
+      "id": "rested",
+      "description": "The character has slept and is rested again.",
+      "check": {
+        "type": "vital_above",
+        "stat": "Energy",
+        "value": 90
+      }
+    }
+  ],
+  "stop_conditions": [
+    {
+      "type": "sound_above",
+      "threshold": 0.8
     }
   ],
   "steps": [

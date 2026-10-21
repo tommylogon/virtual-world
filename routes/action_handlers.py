@@ -10,8 +10,9 @@ from engine.activities import (
 )
 from engine.vitals import format_vitals_readout, VITAL_POLARITY
 from routes.helpers import tokenize_command_detailed
+from engine.action_verbs import mature_verbs as _registry_mature_verbs
+_INTIMACY_VERBS = tuple(_registry_mature_verbs())
 from engine.pleasure_actions import (
-    INTIMACY_VERBS as _INTIMACY_VERBS,
     INTENSITY_ADVERBS as _INTENSITY_ADVERBS,
 )
 
@@ -84,7 +85,7 @@ def _activity_gate(cmd, world, add_output):
     if act_type in ACTIVITY_BLOCKING:
         allowed = _ACTIVITY_ALLOWED.get(act_type, set())
         if not _activity_cmd_allowed(cmd, allowed):
-            return f"You're {activity_description(activity)} — you can't do that right now."
+            return f"You're {activity_description(activity)}  -  you can't do that right now."
         return None
     if act_type in ACTIVITY_INTERRUPTIBLE:
         if not _activity_cmd_allowed(cmd, _ACTIVITY_NON_INTERRUPTING):
@@ -100,7 +101,7 @@ def _action_block_gate(cmd, world, add_output):
     first = cmd.split(" ", 1)[0]
     if first in _ACTION_BLOCK_ALLOWED:
         return None
-    return "You can't move or act right now — a condition holds you motionless."
+    return "You can't move or act right now  -  a condition holds you motionless."
 
 
 def _parse_activity_args(tokens, cmd):
@@ -181,7 +182,7 @@ def handle_get_state(app):
         # publish private channel state through the world-wide state payload.
         state.pop("commons", None)
         # Perf: `rooms` is an exact duplicate of `areas` (serialization.py emits
-        # the same dict under both keys) and `areas_by_id` has no HTTP consumer —
+        # the same dict under both keys) and `areas_by_id` has no HTTP consumer  - 
         # the browser reads `worldState.areas`. Together they roughly triple the
         # /api/state encode cost for ~13 MB of payload. Drop them from the wire
         # unless a caller explicitly opts in with ?full=1. `to_dict` itself is
@@ -354,11 +355,11 @@ def handle_take_action(app):
         # task-352: action-economy slots. One major / one minor / three free per
         # turn; a higher slot pays for a lower action (a major pays for an
         # approach when the minor is spent). A failed attempt still spends the
-        # slot — you tried — which is the point of a budget.
+        # slot  -  you tried  -  which is the point of a budget.
         #
         # Opt-in via `enforce_slots`: the turn composer and the agent submit set
-        # it, so the *turn pipeline* is budgeted. Out-of-band sends — the
-        # inspector/paperdoll buttons, the interjection lane, "Speak as guest" —
+        # it, so the *turn pipeline* is budgeted. Out-of-band sends  -  the
+        # inspector/paperdoll buttons, the interjection lane, "Speak as guest"  - 
         # do not, because they are authoring/override actions, not the character's
         # turn.
         _slot_player = world.player_manager.players.get(world.player_manager.active_player)
@@ -370,7 +371,7 @@ def handle_take_action(app):
                 _slot_player.turn_slots = _slots = {}
                 _at.reset_slots(_slots)
             _verb = (cmd.split(" ", 1)[0] if cmd else "").lower()
-            # task-784: one rule for every budgeted actor — a dash is a two-hop
+            # task-784: one rule for every budgeted actor  -  a dash is a two-hop
             # burst (initiate major + finish minor); while it is armed the finish
             # is the only valid action; an abort (wait) clears it. See
             # engine.action_tiers.apply_action_gate.
@@ -383,7 +384,7 @@ def handle_take_action(app):
             _arm_dash = _burst == "arm"
 
         # T1: movement result handling. An intra-room positioning ("go the
-        # booth table") does NOT change areas — the movement line is the whole
+        # booth table") does NOT change areas  -  the movement line is the whole
         # story, so the full room description only re-dumps on a real
         # transition (the agent already has the room in its context).
         def _move_and_describe(call):
@@ -413,7 +414,7 @@ def handle_take_action(app):
             _move_and_describe(lambda: world.dash_to_area(direction))
             # task-784: arm the burst only once the hop actually happened. A block
             # (winded/encumbered/locked) raises out of `_move_and_describe`, so the
-            # dash is left unarmed with its major already spent — the try's cost.
+            # dash is left unarmed with its major already spent  -  the try's cost.
             if _arm_dash and _slot_player is not None:
                 _slot_player.burst_pending = 1
 
@@ -475,7 +476,7 @@ def handle_take_action(app):
                 player.vitals["Bladder"] = 0
                 # task-551: permission is universal, so there is no branch here
                 # that can refuse. What is left is the *comfort* distinction, and
-                # it is scored by the same helper the background tier reads — which
+                # it is scored by the same helper the background tier reads  -  which
                 # also fixes the two tiers disagreeing: this used to test only
                 # `toilet`/`bathroom`/`restroom` here, so a room tagged `latrine`
                 # or `privy` was a restroom to the engine and a corner to the
@@ -488,7 +489,7 @@ def handle_take_action(app):
                     add_output("You relieve yourself. Ah, much better.")
                 else:
                     _relief.mark_smell(world.graph, area_id)
-                    # T4: public relieve is a shame event — an internal hit
+                    # T4: public relieve is a shame event  -  an internal hit
                     # always (Sanity), a social hit only when someone actually
                     # witnesses it (being alone keeps it between you and the
                     # puddle).
@@ -515,7 +516,7 @@ def handle_take_action(app):
             was_movement = False
 
         elif cmd.startswith("use "):
-            # task-196: "use 2 kindling in fireplace" — quantity on use-on.
+            # task-196: "use 2 kindling in fireplace"  -  quantity on use-on.
             amount = 1
             if len(tokens) > 1 and re.match(r'^\d+$', tokens[1]):
                 amount = max(1, int(tokens[1]))
@@ -621,7 +622,7 @@ def handle_take_action(app):
                 area_node = world.graph.get_node(area_id)
                 env = (area_node.properties or {}).get("environment", {}) if area_node else {}
                 # The DC table lives in engine.weather_forecast so it cannot
-                # drift from WEATHER_STATES again — it had grown a second,
+                # drift from WEATHER_STATES again  -  it had grown a second,
                 # private list that also knew "sunny" and "overcast"
                 # (task-559).
                 from engine.weather_forecast import (
@@ -953,7 +954,7 @@ def handle_take_action(app):
             add_output(world.wait(minutes))
         elif cmd.startswith(("flee", "disengage", "withdraw")):
             # task-611: `flee` had no handler at all, so it fell through to the
-            # emote catch-all and answered "Belne flee." — the same gibberish
+            # emote catch-all and answered "Belne flee."  -  the same gibberish
             # task-629 removed everywhere else. `retreat` only ever appeared to
             # work because the *waiting* state string-matched the word to cancel
             # itself; on its own it was also an emote.
@@ -963,7 +964,7 @@ def handle_take_action(app):
             # exit whose handle does NOT contain the word you typed (so
             # `flee north` steps away from the north). There is no threat model
             # in the engine, so this is "get out of here", not "evade this
-            # attacker" — real evasion is grapple-side and lives in
+            # attacker"  -  real evasion is grapple-side and lives in
             # engine/grapple.py. If this should behave differently, the rule to
             # change is the choice below and nothing else.
             away = cmd.split(" ", 1)[1].strip().lower() if " " in cmd else ""
@@ -1036,7 +1037,7 @@ def handle_take_action(app):
             arg = cmd[7:].strip() if cmd.startswith("recall ") else ""
             if not arg or arg in ("map", "landmarks", "places"):
                 curr = world.current_area.name if world.current_area else "nowhere"
-                visited = getattr(player, "visited_areas", set()) or set()
+                visited = player.visited_area_names(world.graph) if hasattr(player, "visited_area_names") else set()
                 charted = getattr(player, "charted_cells", {}) or {}
                 total_cells = sum(len(c) for c in charted.values())
                 sample = ", ".join(sorted(visited)[:5])
@@ -1052,7 +1053,7 @@ def handle_take_action(app):
                         target = target[len(prefix):].strip()
                         break
                 curr = world.current_area.name if world.current_area else ""
-                visited = getattr(player, "visited_areas", set()) or set()
+                visited = player.visited_area_names(world.graph) if hasattr(player, "visited_area_names") else set()
                 from engine.spatial_memory import SpatialMemory
                 sm = SpatialMemory(world.graph)
                 route = sm.find_route(curr, target, visited)
@@ -1064,7 +1065,7 @@ def handle_take_action(app):
             else:
                 target = arg
                 curr = world.current_area.name if world.current_area else ""
-                visited = getattr(player, "visited_areas", set()) or set()
+                visited = player.visited_area_names(world.graph) if hasattr(player, "visited_area_names") else set()
                 from engine.spatial_memory import SpatialMemory
                 sm = SpatialMemory(world.graph)
                 route = sm.find_route(curr, target, visited)
@@ -1190,7 +1191,7 @@ def handle_take_action(app):
         elif cmd.split(' ', 1)[0] in _INTIMACY_VERBS or (
                 len(cmd.split()) > 1 and cmd.split()[0] in _INTENSITY_ADVERBS
                 and cmd.split()[1] in _INTIMACY_VERBS):
-            # task-211: intimacy verbs — interact-type (never damages),
+            # task-211: intimacy verbs  -  interact-type (never damages),
             # body-part targeted, gated by the mature content toggle.
             from engine.pleasure_actions import parse_intensity, execute_intimacy_action, INTENSITY_ADVERBS
             if not getattr(world, "mature_content", False):
@@ -1200,7 +1201,7 @@ def handle_take_action(app):
                 leading = None
                 if (len(words) > 1 and words[0] in INTENSITY_ADVERBS
                         and words[1] in _INTIMACY_VERBS):
-                    # leading adverb ("firmly kiss lydia") — strip it here and
+                    # leading adverb ("firmly kiss lydia")  -  strip it here and
                     # carry the intensity through (parse_intensity only sees
                     # the tail below)
                     leading = INTENSITY_ADVERBS[words[0]]
@@ -1214,7 +1215,7 @@ def handle_take_action(app):
                 intensity, rest = parse_intensity(rest)
                 if leading and intensity == "normal":
                     intensity = leading
-                # Region phrase parsing (earliest marker wins — same as attack).
+                # Region phrase parsing (earliest marker wins  -  same as attack).
                 from engine.body_parts import resolve_region
                 where_text = None
                 marker_idx, matched_marker = -1, None
@@ -1270,7 +1271,7 @@ def handle_take_action(app):
                     lead_ambiguous = True
             if not target_player:
                 if not lead_ambiguous:
-                    add_output(f"Can't lead {target or 'that'} — no one by that name is here.")
+                    add_output(f"Can't lead {target or 'that'}  -  no one by that name is here.")
             elif resolved_target == world.active_player:
                 add_output("You can't lead yourself.")
             elif target_player.current_area != world.current_area.name:
@@ -1374,7 +1375,7 @@ def handle_take_action(app):
                         if char_name:
                             player = world.player_manager.get_active_player_obj()
                             # `label` is a declaration, not a measurement, so it
-                            # writes no closeness (task-420) — only the record.
+                            # writes no closeness (task-420)  -  only the record.
                             from engine.relationships import ensure_relationship
                             rel, _ = ensure_relationship(player, char_name, world.time_ticks)
                             rel["label"] = label
@@ -1527,9 +1528,9 @@ def handle_take_action(app):
                         add_output(f"'{item_name}' isn't something you can bind.")
                     else:
                         if trigger_type and trigger_type not in TRIGGER_TYPES:
-                            add_output(f"Unknown trigger '{trigger_type}' — allowed: {', '.join(TRIGGER_TYPES)}.")
+                            add_output(f"Unknown trigger '{trigger_type}'  -  allowed: {', '.join(TRIGGER_TYPES)}.")
                         elif effect_type and effect_type not in SAFE_EFFECT_TYPES:
-                            add_output(f"Can't bind effect '{effect_type}' — allowed: {', '.join(sorted(SAFE_EFFECT_TYPES))}.")
+                            add_output(f"Can't bind effect '{effect_type}'  -  allowed: {', '.join(sorted(SAFE_EFFECT_TYPES))}.")
                         else:
                             params = {}
                             if params_json:
@@ -1555,9 +1556,9 @@ def handle_take_action(app):
                 add_output("You try to speak, but no sound comes out.")
             else:
                 whisper_target = None
-                # RAW command suffix, NOT re-joined tokens — the tokenizer treats
+                # RAW command suffix, NOT re-joined tokens  -  the tokenizer treats
                 # apostrophes as quote delimiters and would turn "i'm coming" into
-                # "i m coming" (N2 — the mangled text was what got spoken/stored).
+                # "i m coming" (N2  -  the mangled text was what got spoken/stored).
                 speech = ""
                 for _pfx in ("speak ", "say ", "whisper ", "shout ", "scream ", "sing "):
                     if cmd.startswith(_pfx):

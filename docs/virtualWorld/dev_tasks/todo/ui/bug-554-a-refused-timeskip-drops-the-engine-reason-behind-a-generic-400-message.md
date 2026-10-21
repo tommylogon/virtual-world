@@ -49,3 +49,18 @@ Intended UI home: the timeskip result/status line (and every other consumer of `
 - `static/js/api.ts` (`_errorMessage`)
 - `static/js/api.js` (emitted)
 - `static/js/ui/timeskip.js` (consumer; reads `data.error || data.reason`)
+
+## Reconciliation (2026-10-20) - STILL_VALID, re-measured
+
+**Verdict: STILL_VALID.** `_errorMessage` still reads only `data.error`; the reason is still dropped.
+
+**Re-measured 2026-10-20.**
+- `static/js/api.ts:24-29` - `ApiClientImpl._errorMessage` still reads `const raw = (data && typeof data.error === 'string') ? data.error : ''` and returns the generic `Request failed (${status})` for everything else. No `reason`/`message`/`detail` fallback was added.
+- `static/js/api.ts:39-40` - `ApiClient.post` still attaches `_errorMessage(resp, data)` as `error` on non-ok responses, so a `reason`-carrying 400 is still flattened to the generic string before any consumer sees it.
+- `engine/timeskip.py:302-304` - the dead-character refusal still returns `reason="The dead do not wait."` with no `error` key, so it is still the exact payload the helper drops. (The card cited `engine/timeskip.py:243-245`; the refusal has drifted to lines 302-304 - corrected above. The function is still `advance` and the wording is unchanged.)
+
+**Newer work checked.** `git log --oneline -10 -- static/js/api.ts` returns only `c5034257` and `e7c54eba`, both older than the card's 2026-10-17 filing. Nothing since has extended `_errorMessage`.
+
+**Counts.** `grep -c "reason" static/js/api.ts` → 0 hits. `grep -n "reason" engine/timeskip.py` → 2 hits, both the refusal strings at lines 290, 293-294 and the dead refusal at 304 - the engine still speaks in `reason`, the client still listens only for `error`.
+
+**Status:** left in `todo`. The fix is a ~6-line extension of `_errorMessage` plus a rebuild of `api.js`.

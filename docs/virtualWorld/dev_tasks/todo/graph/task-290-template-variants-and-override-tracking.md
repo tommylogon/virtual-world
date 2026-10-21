@@ -3,17 +3,17 @@ type: task
 status: todo
 area: graph
 priority: medium
-wiki: "[[World Building/World Structure & Graph Representation]]"
+wiki: "[[World Building/Graph System]]"
 ---
 
-# Task 290 — Template Variants & Override Tracking
+# Task 290 - Template Variants & Override Tracking
 
 ## Status
 
-Todo — follow-up to task-289, not started.
+Todo - follow-up to task-289, not started.
 The "don't clobber protected data" intent already exists in the **World→Library**
 direction as an automatic guard (empty world values never erase library data in the
-sync modal, diff-modal shows protected fields un-checked) — added 2026-08-20.
+sync modal, diff-modal shows protected fields un-checked) - added 2026-08-20.
 task-290 makes this an author-declared `overrides` feature for Library→World.
 See **task-317**.
 
@@ -21,8 +21,8 @@ See **task-317**.
 
 Add two optional layers on top of the basic template-link system from task-289:
 
-1. **Template variants** — let a library file define a base template plus named variants (e.g., `Task 3 - main area` is base; `closed door` and `open door` are variants with `parent_template`).
-2. **Override tracking** — let a node declare which fields it has customized, so sync only refreshes non-overridden fields.
+1. **Template variants** - let a library file define a base template plus named variants (e.g., `Task 3 - main area` is base; `closed door` and `open door` are variants with `parent_template`).
+2. **Override tracking** - let a node declare which fields it has customized, so sync only refreshes non-overridden fields.
 
 ## Why
 
@@ -90,23 +90,53 @@ Add two optional layers on top of the basic template-link system from task-289:
 - Bulk variant creation from existing near-duplicate nodes (could be a later migration tool).
 - Conflict resolution when base and variant edit the same field (variant wins by design).
 
+## Why
+
+task-289 added template links; task-317 and reconnaissance show the "don't clobber protected data" guard already exists in World->Library direction (engine/sync.py has template_ref() and override/locked handling). What remains is the author-declared Library->World direction: template variants (base + named variants like closed/open door) and per-node override tracking with explicit control over sync. This makes near-duplicate rooms intentional and maintainable (e.g. labs.json variants) while allowing authors to localize fields without blocking mechanical updates.
+
 ## How
 
-TODO
+Reuse existing sync/override mechanisms where present; extend to variants.
+
+1. **Library schema extension**: extend library loader to support `base` + `variants` map with `name`, optional `parent_template`, partial definition. Variants resolve against parent at load time; placed nodes store `template_ref.library_id` + `variant`.
+2. **Backend template_ref**: replace flat `library_id` with `template_ref` dict containing `library_id`, `variant` (null/omitted for base), optional `linked_fields`, optional `overrides`. Migrate existing `library_id` to `template_ref` on first read.
+3. **Backend override-aware sync**: extend engine/sync.py to respect `linked_fields` and `overrides`. Sync order: base definition -> variant overrides -> node overrides excluded. Return structured diff with `updated`, `skipped_overrides`, `already_current`. Add "force sync overrides" option. Break-link removes `template_ref` and flattens overrides.
+4. **Frontend**: Library browser shows tree base -> variants with Place Base/Place Variant buttons; Inspector shows link/variant/override count with edit/delete; Sync dialog offers sync all vs force sync overrides.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Variant resolution and placement
+   - expected: Library shows base with named variants; placing variant stores `template_ref.variant` and resolves base+variant correctly.
+   - observed: Not run live; reconnaissance shows template_ref/override handling exists but no variants/base+variants resolution or UI variant picker detected.
+
+2. Variant-aware sync
+   - expected: base changes propagate to variant nodes; variant-specific fields preserved; variant overrides applied after base.
+   - observed: Not run live; variant sync logic not implemented.
+
+3. Override tracking
+   - expected: customizing a field marks it in `overrides`; sync skips overridden fields and reports count; force sync includes overrides.
+   - observed: Not run live; override structure exists in engine/sync.py but full override tracking flow not verified end-to-end.
+
+4. Break-link with overrides
+   - expected: break-link removes `template_ref` and flattens overridden fields into plain node fields.
+   - observed: Not run live; not implemented.
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] Library loader supports `base` + `variants` and resolves them on load.
+- [ ] `template_ref` dict replaces flat `library_id` with migration path; variant identity persists.
+- [ ] engine/sync.py performs base->variant->overrides order with `skipped_overrides` reporting and force-sync option.
+- [ ] Library browser shows variant tree; Inspector shows overrides; Sync dialog supports both modes.
+- [ ] Break-link flattens overrides into plain node fields.
 
 ## Files
 
-- TODO
+- `engine/sync.py` - extend template_ref/override handling for variants and variant-aware sync
+- Library loader/schema (data/library loading code) - support `base` + `variants` resolution
+- Node serialization/migration - wrap flat `library_id` into `template_ref` on read/write
+- Frontend: `static/js/library/*` (browser) - variant tree and place buttons
+- Frontend: `static/js/inspector/*` - show variant/overrides and sync dialog options
+- `tests/` - variant sync, override sync, break-link with overrides (add tests)
 
 ## Browser UI and intended live verification
 
@@ -125,3 +155,10 @@ Live steps when available:
    - expected: variant identity and the node's override declaration round-trip independently; no customized value is silently overwritten.
 
 This section is not a claim that planned UI exists or works today.
+
+
+## Reconnaissance (2026-10-20)
+
+- Measured: engine/sync.py has template_ref() and override/locked handling; no variants/base+variants resolution or UI variant picker detected.
+- Count: template_ref appears in engine/sync.py; variant-selection logic not present.
+- Verdict: PARTLY_DONE structurally (overrides/locked), full variant system (base+variants, picker, variant-aware sync) NOT implemented. Keep todo.

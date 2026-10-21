@@ -17,7 +17,7 @@ wiki: "[[Feature Map]]"
 
 The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` must be
 **migrated to trigger-based functionality** across all scenario/library data (especially
-the mansion scenarios), after which engine support is removed. Not a blind nuke — every
+the mansion scenarios), after which engine support is removed. Not a blind nuke - every
 functional use gets an equivalent `on_use`/`on_eat`/`on_drink` trigger first.
 
 ## Survey (2026-08-23)
@@ -26,7 +26,7 @@ functional use gets an equivalent `on_use`/`on_eat`/`on_drink` trigger first.
 
 | File | Items | Notes |
 |---|---|---|
-| `scenarios/mansion2.json` | **172** | the real migration target — mostly `inv_*` character inventory items |
+| `scenarios/mansion2.json` | **172** | the real migration target - mostly `inv_*` character inventory items |
 | `scenarios/pines.json` | 97 | |
 | `scenarios/world_template.json` | 62 | incl. `item_hand_lamp` light variant |
 | `scenarios/testapartment.json` | 47 | |
@@ -36,11 +36,11 @@ functional use gets an equivalent `on_use`/`on_eat`/`on_drink` trigger first.
 | `library/items/*.json` | 3 | photograph, portrait_e2e1ec7b, table_35eb71c1 |
 
 Breakdown by content:
-- **315 items: keys present but `effect_stat: None`** — pure save pollution, safe to strip.
-- **~132 functional vital items** — `hunger`/`Hunger` (27), `thirst` (11), `energy` (25),
+- **315 items: keys present but `effect_stat: None`** - pure save pollution, safe to strip.
+- **~132 functional vital items** - `hunger`/`Hunger` (27), `thirst` (11), `energy` (25),
   mixed casing; `target: "player"`; e.g. `inv_Elena Vance_protein_bar` (Hunger 35),
   `inv_Miki_portable_charger` (Energy 5). All fire via `action: "use"`.
-- **14 light items** — `effect_stat: "light"`, `effect_target: "room"` (e.g.
+- **14 light items** - `effect_stat: "light"`, `effect_target: "room"` (e.g.
   `item_hand_lamp` amount 60, `pines` miki phone amount 35): legacy room-light change.
 
 ## How
@@ -53,8 +53,8 @@ Runs over `data/scenarios/*.json`, root `world_template.json`, and
 | Condition | Action |
 |---|---|
 | keys present, `effect_stat` falsy | strip keys (no behavior lost) |
-| stat ∈ {hunger, thirst, energy} any casing, target player/self | normalize casing to vitals key (`Hunger`/`Thirst`/`Energy`), append inline `properties.triggers` entry `{trigger_type:"on_use", effects:[{adjust_vital {stat, -amount? sign-preserving}, target self}]}` — for graph-format scenario nodes, emit `logic_trigger` node + `triggers` edge instead (guide §20.6) |
-| stat == `"light"`, target room | DEAD DATA today — nothing reads it for items (`item_actions.py:1552–1570` only matches vitals keys). Native system = `light_source` tag + `light_level` + `current_state` lit/unlit (`lighting.py:78` sums lit items' `light_level`; `toggleable_items.py:62` flips states). Migration per item: ensure `light_source` tag exists, set `light_level` from `effect_amount` **if the item has no explicit `light_level`**, ensure a `toggle`/`light` action exists — THEN strip the legacy props. Items already carrying an explicit `light_level`: strip directly |
+| stat ∈ {hunger, thirst, energy} any casing, target player/self | normalize casing to vitals key (`Hunger`/`Thirst`/`Energy`), append inline `properties.triggers` entry `{trigger_type:"on_use", effects:[{adjust_vital {stat, -amount? sign-preserving}, target self}]}` - for graph-format scenario nodes, emit `logic_trigger` node + `triggers` edge instead (guide §20.6) |
+| stat == `"light"`, target room | DEAD DATA today - nothing reads it for items (`item_actions.py:1552–1570` only matches vitals keys). Native system = `light_source` tag + `light_level` + `current_state` lit/unlit (`lighting.py:78` sums lit items' `light_level`; `toggleable_items.py:62` flips states). Migration per item: ensure `light_source` tag exists, set `light_level` from `effect_amount` **if the item has no explicit `light_level`**, ensure a `toggle`/`light` action exists - THEN strip the legacy props. Items already carrying an explicit `light_level`: strip directly |
 | anything else | leave untouched + report for manual review |
 
 Script must be idempotent, dry-run by default (`--apply` to write), and print a
@@ -63,7 +63,7 @@ per-file before/after count.
 ### 2. Engine removal (after migration lands)
 
 - Delete legacy read block `engine/item_actions.py:1552–1570`.
-- Audit `engine/item_actions.py:1730–1732` (`effect_target == "connection"` on ways) —
+- Audit `engine/item_actions.py:1730–1732` (`effect_target == "connection"` on ways) -
   separate variant; confirm zero data hits before removing.
 - Stop persisting the three keys in save serialization; scrub-on-load for old saves.
 
@@ -74,17 +74,16 @@ the canonical pattern.
 
 ## Acceptance
 
-- [ ] `rg "effect_stat|effect_amount|effect_target"` over `data/scenarios/`,
-      `data/library/`, `engine/`, `static/js/` returns zero production hits.
+- [ ] `rg "effect_stat|effect_amount|effect_target"` over `data/scenarios/`, `data/library/`, `engine/`, `static/js/` returns zero production hits.
 - [ ] mansion2.json inventory items still restore vitals when used (spot-check 5).
 - [ ] hand_lamp-style lights still work natively.
-- [ ] Old saves containing the props load cleanly post-removal (scrub path).
-- [ ] pytest green (`not mcp and not emote`).
+- [ ] Old saves containing legacy props load cleanly post-removal (scrub path).
+- [ ] Targeted tests pass (not full suite); script idempotent and dry-run by default.
 
-## Reconnaissance (2026-10-02) — NOT started, measured, ready to execute
+## Reconnaissance (2026-10-02) - NOT started, measured, ready to execute
 
 Re-surveyed `data/` (the 2026-08 numbers have drifted): **21 files, 625 objects
-carry the keys** — 499 with `effect_stat: null` (strip, no behaviour lost),
+carry the keys** - 499 with `effect_stat: null` (strip, no behaviour lost),
 102 functional vitals, 23 "light", 1 "connection".
 
 - Functional stats: `Hunger` 27 (+14 lower-case), `Energy` 19 (+17), `Thirst`
@@ -108,7 +107,7 @@ carry the keys** — 499 with `effect_stat: null` (strip, no behaviour lost),
 - **Light objects are not uniform.** Many have `tags: null` and no
   `light`/`extinguish` action, so the migration must add `light_source` + a
   toggle/light action; `effect_amount` is usually 20–80 (→ numeric
-  `light_level` is legal — `lighting._item_light_stats` `int()`s it). But
+  `light_level` is legal - `lighting._item_light_stats` `int()`s it). But
   `emf_reader` has `amount: -5` (a dimming effect the native lit-item model
   cannot express) → needs an `adjust_environment {light: -5}` trigger or an
   explicit manual-review bucket.
@@ -124,17 +123,34 @@ carry the keys** — 499 with `effect_stat: null` (strip, no behaviour lost),
 
 ## Why
 
-The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` is a second, parallel way to express what triggers already express — an item's effect is a trigger (`on_use`/`on_eat`/`on_drink` with `adjust_vital`), and the legacy props are a pre-trigger spelling of the same fact. Keeping both means two readers, two writers, and a data migration that has to be right twice. Re-surveyed 2026-10-02: 21 files, 625 objects carry the keys — 499 with `effect_stat: null` (pure save pollution, strip with no behaviour lost), 102 functional vitals, 23 light, 1 connection. Migrating normalises casing on lower-case stats that are currently dead (the read block matches `player.vitals` keys exactly), so the intent of those items finally fires. Reuse the native systems rather than grafting onto them: lights become `light_source` tag + `light_level` + a toggle/light action (`lighting.py:78` sums lit items' `light_level`), vitals become `adjust_vital` triggers. Two storage shapes need different output — graph-format saves emit a `logic_trigger` node plus a `triggers` edge, template-format saves append to the item's inline `triggers` array — and `emf_reader`'s `amount: -5` is a dimming effect the native lit-item model cannot express, so it needs an `adjust_environment {light: -5}` trigger or an explicit manual-review bucket. Player experience: items still restore vitals and lights still work, now through one mechanism. Editor experience: the obsolete props are gone from production data, so a new item cannot be authored in the dead spelling. Agent experience: `rg "effect_stat|effect_amount|effect_target"` over `data/`, `library/`, `engine/`, `static/js/` returns zero hits, so an agent cannot accidentally author a legacy effect.
+The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` is a second, parallel way to express what triggers already express - an item's effect is a trigger (`on_use`/`on_eat`/`on_drink` with `adjust_vital`), and the legacy props are a pre-trigger spelling of the same fact. Keeping both means two readers, two writers, and a data migration that has to be right twice. Re-surveyed 2026-10-02: 21 files, 625 objects carry the keys - 499 with `effect_stat: null` (pure save pollution, strip with no behaviour lost), 102 functional vitals, 23 light, 1 connection. Migrating normalises casing on lower-case stats that are currently dead (the read block matches `player.vitals` keys exactly), so the intent of those items finally fires. Reuse the native systems rather than grafting onto them: lights become `light_source` tag + `light_level` + a toggle/light action (`lighting.py:78` sums lit items' `light_level`), vitals become `adjust_vital` triggers. Two storage shapes need different output - graph-format saves emit a `logic_trigger` node plus a `triggers` edge, template-format saves append to the item's inline `triggers` array - and `emf_reader`'s `amount: -5` is a dimming effect the native lit-item model cannot express, so it needs an `adjust_environment {light: -5}` trigger or an explicit manual-review bucket. Player experience: items still restore vitals and lights still work, now through one mechanism. Editor experience: the obsolete props are gone from production data, so a new item cannot be authored in the dead spelling. Agent experience: `rg "effect_stat|effect_amount|effect_target"` over `data/`, `library/`, `engine/`, `static/js/` returns zero hits, so an agent cannot accidentally author a legacy effect.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Data migration
+   - expected: `python tools/migrate_legacy_item_effects.py --apply` migrates all 625 objects (strip nulls, convert functional vitals/lights/connection with manual review for edge cases); script is idempotent.
+   - observed: Not run live; reconnaissance shows 21 files with 625 objects and two storage shapes, script not found.
+
+2. Engine removal
+   - expected: legacy read block removed from `engine/items/use_actions.py`; serialization stops writing keys and scrubs on load.
+   - observed: Not run live; legacy reads/writes still present.
+
+3. Spot checks
+   - expected: mansion2 inventory items still restore vitals when used (5 items); hand_lamp-style lights work natively; old save with legacy props loads cleanly.
+   - observed: Not run live; not verified.
+
+4. Cleanup
+   - expected: `rg "effect_stat|effect_amount|effect_target"` over `data/scenarios/`, `data/library/`, `engine/`, `static/js/` returns zero production hits.
+   - observed: Not run live; reconnaissance shows many matches still present.
 
 ## Files
 
-- TODO
+- `tools/migrate_legacy_item_effects.py` - new migration script (idempotent, dry-run default, --apply)
+- `engine/items/use_actions.py` - remove legacy effect_stat/effect_amount/effect_target read block
+- `engine/serialization_legacy.py`, `engine/serialization_template.py` - stop writing legacy keys; scrub-on-load for old saves
+- `data/scenarios/*.json`, `world_template.json`, `data/library/items/*.json` - migrated by script
+- Targeted tests (spot-check behavior post-removal) (--apply)
+- Tests as needed (targeted) to verify post-removal behavior
 
 ## Browser UI and intended live verification
 
@@ -171,3 +187,8 @@ Applies to every refactor in this repo, per the 2026-10-16 card refresh:
    keep public imports/API stable and re-export moved members as thin delegates.
 4. **One file/concern at a time**, verified with a targeted test selection (never the
    full suite by default, never -q).
+
+
+## Reconnaissance (2026-10-20)
+- Measured: engine/items/use_actions.py reads effect_stat/effect_amount/effect_target (23 matches). data has effect_stat (535 matches). Serialization still reads/writes legacy keys.
+- Verdict: STILL_VALID. No migration script found; engine support not removed. Status remains todo.

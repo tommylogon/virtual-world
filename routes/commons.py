@@ -7,6 +7,7 @@
 @docs docs/virtualWorld/Gameplay/The Commons.md
 """
 from flask import jsonify, request
+from player import Player
 
 from engine.commons import (
     COMMONS_THEMES,
@@ -54,9 +55,8 @@ def register_commons_routes(app):
             return jsonify({"error": "Player not found"}), 404
         # Read the existing Player identity; this is a projection, not a
         # chat-specific character/persona record.
-        manager = getattr(world, "player_manager", None)
-        graph = getattr(world, "graph", None)
-        node_id = manager.player_node_id(name) if manager else None
+        node_id = getattr(player, 'node_id', None) or Player.node_id_for(name)
+        graph = getattr(world, 'graph', None)
         node = graph.get_node(node_id) if graph is not None and node_id else None
         properties = node.properties if node is not None else {}
         return jsonify({

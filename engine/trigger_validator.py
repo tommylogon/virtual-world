@@ -115,6 +115,7 @@ ITEM_EFFECTS = {
 # Effects that reference a character (graph node OR library file).
 CHARACTER_EFFECTS = {
     "spawn_character": "character_id",
+    "despawn_character": "target",
 }
 
 

@@ -330,7 +330,7 @@ class TestItemDiscovery:
     the recovery curve (task-425): one subject, refreshed in place, worth 15 at
     full freshness instead of 8 once ever.
 
-    These use a real Player because the curve reads the observation memory —
+    These use a real Player because the curve reads the observation memory  - 
     a MagicMock would answer every lookup with a truthy stub and prove nothing.
     """
 
@@ -350,9 +350,9 @@ class TestItemDiscovery:
         was_new = item_actions._register_item_discovery(player_manager, kindling)
 
         assert was_new is True
-        assert "kindling" in hero.discovered_items
-        assert hero.vitals["Entertainment"] == 65  # 50 + NOVELTY_MAX
         assert hero.has_seen(kindling.id)
+        assert "kindling" in hero.discovered_item_names()
+        assert hero.vitals["Entertainment"] == 65  # 50 + NOVELTY_MAX
 
     def test_rediscovering_item_gives_no_boost(self, graph, player_manager, item_actions):
         """Same item again within the window: no double boost."""
@@ -412,7 +412,7 @@ class TestItemDiscovery:
 
         item_actions.get_item_desc(player_manager, "kindling")
 
-        assert "kindling" in hero.discovered_items
+        assert "kindling" in hero.discovered_item_names()
         assert hero.vitals["Entertainment"] == 65
 
     def test_examine_shows_remaining_uses(self, graph, player_manager, item_actions):
@@ -520,7 +520,6 @@ class TestSpatialRelationExamine:
     def test_examine_table_preserves_spatial_relations(self, graph, player_manager, item_actions):
         table_id = self._build_table_scene(graph)
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
-        player_manager.player.discovered_items = set()
         item_actions.matching._match_item_name = MagicMock(return_value="table")
 
         result = item_actions.get_item_desc(player_manager, "table")
@@ -540,7 +539,6 @@ class TestSpatialRelationExamine:
         add_item(graph, "loot")
         graph.add_edge(Edge(source="item_loot", target="item_chest", type=EDGE_IN))
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
-        player_manager.player.discovered_items = set()
         item_actions.matching._match_item_name = MagicMock(return_value="chest")
 
         result = item_actions.get_item_desc(player_manager, "chest")
@@ -560,7 +558,6 @@ class TestSpatialRelationExamine:
         graph.add_edge(Edge(source="item_table", target="area_test", type=EDGE_IN))
         graph.add_edge(Edge(source="item_toy_box", target="item_table", type=EDGE_BESIDE))
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
-        player_manager.player.discovered_items = set()
 
         item_actions.matching._match_item_name = MagicMock(return_value="toy_box")
         box_result = item_actions.get_item_desc(player_manager, "toy_box")
@@ -612,7 +609,6 @@ class TestHiddenAsState:
         add_item(graph, "loot")
         graph.add_edge(Edge(source="item_loot", target="item_chest", type=EDGE_IN))
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
-        player_manager.player.discovered_items = set()
         item_actions.matching._match_item_name = MagicMock(return_value="chest")
 
         result = item_actions.get_item_desc(player_manager, "chest")
@@ -629,7 +625,7 @@ class TestExamineMarksContentsDiscovered:
 
     The node-state half of the reveal already existed and is **global**: the first
     character to open a chest un-hid its loot for everyone, permanently. What was
-    missing is the *per-player* half — the character who looked was never recorded
+    missing is the *per-player* half  -  the character who looked was never recorded
     as having met what was inside, so the three readers that render "known"
     (`contextual-actions.js` `isDiscovered`, `room-context.js`,
     `memory-context.js`) all still treated the contents as unseen.
@@ -670,25 +666,27 @@ class TestExamineMarksContentsDiscovered:
 
         self._examine(item_actions, player_manager)
 
-        assert "loot" in hero.discovered_items
-        assert "coin" in hero.discovered_items
-        assert "chest" in hero.discovered_items      # the container itself, as before
+        assert "loot" in hero.discovered_item_names()
+        assert "coin" in hero.discovered_item_names()
+        assert "chest" in hero.discovered_item_names()      # the container itself, as before
         assert hero.has_seen("item_loot")
 
     def test_revealed_contents_reach_the_client_as_known(self, graph, player_manager, item_actions):
-        """The readers that decide 'known' are client-side and all read
-        `discovered_items`, so the serialised payload is the whole contract."""
+        """The readers that decide 'known' are client-side and check memory_index
+        and observation memories (task-430), so memory_index in to_dict is populated."""
         self._chest(graph)
         hero = self._real_player(player_manager)
-        assert hero.to_dict()["discovered_items"] == []
+        assert hero.discovered_item_names() == set()
 
         self._examine(item_actions, player_manager)
 
-        assert {"loot", "coin"} <= set(hero.to_dict()["discovered_items"])
+        assert {"loot", "coin"} <= hero.discovered_item_names()
+        assert "item_loot" in hero.memory_index
+        assert "item_coin" in hero.memory_index
 
     def test_a_second_character_who_looks_gets_credit_too(self, graph, player_manager, item_actions):
         """The node state is already un-hidden by the first look, so the reveal is
-        a no-op the second time round — which is exactly why the per-player stamp
+        a no-op the second time round  -  which is exactly why the per-player stamp
         has to be independent of it."""
         self._chest(graph)
         self._real_player(player_manager, "Hero")
@@ -698,7 +696,7 @@ class TestExamineMarksContentsDiscovered:
         player_manager.active_player = "Rival"
         self._examine(item_actions, player_manager, target="chest")
 
-        assert "loot" in rival.discovered_items
+        assert "loot" in rival.discovered_item_names()
 
     def test_re_examining_does_not_report_a_discovery_again(self, graph, player_manager, item_actions):
         self._chest(graph)
@@ -725,14 +723,14 @@ class TestExamineMarksContentsDiscovered:
         assert "Taking in 1 new thing." in result
 
     def test_contents_already_visible_are_still_credited(self, graph, player_manager, item_actions):
-        """Examine reveals what is in the container whether or not it was hidden —
+        """Examine reveals what is in the container whether or not it was hidden  - 
         the hidden flag only decided whether the *node state* had to change."""
         self._chest(graph, hidden=False)
         hero = self._real_player(player_manager)
 
         self._examine(item_actions, player_manager)
 
-        assert {"loot", "coin"} <= hero.discovered_items
+        assert {"loot", "coin"} <= hero.discovered_item_names()
 
     def test_a_locked_container_reveals_nothing(self, graph, player_manager, item_actions):
         self._chest(graph)
@@ -742,10 +740,10 @@ class TestExamineMarksContentsDiscovered:
         result = self._examine(item_actions, player_manager)
 
         assert "Inside you see" not in result
-        assert "loot" not in hero.discovered_items
+        assert "loot" not in hero.discovered_item_names()
 
     def test_a_table_with_items_on_it_credits_them_too(self, graph, player_manager, item_actions):
-        """Not just `in` — anything the examine reports, it should also credit."""
+        """Not just `in`  -  anything the examine reports, it should also credit."""
         from graph import EDGE_IN, EDGE_ON
 
         add_player(graph, "Hero")
@@ -757,7 +755,7 @@ class TestExamineMarksContentsDiscovered:
 
         self._examine(item_actions, player_manager, target="table")
 
-        assert "Ink Pen" in hero.discovered_items
+        assert "Ink Pen" in hero.discovered_item_names()
 
 
 # ═══════════════ TASK 160: SPATIAL PLACEMENT & GIVE ═══════════════
@@ -923,7 +921,7 @@ class TestAutoSelectIdenticalCopies:
     Distinct copies keep the ambiguity prompt."""
 
     def _two_area_items(self, graph, name, desc_a, desc_b, tags_a=None, tags_b=None):
-        # Build nodes directly with distinct ids — WorldGraph.add_node
+        # Build nodes directly with distinct ids  -  WorldGraph.add_node
         # auto-renames a duplicate id with a hex suffix, so two add_item
         # calls would NOT produce two same-named nodes.
         def make(iid, desc, tags):
@@ -1033,7 +1031,7 @@ class TestTakeAlreadyHeld:
 
 
 class TestConsumeItem:
-    """eat/drink path — regression: _consume_item referenced an undefined
+    """eat/drink path  -  regression: _consume_item referenced an undefined
     past_verb and crashed every eat/drink action (found while building a
     poison vial whose on_drink trigger applies the poisoned condition)."""
 
@@ -1221,7 +1219,7 @@ class TestCarryCapacity:
         graph.add_edge(Edge(source=backpack.id, target="player_Hero", type=EDGE_CARRYING))
         graph.add_edge(Edge(source=heavy.id, target=backpack.id, type=EDGE_IN))
 
-        # 50.5 kg carried, capacity 100 — adding another 60 kg should fail
+        # 50.5 kg carried, capacity 100  -  adding another 60 kg should fail
         err = item_actions._check_player_capacity(player_manager, 60.0)
         assert err is not None
         assert "50.5" in err

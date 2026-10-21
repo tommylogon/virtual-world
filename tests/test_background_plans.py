@@ -242,3 +242,34 @@ def test_a_pursuit_node_is_no_longer_selected():
 
     assert p.plan is None, "a pursuit node must no longer be selected"
     assert p.active_pursuit is None
+
+
+def test_a_finished_pursuit_is_cleared_and_not_re_finished():
+    """A completed pursuit leaves the character instead of looping forever.
+
+    ``_finish`` compared the plan's ``node_id`` against the pursuit's
+    ``assignment_id``. A plan has never carried ``node_id`` (task-818 retired
+    the pursuit node type), so the test was permanently False: the finished
+    pursuit stayed on the character, and ``maybe_assign`` rebuilt it from the
+    saved ``step_index`` on every later tick, re-finishing the same undertaking
+    once per tick. Measured before the fix: one pursuit marked done 38 times in
+    40 ticks.
+    """
+    app, w, client = _app()
+    client.post('/api/build/area', json={'name': 'F Source'})
+    client.post('/api/build/area', json={'name': 'F Sink'})
+    _connect(client, 'F Source', 'F Sink')
+    p = _bg_player(w, 'Finisher', 'F Source')
+    _add_item(w, 'F Source', 'Scrap', ['scrap'])
+    _assign(p, 'finish_run', 'haul', source='F Source', item='scrap', sink='F Sink')
+
+    for _ in range(40):
+        w.tick_turn()
+
+    whys = [e.get("why") for e in p.lived_log]
+    assert whys.count("pursuit:finish_run:done") == 1, (
+        "a finished pursuit must be marked done exactly once")
+    assert whys.count("pursuit:finish_run:start") == 1
+    assert p.active_pursuit is None, "the finished pursuit must leave the character"
+    assert p.plan is None
+    assert p.completed_pursuits.count("pursuit_finish_run") == 1

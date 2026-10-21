@@ -3,7 +3,7 @@ type: bug
 status: todo
 area: characters
 priority: Low
-wiki: "[[World Building/Character Creation & Archetypes]]"
+wiki: "[[AI & Narration/Memory System]]"
 ---
 
 # bug-519: Editorial rewrite notes are stored inside character memories, so a character recalls its own drafting notes
@@ -67,14 +67,14 @@ memory's full value:
     instead of a typo soup.
 
 The first paragraph is a memory. The second is a **rewrite note to a
-reviewer** — it talks *about* the memory in the third person ("the
+reviewer** - it talks *about* the memory in the third person ("the
 original", "keeps the ... moment"), which no experiencing character
 would do. Stored as `type: observation`, `importance: 5`,
 `source: manual`, `tick: 0`, `salience_override: 0`.
 
 It appears in all three occurrences across the run export
 (lines 613, 784, 1010 of the 2026-10-04 log), so it is recalled
-repeatedly — every `think-decide` for miki carries it in
+repeatedly - every `think-decide` for miki carries it in
 `=== I REMEMBER ===`, and the LLM is being shown its own editing
 notes as a lived recollection.
 
@@ -92,7 +92,7 @@ world holds.
 ## Relation to task-692
 
 Surfaced while reading a full run export for the narration v2 work.
-Not narration's defect — filed separately as a content issue. The recorded fix
+Not narration's defect - filed separately as a content issue. The recorded fix
 is to clean the authored scenario value, not to change the memory-admission
 boundary or the director pass.
 
@@ -141,3 +141,11 @@ updated card.
 - `data/scenarios/mansion.json` (Miki's affected authored memory)
 - No engine or memory-store changes unless a separate, reproduced runtime
   defect is found
+
+## Reconciliation (2026-10-20)
+
+Verified the saved scenario data directly.
+- data/scenarios/mansion.json: Miki memory index 1 contains the editorial rewrite paragraph appended after the first-person memory text (...where she goes, i go. followed by a second paragraph starting with shorter, punchier...). The text shows both paragraphs joined with \n\n (confirmed by direct read; first-person ends at line boundary before the reviewer commentary).
+- No newer done tasks or commits address bug-519 (cleaning the authored memory in the scenario). Code for memory storage/recall in engine/memory.py and related code not modified in a way that filters this content.
+
+Verdict: **STILL_VALID** (content issue). The card asks to clean the specific saved memory in data/scenarios/mansion.json only (preserve first paragraph, remove editorial paragraph). No runtime mechanism change is needed per the card's scope.

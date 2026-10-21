@@ -18,10 +18,49 @@
   "requirements": [
     {
       "type": "in_area",
-      "target": "self",
       "area": {
         "$binding": "report_area"
       }
+    }
+  ],
+  "supplies": [
+    {
+      "tags": [
+        "drink"
+      ],
+      "name": null
+    }
+  ],
+  "timing": {
+    "daylight": true
+  },
+  "progress": [
+    {
+      "id": "reached_target",
+      "description": "The scout arrived at the place that needed looking at.",
+      "check": {
+        "type": "in_area",
+        "area": {
+          "$binding": "scout_area"
+        }
+      }
+    },
+    {
+      "id": "reported_back",
+      "description": "The scout returned to the group with what was found.",
+      "check": {
+        "type": "in_area",
+        "area": {
+          "$binding": "report_area"
+        }
+      }
+    }
+  ],
+  "stop_conditions": [
+    {
+      "type": "vital_below",
+      "stat": "Energy",
+      "value": 20
     }
   ],
   "steps": [

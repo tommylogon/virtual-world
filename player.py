@@ -368,12 +368,8 @@ class Player:
         # set of aspect strings} - 'locked', 'blocked', 'needs_force'. The turn
         # panel only reveals these once discovered (examine or a failed go).
         self.known_way_aspects = {}
-        # Track areas the character has visited (for Entertainment novelty bonus)
-        self.visited_areas = set()
         # Track grid cells seen in line-of-sight per scope (task-882): {scope_id: set of (x, y) tuples}
         self.charted_cells = {}
-        # Track items the character has discovered (for Entertainment novelty bonus)
-        self.discovered_items = set()
         # AUTHORED knowledge (not runtime discovery): entity ids this character
         # knows from the start - way ids ("way_secret_passage"), item ids
         # ("item_old_key"), player names ("miki doki"), area names or ids.
@@ -1164,6 +1160,44 @@ class Player:
         """
         return self.observation_memory(subject_id) is not None
 
+    def visited_area_names(self, graph=None) -> set[str]:
+        """Area names the character has an observation of or currently occupies (task-430)."""
+        names = set()
+        for m in self.memories:
+            if m.get("superseded_by"):
+                continue
+            if m.get("kind") == "area":
+                loc = m.get("location")
+                if loc:
+                    names.add(loc)
+        if graph is not None:
+            for subject_id in self.memory_index:
+                node = graph.get_node(subject_id)
+                if node and getattr(node, "type", "") == "area":
+                    names.add(node.name)
+        return names
+
+    def discovered_item_names(self, graph=None) -> set[str]:
+        """Item names the character has an observation of (task-430)."""
+        names = set()
+        for m in self.memories:
+            if m.get("superseded_by"):
+                continue
+            if m.get("kind") == "item":
+                for eid in (m.get("entity_ids") or []):
+                    if graph is not None:
+                        node = graph.get_node(eid)
+                        if node and getattr(node, "name", None):
+                            names.add(node.name)
+                txt = m.get("text") or ""
+                if txt.startswith("You have seen "):
+                    tail = txt[14:].rstrip(".")
+                    if " in the " in tail:
+                        tail = tail.split(" in the ")[0]
+                    if tail:
+                        names.add(tail)
+        return names
+
     def supersede_observation(self, subject_id: str, reason: str = "") -> bool:
         """Retire the observation of a subject that no longer exists as seen.
 
@@ -1374,12 +1408,10 @@ class Player:
             "carcass_item": getattr(self, 'carcass_item', None),
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),
-            "visited_areas": list(self.visited_areas),
             "charted_cells": {
                 sid: sorted([list(c) for c in (cells or [])])
                 for sid, cells in (getattr(self, "charted_cells", {}) or {}).items()
             },
-            "discovered_items": list(self.discovered_items),
             "memory_index": dict(self.memory_index),
             "patrol_route": list(getattr(self, "patrol_route", [])),
             "patrol_index": getattr(self, "patrol_index", 0),

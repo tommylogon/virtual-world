@@ -195,6 +195,15 @@ class MovementSystem:
         tick = self.gs.time_ticks
         for subject_id, fresh in freshness_map.items():
             total += grant_freshness(player, fresh, tick)
+
+        if perception and perception.get("novel"):
+            try:
+                from engine.traits import TraitSystem
+                if TraitSystem.has_effect(player, "adventurous"):
+                    player.adjust_vital("Entertainment", 5)
+            except Exception:
+                pass
+
         return total
 
     def _get_encumbrance_energy_cost(self) -> int:
@@ -807,9 +816,6 @@ class MovementSystem:
             perception = {"seen": 0, "novel": [], "freshness": {}}
 
         if player is not None:
-            # visited_areas is still written - spatial memory's known-route
-            # filter reads it - but it no longer decides novelty.
-            player.visited_areas.add(area_name)
             self._grant_arrival_entertainment(player, perception)
 
         # Apply move cost (ghosts get no energy cost). The way's authored cost

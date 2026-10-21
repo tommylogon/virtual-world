@@ -10,7 +10,7 @@ wiki: "[[UI Reference/Rendering & UI Modules]]"
 
 **Filed**: 2026-08-30
 **Status**: Not started (card complete; no implementation yet).
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P4 — 'World edited' feed with per-edit undo: bind EventSource world_changed entries to undo snapshots (labels).
+**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md - P4 - 'World edited' feed with per-edit undo: bind EventSource world_changed entries to undo snapshots (labels).
 
 ## Notes
 
@@ -26,7 +26,7 @@ point.
 
 Audit P4 #18: the live-edit push is "a log line only; no per-edit undo binding,
 no edit feed". The undo stack already records a labeled per-edit snapshot
-(task-371), so the data exists — this surfaces it as a feed where an edit is
+(task-371), so the data exists - this surfaces it as a feed where an edit is
 visible by name and revertible by name.
 
 ## How
@@ -78,8 +78,8 @@ This section defines the intended access point and acceptance path. It is not a 
 
 ## Files
 
-- `static/js/ui/undo-history.ts` (task-371) — extend into the feed.
-- `routes/saveload.py` — undo endpoints (`/api/undo`, `/api/undo/list`).
+- `static/js/ui/undo-history.ts` (task-371) - extend into the feed.
+- `routes/saveload.py` - undo endpoints (`/api/undo`, `/api/undo/list`).
 - `templates/index.html`.
 - `tests/`.
 
@@ -98,3 +98,8 @@ Moved from inprogress back to todo: it was not being worked. No uncommitted chan
 - No unit test exists for it (no `*undo*` file in `tools/unit`).
 
 The remaining scope of this card is a live-updating feed and coverage of external edits, not a second list.
+
+
+## Reconnaissance (2026-10-20)
+- Measured: static/js/ui/edit-feed.js exists and subscribes to world_changed SSE; undo-history.js also exists. routes/saveload.py has /api/undo/list and /api/undo.
+- Verdict: PARTLY_DONE. Live feed + world_changed subscription implemented (edit-feed.js). Card scope largely covered but some details may need polish; keep todo, update scope to reflect landed implementation.

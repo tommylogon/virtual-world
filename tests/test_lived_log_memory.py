@@ -10,7 +10,9 @@ from player import Player
 
 def test_phrase_covers_death_relationship_pursuit():
     assert (lived_log_memory.phrase({"kind": "death", "what": "died of hypothermia"})
-            == "I died \u2014 hypothermia.")
+            == "I died - hypothermia.")
+    assert (lived_log_memory.phrase({"kind": "resurrection", "what": "restored to life"})
+            == "I was brought back from death - restored to life.")
     assert "closer to Belne" in lived_log_memory.phrase(
         {"kind": "relationship",
          "delta": {"with": "Belne", "closeness": 5, "cause": "tease"}})
@@ -58,3 +60,45 @@ def test_bridge_all_over_a_world():
     lived_log.record(a, 1, "death", "died of cold", salient=True)
     lived_log.record(b, 2, "pursuit", "started foraging")
     assert lived_log_memory.bridge_all(_World({"A": a, "B": b})) == 2
+
+
+def test_immediate_death_and_resurrection_bridging():
+    class _MockEngine:
+        def __init__(self):
+            self.time_ticks = 42
+            self.players = {"Hero": Player("Hero")}
+            self.active_player = "Hero"
+            self.ghost_system = type("GS", (), {"spawn_body_item": lambda *args: None})()
+            self.item_actions = type("IA", (), {"drop_held_items": lambda *args: None})()
+            self.activities = type("Act", (), {"end_activity": lambda *args, **kwargs: None})()
+            self.conditions = type("Cond", (), {
+                "remove_condition": lambda pname, c: None,
+                "has_condition": lambda pname, c: False
+            })()
+
+        def add_log_entry(self, msg):
+            pass
+
+        def _spawn_body_item(self, name, cause):
+            pass
+
+    from virtual_world_engine import VirtualWorld
+    we = _MockEngine()
+    hero = we.players["Hero"]
+    VirtualWorld.kill_player(we, "Hero", "falling from a cliff")
+
+    # Immediate death memory should be phrased
+    assert hero.state == "dead"
+    mem_texts = [m["text"] for m in hero.memories]
+    assert any("I died - falling from a cliff." in t for t in mem_texts)
+
+    # Now test condition system resurrection
+    from engine.conditions import ConditionsSystem
+    we.time_ticks += 1
+    cs = ConditionsSystem(we, we)
+    cs.remove_condition("Hero", "dead")
+
+    assert hero.state == "awake"
+    mem_texts = [m["text"] for m in hero.memories]
+    assert any("I was brought back from death" in t for t in mem_texts)
+

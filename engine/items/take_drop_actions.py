@@ -156,8 +156,7 @@ class TakeDropActionsMixin:
             kind="item", tags=item_tags, importance=3,
             location=getattr(player, "current_area", "") or "",
         )
-        # Kept in step for the prompt/inspector readers that still use the set.
-        player.discovered_items.add(getattr(item_node, "name", "") or subject_id)
+
         return (not already_known) or gained > 0
 
     def _stamp_last_relation(self, item_node):

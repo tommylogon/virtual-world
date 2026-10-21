@@ -58,6 +58,7 @@ EFFECT_TYPES = [
     "heal",
     "spawn_item",
     "spawn_character",
+    "despawn_character",
     "give_item",
     "remove_item",
     "consume_item",

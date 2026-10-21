@@ -23,6 +23,37 @@ their existing memories and behavior. This is an offline authoring/import
 workflow. It does not simulate a second life beside VirtualWorld or add another
 place to store memories.
 
+## Why
+
+A character with a substantial, emotionally grounded past is one of the
+cheapest ways to make a simulated world read as inhabited, and it is the thing
+the current character-authoring path cannot do. The Persona import (task-843,
+done) converts a card or prose into a *description* - traits, appearance,
+disposition. It does not give the character a history, and a description does
+not change behaviour: a character whose description says they are a veteran of
+the river wars acts the same as one that does not.
+
+This is the difference the card is after. A first-person experience record
+("the night the ferry burned, and I did not go back for my brother") lands in
+`preconceived_knowledge.memories`, and the existing memory loader turns it into
+something the character can draw on, colour, and be pushed by. That is what
+makes a past *influence* behaviour rather than decorate it.
+
+It is also the part the simulation keeps asking for and not getting. Every
+other route into a character's interior - goals, relationships, reactions to
+events that happen in-play - starts from nothing. A character who has been in
+the world for ten minutes has no past to be reminded of, and the same
+interiority is available to authored backstory for free if the authoring path
+supports it.
+
+The constraint that shapes the whole card: this is an **offline authoring and
+import** workflow, not a second simulation. VirtualWorld does not run a
+shadow life beside the real one, and the card must not add a parallel memory
+store, an emotional-state snapshot, or a fear/hope/trauma collection. The
+past is expressed in the fields the existing loader already understands -
+`Player.memories` for what happened, existing GIMP goal records for what it
+changed - and nothing else.
+
 ## Source of truth and boundaries
 
 - Runtime memories remain on `Player.memories`. Scenario-authored starting
@@ -155,3 +186,8 @@ exists or works today. No browser run is recorded for this card.
 - Existing scenario player data using `preconceived_knowledge.memories`
 - `tests/` only for the generator/importer mechanism and its task-403 payload
   contract
+
+
+## Reconnaissance (2026-10-20)
+- Measured: static/js/character-import.js and mind-view.js have persona import (LLM converts card/prose to Persona schema) - task-843 done. No life-experience generator/importer creating preconceived memories from event tables/Aura export found.
+- Verdict: STILL_VALID. Persona import exists (different scope), but life-experience authoring/import producing Player.preconceived_knowledge memories as specified is not implemented. Status remains todo.

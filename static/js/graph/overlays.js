@@ -1,18 +1,18 @@
 "use strict";
 /**
- * GraphOverlays — the ambient visualisation overlays for the graph.
+ * GraphOverlays  -  the ambient visualisation overlays for the graph.
  *
  * Extracted from the network-manager monolith. Each overlay recolors the
  * nodes/edges in the live vis.js dataset based on area environment (light,
  * heat, sound), trigger edges, or cardinal layout. The leaf functions keep
  * identical color/label behaviour to the originals; `computeAmbientLight` is
  * now CACHED against a cheap signature of the world state because it walks
- * every edge per lit item — the main perf hot-spot in the old monolithic
+ * every edge per lit item  -  the main perf hot-spot in the old monolithic
  * version.
  *
- * @module graph/overlays — the ambient visual overlays
+ * @module graph/overlays  -  the ambient visual overlays
  * @contributes GraphOverlays: light/heat/sound/trigger/cardinal recolouring + cached computeAmbientLight
- * @powers Light, The map — the graph's overlay modes and their legends
+ * @powers Light, The map  -  the graph's overlay modes and their legends
  * @relates driven by GraphNetwork.applyOverlay; reads worldState + area environments
  * @docs docs/virtualWorld/Environment/Light System.md
  */
@@ -29,7 +29,7 @@ window.GraphOverlays = (() => {
          * the *display* label: NodeBadges decorates it with emoji (🌑 for a dark
          * area, ⚡ for a trigger, 🏢 for a floor) and the label LOD blanks it to `''`
          * on a dense map. So on the very maps where the overlay matters, the lookup
-         * missed and light/heat/sound all fell back to the same default colour —
+         * missed and light/heat/sound all fell back to the same default colour  - 
          * the "four overlays render identically" defect (task-642).
          *
          * The id is the identity; the name is only how the environment is keyed in
@@ -120,7 +120,7 @@ window.GraphOverlays = (() => {
         },
         /**
          * Build a map of area node ID → ambient light (with spill from adjacent
-         * lit areas). Visual-only — duplicates engine/lighting.py:get_ambient_light.
+         * lit areas). Visual-only  -  duplicates engine/lighting.py:get_ambient_light.
          * Cached: the result is keyed on a signature of the world graph + area
          * environments, so repeated overlay applies only recompute when the world
          * actually changed (killing the old per-tick O(E·N) walk).
@@ -222,7 +222,7 @@ window.GraphOverlays = (() => {
             this._lightCache = lighting;
             return lighting;
         },
-        /** Apply the Light overlay — color areas by ambient light with spill. */
+        /** Apply the Light overlay  -  color areas by ambient light with spill. */
         applyLightOverlay() {
             const nodes = graphManager.network?.body?.data?.nodes;
             if (!nodes)
@@ -245,7 +245,7 @@ window.GraphOverlays = (() => {
             });
             nodes.update(updates);
         },
-        /** Apply the Heat overlay — color areas by temperature with propagation. */
+        /** Apply the Heat overlay  -  color areas by temperature with propagation. */
         applyHeatOverlay() {
             const nodes = graphManager.network?.body?.data?.nodes;
             if (!nodes)
@@ -268,7 +268,7 @@ window.GraphOverlays = (() => {
             });
             nodes.update(updates);
         },
-        /** Apply the Sound overlay — color areas by noise level with propagation. */
+        /** Apply the Sound overlay  -  color areas by noise level with propagation. */
         applySoundOverlay() {
             const nodes = graphManager.network?.body?.data?.nodes;
             if (!nodes)
@@ -282,7 +282,7 @@ window.GraphOverlays = (() => {
             });
             nodes.update(updates);
         },
-        /** Apply the Trigger overlay — highlight trigger sources/targets, dim others. */
+        /** Apply the Trigger overlay  -  highlight trigger sources/targets, dim others. */
         applyTriggerOverlay() {
             const nodes = graphManager.network?.body?.data?.nodes;
             const edges = graphManager.network?.body?.data?.edges;
@@ -326,7 +326,7 @@ window.GraphOverlays = (() => {
             });
             edges.update(edgeUpdates);
         },
-        /** Apply the Cardinal overlay — label ways with cardinal direction. */
+        /** Apply the Cardinal overlay  -  label ways with cardinal direction. */
         applyCardinalOverlay() {
             const nodes = graphManager.network?.body?.data?.nodes;
             if (!nodes)
@@ -336,12 +336,17 @@ window.GraphOverlays = (() => {
                 if (node.group !== 'way')
                     return;
                 const nodeData = (worldState.graph?.nodes || {})[node.id];
-                const props = nodeData?.properties || {};
-                const cardinal = props.cardinal || '';
-                const dirEmoji = { north: '⬆N', south: '⬇S', east: '➡E', west: '⬅W',
-                    northeast: '⬈NE', northwest: '⬉NW', southeast: '⬊SE', southwest: '⬋SW',
-                    up: '⬆U', down: '⬇D' };
-                const label = dirEmoji[String(cardinal).toLowerCase()] || cardinal || '?';
+                // A way's cardinal lives on its connection edge (the area-to-way
+                // edge), NOT on the way node: in the Kraktooth camp 5030 edges
+                // carry one and 0 way nodes do. Reading `node.properties.cardinal`
+                // found nothing, so every way was labelled "?"  -  the overlay
+                // looked wired and produced a placeholder.
+                const cardinal = (typeof WayAuthoring !== 'undefined'
+                    ? WayAuthoring.wayCardinal(node.id)
+                    : '') || String(nodeData?.properties?.cardinal || '');
+                const label = (typeof WayAuthoring !== 'undefined'
+                    ? WayAuthoring.cardinalIcon(cardinal)
+                    : cardinal) || '?';
                 updates.push({
                     id: node.id,
                     label: `${label}\n${nodeData?.name || node.id}`,
@@ -355,7 +360,7 @@ window.GraphOverlays = (() => {
 })();
 // The overlay object references itself (`overlays.lightToInt` etc. inside
 // `computeAmbientLight`), so it is built as a local const and stamped on window
-// afterwards — a `window.GraphOverlays =` assignment has no binding to refer to.
+// afterwards  -  a `window.GraphOverlays =` assignment has no binding to refer to.
 // IIFE, not a top-level const: the overlay object references itself
 // (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
 // `const overlays` would be a global lexical binding colliding at parse

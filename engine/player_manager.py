@@ -126,6 +126,10 @@ class PlayerManager:
             return getattr(p, "node_id", None) or Player.node_id_for(p.name)
         return Player.node_id_for(player_ref)
 
+    # Aliases for caller compatibility across the engine and routes
+    player_node_id = get_player_node_id
+    _player_node_id = get_player_node_id
+
     # ── Identity helpers (task-446) ──────────────────────────────────────
 
     def uid_of(self, player_ref) -> Optional[str]:
@@ -213,6 +217,15 @@ class PlayerManager:
         self._players_by_node_id[node_id] = new_name
         if self.active_player == old_key:
             self.active_player = new_name
+
+        # task-619: re-key relationships across all players so a character rename
+        # does not orphan existing relationships pointing to old_key / old_name.
+        from engine.relationships import rekey_relationship
+        for q in self.players.values():
+            for candidate in (old_key, getattr(player, "name", None)):
+                if candidate and candidate != new_name:
+                    rekey_relationship(q, candidate, new_name, new_name)
+
         return player
 
     def add_player(self, player_obj: Player):
@@ -270,6 +283,65 @@ class PlayerManager:
         self._players_by_node_id[player_node_id] = key
         if player_obj.current_area:
             self._set_player_area(key, player_obj.current_area)
+
+    def remove_player(self, player_ref) -> bool:
+        """Completely remove a player from the roster, lookup maps, and graph.
+
+        Accepts a registry key, display name, opaque player id, or Player instance.
+        Performs the complete four-step teardown (task-708):
+          1. Both player-manager lookup maps (_players_by_id, _players_by_node_id).
+          2. The roster entry in self.players.
+          3. Roster active_player reassignment if the removed player was active.
+          4. The anchor graph node and its EDGE_IN location edges.
+
+        Returns True if a player was found and removed, False otherwise.
+        """
+        p = self.get_player(player_ref) if not isinstance(player_ref, Player) else player_ref
+        if p is None:
+            return False
+
+        # Find registry key
+        key = None
+        for k, v in list(self.players.items()):
+            if v is p:
+                key = k
+                break
+        if key is None:
+            key = getattr(p, "name", None)
+
+        # 1. Pop from lookup maps
+        pid = getattr(p, "id", None)
+        if pid:
+            self._players_by_id.pop(pid, None)
+
+        node_id = None
+        if key:
+            node_id = self._players_by_node_id.pop(key, None)
+        if not node_id:
+            try:
+                node_id = self.get_player_node_id(key or p)
+            except Exception:
+                node_id = getattr(p, "node_id", None)
+        if node_id:
+            self._players_by_node_id.pop(node_id, None)
+
+        # 2. Pop from roster
+        if key:
+            self.players.pop(key, None)
+
+        # 3. Reassign active_player if needed
+        if self.active_player == key:
+            self.active_player = next(iter(self.players.keys()), None)
+
+        # 4. Remove graph node and edges
+        if node_id and self.graph:
+            try:
+                self.graph.remove_edges_for_node(node_id, EDGE_IN)
+                self.graph.remove_node(node_id)
+            except Exception:
+                pass
+
+        return True
 
     def set_active_player(self, name: str):
         """Set the active player by registry key, display name or id."""

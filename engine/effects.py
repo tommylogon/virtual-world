@@ -142,6 +142,10 @@ class Effects:
         from engine.effect_handlers.spawn import handle_remove_item
         return handle_remove_item(self, params, context, item_node=item_node, game_state=game_state)
 
+    def handle_despawn_character(self, params, context, item_node=None, game_state=None):
+        from engine.effect_handlers.spawn import handle_despawn_character
+        return handle_despawn_character(self, params, context, item_node=item_node, game_state=game_state)
+
     def handle_set_state(self, params, context, item_node=None, game_state=None):
         from engine.effect_handlers.state import handle_set_state
         return handle_set_state(self, params, context, item_node=item_node, game_state=game_state)

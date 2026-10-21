@@ -1,6 +1,6 @@
 "use strict";
 /**
- * prompt-builder/memory-context.js — Memory retrieval + investigation notes.
+ * prompt-builder/memory-context.js  -  Memory retrieval + investigation notes.
  *
  * Split from the monolithic prompt-builder.js (2026-08-09). This is the one
  * part of the prompt builder that does async fetches and its own local
@@ -9,9 +9,9 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/memory-context — memory retrieval + investigation notes
+ * @module prompt-builder/memory-context  -  memory retrieval + investigation notes
  * @contributes buildMemoryContext: async recall scoring, keyword/semantic/recent mix, investigation notes
- * @powers Memory — the "=== I REMEMBER ===" block and the discovery-note pipeline
+ * @powers Memory  -  the "=== I REMEMBER ===" block and the discovery-note pipeline
  * @relates the only async module here; uses memory-manager + shared/embedding-client
  * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
@@ -20,11 +20,10 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
     /**
-     * "What I've already done" block — the anti-repeat guard for agents that
-     * get stuck re-examining the same object. Sources, deliberately NOT the
-     * memory store:
-     *   - player.discovered_items (backend, persistent, Entertainment task):
-     *     items this character has already examined/taken.
+     * "What I've already done" block - the anti-repeat guard for agents that
+     * get stuck re-examining the same object. Sources:
+     *   - player observation memories (kind === 'item'): items this character
+     *     has already examined or taken (task-430).
      *   - browser-side actionHistory (last 20 tracked actions): verb+target
      *     counts so repeated attempts surface as explicit warnings.
      */
@@ -32,9 +31,15 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!charName)
             return '';
         const player = worldState.data?.players?.[charName];
-        const discovered = Array.isArray(player?.discovered_items)
-            ? player.discovered_items.filter(Boolean)
-            : [];
+        const discoveredSet = new Set();
+        if (Array.isArray(player?.memories)) {
+            for (const m of player.memories) {
+                if (m && m.kind === 'item' && m.name) {
+                    discoveredSet.add(String(m.name).trim());
+                }
+            }
+        }
+        const discovered = Array.from(discoveredSet).filter(Boolean);
         const actionHistory = (VW?.events?.getCharacterState?.(charName)?.actionHistory || [])
             .filter((entry) => entry && typeof entry.action === 'string' && entry.action.trim() && entry.result);
         if (discovered.length === 0 && actionHistory.length === 0)
@@ -66,7 +71,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             const pastTense = { examine: 'examined', read: 'read', search: 'searched', look: 'looked at', take: 'taken', use: 'used', use_on: 'used', open: 'opened', close: 'closed', wear: 'worn' };
             const pastTenseText = pastTense[verb] || (verb + 'd');
             const nudge = verb === 'examine' || verb === 'read' || verb === 'search' || verb === 'look'
-                ? ' Stop examining — actually take, wear, or use the things here.'
+                ? ' Stop examining  -  actually take, wear, or use the things here.'
                 : ' Pick a different action.';
             lines.push(`⚠️ You have ${pastTenseText} "${target}" ${count} times now and nothing changed.${nudge}`);
             lines.push('');
@@ -77,7 +82,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Emotional residue (task-96): when emotionally-tagged memories surface in
      * recall, re-feel a fraction of what they carried. "We remember, therefore
      * we feel." Fire-and-forget; scaled by the emotion.recall_spike_scale
-     * engine tunable server-side is NOT applied here — we scale client-side so
+     * engine tunable server-side is NOT applied here  -  we scale client-side so
      * one build never stacks more than a whisper of affect.
      */
     const _respikeTickGuard = {};
@@ -126,8 +131,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (Object.keys(mapped).length === 0)
             return;
         _respikeTickGuard[charName] = now;
-        // N6: send the triggering memory as `reason` — the backend writes
-        // "Remembered: 'X' — it made me feel this way toward Y." instead of
+        // N6: send the triggering memory as `reason`  -  the backend writes
+        // "Remembered: 'X'  -  it made me feel this way toward Y." instead of
         // a contentless placeholder. Full text; no truncation.
         const firstWithEmotion = topMemories.find((m) => {
             const list = Array.isArray(m.memory_emotions) && m.memory_emotions.length
@@ -145,12 +150,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         }).catch(() => { });
     }
     /**
-     * Build memory context for a character — retrieves relevant memories,
+     * Build memory context for a character  -  retrieves relevant memories,
      * scores them by relevance, and builds investigation notes.
      * @param {string} charName - Character name
      * @param {Object} [opts] - Options: `report` streams turn-only recall
      *   feedback; `preview` (Agent Lens) skips the embedding server and all
-     *   side effects (`_respikeFromMemories`, semantic recall) — a preview must
+     *   side effects (`_respikeFromMemories`, semantic recall)  -  a preview must
      *   never mutate the character or hammer the embedding API.
      * @returns {Promise<string>} Formatted memory context string or empty string
      */
@@ -173,11 +178,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
         }
         catch (e) {
-            // Spatial context is best-effort — ignore failures
+            // Spatial context is best-effort  -  ignore failures
         }
-        // 1b. "What I've already done" — repeat-loop guard. Fed from the
-        // backend discovered_items list (Entertainment task) + the live
-        // browser actionHistory, deliberately NOT from the memory store.
+        // 1b. "What I've already done" - repeat-loop guard. Fed from the
+        // observation memories (kind === 'item') + the live browser actionHistory.
         const alreadyKnown = buildAlreadyKnownContext(charName);
         if (alreadyKnown)
             parts.push(alreadyKnown);
@@ -230,7 +234,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (resp.ok) {
                 const data = await resp.json();
                 for (const mem of (data.memories || [])) {
-                    // A5: never render "undefined" — skip textless entries
+                    // A5: never render "undefined"  -  skip textless entries
                     const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
                     if (!memText)
                         continue;
@@ -242,7 +246,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
         }
         catch (e) {
-            // Retrieval is best-effort — fall through to player.memories scoring
+            // Retrieval is best-effort  -  fall through to player.memories scoring
         }
         // Score player.memories[] entries
         const rawMemories = player?.memories || [];
@@ -277,7 +281,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         // store for this character's top-k memories, and merge them into the
         // candidate pool scored by cosine similarity. Silent no-op when the
         // embedding settings are off or the call fails. Skipped entirely in
-        // preview mode (Agent Lens) — previews must not hit the embedding
+        // preview mode (Agent Lens)  -  previews must not hit the embedding
         // server on every state poll.
         if (!preview && window.EmbeddingClient?.configured()) {
             try {
@@ -304,7 +308,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                             scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null, source: 'vector', kb: hit.score, category: memEntry.category, type: memEntry.type, confidence: typeof memEntry.confidence === 'number' ? memEntry.confidence : undefined, contradicts: Array.isArray(memEntry.contradicts) ? memEntry.contradicts : [] });
                         }
                         // task-686: semantic hits were recalled, so they reinforce
-                        // — the scoring endpoint can't stamp them (it never saw
+                        //  -  the scoring endpoint can't stamp them (it never saw
                         // them). Fire-and-forget; previews skip entirely.
                         if (hitIds.length > 0) {
                             fetch(`/api/players/${encodeURIComponent(charName)}/memories/reinforce`, {
@@ -317,7 +321,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 }
             }
             catch (e) {
-                // Semantic recall is best-effort — keyword scoring already ran.
+                // Semantic recall is best-effort  -  keyword scoring already ran.
             }
         }
         // Dedup by normalized text BEFORE picking the top-k. The three
@@ -328,7 +332,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const deduped = [];
         for (const entry of scored) {
             // A7: dedupe on the TEXT with the [timestamp] AND the leading icon
-            // stripped — the same memory carries a different icon per pipeline
+            // stripped  -  the same memory carries a different icon per pipeline
             // (🗺️ vector vs 📝 keyword), which used to defeat the dedupe.
             const bare = String(entry.text || '')
                 .replace(/^\s*\[[^\]]*\]\s*/, '')
@@ -388,12 +392,12 @@ window.PromptBuilder = window.PromptBuilder || {};
                         why = `semantic ${Math.round((m.kb || 0) * 100) / 100}`;
                     }
                     else {
-                        // backend /retrieve — real score rides the entry (default 1.0 is a floor)
+                        // backend /retrieve  -  real score rides the entry (default 1.0 is a floor)
                         const score = (m.score || 0) > 1 ? ` (score ${Math.round(m.score * 100) / 100})` : '';
                         why = `recent${score}`;
                     }
                     const short = String(m.text || '').replace(/^\[[^\]]*\]\s*/, '');
-                    return `  • ${short} — ${why}`;
+                    return `  • ${short}  -  ${why}`;
                 });
                 const n = topMemories.length;
                 const kw = topMemories.filter((m) => m.source === 'keyword').length;
@@ -432,7 +436,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 return flags.length > 0 ? ` (${flags.join('; ')})` : '';
             };
             const sections = [
-                ['EVENTS — what happened', []],
+                ['EVENTS  -  what happened', []],
                 ['WHAT I BELIEVE', []],
                 ['HOW I SEE PEOPLE', []],
                 ['WHAT I EXPECT', []]
@@ -530,7 +534,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     }
                 }
             }
-            // Repeat warnings — any verb, and failure-aware so impossible
+            // Repeat warnings  -  any verb, and failure-aware so impossible
             // attempts (e.g. "use create flame on dry leaves") get flagged
             // instead of re-attempted forever.
             const repeatedFails = actionInfo.filter((actionItem) => actionItem.failed && actionItem.count >= 3);
@@ -584,7 +588,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 parts.push('');
             }
             parts.push('Decision: Pick ONE from the list above and do it now.');
-            parts.push('No more examining the same items — take action.');
+            parts.push('No more examining the same items  -  take action.');
         }
         return parts.length > 0 ? '\n' + parts.join('\n') : '';
     }

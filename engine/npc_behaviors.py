@@ -744,69 +744,6 @@ class NPCBehaviorSystem:
 
         return f"{hunter_name} senses {target_name} to the {direction}. {direction} is the way."
 
-    def slasher_hunt(self, slasher_name: str) -> str:
-        """AI-driven hunt action for a slasher character.
-        Finds the nearest living player and starts moving toward them.
-        Returns a description of what the slasher does."""
-        hunter = self.gs.players.get(slasher_name)
-        if not hunter:
-            return ""
-
-        target_name = self._get_nearest_player_to(slasher_name)
-        if not target_name:
-            return ""
-
-        target = self.gs.players.get(target_name)
-        if not target or not target.current_area:
-            return ""
-
-        if hunter.current_area == target.current_area:
-            # Same area - attack! (combat.player_attack via facade delegate)
-            return self.gs.player_attack(slasher_name, target_name)
-
-        # Try to move toward the target
-        direction = self._get_path_to_area(hunter.current_area, target.current_area)
-        if not direction:
-            return ""
-
-        # Attempt movement (bypass normal move logic for the AI)
-        area_id = self.gs._area_node_id(hunter.current_area)
-        way_id = None
-        for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
-            if edge.properties.get("direction") == direction:
-                way_id = edge.target
-                break
-
-        if not way_id:
-            return f"{slasher_name} prowls the area, searching."
-
-        way_node = self.graph.get_node(way_id)
-        if way_node and way_node.type == "way":
-            if way_node.properties.get("one_way"):
-                source_area = way_endpoint_name(way_node, self.graph, "from")
-                if hunter.current_area != source_area:
-                    return f"{slasher_name} snarls at the {direction} but can't go that way - the passage is one-way."
-            if way_node.properties.get("current_state") in ("closed",):
-                # Slasher can force open closed ways
-                way_node.properties["current_state"] = "open"
-                way_node.updated = time.time()
-
-            # Find target area
-            for conn in self.graph.get_edges_for_source(way_id, EDGE_CONNECTION):
-                if conn.target != area_id:
-                    target_area_node = self.graph.get_node(conn.target)
-                    if target_area_node:
-                        old_area = hunter.current_area
-                        self.gs.name_matcher._set_player_area(slasher_name, target_area_node.name)
-                        self.gs.record_turn_event(
-                            slasher_name, "move",
-                            f"moved from the {old_area} to the {target_area_node.name}, hunting.",
-                            area_name=target_area_node.name
-                        )
-                        return f"{slasher_name} moves through the {direction}, closer to {target_name}."
-
-        return f"{slasher_name} pauses, listening."
-
     # ────────────────────── Pathfinding ──────────────────────
 
     def get_path_to(self, from_area: str, to_area: str) -> Optional[str]:

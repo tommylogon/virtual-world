@@ -7,9 +7,9 @@ tags: [system/ai, topic/reflection, topic/turns]
 
 ## What you can do
 
-The Agent Engine powers autonomous LLM-driven characters that observe the world, think, speak, and act — using the same `/api/action` endpoint as human players, so they live by the same rules. In reactive mode each turn splits into a think-decide phase (inner monologue plus a structured action, speech, and emote) and a react phase (responding to the outcome and writing a memory); non-reactive mode combines both into a single call. The engine handles turn ordering, rate limits, needs- and threat-driven replanning, and involuntary reactions like sneezes mid-speech.
+The Agent Engine powers autonomous LLM-driven characters that observe the world, think, speak, and act - using the same `/api/action` endpoint as human players, so they live by the same rules. In reactive mode each turn splits into a think-decide phase (inner monologue plus a structured action, speech, and emote) and a react phase (responding to the outcome and writing a memory); non-reactive mode combines both into a single call. The engine handles turn ordering, rate limits, needs- and threat-driven replanning, and involuntary reactions like sneezes mid-speech.
 
-The Agent Engine drives LLM-powered character agents — autonomous NPCs that observe the world, think, speak, and act through the same `/api/action` endpoint as human players.
+The Agent Engine drives LLM-powered character agents - autonomous NPCs that observe the world, think, speak, and act through the same `/api/action` endpoint as human players.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ The engine lives in `static/js/agent-engine.js` as the `AgentEngine` class (`win
 | Module | File | Role |
 |--------|------|------|
 | `AgentEngine` | `agent-engine.js` | Main loop, turn orchestration, action normalization |
-| `PromptBuilder` | `agent/prompt-builder/` (index) | Pure functions for building LLM prompts (split into submodules — see below) |
+| `PromptBuilder` | `agent/prompt-builder/` (index) | Pure functions for building LLM prompts (split into submodules - see below) |
 | `TurnQueue` | `agent/turn-queue.js` | Turn ordering and advancement |
 | `AgentMemory` | `agent/memory-manager.js` | Memory storage + reflection (backend `Player.memories`) |
 | `PlanManager` | `agent/plan-manager.js` | Multi-step plan generation |
@@ -36,23 +36,23 @@ The engine lives in `static/js/agent-engine.js` as the `AgentEngine` class (`win
 
 Each agent step processes one character's turn:
 
-1. **Rate limit check** — waits if RPM limit is exceeded
-2. **Turn queue** — determines whose turn it is (turn-based mode)
-3. **Simple NPC check** — skips LLM work for `simple_npc` characters (they act via backend `tick_turn` / `process_simple_npcs`). Simple NPCs are still **in the turn queue**; their turn just advances without an LLM call. NPC actions are logged to the event stream via `record_turn_event()`.
-4. **Rest/Sleep check** — skips if character is resting or unconscious
-5. **Reflection** — every 5 turns, triggers memory summarization (reactive mode)
-6. **Threat/needs-aware replan** — before think-decide, `PlanTracker.shouldReplan()` checks for new threats, blocked paths, or vitals crossing a critical threshold; if needed, regenerates the plan via `PlanManager.generate()`
-7. **Reactive mode** (2 LLM calls — the conversation-loop design, task-176):
-   - **Think-decide** (`buildReactionPrompt`): one call produces inner monologue + structured action + speech/volume + emote. This is a single combined call (no separate observe/decide prompts — those exports are dead).
+1. **Rate limit check** - waits if RPM limit is exceeded
+2. **Turn queue** - determines whose turn it is (turn-based mode)
+3. **Simple NPC check** - skips LLM work for `simple_npc` characters (they act via backend `tick_turn` / `process_simple_npcs`). Simple NPCs are still **in the turn queue**; their turn just advances without an LLM call. NPC actions are logged to the event stream via `record_turn_event()`.
+4. **Rest/Sleep check** - skips if character is resting or unconscious
+5. **Reflection** - every 5 turns, triggers memory summarization (reactive mode)
+6. **Threat/needs-aware replan** - before think-decide, `PlanTracker.shouldReplan()` checks for new threats, blocked paths, or vitals crossing a critical threshold; if needed, regenerates the plan via `PlanManager.generate()`
+7. **Reactive mode** (2 LLM calls - the conversation-loop design, task-176):
+   - **Think-decide** (`buildReactionPrompt`): one call produces inner monologue + structured action + speech/volume + emote. This is a single combined call (no separate observe/decide prompts - those exports are dead).
    - **Act**: execute the normalized action via `ApiClient.action()`, optional AI narration, then the emote (gated on the action not failing or being rejected). Invalid verbs become a natural in-world rejection ("You try to climb the ceiling, but you can't do that") that flows into the react phase instead of vanishing silently.
-   - **React** (`buildResultReactionPrompt`): character reacts to the action outcome with inner monologue, speech/volume, emote, and the **LLM-generated memory** field. The prompt makes clear only a moment has passed since the character's own action — others haven't had time to respond, so silence isn't a snub.
+   - **React** (`buildResultReactionPrompt`): character reacts to the action outcome with inner monologue, speech/volume, emote, and the **LLM-generated memory** field. The prompt makes clear only a moment has passed since the character's own action - others haven't had time to respond, so silence isn't a snub.
 8. **Non-reactive mode** (1 LLM call): single `buildReactionPrompt` with `includeMemory=true` produces everything in one response; action executed asynchronously.
-9. **Turn advancement** — advances the turn queue
+9. **Turn advancement** - advances the turn queue
 
 ### Conversation history is retained across turns
 
 `characterHistories[charName]` (agent-engine.js) persists per character and is **not** reset
-each turn — the think-decide and react phases both append to the same array. This prevents the
+each turn - the think-decide and react phases both append to the same array. This prevents the
 agent from contradicting itself between phases (e.g. changing a favorite color). The
 `ContextWindowManager` prunes when over 30 messages / 9500 tokens (keeping system + last ~18
 messages). History is cleared only on `start()`/`reset()`.
@@ -64,31 +64,31 @@ Every character resolves to a control mode via `events.getControlMode(charName)`
 
 | Mode | Condition | Who drives |
 |------|-----------|------------|
-| `'npc'` | `player.simple_npc` | Backend `tick_turn` — scripted behaviors, no LLM |
+| `'npc'` | `player.simple_npc` | Backend `tick_turn` - scripted behaviors, no LLM |
 | `'human'` | `player.autonomy === false` | The human, via commands; the engine **skips their turn** |
-| `'llm'` | default | Agent engine — full autonomous LLM turns |
+| `'llm'` | default | Agent engine - full autonomous LLM turns |
 
 - The `autonomy` flag is **persisted on the player** in the backend graph, so a human stays
   human across reloads. Toggle it from the agent inspector.
-- A human-mode turn pauses only that character's progression (agent-engine.js ~301) — the rest
+- A human-mode turn pauses only that character's progression (agent-engine.js ~301) - the rest
   of the roster keeps cycling when it's their turn.
 
 ## Per-Turn State Tracking & Instincts
 
-- **Character state** — `events.getCharacterState(charName)` tracks `lastThought`,
+- **Character state** - `events.getCharacterState(charName)` tracks `lastThought`,
   `lastSpeech`, `lastAction`, `actionHistory` (last 20 with tick + result), `currentArea`,
   `lastActionResult`. Consumers: plan manager (`lastThought`), prompt memory context
   (`actionHistory` → recent-actions block), agent lens, inspector.
-- **Needs/threat-driven replanning (task-92)** — `PlanTracker.shouldReplan()`
+- **Needs/threat-driven replanning (task-92)** - `PlanTracker.shouldReplan()`
   (`agent/plan-tracker.js`) regenerates the plan when vitals **cross** a critical threshold or
   a new threat appears, re-nudging at most every 5 turns to avoid churn.
-- **Closeness gates behavior (task-94)** — `relationshipGuidance(closeness)`
+- **Closeness gates behavior (task-94)** - `relationshipGuidance(closeness)`
   (`prompt-builder/character-state.js`) turns each relationship score into a behavioral
   directive on the People-here line ("you want them gone; refuse help…" at ≤ −50).
-- **Speech salience + conversation instinct** — `prompt-builder/conversation-context.js`
+- **Speech salience + conversation instinct** - `prompt-builder/conversation-context.js`
   labels heard lines as *addressed to you* vs *overheard* (salience), and
   `buildConversationInstinct()` nudges characters to join ongoing conversations they're part of.
-- **Parse-error inspection (task-238)** — malformed LLM responses are stored in an EventBus
+- **Parse-error inspection (task-238)** - malformed LLM responses are stored in an EventBus
   ring buffer (`events.logParseError`, last 20) and surface as clickable bubbles that expand
   the raw response, so bad outputs are debuggable from the stream itself.
 
@@ -106,7 +106,7 @@ timeframe-and-flow model, task-436/437).
 | Source | Example | Odds |
 |---|---|---|
 | Active condition | `frightened` → stutter, `hypothermia` → shiver, `sick`/`poisoned` → cough, `social_breakdown`/`hallucinating` → ramble, `paranoid` → stutter, `sneeze` → sneeze | per-condition `chance` on `SPEECH_TRIGGERS` |
-| Condition emote pool | `itch`, `goosebumps`, `sneeze`, plus the conditions above, each with its own pronoun-aware suffix list in `EMOTE_TRIGGERS` | none — see below |
+| Condition emote pool | `itch`, `goosebumps`, `sneeze`, plus the conditions above, each with its own pronoun-aware suffix list in `EMOTE_TRIGGERS` | none - see below |
 | Situational startle | a new shout/scream in `recent_hearing` → yelp | `STARTLE_SPEECH_CHANCE` / `STARTLE_EMOTE_CHANCE` |
 | Trait | `jittery` (aliases `nervous`, `clumsy`) multiplies every roll by `NERVOUS_BOOST` | ×1.8 |
 | Random baseline | hiccup / burp / yelp with no trigger at all | `RANDOM_SPEECH_CHANCE` 0.06, `RANDOM_EMOTE_CHANCE` 0.04 |
@@ -122,7 +122,7 @@ timeframe-and-flow model, task-436/437).
   active conditions either may fire; `emote()` returns on the **first** matching
   condition in table order and never considers the next. With both `sneeze` and
   `frightened` active, the emote is decided by declaration order, not by
-  severity — reorder the table and the output changes.
+  severity - reorder the table and the output changes.
 - **A startle short-circuits everything.** When the engine reports
   `context.startled`, both `speech()` and `emote()` take the yelp branch first and
   never reach the condition pools, so an active condition silently loses to a
@@ -157,7 +157,7 @@ The LLM emits a **structured action object** instead of free-text commands:
 ```
 
 - **`volume`** is `whisper | say | shout | scream` (default `say`). The volume word is the
-  **key**, never a value inside speech — `{"speech":"whisper psst"}` is explicitly wrong in
+  **key**, never a value inside speech - `{"speech":"whisper psst"}` is explicitly wrong in
   the prompt. `speak`/`talk` normalize → `say`. Legacy top-level `say`/`whisper` keys still
   work as a fallback.
 - **`_normalizeStructuredAction()`** (`agent-engine.js`) converts `{action, item, target,
@@ -170,14 +170,14 @@ The LLM emits a **structured action object** instead of free-text commands:
   - Free-text fallback for anything unsupported / legacy plain strings
 - **`_validateAction()`** whitelist is synced 1:1 with the verbs the normalizer can emit
   (includes `place`, `give`, `hand`). Rejections are surfaced via `_surfaceRejectedAction()`
-  into `config.lastActionResult` (shown as `=== LAST ACTION RESULT ===` next turn) — never a
+  into `config.lastActionResult` (shown as `=== LAST ACTION RESULT ===` next turn) - never a
   stored memory.
 
 ### Action verbs the LLM is told about (ACTIONS table)
 
 `go, dash, crawl, climb, jump, open, close, take, drop, use, use_on, put/place, give, steal,
 examine, read/search, wear/equip, remove/unequip, attack, grab, escape/struggle, rest, wait,
-inventory, stats, look, fumble, relieve` — plus ghost-only `manifest`/`vanish`.
+inventory, stats, look, fumble, relieve` - plus ghost-only `manifest`/`vanish`.
 
 - `crawl <dir>` / `climb <dir>` / `jump <dir>` are the passage-movement verbs (task-187):
   `go` auto-crawls tight (one tier over `max_size`) and crawl-only ways; climb/jump ways need
@@ -232,7 +232,7 @@ interruption. The LLM prompt builder does not yet read `Player.active_pursuit`;
 see [[Character Pursuits]] and task-704. Calendar schedule cues use the existing
 world date/time and environment state.
 
-- **Relationships are NOT in `=== YOUR STATE ===`** — each "People here" line carries an inline
+- **Relationships are NOT in `=== YOUR STATE ===`** - each "People here" line carries an inline
   type label when known (`jake halloway - a close friend - (awake)`), no scores.
 - **Memory context is its own `=== I REMEMBER ===` block** right after YOUR STATE, not a state
   fragment.
@@ -245,7 +245,7 @@ A `=== WITNESSED ===` speech line is `[Heard< from the X>] <speaker> <verb>: "<t
 the verb and the speaker label are read off the hearing entry rather than assumed.
 
 **Delivery is reported.** `speech.py` stamps `speech_level` on every hearing entry, and
-`PromptBuilder.speechVerb` maps it to the verb — `whispered`, `said`, `shouted`, `screamed`,
+`PromptBuilder.speechVerb` maps it to the verb - `whispered`, `said`, `shouted`, `screamed`,
 `sang`. It used to be the string literal `said` in the render, so a scream reached the model as
 conversation. The turn-event description deliberately keeps its literal `said:` marker: that is a
 machine-parsed format (item sound capture and the salience regex depend on it) and is not the prose
@@ -254,7 +254,7 @@ the character reads. `engine/narration.py` keeps a matching `SPEECH_VERBS` for t
 
 **A heard stranger is labelled by what is making the sound.** `PromptBuilder.voiceLabel` and
 `anonymousName` read from **one** `SPEAKER_TAGS` table, because they drifted and the drift was
-visible: a tabby read "an animal" in the room and, through a wall, **"a man's voice"** — the seen map
+visible: a tabby read "an animal" in the room and, through a wall, **"a man's voice"** - the seen map
 had `animal`, the heard map did not, so it fell through to the pronoun heuristic, and animal
 descriptions are freely written with "his" (whiskers: *"darker striping along his flanks"*).
 
@@ -263,7 +263,7 @@ Resolution order for an unrecognised speaker:
 1. **Known to the viewer** → their real name.
 2. **Tagged as a non-human** → a species label (`"a cat's voice"`, `"a wolfs's voice"`), most
    specific first so `bird|raven` is the raven; `"an animal's voice"` when the species tag is
-   unmapped. This is checked **before** the gender tags, because these characters carry both —
+   unmapped. This is checked **before** the gender tags, because these characters carry both -
    `male|animal|worg` read as "a man's voice" when the gender tag was consulted first.
 3. **Tagged `anthro`** → exempt, because an anthropomorph is presented as a person: it falls
    through to the gender label so it agrees with the "the woman" the same character gets when seen.
@@ -277,7 +277,7 @@ through the `sound_source` path, rendering as `[Heard from the X from the item] 
 
 Species labels are keyed by the tags the character library already carries (`animal`, `rabbit`,
 `bear`, `bird`, `boar`, `frog`, `raven`, `sheep`, `wolf`, `worg`), so the list needed no new
-vocabulary — but note those species tags are **not registered** in `data/library/tags/`, unlike
+vocabulary - but note those species tags are **not registered** in `data/library/tags/`, unlike
 `animal` itself. `whiskers` needed an explicit `cat` tag to read as a cat rather than "an animal".
 
 | Template | Phase | Memory field | Output |
@@ -285,39 +285,39 @@ vocabulary — but note those species tags are **not registered** in `data/libra
 | `buildReactionPrompt` | Think-decide / combined | ❌ (reactive), ✅ (non-reactive) | `{"inner_monologue","action","item","target","speech","volume","emote"[,"memory"]}` |
 | `buildResultReactionPrompt` | React | ✅ | `{"inner_monologue","speech","volume","emote","memory":{"text","importance","tags"}}` |
 
-`buildObservationPrompt`/`buildDecisionPrompt` are **dead exports** — defined and exported but never called. Not maintained.
+`buildObservationPrompt`/`buildDecisionPrompt` are **dead exports** - defined and exported but never called. Not maintained.
 
 ### Room Context & the Attention List (`buildRoomContext()`)
 
 `buildRoomContext()` (line 582) builds the area description injected into the agent's user message. Since the interest system landed (2026-08-05, task-98 Phase 2), room items render as an **"Items that catch your attention"** list instead of the old "everything gets a full description" block:
 
-- **Unexamined only** — items already examined or taken (in `player.discovered_items`) are omitted; their facts live in `=== MY INVESTIGATION NOTES ===`.
-- **Interest-sorted** — items matching `player.interest_tags` (exact tag +2, keyword-in-name +1) surface first; then the rest.
-- **Weight-ordered** — within each tier, heavier items first (bigger = easier to see; missing/0 weight sinks).
-- **Capped at 15** (`ATTENTION_MAX`) — one uniform path for all room sizes, no small/large threshold. Emphasis (sorting) is always on; the cap just bites when a room has more than 15 unexamined items.
-- **Natural trailer, no truncation** — ends with `There are more items around that you can look for.` when the cap bit, or `...and not much else.` when everything visible fit.
-- **Light logic unchanged** — pitch black/dim/dark-vision filtering is untouched; attention sorting only refines within each light branch.
+- **Unexamined only** - items already examined or taken (in `player.discovered_items`) are omitted; their facts live in `=== MY INVESTIGATION NOTES ===`.
+- **Interest-sorted** - items matching `player.interest_tags` (exact tag +2, keyword-in-name +1) surface first; then the rest.
+- **Weight-ordered** - within each tier, heavier items first (bigger = easier to see; missing/0 weight sinks).
+- **Capped at 15** (`ATTENTION_MAX`) - one uniform path for all room sizes, no small/large threshold. Emphasis (sorting) is always on; the cap just bites when a room has more than 15 unexamined items.
+- **Natural trailer, no truncation** - ends with `There are more items around that you can look for.` when the cap bit, or `...and not much else.` when everything visible fit.
+- **Light logic unchanged** - pitch black/dim/dark-vision filtering is untouched; attention sorting only refines within each light branch.
 
 ### People here + spatial position (task-135)
 
 Each person line can include a **position suffix** from `spatial_position` / `at_way_id`:
 
 ```text
-  - the woman (awake) beside the piano — A musician…
-  - the stranger at the north — A tall figure…
+  - the woman (awake) beside the piano - A musician…
+  - the stranger at the north - A tall figure…
 ```
 
-- **Stranger labels** — unmet characters show `unknown_display_name()` (`the man`, `the woman`), not database names. The suffix uses the same anonymous label for character anchors.
-- **Relationship labels** — met characters get an inline type label (`- a close friend -`) before
+- **Stranger labels** - unmet characters show `unknown_display_name()` (`the man`, `the woman`), not database names. The suffix uses the same anonymous label for character anchors.
+- **Relationship labels** - met characters get an inline type label (`- a close friend -`) before
   `(state)`, from `buildRelationshipLabel()` (no `(65/100)` scores).
-- **Targeting** — combines appearance handle + location (`attack the man`, `go north`). Backend `_match_character_name()` also resolves description words in the same area.
-- **Physical actions walk you there** — open/go/give/grab/attack set position automatically; `examine room` steps back. See [[Gameplay/Character Spatial Position]] and `system-prompt.js` Rules.
+- **Targeting** - combines appearance handle + location (`attack the man`, `go north`). Backend `_match_character_name()` also resolves description words in the same area.
+- **Physical actions walk you there** - open/go/give/grab/attack set position automatically; `examine room` steps back. See [[Gameplay/Character Spatial Position]] and `system-prompt.js` Rules.
 
 ## Memory in the agent
 
 See [[AI & Narration/Memory System]]. Key points:
 
-- **One memory per turn** — the react phase's `memory` field (subjective takeaway, importance + tags chosen by the LLM).
+- **One memory per turn** - the react phase's `memory` field (subjective takeaway, importance + tags chosen by the LLM).
 - `_extractMemory()` parses `{text, importance, tags}`; tags auto-register into the tag library.
 - `storeMemory()` POSTs to backend `/memories/entry` (with `entity_ids` = current area node).
 - Speech/emotes/thoughts are log-only, not memories.
@@ -361,38 +361,38 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 
 | When | Task | Status |
 |---|---|---|
-| — | [[task-90-delayed_event_queue\|task-90-delayed_event_queue]] | `done` |
+| - | [[task-90-delayed_event_queue\|task-90-delayed_event_queue]] | `done` |
 <!-- changelog:end -->
 
 ## Where it lives
 
-- **`static/js/agent-engine.js`** (`AgentEngine`, `window.VW.agent`, `agent`) — main loop, turn orchestration, action normalization
-- **`static/js/agent/prompt-builder/`** — pure prompt functions: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`
-- **`static/js/agent/turn-queue.js`** — turn ordering and advancement
-- **`static/js/agent/memory-manager.js`** (`AgentMemory`) — memory storage + reflection
-- **`static/js/agent/plan-manager.js`** — multi-step plan generation
-- **`static/js/agent/rate-limiter.js`** — API rate limiting
-- **`static/js/context-window.js`** (`ContextWindowManager`) — token budget and context pruning
-- **`static/js/agent/response-parser.js`** — parse/validate LLM JSON output
-- **`static/js/agent/action-normalizer.js`** — normalize structured actions into `/api/action` commands
-- **`static/js/agent/threat-detector.js`** — flag nearby threats for replanning
-- **`static/js/agent/human-turn-composer.js`** — human-turn composer drive path
-- **`static/js/agent/turn-scene-view.js`** — render current turn scene for the event stream
-- **`static/js/agent/involuntary.js`** — involuntary reactions (hiccups, sneezes mid-speech)
-- **`static/js/agent/plan-tracker.js`** — `shouldReplan()` for needs/threat-driven replanning
-- **`routes/action.py`** — `/api/action` endpoint (agents use the same endpoint as humans)
-- **`engine/narration.py`** — `SPEECH_VERBS` for server-side hearing report
-- **`engine/speech.py`** — `speech_level` stamping on hearing entries
+- **`static/js/agent-engine.js`** (`AgentEngine`, `window.VW.agent`, `agent`) - main loop, turn orchestration, action normalization
+- **`static/js/agent/prompt-builder/`** - pure prompt functions: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`
+- **`static/js/agent/turn-queue.js`** - turn ordering and advancement
+- **`static/js/agent/memory-manager.js`** (`AgentMemory`) - memory storage + reflection
+- **`static/js/agent/plan-manager.js`** - multi-step plan generation
+- **`static/js/agent/rate-limiter.js`** - API rate limiting
+- **`static/js/context-window.js`** (`ContextWindowManager`) - token budget and context pruning
+- **`static/js/agent/response-parser.js`** - parse/validate LLM JSON output
+- **`static/js/agent/action-normalizer.js`** - normalize structured actions into `/api/action` commands
+- **`static/js/agent/threat-detector.js`** - flag nearby threats for replanning
+- **`static/js/agent/human-turn-composer.js`** - human-turn composer drive path
+- **`static/js/agent/turn-scene-view.js`** - render current turn scene for the event stream
+- **`static/js/agent/involuntary.js`** - involuntary reactions (hiccups, sneezes mid-speech)
+- **`static/js/agent/plan-tracker.js`** - `shouldReplan()` for needs/threat-driven replanning
+- **`routes/action.py`** - `/api/action` endpoint (agents use the same endpoint as humans)
+- **`engine/narration.py`** - `SPEECH_VERBS` for server-side hearing report
+- **`engine/speech.py`** - `speech_level` stamping on hearing entries
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Read next** — [[Memory System#Memory dynamics (task-685)]], [[Narration System#Integration with Agent Engine]]
+**Read next** - [[Memory System#Memory dynamics (task-685)]], [[Narration System#Integration with Agent Engine]]
 
-**Dev tasks** — [[dev_tasks/done/triggers/task-90-delayed_event_queue|task]], [[bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed|bug]], [[dev_tasks/todo/refactor/task-491-single-source-of-truth-for-action-verbs-scoped-registry|task]], [[dev_tasks/todo/testing/task-845-llm-benchmark-harness-run-turn-prompt-across-models|task]]
+**Dev tasks** - [[dev_tasks/done/triggers/task-90-delayed_event_queue|task]], [[bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed|bug]], [[task-491-single-source-of-truth-for-action-verbs-scoped-registry|task]], [[dev_tasks/todo/testing/task-845-llm-benchmark-harness-run-turn-prompt-across-models|task]]
 
-**Neighbouring notes** — [[LLM Providers]], [[Memory Dynamics]], [[Memory System]], [[Narration System]], [[Turn-Based System]]
+**Neighbouring notes** - [[LLM Providers]], [[Memory Dynamics]], [[Memory System]], [[Narration System]], [[Turn-Based System]]
 
 <!-- connected:end -->

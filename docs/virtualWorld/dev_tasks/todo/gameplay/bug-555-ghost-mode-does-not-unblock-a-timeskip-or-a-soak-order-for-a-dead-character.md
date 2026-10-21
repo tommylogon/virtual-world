@@ -60,3 +60,20 @@ Intended UI home: the settings ghost-mode toggle and the timeskip dialog. Curren
 - `routes/settings.py` (ghost_mode toggle - reference)
 - `engine/movement.py` (the `state == dead and not ghost_mode` pattern - reference)
 - `engine/ghost.py` (reference)
+
+## Reconciliation (2026-10-20) - STILL_VALID, re-measured
+
+**Verdict: STILL_VALID.** Both dead checks still ignore `ghost_mode`; the inconsistency the card names is unchanged.
+
+**Re-measured 2026-10-20.**
+- `engine/timeskip.py:302-304` - `advance` still refuses whenever `getattr(who, "state", None) == "dead"`, with no `ghost_mode` exception: `return TimeskipResult(False, intent, requested, reason="The dead do not wait.")`.
+- `engine/soak.py:112-114` - `_step_one` still finishes any dead character's order with `You died.` regardless of ghost mode: `if getattr(player, "state", "") == "dead": _finish(gs, player, order, ("death", "You died.")); return`.
+- `engine/movement.py:380-383` and `:1082-1089` - the movement guards still read `if self.gs.player.state == "dead": if not self.gs.ghost_mode: raise ...`, i.e. the exempt pattern the card says the timeskip and soak should match. The three still disagree.
+
+**Newer work checked.** `git log --oneline -10 -- engine/timeskip.py engine/soak.py` returns `05d629d9`, `948b6a74`, `fb82e36b`, `6fd774b8`, `67ec7274`, `2b608a83`, `e7784c5f`, `227d5201`, `3d2c1be2`, `00b224a9`, `591f7e86`, `0e794933`, `888f7d28`, `91db190d`, `d36bce43`, `bae61d3e`, `256079fa`, `3dce19cb`, `4ffd37cb` - all older than the card's 2026-10-17 filing, and none of them touches the dead/ghost interaction. The related card `task-857` (the UI-side gate) is still `todo` and was re-read: its `How` independently describes the same `getattr(gs, 'ghost_mode', False)` change, so no conflicting design has landed.
+
+**Counts.** `grep -c "ghost_mode" engine/timeskip.py engine/soak.py` → 0 in both files. `grep -c "ghost_mode" engine/movement.py` → 4. That 4-vs-0 split is the measurement of the inconsistency.
+
+**Cited line drift.** The card cites `engine/timeskip.py:243-245`; the dead refusal is now at `:302-304` (the file grew by ~60 lines). `engine/soak.py:112-113` is still correct. Corrected in place above.
+
+**Status:** left in `todo`. The fix is two one-line guards plus the `getattr(gs, 'ghost_mode', False)` consult, exactly as the card's `How` specifies.

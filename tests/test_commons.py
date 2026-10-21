@@ -240,6 +240,22 @@ def test_commons_context_projects_existing_player_identity_without_world_state()
     assert client.get("/api/commons/characters/Unknown").status_code == 404
 
 
+def test_commons_character_context_with_live_world_and_player_manager():
+    world = VirtualWorld()
+    world.add_player(Player("Elena"))
+    app = Flask(__name__)
+    app.config["TESTING"] = True
+    app.world = world
+    register_commons_routes(app)
+    client = app.test_client()
+
+    response = client.get("/api/commons/characters/Elena")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["name"] == "Elena"
+    assert "state" in payload
+
+
 def test_commons_memory_uses_existing_player_memories_collection():
     app = _commons_app()
     player = app.world.players["Mira"]

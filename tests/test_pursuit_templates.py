@@ -471,14 +471,7 @@ def test_item_id_parameter_reads_the_named_assignment_property():
 
 
 def test_meal_template_uses_the_existing_eating_activity():
-    """The meal pursuit references the existing Activity system, not a record.
-
-    v2 adds the recipe leg: the cooking step names the registry recipe the
-    undertake cooks (the executor routes it through the existing timed-cooking
-    flow), and the eating step still closes the pursuit with a visible meal.
-    ``food_spec`` became optional: the recipe, not a gather spec, defines what
-    is cooked, so an assignment without one still binds.
-    """
+    """The meal pursuit references the existing Activity system, not a record."""
     from engine.background_plans import build_plan
     plan = build_plan({
         "assignment_id": "pursuit_meal",
@@ -489,615 +482,90 @@ def test_meal_template_uses_the_existing_eating_activity():
     assert plan is not None
     assert plan["steps"][0]["area"] == "Longhouse"
     assert plan["steps"][1]["kind"] == "activity"
-    assert plan["steps"][1]["activity"] == "cooking"
-    assert plan["steps"][1]["recipe"] == "barley_pottage"
-    assert plan["steps"][2]["kind"] == "activity"
-    assert plan["steps"][2]["activity"] == "eating"
-    assert plan["steps"][2]["duration_minutes"] == 10
-    # Optional parameter: an assignment with no food_spec still binds.
-    bare = build_plan({
-        "assignment_id": "pursuit_meal_bare",
-        "template_id": "meal",
-        "label": "meal",
-        "bindings": {"home": "Longhouse"},
+    assert plan["steps"][1]["activity"] == "eating"
+
+
+# ─────────── the structured fields survive binding into the live plan ───────
+
+def test_structured_fields_reach_the_plan_not_just_the_instance():
+    """A field the validator accepts must not be dropped by the builder.
+
+    ``instantiate`` carried ``requirements``/``supplies``/``timing``/``progress``
+    /``stop_conditions`` into the instance, and ``build_plan`` then rebuilt the
+    plan from four of the instance's keys and discarded the rest. An author who
+    wrote ``stop_conditions`` got a file that validated and did nothing. This
+    asserts the builder passes every structured field through, with the bindings
+    already expanded, so the runner and the Mind panel see what was authored.
+    """
+    from engine.background_plans import build_plan
+    plan = build_plan({
+        "assignment_id": "pursuit_probe",
+        "template_id": "scout-and-report",
+        "label": "probe",
+        "bindings": {"scout_area": "Ridge", "report_area": "Camp"},
     })
-    assert bare is not None
+    assert plan is not None
+    for key in ("requirements", "supplies", "timing", "progress", "stop_conditions"):
+        assert key in plan, f"{key} was dropped between the instance and the plan"
+    # The binding is expanded, not left as a reference the runner cannot read.
+    assert plan["requirements"] == [{"type": "in_area", "area": "Camp"}]
+    assert plan["timing"] == {"daylight": True}
+    assert plan["stop_conditions"] == [
+        {"type": "vital_below", "stat": "Energy", "value": 20}]
+    assert [p["id"] for p in plan["progress"]] == ["reached_target", "reported_back"]
+    assert plan["progress"][0]["check"]["area"] == "Ridge"
 
 
-def _write_probe_recipe(app):
-    """A scratch recipe with no conditions: inputs are checked by the
-    crafting system itself, so the mechanism test stages them and the
-    fail-closed branch fails on the missing inputs, not on the campfire.
+def test_authored_templates_exercise_the_structured_fields():
+    """The schema is not only reachable from a synthetic fixture.
 
-    The registry save gate requires real library items and all four outcome
-    tiers, so the probe reuses existing item ids and carries the tier map.
+    AGENTS.md's content-before-instrumentation rule: a field no authored entry
+    uses is a field nobody has tried to write. These three entries carry the
+    requirements, supplies, timing, progress and stop-condition fields for real.
     """
-    from routes.library_ops import write_library_entry
-    write_library_entry(app, "recipes", "probe_soup", {
-        "id": "probe_soup", "name": "Probe Soup",
-        "description": "Scratch recipe for the pursuit recipe-step test.",
-        "ingredients": [
-            {"item": "raw_fish", "count": 1, "consumed": True},
-            {"item": "cooking_pot", "count": 1, "consumed": False},
-        ],
-        "duration_min": 5,
-        "skill_check": {"skill": "Cooking", "dc": 8},
-        "outputs": [{"item": "fish_soup", "count": 1}],
-        "outcomes": {
-            "crit_success": {"outputs": [{"item": "fish_soup", "count": 2}],
-                             "message": ""},
-            "success": {"outputs": [{"item": "fish_soup", "count": 1}],
-                        "message": ""},
-            "fail": {"consume_inputs": True,
-                     "outputs": [{"item": "fishy_broth", "count": 1}],
-                     "message": ""},
-            "crit_fail": {"consume_inputs": True,
-                          "outputs": [{"item": "burned_stew", "count": 1}],
-                          "message": ""},
-        },
-        "learned_by": ["global"],
-        "discoverable": True,
-    })
+    catalog = pt.load()
+    assert "timing" in catalog["scout-and-report"]
+    assert catalog["scout-and-report"]["timing"] == {"daylight": True}
+    assert "supplies" in catalog["scout-and-report"]
+    assert "progress" in catalog["scout-and-report"]
+    assert "stop_conditions" in catalog["scout-and-report"]
+
+    assert catalog["sleep-at-venue"]["timing"] == {"sun": "down"}
+    assert catalog["meal"]["supplies"] == [{"tags": ["food"], "name": None}]
 
 
-def _delete_probe_recipe(app):
-    from routes.library_ops import delete_library_entry
-    delete_library_entry(app, "recipes", "probe_soup")
+def test_authored_condition_leaves_are_all_in_the_shared_vocabulary():
+    """Every leaf the authored entries carry is one the engine can evaluate.
 
-
-def test_a_recipe_step_opens_the_existing_cooking_flow():
-    """A recipe step routes through CraftingSystem, with the actor swapped in.
-
-    The branch under test refuses to fake a second cooking path: it calls the
-    same ``start_cooking`` a human's "Make X" uses, restores the focused
-    active player, and starts the cooking Activity with the recipe id on it.
+    A leaf outside ``CONDITION_TYPES`` fails closed at load, so a catalog that
+    loads is a catalog whose leaves resolve. This asserts the specific leaves
+    the new entries use are in the shared set, rather than trusting the loader.
     """
-    from engine import background_plans as _bp
-    from engine.background_simulation import BackgroundSimulation
-    from graph import Edge, Node, EDGE_IN
-
-    app = _app()
-    client = app.test_client()
-    world = app.world
-    _write_probe_recipe(app)
-    try:
-        # keep the scratch recipe out of the crafting registry's own cache
-        if hasattr(world, "crafting") and hasattr(world.crafting, "_registry"):
-            try:
-                from engine.crafting import CraftingSystem  # noqa: F401
-            except Exception:
-                pass
-        client.post('/api/build/area', json={'name': 'Soup Pantry'})
-        _connect(client, 'Blizzard Forest Clearing', 'Soup Pantry')
-        p = _bg_player(world, "Probe Cook", 'Soup Pantry')
-        area_id = world.area_node_id('Soup Pantry')
-        focused_before = getattr(world, 'active_player', None)
-        for index, (name, item_id) in enumerate([
-            ("Raw fish", "item_raw_fish_staged"),
-            ("Cooking Pot", "item_cooking_pot_staged"),
-        ]):
-            node = Node(
-                id=item_id, type="item", name=name,
-                properties={"tags": ["food", "fish"] if index == 0 else ["tool"]},
-            )
-            world.graph.add_node(node)
-            world.graph.add_edge(Edge(
-                source=node.id, target=area_id, type=EDGE_IN))
-        sim = BackgroundSimulation(world)
-        plan = {"label": "probe_meal", "assignment_id": "pursuit_probe_meal"}
-        step = {"kind": "activity", "activity": "cooking",
-                "recipe": "probe_soup"}
-
-        outcome = _bp._run(sim, p, plan, step)
-
-        assert outcome is None, "the recipe step failed with staged inputs"
-        assert p.activity is not None and p.activity.get("type") == "cooking"
-        assert p.activity.get("recipe_id") == "probe_soup"
-        assert getattr(world, "active_player", None) == focused_before, \
-            "the actor swap leaked: the focused player is still swapped in"
-        assert any(e.get("why") == "plan:probe_meal" for e in p.lived_log)
-
-        # The cook's own duration comes from the recipe: 5 minutes, so the
-        # step's satisfaction reads the recipe duration, not the template's.
-        assert p.activity.get("duration_minutes") == 5.0
-    finally:
-        _delete_probe_recipe(app)
-        if getattr(p, "activity", None):
-            world.activities.end_activity(p.name, "interruption")
+    from engine.trigger_validator import CONDITION_TYPES
+    catalog = pt.load()
+    leaves = []
+    for entry in catalog.values():
+        for key in ("requirements", "stop_conditions"):
+            leaves.extend(entry.get(key) or [])
+        for check in entry.get("progress") or []:
+            if isinstance(check, dict) and "check" in check:
+                leaves.append(check["check"])
+    assert leaves, "no authored condition leaves found"
+    for leaf in leaves:
+        assert leaf["type"] in CONDITION_TYPES, f"{leaf['type']} is not evaluable"
 
 
-def test_a_recipe_step_fails_closed_when_the_inputs_are_missing():
-    """No inputs: the craft check raises and the pursuit fails with a trace."""
-    from engine import background_plans as _bp
-    from engine.background_simulation import BackgroundSimulation
+def test_requirements_use_the_context_key_a_background_actor_sets():
+    """``in_area`` reads ``npc_area``; a ``self`` target reads a key nobody sets.
 
-    app = _app()
-    world = app.world
-    _write_probe_recipe(app)
-    try:
-        p = _bg_player(world, "Probe Starver", "Blizzard Forest Clearing")
-        sim = BackgroundSimulation(world)
-        plan = {"label": "probe_meal_nothing",
-                "assignment_id": "pursuit_probe_meal"}
-        step = {"kind": "activity", "activity": "cooking",
-                "recipe": "probe_soup"}
-
-        outcome = _bp._run(sim, p, plan, step)
-
-        assert outcome == "failed"
-        assert getattr(p, "activity", None) is None, \
-            "a failed centerpiece must not leave an activity hanging"
-        assert any(
-            e.get("why") == "plan:probe_meal_nothing:failed"
-            for e in p.lived_log), "the failure left no trace"
-    finally:
-        _delete_probe_recipe(app)
-
-
-# ─────────────────── the report receipt and the leaf that checks it ─────────
-
-def _met(app, actor, other):
-    """One leaf evaluation through the shared registry, nothing mocked."""
-    trigger_system = app.world.triggers
-    return trigger_system._evaluate_trigger_condition(
-        {"type": "met_character", "target": actor, "character": other},
-        None, app.world)
-
-
-def test_met_character_resolves_names_keys_and_node_ids():
-    """Co-location, by every authored spelling, and fail-closed on nobody."""
-    app = _app()
-    world = app.world
-    a = _bg_player(world, "Vekka", "Blizzard Forest Clearing")
-    b = _bg_player(world, "Zikka", "Blizzard Forest Clearing")
-    try:
-        # name form
-        assert _met(app, "Vekka", "Zikka") is True
-        # node-id form (what authored assignments carry)
-        assert _met(app, "Vekka", "player_Zikka") is True
-        # players-dict key form
-        assert _met(app, "Vekka", "Zikka") is True and a is not None and b is not None
-        # different areas: the report has not been delivered
-        world.set_player_area("Zikka", "Eldenford")
-        assert _met(app, "Vekka", "Zikka") is False
-        # unresolvable recipient fails closed: no character is no report
-        assert _met(app, "Vekka", "player_Nobody") is False
-    finally:
-        pass
-
-
-def test_a_reported_pursuit_delivers_the_receipt_and_tells_the_recipient():
-    """Delivery is a spatial fact plus a memory on the recipient.
-
-    With the recipient present, the receipt flips to done with the tick, the
-    recipient holds the report as a memory in their own store, and the
-    reporter's log carries the delivery trace. With the recipient elsewhere,
-    the receipt stays pending and the undelivered trace says why.
+    The NPC behaviour context carries ``npc_area`` (the acting character's area)
+    and no ``self_area``, so ``{"target": "self"}`` compares None against an area
+    name and is permanently False. The authored entries must use the default.
     """
-    from engine import background_plans as _bp
-    from engine.background_simulation import BackgroundSimulation
+    catalog = pt.load()
+    for template_id in ("scout-and-report", "sleep-at-venue", "meal"):
+        for leaf in catalog[template_id].get("requirements") or []:
+            if leaf.get("type") == "in_area":
+                assert "target" not in leaf or leaf["target"] == "npc", (
+                    f"{template_id} uses an in_area target no context sets")
 
-    app = _app()
-    world = app.world
-    vekka = _bg_player(world, "Vekka", "Chief's Pit")
-    zikka = _bg_player(world, "Zikka", "Chief's Pit")
-    sim = BackgroundSimulation(world)
-    pursuit = {
-        "assignment_id": "pursuit_vekka_report_probe",
-        "template_id": "report_probe",
-        "label": "report_probe",
-        "reason": "the chief wants the ridge looked at",
-        "bindings": {},
-        "step_index": 0,
-        "report_text": "human tracks head west along the road",
-        "report_condition": {"checkable": True,
-                             "requires_character_id": "player_Zikka"},
-        "progress": {"report_delivered": {"status": "pending",
-                                          "to_character_id": "player_Zikka"}},
-    }
-    vekka.active_pursuit = dict(pursuit)
-    plan = {"label": "report_probe",
-            "assignment_id": "pursuit_vekka_report_probe"}
-
-    delivered = _bp._deliver_report(sim, vekka, plan)
-
-    assert delivered is True
-    receipt = vekka.active_pursuit["progress"]["report_delivered"]
-    assert receipt["status"] == "done" and receipt.get("done_tick") is not None
-    texts = [str(m.get("text", "")) for m in getattr(zikka, "memories", [])]
-    assert any("Vekka reports:" in t and
-               "human tracks head west along the road" in t for t in texts), \
-        f"the recipient holds no report: {texts}"
-    assert any(e.get("why") == "pursuit:report_probe:report:delivered"
-               for e in vekka.lived_log)
-    # Idempotent: a second call cannot re-deliver or re-write the memory.
-    before = len(zikka.memories)
-    assert _bp._deliver_report(sim, vekka, plan) is False
-    assert len(zikka.memories) == before
-
-    # Recipient elsewhere: no false delivery, an honest undelivered trace,
-    # and the receipt stays pending.
-    world.set_player_area("Zikka", "Eldenford")
-    vekka.memories.clear()
-    vekka.lived_log.clear()
-    vekka.active_pursuit = dict(pursuit,
-                                progress={"report_delivered":
-                                          {"status": "pending"}})
-    delivered = _bp._deliver_report(sim, vekka, plan)
-    assert delivered is False
-    assert vekka.active_pursuit["progress"]["report_delivered"]["status"] \
-        == "pending"
-    assert any(e.get("why") == "pursuit:report_probe:report:undelivered"
-               for e in vekka.lived_log)
-
-
-def _write_report_probe(app):
-    """A scratch template for the hook test: one bounded wait step, plus one
-    template-declared progress check read through the shared leaf."""
-    import engine.pursuit_templates as pt_mod
-    from routes.library_ops import write_library_entry
-    write_library_entry(app, "pursuit_templates", "report_probe", {
-        "id": "report_probe", "version": 1,
-        "name": "Report probe",
-        "purpose": "prove the completion hook evaluates progress and reports",
-        "parameters": {},
-        "steps": [{"kind": "wait", "activity": "waiting",
-                   "duration_minutes": 2}],
-        "progress": [
-            {"id": "at-camp", "check":
-             {"type": "met_character", "character": "player_Zikka"}},
-        ],
-    })
-    pt_mod.reload(app.config["DATA_DIR"])
-
-
-def test_the_completion_hook_runs_progress_and_reports_once():
-    """Through real ticks: progress flips, the report lands, nothing re-runs."""
-    import engine.pursuit_templates as pt_mod
-    from engine.background_simulation import BackgroundSimulation
-    from engine.background_plans import maybe_assign
-
-    app = _app()
-    world = app.world
-    world.time_per_tick_minutes = 1
-    _write_report_probe(app)
-    try:
-        vekka = _bg_player(world, "Vekka", "Blizzard Forest Clearing")
-        zikka = _bg_player(world, "Zikka", "Blizzard Forest Clearing")
-        vekka.active_pursuit = {
-            "assignment_id": "pursuit_report_probe_hook",
-            "template_id": "report_probe",
-            "label": "report_probe_hook",
-            "reason": "probe the hook",
-            "bindings": {},
-            "step_index": 0,
-            "report_text": "the ridge is clear",
-            "report_condition": {"checkable": True,
-                                 "requires_character_id": "player_Zikka"},
-            "progress": {"report_delivered": {"status": "pending"}},
-        }
-        sim = BackgroundSimulation(world)
-        assert maybe_assign(sim, vekka) is True
-        for _ in range(8):
-            world.tick_turn()
-            if vekka.plan is None:
-                break
-        assert vekka.plan is None, "the approach never completed"
-        # Terminal semantics: the finished assignment does not dangle on the
-        # character. The durable record of delivery is the trace plus the
-        # recipient's memory, asserted below.
-        assert vekka.active_pursuit is None, \
-            "a finished pursuit stayed mounted"
-
-        texts = [str(m.get("text", "")) for m in getattr(zikka, "memories", [])]
-        assert any("the ridge is clear" in t for t in texts), \
-            f"the recipient holds no report: {texts}"
-        delivered = [e for e in vekka.lived_log
-                     if e.get("why") == "pursuit:report_probe_hook:report:delivered"]
-        assert len(delivered) == 1, \
-            f"the report was not delivered exactly once: {len(delivered)}"
-
-        # Terminal pursuit: the guard holds it down on the next cycle, and a
-        # further tick produces no second delivery or second completion.
-        world.time_ticks += 1
-        assert maybe_assign(sim, vekka) is False
-        after = [e for e in vekka.lived_log
-                 if e.get("why") == "pursuit:report_probe_hook:report:delivered"]
-        assert len(after) == len(delivered)
-    finally:
-        from routes.library_ops import delete_library_entry
-        delete_library_entry(app, "pursuit_templates", "report_probe")
-        pt_mod.reload(app.config["DATA_DIR"])
-
-
-def test_progress_checks_flip_the_assignments_own_progress_dict():
-    """Template-declared progress leaves evaluate onto the saved assignment.
-
-    ``_check_progress`` is the runtime caller for the template's ``progress``
-    leaves: each pending id the assignment's own progress dict also carries is
-    evaluated through the shared leaf registry, and a satisfied one flips to
-    done with the tick. Nothing is invented for ids the assignment does not
-    carry, and a check that does not hold leaves the entry pending.
-    """
-    import engine.pursuit_templates as pt_mod
-    from engine import background_plans as _bp
-    from engine.background_simulation import BackgroundSimulation
-    from routes.library_ops import write_library_entry, delete_library_entry
-
-    app = _app()
-    world = app.world
-    write_library_entry(app, "pursuit_templates", "report_probe", {
-        "id": "report_probe", "version": 1,
-        "name": "Report probe",
-        "purpose": "prove the completion hook evaluates progress and reports",
-        "parameters": {},
-        "steps": [{"kind": "wait", "activity": "waiting",
-                   "duration_minutes": 2}],
-        "progress": [
-            {"id": "at-camp", "check":
-             {"type": "met_character", "character": "player_Zikka"}},
-        ],
-    })
-    pt_mod.reload(app.config["DATA_DIR"])
-    try:
-        vekka = _bg_player(world, "Vekka", "Blizzard Forest Clearing")
-        _bg_player(world, "Zikka", "Blizzard Forest Clearing")
-        vekka.active_pursuit = {
-            "assignment_id": "pursuit_progress_probe",
-            "template_id": "report_probe",
-            "label": "progress_probe",
-            "reason": "probe the check",
-            "bindings": {},
-            "step_index": 0,
-            "progress": {"at-camp": {"status": "pending"}},
-        }
-        sim = BackgroundSimulation(world)
-        plan = {"label": "progress_probe",
-                "assignment_id": "pursuit_progress_probe"}
-
-        flipped = _bp._check_progress(sim, vekka, plan)
-
-        assert flipped == ["at-camp"], f"the check did not flip: {flipped}"
-        rec = vekka.active_pursuit["progress"]["at-camp"]
-        assert rec["status"] == "done" and rec.get("done_tick") is not None
-        assert any(e.get("why") ==
-                   "pursuit:progress_probe:progress:at-camp"
-                   for e in vekka.lived_log)
-        # Idempotent, and nothing is invented for an id the assignment lacks.
-        again = _bp._check_progress(sim, vekka, plan)
-        assert again == []
-        assert list(vekka.active_pursuit["progress"]) == ["at-camp"]
-    finally:
-        delete_library_entry(app, "pursuit_templates", "report_probe")
-        pt_mod.reload(app.config["DATA_DIR"])
-
-
-# ─────────────────────── the timing gate on the resume path ─────────────────
-
-def _write_timed_probe(app, **timing):
-    """Write one scratch template whose step is a bounded wait, so the gate
-    test needs no connectivity and the approach completes in a few ticks.
-
-    The suite's registry tests already write and delete entries through the
-    editor route, so this follows that established pattern: upsert through
-    ``write_library_entry``, reload the engine catalog (the load-time validator
-    is the only gate an entry passes), and delete in the caller's finally.
-    """
-    import engine.pursuit_templates as pt_mod
-    from routes.library_ops import write_library_entry
-    write_library_entry(app, "pursuit_templates", "timed_probe", {
-        "id": "timed_probe", "version": 1,
-        "name": "Timed probe",
-        "purpose": "prove the resume path consults the window",
-        "parameters": {},
-        "timing": dict(timing),
-        "steps": [{"kind": "wait", "activity": "waiting",
-                   "duration_minutes": 2}],
-    })
-    pt_mod.reload(app.config["DATA_DIR"])
-
-
-def test_the_resume_path_waits_for_the_window_then_starts():
-    """A closed window holds the start; opening it releases the pursuit.
-
-    The branch under test is the gate in ``maybe_assign``: the template's
-    ``timing`` block is read from the world's own clock, the plan is never
-    built, and the assignment itself survives the wait unchanged.
-    """
-    import engine.pursuit_templates as pt_mod
-    from engine.background_simulation import BackgroundSimulation
-    from engine.background_plans import maybe_assign
-
-    app = _app()
-    app.world.time_per_tick_minutes = 1
-    app.world.clock_start_hour = 8
-    world = app.world
-    _write_timed_probe(app, hours={"after": "10:00", "before": "12:00"})
-    try:
-        p = _bg_player(world, "Timed Worker", "Blizzard Forest Clearing")
-        pursuit = {
-            "assignment_id": "pursuit_timed_probe",
-            "template_id": "timed_probe",
-            "label": "timed_probe",
-            "reason": "the window should decide when this starts",
-            "bindings": {},
-            "step_index": 0,
-        }
-        p.active_pursuit = dict(pursuit)
-        sim = BackgroundSimulation(world)
-
-        # 08:00 is outside [10:00, 12:00): the gate holds the start.
-        _started = maybe_assign(sim, p)
-        assert _started is False, \
-            "the template started with the window closed"
-        assert p.plan is None
-        assert p.active_pursuit == pursuit, \
-            "the assignment was clobbered while waiting"
-
-        # 10:00: the branch runs again and this time releases it.
-        world.clock_start_hour = 10
-        assert maybe_assign(sim, p) is True, \
-            "inside the window the template still did not start"
-        assert p.plan is not None
-        assert p.plan["pursuit_template"] == "timed_probe"
-        assert p.plan["steps"][0]["kind"] == "wait"
-    finally:
-        from routes.library_ops import delete_library_entry
-        delete_library_entry(app, "pursuit_templates", "timed_probe")
-        pt_mod.reload(app.config["DATA_DIR"])
-
-
-def test_a_mid_run_approach_is_not_stopped_by_a_closing_window():
-    """The gate is a start gate: a running approach ignores the clock entirely.
-
-    ``maybe_assign`` returns False before the timing check when a plan is
-    already in hand, so dusk arriving mid-approach never tears the approach
-    down; the executor keeps walking it to completion.
-    """
-    import engine.pursuit_templates as pt_mod
-    from engine.background_simulation import BackgroundSimulation
-    from engine import background_plans as _plans
-
-    app = _app()
-    app.world.time_per_tick_minutes = 1
-    app.world.clock_start_hour = 11
-    world = app.world
-    _write_timed_probe(app, hours={"after": "10:00", "before": "12:00"})
-    try:
-        p = _bg_player(world, "Timed Runner", "Blizzard Forest Clearing")
-        p.active_pursuit = {
-            "assignment_id": "pursuit_timed_probe",
-            "template_id": "timed_probe",
-            "label": "timed_probe",
-            "reason": "already running",
-            "bindings": {},
-            "step_index": 0,
-        }
-        sim = BackgroundSimulation(world)
-        started = _plans.maybe_assign(sim, p)
-        assert started is True, \
-            "11:00 is inside the window: the gate refused a timely pursuit"
-        assert p.plan is not None
-
-        # The window closes underneath the running approach: the clock is
-        # forced to 03:00 and the approach still runs to done.
-        world.clock_start_hour = 3
-        for _ in range(6):
-            world.tick_turn()
-            if p.plan is None:
-                break
-        assert "plan:timed_probe:done" in (
-            e.get("why") for e in p.lived_log), \
-            "a running approach was stopped by the closed window"
-    finally:
-        from routes.library_ops import delete_library_entry
-        delete_library_entry(app, "pursuit_templates", "timed_probe")
-        pt_mod.reload(app.config["DATA_DIR"])
-
-
-# ─────────────────── opposed crossings: stall, do not fail ─────────────────
-
-def test_a_refused_crossing_stalls_the_plan_instead_of_failing_it():
-    """One refused hop is the traversal retry queue's business, not the plan's.
-
-    A failed hazard roll ("the forest turns you back") used to return
-    ``"failed"`` from ``_run``, which ended the whole assignment on the first
-    bad roll. The retry machinery (``traversal.note_refusal`` plus the
-    re-route on the next action) is exactly what should answer it, so a
-    refused action now stalls the plan and leaves the assignment mounted.
-    """
-    from engine.background_plans import advance
-
-    class _FakeGS:
-        time_ticks = 1234
-
-        def total_game_minutes(self):
-            return 1234.0
-
-    class StallSim:
-        """Minimal sim: every travel attempt is refused, nothing more."""
-        gs = _FakeGS()
-
-        def _travel_to_area(self, p, area_name, reason):
-            return False
-
-        def _travel_toward(self, p, tags, reason):
-            return False
-
-    sim = StallSim()
-    vekka = type("P", (), {})()
-    vekka.lived_log = []
-    vekka.current_area = "Water Source"
-    vekka.active_pursuit = {"assignment_id": "pursuit_stall_probe",
-                            "label": "stall_probe", "step_index": 0,
-                            "status": "active",
-                            "progress": {"report_delivered": {"status": "pending"}}}
-    plan = {"label": "stall_probe", "assignment_id": "pursuit_stall_probe",
-            "pursuit_template": "scout-and-report", "index": 0,
-            "steps": [{"kind": "travel", "area": "Human Road"}]}
-    vekka.plan = plan
-
-    outcome = advance(sim, vekka)
-
-    assert outcome is None, f"a refused hop ended the plan: {outcome!r}"
-    assert vekka.plan is not None, "the plan was torn down on the first refusal"
-    assert vekka.plan.get("_stall") == 1, \
-        f"the refusal was not counted: {vekka.plan.get('_stall')!r}"
-    assert vekka.active_pursuit is not None and \
-        vekka.active_pursuit["status"] == "active", \
-        "the assignment was unmounted by one refused crossing"
-
-
-def test_a_stalled_plan_fails_only_after_the_retry_window():
-    """N refusals are retried; _STALL_ACTIONS consecutive ones fail the plan.
-
-    The limit is the anti-livelock guard: one avoid window is 30 game
-    minutes (6 travel actions), so slightly over one window of standing at
-    a wall means the approach has genuinely no route and admits it.
-    """
-    from engine.background_plans import advance, _STALL_ACTIONS
-
-    class _FakeGS:
-        time_ticks = 1234
-
-        def total_game_minutes(self):
-            return 1234.0
-
-    class StallSim:
-        gs = _FakeGS()
-
-        def _travel_to_area(self, p, area_name, reason):
-            return False
-
-        def _travel_toward(self, p, tags, reason):
-            return False
-
-    sim = StallSim()
-    vekka = type("P", (), {})()
-    vekka.lived_log = []
-    vekka.completed_pursuits = []
-    vekka.current_area = "Water Source"
-
-    vekka.active_pursuit = {"assignment_id": "pursuit_stall_probe",
-                            "label": "stall_probe", "step_index": 0,
-                            "status": "active",
-                            "progress": {"report_delivered": {"status": "pending"}}}
-    plan = {"label": "stall_probe", "assignment_id": "pursuit_stall_probe",
-            "pursuit_template": "scout-and-report", "index": 0,
-            "steps": [{"kind": "travel", "area": "Human Road"}]}
-    vekka.plan = plan
-
-    for _ in range(_STALL_ACTIONS - 1):
-        assert advance(sim, vekka) is None
-        assert vekka.plan is not None, "the plan died before the retry window"
-
-    outcome = advance(sim, vekka)
-
-    assert outcome is None, "the failure is surfaced through the finish path"
-    assert vekka.plan is None, "the stalled plan was never torn down"
-    assert vekka.active_pursuit is None, "the pursuit stayed mounted"
-    assert "pursuit_stall_probe" in vekka.completed_pursuits, \
-        "the terminal record was not written"
-    whys = {e.get("why") for e in vekka.lived_log}
-    assert "plan:stall_probe:failed" in whys and \
-        "pursuit:stall_probe:failed" in whys, f"the loud trace is missing: {whys}"

@@ -1,10 +1,10 @@
 "use strict";
 /**
- * turn-feed.js — "What happened" feed + since-your-turn digest for the
+ * turn-feed.js  -  "What happened" feed + since-your-turn digest for the
  *
- * @module agent/turn-feed — the human panel's feed and turn digest
+ * @module agent/turn-feed  -  the human panel's feed and turn digest
  * @contributes a viewer-scoped ring buffer of log rows, digest rendering, and audio propagation
- * @powers Event stream, The human turn — the "since your turn" summary: your own rows, your room, and speech that carries
+ * @powers Event stream, The human turn  -  the "since your turn" summary: your own rows, your room, and speech that carries
  * @relates subscribes to event-stream's log bus; rendered by human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  * human turn panel (task-333 full redesign; digest = task-334 lane 2).
@@ -40,13 +40,13 @@ const TurnFeedModule = (() => {
             // This ring backs the human panel's "What happened" feed and its
             // turn digest, so it holds TURN rows only. It subscribes to the
             // whole app log, which is also where save/load, library, graph and
-            // loadout operations report themselves — "scenario saved" is
+            // loadout operations report themselves  -  "scenario saved" is
             // console output, not something that happened in the fiction.
             // Filtering here rather than in isObserverVisible closes the whole
             // class: parseEntry re-labels a system row as an action whenever
             // _tryParsePrefixedName matches, so any saved/loaded line that
             // happened to read "<Name> <verb>" surfaced as your turn's action.
-            // The one system row that IS a turn row — an NPC doing nothing —
+            // The one system row that IS a turn row  -  an NPC doing nothing  - 
             // stays.
             const className = (data && data.className) || '';
             if ((className === 'system-msg' || className === 'agent-msg')
@@ -445,7 +445,7 @@ const TurnFeedModule = (() => {
         if (playerBits)
             parts.push('You ' + playerBits);
         const text = parts.join('. ') + (parts.length ? '.' : '');
-        return text.length > 220 ? text.slice(0, 217) + '...' : text;
+        return text.length > 220 ? text + '...' : text;
     }
     /* ── rendering ─────────────────────────────────────────────────── */
     function ensureFeedStyles() {
@@ -494,7 +494,7 @@ const TurnFeedModule = (() => {
         if (!tail.length) {
             const empty = document.createElement('div');
             empty.className = 'tfd-line tfd-empty';
-            empty.textContent = 'nothing yet — the world is quiet.';
+            empty.textContent = 'nothing yet  -  the world is quiet.';
             host.appendChild(empty);
             return;
         }
@@ -532,7 +532,7 @@ const TurnFeedModule = (() => {
         if (!rawEntries.length) {
             const empty = document.createElement('div');
             empty.className = 'tfd-line tfd-empty';
-            empty.textContent = 'nothing observable yet — the world is quiet.';
+            empty.textContent = 'nothing observable yet  -  the world is quiet.';
             host.appendChild(empty);
             return;
         }
@@ -644,7 +644,7 @@ const TurnFeedModule = (() => {
         if (!tail.length) {
             const empty = document.createElement('div');
             empty.className = 'tfd-line tfd-empty';
-            empty.textContent = 'nothing yet — the world is quiet.';
+            empty.textContent = 'nothing yet  -  the world is quiet.';
             host.appendChild(empty);
             return;
         }
@@ -751,7 +751,7 @@ const TurnFeedModule = (() => {
         install();
         _digestMark = _seq;
     }
-    /** Entries logged since the last markTurnEnd() — the turn-start digest. */
+    /** Entries logged since the last markTurnEnd()  -  the turn-start digest. */
     function digest() {
         install();
         const ctx = _viewerContext();

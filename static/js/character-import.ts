@@ -1,20 +1,20 @@
-// Character file import — deterministic pre-parse + LLM convert (task-843).
+// Character file import  -  deterministic pre-parse + LLM convert (task-843).
 //
 // Any character data in, one ViWo Persona sheet out. The deterministic
 // layer pulls what is certain without a model (names, tag candidates,
 // dialogue lines, lorebook split); the LLM fills only the 828 schema,
 // and `PUT /record` validates its answer (fail closed, field named).
-// Pure core: no DOM, no network — the caller (Mind Persona tab) owns
+// Pure core: no DOM, no network  -  the caller (Mind Persona tab) owns
 // files, the model call, and the save. Unit-tested in
 // `tools/unit/test_character_import.js`.
 //
 // NOTE: the @module contract block lives directly below, ahead of the
-// first real statement — tsc drops comments attached to erased
+// first real statement  -  tsc drops comments attached to erased
 // `interface` declarations, so interfaces sit at the bottom of this
 // file (types resolve regardless of order).
 
 /**
- * @module character-import — card/prose → Persona-sheet pre-parse + prompt
+ * @module character-import  -  card/prose → Persona-sheet pre-parse + prompt
  * @contributes parseInputFile, buildConvertPrompt, extractJsonBlock, splitConvertAnswer
  * @powers inspector/mind-view Persona tab import button
  * @docs docs/virtualWorld/Characters/Persona.md
@@ -70,7 +70,7 @@ function _parseCard(raw: unknown, fileName: string, warnings: string[]): ImportP
     if (typeof data.name !== 'string' || !data.name.trim()) {
         // A JSON file without a card shape is prose that happens to parse:
         // treat the whole text as source rather than failing the author.
-        const source = String(JSON.stringify(raw)).slice(0, 20000);
+        const source = String(JSON.stringify(raw));
         warnings.push('no card fields found; reading as free prose');
         return {
             kind: 'prose', fileName, sourceText: source,
@@ -91,18 +91,18 @@ function _parseCard(raw: unknown, fileName: string, warnings: string[]): ImportP
     push('system prompt', data.system_prompt);
     const tags = Array.isArray(data.tags)
         ? (data.tags as unknown[]).map((t) => String(t).trim()).filter((t) => t) : [];
-    det.tagCandidates = tags.slice(0, 24);
-    const dialogues = _lines(data.mes_example).slice(0, 12);
+    det.tagCandidates = tags;
+    const dialogues = _lines(data.mes_example);
     det.dialogueCandidates = dialogues;
     if (dialogues.length) parts.push(`[example dialogue]\n${dialogues.join('\n')}`);
     const book = (data.character_book as Record<string, unknown> | undefined)?.entries;
     if (Array.isArray(book)) {
-        for (const entry of book.slice(0, 60)) {
+        for (const entry of book) {
             const e = (entry && typeof entry === 'object' ? entry : {}) as Record<string, unknown>;
             const content = String((e.content ?? e.text ?? '') as string).trim();
             if (!content) continue;
             const keys = Array.isArray(e.keys) ? (e.keys as unknown[]).map((k) => String(k)) : [];
-            det.lorebook.push({ name: keys.join('/') || 'lore', text: content.slice(0, 2000) });
+            det.lorebook.push({ name: keys.join('/') || 'lore', text: content });
         }
         // Lorebook entries are knowledge, not sheet fields: they ride
         // memories, so the sheet prompt names them but never inlines them.
@@ -110,7 +110,7 @@ function _parseCard(raw: unknown, fileName: string, warnings: string[]): ImportP
     }
     return {
         kind: 'card', fileName,
-        sourceText: parts.join('\n\n').slice(0, 24000),
+        sourceText: parts.join('\n\n'),
         deterministic: { ...det, name: String(data.name).trim() },
         warnings,
     };
@@ -145,7 +145,7 @@ function buildConvertPrompt(sourceText: string, schema: unknown): Array<{ role: 
         },
         {
             role: 'user',
-            content: `SCHEMA:\n${JSON.stringify(schema)}\n\nMATERIAL:\n${String(sourceText ?? '').slice(0, 24000)}`,
+            content: `SCHEMA:\n${JSON.stringify(schema)}\n\nMATERIAL:\n${String(sourceText ?? '')}`,
         },
     ];
 }

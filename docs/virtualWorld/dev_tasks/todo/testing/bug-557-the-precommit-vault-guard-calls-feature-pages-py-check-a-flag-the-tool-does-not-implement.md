@@ -49,3 +49,20 @@ N/A: this is a repository gate, not a world feature. Observable alternative: run
 - `tools/feature_pages.py`
 - `package.json (the precommit script)`
 - `AGENTS.md (the Vault guards table)`
+
+## Reconciliation (2026-10-20) - STILL_VALID, re-measured
+
+**Verdict: STILL_VALID.** Nothing newer has implemented `--check` or removed the step from `precommit`. The defect is exactly as the card describes it.
+
+**Re-measured 2026-10-20.**
+- `python tools/feature_pages.py --check` → `feature_pages.py: error: unrecognized arguments: --check`; exit 2. Unchanged.
+- `python tools/feature_pages.py --help` → `usage: feature_pages.py [-h] [--report]`. Still only `--report`.
+- `python tools/feature_pages.py --report` → exit 0, prints the row → deep-doc table (38 rows counted in the first page of output; the full report is longer).
+- `package.json:26` - the `precommit` script still chains `... && python tools/feature_pages.py --check && python tools/doc_tags.py --check && python tools/doc_connected.py --check`. Unchanged.
+- `AGENTS.md:752` - the Vault guards table still advertises `python tools/feature_pages.py --check` and `--scaffold`. Unchanged.
+
+**Newer work checked and found not to have touched it.** `git log --oneline -10 -- tools/feature_pages.py` returns only `aabbe84d`, `476734fa`, `8cba8f2f`, all older than the card's 2026-10-18 filing. No commit between then and 2026-10-20 adds the flag.
+
+**Counts.** `grep -c "feature_pages.py --check" package.json AGENTS.md` → 1 hit in `package.json:26`, 1 hit in `AGENTS.md:752`. Both still reference the flag the tool does not implement.
+
+**Cited facts.** All line numbers in the card (`api.ts:24`, `timeskip.py:243-245`, `package.json` chain, `AGENTS.md` table) were re-verified against the current tree and still hold. The card is accurate as written; left in `todo`.

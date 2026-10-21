@@ -8,7 +8,7 @@ tags: [system/world, surface/in-game, topic/authoring]
 A **way** is everything you can move through to get from one area to another: a
 door, an arch, a portal, an elevator, a ladder, a stairway, a forest path, a
 crack in a cliff face. If you want to go from A to B, you use a way. All
-traversal in VirtualWorld is a way — there are no direct area-to-area links.
+traversal in VirtualWorld is a way  -  there are no direct area-to-area links.
 
 On the graph a way is a node joined to the two areas it connects. Its node type
 is `way`.
@@ -20,7 +20,7 @@ For the exact property keys and which code reads each one, see
 
 A way carries two descriptive fields, and they do different jobs.
 
-- **`name`** is what *you*, the author, call it — "stairway", "ladder", "crack
+- **`name`** is what *you*, the author, call it  -  "stairway", "ladder", "crack
   in the rock face". It exists so you can find it in the editor and the graph.
   It is also a label commands can match against (the matcher resolves names and
   aliases to the node's id), but it is not the way's identity: identity is the
@@ -29,7 +29,7 @@ A way carries two descriptive fields, and they do different jobs.
   they look at it, and what the room lists as the exit while the way is solid.
   A closed way reads as `[direction] <description> It is currently closed.` The
   glance text never leaks whether the shut door is merely shut, locked or
-  blocked — that is what examining it is for.
+  blocked  -  that is what examining it is for.
 
 The view *through* an open way is a separate field per side; see
 [Seeing to the other side](#seeing-to-the-other-side).
@@ -48,12 +48,12 @@ offers six states:
 | `broken` | see note | the way is ruined |
 | `hidden` | depends | not shown in the exit list until found |
 
-A state the engine does not recognise — or a missing one — is treated as
+A state the engine does not recognise  -  or a missing one  -  is treated as
 **`open`**. That default is deliberate (a typo should not wall off a room), but
 it means a typo in `current_state` fails *open*, not closed.
 
 > **`broken` is half-implemented.** It is a real state, and `open` / `close`
-> correctly refuse it (`You can't — it's broken`). But the *passage* check does
+> correctly refuse it (`You can't  -  it's broken`). But the *passage* check does
 > not test for `broken`, and the light/sound tables fold it to `open`, so a
 > broken way can still be walked through and passes light and sound as if it were
 > open. Until that is reconciled, use `blocked` for a way nobody should pass, and
@@ -76,7 +76,7 @@ one value for the light and sound tables (a `see_through` way is indexed as
 
 ### Blocked and locked are the author's distinction
 
-The engine gives you both states and the same result — no passage — but they
+The engine gives you both states and the same result  -  no passage  -  but they
 mean different things, and your players and agents will read the difference.
 
 - **`blocked`** is an *obstacle at the way*. A fallen tree, a thorn bush wedged
@@ -85,7 +85,7 @@ mean different things, and your players and agents will read the difference.
 - **`locked`** is a *lock*. A key, a code, a lever elsewhere, a spell. It opens
   when the right thing is applied to it.
 
-Neither is built into the engine as a rule — both are states you change with
+Neither is built into the engine as a rule  -  both are states you change with
 triggers. `unlock_way` changes a way from `locked` to `closed` (it does not open
 it; the door then auto-opens when walked through). To clear a block, put the
 removal action on the item that is the obstacle and have it set the state to
@@ -103,10 +103,10 @@ From where you stand, you can see the following paths:
   To the ice bridge, the Frozen Stream Crossing is visible beyond (trickling
     water and wind audible, cool). (you can go through it, approach it, dash,
     examine or close it)
-  [icy arch] is clear — ahead the Snowbound Hollow appears as a dim, sheltered
+  [icy arch] is clear  -  ahead the Snowbound Hollow appears as a dim, sheltered
     hollow beneath a lattice of icy branches. (you can go through it, approach
     it, dash, examine or close it)
-  [rocky slope] is open — Glancing back through the gap, you glimpse the
+  [rocky slope] is open  -  Glancing back through the gap, you glimpse the
     bowl-shaped clearing, the old stone well silent in the center. (you can go
     through it, approach it, dash, examine or close it)
 ```
@@ -126,20 +126,20 @@ Two details worth knowing:
 A hidden way simply is not in this list until it is found. Finding one is the
 `fumble_around` action: a Perception check (DC 12) rolled **with disadvantage**,
 and on success the way joins that character's `discovered_exits` and its state
-is set to `locked` — you find it shut, not open. A guiding cane (an item tagged
+is set to `locked`  -  you find it shut, not open. A guiding cane (an item tagged
 `sensory_aid`, e.g. a white cane) adds its `sensory_bonus`, default 2, to the
 roll: this is a *tactile* search, so the tool for feeling your way helps, and
 carrying two aids stacks. A character with the slasher trait sees hidden ways
 without searching.
 
-**A fumble costs 1 HP.** Disadvantage means the *lower* of two d20 comes up 1 —
-at least one die showing a 1, roughly a one-in-ten chance — and the character
+**A fumble costs 1 HP.** Disadvantage means the *lower* of two d20 comes up 1  - 
+at least one die showing a 1, roughly a one-in-ten chance  -  and the character
 bangs their shin on something in the dark for 1 non-lethal damage. It fires
 whether or not anything was hidden, and the action has already cost 2 time and 3
 energy. The whole search is skipped when the character can see in the dark or the
 area is lit (ambient light above 40); a blind character must always fumble.
 
-## What a character knows — and what they only think they know
+## What a character knows  -  and what they only think they know
 
 The room never tells a character the raw state of a solid way. It tells them what
 they have *discovered*. Learning happens by running into the thing: a refused
@@ -153,8 +153,8 @@ Player.known_way_aspects[(area, direction)] = {"locked", "blocked", "needs_force
 The three aspects that drive the display are `locked`, `blocked` and
 `needs_force`. On the next look, `scene_snapshot` resolves them per character and
 the exit carries `known_locked` / `known_blocked` / `needs_force_known`; the agent
-prompt renders those as `(it's locked — you'd need to unlock it first)` or
-`(you can force it open)`. Until a character has tried, none of it is shown — a
+prompt renders those as `(it's locked  -  you'd need to unlock it first)` or
+`(you can force it open)`. Until a character has tried, none of it is shown  -  a
 shut door reads as a shut door to everyone. Knowledge is per-character, and the
 way's true state is never leaked.
 
@@ -170,13 +170,13 @@ area's description. The line depends on how you crossed:
 | `climb` | `You climb through the {direction}.` |
 | `jump` | `You leap across the {direction}.` |
 
-The destination is then appended (` — you're in {Area}.`), so the character
+The destination is then appended (`  -  you're in {Area}.`), so the character
 always knows where they landed.
 
 To write your own, set **`pass_message`** on the way. It replaces the first part
 only, so `"You slip between the sharp, jagged rocks of the cave opening and
 enter"` reads as `You slip between the sharp, jagged rocks of the cave opening
-and enter — you're in Frozen Stream Crossing.`
+and enter  -  you're in Frozen Stream Crossing.`
 
 The WorldPainter sets a `pass_message` per painted **kind**, so a path does not
 read like a door:
@@ -194,20 +194,20 @@ Only a cell the author painted as a `door` says "door".
 ## Behaviours that change how a way works
 
 These are the options in the way's inspector, mostly under Behaviour. Each is
-independent — any combination is valid.
+independent  -  any combination is valid.
 
-- **`one_way`** — a character can cross but not come back. The reverse traverse
+- **`one_way`**  -  a character can cross but not come back. The reverse traverse
   is refused. Use it for an opening that crumbles behind you, a chute, a
   one-way portal.
-- **`see_through`** — the way does not let you through, but it does not stop
+- **`see_through`**  -  the way does not let you through, but it does not stop
   sight or light either. A window, a glass door, a portcullis, a fence. It is
   independent of `current_state`, so `closed` + `see_through` is a shut window
   and `open` + `see_through` is a glass door held open.
-- **`auto_close`** — the way closes behind whoever passes through (and fires its
+- **`auto_close`**  -  the way closes behind whoever passes through (and fires its
   `on_close` triggers). An automatic door, a trap that seals, a sci-fi iris.
-- **`needs_open`** — the way is shut and opening it takes a roll:
+- **`needs_open`**  -  the way is shut and opening it takes a roll:
   `{ enabled, skill, dc }` (skill defaults to Athletics; the engine's DC fallback
-  is 10, but the inspector's checkbox saves 15 by default — see below). On
+  is 10, but the inspector's checkbox saves 15 by default  -  see below). On
   success it opens itself and fires `on_open`. This is the inspector's
   **"🔒 Needs skill check to open"** checkbox, and the jammed door you *can*
   force, dice permitting.
@@ -216,49 +216,49 @@ independent — any combination is valid.
   `needs_open` gates **getting a closed way open** (Athletics, DC 10 by default);
   `requires: climb` / `requires: jump` roll against `{requires}_dc`
   (**default 12**) to get *across* a way. A way can have either, both, or neither.
-- **`prevent_close`** — nobody can close it. A road, a cave mouth, an archway,
+- **`prevent_close`**  -  nobody can close it. A road, a cave mouth, an archway,
   a trail. Use it so characters and agents stop attempting an impossible action.
   A way authored with `requires: crawl` / `climb` / `jump` is uncloseable anyway,
   without needing this.
-- **`requires: jump`** — the way can only be crossed with the **`jump`**
+- **`requires: jump`**  -  the way can only be crossed with the **`jump`**
   command; `go` is refused (`You need to jump through the {direction}.`). The
   character rolls Athletics against `jump_dc` (default 12). On failure the way's
-  **`on_fail_jump`** trigger fires — fall damage, a teleport into a spike pit,
+  **`on_fail_jump`** trigger fires  -  fall damage, a teleport into a spike pit,
   whatever you author. Nothing is hardcoded: no trigger, no consequence.
-- **`requires: climb`** — as above with the **`climb`** command and
+- **`requires: climb`**  -  as above with the **`climb`** command and
   **`on_fail_climb`**, against `climb_dc` (default 12). For cliffs, ladders,
   shafts.
 
 `go`, `crawl`, `climb` and `jump` are all movement commands. A way with
 `requires: jump` *demands* `jump`; a way with no requirement still accepts
-`jump` or `climb` as flavour — `jump across the gap` works either way, and reads
+`jump` or `climb` as flavour  -  `jump across the gap` works either way, and reads
 as `You leap across the gap.`
-- **`max_size`** — the largest body that passes. Tiers are `tiny`, `small`,
+- **`max_size`**  -  the largest body that passes. Tiers are `tiny`, `small`,
   `normal`, `huge`, `giant`, `titanic`; empty or `none` means no limit. One tier
   over and the character **crawls** through; two or more tiers over and they do
   not fit. So a `tiny` mouse hole stops the frost giant but a normal person
-  drops to hands and knees and follows — and a character carrying half their
+  drops to hands and knees and follows  -  and a character carrying half their
   capacity or more counts as one tier larger (task-202), which is how a loaded
   character gets locked out of a gap they walked through empty.
-- **`sound_barrier`** — a per-way multiplier on how much sound crosses, applied
+- **`sound_barrier`**  -  a per-way multiplier on how much sound crosses, applied
   while the way is solid. Blank means the engine default for its state.
-- **`insulation`** — a multiplier on heat transfer across the way, default 1.0.
+- **`insulation`**  -  a multiplier on heat transfer across the way, default 1.0.
   A thick curtain or a shut door is how a cold room stays cold.
-- **`cost`** — the traversal drain, authored as `{"energy": N}`. It is passed to
+- **`cost`**  -  the traversal drain, authored as `{"energy": N}`. It is passed to
   the action system on every crossing, and ghosts and the dead are exempt. `time`
   is a legacy key with no effect (the clock advances once per turn for everyone,
   never per action), and the energy drain itself belongs to the still-planned
   stateful-action cost system. Encumbrance and deep snow add energy on top.
-- **`requires_item`** — the way needs gear to cross: a name or id (`bike`), or a
+- **`requires_item`**  -  the way needs gear to cross: a name or id (`bike`), or a
   tag gate (`tag:rope`). Comma-separate several. The agent is told the
   requirement rather than left to fail silently (` (needs: the rope)`).
-  **Engine-only** — it is not on the way inspector, so it is authored in JSON,
+  **Engine-only**  -  it is not on the way inspector, so it is authored in JSON,
   in the library, or by the compiler.
-- **`refusal_message`** — a themed line shown *instead of* letting you through,
+- **`refusal_message`**  -  a themed line shown *instead of* letting you through,
   and it holds until the way is actually `open`. It is checked before the state
   machine, so a themed refusal replaces the generic `the door is locked` without
   every closed way in the game needing to be re-authored. `blocked_description`
-  falls back to it. **Engine-only** — not on the inspector.
+  falls back to it. **Engine-only**  -  not on the inspector.
 
 ## Putting a way into the world
 
@@ -272,7 +272,7 @@ Three routes, all equivalent in the end:
    work from.
 
 Once it exists, the inspector's **Reconnect Ways** tool re-wires a way to
-different areas — pick the two areas and reconnect — which is the fix when a
+different areas  -  pick the two areas and reconnect  -  which is the fix when a
 way points at the wrong place. The **library sync** tools at the bottom of the
 inspector (common to every node type) push the way back to the library or pull
 the library version down.
@@ -281,14 +281,14 @@ the library version down.
 
 A way's **direction** is what a character types and what the room lists. It can
 be anything: `north`, `up the ladder`, `enter the house`, `kitchen door`. The
-command is `go` — `go north`, `go up the ladder`, `go kitchen door`. The same
+command is `go`  -  `go north`, `go up the ladder`, `go kitchen door`. The same
 direction string works from either side, so a door named "kitchen door" can be
 crossed by that name from the dining room *or* from the kitchen.
 
 You do not have to match the direction exactly. `resolve_exit` tries, in order:
 
 1. exact handle;
-2. relative facing — `left` / `right` / `forward` / `back`, resolved against the
+2. relative facing  -  `left` / `right` / `forward` / `back`, resolved against the
    character's heading into a cardinal (these *alias* this area's directions,
    they do not replace them, so the room keeps the name of the way you can see);
 3. a cardinal;
@@ -307,11 +307,36 @@ compass layout and relative facing (left / right / forward / back). The
 inspector shows a cardinal button pad; clicking one sets that side's cardinal
 and the UI offers the opposite cardinal for the other side, so a two-way door is
 laid out once rather than twice. You can have both a narrative direction *and* a
-cardinal — the compass works even when the typed direction is prose.
+cardinal  -  the compass works even when the typed direction is prose.
+
+**A stairway is not a heading.** `up` and `down` are cardinals too, but they
+are not on the compass dial and they are not rotated: a character who climbs a
+ladder does not end up facing north, so "up" stays literal. They get their own
+two buttons beside the dial rather than two more points on the circle, because
+a vertical move is a different axis from a bearing, not a ninth direction.
+The map layout draws them two rows apart (`up` and `down` offset the area
+vertically by two), so a cellar reads as below its hall on the map.
+
+**Where a cardinal shows up.** Two surfaces display one, and they use the same
+glyph: the area inspector's exit badge (a compass icon and the glyph, e.g.
+`🧭 ⤓D` for a way that goes down) and the graph's Cardinal overlay, which
+labels each way in the map view. One map of cardinal-to-glyph lives in
+`WayAuthoring`, so the two cannot drift apart.
+
+A cardinal belongs to the way's *connection edge* (the area-to-way edge), not
+to the way node - a way can point two different ways from its two sides. The
+engine falls back to the edge's `direction` when the edge has no `cardinal` of
+its own, and so does the overlay, so a way whose exit is authored as plain
+`north` still reads as north. A way with neither keeps a `?`, which is the
+honest answer and is what the World Issues validator's `way_missing_cardinal`
+check reports.
+
+A scope gateway is not a heading either: it is authored with `in` and `out`
+rather than a direction, and gets its own glyphs.
 
 A way that reads better as an instruction than as a bearing can carry an
 **`entry_phrase`**: the room then lists it as `You could go down the tunnel.`
-rather than as another compass exit. It is a **display phrasing only** — the
+rather than as another compass exit. It is a **display phrasing only**  -  the
 way's `direction` and `aliases` still do the matching, so `go in` and `enter the
 tavern` both resolve. A scope gateway sets it (`You enter the tavern.`) while
 keeping its `direction` (`enter`), which is why the phrase exists rather than
@@ -320,18 +345,18 @@ being folded into the direction.
 ### Seeing to the other side
 
 What a character sees *through* a way is authored per side, on the connection
-from the area to the way — not once on the way itself. From the hall you might
+from the area to the way  -  not once on the way itself. From the hall you might
 write *"from the dungeon hall you can see rows of cells on the other side of the
 wooden door"*; from the cells, *"you see the hallway lit by torches until it
 reaches the stairs on the far end"*. That text is shown when the way is open, or
-at any time if it is `see_through` — which is how a closed window still shows
+at any time if it is `see_through`  -  which is how a closed window still shows
 you the garden. If you leave it blank, the engine may still generate a
 peek-through from the far room's light, noise and temperature; a `see_through`
 way suppresses that auto-text so your own line is what shows.
 
 ## Tags and aliases
 
-- **`tags`** are objective facts about the way — `tight space`, `natural`,
+- **`tags`** are objective facts about the way  -  `tight space`, `natural`,
   `stinky`, `secret`. They are how conditions, triggers and wandering NPCs query
   it (e.g. a `tight_space` tag feeding a claustrophobia condition). They do not
   affect traversal by themselves.
@@ -372,7 +397,7 @@ state:
 | `locked` | 1.0 | 10% |
 | `blocked` | 1.0 | 0% |
 | `hidden` | 2.0 | 0% |
-| (`broken`) | 0.5 | 100% — it folds to `open` |
+| (`broken`) | 0.5 | 100%  -  it folds to `open` |
 
 So an open door passes light fully and most sound; a shut door leaks a little
 light around the frame and muffles sound; a window (`see_through`) passes three
@@ -381,7 +406,7 @@ idea, scaled by `insulation`. Both tables are overridable live in Engine Config
 (`sound.way_*`, `light.way_*`).
 
 A window (or any `see_through` way) lights the far room to
-`max(own_light, neighbour_light × 0.5 × transmission)` — the spill is the
+`max(own_light, neighbour_light × 0.5 × transmission)`  -  the spill is the
 neighbour's light, halved (`light.spill_factor`, default 0.5) and scaled by the
 way's light transmission for its state or property (`open` 1.0, `see_through`
 0.75, `closed` 0.25, …). So a bright room behind a window makes a dark one at
@@ -392,8 +417,8 @@ least three-eighths as bright.
 - **Distance is chained areas, not way length.** Every `go` through a way costs
   one action, so a passage made of N segments takes N turns with no extra engine
   logic: `Tunnel Entrance → Inside Tunnel → Tunnel Exit`. Each midpoint is a real
-  area — its own description, environment, size tags, light spill and map
-  position — so keep them meaningful (landings, bends, rooms-within-tunnels)
+  area  -  its own description, environment, size tags, light spill and map
+  position  -  so keep them meaningful (landings, bends, rooms-within-tunnels)
   rather than every few metres.
 - **A way is one node shared by both sides.** `room1 → way` and `room2 → way`
   reach the same way with different direction labels, and its state is shared;
@@ -408,28 +433,28 @@ least three-eighths as bright.
 
 ## See also
 
-- [[Way Properties]] — every key a way can carry, its values, and which code
+- [[Way Properties]]  -  every key a way can carry, its values, and which code
   reads it.
-- [[Connections]] — the graph architecture (`area → way → area`), node
+- [[Connections]]  -  the graph architecture (`area → way → area`), node
   ids, unlocking via triggers, the inspector, and graph colours. **Partly
   stale:** it still calls the node type `door` and lists the older state set
   (with `see_through` as a state and `broken` in a colour table). Read it for the
   architecture, not for the state model.
-- [[Grid to Graph]] — how the WorldPainter compiles painted cells into ways, and
+- [[Grid to Graph]]  -  how the WorldPainter compiles painted cells into ways, and
   why a painted door arrives with a `pass_message` and `see_through` set.
-- [[Rooms & Areas]] — what is on the far side of a way.
-- [[Gameplay/Character Spatial Position]] — walking *at* a way versus through it,
+- [[Rooms & Areas]]  -  what is on the far side of a way.
+- [[Gameplay/Character Spatial Position]]  -  walking *at* a way versus through it,
   and how witnesses see it.
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[way-authoring|Way authoring]] (#51)
+**Features**  -  [[way-authoring|Way authoring]] (#51)
 
-**Dev tasks** — [[task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[dev_tasks/todo/world/bug-547-broken-way-state-is-half-implemented|bug]]
+**Dev tasks**  -  [[task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[dev_tasks/todo/world/bug-547-broken-way-state-is-half-implemented|bug]]
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
+**Neighbouring notes**  -  [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

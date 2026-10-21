@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @module commons-state — authorized conversation state and polling
+ * @module commons-state - authorized conversation state and polling
  * @contributes CommonsState: selected perspective, channels, messages, polling
  * @powers The Commons reactive data flow
  * @relates CommonsApi, CommonsUI
@@ -21,6 +21,12 @@
         static perspective = 'User';
         static selectedChannelId = 'public';
         static theme = 'live_social';
+        static knownCharacters = [];
+        static actingCharacter = null;
+        static lastActed = null;
+        static characterTurns = {};
+        static selectedDrawerCharacter = null;
+        static characterContextCache = {};
         static get isPaused() {
             return this.manualPaused || this.visibilityPaused;
         }
@@ -43,6 +49,7 @@
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
+                this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
                 if (!this.channels.some((channel) => channel.id === this.selectedChannelId)) {
                     this.selectedChannelId = this.channels[0]?.id || '';
                     this.messages = [];
@@ -96,21 +103,26 @@
                 this.manualPaused = paused;
             if (this.isPaused) {
                 window.CommonsAgent.pause();
-                this.stopPolling();
             }
             else {
                 window.CommonsAgent.resume();
-                this.startPolling();
+            }
+            if (this.visibilityPaused) {
+                this.stopPolling();
+            }
+            else if (!this.pollingTimer) {
+                this.startPolling(2500);
             }
             window.CommonsUI?.renderPauseState();
+            this.emit();
         }
         static startPolling(intervalMs = 2500) {
             this.stopPolling();
-            if (this.isPaused)
+            if (this.visibilityPaused)
                 return;
             void this.sync();
             this.pollingTimer = setInterval(() => {
-                if (!this.isPaused)
+                if (!this.visibilityPaused)
                     void this.sync();
             }, intervalMs);
         }
@@ -119,6 +131,26 @@
                 clearInterval(this.pollingTimer);
                 this.pollingTimer = null;
             }
+        }
+        static recordTurn(charName, turn) {
+            if (!this.characterTurns[charName])
+                this.characterTurns[charName] = [];
+            const record = { ...turn, timestamp: Date.now() };
+            this.characterTurns[charName].unshift(record);
+            if (this.characterTurns[charName].length > 25)
+                this.characterTurns[charName].pop();
+            this.lastActed = { charName, action: turn.action, summary: turn.summary, timestamp: Date.now() };
+            this.emit();
+        }
+        static openDrawer(charName) {
+            if (!charName || charName === 'User')
+                return;
+            this.selectedDrawerCharacter = charName;
+            this.emit();
+        }
+        static closeDrawer() {
+            this.selectedDrawerCharacter = null;
+            this.emit();
         }
     }
     window.CommonsState = CommonsState;

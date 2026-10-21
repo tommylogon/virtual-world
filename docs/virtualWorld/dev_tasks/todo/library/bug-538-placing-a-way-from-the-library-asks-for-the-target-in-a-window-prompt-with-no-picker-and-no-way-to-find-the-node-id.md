@@ -24,11 +24,42 @@ Placing a way from the library opens a browser window.prompt asking the author t
 
 ## Why
 
-**Overlap with task-751 — read this first.** The *native-popup* half is already ticketed: **task-751** (`review/ui`) replaces every native `alert`/`confirm`/`prompt` with the in-app `dialog.*` module (`static/js/shared/dialog.ts`, already built), and this site — `library-browser.ts`'s way import (`Connect FROM area name:` / `Connect TO area name:` prompts) — is one of its ~20 `prompt()` call sites. But task-751 only swaps the widget; it would still ask for a **typed name/id**. The distinct fault here is that a placement target needs a **picker**, not free text: the author cannot know the id. So this card survives task-751 as *"the way placement needs a target picker (a searchable list, or click-the-graph)"*, and its native-popup half is discharged by task-751.
+**Overlap with task-751 - read this first.** The *native-popup* half is already ticketed: **task-751** (`review/ui`) replaces every native `alert`/`confirm`/`prompt` with the in-app `dialog.*` module (`static/js/shared/dialog.ts`, already built), and this site - `library-browser.ts`'s way import (`Connect FROM area name:` / `Connect TO area name:` prompts) - is one of its ~20 `prompt()` call sites. But task-751 only swaps the widget; it would still ask for a **typed name/id**. The distinct fault here is that a placement target needs a **picker**, not free text: the author cannot know the id. So this card survives task-751 as *"the way placement needs a target picker (a searchable list, or click-the-graph)"*, and its native-popup half is discharged by task-751.
 
 ## How
 
-TODO
+The fix is to reuse the flow items already use, not to invent a second one.
+
+1. **Reuse the existing placement target picker.** Items are placed through
+   `openForRoom` in `static/js/item-library.ts` (and the Library Browser's
+   equivalent), which already presents a list of candidate areas in the current
+   scope and lets the author choose one. The way placement path should open the
+   same picker for its source and destination, rather than a free-text field.
+   The two endpoints are chosen the same way, so the author picks "the hall" and
+   "the yard" by what they are called.
+
+2. **Search on display name, resolve to node id at the point of use.** The
+   author's input is a name they can see; the id is an internal fact the picker
+   resolves. `engine/matching.py` already resolves names to ids for the
+   existing verbs, and the placement call should use the same resolution rather
+   than asking the author for the raw id.
+
+3. **Offer the graph as a second route.** Picking by clicking a node in the
+   graph view is the same action seen from a different surface. If the picker
+   is a modal, "pick from the graph" is a mode of that modal, not a separate
+   flow.
+
+4. **Keep the id path working for machine callers.** The typed-id form may
+   still be reachable programmatically (a script placing a way by id), but the
+   human-facing surface must not require it. That distinction matters because
+   an MCP edit or a test may legitimately have the id.
+
+5. **Cancel cleanly.** Closing the picker creates no edge and leaves the
+   library unchanged - the current prompt's cancel path already does this, and
+   the picker must match it.
+
+The `window.prompt()` widget itself is task-751's job, not this card's. This
+card's job is that the thing the widget asks for stops being free text.
 
 ## Steps to verify
 
@@ -81,8 +112,38 @@ This section is not a claim that planned UI exists or works today.
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] The way placement flow in the Library Browser offers a target picker
+      instead of a free-text prompt, for both the source and the destination
+      endpoint.
+- [ ] The picker lists areas in the current scope by their displayed names,
+      is searchable, and resolves the author's selection to a node id
+      internally.
+- [ ] The author can complete a way placement without knowing, discovering or
+      typing a single node id.
+- [ ] Cancelling the picker at either step creates no edge and leaves the
+      graph unchanged.
+- [ ] A placed way connects exactly the two selected areas, and the
+      connection survives a scenario reload.
+- [ ] The typed-id path still works for programmatic callers, but no human
+      surface requires it.
 
 ## Files
 
-- TODO
+- `static/js/library-browser.ts` - the way placement path whose
+  `Connect FROM area name:` / `Connect TO area name:` prompts are the reported
+  fault
+- `static/js/item-library.ts` - `openForRoom` and the item placement flow the
+  picker should reuse rather than duplicate
+- `static/js/shared/dialog.ts` - the in-app dialog module task-751 uses; it
+  replaces the widget but does not supply a picker, so this card's work sits
+  on top of it
+- `engine/matching.py` - the name-to-id resolution the picker should use
+
+## Reconciliation (2026-10-20)
+
+Verified current behavior:
+- static/js/library-browser.ts: way placement uses native prompts for targets; task-751 replaces native alert/confirm/prompt with in-app dialogs but does not add a target picker.
+- No picker implementation found for way placement in library flow; still requires typed node ids via prompt.
+- No newer done task addresses the picker requirement specifically.
+
+Verdict: **STILL_VALID**. Native prompts remain and no target picker exists. The popup replacement alone (task-751) does not satisfy the need to find/select targets without knowing node ids.

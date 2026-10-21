@@ -143,6 +143,21 @@ def get_relationship(player, other) -> Optional[dict]:
     return store.get(resolve_key(player, other))
 
 
+def rekey_relationship(player, old_key: str, new_key: str, new_name: str = "") -> bool:
+    """Re-key a relationship on ``player`` from ``old_key`` to ``new_key`` (task-619).
+
+    Preserves closeness, last interaction tick, interaction count and labels.
+    """
+    rels = getattr(player, "relationships", None)
+    if not isinstance(rels, dict) or old_key not in rels or old_key == new_key:
+        return False
+    record = rels.pop(old_key)
+    if isinstance(record, dict) and new_name:
+        record["name"] = new_name
+    rels[new_key] = record
+    return True
+
+
 def ensure_relationship(player, other_name: str, tick: int = 0,
                        label: str = "") -> tuple[dict, bool]:
     """The record for ``other_name``, created if absent. Returns (record, created).

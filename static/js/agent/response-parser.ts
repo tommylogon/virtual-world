@@ -1,5 +1,5 @@
 /**
- * response-parser.js — LLM response parsing for agent turns
+ * response-parser.js  -  LLM response parsing for agent turns
  *
  * Extracts structured fields (inner_monologue, action, speech, emote, memory)
  * from raw LLM text responses. Uses repairJSON() from shared/json-utils.js
@@ -7,9 +7,9 @@
  *
  * Load AFTER shared/json-utils.js, BEFORE agent-engine.js.
  *
- * @module agent/response-parser — LLM response parsing
+ * @module agent/response-parser  -  LLM response parsing
  * @contributes ResponseParser: extract inner_monologue/action/speech/emote/memory via repairJSON()
- * @powers LLM calls — turning messy model output into structured action fields
+ * @powers LLM calls  -  turning messy model output into structured action fields
  * @relates depends on shared/json-utils.js; used by agent-engine
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -88,7 +88,7 @@ interface ResponseParserWindowSurface {
             const emo = rec.emotions && typeof rec.emotions === 'object' ? rec.emotions as Record<string, unknown> : null;
             const emotions = emo ? {
                 who: String(emo.who || '').trim(),
-                why: String(emo.why || '').trim().slice(0, 200),
+                why: String(emo.why || '').trim(),
                 data: (emo.data && typeof emo.data === 'object') ? emo.data : {}
             } : null;
             return { text, importance: Number.isNaN(imp) ? 5 : Math.max(1, Math.min(10, imp)), tags, emotions };
@@ -121,13 +121,13 @@ interface ResponseParserWindowSurface {
         return raw.map((s: unknown) => String(s || '').trim()).filter(Boolean).slice(0, 5);
     }
 
-    /** Parse a reaction/decision response — returns full structured object with parseError on failure. */
+    /** Parse a reaction/decision response  -  returns full structured object with parseError on failure. */
     function parseReaction(r: unknown): ParsedReaction {
         if (!r) return { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const repair = (window as unknown as ResponseParserWindowSurface).repairJSON as (raw: string) => string;
             const c = repair(normalizeRawResponse(r));
-            // N1: an easy repair is still a truncated response — surface it so
+            // N1: an easy repair is still a truncated response  -  surface it so
             // the stream says "salvaged" instead of silently dropping fields.
             const repaired = !!(window as unknown as ResponseParserWindowSurface).__repairStats?.repaired;
             if ((window as unknown as ResponseParserWindowSurface).__repairStats) (window as unknown as ResponseParserWindowSurface).__repairStats.repaired = false;
@@ -142,7 +142,7 @@ interface ResponseParserWindowSurface {
                 memory: extractMemory(p.memory),
                 emotion: extractEmotion(p.emotion),
                 learnedNames: extractLearnedNames(p.learned_names),
-                parseError: repaired ? 'JSON repaired (truncated response) — fields after the break were lost' : null
+                parseError: repaired ? 'JSON repaired (truncated response)  -  fields after the break were lost' : null
             };
         } catch (e) {
             return {
@@ -152,7 +152,7 @@ interface ResponseParserWindowSurface {
         }
     }
 
-    /** Parse a result-reaction response — same shape as parseReaction, no action field. */
+    /** Parse a result-reaction response  -  same shape as parseReaction, no action field. */
     function parseResultReaction(r: unknown): ParsedReaction {
         if (!r) return { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {

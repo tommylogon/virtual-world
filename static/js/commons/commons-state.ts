@@ -1,5 +1,5 @@
 /**
- * @module commons-state — authorized conversation state and polling
+ * @module commons-state - authorized conversation state and polling
  * @contributes CommonsState: selected perspective, channels, messages, polling
  * @powers The Commons reactive data flow
  * @relates CommonsApi, CommonsUI
@@ -22,6 +22,18 @@
         static perspective = 'User';
         static selectedChannelId = 'public';
         static theme = 'live_social';
+        static knownCharacters: string[] = [];
+        static actingCharacter: string | null = null;
+        static lastActed: { charName: string; action: string; summary: string; timestamp: number } | null = null;
+        static characterTurns: Record<string, Array<{
+            inner: string;
+            action: string;
+            summary: string;
+            detail?: any;
+            timestamp: number;
+        }>> = {};
+        static selectedDrawerCharacter: string | null = null;
+        static characterContextCache: Record<string, any> = {};
 
         static get isPaused(): boolean {
             return this.manualPaused || this.visibilityPaused;
@@ -43,6 +55,7 @@
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
+                this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
                 if (!this.channels.some((channel: any) => channel.id === this.selectedChannelId)) {
                     this.selectedChannelId = this.channels[0]?.id || '';
                     this.messages = [];
@@ -96,20 +109,26 @@
 
             if (this.isPaused) {
                 (window as any).CommonsAgent.pause();
-                this.stopPolling();
             } else {
                 (window as any).CommonsAgent.resume();
-                this.startPolling();
             }
+
+            if (this.visibilityPaused) {
+                this.stopPolling();
+            } else if (!this.pollingTimer) {
+                this.startPolling(2500);
+            }
+
             (window as any).CommonsUI?.renderPauseState();
+            this.emit();
         }
 
         static startPolling(intervalMs: number = 2500) {
             this.stopPolling();
-            if (this.isPaused) return;
+            if (this.visibilityPaused) return;
             void this.sync();
             this.pollingTimer = setInterval(() => {
-                if (!this.isPaused) void this.sync();
+                if (!this.visibilityPaused) void this.sync();
             }, intervalMs);
         }
 
@@ -118,6 +137,26 @@
                 clearInterval(this.pollingTimer);
                 this.pollingTimer = null;
             }
+        }
+
+        static recordTurn(charName: string, turn: { inner: string; action: string; summary: string; detail?: any }) {
+            if (!this.characterTurns[charName]) this.characterTurns[charName] = [];
+            const record = { ...turn, timestamp: Date.now() };
+            this.characterTurns[charName].unshift(record);
+            if (this.characterTurns[charName].length > 25) this.characterTurns[charName].pop();
+            this.lastActed = { charName, action: turn.action, summary: turn.summary, timestamp: Date.now() };
+            this.emit();
+        }
+
+        static openDrawer(charName: string) {
+            if (!charName || charName === 'User') return;
+            this.selectedDrawerCharacter = charName;
+            this.emit();
+        }
+
+        static closeDrawer() {
+            this.selectedDrawerCharacter = null;
+            this.emit();
         }
     }
 

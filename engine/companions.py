@@ -40,37 +40,23 @@ def _owner_player(gs, owner_name: str):
 
 
 def _despawn_character(gs, key: str, player_obj) -> None:
-    """Remove a character from the roster and the graph, cleanly.
+    """Remove a character from the roster and the graph, cleanly (task-708).
 
-    There is no engine-level despawn API (nothing else needed one before
-    task-391), so this does the full teardown: both lookup maps, the anchor
-    node, and its ``in`` edge. A companion that lingers half-removed shows up
-    in every subsequent area description, so all four steps matter.
+    Delegates to player_manager.remove_player for the single authoritative teardown.
     """
     pm = getattr(gs, "player_manager", None)
-    if pm is not None:
-        players_by_id = getattr(pm, "_players_by_id", None)
-        if isinstance(players_by_id, dict):
-            players_by_id.pop(getattr(player_obj, "id", None), None)
-        players_by_node = getattr(pm, "_players_by_node_id", None)
-        node_id = None
-        if isinstance(players_by_node, dict):
-            node_id = players_by_node.pop(key, None)
-        if node_id is None and pm.get_player_node_id:
-            try:
-                node_id = pm.get_player_node_id(key)
-            except Exception:
-                node_id = None
-    else:
-        node_id = getattr(player_obj, "node_id", None)
+    if pm is not None and hasattr(pm, "remove_player"):
+        pm.remove_player(player_obj or key)
+        return
 
+    # Fallback if player_manager is absent
     players = getattr(gs, "players", None)
     if isinstance(players, dict):
         players.pop(key, None)
     if getattr(gs, "active_player", None) == key:
         gs.active_player = next(iter(players or {}), None)
-
-    if node_id:
+    node_id = getattr(player_obj, "node_id", None)
+    if node_id and hasattr(gs, "graph"):
         try:
             gs.graph.remove_edges_for_node(node_id, EDGE_IN)
             gs.graph.remove_node(node_id)

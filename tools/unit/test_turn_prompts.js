@@ -42,3 +42,8 @@ test('summaryLine on empty text is empty', () => {
     assertEq(promptBuilder479.summaryLine(null), '');
 });
 
+test('bug-517: room-context.ts does not call playerSpeak', () => {
+    const src = __readFile('static/js/agent/prompt-builder/room-context.ts');
+    assertEq(src.includes('playerSpeak'), false, 'room-context must not invoke playerSpeak');
+});
+

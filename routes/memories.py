@@ -62,7 +62,7 @@ def _is_reencounter(a, b, threshold=0.75):
 
 def _resolve_entity_ids(world, names):
     """Graph node ids for display names (exact, case-insensitive). Names that
-    resolve to nothing are dropped — an unresolved name never becomes a key."""
+    resolve to nothing are dropped  -  an unresolved name never becomes a key."""
     graph = getattr(world, "graph", None)
     nodes = getattr(graph, "nodes", None) or {}
     by_name = {}
@@ -148,7 +148,7 @@ def register_memories_routes(app):
             "salience_override": data.get("salience_override", data.get("salience", 0)),
             "source": data.get("source", "auto")
         }
-        # task-685: optional dynamics fields — client-provided values win,
+        # task-685: optional dynamics fields  -  client-provided values win,
         # ensure_dynamics fills only what is missing (old clients unaffected).
         for key in ("category", "confidence", "activation", "reflection_depth",
                     "source_memory_ids", "contradicts", "last_recalled_tick"):
@@ -179,7 +179,7 @@ def register_memories_routes(app):
                         existing["text"] = entry["text"]
                     return jsonify({"status": "success", "entry": existing, "deduped": True}), 200
 
-            # task-686: re-encounter reinforcement — the same thing happening
+            # task-686: re-encounter reinforcement  -  the same thing happening
             # again days later strengthens the original memory instead of
             # piling up near-identical episodes.
             for existing in player.memories:
@@ -211,7 +211,7 @@ def register_memories_routes(app):
                     if key in data:
                         entry[key] = data[key]
                 memory_dynamics.ensure_dynamics(entry)
-                # task-691: a contradicts link is a mutual relation — the
+                # task-691: a contradicts link is a mutual relation  -  the
                 # editor edits one side, so sync the other side here (idempotent).
                 if "contradicts" in data:
                     by_id = {m.get("id"): m for m in player.memories}
@@ -293,10 +293,10 @@ def register_memories_routes(app):
     def retrieve_player_memories(name):
         """Score and return the memories relevant to the current situation.
 
-        Retrieval 2.0 (task-690): one multi-signal scorer — keyword overlap,
+        Retrieval 2.0 (task-690): one multi-signal scorer  -  keyword overlap,
         entity-graph match, exponential recency, effective importance
         (task-685: availability × confidence modulate the base), and emotion
-        match — with suppressed/superseded entries excluded (parity with
+        match  -  with suppressed/superseded entries excluded (parity with
         ``Player.get_relevant_memories``). When ``structured`` is set, the
         same memories are also grouped as events / beliefs / social /
         expectations so the prompt can present a character model, not event
@@ -304,7 +304,7 @@ def register_memories_routes(app):
         guaranteed seat time in the top slots.
 
         Recalled memories are reinforced (task-686) unless ``reinforce`` is
-        false — Agent Lens previews must not mutate the character.
+        false  -  Agent Lens previews must not mutate the character.
         """
         player = app.world.players.get(name)
         if not player:
@@ -452,21 +452,21 @@ def register_memories_routes(app):
 
         Two payload shapes are accepted:
 
-        Legacy — ``{"insights": ["some sentence", ...]}``: stored as
+        Legacy  -  ``{"insights": ["some sentence", ...]}``: stored as
         type=reflection, importance=8 memories exactly as before.
 
-        Structured — ``{"insights": [{belief, about[], confidence, emotional,
+        Structured  -  ``{"insights": [{belief, about[], confidence, emotional,
         behavior, relationship{who, dim, delta}}], "source_memory_ids": [...],
         "force": bool}``: each belief is stored as a category=belief memory
         stamped ``reflection_depth: 1`` and the ids it was derived from; a
         ``behavior`` field becomes a category=procedural expectation memory;
         a ``relationship`` becomes ``rel:<name>`` + ``<dim>:<delta>`` tags,
         which is exactly what ``engine/derive.py`` folds into the per-person
-        profile — one writer, no second store.
+        profile  -  one writer, no second store.
 
         Depth guard: when every source memory already carries
         ``reflection_depth >= 1``, the insight is rejected with 409 unless
-        ``force`` — reflections of reflections is how an LLM ends up
+        ``force``  -  reflections of reflections is how an LLM ends up
         summarizing its own summaries.
         """
         player = app.world.players.get(name)
@@ -571,7 +571,7 @@ def register_memories_routes(app):
                 })
 
             # A relationship conclusion moves the derived per-person profile by
-            # writing rel:<name> + <dim>:<delta> tags — the exact convention
+            # writing rel:<name> + <dim>:<delta> tags  -  the exact convention
             # engine/derive.py reduces (task-350). Unresolved handles are
             # dropped, never guessed.
             relationship = insight.get("relationship")
@@ -612,8 +612,8 @@ def register_memories_routes(app):
         """Derived per-person profiles (task-691 stage 3).
 
         For everyone this character holds a ``rel:<name>`` memory about, run
-        engine/derive.py — the SAME reducer the prompt's relationship block
-        uses — and return the resulting dimensions. No new state: the numbers
+        engine/derive.py  -  the SAME reducer the prompt's relationship block
+        uses  -  and return the resulting dimensions. No new state: the numbers
         are computed from memories + the relationship seed on every read.
         """
         player = app.world.players.get(name)
@@ -661,15 +661,15 @@ def register_memories_routes(app):
         """Return KNOWN ROUTES FROM HERE block for a player.
 
         BFS from the player's current area through the real graph,
-        filtered to visited_areas only.
+        filtered to known areas only.
         """
         player = app.world.players.get(name)
         if not player:
             return jsonify({"error": "Player not found"}), 404
         current_area = getattr(player, 'current_area', None)
-        visited = getattr(player, 'visited_areas', set())
+        known = player.visited_area_names(app.world.graph) if hasattr(player, 'visited_area_names') else set()
         sm = SpatialMemory(app.world.graph)
-        block = sm.build_known_routes(current_area, visited)
+        block = sm.build_known_routes(current_area, known)
         return jsonify({"spatial": block})
 
     @app.route('/api/players/<name>/memories/suppress', methods=['POST'])

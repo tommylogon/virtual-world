@@ -25,8 +25,7 @@ only rule added on top is visibility, because a character in a dark room without
 darkvision is not observing its contents.
 
 This is the foundation task-425 needs: novelty/Entertainment reads
-``observation_tick`` per subject instead of the ``visited_areas`` /
-``discovered_items`` sets, and task-423 reuses the character observations.
+``observation_tick`` per subject, and task-423 reuses the character observations.
 
 ``observe_area`` reports each subject's **freshness** (task-425's novelty curve)
 and it is measured *before* the refresh. That is the whole reason it is reported

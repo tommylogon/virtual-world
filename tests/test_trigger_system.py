@@ -344,7 +344,7 @@ class TestConditions:
     def test_has_tag_target_uses_used_on_node(self, graph, trigger_system, sample_item):
         """has_tag with target='target' checks the used-on node (tree evaluator).
 
-        Value may be an array — any-of semantics — and works on non-player
+        Value may be an array  -  any-of semantics  -  and works on non-player
         nodes (ways/items), which is the keycard clearance use case.
         """
         from player import Player
@@ -1003,7 +1003,7 @@ class TestEffects:
                                  {"item_id": "everflame_ember"}, {},
                                  game_state=FakeGameState())
         # Expectations come FROM the library entry, so retuning the data
-        # doesn't stale the test — the contract is "spawn copies the library".
+        # doesn't stale the test  -  the contract is "spawn copies the library".
         lib_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                                  '..', 'data', 'library', 'items', 'everflame_ember.json')
         with open(lib_path, encoding='utf-8-sig') as f:
@@ -1048,7 +1048,7 @@ class TestEffects:
             assert trigger_node.type == "logic_trigger"
             assert "effects" in trigger_node.properties
 
-        # Seed a known uses count — the library entry is user-tuned data and
+        # Seed a known uses count  -  the library entry is user-tuned data and
         # may legitimately hold any value; this test verifies the burn-down.
         ember.properties["uses"] = 3
         trigger_system._execute_triggers(ember, "on_tick", game_state=game_state)
@@ -1113,6 +1113,47 @@ class TestEffects:
         )
         assert area_edge is not None
         assert area_edge.target == "area_test_area"
+
+    def test_despawn_character_effect(self, graph, logging_events):
+        """task-708: despawn_character removes a character from roster, lookup maps, and graph."""
+        from engine.player_manager import PlayerManager
+        from player import Player
+        effects = Effects(graph, logging_events)
+
+        class FakeGameState:
+            def __init__(self, graph):
+                self.graph = graph
+                self.player_manager = PlayerManager(graph)
+                self.players = self.player_manager.players
+                self.active_player = None
+
+        game_state = FakeGameState(graph)
+        area_node = Node(id="area_chamber", type="area", name="Chamber")
+        graph.add_node(area_node)
+
+        ghost = Player("Casper")
+        ghost.current_area = "Chamber"
+        game_state.player_manager.add_player(ghost)
+        assert "Casper" in game_state.player_manager.players
+        ghost_node_id = game_state.player_manager.get_player_node_id("Casper")
+        assert graph.get_node(ghost_node_id) is not None
+
+        # Execute despawn_character effect with custom message
+        result = effects.execute(
+            "despawn_character",
+            {"target": "Casper", "message": "{character_name} ascends into the light."},
+            {},
+            game_state=game_state
+        )
+
+        assert result == ["Casper ascends into the light."]
+        assert "Casper" not in game_state.player_manager.players
+        assert graph.get_node(ghost_node_id) is None
+        assert not any(e.source == ghost_node_id for e in graph.edges)
+
+        # Negative case: despawning again reports miss and removes nothing
+        res2 = effects.execute("despawn_character", {"target": "Casper"}, {}, game_state=game_state)
+        assert res2 == []
 
     def test_spawn_character_unknown_id(self, graph, logging_events):
         """spawn_character with unknown id returns empty (no-op)."""
@@ -1505,7 +1546,7 @@ class TestTriggerIntegration:
 
     def test_message_effect_prefers_message_over_legacy_success_message(self, graph, skills, logging_events):
         """bug-532: a message effect carrying both `message` and the legacy
-        `success_message` must narrate `message` — the old execution override
+        `success_message` must narrate `message`  -  the old execution override
         overwrote it with `success_message` and silently dropped the authored text."""
         trigger_system = TriggerSystem(graph, skills, logging_events)
 
@@ -1543,7 +1584,7 @@ class TestTriggerIntegration:
         assert not any("The legacy line." in o for o in outputs), outputs
 
     def test_message_effect_legacy_success_message_still_narrates_when_message_empty(self, graph, skills, logging_events):
-        """bug-532: the legacy alias still works — `success_message` narrates when
+        """bug-532: the legacy alias still works  -  `success_message` narrates when
         no `message` is present, so migrated/adjust_vital-style effects keep wording."""
         trigger_system = TriggerSystem(graph, skills, logging_events)
 
@@ -2008,7 +2049,7 @@ class TestWayTriggerFiring:
         assert "dull thunk" in result
 
     def test_way_on_use_not_fired_when_item_has_on_use_on(self, graph, skills, logging_events):
-        """A source item with a working on_use_on wins — the way's on_use
+        """A source item with a working on_use_on wins  -  the way's on_use
         does not also fire."""
         area, door = self._make_way_area(graph)
         self._wire_message_trigger(graph, door, "on_use",
@@ -2091,7 +2132,6 @@ class TestWayTriggerFiring:
         gs.player.state = "awake"
         gs.player.has_condition = MagicMock(return_value=False)
         gs.player.vitals = {"Entertainment": 50}
-        gs.player.visited_areas = set()
         gs.players = {}
         gs.active_player = "Hero"
         gs.current_area = MagicMock()
@@ -2126,7 +2166,6 @@ class TestWayTriggerFiring:
         )
         gs.npc_behaviors = MagicMock()
         gs.npc_behaviors.process_simple_npcs = MagicMock()
-        gs.player.visited_areas = gs.player.visited_areas
 
         movement = MovementSystem(
             graph, gs, trigger_system,

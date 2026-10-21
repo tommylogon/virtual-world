@@ -1,5 +1,5 @@
 /**
- * tools/unit/run.cjs — zero-dependency unit test runner for browser-global JS modules.
+ * tools/unit/run.cjs  -  zero-dependency unit test runner for browser-global JS modules.
  *
  * The sandbox's global object IS `window` (exactly like a browser classic
  * script), so modules written as `window.Foo = ...` resolve their bare
@@ -20,7 +20,7 @@ const vm = require('vm');
 const ROOT = path.resolve(__dirname, '..', '..');
 const UNIT_DIR = __dirname;
 
-// The window object doubles as the vm global — browser semantics.
+// The window object doubles as the vm global  -  browser semantics.
 const win = {
     console,
     AbortController,
@@ -39,7 +39,7 @@ const win = {
     // A real (tiny) bus, not a no-op: turn-feed's ring subscribes to 'log' and
     // silently installs nothing when `on` is missing, so a log-only stub would
     // make its filtering tests pass for the wrong reason. The real
-    // event-stream.js cannot be loaded here — its EventBus constructor pulls in
+    // event-stream.js cannot be loaded here  -  its EventBus constructor pulls in
     // the DOM-heavy StreamTurnCards.
     events: (() => {
         const subs = new Map();
@@ -84,7 +84,7 @@ const win = {
     // reads the seen-flags out of localStorage. Neither exists in a bare vm
     // context, so both are stubbed permissively: a fake element absorbs any
     // createElement/appendChild chain and the listener registrations are no-ops.
-    // Nothing under test touches the DOM — the registry is plain data.
+    // Nothing under test touches the DOM  -  the registry is plain data.
     localStorage: {
         _v: new Map(),
         getItem(k) { return this._v.has(k) ? this._v.get(k) : null; },
@@ -159,6 +159,7 @@ load('static/js/agent/turn-queue.js');
 const unitWorldStateStub = win.worldState;
 load('static/js/world-state.js');
 win.worldState = unitWorldStateStub;
+load('static/js/agent/action-verbs.generated.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');
@@ -226,7 +227,7 @@ load('static/js/ui/event-log-export.js');
 load('static/js/ui/help-center.js');
 load('static/js/worldpainter/grid-model.js');
 // Pure card/prose pre-parse + prompt builder for the Persona import
-// (task-843): no DOM, no network — loads cleanly in this sandbox.
+// (task-843): no DOM, no network  -  loads cleanly in this sandbox.
 load('static/js/character-import.js');
 
 // ── discover + run test files ──

@@ -1,4 +1,4 @@
-"""Spatial memory - BFS route discovery from visited_areas + real graph.
+"""Spatial memory - BFS route discovery from known_areas + real graph.
 
 Replaces the browser-side EntityIndex.buildSpatialContext / buildRoutesFrom.
 Reads the real graph directly - no extraction, no junk.
@@ -11,7 +11,7 @@ from graph import EDGE_CONNECTION, WorldGraph
 
 
 class SpatialMemory:
-    """BFS route builder seeded from a player's visited_areas."""
+    """BFS route builder seeded from a player's known_areas."""
 
     def __init__(self, graph: WorldGraph):
         self.graph = graph
@@ -19,12 +19,12 @@ class SpatialMemory:
     def build_known_routes(
         self,
         current_area: str,
-        visited_areas: Set[str],
+        known_areas: Set[str],
         max_depth: int = 2,
     ) -> str:
         """Return a formatted ``=== KNOWN ROUTES FROM HERE ===`` block.
 
-        Only areas in *visited_areas* appear in the results.  Routes are
+        Only areas in *known_areas* appear in the results.  Routes are
         built by traversing real graph edges (area → way → area).
         """
         current_id = self._area_id(current_area)
@@ -43,7 +43,7 @@ class SpatialMemory:
             if depth > 0 and node_id != current_id:
                 node = self.graph.get_node(node_id)
                 area_name = node.name if node else self._id_to_name(node_id)
-                if area_name and area_name in visited_areas:
+                if area_name and area_name in known_areas:
                     routes.append({
                         "area": area_name,
                         "path": list(path),
@@ -77,7 +77,7 @@ class SpatialMemory:
         self,
         current_area: str,
         target_name: str,
-        visited_areas: Set[str],
+        known_areas: Set[str],
         max_depth: int = 15,
     ) -> Optional[List[Dict[str, str]]]:
         """Find a route from current_area to target_name traversing visited areas (task-882).
@@ -89,7 +89,7 @@ class SpatialMemory:
             return None
 
         target_norm = target_name.strip().lower()
-        if not any(v.lower() == target_norm for v in visited_areas):
+        if not any(v.lower() == target_norm for v in known_areas):
             return None
 
         queue: deque = deque()
@@ -117,7 +117,7 @@ class SpatialMemory:
                     if target_id not in visited:
                         t_node = self.graph.get_node(target_id)
                         t_name = t_node.name if t_node else (self._id_to_name(target_id) or "")
-                        if t_name in visited_areas or t_name.lower() == target_norm or target_id == self._area_id(target_name):
+                        if t_name in known_areas or t_name.lower() == target_norm or target_id == self._area_id(target_name):
                             visited.add(target_id)
                             step = {"direction": direction or "forward", "to": t_name}
                             queue.append((target_id, path + [step]))

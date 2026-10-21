@@ -119,15 +119,18 @@ def test_positional_fidelity_applies_to_a_saved_world():
 
 
 def test_player_tags_survive_save_load_roundtrip():
-    """Player tags must survive a to_scenario_dict → load_from_dict cycle.
-    Regression: load_from_dict never restored tags, so any world reload
-    (restart, scenario load, reset) silently wiped character tags."""
+    """Player tags must survive a to_scenario_dict -> load_from_dict cycle (task-724).
+    The character node properties is the single persisted home; the players block
+    in to_scenario_dict strips it to eliminate duplication."""
     world = VirtualWorld()
     pname = world.active_player
+    pnode_id = world.player_manager.player_node_id(pname)
     world.player_manager.get_player(pname).tags = ['female', 'magic']
 
     data = world.to_scenario_dict()
-    assert data["players"][pname]["tags"] == ["female", "magic"]
+    # Stripped from players block, persisted on character node properties
+    assert "tags" not in data["players"][pname]
+    assert data["graph"]["nodes"][pnode_id]["properties"]["tags"] == ["female", "magic"]
 
     world2 = VirtualWorld()
     world2.load_from_dict(data)
@@ -140,11 +143,56 @@ def test_player_tags_roundtrip_without_tags_field():
     world = VirtualWorld()
     pname = world.active_player
     data = world.to_scenario_dict()
+    pnode_id = world.player_manager.player_node_id(pname)
+    data["graph"]["nodes"][pnode_id]["properties"].pop("tags", None)
     data["players"][pname].pop("tags", None)
 
     world2 = VirtualWorld()
     world2.load_from_dict(data)
     assert world2.player_manager.get_player(pname).tags == []
+
+
+def test_task_724_single_persisted_home_for_location_and_definition():
+    """task-724: Location is authoritative on graph 'in' edge; definition
+    (tags, traits, personality, description) on character node properties.
+    The players block in to_scenario_dict must not persist duplicate copies."""
+    from graph import Node
+    world = VirtualWorld()
+    pname = world.active_player
+    pnode_id = world.player_manager.player_node_id(pname)
+    world.graph.add_node(Node(id="area_armory", type="area", name="Armory"))
+    p = world.player_manager.get_player(pname)
+    p.current_area = "Armory"
+    p.tags = ["veteran", "guard"]
+    p.traits = {"disciplined": True, "stout": True}
+
+    scenario_dict = world.to_scenario_dict()
+    pdata = scenario_dict["players"][pname]
+
+    # Verify redundant duplicate fields are stripped from the file payload
+    assert "current_area" not in pdata
+    assert "current_area_id" not in pdata
+    assert "tags" not in pdata
+    assert "traits" not in pdata
+
+    # Verify authoritative homes carry the data
+    char_node = scenario_dict["graph"]["nodes"][pnode_id]
+    assert char_node["properties"]["tags"] == ["veteran", "guard"]
+    assert char_node["properties"]["traits"] == {"disciplined": True, "stout": True}
+    in_edges = [
+        e for e in scenario_dict["graph"]["edges"]
+        if e.get("source") == pnode_id and e.get("type") == "in"
+    ]
+    assert len(in_edges) == 1
+    assert in_edges[0]["target"] == "area_armory"
+
+    # Verify reloading restores all 4 fields on the runtime Player
+    world2 = VirtualWorld()
+    world2.load_from_dict(scenario_dict)
+    reloaded_player = world2.player_manager.get_player(pname)
+    assert reloaded_player.current_area == "Armory"
+    assert reloaded_player.tags == ["veteran", "guard"]
+    assert reloaded_player.traits == {"disciplined": True, "stout": True}
 
 
 def test_player_interest_tags_survive_save_load_roundtrip():
@@ -163,7 +211,7 @@ def test_player_interest_tags_survive_save_load_roundtrip():
 
 def test_condition_instances_survive_save_load_roundtrip():
     """Per-condition instances (durations/sources/overrides) survive a
-    save/load cycle — including MULTIPLE stacked instances per condition."""
+    save/load cycle - including MULTIPLE stacked instances per condition."""
     world = VirtualWorld()
     pname = world.active_player
     player = world.player_manager.get_player(pname)
@@ -281,7 +329,7 @@ def test_index_is_rebuilt_for_a_save_written_before_the_index_existed():
 
 def test_the_starting_area_is_observed_at_load():
     """Nothing is observed without a move, so the starting area must be
-    recorded at load — otherwise it is the one place a character can never
+    recorded at load - otherwise it is the one place a character can never
     remember, and novelty would pay for it again on the first re-entry."""
     from graph import Node
 
@@ -370,3 +418,31 @@ def test_an_unknown_size_loads_as_none():
     world2 = VirtualWorld()
     world2.load_from_dict(data)
     assert world2.player_manager.get_player(pname).size is None
+
+
+
+def test_legacy_visited_areas_and_discovered_items_migrate_to_observations():
+    """task-430: legacy saves carrying visited_areas and discovered_items populate
+    observation memories on load so spatial memory and recall stay working."""
+    world = _world_with_an_area()
+    pname = world.active_player
+    payload = world.to_scenario_dict()
+
+    # Inject legacy keys into the active player payload
+    pdata = payload["players"][pname]
+    pdata["visited_areas"] = ["Round Trip Room", "Old Dungeon"]
+    pdata["discovered_items"] = ["magic_scroll", "rusted_key"]
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(payload)
+
+    rp = reloaded.player_manager.players[pname]
+    assert "Round Trip Room" in rp.visited_area_names(reloaded.graph)
+    assert "Old Dungeon" in rp.visited_area_names(reloaded.graph)
+    assert "magic_scroll" in rp.discovered_item_names(reloaded.graph)
+    assert "rusted_key" in rp.discovered_item_names(reloaded.graph)
+
+    # Ensure to_dict() does not leak the retired legacy keys
+    serialized = rp.to_dict()
+    assert "visited_areas" not in serialized
+    assert "discovered_items" not in serialized

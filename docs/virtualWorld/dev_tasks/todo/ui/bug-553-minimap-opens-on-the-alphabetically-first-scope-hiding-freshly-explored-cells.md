@@ -56,3 +56,20 @@ Intended UI home: the human turn composer (HTC) scene column, the `Where you've 
 
 - `static/js/agent/turn-minimap.ts` (`render`, `openFullscreen`)
 - `routes/player_ops.py` (`handle_get_player_map`, scope ordering - reference only)
+
+## Reconciliation (2026-10-20) - STILL_VALID, re-measured
+
+**Verdict: STILL_VALID.** task-882 rewrote this file but did not fix the default-scope defect; the card's premise still holds.
+
+**Re-measured 2026-10-20.**
+- `render()` in `static/js/agent/turn-minimap.ts:561-641` still builds the scope `<select>` from `payload.scopes` in server order and never assigns an initial `sel.value`; it falls through to `paint()` at line 640, which reads `sel.value` (the first `<option>`). Confirmed by reading the current source.
+- `openFullscreen()` at lines 644-703 has the same gap: its own `<select>` is appended at line 657-664 with no default assignment before `paint()` at line 702.
+- `routes/player_ops.py:1612` still sorts scopes with `for scope_id, count in sorted(scope_counts.items())`, so the default remains the alphabetically-first scope id, not the scope of `payload.current_area`.
+
+**Newer work checked.** Commit `2821c9d8` (task-882, 2026-10-19) touched `static/js/agent/turn-minimap.ts` heavily (170 insertions) - it added sight-aware visible/charted cells, horizon landmarks, recall route queries and walk-to-area - but a `git show 2821c9d8 -- static/js/agent/turn-minimap.ts` grep for `sel.value` finds no assignment, and `git log --oneline -S "sel.value" -- static/js/agent/turn-minimap.ts` returns only `0b1d64df` (the original minimap commit). So the default-scope behaviour is untouched by task-882.
+
+**Counts.** `grep -c "sel.value" static/js/agent/turn-minimap.ts` → 4 hits, all reads inside `paint()` (lines 624, 674) and the fullscreen paint (lines 675, 676); zero writes. That is the evidence the panel opens on the first scope.
+
+**Cited line drift.** The card's `How` cites `render()` and `openFullscreen()` without line numbers; the current locations are `turn-minimap.ts:561` and `:644`. The `routes/player_ops.py:1607` reference in the What section has drifted to `:1612` (the `sorted(scope_counts.items())` call); corrected in place above. `handle_get_player_map` is now at `player_ops.py:1545` (was not cited by line). `payload.current_area` and `areas[].scope_id` are still both present in the payload (`player_ops.py:1562`, `:1600`), so the card's proposed fix needs no server change - confirming the card is still actionable as written.
+
+**Status:** left in `todo`. The fix is a ~4-line addition in `render()` and `openFullscreen()` after the options are appended.

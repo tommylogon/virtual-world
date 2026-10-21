@@ -69,3 +69,8 @@ Live steps when available:
 - `engine/timeskip.py`
 - `routes/action_handlers.py`
 - `docs/virtualWorld/World Building/Movement.md`
+
+## Decision (2026-10-20)
+
+`engine/traversal.py` hardcodes an ad-hoc dictionary of ground hazard skills (`HAZARD_SKILLS`) for unattended hops. Terrain hazards (river push, cliff fall, thorn injury) should not be hardcoded parallel checks inside movement code; they belong to the central **trigger engine** (task-746 single-roll hazard effect: one check, branch, push, sweep guard against cascade loops). WorldPainter compiler emits terrain hazard triggers from painted layers (task-747). Normal play and soak should both execute hazard triggers uniformly rather than creating duplicate hardcoded dice rolls in movement code.
+

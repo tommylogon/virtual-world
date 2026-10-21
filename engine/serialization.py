@@ -220,7 +220,6 @@ class WorldSerializer:
             "interest_tags": getattr(p, 'interest_tags', []),
             "fear_tags": getattr(p, 'fear_tags', []),
             "carcass_item": getattr(p, 'carcass_item', None),
-            "discovered_items": list(getattr(p, 'discovered_items', []) or []),
             "decay_rates": getattr(p, 'decay_rates', {}),
             "body_state": getattr(p, 'body_state', {}),
             "body_region_names": {
@@ -303,7 +302,6 @@ class WorldSerializer:
             base.pop("region_exposed", None)
             base.pop("body_region_names", None)
             base.pop("completed_pursuits", None)
-            base.pop("discovered_items", None)
             base.pop("known", None)
             base.pop("crafting_known", None)
             base.pop("birth_tick", None)
@@ -625,12 +623,84 @@ class WorldSerializer:
                 or pdata.get("known_ways")):
             from engine.agent_memory import AgentMind
             AgentMind(p, self.graph).load_preconceived(pdata)
+
+        # task-430: tolerant legacy migration for retired visited_areas and
+        # discovered_items. Populate observation memories so known-route blocks
+        # and item recall remain non-empty.
+        legacy_visited = pdata.get("visited_areas")
+        if legacy_visited and isinstance(legacy_visited, (list, set, tuple)):
+            for aname in legacy_visited:
+                aname_str = str(aname).strip()
+                if not aname_str:
+                    continue
+                node = None
+                if aname_str in self.graph.nodes:
+                    node = self.graph.nodes[aname_str]
+                else:
+                    for n in self.graph.nodes.values():
+                        if getattr(n, "type", "") == "area" and n.name == aname_str:
+                            node = n
+                            break
+                aid = node.id if node else aname_str
+                aname_disp = node.name if node else aname_str
+                if not p.has_seen(aid):
+                    p.record_observation(
+                        aid,
+                        f"You have been to {aname_disp}.",
+                        0,
+                        kind="area",
+                        location=aname_disp,
+                    )
+
+        legacy_items = pdata.get("discovered_items")
+        if legacy_items and isinstance(legacy_items, (list, set, tuple)):
+            for iname in legacy_items:
+                iname_str = str(iname).strip()
+                if not iname_str:
+                    continue
+                node = None
+                if iname_str in self.graph.nodes:
+                    node = self.graph.nodes[iname_str]
+                else:
+                    for n in self.graph.nodes.values():
+                        if getattr(n, "type", "") == "item" and n.name == iname_str:
+                            node = n
+                            break
+                iid = node.id if node else iname_str
+                iname_disp = node.name if node else iname_str
+                if not p.has_seen(iid):
+                    p.record_observation(
+                        iid,
+                        f"You have seen {iname_disp}.",
+                        0,
+                        kind="item",
+                    )
+
         return p
 
     def to_dict(self, lite=False):
         return self._serialize_world(lite=lite)
 
     def to_scenario_dict(self):
+        # task-724: sync any direct Player changes to the single authoritative homes before serializing
+        if hasattr(self, "player_manager") and hasattr(self.player_manager, "players"):
+            for pname, p in self.player_manager.players.items():
+                pnode_id = self.player_manager.player_node_id(pname)
+                node = self.graph.get_node(pnode_id)
+                if node is not None:
+                    if hasattr(p, "tags") and p.tags is not None:
+                        node.properties["tags"] = list(p.tags)
+                    if hasattr(p, "traits") and p.traits is not None:
+                        node.properties["traits"] = dict(p.traits)
+                    if getattr(p, "personality", None) and not node.properties.get("personality"):
+                        node.properties["personality"] = p.personality
+                    if getattr(p, "base_description", None) and not node.properties.get("base_description"):
+                        node.properties["base_description"] = p.base_description
+                # Ensure the authoritative graph 'in' edge is present for current_area
+                if getattr(p, "current_area", None):
+                    edge_area_id = self.graph.area_of(pnode_id)
+                    if not edge_area_id and hasattr(self.player_manager, "_set_player_area"):
+                        self.player_manager._set_player_area(pname, p.current_area)
         data = self._serialize_world()
         data.pop("game_log", None)
         data.pop("turn_events", None)
@@ -659,13 +729,19 @@ class WorldSerializer:
                 if m.get("source") != "observation"
             ]
             pdata.pop("memory_index", None)
-            # Definition lives on the character node (`graph.nodes`), so a saved
+            # task-724: Definition lives on the character node (`graph.nodes`), so a saved
             # file must not carry a second copy in the players block. The live
             # payload publishes it for the UI/prompt (`_serialize_player`); the
             # node is the one persisted home.
             pdata.pop("personality", None)
             pdata.pop("base_description", None)
             pdata.pop("description", None)
+            pdata.pop("tags", None)
+            pdata.pop("traits", None)
+            # Location is authoritative on the graph 'in' edge; current_area and
+            # current_area_id are derived and recomputed on load.
+            pdata.pop("current_area", None)
+            pdata.pop("current_area_id", None)
             # task-352: a slot does not survive a turn, so it is never persisted.
             pdata.pop("turn_slots", None)
             # task-784: nor does an armed dash burst.
@@ -824,10 +900,13 @@ class WorldSerializer:
                 p.traits = dict(_props["traits"])
             elif _pdata.get("traits") and _node is not None:
                 _node.properties["traits"] = dict(_pdata["traits"])
-            if _props.get("tags"):
+            if _props.get("tags") is not None:
                 p.tags = list(_props["tags"])
+                p.sync_vitals_with_tags()
             elif _pdata.get("tags") and _node is not None:
                 _node.properties["tags"] = list(_pdata["tags"])
+                p.tags = list(_pdata["tags"])
+                p.sync_vitals_with_tags()
             if _props.get("interest_tags"):
                 p.interest_tags = list(_props["interest_tags"])
             elif _pdata.get("interest_tags") and _node is not None:

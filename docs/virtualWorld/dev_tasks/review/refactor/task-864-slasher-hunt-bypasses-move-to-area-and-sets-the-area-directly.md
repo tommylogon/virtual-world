@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: refactor
 priority: medium
 wiki: "[[Movement]]"
@@ -55,3 +55,8 @@ N/A - an engine refactor with no new surface. The observable path is a targeted 
 - `engine/npc_behaviors.py`
 - `engine/movement.py`
 - `tests/test_npc_behaviors.py`
+
+## Decision (2026-10-20)
+
+`slasher_hunt` is unused dead code from an early horror prototype (0 runtime callers outside virtual_world_engine.py). Instead of merely fixing the mover to `move_to_area`, the slasher mechanic should be retired as a hardcoded Python method on `npc_behaviors` altogether. Hunting / stalking belongs in the declarative behavior / goal / pursuit system (`pursuit: hunt`, `behavior: stalk/hunt`) reading normal movement and combat contracts.
+
