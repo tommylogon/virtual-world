@@ -175,6 +175,17 @@ self.equipped = {
 
 Each slot is a list (stack order = innermost to outermost). Managed by `engine/equipment.py`. The equipment system integrates with the LLM for auto-generating appearance descriptions when items are equipped/unequipped.
 
+A **library character** authors the same shape in its JSON: a slot maps to a list of
+references, and each reference may be an existing item node id, the carried item's
+node id, its library id, or its display name. Both import and refresh resolve those
+references through the inventory they just materialized:
+`routes/library_ops.py::_resolve_character_equipped` checks node id, then library id,
+then display name, and drops anything that does not resolve (with a warning) rather
+than writing a value the runtime cannot read. Consequence for authors: an item worn
+at spawn must appear in `inventory` as well as in `equipped`, because the inventory
+entry is what creates the item node. `equipped` never holds a nested object, and the
+resolved `player.equipped` holds node-id strings only.
+
 ### Emotion System (`player.py:369-375`)
 
 ```python
