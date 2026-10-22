@@ -92,3 +92,25 @@ test('an actor-less result row still reads as the player', () => {
     });
     assertEq(parsed.actor, null, 'no actor means the player, rendered as You');
 });
+
+test('bug-518: the active player resolves through the live state and follows a rename', () => {
+    const prevActive = worldState.activePlayer;
+    const prevData = worldState.data;
+
+    worldState.activePlayer = 'Gribba';
+    worldState.data = { active_player: 'Gribba' };
+    assertEq(TurnFeed.activePlayerName(), 'Gribba', 'reads the live accessor');
+
+    // A save may only carry the persisted key.
+    delete worldState.activePlayer;
+    assertEq(TurnFeed.activePlayerName(), 'Gribba', 'falls back to data.active_player');
+
+    // Mid-session rename: the next comparison must use the new name.
+    worldState.activePlayer = 'Gribba Renamed';
+    worldState.data = { active_player: 'Gribba Renamed' };
+    assertEq(TurnFeed.activePlayerName(), 'Gribba Renamed', 'rename is followed');
+
+    worldState.activePlayer = prevActive;
+    worldState.data = prevData;
+    if (prevActive === undefined) delete worldState.activePlayer;
+});

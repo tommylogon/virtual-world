@@ -28,6 +28,8 @@ The existing carrying/equipped relation support and update_player support for me
 - `static/js/nl-editor/tools.ts`: Extended `update_player` tool schema with `schedule`, `goals`, `obligations` properties (with full JSON Schema enums for activities, goal statuses, obligation statuses)
 - `engine/nl_editor_validation.py`: Added `schedule`, `goals`, `obligations` to `PLAYER_PATCH_KEYS`; added `_schedule_issues`, `_goals_issues`, `_obligations_issues` validation functions with full vocabulary checking
 - `routes/player_ops.py`: Added `schedule` handling in `handle_update_player` using `engine.schedule.normalize` (goals/obligations already handled via `engine.goals.normalize` / `normalize_obligations`)
+- `routes/graph_ops.py`: Added `schedule`, `goals`, `obligations` tracking to the `applied` dict in `update_player` batch op handler
+- `tests/test_nl_editor_player_ops.py`: Added 8 tests covering schedule/goals/obligations apply + validation + derived-field rejection
 
 ## Why
 
@@ -76,10 +78,10 @@ This section defines the intended browser path. It does not claim the planned fi
 - [x] The existing NL Editor supports carrying/equipped relations and a validated update_player operation for memories, relationships, and emotion.
 - [x] The complete persisted input set feeding MOSIAC and GIMP is enumerated and each field is classified as authorable source data or derived projection.
 - [x] NL Editor update_player supports the intended writable character mind fields, including schedule, goals with GIMP motivation/intention, and obligations, through existing validators and normalizers.
+- [x] Derived MOSIAC and goal projections cannot be persisted as duplicate authoring state (tests: test_update_player_rejects_derived_mosiac_fields, test_update_player_rejects_derived_goal_progress).
 - [ ] The NL Editor shows a character-specific field-level staged diff, with revise, discard, and apply interactions before a state change is committed.
-- [ ] Derived MOSIAC and goal projections cannot be persisted as duplicate authoring state.
 - [ ] An authored browser fixture exercises schedule, goal, and obligation edits on a real character record and proves the updated values appear in Mind.
-- [ ] Existing inventory, equipment, memory, relationship, and emotion updates continue to use their current source-of-truth writers.
+- [x] Existing inventory, equipment, memory, relationship, and emotion updates continue to use their current source-of-truth writers (all existing tests pass).
 
 ## Files
 

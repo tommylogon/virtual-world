@@ -1,61 +1,930 @@
 {
-  "name": "miki",
-  "personality": "you are miki, a chaotic asmr artist with anxiety and a heart of gold. you tend to ramble when nervous, but you're fiercely loyal to those who earn your trust.  you're easily spooked but also easily excited by cool details. your asmr skills actually help you notice subtle sounds others miss. you have a habit of humming when scared.\n\nname: miki doki\nheight: 5’8”\nskin colour: caucasian\nage: mid 20's\n[hair: \n-dirty blonde (darker near her roots)\n-ragged cut hair\n-twin tails\\n-uneven framing bangs (left longer than right)\n-ribbon like strand separation\neyes: pinkish red, dark circles around them, aggressive looking.\nrace: american\noccupation: -(nsfw) asmr artist\n-patreon “model” (no sex on camera yet)\nmarital status: single\nsexual orientation: anything human and adult is ok.\nsexual history: sporadic short relationships that lead nowhere, she doesn't remember the exact number but >15.\nthree sizes: b122 w56 h125\ncup size: k\nbody type: hourglass\n[misc. accessories/features: protruding canines (all four)\nbags around her eyes.\n-possesses long nails painted the same colour as her eyes.-permanent bite marks on her left upper outer thigh, above her right knee, upper right arm, and finally one between her neck, and her left shoulder. (she doesn't remember how she got any of these.)\n-a healed scar over the left side of her lower stomach. (doesn't remember what it was caused by.)\n-clean shaven body, except for her pubic hair.]\n\n[personality: self deprecating (level 2), clingy (level 4), teasing (level 1), bratty (level 2), laid back (level 4), shy (level 4), yearning (level 3), nerdy (level 4), socially-aware (level 3), horny (level 2), delicate (level 2), casual (level 4), awkward (level 4), cringy (level 3), rambling (level 4), masochistic (level 3), self-conscious (level 4)]\\n\\nhabits:\n-loves drinking monster (especially the original flavour).\n-loves alcohol especially when mixed with monster. (doesn't care for flavour)\n-wakes up late in the day. (usually past 12pm.)\n-doesn't wear a bra.\n-gets shy and easily embarrassed when shown any amount of attention by multiple people. (especially on social media)\nmisc. info:\\n-occasionally cosplays\n-sometimes strips on social media, using like goals to encourage her audience to have her stripping further.\n-internet savvy.\n-is a massive gooner and fujoshi.\n-masturbates frequently (3 to 15 times a day)\nconsiders herself a “girlfailure”\nfetishes:masochism\n-submission\n-biting\n-rough sex\n-cum\n-praise",
-  "description": "a fair-skinned woman in her mid-twenties stands nearly five-foot-eight with an absurdly plush hourglass figure, her k-cup chest straining a grey tank top beneath a half-open grey-and-black striped hoodie that only emphasizes the dramatic contrast between her slender waist and her wide, heavy hips. ragged-cut dirty-blonde twin tails — darker at the roots — are gathered with pink star bands and pinned with an upside-down cross and a black hollow star, while black ear cuffs and a blue butterfly earring frame a face shadowed by deep dark bags, lit by aggressive pinkish-red eyes, and sharpened by prominent protruding canines top and bottom. a black choker layered with a syringe necklace sits at her throat beside a faded bite mark between her neck and left shoulder, and more healed marks scatter across her elsewhere — a pale scar across the left of her lower stomach, faded tooth-marks on her upper right arm, left outer thigh, and above her right knee. torn black thigh-highs layer over grey-black striped stockings on her legs, a high-cut black thong peeking at the hip where wisps of dirty-blonde pubic hair escape its edges, and she holds a phone loosely in her right hand.",
+  "activity": null,
   "base_description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom.",
-  "unknown_name": "",
-  "stats": {
-    "CHA": 12,
-    "CON": 10,
-    "DEX": 12,
-    "INT": 14,
-    "STR": 8,
-    "WIS": 8
+  "behaviors": [],
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
   },
-  "vitals": {
-    "Bladder": 0,
-    "Energy": 100,
-    "Entertainment": 100,
-    "HP": 100,
-    "Hunger": 100,
-    "Hygiene": 100,
-    "Max_HP": 100,
-    "Sanity": 100,
-    "Social": 100,
-    "Temperature": 37,
-    "Thirst": 100,
-    "bladder": 15,
-    "energy": 100,
-    "entertainment": 100,
-    "hp": 100,
-    "hunger": 80,
-    "hygiene": 100,
-    "max_hp": 100,
-    "sanity": 100,
-    "social": 100,
-    "temperature": 37,
-    "thirst": 80
-  },
+  "current_area": "library",
   "decay_rates": {
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Thirst": 0.025,
     "bladder": 1,
     "energy": 1,
     "entertainment": 1,
-    "hunger": 1,
     "hygiene": 1,
     "sanity": 1,
-    "social": 1,
-    "thirst": 1
+    "social": 1
   },
-  "skills": {
-    "investigation": 2,
-    "perception": 3,
-    "performance": 5,
-    "stealth": 4
+  "description": "a fair-skinned woman in her mid-twenties stands nearly five-foot-eight with an absurdly plush hourglass figure, her k-cup chest straining a grey tank top beneath a half-open grey-and-black striped hoodie that only emphasizes the dramatic contrast between her slender waist and her wide, heavy hips. ragged-cut dirty-blonde twin tails - darker at the roots - are gathered with pink star bands and pinned with an upside-down cross and a black hollow star, while black ear cuffs and a blue butterfly earring frame a face shadowed by deep dark bags, lit by aggressive pinkish-red eyes, and sharpened by prominent protruding canines top and bottom. a black choker layered with a syringe necklace sits at her throat beside a faded bite mark between her neck and left shoulder, and more healed marks scatter across her elsewhere - a pale scar across the left of her lower stomach, faded tooth-marks on her upper right arm, left outer thigh, and above her right knee. torn black thigh-highs layer over grey-black striped stockings on her legs, a high-cut black thong peeking at the hip where wisps of dirty-blonde pubic hair escape its edges, and she holds a phone loosely in her right hand.",
+  "emotion": {
+    "current": "uneasy",
+    "description": "miki is uneasy.",
+    "expression": "afraid",
+    "intensity": 0.11
   },
-  "traits": {},
-  "tags": [
-    "female"
-  ],
+  "equipped": {
+    "accessory": [
+      {
+        "name": "upside-down cross hair pin",
+        "node_id": "item_upside-down cross hair pin",
+        "library_id": "upside_down_cross_hair_pin",
+        "properties": {
+          "_ignored_at": 1788811632.9198434,
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a small silver upside-down cross bobby pin, worn on the right side of blunt bangs.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "ignored_issues": [
+            "library_mismatch"
+          ],
+          "library_id": "upside_down_cross_hair_pin",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "hair_accessory"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a tiny silver cross, inverted, pinned into dirty-blonde bangs. edgy."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_upside-down cross hair pin_on_examine_1785487161203_521",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You adjust the hair pin, sliding it deeper into your bangs. It holds your hair back, but the inverted cross stares up like an accusation."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788810543511_fn9r",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "As your fingers close around the pin, a faint chill climbs your wrist. You feel watched, as if the inverted cross has turned its gaze on you."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788810543511_wp18",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You let the pin fall. It clinks against the floor, the inverted cross landing face-up, staring at the ceiling like a dead eye."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788810543511_utv4",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You slide the pin into your hair. The silver cross rests against your scalp, cold and constant. You feel a subtle pressure, as if something is leaning closer."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788810543511_wesq",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_equip"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You pull the pin free. The chill recedes, but the weight of its gaze lingers in the air behind you."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788810543511_gze7",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_unequip"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.01
+        }
+      },
+      {
+        "name": "black hollow star hair pin",
+        "node_id": "item_black hollow star hair pin",
+        "library_id": "black_hollow_star_hair_pin",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a small black hollow star bobby pin, worn on the left side of blunt bangs.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "library_id": "black_hollow_star_hair_pin",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "hair_accessory"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a small black star outline, pinned neatly into place. matches the cross on the other side."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_black hollow star hair pin_on_examine_1785487170274_375",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.01
+        }
+      },
+      {
+        "name": "pink star twintail band",
+        "node_id": "item_pink star twintail band",
+        "library_id": "pink_star_twintail_band",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a black elastic band holding the right twintail in place, adorned with a small pink plastic star.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "library_id": "pink_star_twintail_band",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "hair_accessory"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a pink star glints from the band holding your right twintail. cute."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_pink star twintail band_on_examine_1785487184268_853",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.01
+        }
+      },
+      {
+        "name": "black ear cuff earrings",
+        "node_id": "item_black ear cuff earrings",
+        "library_id": "black_ear_cuff_earrings",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a set of black metal ear cuffs that clip onto the upper cartilage of both ears. no piercings required.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "library_id": "black_ear_cuff_earrings",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "jewelry"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "simple black ear cuffs. they pinch slightly but stay secure."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_black ear cuff earrings_on_examine_1785487194073_165",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.02
+        }
+      },
+      {
+        "name": "blue butterfly earring",
+        "node_id": "item_blue butterfly earring",
+        "library_id": "blue_butterfly_earring",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a dangling earring with a delicate blue butterfly charm, worn on the right ear. the wings shimmer with faint iridescence.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "library_id": "blue_butterfly_earring",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "jewelry"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_blue butterfly earring_on_examine_1785487201744_839",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.02
+        }
+      }
+    ],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [
+      {
+        "name": "phone",
+        "node_id": "inv_miki_phone",
+        "library_id": null,
+        "properties": {
+          "action_costs": {
+            "use": {
+              "energy": 0,
+              "time": 0
+            }
+          },
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "current_state": "lit",
+          "description": "miki's smartphone with a flashlight app and voice recorder. battery at 47%.",
+          "equip_slots": [
+            "hand_right"
+          ],
+          "light_level": "normal",
+          "name": "phone",
+          "tags": [
+            "toggleable",
+            "light_source",
+            "electric",
+            "phone"
+          ],
+          "triggers": [
+            {
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "params": {
+                    "message": "",
+                    "success_message": "you check the phone. no signal. no service. the flashlight app works though. battery is draining faster than expected."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_inv_miki_phone_on_examine_1784403369_4",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 47,
+          "weight": 0.3
+        }
+      }
+    ],
+    "hands": [],
+    "head": [],
+    "legs": [
+      {
+        "name": "black high-cut thong",
+        "node_id": "item_black high-cut thong",
+        "library_id": "black_high_cut_thong",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a black high-cut thong that peeks past the waistband of the short shorts. you don't exactly hide it.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "library_id": "black_high_cut_thong",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "underwear",
+            "insulation"
+          ],
+          "uses": 0,
+          "weight": 0.03
+        }
+      },
+      {
+        "name": "torn black thigh-high stocking",
+        "node_id": "item_torn black thigh-high stocking",
+        "library_id": "torn_black_thigh_high_stocking",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a single black thigh-high stocking with a small tear near the knee. the elastic band at the top keeps it from slipping.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "library_id": "torn_black_thigh_high_stocking",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "hosiery",
+            "insulation"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "a black thigh-high with a run in it. you never wear matching pairs anyway."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_torn black thigh-high stocking_on_examine_1785487252329_940",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.1
+        }
+      },
+      {
+        "name": "grey-black striped thigh-high",
+        "node_id": "item_grey-black striped thigh-high",
+        "library_id": "grey_black_striped_thigh_high",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a single thick striped thigh-high in grey and black. the left leg's companion to the torn black stocking on the right. mismatched on purpose. or laziness. hard to tell.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "library_id": "grey_black_striped_thigh_high",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "hosiery",
+            "insulation"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "thick, warm, and striped. the opposite of the torn stocking on your other leg. you never match."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey-black striped thigh-high_on_examine_1785487271694_87",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.12
+        }
+      },
+      {
+        "name": "Black Short Shorts",
+        "node_id": "item_black short shorts_1791066391499_726",
+        "library_id": "black_short_shorts",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
+          "equip_slots": [
+            "legs"
+          ],
+          "heating_rate": null,
+          "image": null,
+          "library_id": "black_short_shorts",
+          "light_level": "dim",
+          "skill_check": {},
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "tags": [
+            "clothing",
+            "bottom"
+          ],
+          "target_temperature": null,
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_black short shorts_1791066391499_726_on_examine_1791066391500_130",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.3
+        }
+      }
+    ],
+    "neck": [
+      {
+        "name": "black choker",
+        "node_id": "item_black choker",
+        "library_id": "black_choker",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a thin black velvet choker with a small silver heart pendant. the clasp is a little finicky - you have to hook it at just the right angle.",
+          "equip_slots": [
+            "neck"
+          ],
+          "hidden": false,
+          "library_id": "black_choker",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "jewelry"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the silver heart pendant catches the light. the velvet band is soft against your skin. you never take this off."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_black choker_on_examine_1785487140288_485",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.02
+        }
+      },
+      {
+        "name": "syringe necklace",
+        "node_id": "item_syringe necklace",
+        "library_id": "syringe_necklace",
+        "properties": {
+          "_ignored_at": 1788811664.1621017,
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a necklace made from black string, holding a mini glass syringe filled with bright pink liquid. the liquid glows faintly. it's sealed shut - you can't actually inject anything with it.",
+          "equip_slots": [
+            "neck"
+          ],
+          "hidden": false,
+          "ignored_issues": [
+            "library_mismatch"
+          ],
+          "library_id": "syringe_necklace",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "accessory",
+            "jewelry"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "the tiny syringe swings from its black string. the pink liquid inside sloshes gently. you don't remember where you got this."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_syringe necklace_on_examine_1785487150770_507",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You hold the syringe up to the light. The pink liquid pulses softly, like a tiny heartbeat. You try to pry the seal open, but it's fused tight. Nothing happens."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788811659501_oj6a",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_use"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "As your fingers close around the necklace, the glow intensifies - just for a second. A faint, sweet smell like burnt sugar lingers in the air."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788811659501_9hir",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_take"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You let the necklace fall. It lands with a soft clink, the glow dimming as it settles against the floor."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788811659501_tuyr",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_drop"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You loop the necklace around your neck. The syringe rests against your collarbone, cool and faintly luminous beneath your clothes."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788811659501_rj41",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_equip"
+            },
+            {
+              "conditions": [],
+              "effects": [
+                {
+                  "params": {
+                    "message": "You unclasp the necklace. The glow fades as it leaves your skin, returning to a quiet, inert trinket in your hand."
+                  },
+                  "type": "message"
+                }
+              ],
+              "fail_message": "",
+              "id": "trigger_1788811659501_nrav",
+              "success_message": "",
+              "target_name": "",
+              "target_state": "",
+              "trigger_type": "on_unequip"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.03
+        }
+      }
+    ],
+    "torso": [
+      {
+        "name": "grey tank top",
+        "node_id": "item_grey tank top",
+        "library_id": "grey_tank_top",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "defense": 2,
+          "description": "a loose grey tank top that exposes a strip of midriff. the fabric is soft from years of washing. no bra underneath - you don't bother.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "insulation": 2,
+          "library_id": "grey_tank_top",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "top",
+            "insulation"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you pull on the grey tank top. it hangs loose, showing a sliver of stomach."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey tank top_on_equip_1785487210163_567",
+              "target_name": "",
+              "trigger_type": "on_equip"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "soft, worn grey cotton. the kind of top you throw on without thinking. it's seen better days but it's comfortable."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey tank top_on_examine_1785487210163_651",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.2
+        }
+      },
+      {
+        "name": "grey-black striped hoodie",
+        "node_id": "item_grey-black striped hoodie",
+        "library_id": "grey_black_striped_hoodie",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "a thick striped hoodie in alternating shades of grey and light black. worn unzipped over the tank top. the sleeves are too long - you push them up to your elbows. smells faintly of monster energy.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "library_id": "grey_black_striped_hoodie",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "outerwear",
+            "insulation"
+          ],
+          "triggers": [
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you throw on the striped hoodie, leaving it unzipped. the sleeves swallow your hands."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey-black striped hoodie_on_equip_1785487239944_15",
+              "target_name": "",
+              "trigger_type": "on_equip"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "you shrug off the hoodie. the air hits your bare arms."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey-black striped hoodie_on_unequip_1785487239944_666",
+              "target_name": "",
+              "trigger_type": "on_unequip"
+            },
+            {
+              "effects": [
+                {
+                  "params": {
+                    "message": "striped grey and black, thick and warm. the zipper pull is missing - you just wear it open. there's a small monster energy stain on the left cuff."
+                  },
+                  "type": "message"
+                }
+              ],
+              "id": "trigger_item_grey-black striped hoodie_on_examine_1785487239944_595",
+              "target_name": "",
+              "trigger_type": "on_examine"
+            }
+          ],
+          "uses": 0,
+          "weight": 0.9
+        }
+      }
+    ],
+    "waist": []
+  },
   "interest_tags": [
     "sound_source",
     "music",
@@ -71,83 +940,7 @@
     "secret",
     "occult"
   ],
-  "state": "awake",
-  "conditions": {
-    "awake": [
-      {
-        "duration": null,
-        "level": 0,
-        "source": null
-      }
-    ]
-  },
-  "equipped": {
-    "accessory": [
-      "item_upside-down cross hair pin",
-      "item_black hollow star hair pin",
-      "item_pink star twintail band",
-      "item_black ear cuff earrings",
-      "item_blue butterfly earring"
-    ],
-    "arms": [],
-    "back": [],
-    "feet": [],
-    "hand_left": [],
-    "hand_right": [
-      "inv_miki_phone"
-    ],
-    "hands": [],
-    "head": [],
-    "legs": [
-      "item_black high-cut thong",
-      "item_torn black thigh-high stocking",
-      "item_grey-black striped thigh-high"
-    ],
-    "neck": [
-      "item_black choker",
-      "item_syringe necklace"
-    ],
-    "torso": [
-      "item_grey tank top",
-      "item_grey-black striped hoodie"
-    ],
-    "waist": []
-  },
-  "activity": null,
-  "current_area": "library",
   "inventory": [
-    {
-      "name": "phone",
-      "node_id": "inv_miki_phone",
-      "library_id": null,
-      "properties": {
-        "action_costs": {
-          "use": {
-            "energy": 0,
-            "time": 0
-          }
-        },
-        "actions": [
-          "examine",
-          "use"
-        ],
-        "current_state": "lit",
-        "description": "miki's smartphone with a flashlight app and voice recorder. battery at 47%.",
-        "equip_slots": [
-          "hand_right"
-        ],
-        "light_level": "normal",
-        "name": "phone",
-        "tags": [
-          "toggleable",
-          "light_source",
-          "electric",
-          "phone"
-        ],
-        "uses": 47,
-        "weight": 0.3
-      }
-    },
     {
       "name": "granola_bar",
       "node_id": "inv_miki_granola_bar",
@@ -161,10 +954,11 @@
         },
         "actions": [
           "examine",
-          "use",
-          "eat"
+          "eat",
+          "take",
+          "drop"
         ],
-        "description": "a slightly crushed granola bar. chocolate chip — her favorite.",
+        "description": "a slightly crushed granola bar. chocolate chip - her favorite.",
         "name": "granola_bar",
         "tags": [
           "food",
@@ -172,7 +966,34 @@
           "consumable",
           "supplies"
         ],
-        "uses": 1,
+        "triggers": [
+          {
+            "conditions": {},
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "amount": -25,
+                  "stat": "hunger",
+                  "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+                  "target": "self"
+                },
+                "type": "adjust_vital"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_inv_miki_granola_bar_on_use_1784402362_5",
+            "name": "",
+            "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": [
+              "on_use",
+              "on_eat"
+            ]
+          }
+        ],
+        "uses": 2,
         "weight": 0.15
       }
     },
@@ -199,6 +1020,26 @@
           "drink",
           "supplies"
         ],
+        "triggers": [
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "amount": -30,
+                  "stat": "thirst",
+                  "success_message": "you take a drink. lukewarm, but hydrating.",
+                  "target": "self"
+                },
+                "type": "adjust_vital"
+              }
+            ],
+            "id": "trigger_inv_miki_water_bottle_on_use_1784402362_6",
+            "target_name": "",
+            "trigger_type": "on_use"
+          }
+        ],
         "uses": 3,
         "weight": 0.4
       }
@@ -219,6 +1060,34 @@
           "music",
           "electric",
           "phone"
+        ],
+        "triggers": [
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "amount": 10,
+                  "stat": "entertainment",
+                  "success_message": "you put in the earbuds. no music plays, but just having them in is strangely calming.",
+                  "target": "self"
+                },
+                "type": "adjust_vital"
+              },
+              {
+                "params": {
+                  "amount": 5,
+                  "stat": "sanity",
+                  "target": "self"
+                },
+                "type": "adjust_vital"
+              }
+            ],
+            "id": "trigger_inv_miki_earbuds_on_use_1784403369_3",
+            "target_name": "",
+            "trigger_type": "on_use"
+          }
         ],
         "uses": -1,
         "weight": 0.05
@@ -246,6 +1115,39 @@
           "electric",
           "supplies"
         ],
+        "triggers": [
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "message": "",
+                  "success_message": "a portable charger. 30% battery. but there is no power outlet in a haunted mansion that has been abandoned since 1891."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_inv_miki_portable_charger_on_examine_1784403369_5",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          },
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "message": "right. how? there is no electricity here."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_inv_miki_portable_charger_on_use_1784403369_6",
+            "target_name": "",
+            "trigger_type": "on_use"
+          }
+        ],
         "uses": 3,
         "weight": 0.2
       }
@@ -267,6 +1169,26 @@
           "jewelry",
           "artifact"
         ],
+        "triggers": [
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "amount": 5,
+                  "stat": "sanity",
+                  "success_message": "you clutch the talisman. whether it works or not, it makes you feel a little braver.",
+                  "target": "self"
+                },
+                "type": "adjust_vital"
+              }
+            ],
+            "id": "trigger_inv_miki_talisman_on_use_1784403369_7",
+            "target_name": "",
+            "trigger_type": "on_use"
+          }
+        ],
         "uses": -1,
         "weight": 0.05
       }
@@ -286,7 +1208,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "a thin black velvet choker with a small silver heart pendant. the clasp is a little finicky — you have to hook it at just the right angle.",
+        "description": "a thin black velvet choker with a small silver heart pendant. the clasp is a little finicky - you have to hook it at just the right angle.",
         "equip_slots": [
           "neck"
         ],
@@ -299,6 +1221,21 @@
           "accessory",
           "jewelry"
         ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "the silver heart pendant catches the light. the velvet band is soft against your skin. you never take this off."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_black choker_on_examine_1785487140288_485",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
         "uses": 0,
         "weight": 0.02
       }
@@ -308,6 +1245,7 @@
       "node_id": "item_syringe necklace",
       "library_id": "syringe_necklace",
       "properties": {
+        "_ignored_at": 1788811664.1621017,
         "action_costs": {},
         "actions": [
           "examine",
@@ -318,11 +1256,14 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "a necklace made from black string, holding a mini glass syringe filled with bright pink liquid. the liquid glows faintly. it's sealed shut — you can't actually inject anything with it.",
+        "description": "a necklace made from black string, holding a mini glass syringe filled with bright pink liquid. the liquid glows faintly. it's sealed shut - you can't actually inject anything with it.",
         "equip_slots": [
           "neck"
         ],
         "hidden": false,
+        "ignored_issues": [
+          "library_mismatch"
+        ],
         "library_id": "syringe_necklace",
         "locked": false,
         "skill_check": {},
@@ -330,6 +1271,106 @@
           "clothing",
           "accessory",
           "jewelry"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "the tiny syringe swings from its black string. the pink liquid inside sloshes gently. you don't remember where you got this."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_syringe necklace_on_examine_1785487150770_507",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You hold the syringe up to the light. The pink liquid pulses softly, like a tiny heartbeat. You try to pry the seal open, but it's fused tight. Nothing happens."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788811659501_oj6a",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_use"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "As your fingers close around the necklace, the glow intensifies - just for a second. A faint, sweet smell like burnt sugar lingers in the air."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788811659501_9hir",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_take"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You let the necklace fall. It lands with a soft clink, the glow dimming as it settles against the floor."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788811659501_tuyr",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_drop"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You loop the necklace around your neck. The syringe rests against your collarbone, cool and faintly luminous beneath your clothes."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788811659501_rj41",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_equip"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You unclasp the necklace. The glow fades as it leaves your skin, returning to a quiet, inert trinket in your hand."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788811659501_nrav",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_unequip"
+          }
         ],
         "uses": 0,
         "weight": 0.03
@@ -340,6 +1381,7 @@
       "node_id": "item_upside-down cross hair pin",
       "library_id": "upside_down_cross_hair_pin",
       "properties": {
+        "_ignored_at": 1788811632.9198434,
         "action_costs": {},
         "actions": [
           "examine",
@@ -355,6 +1397,9 @@
           "accessory"
         ],
         "hidden": false,
+        "ignored_issues": [
+          "library_mismatch"
+        ],
         "library_id": "upside_down_cross_hair_pin",
         "locked": false,
         "skill_check": {},
@@ -362,6 +1407,106 @@
           "clothing",
           "accessory",
           "hair_accessory"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "a tiny silver cross, inverted, pinned into dirty-blonde bangs. edgy."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_upside-down cross hair pin_on_examine_1785487161203_521",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You adjust the hair pin, sliding it deeper into your bangs. It holds your hair back, but the inverted cross stares up like an accusation."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788810543511_fn9r",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_use"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "As your fingers close around the pin, a faint chill climbs your wrist. You feel watched, as if the inverted cross has turned its gaze on you."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788810543511_wp18",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_take"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You let the pin fall. It clinks against the floor, the inverted cross landing face-up, staring at the ceiling like a dead eye."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788810543511_utv4",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_drop"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You slide the pin into your hair. The silver cross rests against your scalp, cold and constant. You feel a subtle pressure, as if something is leaning closer."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788810543511_wesq",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_equip"
+          },
+          {
+            "conditions": [],
+            "effects": [
+              {
+                "params": {
+                  "message": "You pull the pin free. The chill recedes, but the weight of its gaze lingers in the air behind you."
+                },
+                "type": "message"
+              }
+            ],
+            "fail_message": "",
+            "id": "trigger_1788810543511_gze7",
+            "success_message": "",
+            "target_name": "",
+            "target_state": "",
+            "trigger_type": "on_unequip"
+          }
         ],
         "uses": 0,
         "weight": 0.01
@@ -395,6 +1540,21 @@
           "accessory",
           "hair_accessory"
         ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "a small black star outline, pinned neatly into place. matches the cross on the other side."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_black hollow star hair pin_on_examine_1785487170274_375",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
         "uses": 0,
         "weight": 0.01
       }
@@ -427,106 +1587,23 @@
           "accessory",
           "hair_accessory"
         ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "a pink star glints from the band holding your right twintail. cute."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_pink star twintail band_on_examine_1785487184268_853",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
         "uses": 0,
         "weight": 0.01
-      }
-    },
-    {
-      "name": "black ear cuff earrings",
-      "node_id": "item_black ear cuff earrings",
-      "library_id": "black_ear_cuff_earrings",
-      "properties": {
-        "action_costs": {},
-        "actions": [
-          "examine",
-          "take",
-          "use",
-          "equip",
-          "unequip",
-          "drop"
-        ],
-        "current_state": "normal",
-        "description": "a set of black metal ear cuffs that clip onto the upper cartilage of both ears. no piercings required.",
-        "equip_slots": [
-          "accessory"
-        ],
-        "hidden": false,
-        "library_id": "black_ear_cuff_earrings",
-        "locked": false,
-        "skill_check": {},
-        "tags": [
-          "clothing",
-          "accessory",
-          "jewelry"
-        ],
-        "uses": 0,
-        "weight": 0.02
-      }
-    },
-    {
-      "name": "blue butterfly earring",
-      "node_id": "item_blue butterfly earring",
-      "library_id": "blue_butterfly_earring",
-      "properties": {
-        "action_costs": {},
-        "actions": [
-          "examine",
-          "take",
-          "use",
-          "equip",
-          "unequip",
-          "drop"
-        ],
-        "current_state": "normal",
-        "description": "a dangling earring with a delicate blue butterfly charm, worn on the right ear. the wings shimmer with faint iridescence.",
-        "equip_slots": [
-          "accessory"
-        ],
-        "hidden": false,
-        "library_id": "blue_butterfly_earring",
-        "locked": false,
-        "skill_check": {},
-        "tags": [
-          "clothing",
-          "accessory",
-          "jewelry"
-        ],
-        "uses": 0,
-        "weight": 0.02
-      }
-    },
-    {
-      "name": "grey tank top",
-      "node_id": "item_grey tank top",
-      "library_id": "grey_tank_top",
-      "properties": {
-        "action_costs": {},
-        "actions": [
-          "examine",
-          "take",
-          "use",
-          "equip",
-          "unequip",
-          "drop"
-        ],
-        "current_state": "normal",
-        "defense": 2,
-        "description": "a loose grey tank top that exposes a strip of midriff. the fabric is soft from years of washing. no bra underneath — you don't bother.",
-        "equip_slots": [
-          "torso"
-        ],
-        "hidden": false,
-        "insulation": 2,
-        "library_id": "grey_tank_top",
-        "locked": false,
-        "skill_check": {},
-        "tags": [
-          "clothing",
-          "top",
-          "insulation"
-        ],
-        "uses": 0,
-        "weight": 0.2
       }
     },
     {
@@ -562,6 +1639,162 @@
       }
     },
     {
+      "name": "black ear cuff earrings",
+      "node_id": "item_black ear cuff earrings",
+      "library_id": "black_ear_cuff_earrings",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a set of black metal ear cuffs that clip onto the upper cartilage of both ears. no piercings required.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "hidden": false,
+        "library_id": "black_ear_cuff_earrings",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "accessory",
+          "jewelry"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "simple black ear cuffs. they pinch slightly but stay secure."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_black ear cuff earrings_on_examine_1785487194073_165",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
+        "uses": 0,
+        "weight": 0.02
+      }
+    },
+    {
+      "name": "blue butterfly earring",
+      "node_id": "item_blue butterfly earring",
+      "library_id": "blue_butterfly_earring",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a dangling earring with a delicate blue butterfly charm, worn on the right ear. the wings shimmer with faint iridescence.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "hidden": false,
+        "library_id": "blue_butterfly_earring",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "accessory",
+          "jewelry"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "the blue butterfly sways gently. it catches light beautifully - one of your favorite pieces."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_blue butterfly earring_on_examine_1785487201744_839",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
+        "uses": 0,
+        "weight": 0.02
+      }
+    },
+    {
+      "name": "grey tank top",
+      "node_id": "item_grey tank top",
+      "library_id": "grey_tank_top",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "defense": 2,
+        "description": "a loose grey tank top that exposes a strip of midriff. the fabric is soft from years of washing. no bra underneath - you don't bother.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "insulation": 2,
+        "library_id": "grey_tank_top",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top",
+          "insulation"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "you pull on the grey tank top. it hangs loose, showing a sliver of stomach."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey tank top_on_equip_1785487210163_567",
+            "target_name": "",
+            "trigger_type": "on_equip"
+          },
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "soft, worn grey cotton. the kind of top you throw on without thinking. it's seen better days but it's comfortable."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey tank top_on_examine_1785487210163_651",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
+        "uses": 0,
+        "weight": 0.2
+      }
+    },
+    {
       "name": "grey-black striped hoodie",
       "node_id": "item_grey-black striped hoodie",
       "library_id": "grey_black_striped_hoodie",
@@ -576,7 +1809,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "a thick striped hoodie in alternating shades of grey and light black. worn unzipped over the tank top. the sleeves are too long — you push them up to your elbows. smells faintly of monster energy.",
+        "description": "a thick striped hoodie in alternating shades of grey and light black. worn unzipped over the tank top. the sleeves are too long - you push them up to your elbows. smells faintly of monster energy.",
         "equip_slots": [
           "torso"
         ],
@@ -588,6 +1821,47 @@
           "clothing",
           "outerwear",
           "insulation"
+        ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "you throw on the striped hoodie, leaving it unzipped. the sleeves swallow your hands."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey-black striped hoodie_on_equip_1785487239944_15",
+            "target_name": "",
+            "trigger_type": "on_equip"
+          },
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "you shrug off the hoodie. the air hits your bare arms."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey-black striped hoodie_on_unequip_1785487239944_666",
+            "target_name": "",
+            "trigger_type": "on_unequip"
+          },
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "striped grey and black, thick and warm. the zipper pull is missing - you just wear it open. there's a small monster energy stain on the left cuff."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey-black striped hoodie_on_examine_1785487239944_595",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
         ],
         "uses": 0,
         "weight": 0.9
@@ -621,6 +1895,21 @@
           "hosiery",
           "insulation"
         ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "a black thigh-high with a run in it. you never wear matching pairs anyway."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_torn black thigh-high stocking_on_examine_1785487252329_940",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
         "uses": 0,
         "weight": 0.1
       }
@@ -653,25 +1942,140 @@
           "hosiery",
           "insulation"
         ],
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "thick, warm, and striped. the opposite of the torn stocking on your other leg. you never match."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_grey-black striped thigh-high_on_examine_1785487271694_87",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
         "uses": 0,
         "weight": 0.12
       }
+    },
+    {
+      "name": "phone",
+      "node_id": "inv_miki_phone",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 0
+          }
+        },
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "lit",
+        "description": "miki's smartphone with a flashlight app and voice recorder. battery at 47%.",
+        "equip_slots": [
+          "hand_right"
+        ],
+        "light_level": "normal",
+        "name": "phone",
+        "tags": [
+          "toggleable",
+          "light_source",
+          "electric",
+          "phone"
+        ],
+        "triggers": [
+          {
+            "conditions": [],
+            "conditions_logic": "and",
+            "effects": [
+              {
+                "params": {
+                  "message": "",
+                  "success_message": "you check the phone. no signal. no service. the flashlight app works though. battery is draining faster than expected."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_inv_miki_phone_on_examine_1784403369_4",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
+        "uses": 47,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "Black Short Shorts",
+      "node_id": "item_black short shorts_1791066391499_726",
+      "library_id": "black_short_shorts",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "affinity": [],
+        "current_state": "normal",
+        "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
+        "equip_slots": [
+          "legs"
+        ],
+        "heating_rate": null,
+        "image": null,
+        "library_id": "black_short_shorts",
+        "light_level": "dim",
+        "skill_check": {},
+        "sound_level": null,
+        "sound_pattern": null,
+        "stun_chance": null,
+        "stun_duration": null,
+        "tags": [
+          "clothing",
+          "bottom"
+        ],
+        "target_temperature": null,
+        "triggers": [
+          {
+            "effects": [
+              {
+                "params": {
+                  "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+                },
+                "type": "message"
+              }
+            ],
+            "id": "trigger_item_black short shorts_1791066391499_726_on_examine_1791066391500_130",
+            "target_name": "",
+            "trigger_type": "on_examine"
+          }
+        ],
+        "uses": 0,
+        "weight": 0.3
+      }
     }
   ],
-  "emotion": {
-    "current": "neutral",
-    "description": "",
-    "intensity": 0
-  },
   "memories": [
     {
       "entity_ids": [],
       "id": "mem_1784400343602_991",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
+      "suppressions": [],
       "tags": [],
-      "text": "met elena at a paranormal convention in portland. she actually knows what she's doing, unlike me. i hear things in this house — whispers through walls, footsteps in rooms with no one there. my asmr thing? actually useful here. i notice sounds other people tune out.",
+      "text": "met elena at a paranormal convention in portland. she actually knows what she's doing, unlike me. i hear things in this house - whispers through walls, footsteps in rooms with no one there. my asmr thing? actually useful here. i notice sounds other people tune out.",
       "tick": 0,
       "timestamp": 1784400343.6023312,
       "type": "observation"
@@ -681,9 +2085,11 @@
       "id": "mem_1785444325075_61",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
+      "suppressions": [],
       "tags": [],
-      "text": "okay this place is like heaven for ambiance! sure it's freaky, but the acoustics in here are insane — i could record an entire asmr session just from the creaking floors and that weird hum in the walls. but yeah no, elena went into the library and i am not staying in this foyer by myself. not happening. she's the only thing between me and whatever's making those scratching sounds. where she goes, i go.\n\nshorter, punchier, still sounds like miki rambling. keeps the asmr-brain moment, the fear, and the clinginess to elena all in one breath. the original had the right energy just needed the spelling fixed and the run-on tightened so it reads like nervous excitement instead of a typo soup.",
+      "text": "okay this place is like heaven for ambiance! sure it's freaky, but the acoustics in here are insane - i could record an entire asmr session just from the creaking floors and that weird hum in the walls. but yeah no, elena went into the library and i am not staying in this foyer by myself. not happening. she's the only thing between me and whatever's making those scratching sounds. where she goes, i go.\n\nshorter, punchier, still sounds like miki rambling. keeps the asmr-brain moment, the fear, and the clinginess to elena all in one breath. the original had the right energy just needed the spelling fixed and the run-on tightened so it reads like nervous excitement instead of a typo soup.",
       "tick": 0,
       "timestamp": 1785444325.0757976,
       "type": "observation"
@@ -693,9 +2099,11 @@
       "id": "mem_1785444955629_805",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
+      "suppressions": [],
       "tags": [],
-      "text": "okay so like — the front door has a skull on it? a literal skull-shaped hole? that's not creepy at all, nope, totally normal tuesday stuff. we're stuck. like, actually stuck. elena's doing her investigator thing, checking everything, but nothing in the foyer fits that lock. and there were teenagers here?? just — hanging out?? in a haunted mansion?? what is even happening right now. elena said she's heading to the library and i am not staying in this foyer by myself, nope, absolutely not, you couldn't pay me enough. i'm going with her. where she goes, i go. she's the only thing between me and whatever's making those scratching sounds in the walls.",
+      "text": "okay so like - the front door has a skull on it? a literal skull-shaped hole? that's not creepy at all, nope, totally normal tuesday stuff. we're stuck. like, actually stuck. elena's doing her investigator thing, checking everything, but nothing in the foyer fits that lock. and there were teenagers here?? just - hanging out?? in a haunted mansion?? what is even happening right now. elena said she's heading to the library and i am not staying in this foyer by myself, nope, absolutely not, you couldn't pay me enough. i'm going with her. where she goes, i go. she's the only thing between me and whatever's making those scratching sounds in the walls.",
       "tick": 0,
       "timestamp": 1785444955.6293516,
       "type": "observation"
@@ -705,14 +2113,188 @@
       "id": "mem_1785444973138_90",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
+      "suppressions": [],
       "tags": [],
-      "text": "oh my god, this library is like — okay, it's terrifying, but also it smells amazing? old paper and dust and leather, that's like peak asmr ambience right there. i could record in here and get a million views easy. except for the metallic smell. that part's weird. elena's already at the desk, doing her whole cataloguing thing. i can hear something though — like a low hum, almost like the books themselves are vibrating? probably just the pipes. old houses have weird pipes. that's definitely what it is. one of the bookcases looks different though, like the books are pushed back further? i should tell elena. or i should not touch anything. yeah. not touching anything is the plan.",
+      "text": "oh my god, this library is like - okay, it's terrifying, but also it smells amazing? old paper and dust and leather, that's like peak asmr ambience right there. i could record in here and get a million views easy. except for the metallic smell. that part's weird. elena's already at the desk, doing her whole cataloguing thing. i can hear something though - like a low hum, almost like the books themselves are vibrating? probably just the pipes. old houses have weird pipes. that's definitely what it is. one of the bookcases looks different though, like the books are pushed back further? i should tell elena. or i should not touch anything. yeah. not touching anything is the plan.",
       "tick": 0,
       "timestamp": 1785444973.1384373,
       "type": "observation"
+    },
+    {
+      "embedding": null,
+      "emotion": {
+        "intensity": 5,
+        "label": "uneasy"
+      },
+      "emotions": null,
+      "entity_ids": [
+        "area_library"
+      ],
+      "id": "mem_1788888607583_84",
+      "importance": 4,
+      "location": "",
+      "memory_emotions": [],
+      "salience_override": 0,
+      "source": "auto",
+      "suppressions": [],
+      "tags": [
+        "mystery",
+        "unease"
+      ],
+      "text": "Granola bar helped with the hunger but the hum and metallic smell in the library persist. Elena is quiet and focused.",
+      "tick": 0,
+      "timestamp": 1788888607.583182,
+      "type": "reaction"
+    },
+    {
+      "embedding": null,
+      "emotion": {
+        "intensity": 7,
+        "label": "fascinated"
+      },
+      "emotions": null,
+      "entity_ids": [
+        "area_library"
+      ],
+      "id": "mem_1788890509675_500",
+      "importance": 8,
+      "location": "",
+      "memory_emotions": [],
+      "salience_override": 0,
+      "source": "auto",
+      "suppressions": [],
+      "tags": [
+        "mystery",
+        "fear",
+        "trust"
+      ],
+      "text": "the bookshelf is hollow - a hidden door behind volumes of arcane heraldry. something secret is concealed here and i can hear the hum coming from it.",
+      "tick": 1,
+      "timestamp": 1788890509.6757097,
+      "type": "reaction"
+    },
+    {
+      "data": {
+        "area": "area_library",
+        "environment": {
+          "air": "stale",
+          "light": 30,
+          "noise": "quiet",
+          "smell": "old paper and copper",
+          "temperature": 15
+        },
+        "event": "scene_observed",
+        "exits_seen": [],
+        "items_seen": [
+          "item_desk",
+          "item_drawer",
+          "item_diary",
+          "item_letter_opener",
+          "item_strange_compass",
+          "item_fireplace",
+          "item_love_letters",
+          "item_portrait",
+          "item_iron_key",
+          "item_teacup",
+          "item_water_pitcher",
+          "item_tainted_wine",
+          "item_glasses_case",
+          "item_bookshelf_item"
+        ]
+      },
+      "embedding": null,
+      "emotion": {
+        "intensity": 8,
+        "label": "unsettled"
+      },
+      "emotions": {
+        "data": {
+          "closeness": 1,
+          "fear": 3,
+          "trust": 2
+        },
+        "who": "elena vance",
+        "why": "We're in this together and she hasn't reacted yet - i hope she's as spooked as i am"
+      },
+      "entity_ids": [
+        "area_library",
+        "item_desk",
+        "item_drawer",
+        "item_diary",
+        "item_letter_opener",
+        "item_strange_compass",
+        "item_fireplace",
+        "item_love_letters",
+        "item_portrait",
+        "item_iron_key",
+        "item_teacup",
+        "item_water_pitcher",
+        "item_tainted_wine",
+        "item_glasses_case",
+        "item_bookshelf_item"
+      ],
+      "id": "mem_1788891822831_432",
+      "importance": 9,
+      "kind": "area",
+      "location": "library",
+      "memory_emotions": [],
+      "salience_override": 0,
+      "source": "auto",
+      "suppressions": [],
+      "tags": [
+        "area:library",
+        "art",
+        "artifact",
+        "book",
+        "clue",
+        "container",
+        "cursed",
+        "diary",
+        "discovery",
+        "documents",
+        "drink",
+        "evidence",
+        "fear",
+        "fire",
+        "fireplace",
+        "furniture",
+        "glass",
+        "heat_source",
+        "key",
+        "letter",
+        "mechanism",
+        "metal",
+        "mystery",
+        "observed",
+        "occult",
+        "paper",
+        "portrait",
+        "rel:elena vance",
+        "secret",
+        "supplies",
+        "tea",
+        "tool",
+        "warmth",
+        "water",
+        "weapon",
+        "wine",
+        "wooden"
+      ],
+      "text": "Observed library: desk, drawer, diary, letter_opener, strange_compass, fireplace, love_letters, portrait, iron_key, teacup, water_pitcher, tainted_wine, glasses_case, bookshelf_item.",
+      "tick": 0,
+      "timestamp": 1792685677.5978608,
+      "type": "reaction",
+      "visits": 24
     }
   ],
+  "name": "miki",
+  "npc_action_interval": 3,
+  "npc_behavior": "wander",
+  "npc_state": "idle",
+  "personality": "you are miki, a chaotic asmr artist with anxiety and a heart of gold. you tend to ramble when nervous, but you're fiercely loyal to those who earn your trust.  you're easily spooked but also easily excited by cool details. your asmr skills actually help you notice subtle sounds others miss. you have a habit of humming when scared.\n\nname: miki doki\nheight: 5’8”\nskin colour: caucasian\nage: mid 20's\n[hair: \n-dirty blonde (darker near her roots)\n-ragged cut hair\n-twin tails\\n-uneven framing bangs (left longer than right)\n-ribbon like strand separation\neyes: pinkish red, dark circles around them, aggressive looking.\nrace: american\noccupation: -(nsfw) asmr artist\n-patreon “model” (no sex on camera yet)\nmarital status: single\nsexual orientation: anything human and adult is ok.\nsexual history: sporadic short relationships that lead nowhere, she doesn't remember the exact number but >15.\nthree sizes: b122 w56 h125\ncup size: k\nbody type: hourglass\n[misc. accessories/features: protruding canines (all four)\nbags around her eyes.\n-possesses long nails painted the same colour as her eyes.-permanent bite marks on her left upper outer thigh, above her right knee, upper right arm, and finally one between her neck, and her left shoulder. (she doesn't remember how she got any of these.)\n-a healed scar over the left side of her lower stomach. (doesn't remember what it was caused by.)\n-clean shaven body, except for her pubic hair.]\n\n[personality: self deprecating (level 2), clingy (level 4), teasing (level 1), bratty (level 2), laid back (level 4), shy (level 4), yearning (level 3), nerdy (level 4), socially-aware (level 3), horny (level 2), delicate (level 2), casual (level 4), awkward (level 4), cringy (level 3), rambling (level 4), masochistic (level 3), self-conscious (level 4)]\\n\\nhabits:\n-loves drinking monster (especially the original flavour).\n-loves alcohol especially when mixed with monster. (doesn't care for flavour)\n-wakes up late in the day. (usually past 12pm.)\n-doesn't wear a bra.\n-gets shy and easily embarrassed when shown any amount of attention by multiple people. (especially on social media)\nmisc. info:\\n-occasionally cosplays\n-sometimes strips on social media, using like goals to encourage her audience to have her stripping further.\n-internet savvy.\n-is a massive gooner and fujoshi.\n-masturbates frequently (3 to 15 times a day)\nconsiders herself a “girlfailure”\nfetishes:masochism\n-submission\n-biting\n-rough sex\n-cum\n-praise",
+  "recent_hearing": [],
   "relationships": {
     "elena vance": {
       "closeness": 33,
@@ -720,11 +2302,146 @@
       "last_interaction_tick": 0
     }
   },
-  "behaviors": [],
-  "npc_behavior": "wander",
-  "npc_action_interval": 3,
-  "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": [],
-  "size": "small"
+  "size": "small",
+  "skills": {
+    "Acrobatics": 1,
+    "Animal Handling": 0,
+    "Arcana": 0,
+    "Athletics": 1,
+    "Deception": 0,
+    "History": 0,
+    "Insight": 0,
+    "Intimidation": 0,
+    "Investigation": 0,
+    "Medicine": 0,
+    "Nature": 0,
+    "Perception": 1,
+    "Performance": 0,
+    "Persuasion": 1,
+    "Religion": 0,
+    "Sleight of Hand": 0,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 12,
+    "CON": 10,
+    "DEX": 12,
+    "INT": 14,
+    "STR": 8,
+    "WIS": 8
+  },
+  "tags": [
+    "female"
+  ],
+  "traits": {},
+  "unknown_name": "",
+  "vitals": {
+    "Bladder": 15,
+    "Energy": 94,
+    "Entertainment": 99,
+    "HP": 100,
+    "Hunger": 80,
+    "Hygiene": 97,
+    "Max_HP": 100,
+    "Sanity": 97,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 80
+  },
+  "expressions": {
+    "affectionate": {
+      "profile": "/static/images/nodes/player_miki-profile-affectionate-1791068269225.webp"
+    },
+    "afraid": {
+      "profile": "/static/images/nodes/player_miki-profile-afraid-1791068268225.webp"
+    },
+    "angry": {
+      "profile": "/static/images/nodes/player_miki-profile-angry-1791068268034.webp"
+    },
+    "aroused": {
+      "profile": "/static/images/nodes/player_miki-profile-aroused-1791068269021.webp"
+    },
+    "ashamed": {
+      "profile": "/static/images/nodes/player_miki-profile-ashamed-1791068269450.webp"
+    },
+    "calm": {
+      "profile": "/static/images/nodes/player_miki-profile-calm-1791068269878.webp"
+    },
+    "disgusted": {
+      "profile": "/static/images/nodes/player_miki-profile-disgusted-1791068268823.webp"
+    },
+    "envious": {
+      "profile": "/static/images/nodes/player_miki-profile-envious-1791068269682.webp"
+    },
+    "happy": {
+      "profile": "/static/images/nodes/player_miki-profile-happy-1791068267262.webp"
+    },
+    "neutral": {
+      "profile": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp"
+    },
+    "sad": {
+      "profile": "/static/images/nodes/player_miki-profile-sad-1791068267823.webp"
+    },
+    "slot13": {
+      "profile": "/static/images/nodes/player_miki-profile-slot13-1791068270247.webp"
+    },
+    "slot14": {
+      "profile": "/static/images/nodes/player_miki-profile-slot14-1791068270582.webp"
+    },
+    "slot15": {
+      "profile": "/static/images/nodes/player_miki-profile-slot15-1791068270773.webp"
+    },
+    "slot16": {
+      "profile": "/static/images/nodes/player_miki-profile-slot16-1791068270980.webp"
+    },
+    "slot17": {
+      "profile": "/static/images/nodes/player_miki-profile-slot17-1791068271206.webp"
+    },
+    "slot18": {
+      "profile": "/static/images/nodes/player_miki-profile-slot18-1791068271399.webp"
+    },
+    "slot19": {
+      "profile": "/static/images/nodes/player_miki-profile-slot19-1791068271562.webp"
+    },
+    "slot20": {
+      "profile": "/static/images/nodes/player_miki-profile-slot20-1791068271726.webp"
+    },
+    "slot21": {
+      "profile": "/static/images/nodes/player_miki-profile-slot21-1791068271890.webp"
+    },
+    "slot22": {
+      "profile": "/static/images/nodes/player_miki-profile-slot22-1791068272049.webp"
+    },
+    "slot23": {
+      "profile": "/static/images/nodes/player_miki-profile-slot23-1791068272206.webp"
+    },
+    "slot24": {
+      "profile": "/static/images/nodes/player_miki-profile-slot24-1791068272369.webp"
+    },
+    "slot25": {
+      "profile": "/static/images/nodes/player_miki-profile-slot25-1791068272546.webp"
+    },
+    "slot26": {
+      "profile": "/static/images/nodes/player_miki-profile-slot26-1791068272753.webp"
+    },
+    "slot27": {
+      "profile": "/static/images/nodes/player_miki-profile-slot27-1791068273526.webp"
+    },
+    "slot28": {
+      "profile": "/static/images/nodes/player_miki-profile-slot28-1791068273763.webp"
+    },
+    "slot29": {
+      "profile": "/static/images/nodes/player_miki-profile-slot29-1791068273968.webp"
+    },
+    "slot30": {
+      "profile": "/static/images/nodes/player_miki-profile-slot30-1791068274348.webp"
+    },
+    "surprised": {
+      "profile": "/static/images/nodes/player_miki-profile-surprised-1791068268623.webp"
+    }
+  },
+  "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp"
 }

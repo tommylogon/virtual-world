@@ -921,6 +921,21 @@ def _apply_batch_op(app, optype, p):
             # graph->array compile for the visual editor.
             player.behaviors = list(beh)
             applied['behaviors'] = len(beh)
+        sched = patch.get('schedule')
+        if isinstance(sched, list):
+            from engine.schedule import normalize as _normalize_schedule
+            player.schedule = _normalize_schedule(sched)
+            applied['schedule'] = len(sched)
+        gls = patch.get('goals')
+        if isinstance(gls, list):
+            from engine.goals import normalize as _normalize_goals
+            player.goals = _normalize_goals(gls)
+            applied['goals'] = len(gls)
+        obl = patch.get('obligations')
+        if isinstance(obl, list):
+            from engine.goals import normalize_obligations as _normalize_obligations
+            player.obligations = _normalize_obligations(obl)
+            applied['obligations'] = len(obl)
         return {"player": player.name, "applied": applied}
 
     if optype == 'rename_character':

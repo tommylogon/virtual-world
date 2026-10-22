@@ -476,6 +476,26 @@ const TurnFeedModule = (() => {
         return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    /**
+     * Resolve the controlled character's display name from the live state.
+     *
+     * `worldState.activePlayer` is the accessor; the persisted key is
+     * `active_player`. A save (or a hand-built test state) may carry the older
+     * camelCase `data.activePlayer`. Reading only the last of those makes an
+     * unknown name fall back to "You", which then fails to match the actor
+     * carried on a human's own result row (bug-518).
+     */
+    function activePlayerName(): string | null {
+        if (typeof worldState === 'undefined' || !worldState) return null;
+        const ws = worldState as unknown as {
+            activePlayer?: string | null;
+            data?: { activePlayer?: string | null; active_player?: string | null } | null;
+        };
+        return ws.activePlayer
+            || (ws.data && (ws.data.activePlayer || ws.data.active_player))
+            || null;
+    }
+
     function renderStructured(host: HTMLElement, limit = 14, entries: FeedEntry[] | null = null): void {
         install();
         host.textContent = '';
@@ -560,7 +580,7 @@ const TurnFeedModule = (() => {
                 lastType = null;
             }
 
-            const playerName = (typeof worldState !== 'undefined' && worldState.data && worldState.data.activePlayer) ? worldState.data.activePlayer : 'You';
+            const playerName = activePlayerName() || 'You';
             const isPlayer = !parsed.actor || parsed.actor === 'You' || parsed.actor === playerName;
             const actorKey = parsed.actor || '???';
             const displayActor = isPlayer ? 'You' : observerName(parsed.actor);
@@ -681,7 +701,8 @@ const TurnFeedModule = (() => {
                 lastType = null;
             }
 
-            const isPlayer = parsed.actor === 'You' || parsed.actor === (worldState && worldState.data && worldState.data.activePlayer);
+            const playerName = activePlayerName();
+            const isPlayer = parsed.actor === 'You' || (!!playerName && parsed.actor === playerName);
             const actorKey = parsed.actor || '???';
             const changeActor = lastActor !== actorKey;
             const changeType = lastType !== parsed.type;
@@ -782,7 +803,7 @@ const TurnFeedModule = (() => {
         return _observerMode;
     }
 
-    return { render, markTurnEnd, digest, clearDigest, parseEntry, structuredEntries, buildSummary, setObserverMode, getObserverMode };
+    return { render, markTurnEnd, digest, clearDigest, parseEntry, structuredEntries, buildSummary, setObserverMode, getObserverMode, activePlayerName };
 })();
 
 (window as unknown as { TurnFeed: typeof TurnFeedModule }).TurnFeed = TurnFeedModule;

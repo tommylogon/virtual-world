@@ -57,6 +57,37 @@ Nothing here is decoration. A Persona field must be **reachable** (editable in t
    region map the body navigator reads — one map, two readers)
 - Tests: `tests/test_character_appearance.py`, `tests/test_persona_growth.py`
 
+## Personality field map
+
+Every personality field names its reader. Id-list fields hold tag slugs
+(`^[a-z0-9][a-z0-9_-]*$`); prose-list fields hold free text.
+
+| Field | Kind | Consumer |
+|-------|------|----------|
+| likes | id-list | gifts and dialogue targeting |
+| dislikes | id-list | gifts and dialogue targeting |
+| fears | id-list | `engine.fear` fear_tags |
+| interests | id-list | attention / interest_tags |
+| kinks | id-list | `affect_for_stimulus` → arousal |
+| turn_ons | id-list | `affect_for_stimulus` → arousal (WorldGraph names) |
+| turn_offs | id-list | `affect_for_stimulus` → disgust / negative arousal |
+| traumas | id-list | fear_tags + frightened condition; backstory wounds |
+| boundaries | id-list | consent gate for intimacy prompts |
+| traits | prose-list | MOSIAC personality traits |
+| aspirations | prose-list | GIMP goals / plans projection |
+| quirks | prose-list | prompt voice colour |
+| habits | prose-list | MOSIAC background behaviour |
+| speech_pattern | prose-list | prompt voice (style / dialect / catchphrases) |
+| experience | prose-list | intimacy prompt context (WorldGraph experience) |
+
+**Media is not identity.** Media (movies, games, books, music) is a prose
+category that feeds memory / knowledge generation — lorebook entries and
+memory records — not identity, not GIMP, not MOSIAC.
+
+**Id-list discipline:** display names are rejected. `likes` holds
+`monster_energy`, not `"Monster energy drink"`. The compile fails closed
+on unknown ids — it never guesses.
+
 ## See also
 
 - [[Characters Overview]]

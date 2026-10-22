@@ -166,3 +166,168 @@ def test_validator_accepts_a_good_player_op_and_flags_bad_ones():
     assert errors_only(validate_ops([_player_op("Valid Probe", {"emotion": {"name": "not_a_dim"}})], **known))
     # empty patch
     assert errors_only(validate_ops([_player_op("Valid Probe", {})], **known))
+
+
+def test_update_player_sets_schedule():
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Sched Probe")
+
+    res = _apply(app, {"character": "Sched Probe",
+                       "patch": {"schedule": [
+                           {"start": "07:00", "activity": "work", "area": "Workshop", "fallback": "wait"},
+                           {"start": "18:00", "activity": "sleep", "area": "Bedroom", "fallback": "rest"},
+                       ]}})
+    assert res.get("applied", {}).get("schedule") == 2, res
+    assert len(player.schedule) == 2
+    assert player.schedule[0]["start"] == 420  # 07:00 in minutes
+    assert player.schedule[0]["activity"] == "work"
+    assert player.schedule[0]["area"] == "Workshop"
+    assert player.schedule[1]["start"] == 1080  # 18:00 in minutes
+    assert player.schedule[1]["activity"] == "sleep"
+
+
+def test_update_player_sets_goals():
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Goal Probe")
+
+    res = _apply(app, {"character": "Goal Probe",
+                       "patch": {"goals": [
+                           {"what": "Become chief", "status": "active",
+                            "motivation": "I want respect", "intention": "Power"},
+                           {"what": "Find the key", "status": "proposed"},
+                       ]}})
+    assert res.get("applied", {}).get("goals") == 2, res
+    assert len(player.goals) == 2
+    chief = player.goals[0]
+    assert chief["id"] == "become_chief"
+    assert chief["what"] == "Become chief"
+    assert chief["status"] == "active"
+    assert chief["motivation"] == "I want respect"
+    assert chief["intention"] == "Power"
+    find_key = player.goals[1]
+    assert find_key["id"] == "find_the_key"
+    assert find_key["what"] == "Find the key"
+    assert find_key["status"] == "proposed"
+
+
+def test_update_player_sets_obligations():
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Oblig Probe")
+
+    res = _apply(app, {"character": "Oblig Probe",
+                       "patch": {"obligations": [
+                           {"charge": "Guard the gate", "from": "Chief", "due": 1000,
+                            "status": "offered", "reward": "a coin"},
+                           {"charge": "Deliver the letter", "status": "accepted"},
+                       ]}})
+    assert res.get("applied", {}).get("obligations") == 2, res
+    assert len(player.obligations) == 2
+    gate = player.obligations[0]
+    assert gate["id"] == "guard_the_gate"
+    assert gate["charge"] == "Guard the gate"
+    assert gate["from"] == "Chief"
+    assert gate["due"] == 1000
+    assert gate["status"] == "offered"
+    assert gate["reward"] == "a coin"
+    letter = player.obligations[1]
+    assert letter["id"] == "deliver_the_letter"
+    assert letter["charge"] == "Deliver the letter"
+    assert letter["status"] == "accepted"
+
+
+def test_validator_schedule_rejects_bad_steps():
+    app = create_app({"TESTING": True})
+    _make_character(app, "Sched Valid")
+    known = {"nodes": app.world.graph}
+
+    # valid schedule
+    good = [_player_op("Sched Valid", {"schedule": [
+        {"start": "07:00", "activity": "work", "area": "Workshop"},
+    ]})]
+    assert errors_only(validate_ops(good, **known)) == []
+
+    # no start time -> flagged as error by validator
+    bad_start = [_player_op("Sched Valid", {"schedule": [
+        {"activity": "work"},  # no start
+    ]})]
+    assert errors_only(validate_ops(bad_start, **known))
+
+    # unknown activity -> normalized to wait, still valid
+    bad_act = [_player_op("Sched Valid", {"schedule": [
+        {"start": "07:00", "activity": "dance"},
+    ]})]
+    assert errors_only(validate_ops(bad_act, **known)) == []
+
+    # start out of range -> error
+    bad_range = [_player_op("Sched Valid", {"schedule": [
+        {"start": "25:00", "activity": "work"},
+    ]})]
+    assert errors_only(validate_ops(bad_range, **known))
+
+
+def test_validator_goals_rejects_bad_entries():
+    app = create_app({"TESTING": True})
+    _make_character(app, "Goal Valid")
+    known = {"nodes": app.world.graph}
+
+    # valid goals
+    good = [_player_op("Goal Valid", {"goals": [
+        {"what": "Become chief", "status": "active", "motivation": "Power", "intention": "Respect"},
+    ]})]
+    assert errors_only(validate_ops(good, **known)) == []
+
+    # missing what -> flagged as error by validator
+    no_what = [_player_op("Goal Valid", {"goals": [
+        {"status": "active"},
+    ]})]
+    assert errors_only(validate_ops(no_what, **known))
+
+    # unknown status -> flagged as error by validator
+    bad_status = [_player_op("Goal Valid", {"goals": [
+        {"what": "Test", "status": "not_a_status"},
+    ]})]
+    assert errors_only(validate_ops(bad_status, **known))
+
+
+def test_validator_obligations_rejects_bad_entries():
+    app = create_app({"TESTING": True})
+    _make_character(app, "Oblig Valid")
+    known = {"nodes": app.world.graph}
+
+    # valid obligations
+    good = [_player_op("Oblig Valid", {"obligations": [
+        {"charge": "Guard the gate", "from": "Chief", "due": 1000},
+    ]})]
+    assert errors_only(validate_ops(good, **known)) == []
+
+    # missing charge -> flagged as error by validator
+    no_charge = [_player_op("Oblig Valid", {"obligations": [
+        {"status": "offered"},
+    ]})]
+    assert errors_only(validate_ops(no_charge, **known))
+
+    # unknown status -> flagged as error by validator
+    bad_status = [_player_op("Oblig Valid", {"obligations": [
+        {"charge": "Test", "status": "not_a_status"},
+    ]})]
+    assert errors_only(validate_ops(bad_status, **known))
+
+
+def test_update_player_rejects_derived_mosiac_fields():
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Derived Probe")
+
+    # MOSIAC scores are derived projections, not authored state
+    res = _apply(app, {"character": "Derived Probe",
+                       "patch": {"mosiac": {"M": "hostile"}}})
+    assert "error" in res or res.get("applied", {}).get("mosiac") is None, res
+
+
+def test_update_player_rejects_derived_goal_progress():
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Derived Goal Probe")
+
+    # goal progress is derived, not authored
+    res = _apply(app, {"character": "Derived Goal Probe",
+                       "patch": {"goal_log": [{"goal_id": "x", "status": "reached"}]}})
+    assert "error" in res or res.get("applied", {}).get("goal_log") is None, res

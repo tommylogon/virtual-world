@@ -1,0 +1,110 @@
+{
+  "name": "zoe",
+  "personality": "",
+  "description": "a new character added to the foyer",
+  "base_description": "",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 0,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 0
+  },
+  "decay_rates": {
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Thirst": 0.025
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Animal Handling": 0,
+    "Arcana": 0,
+    "Athletics": 1,
+    "Deception": 0,
+    "History": 0,
+    "Insight": 0,
+    "Intimidation": 0,
+    "Investigation": 0,
+    "Medicine": 0,
+    "Nature": 0,
+    "Perception": 1,
+    "Performance": 0,
+    "Persuasion": 1,
+    "Religion": 0,
+    "Sleight of Hand": 0,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "female"
+  ],
+  "interest_tags": [],
+  "size": null,
+  "species": null,
+  "appearance": {},
+  "image": null,
+  "profile_image": null,
+  "expressions": {},
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": null,
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "expression": "neutral",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -357,7 +357,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-generate',
             group: 'WorldPainter',
             title: '⚙ Generate — per scope, parent first',
-            body: 'Turns <b>this scope\'s</b> painted cells into real areas and ways. Do it <b>last</b>, and generate the <b>parent before its children</b>: the gateway between a scope and its parent is minted by whichever of the two compiles second. A scope that is already generated asks before redoing it, and a redo replaces anything edited by hand afterwards. Do not paint a scope after generating it — see the blockers tip.',
+            body: 'Turns <b>this scope\'s unclaimed painted cells</b> into real areas and ways. Hand-placed areas (the ones you drop with the Area tool) already own their cells — they are final and Generate ignores them; it only creates new places from paint that has no placement on top. Do it <b>last</b>, and generate the <b>parent before its children</b>: the gateway between a scope and its parent is minted by whichever of the two compiles second. A scope that is already generated asks before redoing it, and a redo replaces anything edited by hand afterwards. Do not paint a scope after generating it — see the blockers tip.',
             target: '[data-help="wp-generate"]',
         },
         {

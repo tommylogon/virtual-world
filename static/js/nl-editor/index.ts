@@ -143,7 +143,19 @@
                 this.agent.afterApply(res.appliedCount, this.staging.getOps().length);
             }
             if (res.invalid) {
-                this.ui.showValidationIssues(res.validation || [], true);
+                // Map server validation format (optype -> type) and fall back to
+                // string errors so the user sees the failure in chat, not just
+                // the browser network tab.
+                const mappedIssues = (res.validation || []).map((v: any) => ({
+                    index: v.index ?? v.op_index ?? 0,
+                    type: v.type || v.optype || '',
+                    message: v.message || v.error || String(v),
+                }));
+                const visibleIssues = mappedIssues.length ? mappedIssues
+                    : (res.errors || []).map((msg: string, idx: number) => ({
+                        index: idx, type: 'validation', message: String(msg),
+                    }));
+                this.ui.showValidationIssues(visibleIssues, true);
                 if (typeof toastError === 'function') {
                     toastError('Validation failed — nothing applied. Fix the flagged ops.');
                 }
@@ -157,6 +169,11 @@
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
+            // Bug fix: new characters from NL Editor apply must refresh world state
+            // so the new player/character appears in the inspector and agent loop.
+            if (typeof worldState !== 'undefined' && worldState?.fetch) {
+                try { await worldState.fetch(); } catch (e) { /* refresh failure must not fail apply */ }
+            }
             return res;
         }
 
@@ -167,7 +184,16 @@
                 this.agent.afterApply(res.appliedCount, this.staging.getOps().length);
             }
             if (res.invalid) {
-                this.ui.showValidationIssues(res.validation || [], true);
+                const mappedIssues = (res.validation || []).map((v: any) => ({
+                    index: v.index ?? v.op_index ?? 0,
+                    type: v.type || v.optype || '',
+                    message: v.message || v.error || String(v),
+                }));
+                const visibleIssues = mappedIssues.length ? mappedIssues
+                    : (res.errors || []).map((msg: string, idx: number) => ({
+                        index: idx, type: 'validation', message: String(msg),
+                    }));
+                this.ui.showValidationIssues(visibleIssues, true);
                 if (typeof toastError === 'function') {
                     toastError('Validation failed — nothing applied. Fix the flagged ops.');
                 }
@@ -181,6 +207,10 @@
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
+            // Refresh world state so new/updated characters appear immediately.
+            if (typeof worldState !== 'undefined' && worldState?.fetch) {
+                try { await worldState.fetch(); } catch (e) { /* refresh failure must not fail apply */ }
+            }
             return res;
         }
 

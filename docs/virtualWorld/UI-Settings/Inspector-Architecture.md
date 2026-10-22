@@ -140,8 +140,8 @@ Evidence: agent-view Bio line 109-116 (stats/skills/traits from props), item-vie
 ### 5.3 Classic scripts preserved
 Evidence: AGENTS.md line 124-130. Inspector singleton at inspector.ts:861 registered as window.inspector. Changing to ES modules breaks all references.
 
-### 5.4 Mind-view stays separate
-Evidence: mind-view reads from worldState.players and /api/players/<n>/memories/people. It's a dashboard, not a graph node inspector.
+### 5.4 Mind-view stays separate; media feeds memory
+Evidence: mind-view reads from worldState.players and /api/players/<n>/memories/people. Media (movies, games, books, music) is a prose category that feeds memory/knowledge generation (lorebook / memory entries), not identity (corrected from task-828 line 49: media has a real consumer - memory). It is not GIMP or MOSIAC. It is the narrative/memory layer.
 
 ---
 

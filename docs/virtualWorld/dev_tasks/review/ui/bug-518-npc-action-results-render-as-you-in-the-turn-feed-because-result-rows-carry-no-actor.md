@@ -1,6 +1,6 @@
 ---
 type: bug
-status: inprogress
+status: review
 area: ui
 priority: high
 ---
@@ -102,10 +102,20 @@ Action-result rows in the turn feed previously lacked an explicit performing act
 
 1. Run turn feed unit tests
    - expected: node tools/unit/run.cjs passes turn feed scope tests
-   - observed: 618 passed, 0 failed in tools/unit/test_turn_feed_scope.js
-2. Verify NPC action result row attribution
-   - expected: NPC action result row carries actor and does not render as You
-   - observed: Carried actor parsed and attributed to NPC
+   - observed: 828 passed, 1 failed - the sole failure is the pre-existing
+     `test_plan_grounding.js :: carried items satisfy use/take even when absent
+     from the area`; every `test_turn_feed_scope.js` case is green
+2. Verify NPC action result row attribution live
+   - expected: an NPC action-result row carries its actor and renders in
+     `.tf-other`, not as `You`
+   - observed: live LLM turn, Arix's `dash meat racks` result rendered
+     `🔎 Arix   No exit 'meat racks'. Visible exits: south passage` in
+     `tf-group tf-other`
+3. Verify a human action still reads `You` live
+   - expected: the controlled character's own result row renders in `.tf-you`
+   - observed: `Gribba` running `look` rendered `🔎 You   Bright light floods
+     the area...` in `tf-group tf-you` (after the `activePlayerName` fix; before
+     it the same row rendered `🔎 Gribba` in `tf-other`)
 
 ## Files
 
@@ -167,4 +177,51 @@ the live steps have been run.
   actor, not to You", "an actor-less result row still reads as the player").
 - Not verified: a live LLM turn. That needs the server plus a real NPC action, so
   the browser acceptance above is still open.
+
+## Verified 2026-10-22 (live), and a second defect it exposed
+
+The parse fix was correct, but the `playerName` it compares an actor against was
+itself broken, and a live human action is what showed it.
+
+- The read site resolved the controlled character as
+  `worldState.data.activePlayer`. That key does not exist: the payload key is
+  `active_player` and the supported accessor is the `worldState.activePlayer`
+  getter (`static/js/world-state.ts:327`). `playerName` therefore always fell
+  back to `'You'`, so once result rows began carrying an actor, a human's own
+  result row (`actor: 'Gribba'`) no longer matched and rendered as `Gribba` in a
+  `tf-other` group. The actor-carrying fix turned an NPC misattribution into a
+  human misattribution on the same lookup.
+- Fix: `activePlayerName()` resolves through `worldState.activePlayer`, falls
+  back to a camelCase `data.activePlayer` for older states, and returns `null`
+  when unknown. Both feed renderers (`renderStructured`, `renderDetailedFeed`)
+  use it, so a human actor resolves to `You` again and an NPC actor cannot.
+
+Live evidence. Isolated server in a detached worktree at HEAD plus this fix
+(port 4455), scenario `kraktooth_goblin_camp`, real LLM turns through OpenRouter:
+
+- NPC turn, Arix acting autonomously. A real `msg-result` row, grouped
+  `tf-other`:
+
+      ▶️ Arix   dash meat racks
+      🔎 Arix   No exit 'meat racks'. Visible exits: south passage
+
+- Human turn, the controlled character `Gribba` executing `look`. Grouped
+  `tf-you`:
+
+      ▶️ You   look
+      🔎 You   Bright light floods the area, illuminating every detail...
+
+- Rendering was read through `TurnFeed.render` into a detached host (the
+  function the composer drives through `#htc-feed-lines`), so the grouping and
+  the actor substitution are the production code path, not a re-implementation.
+
+Remaining gaps, stated plainly:
+
+- The mid-session rename is covered at unit level (the resolver follows the new
+  name) and not by a second live LLM turn.
+- A `render`-level unit test could not be written: `tools/unit/run.cjs` loads
+  `static/js/agent/turn-feed.js`, and `tools/unit/test_graph_background.js`
+  replaces `window.document` with a two-method stub and never restores it, so
+  every later test file that renders DOM loses `document.createElement`. That
+  leak is a harness defect in its own right, not part of this bug.
 
