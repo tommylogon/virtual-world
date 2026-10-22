@@ -1,19 +1,19 @@
 {
-  "name": "coffee_grinder",
-  "description": "an old hand-crank coffee grinder on the counter. there are still coffee beans inside — they've carbonized over the decades but might still produce something drinkable.",
   "actions": "examine",
-  "uses": -1,
-  "weight": 2,
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "an old hand-crank coffee grinder on the counter. there are still coffee beans inside — they've carbonized over the decades but might still produce something drinkable.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "tool",
-    "mechanism",
-    "food"
-  ],
-  "triggers": [],
-  "contents": []
+  "name": "coffee_grinder",
+  "tags": {
+    "item": [
+      "tool",
+      "mechanism"
+    ]
+  },
+  "triggers": "",
+  "uses": "-1",
+  "weight": "2"
 }

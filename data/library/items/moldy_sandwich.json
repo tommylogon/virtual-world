@@ -1,37 +1,19 @@
 {
-  "name": "moldy_sandwich",
-  "description": "a forgotten sandwich on a small table. it's green and fuzzy with age. definitely do not eat this.",
   "actions": "examine",
-  "uses": -1,
-  "weight": 0.2,
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a forgotten sandwich on a small table. it's green and fuzzy with age. definitely do not eat this.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "organic"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
-          }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
-    }
-  ],
-  "contents": []
+  "name": "moldy_sandwich",
+  "tags": {
+    "item": [
+      "organic",
+      "inedible"
+    ]
+  },
+  "triggers": "",
+  "uses": "-1",
+  "weight": "0.2"
 }

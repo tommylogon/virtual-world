@@ -24,6 +24,26 @@
     "elena vance": {
       "name": "elena vance",
       "id": "2fcace14",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 8,
         "CON": 11,
@@ -35,13 +55,13 @@
       "vitals": {
         "HP": 100.0,
         "Max_HP": 100,
-        "Hunger": 75.0,
+        "Hunger": 75,
         "Thirst": 80,
         "Hygiene": 97,
         "Energy": 94,
         "Social": 100,
         "Bladder": 15,
-        "Sanity": 97,
+        "Sanity": 96,
         "Entertainment": 100,
         "Temperature": 37
       },
@@ -350,13 +370,13 @@
       },
       "emotion": {
         "current": "excited",
-        "intensity": 0.195,
+        "intensity": 0.28,
         "expression": "happy",
         "description": "elena vance is excited."
       },
       "emotions": {
         "happy": 40.0,
-        "excited": 49.5,
+        "excited": 58.0,
         "elated": 22.0,
         "proud": 30.0,
         "sad": 8.0,
@@ -364,7 +384,7 @@
         "melancholic": 12.0,
         "nostalgic": 18.0,
         "afraid": 10.0,
-        "anxious": 12.0,
+        "anxious": 23.9,
         "uneasy": 27.9,
         "dread": 8.0,
         "spooked": 10.0,
@@ -404,146 +424,106 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 1.0,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1784400274109_573",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 3,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "i've been researching the blackwood disappearance for six months. seven people, 1891, door barred from inside. miki came with me - she's nervous but her ear for detail is useful. the front door lock has a skull-shaped keyhole. that's where we start.",
           "tick": 0,
           "timestamp": 1784400274.1090274,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 1.0,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1785444264730_191",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 3,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "the front door is a dead end. skull-shaped lock, no key, no obvious mechanism to bypass. the foyer has been searched - calling cards, coat rack, vase, nothing that fits. the library is the next logical step. augustus blackwood was a collector; if there's a key or artifact that fits that lock, it'll be in his study. miki's following me in. good. i don't want her wandering off alone",
           "tick": 0,
           "timestamp": 1785444264.7303083,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 1,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1785444901300_169",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "floor-to-ceiling bookshelves, leather-bound volumes, an oak desk buried under papers and instruments. this was augustus blackwood's private study, i'd bet on it. that desk needs a thorough search - maps, correspondence, anything with a date or a lock diagram. one bookcase looks wrong, spines slightly off. could be a hidden passage, could be nothing. documenting everything. the metallic smell is unusual - not iron, not copper. something else. filing that for later.",
           "tick": 0,
           "timestamp": 1785444901.3008292,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
-          "embedding": null,
-          "emotion": {
-            "intensity": 5,
-            "label": "determined"
-          },
-          "emotions": null,
-          "entity_ids": [
-            "area_library"
-          ],
-          "id": "mem_1788885794397_779",
-          "importance": 4,
-          "location": "",
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "suppressions": [],
-          "tags": [
-            "mystery",
-            "trust"
-          ],
-          "text": "The protein bar satisfied the hunger, but the metallic smell in the library persists - not from the bar, something else entirely. Miki is present and watching, which is a small comfort.",
-          "tick": 0,
-          "timestamp": 1788885794.397959,
-          "type": "reaction",
-          "category": "episodic",
           "activation": 1.0,
-          "confidence": 0.5994,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
+          "category": "episodic",
+          "confidence": 0.686,
           "contradicts": [
-            "mem_1792598643636_17",
-            "mem_1792598660958_609"
+            "mem_1792598679745_387"
           ],
-          "reflection_depth": 0
-        },
-        {
-          "embedding": null,
-          "emotion": {
-            "intensity": 5,
-            "label": "unsettled"
+          "data": {
+            "area": "area_library",
+            "environment": {
+              "air": "stale",
+              "light": 30,
+              "noise": "quiet",
+              "smell": "old paper and copper",
+              "temperature": 15
+            },
+            "event": "scene_observed",
+            "exits_seen": [],
+            "items_seen": [
+              "item_desk",
+              "item_drawer",
+              "item_diary",
+              "item_letter_opener",
+              "item_strange_compass",
+              "item_fireplace",
+              "item_love_letters",
+              "item_portrait",
+              "item_iron_key",
+              "item_teacup",
+              "item_water_pitcher",
+              "item_tainted_wine",
+              "item_glasses_case",
+              "item_bookshelf_item"
+            ]
           },
-          "emotions": null,
-          "entity_ids": [
-            "area_library"
-          ],
-          "id": "mem_1788890173242_579",
-          "importance": 6,
-          "location": "",
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "suppressions": [],
-          "tags": [
-            "mystery",
-            "trust"
-          ],
-          "text": "Protein bar satisfied hunger but metallic smell persists - not from the bar, something else in the room. The crooked bookcase is the next priority.",
-          "tick": 1,
-          "timestamp": 1788890173.2421637,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.5994,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [
-            "mem_1792598643636_17",
-            "mem_1792598660958_609"
-          ],
-          "reflection_depth": 0
-        },
-        {
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -570,10 +550,14 @@
           "id": "mem_1788890790770_311",
           "importance": 9,
           "kind": "area",
+          "last_recalled_tick": 0,
           "location": "library",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 3,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "area:library",
@@ -617,216 +601,41 @@
           "tick": 0,
           "timestamp": 1792598597.4679363,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_library",
-            "environment": {
-              "air": "stale",
-              "light": 30,
-              "noise": "quiet",
-              "smell": "old paper and copper",
-              "temperature": 15
-            },
-            "items_seen": [
-              "item_desk",
-              "item_drawer",
-              "item_diary",
-              "item_letter_opener",
-              "item_strange_compass",
-              "item_fireplace",
-              "item_love_letters",
-              "item_portrait",
-              "item_iron_key",
-              "item_teacup",
-              "item_water_pitcher",
-              "item_tainted_wine",
-              "item_glasses_case",
-              "item_bookshelf_item"
-            ],
-            "exits_seen": []
-          },
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.666,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [
-            "mem_1792598679745_387"
-          ],
-          "reflection_depth": 0
+          "visits": 20
         },
         {
-          "id": "mem_1792598643636_17",
-          "text": "Protein bar eased the hunger but the metallic smell in the air is persistent and unrelated to the food - likely a property of the house itself.",
-          "tick": 0,
-          "timestamp": 1792598643.6366382,
-          "importance": 6,
-          "type": "reaction",
-          "location": "",
-          "entity_ids": [
-            "area_library"
-          ],
-          "embedding": null,
-          "tags": [
-            "mystery",
-            "sensory",
-            "hunger"
-          ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "episodic",
           "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [
-            "mem_1788885794397_779",
-            "mem_1788890173242_579"
-          ],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792598651650_453",
-          "text": "Water relieves the thirst but does nothing to quell the metallic scent in the air.",
-          "tick": 0,
-          "timestamp": 1792598651.6504102,
-          "importance": 4,
-          "type": "reaction",
-          "location": "",
-          "entity_ids": [
-            "area_library"
-          ],
-          "embedding": null,
-          "tags": [
-            "sensory",
-            "environment"
-          ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
           "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
+          "confidence": 0.72,
           "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792598660958_609",
-          "text": "Inventory confirmed: basic supplies are intact, but physical needs are becoming a distraction. The metallic smell and crooked bookcase remain the top priorities.",
-          "tick": 0,
-          "timestamp": 1792598660.9585516,
-          "importance": 6,
-          "type": "reaction",
-          "location": "",
-          "entity_ids": [
-            "area_library"
-          ],
           "embedding": null,
-          "tags": [
-            "hunger",
-            "focus",
-            "mystery"
-          ],
           "emotion": {
-            "label": "anxious",
-            "intensity": 7
+            "intensity": 5,
+            "label": "unsettled"
           },
           "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [
-            "mem_1788885794397_779",
-            "mem_1788890173242_579"
-          ],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792598670134_980",
-          "text": "The EMF reader showed no activity, suggesting either a dead battery or a deeply unsettling silence in the house.",
-          "tick": 0,
-          "timestamp": 1792598670.1346827,
-          "importance": 6,
-          "type": "reaction",
-          "location": "",
           "entity_ids": [
             "area_library"
           ],
-          "embedding": null,
+          "id": "mem_1792598670134_980",
+          "importance": 6,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 1,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "skepticism",
             "caution",
             "mystery"
           ],
-          "emotion": {
-            "label": "unsettled",
-            "intensity": 5
-          },
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792598679745_387",
-          "text": "Found the iron skull-key hidden under the map; Cordelia’s diary warns the skull holds the spirit of the firstborn and must never be moved.",
+          "text": "The EMF reader showed no activity, suggesting either a dead battery or a deeply unsettling silence in the house.",
           "tick": 0,
-          "timestamp": 1792598679.7454283,
-          "importance": 9,
-          "type": "reaction",
-          "location": "",
-          "entity_ids": [
-            "area_library"
-          ],
-          "embedding": null,
-          "tags": [
-            "fear",
-            "mystery",
-            "artifact"
-          ],
-          "emotion": {
-            "label": "unsettled",
-            "intensity": 7
-          },
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [
-            "mem_1788890790770_311"
-          ],
-          "reflection_depth": 0
+          "timestamp": 1792598670.1346827,
+          "type": "reaction"
         }
       ],
       "schedule": [],
@@ -860,6 +669,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -877,6 +688,37 @@
             "wake",
             "wear",
             "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
           ],
           "activity": [
             "bath",
@@ -937,7 +779,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 24,
-      "current_carry_weight": 5.36,
+      "current_carry_weight": 5.359999999999999,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -947,6 +789,26 @@
     "ghost": {
       "name": "ghost",
       "id": "2e9d90c1",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {},
       "vitals": {
         "HP": 100.0,
@@ -1336,6 +1198,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -1362,8 +1226,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -1552,6 +1414,26 @@
     "jake halloway": {
       "name": "jake halloway",
       "id": "ea625cbc",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 12,
         "CON": 8,
@@ -1911,28 +1793,32 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 1,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1784400167822_159",
           "importance": 6,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "okay so i may have found this mansion on a creepy forum and convinced everyone it'd be a fun road trip. sammy's here, kayla's already pissed at me, kyrie is giving me her 'i told you so' look. but hey - haunted mansion! what could go wrong?",
           "tick": 0,
           "timestamp": 1784400167.822639,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -1944,10 +1830,14 @@
           ],
           "id": "mem_1788886096307_252",
           "importance": 4,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "mystery",
@@ -1956,17 +1846,13 @@
           "text": "The energy drink tasted like battery acid but the aftertaste felt familiar - like something I've experienced in a place I shouldn't remember. The foyer dust pattern looks like it's been disturbed.",
           "tick": 0,
           "timestamp": 1788886096.307349,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -1978,10 +1864,14 @@
           ],
           "id": "mem_1788889225804_722",
           "importance": 8,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "mystery",
@@ -1991,17 +1881,34 @@
           "text": "a cracked vase hiding a thumb-sized jewelry box key taped to its inner wall - the dust hasn't settled, meaning someone was here very recently, or something is still moving through this house",
           "tick": 1,
           "timestamp": 1788889225.8044732,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
+          "data": {
+            "event": "scene_observed",
+            "area": "area_foyer",
+            "environment": {
+              "air": "stale",
+              "light": "dim",
+              "noise": "quiet",
+              "smell": "musty",
+              "temperature": 15.9
+            },
+            "items_seen": [
+              "item_chandelier",
+              "item_rug",
+              "item_coat_rack",
+              "item_matches",
+              "item_dust",
+              "item_vase",
+              "item_calling_cards"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": {
             "intensity": 6,
@@ -2021,10 +1928,14 @@
           "id": "mem_1788891444202_232",
           "importance": 8,
           "kind": "area",
+          "last_recalled_tick": 0,
           "location": "foyer",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "area:foyer",
@@ -2047,95 +1958,66 @@
             "wooden"
           ],
           "text": "Observed foyer: chandelier, rug, coat_rack, matches, dust, vase, calling_cards.",
-          "tick": 0,
-          "timestamp": 1792598597.5415764,
+          "tick": 1050190560,
+          "timestamp": 1792663208.92103,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_foyer",
-            "environment": {
-              "air": "stale",
-              "light": "dim",
-              "noise": "quiet",
-              "smell": "musty",
-              "temperature": 15.9
-            },
-            "items_seen": [
-              "item_chandelier",
-              "item_rug",
-              "item_coat_rack",
-              "item_matches",
-              "item_dust",
-              "item_vase",
-              "item_calling_cards"
-            ],
-            "exits_seen": []
-          },
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "visits": 23
         },
         {
+          "activation": 1,
+          "category": "social",
+          "confidence": 0.72,
+          "contradicts": [],
+          "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
           "id": "mem_1792597058319_354",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 1,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
+          "tags": [
+            "conversation",
+            "chat"
+          ],
           "text": "I read the conversation: jake halloway: sammy!; sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
           "tick": 0,
           "timestamp": 1792597058.3197103,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "type": "conversation"
+        },
+        {
+          "activation": 1,
+          "category": "social",
+          "confidence": 0.7,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792597085399_426",
+          "importance": 5,
+          "last_recalled_tick": null,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 0,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.72,
-          "reinforcements": 1,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792597085399_426",
           "text": "Found thumb-sized jewelry box key taped to inner wall of cracked foyer vase; dust pattern shows recent disturbance in circular pattern around vase placement.",
           "tick": 0,
           "timestamp": 1792597085.3990552,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
-          "embedding": null,
-          "tags": [
-            "conversation",
-            "chat"
-          ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "conversation"
         }
       ],
       "schedule": [],
@@ -2158,6 +2040,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -2184,8 +2068,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -2283,6 +2165,26 @@
     "kayla jenkins": {
       "name": "kayla jenkins",
       "id": "77274599",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 14,
         "CON": 10,
@@ -2663,28 +2565,32 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 1,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1784400321910_72",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "jake's idiot idea, as always. dragged us to a real haunted mansion. i'm watching out for sammy - she's too nice to say no to him. this place feels wrong. not just haunted. watched.",
           "tick": 0,
           "timestamp": 1784400321.9103055,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.78,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -2696,10 +2602,14 @@
           ],
           "id": "mem_1788886298855_463",
           "importance": 8,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "fear",
@@ -2708,17 +2618,13 @@
           "text": "The chandelier swayed with no draft. Something in this house is manipulating the air - or something else is here.",
           "tick": 0,
           "timestamp": 1788886298.8556876,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.78,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.78,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -2730,10 +2636,14 @@
           ],
           "id": "mem_1788889484579_181",
           "importance": 9,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "mystery",
@@ -2742,17 +2652,34 @@
           "text": "The coat belonged to someone who took the last train from Blackwood Station on October 31st, 1891 and never made it home. Same date we're here now. This house has been waiting for someone like us.",
           "tick": 1,
           "timestamp": 1788889484.5797732,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.78,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.78,
+          "contradicts": [],
+          "data": {
+            "event": "scene_observed",
+            "area": "area_foyer",
+            "environment": {
+              "air": "stale",
+              "light": "dim",
+              "noise": "quiet",
+              "smell": "musty",
+              "temperature": 15.9
+            },
+            "items_seen": [
+              "item_chandelier",
+              "item_rug",
+              "item_coat_rack",
+              "item_matches",
+              "item_dust",
+              "item_vase",
+              "item_calling_cards"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -2772,10 +2699,14 @@
           "id": "mem_1788892209647_489",
           "importance": 8,
           "kind": "area",
+          "last_recalled_tick": 0,
           "location": "foyer",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "area:foyer",
@@ -2798,67 +2729,38 @@
             "wooden"
           ],
           "text": "Observed foyer: chandelier, rug, coat_rack, matches, dust, vase, calling_cards.",
-          "tick": 0,
-          "timestamp": 1792598597.576086,
+          "tick": 1050190560,
+          "timestamp": 1792663208.92103,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_foyer",
-            "environment": {
-              "air": "stale",
-              "light": "dim",
-              "noise": "quiet",
-              "smell": "musty",
-              "temperature": 15.9
-            },
-            "items_seen": [
-              "item_chandelier",
-              "item_rug",
-              "item_coat_rack",
-              "item_matches",
-              "item_dust",
-              "item_vase",
-              "item_calling_cards"
-            ],
-            "exits_seen": []
-          },
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.78,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "visits": 23
         },
         {
-          "id": "mem_1792597018954_345",
-          "text": "I read the conversation: jake halloway: testing!; jake halloway: sammy!; sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
-          "tick": 0,
-          "timestamp": 1792597018.954649,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "activation": 1,
+          "category": "social",
+          "confidence": 0.74,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792597018954_345",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "text": "I read the conversation: jake halloway: testing!; jake halloway: sammy!; sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
+          "tick": 0,
+          "timestamp": 1792597018.954649,
+          "type": "conversation"
         }
       ],
       "schedule": [],
@@ -2892,6 +2794,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -2918,8 +2822,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -3017,6 +2919,26 @@
     "kyrie johansen": {
       "name": "kyrie johansen",
       "id": "9a4bbe1d",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 8,
         "CON": 13,
@@ -3398,28 +3320,32 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 1,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1784400331234_54",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "\"jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong - too still, too old. i've been in tight spots before. this one feels different",
           "tick": 0,
           "timestamp": 1784400331.234913,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 5,
@@ -3431,10 +3357,14 @@
           ],
           "id": "mem_1788886704324_536",
           "importance": 4,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "hunger",
@@ -3443,17 +3373,13 @@
           "text": "The protein bar tasted like nothing - worse than bad. The hunger hasn't eased. Need water before anything else.",
           "tick": 0,
           "timestamp": 1788886704.3240316,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 7,
@@ -3465,10 +3391,14 @@
           ],
           "id": "mem_1788888971824_134",
           "importance": 8,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "mystery",
@@ -3477,17 +3407,34 @@
           "text": "Found an old train ticket stub from London, dated October 31st, 1891 - the last train out of Blackwood Station. Whoever wore this coat never made it home. This place has been waiting for someone.",
           "tick": 1,
           "timestamp": 1788888971.8240967,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1,
+          "category": "episodic",
+          "confidence": 0.74,
+          "contradicts": [],
+          "data": {
+            "event": "scene_observed",
+            "area": "area_foyer",
+            "environment": {
+              "air": "stale",
+              "light": "dim",
+              "noise": "quiet",
+              "smell": "musty",
+              "temperature": 15.9
+            },
+            "items_seen": [
+              "item_chandelier",
+              "item_rug",
+              "item_coat_rack",
+              "item_matches",
+              "item_dust",
+              "item_vase",
+              "item_calling_cards"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": {
             "intensity": 5,
@@ -3507,10 +3454,14 @@
           "id": "mem_1788892404396_241",
           "importance": 6,
           "kind": "area",
+          "last_recalled_tick": 0,
           "location": "foyer",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "anxiety",
@@ -3534,67 +3485,38 @@
             "wooden"
           ],
           "text": "Observed foyer: chandelier, rug, coat_rack, matches, dust, vase, calling_cards.",
-          "tick": 0,
-          "timestamp": 1792598597.6126008,
+          "tick": 1050190560,
+          "timestamp": 1792663208.92203,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_foyer",
-            "environment": {
-              "air": "stale",
-              "light": "dim",
-              "noise": "quiet",
-              "smell": "musty",
-              "temperature": 15.9
-            },
-            "items_seen": [
-              "item_chandelier",
-              "item_rug",
-              "item_coat_rack",
-              "item_matches",
-              "item_dust",
-              "item_vase",
-              "item_calling_cards"
-            ],
-            "exits_seen": []
-          },
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.74,
-          "reinforcements": 2,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "visits": 23
         },
         {
-          "id": "mem_1792597056444_861",
-          "text": "I read the conversation: jake halloway: testing!; jake halloway: sammy!; sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
-          "tick": 0,
-          "timestamp": 1792597056.4444957,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "activation": 1,
+          "category": "social",
+          "confidence": 0.72,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792597056444_861",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 1,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.72,
-          "reinforcements": 1,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "text": "I read the conversation: jake halloway: testing!; jake halloway: sammy!; sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
+          "tick": 0,
+          "timestamp": 1792597056.4444957,
+          "type": "conversation"
         }
       ],
       "schedule": [],
@@ -3628,6 +3550,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -3654,8 +3578,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -3753,6 +3675,26 @@
     "miki": {
       "name": "miki",
       "id": "2cc793ba",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 12,
         "CON": 10,
@@ -4233,6 +4175,34 @@
           "type": "reaction"
         },
         {
+          "data": {
+            "event": "scene_observed",
+            "area": "area_library",
+            "environment": {
+              "air": "stale",
+              "light": 30,
+              "noise": "quiet",
+              "smell": "old paper and copper",
+              "temperature": 15
+            },
+            "items_seen": [
+              "item_desk",
+              "item_drawer",
+              "item_diary",
+              "item_letter_opener",
+              "item_strange_compass",
+              "item_fireplace",
+              "item_love_letters",
+              "item_portrait",
+              "item_iron_key",
+              "item_teacup",
+              "item_water_pitcher",
+              "item_tainted_wine",
+              "item_glasses_case",
+              "item_bookshelf_item"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": {
             "intensity": 8,
@@ -4312,38 +4282,10 @@
             "wooden"
           ],
           "text": "Observed library: desk, drawer, diary, letter_opener, strange_compass, fireplace, love_letters, portrait, iron_key, teacup, water_pitcher, tainted_wine, glasses_case, bookshelf_item.",
-          "tick": 0,
-          "timestamp": 1792598597.6481557,
+          "tick": 1050190560,
+          "timestamp": 1792663208.92203,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_library",
-            "environment": {
-              "air": "stale",
-              "light": 30,
-              "noise": "quiet",
-              "smell": "old paper and copper",
-              "temperature": 15
-            },
-            "items_seen": [
-              "item_desk",
-              "item_drawer",
-              "item_diary",
-              "item_letter_opener",
-              "item_strange_compass",
-              "item_fireplace",
-              "item_love_letters",
-              "item_portrait",
-              "item_iron_key",
-              "item_teacup",
-              "item_water_pitcher",
-              "item_tainted_wine",
-              "item_glasses_case",
-              "item_bookshelf_item"
-            ],
-            "exits_seen": []
-          }
+          "visits": 23
         }
       ],
       "schedule": [],
@@ -4377,6 +4319,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -4403,8 +4347,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -4487,7 +4429,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 17,
-      "current_carry_weight": 2.92,
+      "current_carry_weight": 2.919999999999999,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -4497,6 +4439,26 @@
     "sammy lopez": {
       "name": "sammy lopez",
       "id": "8b8be966",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 10,
         "CON": 9,
@@ -4877,28 +4839,32 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 1.0,
+          "contradicts": [],
           "entity_ids": [],
           "id": "mem_1784400358783_116",
           "importance": 5,
+          "last_recalled_tick": 0,
           "location": "",
+          "reflection_depth": 0,
+          "reinforcements": 9,
           "salience_override": 0,
           "source": "manual",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [],
           "text": "jake's idea. it's always jake's idea. i trust him but this place scares me. kayla keeps glancing at me like she's waiting for me to freak out. i won't. i can't. not in front of everyone.\"",
           "tick": 0,
           "timestamp": 1784400358.7833555,
-          "type": "observation",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 1.0,
-          "reinforcements": 6,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "observation"
         },
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 0.84,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 3,
@@ -4910,10 +4876,14 @@
           ],
           "id": "mem_1788886507698_534",
           "importance": 3,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 7,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "survival",
@@ -4922,17 +4892,13 @@
           "text": "The granola bar did its job - just enough to take the edge off. But this house is quiet in a way that makes the hunger come back faster.",
           "tick": 0,
           "timestamp": 1788886507.698273,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.78,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 0.9,
+          "contradicts": [],
           "embedding": null,
           "emotion": {
             "intensity": 6,
@@ -4944,10 +4910,14 @@
           ],
           "id": "mem_1788889914141_262",
           "importance": 7,
+          "last_recalled_tick": 0,
           "location": "",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 10,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "fear",
@@ -4956,17 +4926,34 @@
           "text": "The chandelier moved on its own - cobwebs, dust, and a creak that shouldn't happen without wind. Something is wrong with this house.",
           "tick": 1,
           "timestamp": 1788889914.1411254,
-          "type": "reaction",
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.84,
-          "reinforcements": 7,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "reaction"
         },
         {
+          "activation": 1.0,
+          "category": "episodic",
+          "confidence": 0.9,
+          "contradicts": [],
+          "data": {
+            "event": "scene_observed",
+            "area": "area_foyer",
+            "environment": {
+              "air": "stale",
+              "light": "dim",
+              "noise": "quiet",
+              "smell": "musty",
+              "temperature": 15.9
+            },
+            "items_seen": [
+              "item_chandelier",
+              "item_rug",
+              "item_coat_rack",
+              "item_matches",
+              "item_dust",
+              "item_vase",
+              "item_calling_cards"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": {
             "intensity": 6,
@@ -4986,10 +4973,14 @@
           "id": "mem_1788890988633_342",
           "importance": 8,
           "kind": "area",
+          "last_recalled_tick": 0,
           "location": "foyer",
           "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 10,
           "salience_override": 0,
           "source": "auto",
+          "source_memory_ids": [],
           "suppressions": [],
           "tags": [
             "area:foyer",
@@ -5012,151 +5003,122 @@
             "wooden"
           ],
           "text": "Observed foyer: chandelier, rug, coat_rack, matches, dust, vase, calling_cards.",
-          "tick": 0,
-          "timestamp": 1792598597.683737,
+          "tick": 1050190560,
+          "timestamp": 1792663208.923029,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_foyer",
-            "environment": {
-              "air": "stale",
-              "light": "dim",
-              "noise": "quiet",
-              "smell": "musty",
-              "temperature": 15.9
-            },
-            "items_seen": [
-              "item_chandelier",
-              "item_rug",
-              "item_coat_rack",
-              "item_matches",
-              "item_dust",
-              "item_vase",
-              "item_calling_cards"
-            ],
-            "exits_seen": []
-          },
-          "category": "episodic",
-          "activation": 1.0,
-          "confidence": 0.84,
-          "reinforcements": 7,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "visits": 23
         },
         {
+          "activation": 1.0,
+          "category": "social",
+          "confidence": 0.84,
+          "contradicts": [],
+          "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
           "id": "mem_1792596816171_522",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 7,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
+          "tags": [
+            "conversation",
+            "chat"
+          ],
           "text": "I read the conversation: jake halloway: yo; jake halloway: testing!.",
           "tick": 0,
           "timestamp": 1792596816.1711729,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "type": "conversation"
+        },
+        {
+          "activation": 1.0,
+          "category": "social",
+          "confidence": 0.82,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792596839817_459",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 6,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.78,
-          "reinforcements": 4,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792596839817_459",
           "text": "I read the conversation: jake halloway: sammy!.",
           "tick": 0,
           "timestamp": 1792596839.8171883,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "type": "conversation"
+        },
+        {
+          "activation": 1.0,
+          "category": "social",
+          "confidence": 0.78,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792597056892_392",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 4,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.76,
-          "reinforcements": 3,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792597056892_392",
           "text": "I read the conversation: sammy lopez: i'm here. testing. phone works.; jake halloway: yooo!.",
           "tick": 0,
           "timestamp": 1792597056.8922694,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
+          "type": "conversation"
+        },
+        {
+          "activation": 1.0,
+          "category": "social",
+          "confidence": 0.76,
+          "contradicts": [],
           "embedding": null,
+          "emotion": null,
+          "emotions": null,
+          "entity_ids": [],
+          "id": "mem_1792597083404_254",
+          "importance": 5,
+          "last_recalled_tick": 0,
+          "location": "",
+          "memory_emotions": [],
+          "reflection_depth": 0,
+          "reinforcements": 3,
+          "salience_override": 0,
+          "source": "auto",
+          "source_memory_ids": [],
           "tags": [
             "conversation",
             "chat"
           ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.72,
-          "reinforcements": 1,
-          "last_recalled_tick": 0,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
-        },
-        {
-          "id": "mem_1792597083404_254",
           "text": "I read the conversation: kyrie johansen: I'm inside. Found a train ticket from 1891 in the coat. Air's stale. No water yet. Assessing. Don't move until I give the word..",
           "tick": 0,
           "timestamp": 1792597083.4046726,
-          "importance": 5,
-          "type": "conversation",
-          "location": "",
-          "entity_ids": [],
-          "embedding": null,
-          "tags": [
-            "conversation",
-            "chat"
-          ],
-          "emotion": null,
-          "emotions": null,
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "category": "social",
-          "activation": 1.0,
-          "confidence": 0.7,
-          "reinforcements": 0,
-          "last_recalled_tick": null,
-          "source_memory_ids": [],
-          "contradicts": [],
-          "reflection_depth": 0
+          "type": "conversation"
         }
       ],
       "schedule": [],
@@ -5190,6 +5152,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -5216,8 +5180,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -5310,6 +5272,26 @@
     "the butcher": {
       "name": "the butcher",
       "id": "769ad8ac",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "CHA": 4,
         "CON": 20,
@@ -5761,6 +5743,29 @@
           "type": "reaction"
         },
         {
+          "data": {
+            "event": "scene_observed",
+            "area": "area_kitchen",
+            "environment": {
+              "air": "greasy",
+              "light": 60,
+              "noise": "dripping faucet",
+              "smell": "old grease and rosemary",
+              "temperature": 20.4
+            },
+            "items_seen": [
+              "item_stove",
+              "item_kettle",
+              "item_sink",
+              "item_bread",
+              "item_knife",
+              "item_oil_lamp",
+              "item_cupboard",
+              "item_pickled_vegetables",
+              "item_coffee_grinder"
+            ],
+            "exits_seen": []
+          },
           "embedding": null,
           "emotion": null,
           "emotions": null,
@@ -5795,6 +5800,7 @@
             "furniture",
             "heat_source",
             "hunger",
+            "item",
             "knife",
             "light_source",
             "mechanism",
@@ -5813,33 +5819,10 @@
             "wooden"
           ],
           "text": "Observed kitchen: stove, kettle, sink, bread, knife, oil_lamp, cupboard, pickled_vegetables, coffee_grinder.",
-          "tick": 0,
-          "timestamp": 1792598597.7242455,
+          "tick": 1050190560,
+          "timestamp": 1792663208.923029,
           "type": "reaction",
-          "visits": 20,
-          "data": {
-            "event": "scene_observed",
-            "area": "area_kitchen",
-            "environment": {
-              "air": "greasy",
-              "light": 60,
-              "noise": "dripping faucet",
-              "smell": "old grease and rosemary",
-              "temperature": 20.4
-            },
-            "items_seen": [
-              "item_stove",
-              "item_kettle",
-              "item_sink",
-              "item_bread",
-              "item_knife",
-              "item_oil_lamp",
-              "item_cupboard",
-              "item_pickled_vegetables",
-              "item_coffee_grinder"
-            ],
-            "exits_seen": []
-          }
+          "visits": 23
         }
       ],
       "schedule": [],
@@ -5873,6 +5856,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -5899,8 +5884,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -5998,6 +5981,26 @@
     "whiskers": {
       "name": "whiskers",
       "id": "25a88489",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
       "stats": {
         "DEX": 14,
         "WIS": 13
@@ -6379,6 +6382,8 @@
           "minor": [
             "approach",
             "disengage",
+            "drink",
+            "eat",
             "equip",
             "flee",
             "grab",
@@ -6405,8 +6410,6 @@
             "craft",
             "crawl",
             "dash",
-            "drink",
-            "eat",
             "enchant",
             "escape",
             "examine",
@@ -7375,11 +7378,11 @@
           },
           "actions": [
             "examine",
-            "use",
             "eat",
             "take",
             "drop"
           ],
+          "current_state": "normal",
           "description": "a wrapped protein bar from emergency kit. dry and chalky but filling.",
           "max_uses": 3,
           "name": "protein_bar",
@@ -7388,78 +7391,12 @@
             "consumable",
             "supplies"
           ],
-          "triggers": [
-            {
-              "conditions": [],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You drop the protein bar. It lands with a soft thud, still sealed in its wrapper."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "",
-              "id": "trigger_1788775127327_7vzb",
-              "success_message": "You drop the protein bar.",
-              "target_name": "protein_bar",
-              "target_state": "",
-              "trigger_type": "on_drop"
-            },
-            {
-              "conditions": [],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You unwrap the protein bar and inspect it: a dense, chalky square of pressed oats and whey. It's dry to the touch but looks filling enough to tide you over."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "",
-              "id": "trigger_1788775128022_uiux",
-              "success_message": "A wrapped protein bar from an emergency kit.",
-              "target_name": "protein_bar",
-              "target_state": "",
-              "trigger_type": "on_examine"
-            },
-            {
-              "conditions": [
-                {
-                  "type": "uses_above",
-                  "value": 0
-                }
-              ],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You bite into the protein bar. It's dry and chalky, but it fills you up quickly - a satisfying crunch of oats and whey."
-                  },
-                  "type": "message"
-                },
-                {
-                  "params": {
-                    "amount": -25,
-                    "stat": "Hunger",
-                    "target": "self"
-                  },
-                  "type": "adjust_vital"
-                }
-              ],
-              "fail_message": "The protein bar is empty.",
-              "id": "trigger_inv_elena_vance_protein_bar_1788894514339_islx",
-              "success_message": "You eat the protein bar.",
-              "target_name": "protein_bar",
-              "target_state": "",
-              "trigger_type": "on_eat"
-            }
-          ],
-          "uses": 0,
-          "weight": 0.2,
-          "current_state": "unlit"
+          "triggers": [],
+          "uses": 2,
+          "weight": 0.2
         },
         "created": 1784318436.327297,
-        "updated": 1788774993.965625
+        "updated": 1792663412.9782016
       },
       "inv_elena vance_water_bottle": {
         "id": "inv_elena vance_water_bottle",
@@ -7488,69 +7425,43 @@
             "supplies",
             "container"
           ],
-          "triggers": [
-            {
-              "conditions": {},
+          "triggers": {
+            "item": {
+              "conditions": "",
               "conditions_logic": "and",
-              "effects": [
-                {
-                  "params": {
-                    "amount": -30,
-                    "fail_message": "its empty",
-                    "stat": "thirst",
-                    "success_message": "you take a drink. lukewarm, but hydrating.",
-                    "target": "self"
-                  },
-                  "type": "adjust_vital"
-                },
-                {
-                  "params": {
-                    "delta": -1,
-                    "node_id": "self"
-                  },
-                  "type": "adjust_uses"
+              "effects": {
+                "item": {
+                  "item": [
+                    {
+                      "params": {
+                        "amount": "-30",
+                        "fail_message": "its empty",
+                        "stat": "thirst",
+                        "success_message": "you take a drink. lukewarm, but hydrating.",
+                        "target": "self"
+                      },
+                      "type": "adjust_vital"
+                    }
+                  ]
                 }
-              ],
+              },
               "fail_message": "its empty",
-              "id": "trigger_inv_elena vance_water_bottle_on_use_1784402362_4",
-              "name": "",
+              "id": "trigger_inv_elena_vance_water_bottle_on_use_1784402362_4",
               "success_message": "you take a drink. lukewarm, but hydrating.",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": [
-                "on_use"
-              ]
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735292324_6xeo",
-              "success_message": "",
-              "trigger_type": "on_take"
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735293124_5l5n",
-              "success_message": "",
-              "trigger_type": "on_drop"
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735410198_d9al",
-              "success_message": "",
-              "trigger_type": "on_examine"
+              "target_name": "water_bottle",
+              "trigger_type": {
+                "item": [
+                  "on_use",
+                  "on_drink"
+                ]
+              }
             }
-          ],
+          },
           "uses": 2,
           "weight": 0.5
         },
         "created": 1784318436.327297,
-        "updated": 1788735410.0489116
+        "updated": 1792626023.2124894
       },
       "inv_miki_earbuds": {
         "id": "inv_miki_earbuds",
@@ -8076,17 +7987,19 @@
           "description": "a dried apple core someone left here decades ago. brown and shriveled, not edible.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "food",
-            "organic"
-          ],
+          "tags": {
+            "item": [
+              "organic",
+              "inedible"
+            ]
+          },
           "uses": -1,
           "weight": 0.02,
           "x": 4473.5,
           "y": 2927.7
         },
         "created": 1784318436.3252974,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_apple_tree": {
         "id": "item_apple_tree",
@@ -8102,19 +8015,20 @@
           "description": "a small apple tree with a few shriveled but edible apples on the lower branches. the tree looks ancient but stubbornly clings to life.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "plant",
-            "organic",
-            "outdoor",
-            "food"
-          ],
+          "tags": {
+            "item": [
+              "plant",
+              "organic",
+              "outdoor"
+            ]
+          },
           "uses": 3,
           "weight": 1,
           "x": 1230.5,
           "y": 4024.9
         },
         "created": 1784318436.3212945,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_augustus_letter": {
         "id": "item_augustus_letter",
@@ -8968,17 +8882,19 @@
           "description": "a loaf of bread on the counter, now rock-hard and covered in green mold. it's been here for 130 years.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "food",
-            "supplies"
-          ],
+          "tags": {
+            "item": [
+              "supplies",
+              "inedible"
+            ]
+          },
           "uses": -1,
           "weight": 0.5,
           "x": 1842.3,
           "y": 1101.6
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_bread_plate": {
         "id": "item_bread_plate",
@@ -8992,10 +8908,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a dusty plate with the dried remains of bread rolls, now rock-hard. not appetizing, but technically edible if you're desperate enough.",
           "hidden": false,
@@ -9007,10 +8920,39 @@
           "uses": 1,
           "weight": 0.3,
           "x": 1066.7,
-          "y": 1511.5
+          "y": 1511.5,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You scrape the dried remains of the rolls off the dusty plate and eat them. They are rock-hard and tasteless, and your jaw aches afterwards - but the hunger backs off."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "Only dust remains on the plate.",
+              "id": "trigger_item_bread_plate_on_eat",
+              "success_message": "You eat the dried bread remains.",
+              "target_name": "bread_plate",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3192942,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_broken_key": {
         "id": "item_broken_key",
@@ -9329,141 +9271,104 @@
             "light_source",
             "fire"
           ],
-          "triggers": [
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788808378924_hj53",
-              "success_message": "",
-              "trigger_type": "on_use"
-            },
-            {
-              "conditions": [
-                {
-                  "type": "uses_above",
-                  "value": 0
-                }
-              ],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "The candle stub is too depleted to be lit.",
-              "id": "trigger_1788808613875_mv6c",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_use"
-            },
-            {
-              "conditions": [],
-              "effects": [
-                {
-                  "params": {
-                    "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "",
-              "id": "trigger_1788808613875_pdvu",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_examine"
-            },
-            {
-              "conditions": [],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "",
-              "id": "trigger_1788808613875_z49u",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_take"
-            },
-            {
-              "conditions": [],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You set the candle stub back down on the bedside table."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "",
-              "id": "trigger_1788808613875_ht41",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_drop"
-            },
-            {
-              "conditions": [
-                {
-                  "type": "uses_above",
-                  "value": 0
-                }
-              ],
-              "effects": [
-                {
-                  "params": {
-                    "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "The wick is too short to ignite.",
-              "id": "trigger_1788808613875_yise",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_light"
-            },
-            {
-              "conditions": [
-                {
-                  "target": "self",
-                  "type": "state_equals",
-                  "value": "lit"
-                }
-              ],
-              "effects": [
-                {
-                  "params": {
-                    "message": "You pinch the flame out. The room goes dark, and the smell of burnt wax lingers."
-                  },
-                  "type": "message"
-                }
-              ],
-              "fail_message": "The candle is not lit.",
-              "id": "trigger_1788808613875_cio2",
-              "success_message": "",
-              "target_name": "",
-              "target_state": "",
-              "trigger_type": "on_toggle_off"
-            }
-          ],
+          "triggers": {
+            "item": [
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "item": {
+                      "params": {
+                        "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
+                      },
+                      "type": "message"
+                    }
+                  }
+                },
+                "fail_message": "The candle stub is too depleted to be lit.",
+                "id": "trigger_1788808613875_mv6c",
+                "success_message": "",
+                "target_name": "candle_stub",
+                "trigger_type": "on_use"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "params": {
+                      "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
+                    },
+                    "type": "message"
+                  }
+                },
+                "fail_message": "",
+                "id": "trigger_1788808613875_pdvu",
+                "success_message": "",
+                "target_name": "candle_stub",
+                "trigger_type": "on_examine"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "params": {
+                      "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
+                    },
+                    "type": "message"
+                  }
+                },
+                "fail_message": "",
+                "id": "trigger_1788808613875_z49u",
+                "success_message": "",
+                "target_name": "candle_stub",
+                "trigger_type": "on_take"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "params": {
+                      "message": "You set the candle stub back down on the bedside table."
+                    },
+                    "type": "message"
+                  }
+                },
+                "fail_message": "",
+                "id": "trigger_1788808613875_ht41",
+                "success_message": "",
+                "target_name": "candle_stub",
+                "trigger_type": "on_drop"
+              },
+              {
+                "conditions": {
+                  "item": {
+                    "type": "uses_above",
+                    "value": "0"
+                  }
+                },
+                "effects": {
+                  "item": {
+                    "params": {
+                      "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
+                    },
+                    "type": "message"
+                  }
+                },
+                "fail_message": "The wick is too short to ignite.",
+                "id": "trigger_1788808613875_yise",
+                "success_message": "",
+                "target_name": "candle_stub",
+                "trigger_type": "on_light"
+              }
+            ]
+          },
           "uses": 6,
           "weight": 0.05,
           "x": 5885.5,
           "y": 2700.3
         },
         "created": 1784318436.3252974,
-        "updated": 1791069439.429711
+        "updated": 1792625902.6909564
       },
       "item_candlestick": {
         "id": "item_candlestick",
@@ -9607,10 +9512,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "drop",
-            "use"
+            "item"
           ],
           "description": "a dusty jar of old hard candies on the dresser. they've crystallized over the decades but are still technically edible. the jar is shaped like a teddy bear.",
           "hidden": false,
@@ -9620,47 +9522,61 @@
             "food",
             "glass"
           ],
-          "triggers": [
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735867386_h4us",
-              "success_message": "",
-              "trigger_type": "on_examine"
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735869852_v2x5",
-              "success_message": "",
-              "trigger_type": "on_take"
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735870659_gg42",
-              "success_message": "",
-              "trigger_type": "on_drop"
-            },
-            {
-              "conditions": [],
-              "effects": [],
-              "fail_message": "",
-              "id": "trigger_1788735872867_rdao",
-              "success_message": "",
-              "trigger_type": "on_use"
-            }
-          ],
+          "triggers": {
+            "item": [
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "params": {
+                      "message": "The teddy bear jar is full of old hard candies, crystallized into lumps. You roll one in your teeth and it fights back."
+                    },
+                    "type": "message"
+                  }
+                },
+                "fail_message": "",
+                "id": "trigger_item_candy_jar_on_examine",
+                "success_message": "",
+                "target_name": "candy_jar",
+                "target_state": "",
+                "trigger_type": "on_examine"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": [
+                    {
+                      "params": {
+                        "amount": "-25",
+                        "stat": "Hunger",
+                        "target": "self"
+                      },
+                      "type": "adjust_vital"
+                    },
+                    {
+                      "params": {
+                        "message": "You pop a candy out of the jar and eat it. It is gritty, sticky, and sweeter than anything should be after a hundred years."
+                      },
+                      "type": "message"
+                    }
+                  ]
+                },
+                "fail_message": "The jar rattles, empty.",
+                "id": "trigger_item_candy_jar_on_eat",
+                "success_message": "You eat a candy.",
+                "target_name": "candy_jar",
+                "target_state": "",
+                "trigger_type": "on_eat"
+              }
+            ]
+          },
           "uses": 3,
           "weight": 0.4,
           "x": 5590.2,
           "y": 777.4
         },
         "created": 1784318436.3232946,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_canned_peaches": {
         "id": "item_canned_peaches",
@@ -9674,10 +9590,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
           "hidden": false,
@@ -9690,10 +9603,39 @@
           "uses": 1,
           "weight": 0.8,
           "x": 2880.7,
-          "y": 987
+          "y": 987,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You prise the lid off and fish out a slice of peach. The syrup has gone cloudy and thick, but the fruit is sweet and startlingly fresh."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "There is nothing left in the jar but syrup.",
+              "id": "trigger_item_canned_peaches_on_eat",
+              "success_message": "You eat the preserved peaches.",
+              "target_name": "canned_peaches",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_cargo shorts": {
         "id": "item_cargo shorts",
@@ -10065,18 +10007,19 @@
           "description": "an old hand-crank coffee grinder on the counter. there are still coffee beans inside - they've carbonized over the decades but might still produce something drinkable.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "tool",
-            "mechanism",
-            "food"
-          ],
+          "tags": {
+            "item": [
+              "tool",
+              "mechanism"
+            ]
+          },
           "uses": -1,
           "weight": 2,
           "x": 1909.6,
           "y": 1131.5
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_compression shorts": {
         "id": "item_compression shorts",
@@ -10234,10 +10177,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a tin of stale crackers, now soft from humidity. disgusting, but technically edible and filling.",
           "hidden": false,
@@ -10250,10 +10190,39 @@
           "uses": 2,
           "weight": 0.3,
           "x": 2949.2,
-          "y": 1010.9
+          "y": 1010.9,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You tip a handful of crackers into your mouth. They are soft from the humidity and taste of old salt, but they go down and quiet the hunger."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "The tin is empty, save for crumbs.",
+              "id": "trigger_item_crackers_on_eat",
+              "success_message": "You eat the stale crackers.",
+              "target_name": "crackers",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_crate": {
         "id": "item_crate",
@@ -11567,18 +11536,20 @@
           "description": "a burlap sack of flour, half full. tiny holes suggest mice have been at it. the flour has clumped but is still usable.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "food",
-            "supplies",
-            "organic"
-          ],
+          "tags": {
+            "item": [
+              "supplies",
+              "organic",
+              "ingredient"
+            ]
+          },
           "uses": -1,
           "weight": 5,
           "x": 2989,
           "y": 1076.4
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_flowers": {
         "id": "item_flowers",
@@ -11814,9 +11785,7 @@
         "name": "granola_bar",
         "properties": {
           "actions": [
-            "examine",
-            "take",
-            "drop"
+            "item"
           ],
           "description": "a slightly crushed granola bar. chocolate chip. stale but edible.",
           "hidden": false,
@@ -11826,31 +11795,64 @@
             "consumable",
             "supplies"
           ],
-          "triggers": [
-            {
-              "conditions": [],
-              "conditions_logic": "and",
-              "effects": [
-                {
-                  "params": {
-                    "amount": -25,
-                    "stat": "hunger",
-                    "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
-                    "target": "self"
-                  },
-                  "type": "adjust_vital"
-                }
-              ],
-              "id": "trigger_item_granola_bar_on_use_1784402362_7",
-              "target_name": "",
-              "trigger_type": "on_use"
-            }
-          ],
+          "triggers": {
+            "item": [
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "item": {
+                      "params": {
+                        "amount": "-25",
+                        "stat": "hunger",
+                        "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+                        "target": "self"
+                      },
+                      "type": "adjust_vital"
+                    }
+                  }
+                },
+                "id": "trigger_item_granola_bar_on_use",
+                "target_name": "granola_bar",
+                "target_state": "",
+                "trigger_type": "on_use"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "item": [
+                      {
+                        "params": {
+                          "amount": "-25",
+                          "stat": "Hunger",
+                          "target": "self"
+                        },
+                        "type": "adjust_vital"
+                      },
+                      {
+                        "params": {
+                          "message": "You eat the granola bar. It is dry and crumbly, chocolate chips and all, and it fills the gap nicely."
+                        },
+                        "type": "message"
+                      }
+                    ]
+                  }
+                },
+                "fail_message": "Only crumbs left in the wrapper.",
+                "id": "trigger_item_granola_bar_on_eat",
+                "success_message": "You eat the granola bar.",
+                "target_name": "granola_bar",
+                "target_state": "",
+                "trigger_type": "on_eat"
+              }
+            ]
+          },
           "uses": -1,
           "weight": 0.5
         },
         "created": 1784318704.8783033,
-        "updated": 1784318704.8783033
+        "updated": 1792625715.5509021
       },
       "item_grey tank top": {
         "id": "item_grey tank top",
@@ -12404,10 +12406,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a glass jar of crystallized honey. honey never spoils. it's still perfectly edible, though you'll need to scrape it out.",
           "hidden": false,
@@ -12421,10 +12420,39 @@
           "uses": 1,
           "weight": 0.6,
           "x": 2960.1,
-          "y": 1141.8
+          "y": 1141.8,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You scrape the crystallized honey out of the jar with a finger and lick it clean. It is thick, gritty and impossibly sweet - a century old and still good."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "The jar is scraped clean.",
+              "id": "trigger_item_jar_of_honey_on_eat",
+              "success_message": "You eat the honey.",
+              "target_name": "jar_of_honey",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_jerky": {
         "id": "item_jerky",
@@ -12438,10 +12466,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a strip of dried meat hanging from a hook above the hearth. it's old but well-preserved by the dry air. still edible, if you're not squeamish.",
           "hidden": true,
@@ -12461,10 +12486,39 @@
             "supplies"
           ],
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You tear off a strip of the jerky. It is leather-hard, salt-heavy and old, but the dry air kept it and your teeth are grateful for it."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "Only the hook is left.",
+              "id": "trigger_item_jerky_on_eat",
+              "success_message": "You eat the jerky.",
+              "target_name": "jerky",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3202963,
-        "updated": 1784318436.3202963
+        "updated": 1792625694.3331773
       },
       "item_jewelry_box": {
         "id": "item_jewelry_box",
@@ -13393,17 +13447,19 @@
           "description": "a forgotten sandwich on a small table. it's green and fuzzy with age. definitely do not eat this.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "food",
-            "organic"
-          ],
+          "tags": {
+            "item": [
+              "organic",
+              "inedible"
+            ]
+          },
           "uses": -1,
           "weight": 0.2,
           "x": 5372.5,
           "y": 1511
         },
         "created": 1784318436.3222942,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_mouse_nest": {
         "id": "item_mouse_nest",
@@ -13937,10 +13993,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a sealed jar of pickled vegetables from 1891. the seal is intact - technically still preserved and edible. they smell strongly of vinegar and herbs.",
           "hidden": true,
@@ -13957,10 +14010,38 @@
           "uses": 2,
           "weight": 0.8,
           "x": 1764.2,
-          "y": 1243.6
+          "y": 1243.6,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You crack the seal and eat a forkful of the pickles. The vinegar and herbs hit the back of your throat like a slap, and your mouth waters."
+                    },
+                    "type": "message"
+                  }
+                ]
+              }
+            }
+          },
+          "fail_message": "The jar is empty but for brine.",
+          "success_message": "You eat the pickled vegetables.",
+          "target_name": "pickled_vegetables",
+          "target_state": "",
+          "trigger_type": "on_eat"
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_pink star twintail band": {
         "id": "item_pink star twintail band",
@@ -14265,11 +14346,7 @@
         "name": "protein_bar",
         "properties": {
           "actions": [
-            "examine",
-            "use",
-            "eat",
-            "take",
-            "drop"
+            "item"
           ],
           "description": "a dry, chalky protein bar. tastes like cardboard and determination.",
           "hidden": false,
@@ -14278,31 +14355,64 @@
             "consumable",
             "supplies"
           ],
-          "triggers": [
-            {
-              "conditions": [],
-              "conditions_logic": "and",
-              "effects": [
-                {
-                  "params": {
-                    "amount": -35,
-                    "stat": "hunger",
-                    "success_message": "you choke down the protein bar. it tastes like nothing, which is almost worse than tasting bad.",
-                    "target": "self"
-                  },
-                  "type": "adjust_vital"
-                }
-              ],
-              "id": "trigger_item_protein_bar_on_use_1784402362_9",
-              "target_name": "",
-              "trigger_type": "on_use"
-            }
-          ],
+          "triggers": {
+            "item": [
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "item": {
+                      "params": {
+                        "amount": "-35",
+                        "stat": "hunger",
+                        "success_message": "you choke down the protein bar. it tastes like nothing, which is almost worse than tasting bad.",
+                        "target": "self"
+                      },
+                      "type": "adjust_vital"
+                    }
+                  }
+                },
+                "id": "trigger_item_protein_bar_on_use",
+                "target_name": "protein_bar",
+                "target_state": "",
+                "trigger_type": "on_use"
+              },
+              {
+                "conditions": "",
+                "effects": {
+                  "item": {
+                    "item": [
+                      {
+                        "params": {
+                          "amount": "-35",
+                          "stat": "Hunger",
+                          "target": "self"
+                        },
+                        "type": "adjust_vital"
+                      },
+                      {
+                        "params": {
+                          "message": "You eat the protein bar. It is dry and chalky, but it fills you up quickly - a satisfying crunch of oats and whey."
+                        },
+                        "type": "message"
+                      }
+                    ]
+                  }
+                },
+                "fail_message": "The wrapper is empty.",
+                "id": "trigger_item_protein_bar_on_eat",
+                "success_message": "You eat the protein bar.",
+                "target_name": "protein_bar",
+                "target_state": "",
+                "trigger_type": "on_eat"
+              }
+            ]
+          },
           "uses": 0,
           "weight": 0.15
         },
         "created": 1784318723.3983161,
-        "updated": 1784318723.3983161
+        "updated": 1792625715.5509021
       },
       "item_railing": {
         "id": "item_railing",
@@ -15158,17 +15268,19 @@
           "description": "a rack of dried herbs and spices. most are faded and useless. but a jar labeled 'rosemary' still has a faint, pleasant scent.",
           "hidden": false,
           "skill_check": {},
-          "tags": [
-            "food",
-            "supplies"
-          ],
+          "tags": {
+            "item": [
+              "supplies",
+              "ingredient"
+            ]
+          },
           "uses": -1,
           "weight": 3,
           "x": 2788.2,
           "y": 1070.1
         },
         "created": 1784318436.3202963,
-        "updated": 1791069439.429711
+        "updated": 1792625715.5509021
       },
       "item_sports bra": {
         "id": "item_sports bra",
@@ -15367,10 +15479,7 @@
             }
           },
           "actions": [
-            "examine",
-            "take",
-            "use",
-            "drop"
+            "item"
           ],
           "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
           "hidden": false,
@@ -15383,10 +15492,39 @@
           "uses": 1,
           "weight": 0.15,
           "x": 5821.8,
-          "y": 2717
+          "y": 2717,
+          "triggers": {
+            "item": {
+              "conditions": "",
+              "effects": {
+                "item": [
+                  {
+                    "params": {
+                      "amount": "-45",
+                      "stat": "Hunger",
+                      "target": "self"
+                    },
+                    "type": "adjust_vital"
+                  },
+                  {
+                    "params": {
+                      "message": "You eat the crackers from the opened pack, careful to leave the bitten one where it lies. They are stale as stones and somehow still filling."
+                    },
+                    "type": "message"
+                  }
+                ]
+              },
+              "fail_message": "Only crumbs and that one bitten cracker remain.",
+              "id": "trigger_item_stale_crackers_on_eat",
+              "success_message": "You eat the stale crackers.",
+              "target_name": "stale_crackers",
+              "target_state": "",
+              "trigger_type": "on_eat"
+            }
+          }
         },
         "created": 1784318436.3252974,
-        "updated": 1791069439.429711
+        "updated": 1792625694.3331773
       },
       "item_statue": {
         "id": "item_statue",
@@ -17169,9 +17307,9 @@
           "traits": {
             "frail": true
           },
+          "world_scope_id": "mansion",
           "x": 900,
-          "y": 620,
-          "world_scope_id": "mansion"
+          "y": 620
         },
         "created": 1784318436.327297,
         "updated": 1791069439.4307106
@@ -17198,12 +17336,12 @@
             "secret"
           ],
           "personality": "a restless spirit bound to the mansion.",
+          "tags": [],
           "traits": {
             "frail": true
           },
           "x": 5014.8,
-          "y": 4874,
-          "tags": []
+          "y": 4874
         },
         "created": 1784318436.327297,
         "updated": 1791069439.4307106
@@ -17324,9 +17462,9 @@
           "tags": [
             "male"
           ],
+          "traits": {},
           "x": 1758.7,
-          "y": 2260.7,
-          "traits": {}
+          "y": 2260.7
         },
         "created": 1784318736.2975852,
         "updated": 1791069439.4307106
@@ -17479,9 +17617,9 @@
           "tags": [
             "female"
           ],
+          "traits": {},
           "x": 1704.3,
-          "y": 2383.2,
-          "traits": {}
+          "y": 2383.2
         },
         "created": 1784318704.8773031,
         "updated": 1791069439.4307106
@@ -17604,9 +17742,9 @@
           "tags": [
             "female"
           ],
+          "traits": {},
           "x": 1884.9,
-          "y": 2498.3,
-          "traits": {}
+          "y": 2498.3
         },
         "created": 1784318723.3977504,
         "updated": 1791069439.4307106
@@ -17731,10 +17869,10 @@
           "tags": [
             "female"
           ],
-          "x": 900,
-          "y": 620,
           "traits": {},
-          "world_scope_id": "mansion"
+          "world_scope_id": "mansion",
+          "x": 900,
+          "y": 620
         },
         "created": 1784318436.327297,
         "updated": 1791069528.7501776
@@ -17857,10 +17995,10 @@
           "tags": [
             "female"
           ],
-          "x": 660,
-          "y": 780,
           "traits": {},
-          "world_scope_id": "mansion"
+          "world_scope_id": "mansion",
+          "x": 660,
+          "y": 780
         },
         "created": 1784318731.7990596,
         "updated": 1791069439.4307106
@@ -18013,10 +18151,10 @@
           "tags": [
             "animal"
           ],
-          "x": 420,
-          "y": 580,
           "traits": {},
-          "world_scope_id": "mansion"
+          "world_scope_id": "mansion",
+          "x": 420,
+          "y": 580
         },
         "created": 1784318436.327297,
         "updated": 1791069439.4307106
@@ -18536,6 +18674,228 @@
         },
         "created": 1784318436.318297,
         "updated": 1791069439.4307106
+      },
+      "item_professor_s_note_fqem": {
+        "id": "item_professor_s_note_fqem",
+        "type": "item",
+        "name": "professor's note",
+        "properties": {
+          "description": "a crumpled note that was stuck to the glasses case: 'augustus - i've found what you requested. the crystal skull is not a legend. it is in the catacombs beneath prague. i will bring it to the manor on all hallows eve. your servant, prof. aldridge.'",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "read",
+            "drop"
+          ]
+        },
+        "created": 1792625428.0518196,
+        "updated": 1792625428.0518196
+      },
+      "trigger_1792663317458_c3r1": {
+        "id": "trigger_1792663317458_c3r1",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A half-full plastic water bottle. The water is lukewarm but clean. It sloshes slightly as you tilt it."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663317.4967456,
+        "updated": 1792663317.4967456
+      },
+      "trigger_1792663317458_sk0y": {
+        "id": "trigger_1792663317458_sk0y",
+        "type": "logic_trigger",
+        "name": "on_drink → adjust_vital",
+        "properties": {
+          "trigger_type": "on_drink",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Thirst",
+                "amount": -30,
+                "target": "self",
+                "success_message": "You tip the bottle and drink a long draught of lukewarm water. It tastes clean and refreshing."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The bottle is empty."
+        },
+        "created": 1792663317.4967456,
+        "updated": 1792663317.4967456
+      },
+      "trigger_1792663317458_gkgp": {
+        "id": "trigger_1792663317458_gkgp",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the plastic water bottle. It's light and warm in your hand."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663317.4967456,
+        "updated": 1792663317.4967456
+      },
+      "trigger_1792663317458_pt65": {
+        "id": "trigger_1792663317458_pt65",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the water bottle down on the ground."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663317.4967456,
+        "updated": 1792663317.4967456
+      },
+      "trigger_1792663381351_mwn4": {
+        "id": "trigger_1792663381351_mwn4",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the protein bar. The wrapper crinkles; it feels surprisingly light for its size. Dry and chalky, but sealed tight."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663381.361314,
+        "updated": 1792663381.361314
+      },
+      "trigger_1792663381351_b84w": {
+        "id": "trigger_1792663381351_b84w",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You take the protein bar from the emergency kit. It feels substantial in your hand, a small comfort in uncertain times."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663381.361314,
+        "updated": 1792663381.361314
+      },
+      "trigger_1792663381351_75e2": {
+        "id": "trigger_1792663381351_75e2",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the protein bar down on the bench. It bounces slightly, the wrapper sliding open a fraction."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1792663381.361314,
+        "updated": 1792663381.361314
+      },
+      "trigger_inv_elena_vance_protein_bar_1792663452245_f76n": {
+        "id": "trigger_inv_elena_vance_protein_bar_1792663452245_f76n",
+        "type": "logic_trigger",
+        "name": "on_eat → adjust_vital",
+        "properties": {
+          "trigger_type": "on_eat",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -30,
+                "target": "self",
+                "success_message": "You unwrap the protein bar. It's dry and chalky, but surprisingly filling. The chalkiness coats your throat, and a wave of energy follows."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The protein bar is all gone."
+        },
+        "created": 1792663452.2471476,
+        "updated": 1792663452.2471476
       }
     },
     "edges": [
@@ -20958,6 +21318,195 @@
         "target": "area_library",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "inv_elena vance_water_bottle",
+        "target": "trigger_1792663317458_c3r1",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A half-full plastic water bottle. The water is lukewarm but clean. It sloshes slightly as you tilt it."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "inv_elena vance_water_bottle",
+        "target": "trigger_1792663317458_sk0y",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drink",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Thirst",
+                "amount": -30,
+                "target": "self",
+                "success_message": "You tip the bottle and drink a long draught of lukewarm water. It tastes clean and refreshing."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The bottle is empty."
+        }
+      },
+      {
+        "source": "inv_elena vance_water_bottle",
+        "target": "trigger_1792663317458_gkgp",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the plastic water bottle. It's light and warm in your hand."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "inv_elena vance_water_bottle",
+        "target": "trigger_1792663317458_pt65",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the water bottle down on the ground."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "inv_elena vance_protein_bar",
+        "target": "trigger_1792663381351_mwn4",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the protein bar. The wrapper crinkles; it feels surprisingly light for its size. Dry and chalky, but sealed tight."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "inv_elena vance_protein_bar",
+        "target": "trigger_inv_elena_vance_protein_bar_1792663452245_f76n",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_eat",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -30,
+                "target": "self",
+                "success_message": "You unwrap the protein bar. It's dry and chalky, but surprisingly filling. The chalkiness coats your throat, and a wave of energy follows."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The protein bar is all gone."
+        }
+      },
+      {
+        "source": "inv_elena vance_protein_bar",
+        "target": "trigger_1792663381351_b84w",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You take the protein bar from the emergency kit. It feels substantial in your hand, a small comfort in uncertain times."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "inv_elena vance_protein_bar",
+        "target": "trigger_1792663381351_75e2",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "protein_bar",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the protein bar down on the bench. It bounces slightly, the wrapper sliding open a fraction."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
       }
     ]
   },
@@ -21081,12 +21630,16 @@
       },
       "children": [],
       "grid": {
-        "w": 14,
-        "h": 17
+        "h": 17,
+        "w": 14
       },
       "id": "mansion",
       "kind": "scope",
       "layers": {},
+      "map_offset": {
+        "x": 169.4,
+        "y": 127.8
+      },
       "mode": "interior",
       "name": "mansion",
       "parent_id": null,
@@ -21096,11 +21649,7 @@
         "opacity": 0.5,
         "visible": true
       },
-      "state": "unmade",
-      "map_offset": {
-        "x": 169.4,
-        "y": 127.8
-      }
+      "state": "unmade"
     }
   },
   "calendar_config": {
@@ -21123,29 +21672,29 @@
   "graph_background": {
     "layers": [
       {
+        "crop": {
+          "h": 1,
+          "w": 1,
+          "x": 0,
+          "y": 0
+        },
         "id": "bg-c7po7g8",
-        "label": "mansion",
         "image": "/static/images/backgrounds/blackwood-manor-interior.webp",
+        "label": "mansion",
+        "locked": false,
+        "opacity": 1,
         "rect": {
-          "x": 54048,
-          "y": 40736,
+          "height": 19200,
           "width": 19200,
-          "height": 19200
+          "x": 54048,
+          "y": 40736
         },
         "rotation": 0,
-        "crop": {
-          "x": 0,
-          "y": 0,
-          "w": 1,
-          "h": 1
-        },
-        "opacity": 1,
-        "locked": false,
         "visible": true
       }
     ],
-    "positions": {},
-    "layoutLocked": false
+    "layoutLocked": false,
+    "positions": {}
   },
   "commons_theme": "live_social",
   "schema_version": 2

@@ -313,8 +313,17 @@ def save_registry(data_dir, filename, data):
     for key, value in data.items():
         path = os.path.join(subdir, f"{key}.json")
         try:
-            with open(path, 'w', encoding='utf-8') as f:
-                json.dump(value, f, indent=2, ensure_ascii=False)
+            serialized = json.dumps(value, indent=2, ensure_ascii=False) + '\n'
+            # A caller may hand over the whole registry (materializing one
+            # contained item does exactly that). Rewriting every entry turns one
+            # edited entry into hundreds of no-op diffs and strips the trailing
+            # newline from files nobody touched, so only write a real change.
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8-sig') as existing:
+                    if existing.read() == serialized:
+                        continue
+            with open(path, 'w', encoding='utf-8', newline='\n') as f:
+                f.write(serialized)
         except Exception as e:
             logger.error(f"Could not save library entry {key}: {e}")
 

@@ -92,6 +92,7 @@ var triggerEditorApi = {
     _overlay: null,
     _onSave: null,
     _onClose: null,
+    _initialData: null,
     _mode: 'single',
     _effectTypes: [],
     _conditionTypes: [],
@@ -115,6 +116,7 @@ var triggerEditorApi = {
         this._contextItemId = options.contextItemId || '';
         this._targetDatalistHtml = options.targetDatalistHtml || '';
         const initial = options.initialData || null;
+        this._initialData = initial || null;
         const targetDatalist = this._targetDatalistHtml;
         const initialTriggerType = initial?.trigger_type;
         const triggerTypeHtml = this._mode === 'multi'
@@ -612,6 +614,10 @@ var triggerEditorApi = {
         if (typeof TriggerGraph === 'undefined')
             return;
         const data = this._collectData();
+        // The form has no fields for id, once, fired or cooldown. Carry them
+        // through the graph so saving from the canvas cannot reset them.
+        const base = { ...(this._initialData || {}) };
+        const full = { ...base, ...data };
         const onSave = this._onSave;
         const bridge = {
             mode: this._mode,
@@ -622,13 +628,13 @@ var triggerEditorApi = {
             itemDatalistHtml: this._itemDatalist,
             contextItemId: this._contextItemId,
             onSave,
-            initialName: data.name || '',
-            success_message: data.success_message || '',
-            fail_message: data.fail_message || '',
+            initialName: full.name || '',
+            success_message: full.success_message || '',
+            fail_message: full.fail_message || '',
         };
         this.close();
         TriggerGraph.show({
-            graph: TriggerGraph.triggerToGraph(data),
+            graph: TriggerGraph.triggerToGraph(full),
             contextItemId: this._contextItemId,
             sourceNodeId: this._contextItemId,
             editorBridge: bridge,
@@ -639,10 +645,11 @@ var triggerEditorApi = {
                 if (!compiled || !onSave)
                     return;
                 onSave({
+                    ...base,
                     ...TriggerGraph.engineToFormData(compiled),
-                    name: bridge.initialName || data.name || '',
-                    success_message: bridge.success_message || data.success_message || '',
-                    fail_message: compiled.fail_message || bridge.fail_message || data.fail_message || '',
+                    name: bridge.initialName || full.name || '',
+                    success_message: bridge.success_message || full.success_message || '',
+                    fail_message: compiled.fail_message || bridge.fail_message || full.fail_message || '',
                 });
             },
         });

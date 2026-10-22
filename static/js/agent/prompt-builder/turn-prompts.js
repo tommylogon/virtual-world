@@ -121,8 +121,13 @@ window.PromptBuilder = window.PromptBuilder || {};
             schemaFields.push('emotion_toward', 'learned_names');
         if (wantMemory)
             schemaFields.push('memory', 'emotion_toward', 'learned_names');
+        // Fix #7: explicit budget guard in decide phase (includeMemory=false, includeFeelings=true)
+        const isDecidePhase = !wantMemory && includeFeelings;
+        const budgetGuard = isDecidePhase
+            ? '\n\n=== BUDGET CHECK ===\nBefore choosing an action, verify the === ACTIONS LEFT THIS TURN === line in your context. If it says "major 0", you CANNOT use major actions (go, dash, examine, take, use, eat, drink, attack, etc.). You MUST choose a minor/free action, speak, or "wait". Violating this wastes your turn.'
+            : '';
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
-        return `${head}${last}
+        return `${head}${last}${budgetGuard}
 
 First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
 ${PromptBuilder.EMOTE_RULES_REACTION}${memoryInstruction}
@@ -188,6 +193,7 @@ Based on the outcome of your action, how do you react to it?
 How do you process this? What goes through your mind now?
 This is the REACT phase: by default you react SILENTLY — keep it to inner_monologue and emote. Speak out loud ONLY if the situation genuinely calls for it (someone addressed you directly, something alarming or unexpected happened). Do not advance to your next planned action here — that happens next turn.
 A moment has just passed — your own action barely completed. The people around you have NOT had time to react or reply yet; their silence or stillness right now means they simply haven't responded, not that they ignored you. Do not infer long stretches of time from one instant. React to what actually happened to you in this single moment.
+CRITICAL: If your action was rejected or failed, your reaction must acknowledge the failure — never describe the action as if it succeeded. A blocked kitchen attempt is not a visit; a refused door is not open.
 CRITICAL: In the REACT phase you MUST NOT include "action" or "item" fields. React ONLY via inner_monologue, emote, speech, and memory. Do not attempt to take new actions.
 If you do speak, put your line in the "speech" field and its volume in "volume" (see SPEECH & VOLUME rules in the system prompt).
 ${PromptBuilder.EMOTE_RULES_REACT}

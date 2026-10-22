@@ -9,7 +9,7 @@
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
  * @module prompt-builder/room-context  -  the area/room context assembler
- * @contributes buildRoomContext, buildRoomContextParts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext
+ * @contributes buildRoomContext, buildRoomContextParts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext, resolveCharacterArea
  * @powers the room block that opens every user message (lighting, items, exits, people, witnessed)
  * @relates uses helpers + conversation-context; its output is assembled by turn-prompts
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
@@ -165,6 +165,28 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
     }
 
     /**
+     * The area a character's prompt must describe. `state.current_area` is the
+     * server's single active-player view, so a caller that passes it for another
+     * agent shows that agent the wrong room: items, people, exits and action
+     * brackets all follow the wrong area (bug-565). The character's own
+     * `current_area` wins. Preview/lens callers may inspect another area on
+     * purpose, so `preview` keeps the requested area.
+     */
+    function resolveCharacterArea(
+        state: PromptState,
+        player: PlayerState,
+        currentArea: CurrentArea,
+        preview = false,
+    ): CurrentArea {
+        if (preview) return currentArea;
+        const ownName = String((player as any)?.current_area || '').trim();
+        const givenName = String((currentArea as any)?.name || '').trim();
+        if (!ownName || ownName === givenName) return currentArea;
+        const ownArea = (state as any)?.areas?.[ownName];
+        return ownArea || currentArea;
+    }
+
+    /**
      * Per-viewer exits for the PROMPT. The serialized `exits` view is keyed to
      * the server's single active player, which mis-filters for everyone else in
      * a multi-agent run (the butcher couldn't see his own hidden passage
@@ -302,17 +324,8 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         // The room context belongs to THIS character. `state.current_area` is
         // the server's single active-player view, so a caller that passes it
         // for another agent shows that agent the wrong room - items, people,
-        // exits and action brackets all follow the wrong area (bug-565). The
-        // player's own `current_area` wins. Preview/lens callers may inspect
-        // another area on purpose, so they are exempt.
-        if (!preview) {
-            const ownAreaName = String((player as any)?.current_area || '').trim();
-            const givenAreaName = String((currentArea as any)?.name || '').trim();
-            if (ownAreaName && ownAreaName !== givenAreaName) {
-                const ownArea = (state as any)?.areas?.[ownAreaName];
-                if (ownArea) currentArea = ownArea;
-            }
-        }
+        // exits and action brackets all follow the wrong area (bug-565).
+        currentArea = resolveCharacterArea(state, player, currentArea, preview);
         const light = (currentArea as Record<string, any>)?.ambient_light
             ?? (currentArea as Record<string, any>)?.environment?.light ?? 50;
         const level = PromptBuilder.lightToLevel(light);
@@ -506,7 +519,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                 if (wayState === 'open') {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorTags = (doorNode.properties?.tags || []).map((t: unknown) => String(t).toLowerCase().trim());
-                    const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
+                    const openWord = doorTags.includes('outdoor') || doorTags.includes('exterior') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
                     const openVerbs: string[] = [];
                     if (canGo) openVerbs.push('go through it');
@@ -546,8 +559,16 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
                 } else {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorRawDescription = exitData.description || doorNode.properties?.description || `A way here.`;
-                    const doorDescription = typeof InspectorHelpers?.resolveWayParams === 'function'
-                        ? InspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
+                    // Window-scoped on purpose: a bare `InspectorHelpers` throws
+                    // a ReferenceError on any page that does not load the
+                    // inspector (the benchmark page), and optional chaining does
+                    // not guard an undeclared identifier. Same pattern as
+                    // itemContainment()/embeddingClient() above.
+                    const inspectorHelpers = (window as unknown as {
+                        InspectorHelpers?: { resolveWayParams?: (text: string, parameters?: Record<string, unknown>) => string }
+                    }).InspectorHelpers;
+                    const doorDescription = typeof inspectorHelpers?.resolveWayParams === 'function'
+                        ? inspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
                         : doorRawDescription;
                     if (seeThrough && viewDirection) {
                         exitLines.push(`[${handle}] is closed  -  through it you can see ${viewDirection}${beyondSuffix}${moveHint}${openHint}`);
@@ -989,6 +1010,7 @@ return {
         buildRoomContextParts,
         buildNarratedRoomContext,
         viewerExits,
+        resolveCharacterArea,
         characterKnown
     });
 })();

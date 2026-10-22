@@ -57,6 +57,114 @@ const PlanManager = (() => {
         return lines[0] || '';
     }
     /**
+     * Build the repair prompt for a plan with rejected steps.
+     *
+     * The repair contract is CONSTRAINED: keep the steps that already
+     * grounded, replace only the rejected ones. The old prompt said "Keep
+     * grounded steps unchanged" without ever SHOWING which steps those were,
+     * so the model had nothing to keep and routinely returned a completely
+     * different plan - the character walked away from a verified step
+     * (approach the dining room) and got "take lighter / go west passage"
+     * instead. The prompt now lists every step with its index and status.
+     */
+    function _buildRepairPrompt(grounding, originalSteps, grounded, rejections, facts) {
+        const reasonByIndex = new Map();
+        for (const r of rejections)
+            reasonByIndex.set(r.index, r.reason);
+        const lines = originalSteps.map((step, i) => {
+            const reason = reasonByIndex.get(i);
+            const rendered = grounding.render(step);
+            return reason
+                ? `${i + 1}. [REJECTED] ${rendered}  <- ${reason}`
+                : `${i + 1}. [KEEP] ${rendered}`;
+        });
+        return `
+=== GROUNDING REJECTIONS ===
+${rejections.length} of your ${originalSteps.length} steps name things that do not exist here. Your plan, step by step:
+
+${lines.join('\n')}
+
+RULES for the corrected plan:
+- Reproduce every [KEEP] step EXACTLY as written, in the same position. Do not reword it, reorder it, or drop it.
+- Replace ONLY the [REJECTED] steps, one for one, with steps that use the FACTS below.
+- Keep the same number of steps, in the same order.
+- Do not invent objects. A room description is not proof that an object exists.
+- PATHS (doors, exits) are the target of go / approach / open / close. ITEMS are the target of take / use / search / examine. PEOPLE are the target of speak / give / attack.
+
+FACTS you may reference: interactables here: ${facts.areaItems.join(', ') || '(none)'}; carrying: ${facts.carried.join(', ') || '(nothing)'}; people here: ${facts.people.join(', ') || '(nobody)'}; paths: ${facts.exits.join(', ') || '(none)'}; known areas: ${facts.knownAreas.join(', ') || '(none)'}.
+Respond ONLY with the corrected {"steps": [...]} array.`;
+    }
+    /**
+     * Merge a repaired plan with the steps that already grounded.
+     *
+     * The repair contract is "keep the good steps, replace only the rejected
+     * ones". A model that ignores that must not be able to throw away a step
+     * that was already verified: the originally-grounded steps are restored at
+     * their original positions and the repaired steps fill the gaps. The
+     * merged plan is re-grounded end to end before it is accepted.
+     */
+    function _mergeWithPreserved(repairedGrounded, originalSteps, originalGrounded, grounding, facts, areaName) {
+        if (!originalSteps.length) {
+            return repairedGrounded.map((g) => ({ step: g.step, text: g.text }));
+        }
+        const okByIndex = new Map();
+        for (const g of originalGrounded)
+            okByIndex.set(g.index, { step: g.step, text: g.text });
+        const repairedByIndex = new Map();
+        for (const g of repairedGrounded)
+            repairedByIndex.set(g.index, { step: g.step, text: g.text });
+        const usedRepaired = new Set();
+        const merged = [];
+        for (let i = 0; i < originalSteps.length; i++) {
+            const ok = okByIndex.get(i);
+            if (ok) {
+                // Restore the verified step verbatim - the repair may not
+                // reword a step that already grounds. The position is taken,
+                // so whatever the repair put here is consumed (and must not
+                // be appended again as an extra step).
+                merged.push(ok);
+                usedRepaired.add(i);
+                continue;
+            }
+            // This position was rejected: the repaired step that occupies it
+            // is the intended replacement.
+            const atSameIndex = repairedByIndex.get(i);
+            if (atSameIndex) {
+                merged.push(atSameIndex);
+                usedRepaired.add(i);
+                continue;
+            }
+            // Otherwise take the first unused repaired step that grounds.
+            let picked = null;
+            for (const g of repairedGrounded) {
+                if (usedRepaired.has(g.index))
+                    continue;
+                picked = { step: g.step, text: g.text };
+                usedRepaired.add(g.index);
+                break;
+            }
+            // No replacement grounds: the position is dropped rather than
+            // filled with an unverified step.
+            if (picked)
+                merged.push(picked);
+        }
+        // Repaired steps BEYOND the original count are appended, capped at 5.
+        // A repaired step at an original position was either restored over or
+        // already used as that position's replacement.
+        for (const g of repairedGrounded) {
+            if (usedRepaired.has(g.index))
+                continue;
+            if (g.index < originalSteps.length)
+                continue;
+            if (merged.length >= 5)
+                break;
+            merged.push({ step: g.step, text: g.text });
+        }
+        // Final validation: the whole merged plan must ground.
+        const validated = grounding.ground(merged.map((m) => m.step), facts, areaName);
+        return validated.grounded.map((g) => ({ step: g.step, text: g.text }));
+    }
+    /**
      * Generate a multi-step plan for a character using the LLM.
      *
      * Builds a prompt from the character's current state, area context,
@@ -143,7 +251,13 @@ ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlan
 Create a practical 3-5 step plan based only on the information above.
 - Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ...}
 - "act" is one of: ${grounding ? [...grounding.ACTS].join(', ') : 'go, take, use, examine, speak, wait'}.
-- GROUNDING: every "item"/"target" MUST come from the Items list, the paths list, People here, or your Carrying/Wearing list — or be an area you are in or know. Room-description scenery that is not a listed Item is NOT interactable; a step referencing it will be REJECTED.
+- TARGET TYPES - every "item"/"target" must name a thing that exists, and the TYPE decides where it comes from:
+  * PATHS (the doors/exits listed under "paths") are the target of go, dash, approach, open, close.
+  * ITEMS (the "Items that catch your attention" list) are the target of take, use, eat, drink, search, examine, drop.
+  * PEOPLE (the "People here" list) are the target of speak, give, attack, grab, steal.
+  * AREAS you know are the target of go.
+- CRITICAL: "take" is ONLY for items on the ground/in the room — NOT for items you already carry. If you already carry an item, use "use", "examine", or "drop" instead. Do not plan "take" for carried items.
+- Room-description scenery is NOT an interactable. A dining table you can see described is not an item you can search - only things on the Items list are. To look in another room, "go" there first, then "look" to see what that room actually lists, then act on those.
 - "speak" steps carry the line in "text". "perform" steps describe a sustained activity in "note" (cook, mine, drill) and may carry "until" (e.g. "ore x5", "dusk") and "duration" (game minutes).
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
 - Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
@@ -151,7 +265,7 @@ Create a practical 3-5 step plan based only on the information above.
 Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"}, {"act": "go", "target": "west passage"}]}`;
             if (!grounding || !facts) {
                 // Grounding module unavailable — legacy prose contract as fallback.
-                const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
+                const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
                 return _legacySteps(response);
             }
             // task-700: typed steps, grounded before acceptance. One bounded
@@ -159,10 +273,12 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
             // (with the fact list) to the LLM once; whatever still does not
             // ground is dropped, never executed.
             let groundingBlock = '';
+            let originalSteps = [];
+            let originalGrounded = [];
             for (let attempt = 0; attempt < 2; attempt++) {
                 // max_tokens 560: a live run truncated a typed re-composition
                 // mid-JSON at 300 and the turn ran planless.
-                const response = await llmClient.chat([{ role: 'user', content: prompt + groundingBlock }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
+                const response = await llmClient.chat([{ role: 'user', content: prompt + groundingBlock }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-repair-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
                 if (!response)
                     return [];
                 let cleaned = _repairJSON(response);
@@ -195,25 +311,33 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                     return legacy.slice(0, 5);
                 if (!typed.length)
                     return [];
-                const { grounded, rejections } = grounding.ground(typed.slice(0, 5), facts, areaName);
-                if (!rejections.length) {
-                    return grounded.map((g) => g.text);
-                }
-                for (const r of rejections) {
-                    events.log(`🧭 ${charName} plan step ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
-                }
+                const steps = typed.slice(0, 5);
+                const result = grounding.ground(steps, facts, areaName);
                 if (attempt === 0) {
-                    groundingBlock = `\n\n=== GROUNDING REJECTIONS ===
-The following steps were REJECTED because they reference things that do not exist as interactables:
-${rejections.map((r) => `- "${grounding.render(r.step)}" — ${r.reason}`).join('\n')}
-
-FACTS you may reference: interactables here: ${facts.areaItems.join(', ') || '(none)'}; carrying: ${facts.carried.join(', ') || '(nothing)'}; people here: ${facts.people.join(', ') || '(nobody)'}; paths: ${facts.exits.join(', ') || '(none)'}; known areas: ${facts.knownAreas.join(', ') || '(none)'}.
-Re-compose the rejected steps from these facts (or replace them with steps that ground). Keep grounded steps unchanged.`;
+                    originalSteps = steps;
+                    originalGrounded = result.grounded;
+                    if (!result.rejections.length) {
+                        return result.grounded.map((g) => g.text);
+                    }
+                    for (const r of result.rejections) {
+                        events.log(`🧭 ${charName} plan step ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
+                    }
+                    groundingBlock = _buildRepairPrompt(grounding, steps, result.grounded, result.rejections, facts);
                     continue;
                 }
-                // Second attempt still ungrounded: keep what grounded, drop the rest.
-                if (grounded.length)
-                    return grounded.map((g) => g.text);
+                // Attempt 1: a repaired plan. Merge it with the steps that
+                // already grounded so a repair can never throw away a
+                // verified step, and revalidate the whole plan.
+                for (const r of result.rejections) {
+                    events.log(`🧭 ${charName} repaired plan step still ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
+                }
+                const merged = _mergeWithPreserved(result.grounded, originalSteps, originalGrounded, grounding, facts, areaName);
+                if (merged.length) {
+                    return merged.map((m) => m.text);
+                }
+                if (result.grounded.length) {
+                    return result.grounded.map((g) => g.text);
+                }
                 return [];
             }
             return [];
@@ -291,18 +415,34 @@ Re-compose the rejected steps from these facts (or replace them with steps that 
             return '';
         const progress = PlanTracker.getProgress(charName);
         const fullPlan = PlanTracker.getPlan(charName);
+        // Fix 3: discard steps that reference the wrong area or have failed 3+ times.
+        const state = worldState?.data;
+        const player = state?.players?.[charName];
+        const currentArea = player?.current_area || '';
         const parts = [];
         for (let i = 0; i < fullPlan.length; i++) {
-            if (i < progress) {
-                parts.push(`"${fullPlan[i]}" (done)`);
+            const stepText = String(fullPlan[i] || '');
+            const failures = PlanTracker.getFailures(charName);
+            const stepFails = (failures[i] || 0);
+            // Skip steps that clearly reference a different area (stale location).
+            const areaMatch = stepText.toLowerCase();
+            const isStaleLocation = currentArea && areaMatch.length > 0 && !areaMatch.includes(currentArea.toLowerCase()) && (areaMatch.includes('go') || areaMatch.includes('approach') || areaMatch.includes('enter'));
+            if (stepFails >= 3) {
+                parts.push(`"${stepText}" (FAILED ${stepFails} times — discarded; find an alternative)`);
+            }
+            else if (i < progress) {
+                parts.push(`"${stepText}" (done)`);
+            }
+            else if (isStaleLocation && i >= progress) {
+                parts.push(`"${stepText}" (stale — current area is ${currentArea}; discard or replace)`);
             }
             else {
-                parts.push(`"${fullPlan[i]}" (available)`);
+                parts.push(`"${stepText}" (available)`);
             }
         }
         if (!parts.length)
             return '';
-        return `\n=== PREVIOUS PLAN ===\nYour previous plan: ${parts.join('; ')}.\nContinue from where you left off.`;
+        return `\n=== PREVIOUS PLAN ===\nYour previous plan: ${parts.join('; ')}.\nRe-evaluate: discard stale or failed steps; continue only from verified, current-area steps.`;
     }
     /**
      * Check whether a character has an active plan with remaining steps.
@@ -314,7 +454,11 @@ Re-compose the rejected steps from these facts (or replace them with steps that 
     }
     return {
         generate,
-        hasPlan
+        hasPlan,
+        // Exposed for the unit tests: the repair contract (keep the good
+        // steps, replace only the rejected ones) is a mechanism worth pinning.
+        _buildRepairPrompt,
+        _mergeWithPreserved,
     };
 })();
 window.PlanManager = PlanManager;

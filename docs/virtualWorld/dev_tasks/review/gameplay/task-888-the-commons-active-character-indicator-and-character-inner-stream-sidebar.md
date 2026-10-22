@@ -4,13 +4,17 @@ status: review
 area: gameplay
 priority: medium
 wiki: "[[Gameplay/The Commons]]"
-related: [task-824, task-827, task-854]
+related: [task-824, task-827, task-854, task-893]
 ---
 
 # task-888: The Commons: active character indicator and character inner stream sidebar
 
 **Filed:** 2026-10-20
-**Related:** task-824, task-827, task-854
+**Related:** task-824, task-827, task-854, task-893 (the drawer's contrast defect, filed from this card)
+
+<!-- deps:start -->
+**Related:** [[task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages]], [[task-827-setting-aware-communication-themes-for-the-commons]], [[task-854-integrate-the-commons-with-world-actions-and-items]], [[task-893-commons-inner-world-drawer-is-a-white-panel-in-the-dark-app-and-its-body-text-is-invisible-at-1-18-1-contrast]]
+<!-- deps:end -->
 
 ## What
 
@@ -60,6 +64,17 @@ Today, The Commons is opaque during autonomous character activity:
 Intended UI home: `/commons` page header and a new right-hand slide-out drawer over `#commons-layout`.
 
 Current availability: live and verified.
+
+**Correction (2026-10-21): the verification was of behaviour, not legibility.**
+The drawer opens and renders the right content, but it is a **white panel in a
+dark application** and its three content sections are unreadable. The dark-theme
+override block in `static/css/commons.css` (from line 213) re-themes the whole
+page but contains **no** `.commons-drawer-*` rules, because the drawer's own
+rules were added later (from line 478) and win by source order. The section body
+text inherits the page's light foreground (`rgb(230, 237, 243)`) on the
+drawer's white background: **1.18:1 contrast**, against the 4.5:1 WCAG AA
+minimum. Only the identity block (name, presence, personality) is readable,
+because those rules are light-themed. Filed as task-893.
 
 Live steps verified:
 1. Open `/commons` and observe the top bar header.

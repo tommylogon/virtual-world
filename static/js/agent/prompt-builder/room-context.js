@@ -10,7 +10,7 @@
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
  * @module prompt-builder/room-context  -  the area/room context assembler
- * @contributes buildRoomContext, buildRoomContextParts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext
+ * @contributes buildRoomContext, buildRoomContextParts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext, resolveCharacterArea
  * @powers the room block that opens every user message (lighting, items, exits, people, witnessed)
  * @relates uses helpers + conversation-context; its output is assembled by turn-prompts
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
@@ -177,6 +177,24 @@ window.PromptBuilder = window.PromptBuilder || {};
         return text ? [text] : [];
     }
     /**
+     * The area a character's prompt must describe. `state.current_area` is the
+     * server's single active-player view, so a caller that passes it for another
+     * agent shows that agent the wrong room: items, people, exits and action
+     * brackets all follow the wrong area (bug-565). The character's own
+     * `current_area` wins. Preview/lens callers may inspect another area on
+     * purpose, so `preview` keeps the requested area.
+     */
+    function resolveCharacterArea(state, player, currentArea, preview = false) {
+        if (preview)
+            return currentArea;
+        const ownName = String(player?.current_area || '').trim();
+        const givenName = String(currentArea?.name || '').trim();
+        if (!ownName || ownName === givenName)
+            return currentArea;
+        const ownArea = state?.areas?.[ownName];
+        return ownArea || currentArea;
+    }
+    /**
      * Per-viewer exits for the PROMPT. The serialized `exits` view is keyed to
      * the server's single active player, which mis-filters for everyone else in
      * a multi-agent run (the butcher couldn't see his own hidden passage
@@ -318,6 +336,11 @@ window.PromptBuilder = window.PromptBuilder || {};
         else {
             includePlan = includePlanOrOptions !== false;
         }
+        // The room context belongs to THIS character. `state.current_area` is
+        // the server's single active-player view, so a caller that passes it
+        // for another agent shows that agent the wrong room - items, people,
+        // exits and action brackets all follow the wrong area (bug-565).
+        currentArea = resolveCharacterArea(state, player, currentArea, preview);
         const light = currentArea?.ambient_light
             ?? currentArea?.environment?.light ?? 50;
         const level = PromptBuilder.lightToLevel(light);
@@ -534,7 +557,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 if (wayState === 'open') {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorTags = (doorNode.properties?.tags || []).map((t) => String(t).toLowerCase().trim());
-                    const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
+                    const openWord = doorTags.includes('outdoor') || doorTags.includes('exterior') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
                     const openVerbs = [];
                     if (canGo)
@@ -592,8 +615,14 @@ window.PromptBuilder = window.PromptBuilder || {};
                 else {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorRawDescription = exitData.description || doorNode.properties?.description || `A way here.`;
-                    const doorDescription = typeof InspectorHelpers?.resolveWayParams === 'function'
-                        ? InspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
+                    // Window-scoped on purpose: a bare `InspectorHelpers` throws
+                    // a ReferenceError on any page that does not load the
+                    // inspector (the benchmark page), and optional chaining does
+                    // not guard an undeclared identifier. Same pattern as
+                    // itemContainment()/embeddingClient() above.
+                    const inspectorHelpers = window.InspectorHelpers;
+                    const doorDescription = typeof inspectorHelpers?.resolveWayParams === 'function'
+                        ? inspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
                         : doorRawDescription;
                     if (seeThrough && viewDirection) {
                         exitLines.push(`[${handle}] is closed  -  through it you can see ${viewDirection}${beyondSuffix}${moveHint}${openHint}`);
@@ -1039,6 +1068,7 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         buildRoomContextParts,
         buildNarratedRoomContext,
         viewerExits,
+        resolveCharacterArea,
         characterKnown
     });
 })();

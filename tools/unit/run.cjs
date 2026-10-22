@@ -164,6 +164,7 @@ load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-grounding.js');
+load('static/js/agent/plan-manager.js');
 load('static/js/agent/action-tiers.js');
 load('static/js/agent/human-turn-composer.js');
 load('static/js/llm-client.js');
@@ -192,13 +193,21 @@ load('static/js/inspector/agent-view.js');
 load('static/js/inspector/auto-dress-modal.js');
 load('static/js/agent/prompt-builder/helpers.js');
 load('static/js/agent/prompt-builder/character-state.js');
+load('static/js/agent/prompt-builder/memory-context.js');
 load('static/js/agent/prompt-builder/context-sections.js');
+load('static/js/agent/prompt-builder/schema-fragments.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 // turn-prompts.js only needs window.PromptBuilder at eval time; its phase
 // builders reach for the other prompt-builder modules at call time. Loading it
 // makes the prompt-section helpers (e.g. summaryLine, task-479) unit-testable.
 load('static/js/agent/prompt-builder/contextual-actions.js');
 load('static/js/agent/prompt-builder/turn-prompts.js');
+load('static/js/agent/prompt-builder/system-prompt.js');
+load('static/js/agent/prompt-builder/room-context.js');
+// capture.js - the shared "what would this character's turn prompt be?"
+// capture used by the benchmark harnesses. It only reaches the other
+// prompt-builder modules at call time, so it loads after them.
+load('static/js/agent/prompt-builder/capture.js');
 load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');
 load('static/js/nl-editor/diff.js');
@@ -220,6 +229,10 @@ load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
 load('static/js/soak/soak-spacetime.js');
 load('static/js/ui/timeskip.js');
+// The Play Mode stream sandbox is a plain collaborator over the stream bus's
+// fields plus a fake `#event-stream` element; it touches the DOM only when
+// entered, so it loads bare. tools/unit/test_play_mode_stream.js drives it.
+load('static/js/stream/stream-sandbox.js');
 // The event-log export projections/renderers are plain functions over the DOM +
 // plain records; the fake element in test_event_log_export.js drives it.
 load('static/js/ui/event-log-export.js');

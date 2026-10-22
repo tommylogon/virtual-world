@@ -809,14 +809,14 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'update_player',
-                description: "Stage a change to a character's PLAYER STATE (not graph edges): add memories, adjust relationship closeness toward someone, remove a relationship, or spike an emotion. Use this instead of attach for things that are not items/locations (task-738).",
+                description: "Stage a change to a character's PLAYER STATE (not graph edges): add memories, adjust relationship closeness toward someone, remove a relationship, spike an emotion, or author their schedule, goals, and obligations (task-738). Use this instead of attach for things that are not items/locations.",
                 parameters: {
                     type: 'object',
                     properties: {
                         character: { type: 'string', description: 'Character name or id' },
                         patch: {
                             type: 'object',
-                            description: 'Player-state patch. Keys: memories (array of {text, importance?, tags?}), relationship ({target, closeness}), remove_relationship (name), emotion ({name, delta}).',
+                            description: 'Player-state patch. Keys: memories (array of {text, importance?, tags?}), relationship ({target, closeness}), remove_relationship (name), emotion ({name, delta}), schedule (array of {start, activity, area?, fallback?}), goals (array of {id?, what, status?, motivation?, intention?, blocks?, links?}), obligations (array of {id?, charge, status?, from?, reward?, goal_id?, due?}).',
                             properties: {
                                 memories: {
                                     type: 'array',
@@ -846,6 +846,51 @@ window.NLEditorTools = (() => {
                                         delta: { type: 'number' }
                                     },
                                     required: ['name']
+                                },
+                                schedule: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            start: { type: 'string', description: 'HH:MM time of day' },
+                                            activity: { type: 'string', enum: ['work', 'socialise', 'eat', 'drink', 'sleep', 'rest', 'patrol', 'guard', 'roam', 'wait'] },
+                                            area: { type: 'string' },
+                                            fallback: { type: 'string', enum: ['work', 'socialise', 'eat', 'drink', 'sleep', 'rest', 'patrol', 'guard', 'roam', 'wait'] }
+                                        },
+                                        required: ['start']
+                                    }
+                                },
+                                goals: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            id: { type: 'string' },
+                                            what: { type: 'string' },
+                                            status: { type: 'string', enum: ['proposed', 'active', 'dormant', 'reached', 'blocked', 'dropped'] },
+                                            motivation: { type: 'string' },
+                                            intention: { type: 'string' },
+                                            blocks: { type: 'array', items: { type: 'string' } },
+                                            links: { type: 'array', items: { type: 'string' } }
+                                        },
+                                        required: ['what']
+                                    }
+                                },
+                                obligations: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            id: { type: 'string' },
+                                            charge: { type: 'string' },
+                                            status: { type: 'string', enum: ['offered', 'accepted', 'refused', 'forgotten', 'done'] },
+                                            from: { type: 'string' },
+                                            reward: { type: 'string' },
+                                            goal_id: { type: 'string' },
+                                            due: { type: 'number' }
+                                        },
+                                        required: ['charge']
+                                    }
                                 }
                             }
                         }

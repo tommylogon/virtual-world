@@ -29,7 +29,7 @@ window.GraphOverlays = (() => {
          * the *display* label: NodeBadges decorates it with emoji (🌑 for a dark
          * area, ⚡ for a trigger, 🏢 for a floor) and the label LOD blanks it to `''`
          * on a dense map. So on the very maps where the overlay matters, the lookup
-         * missed and light/heat/sound all fell back to the same default colour  - 
+         * missed and light/heat/sound all fell back to the same default colour  -
          * the "four overlays render identically" defect (task-642).
          *
          * The id is the identity; the name is only how the environment is keyed in

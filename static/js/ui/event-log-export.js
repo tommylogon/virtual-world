@@ -168,7 +168,10 @@ window.EventLogExport = (() => {
                 text: text,
                 icon: isRaw ? undefined : (firstText(bubble, '.bubble-icon') || undefined),
                 outcome: outcome,
-                payload: payload
+                payload: payload,
+                actor_id: clean(bubble.getAttribute('data-actor-id')) || undefined,
+                request_id: clean(bubble.getAttribute('data-request-id')) || undefined,
+                phase: clean(bubble.getAttribute('data-phase')) || undefined,
             };
         }
         function metaRow(type, text, area) {

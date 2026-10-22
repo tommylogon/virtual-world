@@ -37,6 +37,9 @@ class LLMClient {
         this._lastMessages = null;
         this._manualResponse = null;
         this._manualMode = false;
+        // Actor + request id of the call in flight, so the response chip
+        // correlates with its request chip (and with the right character).
+        this._callMeta = null;
         // Structured output bookkeeping: log once per schema when attached,
         // and detect providers that silently IGNORE the schema (LM Studio
         // with sub-7B models does this — no error, model just emits free JSON).
@@ -74,6 +77,9 @@ class LLMClient {
         const isResponses = format === 'responses';
         // Store last messages for clipboard export
         this._lastMessages = messages;
+        // Trace metadata for this call: who it is for, and a correlation id
+        // shared by the request chip and the response chip.
+        this._callMeta = { actor: options.actor, requestId: options.requestId };
         // Manual mode: return injected response instead of calling API
         // Response stays active until replaced or manual mode turned off
         if (this._manualMode && this._manualResponse !== null) {
@@ -88,7 +94,7 @@ class LLMClient {
                 est = Math.round(messages.reduce((n, m) => n + (m.content || '').length, 0) / 4);
             }
             catch (e) { }
-            VW.events.logRawLLMRequest(label, messages, est);
+            VW.events.logRawLLMRequest(label, messages, est, { actor: options.actor, requestId: options.requestId });
         }
         const maxRetries = 3;
         let lastError = null;
@@ -436,11 +442,16 @@ class LLMClient {
         const tail = String(content || '').slice(-60).replace(/\s+/g, ' ');
         VW.events.log(`✂️ ${label || 'LLM'} STILL truncated at ${budget || MAX_TOKEN_CEILING} tokens — the answer is incomplete. Raise Max Tokens in Settings.${tail ? ` …"${tail}"` : ''}`, 'system-msg');
     }
-    _logAssistantResponse(label, content) {
+    _logAssistantResponse(label, content, meta) {
         const text = this._normalizeAssistantText(content);
         if (!text || !VW?.events?.logRawLLMResponse)
             return;
-        VW.events.logRawLLMResponse(label || 'LLM', text);
+        // The streaming paths call this from inside the chunk reader, where
+        // `options` is not in scope - the in-flight call's meta is the
+        // fallback, so the response chip carries the same actor and
+        // request id as the request chip.
+        const effective = meta || this._callMeta || undefined;
+        VW.events.logRawLLMResponse(label || 'LLM', text, effective);
     }
     /** Feed one completed request/response pair to the dataset collector.
      *  Never throws — capture is best-effort and must not affect gameplay. */

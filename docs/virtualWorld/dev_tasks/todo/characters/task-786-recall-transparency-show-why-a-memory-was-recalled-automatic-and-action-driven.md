@@ -9,8 +9,9 @@ wiki: "[[World Building/Character Creation & Archetypes]]"
 
 # task-786: Recall transparency: show why a memory was recalled, automatic and action-driven
 
-**Filed:** 2026-10-12
-**Related:** task-685, task-686, task-690, task-714
+**Filed:** 2026-10-12  
+**Updated:** 2026-10-21 (aligned with memory-redesign-3.md)  
+**Related:** task-685, task-686, task-690, task-714  
 
 <!-- deps:start -->
 **Related:** [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-789-consolidate-per-area-observation-memories-into-one-spatial-parent-with-linked-evidence]]
@@ -18,44 +19,32 @@ wiki: "[[World Building/Character Creation & Archetypes]]"
 
 ## What
 
-Surface why a memory fired: what matched (speech, sight, emotion, tags, keyword/entity), what was reinforced, and how context (speaker, who is present, area and item tags) shaped recall.
+Surface why a memory fired in both the prompt telemetry and the editor UI: multi-signal breakdown (spatial proximity, copresent actors, spoken words, current emotions/mood, keyword/tag overlap, recency, and semantic embeddings). Every recalled memory carries its provenance and score breakdown so retrieval stops being a black box.
 
-## Why
+## Multi-Signal Retrieval Architecture
 
-TODO
+The retrieval system scores candidates based on weighted contributions from seven distinct channels:
 
-## How
+1. **Spatial Proximity (Area match)**: The character is currently in or adjacent to the memory's `location`.
+2. **Social Presence (Copresent actors)**: Actors standing in the current room match people mentioned in the memory (`entity_ids` or `about`).
+3. **Conversational Echo (Recently heard words)**: Recent hearing buffer matches keywords or embeddings in the memory text.
+4. **Emotional Congruency (Mood bias)**: If the character's active emotion is high intensity (e.g. fear, rage), memories with matching emotion tags get a salience multiplier.
+5. **Physical Need / Vitals Drive**: High hunger, fatigue, or pain boosts retrieval of memories tagged with relevant resources or hazards (e.g. food locations).
+6. **Temporal Recency & Activation**: Fresh memories and memories with high activation (`activation` decaying via power-law curve).
+7. **Semantic Embedding Similarity**: Cosine distance via the embedding store for deeper thematic associations.
 
-TODO
+## Editor & Prompt Requirements
 
-## Steps to verify
-
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- **Inspector / Mind Panel**: Clicking a recalled memory exposes an inspector chip detailing its score breakdown:
+  e.g. `[Match: 88%] 📍 Spatial (Food Storage: +35) · 👥 Social (Mikka: +25) · 🥩 Need (Hunger > 50: +20) · 🧠 Semantic (+8)`.
+- **Stream / Raw LLM telemetry**: In the Event Stream, the `recalled: N memories` pill expands to show which memories were pulled into `=== I REMEMBER ===` and the primary signal that triggered each.
+- **Negative Knowledge Support (Absence)**: Support `kind: "absence"` memories so that confirmed empty containers or clearings prevent redundant repetitive searching.
+- **Sleep Consolidation**: Routine episodic memories consolidate during rest/sleep, fading minor noise while reinforcing emotionally salient events.
 
 ## Acceptance
 
-- [ ] TODO
-
-## Files
-
-- TODO
-
-## Browser UI and intended live verification
-
-Intended UI home: select a character → Mind panel → Memories → expand a recalled memory's **Why this memory** detail. Show the recall evidence beside the memory it explains, so the author/player can see what matched and how the current scene shaped retrieval.
-
-Current availability: this card asks for recall transparency across automatic and action-driven recall. The explanatory detail is planned; no existing memory UI is claimed to expose all match signals.
-
-Live steps when available:
-1. In a scratch scene, give one character two memories with distinct tags and actors. Cause the first memory to be recalled by matching a keyword, then expand that memory in Mind.
-   - expected: the detail names the matched keyword/tag and identifies the memory that was reinforced; the other memory is not shown as the source.
-2. Cause a second recall through a different route, such as an action-driven `recall` request, with a different speaker or present character.
-   - expected: the detail labels the route and the matching signals separately; speaker, area, presence, or item tags appear only when they affected this retrieval.
-3. Repeat the automatic recall with a different current speaker/area while keeping the remembered event fixed.
-   - expected: the explanation changes only for context that actually changed the score or selected memory; it does not claim a signal that the resolver did not read.
-4. Compare the panel's explanation with the recalled memory and the corresponding `/api/state` record.
-   - expected: the memory ID, reinforcement, and recorded match evidence agree; the explanation is not a second memory store.
-
-This section is not a claim that planned UI exists or works today.
+- [ ] Retrieval scoring calculates explicit signal components (spatial, social, conversational, emotional, need, recency, semantic).
+- [ ] Memory recall payload passed to the prompt builder includes a `_provenance` breakdown per recalled item.
+- [ ] Mind panel displays the match signal tags beside recalled memories.
+- [ ] Absence memories (`kind: "absence"`) can be written and surfaced to block obsolete goals.
+- [ ] Unit tests verify multi-signal weighting and that mood-congruent memories receive their salience boost when emotion intensity >= 6.

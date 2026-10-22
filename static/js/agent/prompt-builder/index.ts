@@ -16,7 +16,7 @@
  *   room-context.js      — the area context assembler (preamble, room, exits,
  *                          people, witnessed events, narrated room)
  *   context-sections.js  — shared context-fragment registry with buildContextBlock()
- *   schema-fragments.js  — shared instructional text + JSON schema fragments
+ *   schema-fragments.js   — shared instructional text + JSON schema fragments
  *   ../vital-thresholds.js — the single source for vitals tier boundaries.
  *                          Note: lives in agent/, NOT in this directory; shared
  *                          by describeVitals + plan-tracker criticalNeeds
@@ -28,6 +28,10 @@
  *                          core, rules, SPEECH & VOLUME)
  *   turn-prompts.js      — per-phase prompt builders (observe/decide/react/
  *                          dash follow-up)
+ *   capture.js           — captureTurnPrompt: the exact turn prompt a character
+ *                          would receive, assembled with the same call sequence
+ *                          agent-engine.js uses at turn start. Used by the
+ *                          benchmark harnesses so they measure the real prompt.
  *
  * Load order between these files does not matter: nothing executes at load
  * time, only at call time (after every script in index.html has been

@@ -13,7 +13,6 @@ from graph import (
     EDGE_CARRYING,
     EDGE_CONNECTION,
     EDGE_IN,
-    EDGE_TRIGGERS,
     EDGE_UNLOCKS,
 )
 
@@ -132,8 +131,9 @@ class UseActionsMixin:
         item_actions = item_node.properties.get("actions", [])
         if isinstance(item_actions, str):
             item_actions = [a.strip() for a in item_actions.split(",")]
-        trigger_edges = self.graph.get_edges_for_source(item_node.id, EDGE_TRIGGERS)
-        has_any_trigger = len(trigger_edges) > 0
+        # Any trigger, property store first (task-886). Counting edges alone read
+        # a migrated item as triggerless and refused `use` on it.
+        has_any_trigger = self.trigger_system.has_trigger(item_node)
 
         contextual_verb = "use"
         if trigger_type == "on_eat":
@@ -353,19 +353,9 @@ class UseActionsMixin:
         item_actions = item_node.properties.get("actions", [])
         if isinstance(item_actions, str):
             item_actions = [a.strip() for a in item_actions.split(",")]
-        trigger_edges = self.graph.get_edges_for_source(item_node.id, EDGE_TRIGGERS)
-        has_on_use_on = False
-        for te in trigger_edges:
-            trigger_node = self.graph.get_node(te.target)
-            if trigger_node:
-                tt = trigger_node.properties.get("trigger_type", "")
-                if isinstance(tt, list):
-                    if "on_use_on" in tt:
-                        has_on_use_on = True
-                        break
-                elif tt == "on_use_on":
-                    has_on_use_on = True
-                    break
+        # on_use_on from either store (task-886); an edge-only scan missed every
+        # authored "use key on door" rule after the migration.
+        has_on_use_on = self.trigger_system.has_trigger(item_node, "on_use_on")
         if "use" not in item_actions and not has_on_use_on:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure("use", item_node.name, available))

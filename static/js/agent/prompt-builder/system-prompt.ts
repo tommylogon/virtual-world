@@ -33,7 +33,7 @@ Emit ONE action per response as a structured object. The verb goes in "action"; 
 Your turn context shows what's around you - each item, door, exit, person, and carried/worn thing already lists the actions you can take with it. === AVAILABLE ACTIONS === lists the remaining actions you can take this turn. Always available: examine, look, inventory, stats, wait.
 
 ## Rules
-- "use" is for self-use items (Create Flame, candles, food, drink). Use "use_on" only when the item must be used on something else.
+- "use" is for self-use items (Create Flame, candles). Food uses "eat"; drink uses "drink". Use "use_on" only when the item must be used on something else.
 - "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
 - "give"/"steal" need a target character in the same area as you.
 - Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
@@ -67,13 +67,15 @@ The "Items that catch your attention:" list is everything you can interact with 
 
 === ACTION STRUCTURE ===
 The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, name, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the "item" and "target" fields - full multi-word names, never split.
-Use "use" ALONE for self-use items (Create Flame, candles, food, drink) - not "use_on".
+Use "eat" for food; "drink" for drink; "use" alone for other self-use items (Create Flame, candles) - not "use_on".
 If you wait, listen, or hold still, use "action": "wait".
+When the turn's major-action budget is exhausted (=== AVAILABLE ACTIONS === shows no major actions), do not attempt another major action; use "wait", a free/minor action, or speak instead. Carry the blocked goal to the next turn.
+If an action was just rejected (the engine refused it, nothing happened, or the result said it failed), do not repeat the same action immediately. Choose a different approach, examine the situation, or use "wait" to hold for the next turn.
 Targets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
 
 Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
-- {"action":"use","item":"bread"}                              → eat food (use alone)
+- {"action":"eat","item":"bread"}                             → eat food (eat!)
 - {"action":"use_on","item":"the brass key","target":"the locked door"}  → unlock a door with a key
 - {"action":"go","target":"north"}                             → by cardinal direction (passes through)
 - {"action":"approach","target":"the front door"}              → walk up to the DOOR and STOP

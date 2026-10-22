@@ -593,11 +593,18 @@ declare const TriggerEditor: {
 
 // TriggerGraph  -  owner: item-library.ts
 declare const TriggerGraph: {
-    triggerToGraph(triggerData: unknown): unknown;
+    triggerToGraph(triggerData: unknown, opts?: Record<string, unknown>): unknown;
+    triggersToGraph(triggerData: unknown[]): unknown;
     show(...args: unknown[]): unknown;
     compileToEngine(graph: unknown): Record<string, any> | null;
+    compileToTriggers(graph: unknown): Array<Record<string, any>>;
+    compileError(compiled: unknown): string;
     reportCompileError(compiled: unknown): boolean;
     engineToFormData(compiled: unknown): Record<string, any>;
+    triggerDefFromEdge(edge: unknown, nodes: unknown): Record<string, any>;
+    triggerDefFromProperty(entry: unknown): Record<string, any> | null;
+    normalizeTriggerEntry(entry: unknown): Record<string, any> | null;
+    normalizeTriggerList(value: unknown): Array<Record<string, any>>;
     triggersFromGraphEdges(...args: unknown[]): unknown[];
 };
 

@@ -1,5 +1,5 @@
 /**
- * llm-bench.js — in-app LLM benchmark dev page.
+ * llm-bench.js - in-app LLM benchmark dev page.
  *
  * For one selected character, builds the exact turn prompt the simulation
  * sends (the same PromptBuilder calls agent-engine.ts uses each turn), runs it
@@ -12,7 +12,7 @@
  * and shown in a dashboard with per-run drill-in, cross-model compare, and
  * canvas graphs. No Python port, no second source of truth.
  *
- * @module llm-bench — in-app model benchmark harness
+ * @module llm-bench - in-app model benchmark harness
  * @contributes window.VW.llmBench (floating toggle + benchmark panel)
  * @powers benchmark a character's turn prompt across models; score speed,
  *   format compliance and hallucinations; dashboard + compare + graphs
@@ -57,14 +57,14 @@
         const s = el('style', 'llm-bench-styles');
         s.textContent = `
 #llm-bench-toggle {
-    position: fixed; top: 10px; right: 10px; z-index: 99999;
+    position: fixed; top: 54px; right: 10px; z-index: 99999;
     background: #6b21a8; color: #fff; border: none; border-radius: 6px;
     padding: 6px 10px; font: 12px/1 system-ui, -apple-system, sans-serif;
     cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.35);
 }
 #llm-bench-toggle:hover { background: #7c3aed; }
 #llm-bench-panel {
-    position: fixed; top: 10px; right: 10px; z-index: 99998;
+    position: fixed; top: 80px; right: 10px; z-index: 99998;
     width: 520px; max-height: 90vh; background: #111; color: #eee;
     border: 1px solid #444; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.45);
     display: flex; flex-direction: column; font: 12px/1.4 system-ui, -apple-system, sans-serif;
@@ -166,6 +166,13 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         $('#llmb-clear').onclick = clearRuns;
         $('#llmb-add-model').onclick = addCustomModel;
         $('#llmb-custom-model').onkeypress = (e: any) => { if (e.key === 'Enter') addCustomModel(); };
+        // The import input is built by buildPanel (it is not in the DOM at module
+        // load time), so its handler is wired here with the rest of the panel.
+        $('#llmb-import').onchange = async (e: any) => {
+            if (!e.target.files.length) return;
+            await importRuns(e.target.files[0]);
+            e.target.value = '';
+        };
         return panel;
     }
 
@@ -184,7 +191,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (toggleBtn) return;
         toggleBtn = el('button', '', 'LLM Bench');
         toggleBtn.id = 'llm-bench-toggle';
-        toggleBtn.title = 'LLM benchmark — run a character turn prompt across models';
+        toggleBtn.title = 'LLM benchmark - run a character turn prompt across models';
         toggleBtn.onclick = toggle;
         document.body.appendChild(toggleBtn);
     }
@@ -280,26 +287,18 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
 
     // ------------------------------------------------------------------ prompt capture (same calls as agent-engine.ts turn start)
 
+    /**
+     * The captured prompt comes from the shared capture
+     * (prompt-builder/capture.js), which mirrors the turn-start call sequence
+     * in agent-engine.ts. A local copy of those calls is a second source of
+     * truth that drifts - the copy here already drifted once (it dropped the
+     * emotion/learned_names fields the live think-decide prompt asks for).
+     */
     async function capturePrompt (charName: any) {
-        const data = (typeof worldState !== 'undefined' && worldState.data) ? worldState.data : {};
-        const players = data.players || {};
-        const player = players[charName];
-        if (!player) throw new Error(`no player data for "${charName}"`);
-        const state = data;
-        const currentArea = state.areas && (player as any).current_area
-            ? state.areas[(player as any).current_area]
-            : (state.areas && state.current_area ? state.areas[state.current_area] : null);
-
-        const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
-        const vitalsNL = PromptBuilder.describeVitals(player, state, charName);
-        const emotionNL = PromptBuilder.buildEmotionContext(player);
-        const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-        const memoryNL = await PromptBuilder.buildMemoryContext(charName, { report: true });
-
-        const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(charName, player, (typeof config !== 'undefined' && config.softMaxTokens) ? config.softMaxTokens : 0);
-        const userPrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, '', false, false);
-
-        return { systemPrompt, userPrompt, roomParts, player, currentArea };
+        if (typeof PromptBuilder === 'undefined' || typeof PromptBuilder.captureTurnPrompt !== 'function') {
+            throw new Error('PromptBuilder.captureTurnPrompt is not available');
+        }
+        return await PromptBuilder.captureTurnPrompt(String(charName));
     }
 
     // ------------------------------------------------------------------ metrics / format / hallucination
@@ -469,7 +468,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         abortCtrl = null;
         $('#llmb-run').disabled = false;
         $('#llmb-abort').disabled = true;
-        $('#llmb-status').textContent = newRuns.length ? `Done — ${newRuns.length} run(s) recorded.` : 'Aborted.';
+        $('#llmb-status').textContent = newRuns.length ? `Done - ${newRuns.length} run(s) recorded.` : 'Aborted.';
         renderRuns();
         if (newRuns.length) showDrill(newRuns[0].id);
     }
@@ -489,9 +488,9 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             const m = r.metrics || {};
             tr.innerHTML = `
 <td><span class="run-id">${esc(r.id.replace('bench_',''))}</span> <span class="llmb-chip model">${esc(r.model)}</span> <div style="font-size:10px;color:#888;">${esc(r.charName)}</div> <div style="font-size:10px;color:#888;">${new Date(r.ts || 0).toLocaleTimeString()}</div></td>
-<td>${m.ttftMs != null ? m.ttftMs + ' ms' : '—'}</td>
-<td>${m.tps != null ? m.tps + ' tok/s' : '—'}</td>
-<td>${m.latencyMs != null ? m.latencyMs + ' ms' : '—'}</td>
+<td>${m.ttftMs != null ? m.ttftMs + ' ms' : '-'}</td>
+<td>${m.tps != null ? m.tps + ' tok/s' : '-'}</td>
+<td>${m.latencyMs != null ? m.latencyMs + ' ms' : '-'}</td>
 <td class="${f.pass ? 'ok' : 'bad'}">${f.pass ? 'PASS' : 'FAIL'}${f.reasons && f.reasons.length ? ' <span style="font-size:9px;opacity:.7;">(' + f.reasons.join('; ') + ')</span>' : ''}</td>
 <td class="${h.length ? 'bad' : 'ok'}">${h.length || 0}</td>
 `;
@@ -547,16 +546,16 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
 <div class="llmb-section"><div class="llmb-title">Model output</div><div class="pre">${r.error ? '<span style="color:#f87171;">ERROR: ' + esc(r.error) + '</span>' : esc(r.output || '')}</div></div>
 <div class="llmb-section"><div class="llmb-title">Metrics</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;color:#ccc;">
-        <div>TTFT <span style="color:#eee;">${m.ttftMs != null ? m.ttftMs + ' ms' : '—'}</span></div>
-        <div>TPS <span style="color:#eee;">${m.tps != null ? m.tps + ' tok/s' : '—'}</span></div>
-        <div>Latency <span style="color:#eee;">${m.latencyMs != null ? m.latencyMs + ' ms' : '—'}</span></div>
-        <div>Context <span style="color:#eee;">${m.contextPct != null ? m.contextPct + '%' : '—'}</span></div>
-        <div>In tokens <span style="color:#eee;">${m.inputTokens != null ? m.inputTokens : '—'}</span></div>
-        <div>Out tokens <span style="color:#eee;">${m.outputTokens != null ? m.outputTokens : '—'}</span></div>
-        <div>In chars <span style="color:#eee;">${m.inputChars != null ? m.inputChars : '—'}</span></div>
-        <div>Out chars <span style="color:#eee;">${m.outputChars != null ? m.outputChars : '—'}</span></div>
+        <div>TTFT <span style="color:#eee;">${m.ttftMs != null ? m.ttftMs + ' ms' : '-'}</span></div>
+        <div>TPS <span style="color:#eee;">${m.tps != null ? m.tps + ' tok/s' : '-'}</span></div>
+        <div>Latency <span style="color:#eee;">${m.latencyMs != null ? m.latencyMs + ' ms' : '-'}</span></div>
+        <div>Context <span style="color:#eee;">${m.contextPct != null ? m.contextPct + '%' : '-'}</span></div>
+        <div>In tokens <span style="color:#eee;">${m.inputTokens != null ? m.inputTokens : '-'}</span></div>
+        <div>Out tokens <span style="color:#eee;">${m.outputTokens != null ? m.outputTokens : '-'}</span></div>
+        <div>In chars <span style="color:#eee;">${m.inputChars != null ? m.inputChars : '-'}</span></div>
+        <div>Out chars <span style="color:#eee;">${m.outputChars != null ? m.outputChars : '-'}</span></div>
     </div>
-    <div style="margin-top:6px;">Format: <span class="${f.pass ? 'ok' : 'bad'}">${f.pass ? 'PASS' : 'FAIL'}</span>${f.reasons && f.reasons.length ? ' — ' + esc(f.reasons.join('; ')) : ''}</div>
+    <div style="margin-top:6px;">Format: <span class="${f.pass ? 'ok' : 'bad'}">${f.pass ? 'PASS' : 'FAIL'}</span>${f.reasons && f.reasons.length ? ' - ' + esc(f.reasons.join('; ')) : ''}</div>
     <div>Hallucinations: <span class="${h.length ? 'bad' : 'ok'}">${h.length || 0}</span>${h.length ? '<ul style="margin:4px 0 0 16px;font-size:10px;color:#f87171;"><li>' + esc(h.join('</li><li>')) + '</li></ul>' : ''}</div>
 </div>`;
     }
@@ -578,11 +577,6 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         renderRuns();
         $('#llmb-status').textContent = `Imported ${arr.length} run(s).`;
     }
-    $('#llmb-import').onchange = async (e: any) => {
-        if (!e.target.files.length) return;
-        await importRuns(e.target.files[0]);
-        e.target.value = '';
-    };
 
     // ------------------------------------------------------------------ boot
 

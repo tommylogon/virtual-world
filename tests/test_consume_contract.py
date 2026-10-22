@@ -15,6 +15,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from engine.triggers.effect_resolution import normalize_trigger_list
+
 ROOT = Path(__file__).parent.parent
 DATA = ROOT / "data"
 
@@ -52,6 +54,17 @@ def _consume_triggers_in_scenarios():
                         if key not in seen:
                             seen.add(key)
                             yield path, obj.get("id"), types, props.get("effects") or []
+                if isinstance(props, dict) and "triggers" in props:
+                    # task-886 store: a definition inside properties.triggers has
+                    # no `properties` key of its own, so the branch above misses
+                    # it. Read the same shapes the engine reads (bug-566).
+                    for trig in normalize_trigger_list(props.get("triggers")):
+                        types = _trigger_types(trig)
+                        if any(t in CONSUME_TYPES for t in types):
+                            key = (trig.get("id"), tuple(types))
+                            if key not in seen:
+                                seen.add(key)
+                                yield path, trig.get("id"), types, trig.get("effects") or []
                 for value in obj.values():
                     yield from walk(value, seen)
             elif isinstance(obj, list):
@@ -68,7 +81,7 @@ def _consume_triggers_in_library():
             item = json.loads(path.read_text(encoding="utf-8-sig"))
         except (OSError, ValueError):
             continue
-        for trigger in item.get("triggers") or []:
+        for trigger in normalize_trigger_list(item.get("triggers")):
             types = _trigger_types(trigger)
             if any(t in CONSUME_TYPES for t in types):
                 yield path, types, trigger.get("effects") or []

@@ -28,6 +28,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | Doc | What it covers |
 |-----|---------------|
 | [[History\|History]] | The whole lineage: the 2025 Aura/APSE origins, the 2026-02-21 monorepo reorg, the July 2026 build-out and modularization, the 2026-08-26 public split, and how to re-derive any of it from git |
+| [[Patch Notes 2026-10-22\|Patch Notes 2026-10-22]] | A practice run that leaves no trace, sight traced through the world, worn gear counting as carried, aliases, roads that describe themselves, and a weather system that moves |
 | [[Patch Notes 2026-10-15\|Patch Notes 2026-10-15]] | The Commons: public conversations, private groups, direct messages, existing character memories, and what remains planned |
 | [[Patch Notes 2026-08-22 to 2026-09-22\|Patch Notes]] | The last 30 days written to be shared cold: time as a timeframe, the background tier, the identity refactor, one copy of every truth, structures, and the bugs killed |
 | [[Patch Notes 2026-09-28\|Patch Notes 2026-09-28]] | Fog-of-war reveal, traits v2, production surfaces, and the doc tooling pass |

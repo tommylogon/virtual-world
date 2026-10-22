@@ -44,6 +44,15 @@
         icon?: string;
         outcome?: string;
         payload?: { header: string; body: string };
+        /**
+         * Trace correlation. `actorId` is the character the LLM call was FOR
+         * (the stream's `actor` column is a display label and can disagree);
+         * `requestId` pairs a request chip with its response chip; `phase` is
+         * the turn phase. Present on LLM rows, absent elsewhere.
+         */
+        actor_id?: string;
+        request_id?: string;
+        phase?: string;
     }
 
     interface ProjectOpts { ignoreFilters?: boolean }
@@ -218,7 +227,10 @@
                 text: text,
                 icon: isRaw ? undefined : (firstText(bubble, '.bubble-icon') || undefined),
                 outcome: outcome,
-                payload: payload
+                payload: payload,
+                actor_id: clean(bubble.getAttribute('data-actor-id')) || undefined,
+                request_id: clean(bubble.getAttribute('data-request-id')) || undefined,
+                phase: clean(bubble.getAttribute('data-phase')) || undefined,
             };
         }
 

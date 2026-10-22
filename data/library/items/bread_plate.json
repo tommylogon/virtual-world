@@ -1,18 +1,45 @@
 {
-  "name": "bread_plate",
-  "description": "a dusty plate with the dried remains of bread rolls, now rock-hard. not appetizing, but technically edible if you're desperate enough.",
-  "actions": "examine,take,use,drop",
-  "uses": 1,
-  "weight": 0.3,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a dusty plate with the dried remains of bread rolls, now rock-hard. not appetizing, but technically edible if you're desperate enough.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "supplies"
-  ],
-  "triggers": [],
-  "contents": []
+  "name": "bread_plate",
+  "tags": {
+    "item": [
+      "food",
+      "supplies"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You scrape the dried remains of the rolls off the dusty plate and eat them. They are rock-hard and tasteless, and your jaw aches afterwards - but the hunger backs off."
+            },
+            "type": "message"
+          }
+        ]
+      },
+      "fail_message": "Only dust remains on the plate.",
+      "success_message": "You eat the dried bread remains.",
+      "target_name": "bread_plate",
+      "trigger_type": "on_eat"
+    }
+  },
+  "uses": "1",
+  "weight": "0.3"
 }

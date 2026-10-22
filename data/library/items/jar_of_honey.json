@@ -1,39 +1,47 @@
 {
-  "name": "jar_of_honey",
-  "description": "a glass jar of crystallized honey. honey never spoils. it's still perfectly edible, though you'll need to scrape it out.",
-  "actions": "examine,take,use,drop",
-  "uses": 1,
-  "weight": 0.6,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a glass jar of crystallized honey. honey never spoils. it's still perfectly edible, though you'll need to scrape it out.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "honey",
-    "glass",
-    "supplies"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "jar_of_honey",
+  "tags": {
+    "item": [
+      "food",
+      "honey",
+      "glass",
+      "supplies"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You scrape the crystallized honey out of the jar with a finger and lick it clean. It is thick, gritty and impossibly sweet - a century old and still good."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "The jar is scraped clean.",
+      "success_message": "You eat the honey.",
+      "target_name": "jar_of_honey",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "1",
+  "weight": "0.6"
 }

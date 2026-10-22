@@ -829,7 +829,7 @@ const _InspectorItemView = (() => {
             contents: props.contents || [],
             aliases: props.aliases || [],
             tags: props.tags || [],
-            triggers: _external('itemLib')?._extractTriggersFromEdges(nodeId),
+            triggers: _external('itemLib')?._extractTriggersFromNode(nodeId),
         };
         const sections = [
             { key: 'name', label: 'Name' },

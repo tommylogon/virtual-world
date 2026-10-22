@@ -97,7 +97,21 @@ class WorldSerializer:
     def _migrate_triggers_from_nodes_to_properties(self):
         """task-886: Migrate legacy logic_trigger nodes and triggers edges to node.properties['triggers']."""
         from graph import EDGE_TRIGGERS
-        from engine.triggers.effect_resolution import _effects_list_from_properties
+        from engine.triggers.effect_resolution import (
+            _effects_list_from_properties,
+            normalize_trigger_entry,
+            normalize_trigger_list,
+        )
+
+        # bug-566: normalise the property store on every load, not only when a
+        # triggers edge exists. A wrapped definition ({"item": {...}}) used to
+        # reach setdefault(...).append(...) and raise AttributeError, which
+        # failed the whole scenario load.
+        for node in list(self.graph.nodes.values()):
+            props = node.properties
+            if not isinstance(props, dict) or "triggers" not in props:
+                continue
+            props["triggers"] = normalize_trigger_list(props.get("triggers"))
 
         trigger_edges = [e for e in list(self.graph.edges) if e.type == EDGE_TRIGGERS]
         if not trigger_edges:
@@ -118,6 +132,7 @@ class WorldSerializer:
 
             props = dict(trig_node.properties if trig_node else {})
             props.update(edge.properties or {})
+            props = normalize_trigger_entry(props) or props
 
             if "id" not in props:
                 props["id"] = trig_node.id if trig_node else f"trigger_{owner.id}_{props.get('trigger_type', 'trig')}"
@@ -126,7 +141,10 @@ class WorldSerializer:
             if resolved_effects:
                 props["effects"] = resolved_effects
 
-            existing = owner.properties.setdefault("triggers", [])
+            existing = owner.properties.get("triggers")
+            if not isinstance(existing, list):
+                existing = normalize_trigger_list(existing)
+                owner.properties["triggers"] = existing
             if not any(isinstance(t, dict) and t.get("id") == props["id"] for t in existing):
                 existing.append(props)
 

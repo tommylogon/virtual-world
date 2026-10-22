@@ -39,6 +39,7 @@ A formal separation between **Edit Mode** and **Play Mode** in the VirtualWorld 
 - [x] Save Game / Load Game flow works seamlessly in Play Mode:
   - "Save Game" saves the current simulation state to a game save slot (`data/saves/*.json`), not overwriting the authored scenario template.
   - "Load Game" can load an active game save slot directly into Play Mode.
+- [x] Stopping Play Mode also reverts the event stream: the authored log is parked on enter, every row the run logged is discarded on stop, and the parked rows (plus the open turn card, counters, area log and raw-LLM chips) come back. Refreshing after Stop does not restore the run's rows from IndexedDB.
 - [x] In Edit Mode, any change (manual character action, inspector tweak, or node edit) continues to mark the scenario dirty and commits to disk when the author clicks Commit.
 - [x] Regression safety: existing tests and non-play routes remain unaffected.
 
@@ -57,6 +58,14 @@ A formal separation between **Edit Mode** and **Play Mode** in the VirtualWorld 
 - Frontend compilation & tests:
   - `npm run build:ts` (0 errors, generated `static/js/ui/play-mode.js`).
   - `node tools/unit/run.cjs` (778/778 passed across all 57 test files).
+- Event stream revert (follow-up gap, 2026-10-22): before the fix, a turn run in Play Mode left its
+  rows in the stream after Stop. Measured live on `http://localhost:4477` with the topbar button:
+  4 authored rows before Enter, 2 play rows visible during the run, and after Stop `PLAY ROW` was
+  absent, `AUTHORED ROW marker` present, the stop marker present, and 5 rows (4 authored + marker).
+  A page reload then restored `AUTHORED ROW marker` and the stop marker but no play row. Two
+  consecutive Enter/Stop cycles both left no `CYCLE N ROW` behind.
+  - `node tools/unit/run.cjs`: `tools/unit/test_play_mode_stream.js` 7/7 (park/drop chrome, fresh
+    accumulators, idempotent enter, run rows discarded, no-op exit, discard, wiring guard).
 - Zero em-dashes introduced across all modified files.
 
 ## Why
@@ -68,5 +77,7 @@ Currently, running an autonomous NPC turn or stepping an action permanently dirt
 - `app.py` - Guard auto-save during Play Mode
 - `routes/saveload.py` - Play mode snapshot and restore endpoints
 - `static/js/ui/play-mode.ts` - Client toggle controller and visual mode indicator
+- `static/js/stream/stream-sandbox.ts` - Parks the authored event log on Enter and restores it on Stop
+- `tools/unit/test_play_mode_stream.js` - Sandbox mechanism + wiring guard
 - `templates/index.html` - Topbar Play/Stop controls
 - `tests/test_play_mode.py` - Verification tests for snapshot isolation and restore

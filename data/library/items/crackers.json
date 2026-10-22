@@ -1,38 +1,46 @@
 {
-  "name": "crackers",
-  "description": "a tin of stale crackers, now soft from humidity. disgusting, but technically edible and filling.",
-  "actions": "examine,take,use,drop",
-  "uses": 2,
-  "weight": 0.3,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a tin of stale crackers, now soft from humidity. disgusting, but technically edible and filling.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "supplies",
-    "consumable"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "crackers",
+  "tags": {
+    "item": [
+      "food",
+      "supplies",
+      "consumable"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You tip a handful of crackers into your mouth. They are soft from the humidity and taste of old salt, but they go down and quiet the hunger."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "The tin is empty, save for crumbs.",
+      "success_message": "You eat the stale crackers.",
+      "target_name": "crackers",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "2",
+  "weight": "0.3"
 }

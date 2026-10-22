@@ -1,38 +1,46 @@
 {
-  "name": "stale_crackers",
-  "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
-  "actions": "examine,take,use,drop",
-  "uses": 1,
-  "weight": 0.15,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "supplies",
-    "consumable"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "stale_crackers",
+  "tags": {
+    "item": [
+      "food",
+      "supplies",
+      "consumable"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You eat the crackers from the opened pack, careful to leave the bitten one where it lies. They are stale as stones and somehow still filling."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "Only crumbs and that one bitten cracker remain.",
+      "success_message": "You eat the stale crackers.",
+      "target_name": "stale_crackers",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "1",
+  "weight": "0.15"
 }

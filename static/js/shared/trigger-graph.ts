@@ -171,7 +171,10 @@ window.TriggerGraph = (() => {
     const NODE_DEFS: Record<string, TriggerGraphNodeDef> = {
         trigger: {
             label: '⚡ Trigger', color: '#e3b341',
-            summary: (p) => (Array.isArray(p.trigger_type) ? p.trigger_type.join(', ') : (p.trigger_type || 'on_use')),
+            summary: (p) => {
+                const types = Array.isArray(p.trigger_type) ? p.trigger_type.join(', ') : (p.trigger_type || 'on_use');
+                return p.name ? `${p.name} (${types})` : types;
+            },
             sockets: [
                 { id: 'output', side: 'right', label: '→', color: '#e3b341' }
             ],
@@ -193,6 +196,9 @@ window.TriggerGraph = (() => {
                 </div>
                 <div class="tg-field-row" style="display:${(types.includes('on_state_enter')||types.includes('on_state_exit'))?'':'none'}"><label>Target State</label>
                     <input class="tg-field" data-key="target_state" value="${p.target_state||''}" placeholder="lit, open..." list="tg-node-states" onchange="TriggerGraph._onFieldChange(this)">
+                </div>
+                <div class="tg-field-row"><label title="The engine marks the trigger spent after it runs (once + fired)">Once</label>
+                    <input class="tg-field" type="checkbox" data-key="once" ${p.once ? 'checked' : ''} onchange="TriggerGraph._onFieldChange(this)">
                 </div>
             `;
             }
@@ -773,20 +779,40 @@ window.TriggerGraph = (() => {
         return true;
     }
 
-    TG.triggerToGraph = function(triggerDef: any) {
+    /** Lay one trigger definition out as a graph block.
+     *
+     *  *opts* namespaces the minted graph ids and shifts the block, so
+     *  {@link TG.triggersToGraph} can stack several triggers on one canvas
+     *  without their node ids colliding. The trigger node also carries the
+     *  fields the compiler cannot derive (``id``, ``name``, ``once``,
+     *  ``fired``, ``cooldown``, ``success_message``), so a graph round trip
+     *  cannot silently reset engine state.
+     */
+    TG.triggerToGraph = function(triggerDef: any, opts?: { idPrefix?: string; xOffset?: number; yOffset?: number }) {
         const t = triggerDef || {};
+        const prefix = (opts && opts.idPrefix) || '';
+        const x0 = (opts && opts.xOffset) || 0;
+        const y0 = (opts && opts.yOffset) || 0;
         const nodes = [];
         const wires = [];
         // Minted graph ids (n0, n1, ...) for freshly drawn nodes.
         let nextNodeSeq = 0;
+        const nodeId = () => `${prefix}n${nextNodeSeq++}`;
+        const wireId = () => `${prefix}w${wires.length}`;
         const types = Array.isArray(t.trigger_type) ? t.trigger_type : [t.trigger_type || 'on_use'];
-        const tnode = `n${nextNodeSeq++}`;
-        const triggerProps = {
+        const tnode = nodeId();
+        const triggerProps: TriggerGraphProps = {
             trigger_type: types,
             target_tag: t.target_name || t.target_tag || '',
             target_state: t.target_state || '',
         };
-        nodes.push({ id: tnode, type: 'trigger', x: 50, y: 50, props: triggerProps });
+        if (t.id) triggerProps.id = t.id;
+        if (t.name) triggerProps.name = t.name;
+        if (t.once !== undefined) triggerProps.once = !!t.once;
+        if (t.fired !== undefined) triggerProps.fired = !!t.fired;
+        if (t.cooldown !== undefined && t.cooldown !== '') triggerProps.cooldown = t.cooldown;
+        if (t.success_message) triggerProps.success_message = t.success_message;
+        nodes.push({ id: tnode, type: 'trigger', x: x0 + 50, y: y0 + 50, props: triggerProps });
 
         // ── Conditions: leaves and AND/OR/NOT groups (task-502) ──
         // A flat AND (or a bare leaf list) draws as the familiar linear chain.
@@ -810,18 +836,18 @@ window.TriggerGraph = (() => {
         // group's `child` socket, so they never bleed into the outer chain.
         const layoutEntry = (entry: any, from: TriggerGraphEndpoint, x: number, y: number): TriggerGraphEndpoint => {
             if (entry && typeof entry === 'object' && !Array.isArray(entry) && entry.operator) {
-                const gnode = `n${nextNodeSeq++}`;
+                const gnode = nodeId();
                 nodes.push({ id: gnode, type: 'group', x, y, props: { operator: entry.operator } });
-                wires.push({ id: `w${wires.length}`, from, to: [gnode, 'input'] });
+                wires.push({ id: wireId(), from, to: [gnode, 'input'] });
                 let childFrom: TriggerGraphEndpoint = [gnode, 'child'];
                 (entry.conditions || []).forEach((c: any, i: number) => {
                     childFrom = layoutEntry(c, childFrom, x + 240, y + 40 + i * 120);
                 });
                 return [gnode, 'output_yes'];
             }
-            const cnode = `n${nextNodeSeq++}`;
+            const cnode = nodeId();
             nodes.push({ id: cnode, type: 'condition', x, y, props: _conditionToGraphProps(entry) });
-            wires.push({ id: `w${wires.length}`, from, to: [cnode, 'input'] });
+            wires.push({ id: wireId(), from, to: [cnode, 'input'] });
             return [cnode, 'output_yes'];
         };
 
@@ -830,20 +856,20 @@ window.TriggerGraph = (() => {
         let lastCond: string | null = null;
 
         topEntries.forEach((c: any, i: number) => {
-            attachFrom = layoutEntry(c, attachFrom, 50, 180 + i * 120);
+            attachFrom = layoutEntry(c, attachFrom, x0 + 50, y0 + 180 + i * 120);
             lastCond = attachFrom[0];
         });
 
         for (let i = 0; i < effects.length; i++) {
             const eff = effects[i];
-            const enode = `n${nextNodeSeq++}`;
+            const enode = nodeId();
             nodes.push({
                 id: enode, type: 'effect',
-                x: 50 + (topEntries.length ? 220 : 0),
-                y: 180 + i * 120,
+                x: x0 + 50 + (topEntries.length ? 220 : 0),
+                y: y0 + 180 + i * 120,
                 props: { effect_type: eff.type || 'message', ...(eff.params || {}) },
             });
-            wires.push({ id: `w${wires.length}`, from: attachFrom, to: [enode, 'input'] });
+            wires.push({ id: wireId(), from: attachFrom, to: [enode, 'input'] });
             if (effects.length > 1 && i < effects.length - 1) {
                 attachFrom = [enode, 'output'];
             }
@@ -852,14 +878,36 @@ window.TriggerGraph = (() => {
         // A fail message is the engine's only NO-branch effect; draw it on the
         // last condition's NO socket so it round-trips (task-501).
         if (t.fail_message && lastCond) {
-            const fnode = `n${nextNodeSeq++}`;
+            const fnode = nodeId();
             nodes.push({
-                id: fnode, type: 'effect', x: 330, y: 180 + topEntries.length * 120,
+                id: fnode, type: 'effect', x: x0 + 330, y: y0 + 180 + topEntries.length * 120,
                 props: { effect_type: 'message', message: t.fail_message },
             });
-            wires.push({ id: `w${wires.length}`, from: [lastCond, 'output_no'], to: [fnode, 'input'] });
+            wires.push({ id: wireId(), from: [lastCond, 'output_no'], to: [fnode, 'input'] });
         }
 
+        return { nodes, wires };
+    };
+
+    /** Lay every definition on one canvas, one block per trigger.
+     *
+     *  The graph is a view of N independent rules, not one rule: each block
+     *  carries its trigger's ``id`` in the root node's props, so the return
+     *  trip (``compileToTriggers``) can match an edited block back to the entry
+     *  it came from.
+     */
+    TG.triggersToGraph = function(triggerDefs: any[]) {
+        const defs = Array.isArray(triggerDefs) ? triggerDefs : [];
+        const nodes: any[] = [];
+        const wires: any[] = [];
+        let y = 0;
+        defs.forEach((def, i) => {
+            const block = TG.triggerToGraph(def, { idPrefix: `t${i}_`, yOffset: y });
+            nodes.push(...block.nodes);
+            wires.push(...block.wires);
+            const lowest = block.nodes.reduce((m: number, n: any) => Math.max(m, n.y), y);
+            y = lowest + 240;
+        });
         return { nodes, wires };
     };
 
@@ -882,7 +930,11 @@ window.TriggerGraph = (() => {
 
     function _compiledTrigger() {
         const graph = _serializeGraph();
-        return TG.compileToEngine(graph);
+        const selected = _selectedNode ? _state.nodes[_selectedNode] : null;
+        const root = (selected && selected.type === 'trigger')
+            ? selected
+            : Object.values(_state.nodes).find((n) => n.type === 'trigger');
+        return root ? _compileRoot(root, graph) : null;
     }
 
     function _renderTestResultHtml(res: any, triggerType: any) {
@@ -995,17 +1047,24 @@ window.TriggerGraph = (() => {
         }
         const formData = {
             ...TG.engineToFormData(compiled),
-            name: _editorBridge.initialName || '',
-            success_message: _editorBridge.success_message || '',
+            name: compiled.name || _editorBridge.initialName || '',
+            success_message: compiled.success_message || _editorBridge.success_message || '',
             fail_message: compiled.fail_message || _editorBridge.fail_message || '',
         };
         const bridge = { ..._editorBridge };
+        // The form does not carry engine state it has no field for (id, once,
+        // fired, cooldown). Merge the saved fields over the root's own definition
+        // so opening the form cannot reset them.
+        const base = { ...compiled };
         _close();
         if (typeof TriggerEditor === 'undefined') return;
         TriggerEditor.show({
             ...bridge,
             initialData: formData,
             onOpenGraph: true,
+            onSave: (data: any) => {
+                if (bridge.onSave) bridge.onSave({ ...base, ...data });
+            },
         });
     }
     TG._openFormEditor = _openFormEditor;
@@ -2106,14 +2165,15 @@ window.TriggerGraph = (() => {
             _close();
             return;
         }
-        const compiled = TG.compileToEngine(g);
-        if (!compiled) {
+        const compiled = TG.compileToTriggers(g);
+        if (!compiled.length) {
             alert('Add a trigger node before applying.');
             return;
         }
-        if (TG.reportCompileError(compiled)) return;
+        const refused = compiled.find((c: any) => TG.compileError(c));
+        if (refused && TG.reportCompileError(refused)) return;
         try {
-            const issues = await _validateCompiled(compiled);
+            const issues = await _validateCompiled(compiled[0]);
             const errors = issues.filter((i: any) => i.severity === 'error');
             const panel = document.getElementById('tg-test-panel');
             if (panel) {
@@ -2708,15 +2768,30 @@ window.TriggerGraph = (() => {
         return cond;
     }
 
-    TG.compileToEngine = function(graph: any) {
-        if (!graph?.nodes) return null;
-        const triggerNode = graph.nodes.find((n: any) => n.type === 'trigger');
-        if (!triggerNode) return null;
-        const tt = triggerNode.props.trigger_type || 'on_use';
+    // Trigger state the graph cannot derive from wires and nodes. It lives on
+    // the trigger node's props and is carried through compile unchanged; without
+    // this a graph save reset `once`/`fired` and dropped the success message.
+    const TRIGGER_STATE_KEYS = ['id', 'name', 'once', 'fired', 'cooldown', 'success_message', 'target_name', 'target_state'];
+
+    function _carriedTriggerState(props: any) {
+        const out: any = {};
+        for (const key of TRIGGER_STATE_KEYS) {
+            const value = props[key];
+            if (value !== undefined && value !== null && value !== '') out[key] = value;
+        }
+        return out;
+    }
+
+    /** Compile one trigger root (and everything wired to it) into a definition. */
+    function _compileRoot(triggerNode: any, graph: any) {
+        const props = triggerNode.props || {};
+        const tt = props.trigger_type || 'on_use';
+        const carried = _carriedTriggerState(props);
         const tw = (graph.wires || []).find((w: any) => w.from[0] === triggerNode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
         if (!tw) {
-            const empty: any = { trigger_type: tt, effects: [{ type: 'message', params: { message: '' } }], conditions: {} };
-            if (triggerNode.props.target_tag) empty.target_name = triggerNode.props.target_tag;
+            const empty: any = { ...carried, trigger_type: tt, effects: [{ type: 'message', params: { message: '' } }], conditions: {} };
+            empty.target_name = props.target_tag || '';
+            empty.target_state = props.target_state || '';
             return empty;
         }
         const traced = _traceGraph(tw.to[0], graph.wires, graph.nodes);
@@ -2734,34 +2809,127 @@ window.TriggerGraph = (() => {
         }
 
         const result: any = {
+            ...carried,
             trigger_type: tt,
             effects: traced.effects.length ? traced.effects : [{ type: 'message', params: { message: '' } }],
             conditions: condTree
         };
-        if (triggerNode.props.target_tag) result.target_name = triggerNode.props.target_tag;
-        if (triggerNode.props.target_state) result.target_state = triggerNode.props.target_state;
+        // The graph fields are the source for these two: an empty Target Tag is
+        // a deliberate clear, so do not fall back to the carried copy.
+        result.target_name = props.target_tag || '';
+        result.target_state = props.target_state || '';
         if (traced.fail_message) result.fail_message = traced.fail_message;
         if (problems.length) result.compile_error = problems.join(' ');
         return result;
+    }
+
+    /** Compile every trigger root in the graph, in canvas order.
+     *
+     *  A multi-trigger canvas is N roots, and each root's props carry the id of
+     *  the definition it came from. The caller matches by id: known id updates
+     *  that entry, a new root appends.
+     */
+    TG.compileToTriggers = function(graph: any) {
+        if (!graph?.nodes) return [];
+        return graph.nodes
+            .filter((n: any) => n.type === 'trigger')
+            .map((n: any) => _compileRoot(n, graph));
+    };
+
+    /** The first trigger root's definition, for single-trigger callers. */
+    TG.compileToEngine = function(graph: any) {
+        const all = TG.compileToTriggers(graph);
+        return all.length ? all[0] : null;
     };
 
     // ─── Graph → definition compiler (task-636) ───
-    // A trigger lives in two places: the `triggers` edge properties and the
-    // target `logic_trigger` node properties. The engine reads the edge first
-    // and falls back to the node; the UI used to read one or the other, so a
-    // mechanic authored one way was invisible the other way. These two helpers
-    // are the single compiler both the item library and the inspector use.
+    // properties['triggers'] is the authoritative store (task-886). Legacy
+    // `triggers` edges are still read, deduped by id, so a world saved before the
+    // migration opens the same as a migrated one. Nothing here writes: the
+    // callers persist through the property array.
 
-    /** Merge the edge copy and the target node copy into one definition.
-     *  Edge wins per field (matching engine precedence), node is the fallback. */
+    const TRIGGER_FIELDS = ['id', 'name', 'trigger_type', 'effects', 'effect_type',
+        'effect_params', 'condition', 'conditions', 'conditions_logic', 'target_name',
+        'target_tag', 'target_state', 'success_message', 'fail_message', 'once',
+        'fired', 'cooldown'];
+
+    function _looksLikeTrigger(value: any): boolean {
+        return !!value && typeof value === 'object' && !Array.isArray(value)
+            && TRIGGER_FIELDS.some((key) => key in value);
+    }
+
+    /** Unwrap `{key: inner}` wrappers around a definition or one of its fields.
+     *
+     *  A library round trip wrote `{"item": {...}}`, and the same wrapper around
+     *  `effects`, so a single-key dict outside the trigger vocabulary is a
+     *  wrapper. A definition, a condition leaf and an effect all carry a known
+     *  key and are returned untouched. `scalar` permits unwrapping a wrapped
+     *  string, which is only correct for a field value.
+     */
+    function _unwrapSingleKey(value: any, scalar?: boolean): any {
+        for (let i = 0; i < 8; i++) {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+            const keys = Object.keys(value);
+            if (keys.length !== 1 || _looksLikeTrigger(value)) return value;
+            const inner = value[keys[0]];
+            if (!scalar && !(inner && typeof inner === 'object')) return value;
+            value = inner;
+        }
+        return value;
+    }
+
+    /** Normalise one stored entry into a definition dict, or null when unusable. */
+    TG.normalizeTriggerEntry = function(entry: any) {
+        const unwrapped = _unwrapSingleKey(entry);
+        if (!unwrapped || typeof unwrapped !== 'object' || Array.isArray(unwrapped)) return null;
+        const out: any = { ...unwrapped };
+        for (const key of ['trigger_type', 'effects', 'conditions', 'condition']) {
+            if (out[key] && typeof out[key] === 'object' && !Array.isArray(out[key])) {
+                out[key] = _unwrapSingleKey(out[key], true);
+            }
+        }
+        let effects = out.effects;
+        if (effects && typeof effects === 'object' && !Array.isArray(effects)) effects = [effects];
+        if (Array.isArray(effects)) {
+            const fixed = effects
+                .map((effect: any) => _unwrapSingleKey(effect))
+                .filter((effect: any) => effect && typeof effect === 'object' && !Array.isArray(effect) && effect.type);
+            if (fixed.length) out.effects = fixed;
+            else delete out.effects;
+        }
+        if (out.conditions === '' || out.conditions === null) delete out.conditions;
+        return out;
+    };
+
+    /** Normalise `properties['triggers']` (list, wrapper, or wrapper of a list). */
+    TG.normalizeTriggerList = function(value: any) {
+        if (value === undefined || value === null) return [];
+        const unwrapped = _unwrapSingleKey(value);
+        const raw = Array.isArray(unwrapped) ? unwrapped : (Array.isArray(value) ? value : [unwrapped]);
+        return raw
+            .map((entry: any) => TG.normalizeTriggerEntry(entry))
+            .filter((entry: any) => !!entry);
+    };
+
+    function _nodeById(nodes: any, id: any): any {
+        if (!nodes || id === undefined || id === null) return null;
+        const wanted = String(id).toLowerCase();
+        if (Array.isArray(nodes)) {
+            return nodes.find((n: any) => n && String(n.id).toLowerCase() === wanted) || null;
+        }
+        if (nodes[id]) return nodes[id];
+        for (const key of Object.keys(nodes)) {
+            if (key.toLowerCase() === wanted) return nodes[key];
+        }
+        return null;
+    }
+
+    /** Merge a property entry (or an edge copy and its target node) into one
+     *  definition. Edge wins per field where both exist, matching engine
+     *  precedence; the id is the edge target, or the entry's own id. */
     TG.triggerDefFromEdge = function(edge: any, nodes: any) {
         const target = edge && edge.target;
-        let node: any = null;
-        if (nodes) {
-            node = Array.isArray(nodes)
-                ? nodes.find((n: any) => n && n.id === target)
-                : (nodes[target] || null);
-        }
+        const node = _nodeById(nodes, target);
         const nodeProps = (node && node.properties) || {};
         const edgeProps = (edge && edge.properties) || {};
         const pick = (key: string) => {
@@ -2789,7 +2957,7 @@ window.TriggerGraph = (() => {
         } else if (!conditions || typeof conditions !== 'object') {
             conditions = {};
         }
-        return {
+        const def: any = {
             trigger_type: pick('trigger_type') || 'on_examine',
             effects,
             conditions,
@@ -2798,17 +2966,54 @@ window.TriggerGraph = (() => {
             success_message: pick('success_message') || '',
             fail_message: pick('fail_message') || '',
         };
+        const ownId = pick('id');
+        if (target) def.id = target;
+        else if (ownId !== undefined && ownId !== '') def.id = ownId;
+        for (const key of ['name', 'once', 'fired', 'cooldown']) {
+            const value = pick(key);
+            if (value !== undefined && value !== null && value !== '') def[key] = value;
+        }
+        return def;
     };
 
-    /** Compile every `triggers` edge on *sourceId* (or all, when omitted) into the
-     *  engine definition array. This is the one graph→array path (task-636). */
+    /** One stored property entry as a definition. */
+    TG.triggerDefFromProperty = function(entry: any) {
+        const normalized = TG.normalizeTriggerEntry(entry);
+        if (!normalized) return null;
+        return TG.triggerDefFromEdge(
+            { source: '', target: normalized.id, type: 'triggers', properties: normalized },
+            null,
+        );
+    };
+
+    /** Every definition on *sourceId*: the property array first, then legacy
+     *  edges deduped by id. This is the one graph→array path (task-636). */
     TG.triggersFromGraphEdges = function(edges: any, nodes: any, sourceId?: string) {
         const out: any[] = [];
+        const seen = new Set<string>();
         const lower = sourceId == null || sourceId === '' ? null : String(sourceId).toLowerCase();
+
+        if (sourceId) {
+            const source = _nodeById(nodes, sourceId);
+            const raw = source && source.properties ? source.properties.triggers : null;
+            for (const entry of TG.normalizeTriggerList(raw)) {
+                const def = TG.triggerDefFromProperty(entry);
+                if (!def) continue;
+                if (def.id) {
+                    if (seen.has(def.id)) continue;
+                    seen.add(def.id);
+                }
+                out.push(def);
+            }
+        }
+
         for (const edge of (edges || [])) {
             if (!edge || edge.type !== 'triggers') continue;
             if (lower != null && String(edge.source).toLowerCase() !== lower) continue;
-            out.push(TG.triggerDefFromEdge(edge, nodes));
+            if (edge.target && seen.has(edge.target)) continue;
+            const def = TG.triggerDefFromEdge(edge, nodes);
+            if (def && def.id) seen.add(def.id);
+            out.push(def);
         }
         return out;
     };

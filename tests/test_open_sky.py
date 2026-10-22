@@ -94,6 +94,45 @@ class TestNoReaderPicksItsOwnSpelling:
             assert "is_open_sky" in source, f"{path} does not use the shared predicate"
 
 
+class TestTheClientReader:
+    """The fifth reader (bug-529): the agent's exit line in
+    ``static/js/agent/prompt-builder/room-context.ts``. It cannot import the
+    Python predicate, so it inlines the same two spellings - and it used to
+    inline the retired ``natural`` instead, which is how a compiled way tagged
+    ``outdoor`` read "is open" to the agent and "is clear" to the human.
+    """
+
+    READER = "static/js/agent/prompt-builder/room-context.ts"
+
+    def _source(self):
+        return (ROOT / self.READER).read_text(encoding="utf-8-sig")
+
+    def test_the_reader_accepts_both_canonical_spellings(self):
+        source = self._source()
+        assert "'outdoor'" in source, "the JS reader does not accept outdoor"
+        assert "'exterior'" in source, "the JS reader does not accept exterior"
+
+    def test_the_reader_does_not_accept_the_retired_spelling(self):
+        source = self._source()
+        # The retired pair was exterior/natural; natural is not a thing the
+        # compiler writes, so accepting it could only ever be dead code.
+        assert "'natural'" not in source, (
+            "the JS reader still tests the retired 'natural' spelling"
+        )
+
+    def test_no_inline_tag_test_anywhere_in_the_reader(self):
+        source = self._source()
+        offenders = [ln.strip() for ln in source.splitlines()
+                     if ('"outdoor" in ' in ln or '"exterior" in ' in ln
+                         or "'outdoor' in " in ln or "'exterior' in " in ln
+                         or ".includes('outdoor')" in ln or ".includes('exterior')" in ln)]
+        # The predicate itself is allowed (it is the point); what is not allowed
+        # is a second, hand-written spelling test elsewhere in the file.
+        allowed = [ln for ln in offenders if "openWord" in ln]
+        assert allowed, "expected exactly the one openWord predicate line"
+        assert len(offenders) == 1, f"extra inline tag tests: {offenders}"
+
+
 class TestCompilerWritesTheTag:
     """The writer side. A compiled world-mode area must carry the tag, and a
     town/interior scope must not."""

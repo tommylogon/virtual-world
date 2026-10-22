@@ -661,6 +661,10 @@ def handle_update_player(app, name):
         app.world.equipment.set_equipped_payload(player, data["equipped"])
     if "behaviors" in data:
         player.behaviors = data["behaviors"]
+    # task-738: schedule is character-private data, authored in the editor.
+    if "schedule" in data:
+        from engine.schedule import normalize as _normalize_schedule
+        player.schedule = _normalize_schedule(data["schedule"])
     # task-808: goals are character-private data, authored in the editor. They
     # live on the character record, not a node; normalise so a hand-edited form
     # cannot put a malformed goal into the character's mind.

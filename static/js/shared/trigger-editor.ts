@@ -94,6 +94,7 @@ var triggerEditorApi = {
     _overlay: null as HTMLDivElement | null,
     _onSave: null as ((data: any) => void) | null,
     _onClose: null as (() => void) | null,
+    _initialData: null as Record<string, any> | null,
     _mode: 'single' as 'single' | 'multi',
     _effectTypes: [] as TriggerEditorOption[],
     _conditionTypes: [] as TriggerEditorOption[],
@@ -119,6 +120,7 @@ var triggerEditorApi = {
         this._contextItemId = options.contextItemId || '';
         this._targetDatalistHtml = options.targetDatalistHtml || '';
         const initial = options.initialData || null;
+        this._initialData = (initial as Record<string, any>) || null;
         const targetDatalist = this._targetDatalistHtml;
 
         const initialTriggerType = initial?.trigger_type;
@@ -584,6 +586,10 @@ window.Lit.render(triggerEditorTag`
     _onOpenGraphClick() {
         if (typeof TriggerGraph === 'undefined') return;
         const data = this._collectData();
+        // The form has no fields for id, once, fired or cooldown. Carry them
+        // through the graph so saving from the canvas cannot reset them.
+        const base = { ...(this._initialData || {}) };
+        const full = { ...base, ...data };
         const onSave = this._onSave;
         const bridge = {
             mode: this._mode,
@@ -594,13 +600,13 @@ window.Lit.render(triggerEditorTag`
             itemDatalistHtml: this._itemDatalist,
             contextItemId: this._contextItemId,
             onSave,
-            initialName: data.name || '',
-            success_message: data.success_message || '',
-            fail_message: data.fail_message || '',
+            initialName: full.name || '',
+            success_message: full.success_message || '',
+            fail_message: full.fail_message || '',
         };
         this.close();
         TriggerGraph.show({
-            graph: TriggerGraph.triggerToGraph(data),
+            graph: TriggerGraph.triggerToGraph(full),
             contextItemId: this._contextItemId,
             sourceNodeId: this._contextItemId,
             editorBridge: bridge,
@@ -609,10 +615,11 @@ window.Lit.render(triggerEditorTag`
                 if (TriggerGraph.reportCompileError(compiled)) return;
                 if (!compiled || !onSave) return;
                 onSave({
+                    ...base,
                     ...TriggerGraph.engineToFormData(compiled),
-                    name: bridge.initialName || data.name || '',
-                    success_message: bridge.success_message || data.success_message || '',
-                    fail_message: compiled.fail_message || bridge.fail_message || data.fail_message || '',
+                    name: bridge.initialName || full.name || '',
+                    success_message: bridge.success_message || full.success_message || '',
+                    fail_message: compiled.fail_message || bridge.fail_message || full.fail_message || '',
                 });
             },
         });

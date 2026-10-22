@@ -1,15 +1,14 @@
-"""Runtime compilation of trigger / blueprint definitions into graph nodes (task-442).
+"""Runtime compilation of trigger / blueprint definitions into graph data (task-442).
 
 A **blueprint** is a saved trigger graph in ``data/library/triggers/*.json``.
 The editor compiles that graph to the JSON contract below with
-``TriggerGraph.compileToEngine``; this module is the Python side of the same
-contract - it turns one definition into an ordinary ``logic_trigger`` node plus
-a ``triggers`` edge, exactly the shape the rest of the engine already reads. No
-parallel trigger format is introduced.
+``TriggerGraph.compileToTriggers``; this module is the Python side of the same
+contract.
 
 JSON contract (a *trigger definition*)::
 
     {
+      "id": "trigger_<owner>_<type>_<suffix>",           # stable per owner
       "trigger_type": "on_use" | ["on_use", "on_eat"],   # TRIGGER_TYPES
       "effects": [{"type": "message", "params": {...}}], # preferred, ordered
       "effect_type": "message", "effect_params": {},     # legacy single-effect
@@ -21,11 +20,14 @@ JSON contract (a *trigger definition*)::
       "once": false
     }
 
-The same property dict is written to **both** the ``logic_trigger`` node and the
-``triggers`` edge: ``_execute_triggers`` reads the edge first and falls back to
-the node (``engine/triggers/execution.py``), while the inspector and item
-library read whichever copy is convenient. Writing both keeps every reader
-honest and is what the existing materialisers do.
+Where the definition is written, and which copy is authoritative:
+
+* ``owner.properties['triggers']`` holds the definition and is the authoritative
+  store (task-886). The engine reads it first, and the inspector edits it.
+* ``materialize_trigger`` *also* creates a ``logic_trigger`` node and a
+  ``triggers`` edge carrying the same properties. That output is compatibility
+  for readers and save files written before task-886; it is not a second source
+  of truth and is retired by task-895. Do not add a reader for it.
 
 Condition branching: ``conditions`` may be a tree (the engine evaluates
 and/or/not recursively) or a flat list combined with ``conditions_logic``. The
@@ -113,11 +115,15 @@ def materialize_trigger(
     extra: Optional[dict] = None,
     id_factory: Optional[IdFactory] = None,
 ) -> str:
-    """Create a ``logic_trigger`` node + ``triggers`` edge for *trigger_def*.
+    """Create the trigger in three places: the owner's ``properties.triggers``
+    array (authoritative, task-886), a ``logic_trigger`` node and a ``triggers``
+    edge (compatibility output that task-895 retires).
 
     Returns the new trigger node id. ``id_factory`` lets deterministic callers
     (generation recipes, library materialisation) keep their stable ids.
     """
+    from engine.triggers.effect_resolution import normalize_trigger_list
+
     props = trigger_properties(trigger_def, extra=extra)
     if id_factory is not None:
         trigger_id = id_factory(owner_id, trigger_def, index, props)
@@ -136,7 +142,10 @@ def materialize_trigger(
     if owner_node is not None:
         trig_entry = dict(props)
         trig_entry["id"] = trigger_id
-        current_trigs = owner_node.properties.setdefault("triggers", [])
+        current_trigs = owner_node.properties.get("triggers")
+        if not isinstance(current_trigs, list):
+            current_trigs = normalize_trigger_list(current_trigs)
+            owner_node.properties["triggers"] = current_trigs
         idx = next((i for i, t in enumerate(current_trigs) if isinstance(t, dict) and t.get("id") == trigger_id), None)
         if idx is not None:
             current_trigs[idx] = trig_entry

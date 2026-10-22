@@ -31,6 +31,7 @@ class EventBus {
         this._characterAutonomy = {};
         this._knownActors = new Set();
         this._lineSeq = 0;
+        this._tickCounter = 0;
         this._streamMode = 'cards';
         this._lastGap = null;
         // v2 collaborators (loaded before this file)
@@ -40,6 +41,7 @@ class EventBus {
         this._persist = new StreamPersistence(this);
         this._scrubber = new StreamScrubber(this);
         this._controlMode = new StreamControlMode(this);
+        this._sandbox = new StreamSandbox(this);
         let savedMode = 'cards';
         try {
             savedMode = localStorage.getItem('vw_stream_mode') || 'cards';
@@ -300,15 +302,24 @@ class EventBus {
         const moonPart = moon?.icon ? ` ${moon.icon}` : '';
         return `Turn ${turn}${datePart} | ${time}${moonPart}`;
     }
-    /** Per-line bubble label — global monotonic sequence + current game time.
-     *  Stamps `data-seq` on the bubble so the export and the restore read the
-     *  attribute instead of re-parsing the label string (task-777). */
-    _nextLineLabel(bubble) {
-        const seq = this._lineSeq++;
+    /** Per-bubble label — the world tick + game time.
+     *
+     *  This used to stamp the global line sequence number (`_lineSeq`) into the
+     *  visible label, which is why raw-LLM chips (bug-560) showed the world tick
+     *  while every neighbouring row showed a line number that happened to be
+     *  called "Tick". The line number still lives on `data-seq` — the export and
+     *  the persistence restore read that attribute, never this string — so what
+     *  the user sees is now one meaning of "Tick" across every row.
+     */
+    _tickLabel(bubble) {
+        // Tick (time_ticks) is separate from turn (turn_number). Do not mix.
+        // Running sequential tick: each event advances the stream's own counter
+        // so the tick label always counts up (0, 1, 2...) regardless of server state lag.
+        const tick = ++this._tickCounter;
         if (bubble)
-            bubble.setAttribute('data-seq', String(seq));
-        const time = this.tickToTime(VW?.state?.tick || 0);
-        return `Tick ${seq} | ${time}`;
+            bubble.setAttribute('data-seq', String(this._lineSeq++));
+        const time = this.tickToTime(tick);
+        return `Tick ${tick} | ${time}`;
     }
     tickToRelative(tick) {
         if (tick == null || typeof tick !== 'number')
@@ -343,7 +354,7 @@ class EventBus {
         bubble.title = this.tickToRelative(tick);
         const body = this._cards.bodyFor(charName, streamEl);
         this._insertTimeGap(body || streamEl);
-        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">💭</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-thought-actor">${charName}</span><span class="bubble-text bubble-thought-text">${thought}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">💭</span><span class="bubble-tick">[${this._tickLabel(bubble)}]</span> <span class="bubble-actor bubble-thought-actor">${charName}</span><span class="bubble-text bubble-thought-text">${thought}</span>`, bubble);
         this._appendBubble(streamEl, bubble);
         this._recordPhase(charName, 'think', { thought });
     }
@@ -558,7 +569,7 @@ class EventBus {
         const textSpan = badge
             ? window.Lit.unsafeHTML(outcomeBadge + displayText + badgeHtml)
             : window.Lit.unsafeHTML(outcomeBadge + displayText);
-        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-${type}-actor">${agentName}</span> <span class="bubble-text bubble-${type}-text">${textSpan}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._tickLabel(bubble)}]</span> <span class="bubble-actor bubble-${type}-actor">${agentName}</span> <span class="bubble-text bubble-${type}-text">${textSpan}</span>`, bubble);
         const body = this._cards.current?.querySelector('.turn-card-body');
         if (body && isAgentEvent) {
             this._insertTimeGap(body);
@@ -633,8 +644,8 @@ class EventBus {
         this._isStreaming = Object.keys(this._streamSpans).length > 0;
     }
     // --- Raw LLM payloads (delegated to stream-raw-llm.js) ---
-    logRawLLMRequest(phaseName, messages, estTokens) { this._rawllm.logRequest(phaseName, messages, estTokens); }
-    logRawLLMResponse(label, content) { this._rawllm.logResponse(label, content); }
+    logRawLLMRequest(phaseName, messages, estTokens, meta) { this._rawllm.logRequest(phaseName, messages, estTokens, meta); }
+    logRawLLMResponse(label, content, meta) { this._rawllm.logResponse(label, content, meta); }
     logRawLLM(contentOrLabel, optionalContent) { this._rawllm.log(contentOrLabel, optionalContent); }
     storeRawResponse(charName, phase, raw) { return this._rawllm.storeRawResponse(charName, phase, raw); }
     getRawResponse(seq) { return this._rawllm.getRawResponse(seq); }
@@ -656,7 +667,7 @@ class EventBus {
         const icons = { observe: '👁️', think: '💭', decide: '🎯', act: '⚡', react: '🔄' };
         const icon = icons[phase] || '➡️';
         const label = subtext ? `${phase} · ${subtext}` : phase;
-        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span><span class="bubble-phase-pill">${label}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag `<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._tickLabel(bubble)}]</span><span class="bubble-phase-pill">${label}</span>`, bubble);
         // observe/think always start a fresh card — same actor's NEXT turn
         // must not merge into the previous turn's card.
         const body = this._cards.bodyFor(charName, streamEl, phase === 'observe' || phase === 'think');
@@ -688,6 +699,9 @@ class EventBus {
     }
     clearAll() {
         const streamEl = document.getElementById('event-stream');
+        // A world replacement invalidates a parked Play Mode stream: restoring
+        // the old world's rows into the new one would be a lie.
+        this._sandbox.discard();
         // Imperative wipe: Lit.render() only clears between its own markers,
         // so bubbles appended via appendChild would survive every clear.
         if (streamEl) {
@@ -702,6 +716,7 @@ class EventBus {
         this._isStreaming = false;
         this._knownActors.clear();
         this._lineSeq = 0;
+        this._tickCounter = 0;
         this._lastGap = null;
         this._rawllm._rawResponses = [];
         this._rawllm._streak = null;
@@ -710,6 +725,19 @@ class EventBus {
     }
     clearAreaEvents() {
         this._areaEventLog = {};
+    }
+    // --- Play Mode sandbox (task-885) ---
+    /**
+     * Park the authored stream and start a clean one for Play Mode, so a
+     * transient run cannot leave its rows in the authored log. Delegates to
+     * StreamSandbox, which also hands the log back on exit().
+     */
+    enterSandbox() {
+        this._sandbox.enter();
+    }
+    /** Discard the Play Mode run and restore the authored stream. */
+    exitSandbox() {
+        this._sandbox.exit();
     }
     // --- Character State Tracking ---
     initCharacterState(charName) {

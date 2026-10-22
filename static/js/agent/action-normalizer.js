@@ -56,6 +56,53 @@ const ActionNormalizerModule = (() => {
             _matureCache = new Set([...VALID_VERBS, ...MATURE_VERBS]);
         return _matureCache;
     }
+    /**
+     * A stringified object - the fingerprint of a model that nested its action
+     * ("action": {"action":"take", ...}) before the normalizer could unwrap it.
+     * It must never reach the world as a command.
+     */
+    function looksStringifiedObject(value) {
+        if (typeof value !== 'string')
+            return false;
+        const t = value.trim();
+        return t === '[object Object]' || (t.startsWith('{') && t.endsWith('}'));
+    }
+    /**
+     * Classify an action string. Distinguishes the three ways an action can
+     * fail so the caller can report each honestly (task: the engine was
+     * telling characters the house had supernatural rules when the real cause
+     * was a malformed command).
+     */
+    function classifyAction(action, charName) {
+        if (typeof action !== 'string' || action.trim() === '') {
+            return { ok: false, category: 'empty', detail: 'no action given' };
+        }
+        const trimmed = action.trim();
+        if (looksStringifiedObject(trimmed)) {
+            return {
+                ok: false,
+                category: 'schema_invalid',
+                detail: 'the action payload was a nested object, not a command string',
+            };
+        }
+        if (trimmed.includes('command from') || trimmed.includes('your ') || trimmed.includes('your_') || trimmed.includes('](')) {
+            return { ok: false, category: 'schema_invalid', detail: 'the action text was prose, not a command' };
+        }
+        const verb = trimmed.split(/\s+/)[0].toLowerCase();
+        if (!allVerbs().has(verb)) {
+            return { ok: false, category: 'unknown_verb', detail: `"${verb}" is not an action you know how to take` };
+        }
+        if (charName) {
+            const player = worldState.data?.players?.[charName];
+            const area = player?.current_area ? worldState.areas?.[player.current_area] : null;
+            if (area?.exits) {
+                const exitNames = Object.keys(area.exits).map((exitName) => exitName.toLowerCase());
+                if (exitNames.includes(trimmed.toLowerCase()))
+                    return { ok: true, category: 'empty', detail: '' };
+            }
+        }
+        return { ok: true, category: 'empty', detail: '' };
+    }
     /** Check whether an action string uses a supported verb or matches a known exit name. */
     function isValidAction(action, charName) {
         if (typeof action !== 'string' || action.trim() === '')
@@ -81,11 +128,28 @@ const ActionNormalizerModule = (() => {
     function normalizeStructuredAction(p) {
         if (!p)
             return '';
-        const verb = String(p.action || '').trim();
+        // Schema recovery: some models nest the action as an object
+        // {"action": {"action":"take","item":"lighter"}} instead of a string.
+        // Unwrap one level so the verb/item/target are recovered instead of
+        // becoming "[object Object]".
+        let src = p;
+        if (p && typeof p.action === 'object' && p.action !== null) {
+            const nested = p.action;
+            if (typeof nested.action === 'string') {
+                src = { ...p, ...nested };
+            }
+            else {
+                // A nested object with no verb in it is not recoverable. Return
+                // an empty command so the caller reports a schema error rather
+                // than stringifying the object into the world.
+                return '';
+            }
+        }
+        const verb = String(src.action || '').trim();
         if (!verb)
             return '';
-        const item = String(p.item || '').trim();
-        const target = String(p.target || '').trim();
+        const item = String(src.item || '').trim();
+        const target = String(src.target || '').trim();
         const relation = String(p.relation || '').trim().toLowerCase() || 'on';
         // The object being acted on may land in either "item" (e.g. the LLM wrote
         // {"action":"examine","item":"front_door"}) or "target". Fall back to item for
@@ -103,14 +167,14 @@ const ActionNormalizerModule = (() => {
                 // task-433: a text payload becomes a quoted inscription
                 // ("use ink pen on \"parchment\" \"hello\""), which is the only
                 // form the command parser carries as `params`.
-                const text = String(p.text || '').trim();
+                const text = String(src.text || '').trim();
                 if (item && target && text) {
                     const t = target.replace(/"/g, "'");
                     const x = text.replace(/"/g, "'");
                     return `use ${item} on "${t}" "${x}"`;
                 }
                 // task-196: amount for quantity ("use 2 eggs on pan").
-                const amount = parseInt(String(p.amount ?? ''), 10);
+                const amount = parseInt(String(src.amount ?? ''), 10);
                 if (item && target && Number.isInteger(amount) && amount > 1) {
                     return `use ${amount} ${item} on ${target}`;
                 }
@@ -149,7 +213,7 @@ const ActionNormalizerModule = (() => {
             case 'inspect':
             case 'check': return obj ? `examine ${obj}` : verb;
             case 'attack': {
-                const where = String(p.where || '').trim();
+                const where = String(src.where || '').trim();
                 return where ? `attack ${obj} on ${where}` : (obj ? `attack ${obj}` : verb);
             }
             case 'kiss':
@@ -166,8 +230,8 @@ const ActionNormalizerModule = (() => {
                     return 'look';
                 if (!obj)
                     return verb;
-                const where = String(p.where || '').trim();
-                const intensity = String(p.intensity || 'normal').trim().toLowerCase();
+                const where = String(src.where || '').trim();
+                const intensity = String(src.intensity || 'normal').trim().toLowerCase();
                 const adv = INTENSITY_ADVERBS[intensity] || '';
                 const parts = [];
                 if (adv)
@@ -229,15 +293,37 @@ const ActionNormalizerModule = (() => {
                 // task-242: agent-authored item trigger. Schema:
                 //   {action:"bind", item:"<name>", when:"on_use|on_take|...", effect:"message|...", effect_params:{...}}
                 // Command: `bind <item> <when>:<effect> [json params]`
-                const when = String(p.when || p.trigger_type || 'on_use').trim();
-                const effect = String(p.effect || p.effect_type || 'message').trim();
-                const extra = p.effect_params && Object.keys(p.effect_params).length
-                    ? ' ' + JSON.stringify(p.effect_params)
+                const when = String(src.when || src.trigger_type || 'on_use').trim();
+                const effect = String(src.effect || src.effect_type || 'message').trim();
+                const extra = src.effect_params && Object.keys(src.effect_params).length
+                    ? ' ' + JSON.stringify(src.effect_params)
                     : '';
                 return item ? `bind ${item} ${when}:${effect}${extra}` : verb;
             }
             default: return verb;
         }
+    }
+    /**
+     * The text a character is told when their command was refused.
+     *
+     * This is POLICY, and it lives next to the classifier that produces the
+     * category so the two cannot drift. The wording matters: a malformed
+     * command is an ENGINE-side refusal, and the old blanket "You try to X,
+     * but you can't do that" made characters invent supernatural barriers to
+     * explain a malformed JSON payload. The character is told what actually
+     * happened - the command never reached the world.
+     *
+     * A well-formed command the WORLD refuses (a locked door) is not here:
+     * that comes back from the backend as an action result.
+     */
+    function rejectionText(category, rejectedAction) {
+        if (category === 'schema_invalid') {
+            return 'Your command was malformed, so it never reached the world. Nothing happened.';
+        }
+        if (category === 'empty') {
+            return 'You did not act.';
+        }
+        return `You tried to ${rejectedAction}, but that is not something you know how to do. Nothing happened.`;
     }
     /** Extract speech text + volume from a parsed response object. */
     function extractSpeechVolume(p) {
@@ -281,6 +367,9 @@ const ActionNormalizerModule = (() => {
     }
     return {
         isValidAction,
+        classifyAction,
+        looksStringifiedObject,
+        rejectionText,
         normalizeStructuredAction,
         extractSpeechVolume,
         volVerb

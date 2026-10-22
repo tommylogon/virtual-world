@@ -1389,6 +1389,7 @@
     <script src="/static/js/stream/stream-persistence.js"></script>
     <script src="/static/js/stream/stream-scrubber.js"></script>
     <script src="/static/js/stream/stream-control-mode.js"></script>
+    <script src="/static/js/stream/stream-sandbox.js"></script>
     <script src="/static/js/event-stream.js"></script>
     <script src="/static/js/shared/item-containment.js"></script>
 <script src="/static/js/shared/scope-options.js"></script>
@@ -1445,6 +1446,7 @@
     <script src="/static/js/agent/prompt-builder/schema-fragments.js"></script>
     <script src="/static/js/agent/prompt-builder/system-prompt.js"></script>
     <script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
+    <script src="/static/js/agent/prompt-builder/capture.js"></script>
     <script src="/static/js/agent/prompt-builder/index.js"></script>
     <script src="/static/js/agent-lens.js"></script>
     <script src="/static/js/agent/rate-limiter.js"></script>
@@ -1543,5 +1545,11 @@
     <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>
     <script src="/static/js/ui/source-version.js"></script>
     <script src="/static/js/main.js"></script>
+    <!-- task-894: in-app benchmark harness. Loaded LAST, after main.js, because
+         main.js does `window.VW = {}` and re-registers every singleton; this
+         module must not run before that or it would publish onto an empty VW
+         namespace that main.js then throws away. It reads window.VW.llm,
+         window.PromptBuilder, worldState, config and storage at call time. -->
+    <script src="/static/js/llm-bench.js"></script>
 </body>
 </html>

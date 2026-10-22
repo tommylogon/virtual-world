@@ -236,7 +236,7 @@ class WorldSync {
             prevent_close: !!props.prevent_close,
             tags: props.tags || [],
             parameters: props.parameters || {},
-            triggers: itemLib._extractTriggersFromEdges(nodeId)
+            triggers: itemLib._extractTriggersFromNode(nodeId)
         };
         const match = this._findLibraryMatch('ways', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';

@@ -160,18 +160,50 @@ The LLM emits a **structured action object** instead of free-text commands:
   **key**, never a value inside speech - `{"speech":"whisper psst"}` is explicitly wrong in
   the prompt. `speak`/`talk` normalize → `say`. Legacy top-level `say`/`whisper` keys still
   work as a fallback.
-- **`_normalizeStructuredAction()`** (`agent-engine.js`) converts `{action, item, target,
-  relation}` into a command string for `/api/action`:
+- **`normalizeStructuredAction()`** (`agent/action-normalizer.js`) converts `{action, item,
+  target, relation}` into a command string for `/api/action`:
   - `use rusty_key on front_door` (multi-word names stay whole)
   - `use create flame` (use ALONE for self-use items)
   - `put ink_pen on table` (spatial placement, `relation` = on/under/beside/behind/at/in)
   - `give rusty_key to Lyrie` (hand to a same-area character)
   - `steal key from Miki`, `go north`, `rest 30`, etc.
   - Free-text fallback for anything unsupported / legacy plain strings
-- **`_validateAction()`** whitelist is synced 1:1 with the verbs the normalizer can emit
-  (includes `place`, `give`, `hand`). Rejections are surfaced via `_surfaceRejectedAction()`
-  into `config.lastActionResult` (shown as `=== LAST ACTION RESULT ===` next turn) - never a
-  stored memory.
+
+### A malformed action payload is recovered, not executed
+
+Some models nest the action one level deep:
+
+```json
+{ "action": { "action": "take", "item": "lighter" } }
+```
+
+`normalizeStructuredAction()` unwraps one level, so the command is rebuilt as
+`take lighter`. A payload with **no** verb in the nested object is not recoverable: the
+normalizer returns no command, and `ResponseParser.parseReaction()` raises a
+`schema_invalid` parse error instead. The agent engine then takes its one-shot retry, and
+the corrective prompt tells the model that `"action"` must be a plain verb string.
+
+The raw model output is preserved in the parse-error bubble, so the failure is diagnosable
+rather than a mystery.
+
+### Failure categories, and what the character is told
+
+`classifyAction()` splits a refused action into categories, because they are not the same
+kind of failure and must not collapse into one:
+
+| Category | What it means | What the character is told |
+|---|---|---|
+| `schema_invalid` | the payload was not a command (a stringified object, or prose) | "Your command was malformed, so it never reached the world. Nothing happened." |
+| `unknown_verb` | a well-formed command using a verb the engine does not implement | "You tried to X, but that is not something you know how to do. Nothing happened." |
+| `empty` | no action was chosen (a speech-only turn) | "You did not act." |
+
+The wording is the point. A malformed command is an **engine-side** refusal, and the earlier
+blanket "You try to X, but you can't do that" let characters invent supernatural barriers to
+explain a bad JSON payload. A well-formed command the **world** refuses (a locked door) is a
+different path: that comes back from the backend as an action result, not as a skip.
+
+`rejectionText()` (`agent/action-normalizer.js`) holds this policy next to the classifier
+that produces the category, so the two cannot drift.
 
 ### Action verbs the LLM is told about (ACTIONS table)
 
@@ -187,9 +219,70 @@ inventory, stats, look, fumble, relieve` - plus ghost-only `manifest`/`vanish`.
 - The player-state block injects **size context** when a `size_*` trait is present ("You are
   huge. Some passages are too tight for you...") via `buildSizeContext()` in `agent/prompt-builder/`.
 
+## Planning: typed steps, grounded against what exists
+
+A character plans in **typed steps** (`{"act": ..., "item": ..., "target": ...}`), not prose.
+Before a plan is accepted, every step is validated against the facts the plan prompt was
+built from (`agent/plan-grounding.js`): the items in the room, the things the character
+carries, the people present, the visible paths, and the areas it knows.
+
+### Target types decide which fact list a step resolves against
+
+A step names a target, and the target's **type** decides where it must be found:
+
+| Type | Where it lives | Legal acts |
+|---|---|---|
+| PATH (a door, an exit) | the exit list | `go`, `dash`, `approach`, `open`, `close` |
+| ITEM (a thing you can pick up) | items here / carried | `take`, `use`, `eat`, `drink`, `search`, `examine`, `drop` |
+| PERSON | people here | `speak`, `give`, `attack`, `grab`, `steal` |
+| AREA | known areas | `go` |
+
+This split is why `open dining_room_door` is legal. A door is a **path** here, not an item -
+it was being rejected because the check only consulted the item pool, while the prompt had
+just listed that door under "From where you stand, you can see the following paths".
+
+A step that names room-description scenery ("search the dining table") is still rejected:
+a described table is not an interactable. The rejection says so, and teaches the route that
+does work - `go` there first, then `look` to see what that room actually lists.
+
+### A repair replaces only the rejected steps
+
+One bounded re-composition is allowed. The repair prompt lists the original plan step by
+step, each marked `[KEEP]` or `[REJECTED]` with its reason, and states the contract:
+reproduce the `[KEEP]` steps exactly, replace only the `[REJECTED]` ones, same count, same
+order.
+
+The result is then **merged back**: a step that already grounded is restored verbatim at
+its original position, the repaired steps fill the rejected positions, and the whole merged
+plan is re-grounded end to end before it is accepted. A repair cannot throw away a
+verified step, and a repair that invents scenery again is dropped rather than executed.
+
+### The plan verb list cannot drift from the executor
+
+`PlanGrounding.ACTS` is the intersection of a curated plan-intent list and the executor's
+verb registry (`agent/action-verbs.generated.js`, mirrored from `engine/action_verbs.py`).
+A plan verb the engine does not implement can never be advertised, and the planner never
+offers engine plumbing ("manifest", "do", "i") as a plan step. `perform` is the one
+plan-only verb: it names a sustained activity the world resolves when the step runs.
+
 ## Prompt Building
 
-All prompt construction lives in `static/js/agent/prompt-builder/` (pure functions, no side effects). Submodules: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`.
+All prompt construction lives in `static/js/agent/prompt-builder/` (pure functions, no side effects). Submodules: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`, `capture.js`.
+
+### Capturing a turn prompt (`captureTurnPrompt()`)
+
+`capture.js` assembles the exact system and user messages one character would
+receive on its next turn, using the same call sequence `agent-engine.js` uses
+at turn start: room parts, vitals, emotion, relationships, memory, system
+prompt, reaction prompt. The character's own room wins over the scene's active
+player, and the memory block is fetched in the live turn's mode (not the
+preview mode), so the captured prompt is the prompt, not an approximation of
+it.
+
+The benchmark harnesses (the Benchmark Lab page, `/bench`) send that capture
+to every model they compare. A hand-written approximation inside a benchmark
+measures the approximation, not the game, so there is exactly one capture
+path and the harnesses call it.
 
 ### System Prompt (`buildCharacterSystemPrompt()`)
 
@@ -345,6 +438,19 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 - **LLM agents** (`simple_npc: false`): full LLM decision-making, retained conversation history, unified memory + reflection, multi-step plans, structured actions. 2 LLM calls/turn in reactive mode.
 - **Simple NPCs** (`simple_npc: true`): no LLM calls, behavior driven by `behaviors[]` + `npc_behavior` pattern, controlled by backend `tick_turn`. Suitable for animals, minor NPCs, environmental entities.
 
+## Reading the LLM trace
+
+Every LLM call is logged as a collapsed chip in the event stream, and the export carries
+the identity of the call:
+
+| Field | Where it comes from | Why |
+|---|---|---|
+| `actor_id` | the character the call was **for**, passed by the caller | the chip used to guess the actor from "whose turn is it", so a prompt written for one character was filed under another one's name |
+| `request_id` | generated per call, shared by the request chip and its response chip | pairs a request with its response without relying on ordering |
+| `phase` | the turn phase (`plan`, `think-decide`, `result-reaction`, ...) | says which stage of the turn produced the payload |
+
+The display column `actor` is unchanged and still a label. `actor_id` is the truth.
+
 ## Related
 
 - [[dev_tasks/done/prompting/task-160-parameterized-actions-in-prompts|task-160: Parameterized actions]]
@@ -367,10 +473,11 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 ## Where it lives
 
 - **`static/js/agent-engine.js`** (`AgentEngine`, `window.VW.agent`, `agent`) - main loop, turn orchestration, action normalization
-- **`static/js/agent/prompt-builder/`** - pure prompt functions: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`
+- **`static/js/agent/prompt-builder/`** - pure prompt functions: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`, `capture.js`
 - **`static/js/agent/turn-queue.js`** - turn ordering and advancement
 - **`static/js/agent/memory-manager.js`** (`AgentMemory`) - memory storage + reflection
-- **`static/js/agent/plan-manager.js`** - multi-step plan generation
+- **`static/js/agent/plan-manager.js`** - multi-step plan generation and the constrained plan repair
+- **`static/js/agent/plan-grounding.js`** - typed plan-step grounding validator (target types: paths, items, people, areas)
 - **`static/js/agent/rate-limiter.js`** - API rate limiting
 - **`static/js/context-window.js`** (`ContextWindowManager`) - token budget and context pruning
 - **`static/js/agent/response-parser.js`** - parse/validate LLM JSON output

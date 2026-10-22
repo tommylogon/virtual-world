@@ -226,7 +226,13 @@ def write_index(entries):
             return (meta.get(key) or "").replace("|", "\\|")
 
         module_value = cell("module")
-        for sep in ("\u2014", "\u2013"):
+        # Split the name from the purpose. The em-dash and en-dash are the
+        # historic separators, but the repo bans the em-dash in source (it
+        # corrupts under PowerShell), so every header now uses an ASCII
+        # hyphen - without it in this list the name column swallowed the
+        # purpose and the index filled with rows like
+        # `agent/action-normalizer  -  LLM action translation`.
+        for sep in ("\u2014", "\u2013", " - "):
             if sep in module_value:
                 name, _, purpose = module_value.partition(sep)
                 break

@@ -1,38 +1,46 @@
 {
-  "name": "jerky",
-  "description": "a strip of dried meat hanging from a hook above the hearth. it's old but well-preserved by the dry air. still edible, if you're not squeamish.",
-  "actions": "examine,take,use,drop",
-  "uses": 1,
-  "weight": 0.1,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a strip of dried meat hanging from a hook above the hearth. it's old but well-preserved by the dry air. still edible, if you're not squeamish.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "meat",
-    "food",
-    "supplies"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "jerky",
+  "tags": {
+    "item": [
+      "meat",
+      "food",
+      "supplies"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You tear off a strip of the jerky. It is leather-hard, salt-heavy and old, but the dry air kept it and your teeth are grateful for it."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "Only the hook is left.",
+      "success_message": "You eat the jerky.",
+      "target_name": "jerky",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "1",
+  "weight": "0.1"
 }

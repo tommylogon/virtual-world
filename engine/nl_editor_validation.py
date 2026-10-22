@@ -38,8 +38,8 @@ KNOWN_OP_TYPES = {
 }
 #: Player-state patch keys the NL editor may write (task-738). These are NOT
 #: graph edges - they live on the Player (memories list, relationships dict,
-#: emotion pulses) - so they take a dedicated op, not `attach`.
-PLAYER_PATCH_KEYS = {"memories", "relationship", "remove_relationship", "emotion", "behaviors"}
+#: emotion pulses, schedule, goals, obligations) - so they take a dedicated op, not `attach`.
+PLAYER_PATCH_KEYS = {"memories", "relationship", "remove_relationship", "emotion", "behaviors", "schedule", "goals", "obligations"}
 #: Registries the NL editor may write to (task-460).
 WRITABLE_REGISTRIES = {"items", "characters", "areas", "ways", "traits"}
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*$")
@@ -306,6 +306,126 @@ def _behaviour_issues(index: int, optype: str, behaviours: List[Any]) -> List[Di
     return issues
 
 
+def _schedule_issues(index: int, optype: str, schedule: Any) -> List[Dict[str, Any]]:
+    """Validate a schedule array against engine/schedule.py vocabulary."""
+    issues: List[Dict[str, Any]] = []
+    if not isinstance(schedule, list):
+        return [_issue(index, optype, ERROR, "'schedule' must be a list of steps.")]
+    for si, step in enumerate(schedule):
+        if not isinstance(step, dict):
+            issues.append(_issue(index, optype, ERROR, f"schedule[{si}] must be an object."))
+            continue
+        start = step.get("start")
+        if not start:
+            issues.append(_issue(index, optype, ERROR, f"schedule[{si}] needs a 'start' time (HH:MM)."))
+        else:
+            # Validate HH:MM format
+            if not isinstance(start, str) or ":" not in start:
+                issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start must be HH:MM (got {start!r})."))
+            else:
+                parts = start.split(":")
+                try:
+                    h = int(parts[0]); m = int(parts[1]) if len(parts) > 1 else 0
+                    if not (0 <= h <= 23 and 0 <= m <= 59):
+                        issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start out of range (0-23:0-59)."))
+                except (ValueError, TypeError):
+                    issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start must be HH:MM (got {start!r})."))
+        act = step.get("activity")
+        if act is not None:
+            valid = {"work", "socialise", "eat", "drink", "sleep", "rest", "patrol", "guard", "roam", "wait"}
+            if str(act).strip().lower() not in valid:
+                issues.append(_issue(index, optype, WARNING,
+                                     f"schedule[{si}].activity '{act}' unknown; will default to 'wait'."))
+        fb = step.get("fallback")
+        if fb is not None:
+            valid = {"work", "socialise", "eat", "drink", "sleep", "rest", "patrol", "guard", "roam", "wait"}
+            if str(fb).strip().lower() not in valid:
+                issues.append(_issue(index, optype, WARNING,
+                                     f"schedule[{si}].fallback '{fb}' unknown; will default to 'wait'."))
+    return issues
+
+
+def _goals_issues(index: int, optype: str, goals: Any) -> List[Dict[str, Any]]:
+    """Validate a goals array against engine/goals.py vocabulary."""
+    issues: List[Dict[str, Any]] = []
+    if not isinstance(goals, list):
+        return [_issue(index, optype, ERROR, "'goals' must be a list.")]
+    seen = set()
+    for gi, goal in enumerate(goals):
+        if not isinstance(goal, dict):
+            issues.append(_issue(index, optype, ERROR, f"goals[{gi}] must be an object."))
+            continue
+        what = str(goal.get("what") or "").strip()
+        if not what:
+            issues.append(_issue(index, optype, ERROR, f"goals[{gi}] needs a 'what'."))
+        gid = str(goal.get("id") or "").strip().lower()
+        if not gid:
+            # slug from what
+            import re
+            gid = re.sub(r"[^a-z0-9]+", "_", what.lower()).strip("_")
+        if gid in seen:
+            issues.append(_issue(index, optype, ERROR, f"goals[{gi}] duplicate id '{gid}'."))
+        seen.add(gid)
+        status = str(goal.get("status") or "proposed").strip().lower()
+        valid_status = {"proposed", "active", "dormant", "reached", "blocked", "dropped"}
+        if status not in valid_status:
+            issues.append(_issue(index, optype, ERROR,
+                                 f"goals[{gi}].status '{status}' unknown; valid: {sorted(valid_status)}."))
+        for key in ("motivation", "intention"):
+            val = str(goal.get(key) or "").strip()
+            if val and len(val) > 500:
+                issues.append(_issue(index, optype, WARNING,
+                                     f"goals[{gi}].{key} very long ({len(val)} chars); consider shortening."))
+        for key in ("blocks", "links"):
+            refs = goal.get(key)
+            if refs is not None:
+                if not isinstance(refs, (list, str)):
+                    issues.append(_issue(index, optype, ERROR, f"goals[{gi}].{key} must be a list or comma-separated string."))
+                elif isinstance(refs, list):
+                    for ri, r in enumerate(refs):
+                        if not isinstance(r, str) or not r.strip():
+                            issues.append(_issue(index, optype, ERROR, f"goals[{gi}].{key}[{ri}] must be a non-empty string."))
+    return issues
+
+
+def _obligations_issues(index: int, optype: str, obligations: Any) -> List[Dict[str, Any]]:
+    """Validate an obligations array against engine/goals.py vocabulary."""
+    issues: List[Dict[str, Any]] = []
+    if not isinstance(obligations, list):
+        return [_issue(index, optype, ERROR, "'obligations' must be a list.")]
+    seen = set()
+    for oi, obl in enumerate(obligations):
+        if not isinstance(obl, dict):
+            issues.append(_issue(index, optype, ERROR, f"obligations[{oi}] must be an object."))
+            continue
+        charge = str(obl.get("charge") or "").strip()
+        if not charge:
+            issues.append(_issue(index, optype, ERROR, f"obligations[{oi}] needs a 'charge'."))
+        oid = str(obl.get("id") or "").strip().lower()
+        if not oid:
+            import re
+            oid = re.sub(r"[^a-z0-9]+", "_", charge.lower()).strip("_")
+        if oid in seen:
+            issues.append(_issue(index, optype, ERROR, f"obligations[{oi}] duplicate id '{oid}'."))
+        seen.add(oid)
+        status = str(obl.get("status") or "offered").strip().lower()
+        valid_status = {"offered", "accepted", "refused", "forgotten", "done"}
+        if status not in valid_status:
+            issues.append(_issue(index, optype, ERROR,
+                                 f"obligations[{oi}].status '{status}' unknown; valid: {sorted(valid_status)}."))
+        if "due" in obl:
+            try:
+                int(obl.get("due"))
+            except (TypeError, ValueError):
+                issues.append(_issue(index, optype, ERROR, f"obligations[{oi}].due must be an integer tick."))
+        for key in ("from", "reward", "goal_id"):
+            val = str(obl.get(key) or "").strip()
+            if val and len(val) > 200:
+                issues.append(_issue(index, optype, WARNING,
+                                     f"obligations[{oi}].{key} very long ({len(val)} chars)."))
+    return issues
+
+
 def validate_ops(
     ops: Iterable[Dict[str, Any]],
     *,
@@ -410,6 +530,17 @@ def validate_ops(
                             issues.append(_issue(idx, optype, ERROR,
                                                  f"Unknown emotion dimension '{emo.get('name')}' "
                                                  f"(an unknown dim is silently ignored, so this is a no-op)."))
+
+                # task-738: validate schedule, goals, obligations
+                sched = patch.get("schedule")
+                if sched is not None:
+                    issues.extend(_schedule_issues(idx, optype, sched))
+                gls = patch.get("goals")
+                if gls is not None:
+                    issues.extend(_goals_issues(idx, optype, gls))
+                obl = patch.get("obligations")
+                if obl is not None:
+                    issues.extend(_obligations_issues(idx, optype, obl))
             continue
 
         if optype == "rename_character":

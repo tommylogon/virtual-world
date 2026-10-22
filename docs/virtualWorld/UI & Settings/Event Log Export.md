@@ -45,12 +45,15 @@ you click, so an export can never silently drop the LLM payloads, an actor or a 
 
 A clipboard copy over ~2 MB prompts first — some browsers refuse a write that large.
 
-### Two "tick" concepts, kept honest
+### Three "tick" concepts, kept honest
 
-- **Tick sequence** (`[Tick N]`) — a global per-line counter (`_nextLineLabel()` → `_lineSeq++`).
-  This is the *run sequence id* and the default **range unit**.
+- **Run sequence id** — `data-seq`, stamped on every bubble by `_tickLabel()`.
+  This is the *run sequence id* and the default **range unit**. It is an
+  attribute, not a visible label: the export and the persistence restore read
+  it directly, never re-parse the label string.
+- **World clock tick** (`[Tick N]`) — the visible label on every row, from
+  `VW.state.tick`. It is a per-row field (`tick`); it is *not* a range unit.
 - **World turn** — from each turn card's `[Turn N | HH:MM]` header. Selectable as the range unit.
-- **World clock tick** — a per-row field (`tick`); it is *not* a range unit.
 
 ### Filename
 
@@ -63,7 +66,7 @@ A clipboard copy over ~2 MB prompts first — some browsers refuse a write that 
 Every exported event is one record:
 
 ```
-{ seq, tick, time, day, turn, actor, area, type, text, icon?, outcome?, payload? }
+{ seq, tick, time, day, turn, actor, area, type, text, icon?, outcome?, payload?, actor_id?, request_id?, phase? }
 ```
 
 - `seq` — the tick-sequence id (the range key), stamped as `data-seq` on the row when its label is
@@ -78,6 +81,12 @@ Every exported event is one record:
 - `outcome` — from the `outcome-*` class on a result row. `payload` — `{ header, body }` on a raw-LLM
   chip; the collapsed body is read regardless of its `display: none`, which is a *collapse*, not a
   filter.
+- `actor_id` / `request_id` / `phase` — trace correlation, present on LLM rows and absent elsewhere.
+  `actor_id` is the character the call was **for** (`data-actor-id`), which is not always the same as
+  the `actor` display label: a prompt written for one character used to be filed under whichever
+  character held the turn. `request_id` (`data-request-id`) is shared by a request chip and its
+  response chip, so a pair can be correlated without relying on ordering. `phase` (`data-phase`) is
+  the turn phase that produced the call (`plan`, `think-decide`, `result-reaction`, …).
 
 Rows with no tick — the scope banner, a scope-empty note, a time gap, an area transition — carry
 `seq: -1` and appear in Markdown/Plain only; JSON and JSONL are the ticked events alone.
@@ -126,6 +135,26 @@ widget, not a message) and are skipped; the scope banner is a message and is kep
 
 ---
 
+## Play Mode is a boundary, not a filter
+
+Stopping Play Mode reverts the world to its authored snapshot. The stream follows: the moment Play
+Mode starts, the authored rows are parked and the stream starts empty for the run. Everything logged
+while playing (turns, results, LLM payload chips, area dividers) belongs to a world that Stop throws
+away, so Stop discards those rows and puts the parked log back exactly as it was - same rows, same
+open turn card, same scroll position. The "Stopped Play Mode" line is written after the restore, so it
+lands in the authored log rather than in the run being discarded.
+
+The parked log is a client-side snapshot (the detached DOM nodes, not re-rendered HTML, which keeps
+turn-card collapse handlers, raw-LLM chips and choice buttons alive). Two consequences:
+
+- Reloading the page while still in Play Mode loses the parked log, because the browser owns it and
+  the server does not. The run's rows are then what you have; Stop still reverts the world.
+- A world load or a "new scenario" inside Play Mode discards the parked log deliberately
+  (`clearAll()` calls `StreamSandbox.discard()`); restoring the old world's rows into a new world
+  would be a lie.
+
+---
+
 ## Stream rendering changes
 
 ### Newlines preserved (`static/css/style.css`)
@@ -148,7 +177,7 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 |------|------|
 | `static/js/ui/event-log-export.js` | projection (`projectStreamRows`), renderers (Markdown/Plain/JSON/JSONL), the export modal, range/scope honesty |
 | `static/js/ui/world-export.js` | `saveFileWithDialog`; delegates `exportEventLog` / `copyEventLogToClipboard` / `showRangeExport` into the module |
-| `static/js/event-stream.js` | `_nextLineLabel` (stamps `data-seq`), `_addBubble`, `_escapeHtml` (sequence labels, per-row text) |
+| `static/js/event-stream.js` | `_tickLabel` (stamps `data-seq`, shows the world tick), `_addBubble`, `_escapeHtml` (per-row text) |
 | `static/js/stream/stream-persistence.js` | restore reads `data-seq` (with a `[Tick N]` fallback for pre-task-777 saves) |
 | `static/css/style.css` | `.bubble-text { white-space: pre-wrap }` |
 | `static/js/agent-engine.js` | emote-before-result ordering |
@@ -157,8 +186,9 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 
 - `static/js/ui/event-log-export.js` (projection, four renderers, export modal, range/scope controls)
 - `static/js/ui/world-export.js` (`saveFileWithDialog`, header button delegation)
-- `static/js/event-stream.js` (`_nextLineLabel` stamps `data-seq`, `_addBubble`, `_escapeHtml`)
+- `static/js/event-stream.js` (`_tickLabel` stamps `data-seq` and shows the world tick, `_addBubble`, `_escapeHtml`)
 - `static/js/stream/stream-persistence.js` (restore reads `data-seq` with `[Tick N]` fallback)
+- `static/js/stream/stream-sandbox.js` (parks/restores the authored stream across a Play Mode run)
 - `static/css/style.css` (`.bubble-text { white-space: pre-wrap }` preserves newlines)
 - `static/js/agent-engine.js` (emote-before-result ordering in agent decide phase and human-turn reply)
 - `templates/index.html` (event stream header buttons: 📥 ⏩ 📋)

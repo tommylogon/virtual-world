@@ -4,6 +4,52 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased - "Charted Ground" (2026-10-22)
+
+**Play Mode is a boundary.** Stopping a play session restores the authored world
+and discards every event-stream row written during the run, including the
+"Play Mode active" marker; rows that existed before Enter are parked as live DOM
+nodes and returned intact. Loading a world while Play Mode is active discards the
+checkpoint rather than restoring it later. The run log is client-side, so a page
+reload during a run still loses it. New `static/js/stream/stream-sandbox.ts`,
+7 mechanism and wiring tests in `tools/unit/test_play_mode_stream.js`, verified
+live in the browser across two Enter/Stop cycles.
+
+**Sight is traced, and memory of it persists.** Line of sight is a 2.5D raycast
+through biome height and obscurity (`engine/fog.py`, `engine/observation.py`),
+and charted cells survive leaving the area. The minimap is sight-aware and
+horizon landmarks are drawn from charted ground.
+
+**Gear accounting is honest.** Worn equipment counts as carried and the equipped
+map is published in `GET /api/state` (bug-565). Non-source items default to
+`light_level: none` instead of `dim`.
+
+**Character definition is one record.** Structured persona fields live on the
+character node and compile into the prose the prompt reads; the inspector edits
+the same fields. `aliases` resolve through the matching alias tier, and an
+ambiguous alias asks rather than guessing.
+
+**Ways describe themselves.** Compiled ways carry a description, a
+`visible_in_direction` view line, and tags. Open outdoor ways carry
+`prevent_close`, so a road cannot be hand-closed.
+
+**Weather moves in deterministic mode.** `ForecastSchedule.roll_state` now picks
+from the weighted table with a seeded generator; the previous "first non-zero
+weight" rule made every deterministic scenario permanently clear (bug-537).
+
+**The log is attributable and exportable.** Raw LLM chips carry actor, area, and
+a real tick label (bug-560). The consolidated export modal writes Markdown,
+plain text, JSON, and JSONL with tick-range and actor or area scope.
+
+**Library saves stop churning the tree.** `save_registry` rewrote every entry in
+the dict it was given, and `json.dump` wrote no trailing newline, so one item
+action stripped the final byte from 207 item files (207 one-byte diffs from a
+single edit). It now serializes once, skips files whose bytes are unchanged, and
+writes a trailing newline. `tools/json_newline_check.py --check` fails the
+pre-commit gate when a changed JSON file loses a newline it had at `HEAD`.
+
+---
+
 ## Unreleased - "The Commons" (2026-10-15)
 
 The character social space is now consistently named **The Commons** across the

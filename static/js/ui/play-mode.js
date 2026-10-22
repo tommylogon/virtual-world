@@ -6,6 +6,12 @@
  *   - Play Mode (▶ Play): snapshots authored state, runs simulation/turns freely in a transient sandbox.
  *   - Stop (⏹ Stop): discards all simulation state and restores the pre-play authored baseline.
  *   - Updates topbar button, PLAYING badge, and body.play-mode-active styles.
+ *
+ * @module ui/play-mode - Play Mode controller
+ * @contributes PlayMode: enter/stop toggle, status polling, topbar button + badge
+ * @powers Play Mode - running the simulation in a sandbox that reverts on Stop
+ * @relates posts /api/play_mode/*; parks the event stream via events.enterSandbox/exitSandbox
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 const PlayMode = (() => {
     'use strict';
@@ -55,11 +61,16 @@ const PlayMode = (() => {
             if (data.error)
                 throw new Error(data.error);
             updateUI(true);
+            // Play Mode owns the event stream for the duration of the run: the
+            // authored log is parked, so no transient row can survive Stop.
+            const ev = window.events;
+            if (ev && typeof ev.enterSandbox === 'function') {
+                ev.enterSandbox();
+            }
             const tInfo = window.toastInfo;
             if (typeof tInfo === 'function') {
                 tInfo('Entered Play Mode. Simulation is running in sandbox.');
             }
-            const ev = window.events;
             if (ev && typeof ev.log === 'function') {
                 ev.log('▶ Play Mode active - simulation sandbox running.', 'system-msg');
             }
@@ -103,11 +114,15 @@ const PlayMode = (() => {
             if (ws && typeof ws.fetch === 'function') {
                 await ws.fetch(true);
             }
+            // Drop every row the run logged and put the authored log back.
+            const ev = window.events;
+            if (ev && typeof ev.exitSandbox === 'function') {
+                ev.exitSandbox();
+            }
             const tInfo = window.toastInfo;
             if (typeof tInfo === 'function') {
                 tInfo('Exited Play Mode. Simulation state reverted to authored baseline.');
             }
-            const ev = window.events;
             if (ev && typeof ev.log === 'function') {
                 ev.log('⏹ Stopped Play Mode - world restored to authored checkpoint.', 'system-msg');
             }

@@ -123,7 +123,7 @@ interface InspectorItemViewApi {
 interface ItemViewExternals {
     TagMultiselect: new (container: HTMLElement, opts: PropBag) => TagMultiselectHandle;
     SearchSelect: new (container: HTMLElement, opts: PropBag) => unknown;
-    itemLib: { saveWorldItem(nodeId: string): unknown; _extractTriggersFromEdges(nodeId: string): unknown };
+    itemLib: { saveWorldItem(nodeId: string): unknown; _extractTriggersFromNode(nodeId: string): unknown };
     TriggerTypes: { TRIGGER_TYPES?: string[] };
     InspectorPanel: { render(template: unknown): void };
     hideInspectorPanel(): void;
@@ -955,7 +955,7 @@ IV._renderFooter = function(nodeId) {
             contents: props.contents || [],
             aliases: props.aliases || [],
             tags: props.tags || [],
-            triggers: _external('itemLib')?._extractTriggersFromEdges(nodeId),
+            triggers: _external('itemLib')?._extractTriggersFromNode(nodeId),
         };
 
         const sections: DiffSection[] = [

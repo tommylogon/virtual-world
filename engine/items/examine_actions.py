@@ -440,39 +440,65 @@ class ExamineActionsMixin:
                 desc += "\n" + "\n".join(trigger_outputs)
             return desc
 
-        visible = []
+        items: List[str] = []
+        people: List[str] = []
+        paths: List[str] = []
+        carried: List[str] = []
+        seen = set()
+        active_p = player_manager.players.get(player_manager.active_player)
+        known = set(str(k) for k in (getattr(active_p, "known", []) or []))
+        active_node_id = player_manager._player_node_id(player_manager.active_player)
         if area_id:
             for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
                 node = self.graph.get_node(edge.source)
-                if not node:
+                if not node or node.id in seen:
                     continue
                 if node.type == "character":
                     # Don't list yourself; unmet characters keep their
                     # appearance label, never their database name (task-154).
+                    if node.id == active_node_id:
+                        continue
                     pname = node.name
-                    if pname == player_manager.active_player:
+                    if pname and str(pname).lower() == str(player_manager.active_player or "").lower():
                         continue
                     p = player_manager.players.get(pname)
-                    active_p = player_manager.players.get(player_manager.active_player)
-                    if p is not None and active_p is not None and active_p.has_met(pname):
-                        visible.append(pname)
-                    elif p is not None:
-                        visible.append(p.unknown_display_name())
+                    if p is None:
+                        continue
+                    if getattr(p, "state", "") in ("hidden", "stealthed"):
+                        continue
+                    seen.add(node.id)
+                    if active_p is not None and active_p.has_met(pname):
+                        people.append(pname)
+                    else:
+                        people.append(p.unknown_display_name())
                 else:
-                    visible.append(node.name)
-        player_id = player_manager._player_node_id(player_manager.active_player)
+                    # Hidden things are discovered by exploring, never offered
+                    # by a failed-lookup fallback. An authored `known` entry
+                    # means the character already knows where it is.
+                    if node.properties.get("current_state") == "hidden" and str(node.id) not in known:
+                        continue
+                    seen.add(node.id)
+                    items.append(node.name)
+        player_id = active_node_id
         for edge in self.graph.get_edges_for_target(player_id, EDGE_CARRYING):
             node = self.graph.get_node(edge.source)
-            if node:
-                visible.append(f"{node.name} (carried)")
+            if node and node.id not in seen:
+                seen.add(node.id)
+                carried.append(f"{node.name} (carried)")
+        area_name = player_manager.current_area.name if player_manager.current_area else ""
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
             way_node = self.graph.get_node(edge.target)
+            if not way_node or way_node.id in seen:
+                continue
+            way_state = way_node.properties.get("current_state") or ""
+            if way_state == "hidden":
+                continue
+            seen.add(way_node.id)
             d = self.matching.way_handle(
                 way_node, edge.properties.get("direction", ""),
-                player_manager.current_area.name if player_manager.current_area else "",
-            ) if way_node else (edge.properties.get("direction") or "door")
-            state = way_node.properties.get("current_state") if way_node else ""
-            visible.append(f"{d} ({state})" if state else d)
+                area_name,
+            ) or (edge.properties.get("direction") or "door")
+            paths.append(f"{d} ({way_state})" if way_state else d)
 
         # Descriptive fallback: target isn't a real item/exit but appears in area
         # or item descriptions - describe it as flavor text instead of erroring.
@@ -480,9 +506,18 @@ class ExamineActionsMixin:
         if descriptive:
             return descriptive
 
+        groups = []
+        if items:
+            groups.append("items: " + ", ".join(items))
+        if people:
+            groups.append("people: " + ", ".join(people))
+        if paths:
+            groups.append("paths: " + ", ".join(paths))
+        if carried:
+            groups.append("carried: " + ", ".join(carried))
         raise ValueError(
             f"You look for '{target_name}' but don't see it here. "
-            f"Things you can examine right now: {', '.join(visible) if visible else 'nothing specific'}."
+            f"Things you can examine right now: {'; '.join(groups) if groups else 'nothing specific'}."
         )
 
     def _describe_flavor_target(self, player_manager, target_name: str, area_id: str) -> Optional[str]:

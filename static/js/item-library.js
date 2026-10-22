@@ -817,11 +817,8 @@ class ItemLibrary {
     }
     _openGraphEditor() {
         const currentTriggers = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
-        if (currentTriggers.length > 1 && typeof toastInfo === 'function') {
-            toastInfo('Graph editor edits the first trigger only — use ✏️ for others.');
-        }
-        const triggerData = currentTriggers[0] || {};
-        const graph = TriggerGraph.triggerToGraph(triggerData);
+        // Every trigger in the library entry, one root block each.
+        const graph = TriggerGraph.triggersToGraph(currentTriggers);
         const persistFormData = (data) => {
             const triggers = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
             const compiled = {
@@ -833,11 +830,16 @@ class ItemLibrary {
                 success_message: data.success_message || '',
                 fail_message: data.fail_message || '',
             };
-            if (triggers.length > 0) {
+            const id = data.id ? String(data.id) : '';
+            const idx = id ? triggers.findIndex((t) => t && t.id === id) : -1;
+            if (idx >= 0) {
+                triggers[idx] = { ...triggers[idx], ...compiled, id };
+            }
+            else if (triggers.length && !id) {
                 triggers[0] = { ...triggers[0], ...compiled };
             }
             else {
-                triggers.push(compiled);
+                triggers.push(id ? { ...compiled, id } : compiled);
             }
             byId('lib-item-triggers').value = JSON.stringify(triggers);
             this._refreshEditorWithTriggers();
@@ -852,22 +854,19 @@ class ItemLibrary {
                 triggerTypes: ItemLibrary.TRIGGER_TYPES,
                 targetDatalistHtml: this._buildTargetDatalistHtml(),
                 itemDatalistHtml: this._buildItemDatalistHtml(),
-                initialName: triggerData.name || '',
-                success_message: triggerData.success_message || '',
-                fail_message: triggerData.fail_message || '',
+                initialName: currentTriggers[0]?.name || '',
+                success_message: currentTriggers[0]?.success_message || '',
+                fail_message: currentTriggers[0]?.fail_message || '',
                 onSave: (data) => persistFormData(data),
             },
             onSave: (newGraph) => {
-                const compiled = TriggerGraph.compileToEngine(newGraph);
-                if (TriggerGraph.reportCompileError(compiled))
+                const defs = TriggerGraph.compileToTriggers(newGraph);
+                const refused = defs.find((def) => TriggerGraph.compileError(def));
+                if (refused && TriggerGraph.reportCompileError(refused))
                     return;
-                if (!compiled)
-                    return;
-                persistFormData({
-                    ...TriggerGraph.engineToFormData(compiled),
-                    success_message: triggerData.success_message || '',
-                    fail_message: compiled.fail_message || triggerData.fail_message || '',
-                });
+                byId('lib-item-triggers').value = JSON.stringify(defs);
+                this._refreshEditorWithTriggers();
+                events.log('Trigger graph applied.', 'system-msg');
             }
         });
     }
@@ -1107,7 +1106,7 @@ class ItemLibrary {
             actions = props.actions.join(',');
         else if (typeof props.actions === 'string')
             actions = props.actions;
-        const triggers = this._extractTriggersFromEdges(nodeId);
+        const triggers = this._extractTriggersFromNode(nodeId);
         const built = this._buildWorldItemPayload(nodeId);
         const worldPayload = built ? built.payload : {
             name,
@@ -1244,7 +1243,7 @@ class ItemLibrary {
                 actions = p.actions.join(',');
             else if (typeof p.actions === 'string')
                 actions = p.actions;
-            const triggers = this._extractTriggersFromEdges(nodeId);
+            const triggers = this._extractTriggersFromNode(nodeId);
             const childBuilt = this._buildWorldItemPayload(nodeId);
             const worldItem = childBuilt ? {
                 id, name,
@@ -1340,10 +1339,9 @@ class ItemLibrary {
             this.renderList(byId('item-lib-search')?.value || '');
         }
     }
-    _extractTriggersFromEdges(nodeId) {
-        // One compiler for the graph→array direction (task-636): reads both the
-        // trigger edge and its logic_trigger node (edge wins), so a trigger
-        // authored on either copy is exported. See TriggerGraph.triggerDefFromEdge.
+    _extractTriggersFromNode(nodeId) {
+        // properties.triggers first, legacy triggers edges deduped by id
+        // (task-886). One reader for both stores.
         if (typeof TriggerGraph === 'undefined' || !TriggerGraph.triggersFromGraphEdges)
             return [];
         return TriggerGraph.triggersFromGraphEdges(worldState.graph?.edges, worldState.graph?.nodes, nodeId);
@@ -1413,7 +1411,7 @@ class ItemLibrary {
             insulation: props.insulation || 0,
             resistances: props.resistances ?? undefined,
             tags: props.tags || [],
-            triggers: this._extractTriggersFromEdges(nodeId),
+            triggers: this._extractTriggersFromNode(nodeId),
             contents,
             image: props.image ?? undefined
         };

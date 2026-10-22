@@ -27,9 +27,21 @@ window.BenchmarkApp = (() => {
     function init() {
         cacheElements();
         attachEvents();
-        loadWorldState();
+        wireRuntime();
         refreshModels();
         loadPastRuns();
+        loadWorldState();
+    }
+
+    /**
+     * Publish the singletons the prompt builder reads, the same way main.js
+     * does for the editor: VW.state is the world-state cache and VW.events is
+     * the event bus (memory recall renders relative ticks through it).
+     */
+    function wireRuntime() {
+        window.VW = window.VW || {};
+        window.VW.state = window.worldState;
+        window.VW.events = window.events;
     }
 
     function cacheElements() {
@@ -86,7 +98,6 @@ window.BenchmarkApp = (() => {
             state.selectedChar = els.characterSelect.value;
             assembleCharacterPrompt();
         });
-
         els.runBtn.addEventListener('click', startBenchmark);
         els.cancelBtn.addEventListener('click', cancelBenchmark);
 
@@ -99,13 +110,23 @@ window.BenchmarkApp = (() => {
 
     async function loadWorldState() {
         try {
-            const resp = await fetch('/api/state');
-            if (!resp.ok) throw new Error('Failed to fetch world state');
-            state.worldData = await resp.json();
+            // The prompt builder reads the app's singletons, so the benchmark
+            // page uses the same world-state cache the editor does. Loading it
+            // here also keeps `worldState.data` fresh for the ground-truth
+            // checks that run against every model output.
+            if (window.config && window.config._initPromise) {
+                await window.config._initPromise;
+            }
+            await window.worldState.fetch();
+            state.worldData = window.worldState.data;
+            if (!state.worldData) throw new Error('The server returned no world state.');
             populateCharacters();
         } catch (e) {
             console.error('[Benchmark] Error loading world state:', e);
-            if (els.statusText) els.statusText.textContent = 'Failed to load world state.';
+            state.worldData = null;
+            state.currentPrompt = null;
+            if (els.statusText) els.statusText.textContent = `Failed to load world state: ${e.message}`;
+            if (els.promptSummary) els.promptSummary.textContent = `World state unavailable: ${e.message}`;
         }
     }
 
@@ -131,43 +152,48 @@ window.BenchmarkApp = (() => {
         assembleCharacterPrompt();
     }
 
-    function assembleCharacterPrompt() {
+    /**
+     * Assemble the prompt the benchmark sends: the SAME system + user messages
+     * the simulation would send this character on its next turn, built by the
+     * shared PromptBuilder capture (prompt-builder/capture.js), which mirrors
+     * agent-engine's think-decide call sequence.
+     *
+     * There is deliberately no hand-written fallback. A stub prompt measures the
+     * stub, and the silent fallback is exactly how this page shipped a
+     * two-line prompt for months while the real one sat in the code.
+     */
+    async function assembleCharacterPrompt() {
         if (!state.selectedChar || !state.worldData) return;
 
-        const player = state.worldData.players?.[state.selectedChar];
-        if (!player) return;
+        const roomName = state.worldData.players?.[state.selectedChar]?.current_area || 'Unknown';
 
-        const roomName = player.current_area || player.area;
-        const room = state.worldData.areas?.[roomName] || {};
+        if (!window.PromptBuilder || typeof window.PromptBuilder.captureTurnPrompt !== 'function') {
+            state.currentPrompt = null;
+            const msg = 'Prompt builder is not loaded on this page.';
+            if (els.promptSystem) els.promptSystem.textContent = msg;
+            if (els.promptUser) els.promptUser.textContent = '';
+            if (els.promptSummary) els.promptSummary.textContent = msg;
+            if (els.statusText) els.statusText.textContent = msg;
+            return;
+        }
 
-        let systemPrompt = '';
-        let userPrompt = '';
+        try {
+            const captured = await window.PromptBuilder.captureTurnPrompt(state.selectedChar);
+            state.currentPrompt = { system: captured.systemPrompt, user: captured.userPrompt };
 
-        if (window.PromptBuilder && typeof window.PromptBuilder.buildCharacterSystemPrompt === 'function') {
-            try {
-                systemPrompt = window.PromptBuilder.buildCharacterSystemPrompt(state.selectedChar, player, false);
-                const parts = window.PromptBuilder.buildRoomContextParts ? window.PromptBuilder.buildRoomContextParts(state.worldData, room, player) : {};
-                const vitalsNL = window.PromptBuilder.buildVitalsNL ? window.PromptBuilder.buildVitalsNL(player) : '';
-                const emotionNL = '';
-                const relNL = '';
-                const memNL = '';
-                userPrompt = window.PromptBuilder.buildReactionPrompt(player, parts, vitalsNL, emotionNL, relNL, memNL, '', false, false);
-            } catch (err) {
-                console.warn('[Benchmark] PromptBuilder threw, using fallback:', err);
+            if (els.promptSystem) els.promptSystem.textContent = captured.systemPrompt;
+            if (els.promptUser) els.promptUser.textContent = captured.userPrompt;
+            if (els.promptSummary) {
+                els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${roomName} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
             }
-        }
-
-        if (!userPrompt) {
-            systemPrompt = `You are ${state.selectedChar}. Respond with JSON containing inner_monologue, action, item, target, speech, emote.`;
-            userPrompt = `You are in ${roomName || 'the area'}.\nExits: ${(room.exits ? Object.keys(room.exits) : []).join(', ')}\nItems: ${(room.items || []).join(', ')}\nPeople: ${(room.occupants || []).join(', ')}\n\nWhat do you think, say, and do? Respond ONLY valid JSON.`;
-        }
-
-        state.currentPrompt = { system: systemPrompt, user: userPrompt };
-
-        if (els.promptSystem) els.promptSystem.textContent = systemPrompt;
-        if (els.promptUser) els.promptUser.textContent = userPrompt;
-        if (els.promptSummary) {
-            els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${roomName || 'Unknown'} | System: ${systemPrompt.length} chars | User: ${userPrompt.length} chars`;
+        } catch (err) {
+            console.error('[Benchmark] Prompt capture failed:', err);
+            state.currentPrompt = null;
+            const msg = `Prompt capture failed: ${err.message}`;
+            if (els.promptSystem) els.promptSystem.textContent = msg;
+            if (els.promptUser) els.promptUser.textContent = '';
+            if (els.promptSummary) els.promptSummary.textContent = msg;
+            if (els.statusText) els.statusText.textContent = msg;
         }
     }
 
@@ -339,8 +365,15 @@ window.BenchmarkApp = (() => {
             return;
         }
 
+        // Re-capture before every run: the world may have moved since the page
+        // loaded, and a benchmark of a stale prompt measures the wrong turn.
+        await assembleCharacterPrompt();
+
         if (!state.currentPrompt) {
-            assembleCharacterPrompt();
+            els.statusBadge.className = 'bench-status-badge bench-status-idle';
+            els.statusBadge.textContent = 'No prompt';
+            els.statusText.textContent = 'Could not capture the turn prompt. Check the prompt panel for the error.';
+            return;
         }
 
         state.activeRun = true;

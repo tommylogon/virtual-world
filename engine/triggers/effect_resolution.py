@@ -1,9 +1,107 @@
 """Trigger effect resolution helpers.
 
 Moved from engine/trigger_system.py.
+
+Also owns the shape normalisers for ``properties['triggers']``. An item-library
+round trip once wrote a trigger definition wrapped under its own key
+(``{"item": {...}}``, and the same wrapper around ``effects``), so the store on
+disk holds definitions, wrapper objects and wrapper lists in the same field.
+Normalise on the way in (bug-566) instead of teaching every reader the shapes.
 """
 
 from typing import List, Optional
+
+
+# Keys a real trigger definition carries. A single-key dict whose key is not in
+# this set is treated as a wrapper around its value, not as a definition.
+_TRIGGER_FIELDS = frozenset({
+    "id", "name", "trigger_type", "effects", "effect_type", "effect_params",
+    "condition", "conditions", "conditions_logic", "target_name", "target_tag",
+    "target_state", "success_message", "fail_message", "once", "fired",
+    "cooldown",
+})
+
+
+def _looks_like_trigger(value) -> bool:
+    return isinstance(value, dict) and bool(_TRIGGER_FIELDS & set(value))
+
+
+def _unwrap_single_key(value, *, scalar: bool = False):
+    """Unwrap ``{key: inner}`` wrappers, repeatedly.
+
+    Only a dict with one key outside the trigger vocabulary is a wrapper. A
+    definition, a condition leaf and an effect all carry at least one known key,
+    so they are returned untouched. ``scalar`` allows unwrapping a wrapped
+    scalar (``{"item": "on_use"}``), which only makes sense for a field value.
+    """
+    for _ in range(8):
+        if not isinstance(value, dict) or len(value) != 1 or _looks_like_trigger(value):
+            return value
+        inner = next(iter(value.values()))
+        if not scalar and not isinstance(inner, (dict, list)):
+            return value
+        value = inner
+    return value
+
+
+def normalize_trigger_entry(entry):
+    """Return one trigger definition as a dict, or ``None`` when unusable.
+
+    Accepts a definition, a single-key wrapper around one, or a definition whose
+    ``effects`` / ``trigger_type`` / ``conditions`` values are themselves
+    wrapped. Effects without a ``type`` are dropped rather than passed to the
+    engine.
+    """
+    entry = _unwrap_single_key(entry)
+    if not isinstance(entry, dict) or not entry:
+        return None
+    entry = dict(entry)
+
+    for key in ("trigger_type", "effects", "conditions", "condition"):
+        if isinstance(entry.get(key), dict):
+            entry[key] = _unwrap_single_key(entry[key], scalar=True)
+
+    effects = entry.get("effects")
+    if isinstance(effects, dict):
+        effects = [effects]
+    if isinstance(effects, list):
+        fixed = []
+        for effect in effects:
+            effect = _unwrap_single_key(effect)
+            if isinstance(effect, dict) and effect.get("type"):
+                fixed.append(dict(effect))
+        if fixed:
+            entry["effects"] = fixed
+        else:
+            entry.pop("effects", None)
+
+    if entry.get("conditions") in ("", None):
+        entry.pop("conditions", None)
+    return entry
+
+
+def normalize_trigger_list(value) -> List[dict]:
+    """Return ``properties['triggers']`` as a list of definitions.
+
+    A bare definition, a wrapper around a definition, a wrapper around a list
+    and a plain list all normalise to the same list. Non-dict entries are
+    dropped. The input is never mutated.
+    """
+    if value is None:
+        return []
+    unwrapped = _unwrap_single_key(value)
+    if isinstance(unwrapped, list):
+        raw = unwrapped
+    elif isinstance(value, list):
+        raw = value
+    else:
+        raw = [unwrapped]
+    out: List[dict] = []
+    for item in raw:
+        entry = normalize_trigger_entry(item)
+        if entry is not None:
+            out.append(entry)
+    return out
 
 
 def _legacy_effects_from_properties(props: dict) -> Optional[List[dict]]:

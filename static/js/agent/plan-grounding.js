@@ -32,12 +32,26 @@
 window.PlanGrounding = (() => {
     'use strict';
     /**
-     * The plan-step verbs the contract allows - the engine's own verb list
-     * (task-491's single source of truth), because a plan that cannot say
-     * "escape" is useless to a character who is being held. The grounding
-     * rules per act follow in groundStep().
+     * The plan-step verbs the contract allows.
+     *
+     * ONE SOURCE OF TRUTH, TWO SCHEMAS. The executor's verb list lives in
+     * `window.ActionVerbs` (mirrored from engine/action_verbs.py) and is what
+     * `ActionNormalizer.isValidAction` checks. The planner needs a NARROWER
+     * list - verbs that mean something as a step in a plan - but it used to
+     * keep that list by hand, and the two drifted: a plan could propose a
+     * verb the executor would reject as unknown, burning the character's turn
+     * on a command the engine could not run.
+     *
+     * So the plan list is now the INTERSECTION of the curated intent list and
+     * the executor's registry. A plan verb the engine does not implement can
+     * never be advertised, and the planner never offers engine plumbing
+     * ("manifest", "do", "i") as a plan step.
+     *
+     * `perform` is the one plan-only verb: it describes a sustained activity
+     * ("mine until dusk") and the plan executor re-checks it against the
+     * world when the step actually runs.
      */
-    const ACTS = new Set([
+    const PLAN_INTENT_ACTS = [
         // movement & approach
         'go', 'dash', 'approach', 'crawl', 'climb', 'jump', 'fumble',
         // world interaction
@@ -49,7 +63,22 @@ window.PlanGrounding = (() => {
         'give', 'steal', 'grab', 'lead', 'attack', 'escape', 'struggle',
         // sustained / state
         'speak', 'perform', 'wait', 'stand', 'rest', 'sleep', 'meditate', 'bathe', 'relieve',
-    ]);
+    ];
+    const ACTS = (() => {
+        const registry = window.ActionVerbs;
+        const source = registry?.VALID_SET
+            || (registry?.VALID_VERBS ? new Set(registry.VALID_VERBS) : null);
+        if (!source)
+            return new Set(PLAN_INTENT_ACTS);
+        const acts = new Set();
+        for (const act of PLAN_INTENT_ACTS) {
+            // "perform" is plan-only: it has no engine verb, the world
+            // resolves it when the step runs.
+            if (act === 'perform' || source.has(act))
+                acts.add(act);
+        }
+        return acts;
+    })();
     const STOP_WORDS = new Set([
         'the', 'a', 'an', 'to', 'of', 'and', 'or', 'at', 'in', 'on', 'for',
         'with', 'is', 'are', 'was', 'it', 'its', "it's", 'my', 'your',
@@ -242,6 +271,24 @@ window.PlanGrounding = (() => {
      * Validate ONE typed step against the facts. Returns null when the step
      * grounds, else the human-readable rejection reason (with the fact list
      * so the LLM can re-compose from what exists).
+     *
+     * TARGET TYPES (the reason this validator exists). A plan step names a
+     * target, and the target's TYPE decides which fact pool it must resolve
+     * against:
+     *
+     *   - a PATH  (a door, an exit, a way)  - lives in `exits`. Legitimate
+     *     target for go / dash / approach / open / close / examine.
+     *   - an ITEM (a thing you can pick up, use, search) - lives in
+     *     `areaItems` / `carried`. Legitimate target for take / use / search /
+     *     examine / drop.
+     *   - a PERSON - lives in `people`. Legitimate target for speak / give /
+     *     attack / grab.
+     *   - an AREA - lives in `knownAreas`. Legitimate target for go.
+     *
+     * Before this split, `open dining_room_door` was REJECTED because a door
+     * is a path and the check only consulted the item pool - even though the
+     * prompt had just listed that door under "From where you stand, you can
+     * see the following paths".
      */
     function groundStep(step, facts, areaName) {
         const act = String(step?.act || '').toLowerCase().trim();
@@ -251,6 +298,9 @@ window.PlanGrounding = (() => {
         const item = step?.item ?? step?.target ?? '';
         const target = step?.target ?? '';
         const everything = [...facts.areaItems, ...facts.carried, ...facts.people];
+        // A PATH is a valid target for the movement and door verbs.
+        const pathOrItem = [...everything, ...facts.exits];
+        const itemOnly = [...facts.areaItems, ...facts.carried];
         switch (act) {
             case 'go':
             case 'dash':
@@ -274,7 +324,7 @@ window.PlanGrounding = (() => {
             case 'split': {
                 if (!String(item).trim())
                     return `${act} needs an item`;
-                if (!matchFact(item, [...facts.carried, ...facts.areaItems])) {
+                if (!matchFact(item, itemOnly)) {
                     return `no interactable "${item}" to ${act} - carrying: ${facts.carried.join(', ') || '(nothing)'}; interactables here: ${facts.areaItems.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
                 }
                 return null;
@@ -298,8 +348,12 @@ window.PlanGrounding = (() => {
             case 'take': {
                 if (!String(item).trim())
                     return 'take needs an item';
-                if (!matchFact(item, [...facts.areaItems, ...facts.carried])) {
+                if (!matchFact(item, itemOnly)) {
                     return `no interactable "${item}" here to take - interactables: ${facts.areaItems.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
+                }
+                // Semantic check: you cannot "take" what you already carry.
+                if (facts.carried.map(s => s.toLowerCase()).includes(String(item).toLowerCase())) {
+                    return `you already carry "${item}" - use "use", "examine", or "drop" instead of "take"`;
                 }
                 return null;
             }
@@ -310,7 +364,7 @@ window.PlanGrounding = (() => {
             case 'make': {
                 if (!String(item).trim())
                     return `${act} needs an item`;
-                if (!matchFact(item, [...facts.carried, ...facts.areaItems])) {
+                if (!matchFact(item, itemOnly)) {
                     return `no interactable "${item}" to ${act} - carrying: ${facts.carried.join(', ') || '(nothing)'}; interactables here: ${facts.areaItems.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
                 }
                 return null;
@@ -320,27 +374,59 @@ window.PlanGrounding = (() => {
                 if (!String(item).trim() || !String(target).trim()) {
                     return `${act} needs both item and target`;
                 }
-                if (!matchFact(item, [...facts.carried, ...facts.areaItems])) {
+                if (!matchFact(item, itemOnly)) {
                     return `no interactable "${item}" to ${act}`;
                 }
-                if (!matchFact(target, [...everything, areaName])) {
+                if (!matchFact(target, pathOrItem)) {
                     return `no interactable "${target}" here to ${act} on - interactables: ${everything.join(', ') || '(none)'}`;
                 }
                 return null;
             }
-            case 'examine':
             case 'open':
-            case 'close':
-            case 'attack':
-            case 'grab':
-            case 'read':
-            case 'search': {
+            case 'close': {
+                // A door is a PATH here, not an item. Opening it must resolve
+                // against the exit list or the step is rejected for the wrong
+                // reason (it used to be).
+                if (!String(target || item).trim())
+                    return `${act} needs a target`;
+                const ref = target || item;
+                if (!matchFact(ref, pathOrItem)) {
+                    return `no door or container called "${ref}" to ${act} - paths from here: ${facts.exits.join(', ') || '(none visible)'}; interactables here: ${facts.areaItems.join(', ') || '(none)'}`;
+                }
+                return null;
+            }
+            case 'examine':
+            case 'read': {
                 if (!String(item).trim() && !String(target).trim()) {
                     return `${act} needs an item or target`;
                 }
                 const ref = item || target;
-                if (!matchFact(ref, [...everything, areaName])) {
+                if (!matchFact(ref, [...pathOrItem, areaName])) {
+                    return `no interactable "${ref}" here - interactables: ${everything.join(', ') || '(none)'}; paths: ${facts.exits.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
+                }
+                return null;
+            }
+            case 'attack':
+            case 'grab': {
+                if (!String(item).trim() && !String(target).trim()) {
+                    return `${act} needs an item or target`;
+                }
+                const ref = item || target;
+                if (!matchFact(ref, everything)) {
                     return `no interactable "${ref}" here - interactables: ${everything.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
+                }
+                return null;
+            }
+            case 'search': {
+                // Search needs a THING to search, and a thing is an item or a
+                // person - not a doorway. To look through a doorway, go there
+                // first and then search what the room actually lists.
+                if (!String(item).trim() && !String(target).trim()) {
+                    return `search needs an item or target - a thing to look through, not a place. To look in another room, "go" there first and then "look" to see what it lists`;
+                }
+                const ref = item || target;
+                if (!matchFact(ref, everything)) {
+                    return `no interactable "${ref}" here to search - interactables: ${everything.join(', ') || '(none)'}. Room-description scenery is NOT interactable`;
                 }
                 return null;
             }
@@ -401,19 +487,23 @@ window.PlanGrounding = (() => {
      * Ground a list of typed steps. Returns the grounded (rendered) steps and
      * every rejection with its reason. Caller decides retry/drop policy -
      * plan-manager allows exactly one bounded re-composition.
+     *
+     * Each entry carries its `index` in the input array, so a caller can
+     * rebuild the plan positionally (the repair contract is "keep the steps
+     * that already grounded, replace only the rejected ones").
      */
     function ground(steps, facts, areaName) {
         const grounded = [];
         const rejections = [];
-        for (const step of steps || []) {
+        (steps || []).forEach((step, index) => {
             if (!step || typeof step !== 'object')
-                continue;
+                return;
             const reason = groundStep(step, facts, areaName);
             if (reason)
-                rejections.push({ step, reason });
+                rejections.push({ step, reason, index });
             else
-                grounded.push({ step, text: render(step) });
-        }
+                grounded.push({ step, text: render(step), index });
+        });
         return { grounded, rejections };
     }
     return { ACTS, collectFacts, groundStep, ground, render, matchFact };

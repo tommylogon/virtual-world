@@ -75,6 +75,13 @@ class AgentEngine {
         return this.characterHistories[charName];
     }
     getDisplayHistory(charName) { return this.getHistory(charName).slice(1); }
+    /** Fix 8: centralized controllingPlayer resolution - used by step, stepOnce, start */
+    _resolveControllingPlayer() {
+        return config.controllingPlayer
+            || worldState.data?.active_player
+            || (config.turnBased ? TurnQueue.getCurrentCharacter() : undefined)
+            || undefined;
+    }
     /** Current graph area node id for a character (entity link for memories). */
     _currentAreaEntityId(charName) {
         const player = worldState.runtimePlayer(charName);
@@ -262,9 +269,18 @@ class AgentEngine {
             events.log(`Emote error: ${emoteErr instanceof Error ? emoteErr.message : String(emoteErr)}`, 'error-msg');
         }
     }
-    _storeReactionMemory(charName, memory, feltEmotion = null) {
+    _storeReactionMemory(charName, memory, feltEmotion = null, actionSucceeded = true, actionResult = '') {
         if (!memory?.text)
             return;
+        // Fix #7: reject memories that claim success for a failed action.
+        if (!actionSucceeded) {
+            const lower = memory.text.toLowerCase();
+            const successClaims = ['succeeded', 'worked', 'managed to', 'was able to', 'accomplished', 'achieved', 'completed', 'finished', 'done', 'lit', 'ignited', 'started', 'opened', 'unlocked', 'found', 'discovered', 'revealed'];
+            if (successClaims.some(claim => lower.includes(claim))) {
+                events.log(`⚠️ ${charName} memory rejected: claims success for failed action`, 'error-msg');
+                return;
+            }
+        }
         const entityId = this._currentAreaEntityId(charName);
         const tick = worldState.runtimeData?.time_ticks ?? worldState.data?.time_ticks ?? 0;
         const normalized = memory.text.trim().toLowerCase();
@@ -525,7 +541,7 @@ class AgentEngine {
         // header's "Active:" comes from the server's active_player - so after a
         // refresh they disagree. Fall back to the server's active player rather
         // than refusing to run with "no agent selected".
-        let charName = config.controllingPlayer || worldState.data?.active_player || null;
+        let charName = this._resolveControllingPlayer();
         if (charName)
             config.controllingPlayer = charName;
         if (config.turnBased && this.turnQueue.length === 0)
@@ -616,6 +632,16 @@ class AgentEngine {
                 return;
             await worldState.fetch();
             delete this.characterHistories[charName];
+            // Fix 3: clean up histories and lastActionResult for dead/removed characters
+            const aliveNames = new Set(Object.keys(worldState.data?.players || {}));
+            for (const name of Object.keys(this.characterHistories)) {
+                if (!aliveNames.has(name))
+                    delete this.characterHistories[name];
+            }
+            for (const name of Object.keys(agentConfig.lastActionResult)) {
+                if (!aliveNames.has(name))
+                    delete agentConfig.lastActionResult[name];
+            }
             history = this.getHistory(charName);
             if (worldState.data?.scenario_ended) {
                 events.log("🏁 Scenario ended via trigger.", "system-msg");
@@ -652,7 +678,12 @@ class AgentEngine {
                 this._logActorTurnEvents(charName);
                 return;
             }
-            const currentArea = state.areas[state.current_area] || null;
+            // The prompt, threat check and action brackets must all describe the
+            // room THIS character is in. `state.current_area` is the server's
+            // single active-player view, so using it here showed every other
+            // agent the active player's room (bug-565: kyrie was told "library"
+            // while her own examine resolved against "foyer").
+            const currentArea = state.areas[player?.current_area || state.current_area] || null;
             const lastResult = agentConfig.lastActionResult[charName] || '';
             if (window.AgentState.isBusy(charName, lastResult, player)) {
                 const busyPlayer = worldState.players?.[charName];
@@ -668,6 +699,12 @@ class AgentEngine {
                 }
                 return this._endTurnEarly(`⏳ ${charName} is ${busyAct}${detail}...`, 'system-msg');
             }
+            // Bonus fix: null-check must come BEFORE using player
+            if (!player) {
+                config.busy = false;
+                VW?.ui?.updateButtons();
+                return;
+            }
             // Unconscious check - skip actions, character cannot think or act
             if (player.state === 'unconscious') {
                 const { message: unconsciousMsg } = window.AgentState.markUnconscious(charName, player, worldState.data, worldState);
@@ -682,13 +719,10 @@ class AgentEngine {
                 window.AgentMemory.storeMemory(charName, `You wake up, groggy and disoriented, your Energy restored to ${player.vitals?.Energy || 'some'}%.`, 7, 'thought');
                 return this._endTurnEarly(null);
             }
-            if (!player) {
-                config.busy = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
-            // Reflection every 5 turns
-            if (this.turnNumber > 0 && this.turnNumber % 5 === 0 && config.reactiveMode) {
+            // Reflection every 5 turns (per-character counter so it works in simultaneous mode too)
+            // Fix 10: use per-char turn counter instead of global turnNumber (which is 0 in simultaneous)
+            const charTurnCount = (agentConfig.charTurnCounts = agentConfig.charTurnCounts || {})[charName] = ((agentConfig.charTurnCounts || {})[charName] || 0) + 1;
+            if (charTurnCount % 5 === 0 && config.reactiveMode) {
                 window.AgentMemory.reflect(charName).catch(() => { });
             }
             const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
@@ -754,11 +788,14 @@ class AgentEngine {
                         // Re-read the world: the previous action moved/spent slots and
                         // may have revealed items, so rebuild the room context. Vitals,
                         // emotion and memory stay at their turn-start values.
+                        // Fix 7: wait for any in-flight fetch to complete (coalesce)
+                        if (worldState._inflight)
+                            await worldState._inflight;
                         await worldState.fetch();
                         const loopState = worldState.data || state;
                         const loopPlayer = loopState?.players?.[charName] || player;
                         promptPlayer = loopPlayer;
-                        const loopArea = loopState?.areas?.[loopState.current_area] || currentArea;
+                        const loopArea = loopState?.areas?.[loopPlayer?.current_area || loopState.current_area] || currentArea;
                         const loopRoomParts = PromptBuilder.buildRoomContextParts(loopState, charName, loopPlayer, loopArea);
                         observeParts = Object.assign({}, loopRoomParts, { plan: PromptBuilder.buildPlanContext(charName) });
                         if (this._checkCancel())
@@ -771,9 +808,16 @@ class AgentEngine {
                     // between decide and react (e.g. changing a favorite color).
                     const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
                     const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
-                    history.push({ role: 'user', content: combinedPrompt });
-                    const combinedResponse = await this._callLLMMessages(history, 'think-decide');
-                    history.push({ role: 'assistant', content: combinedResponse || '' });
+                    // Fix #6: each decide is a fresh system + user call; previous
+                    // assistant outputs are not replayed as active context.
+                    const decideHistory = [
+                        history[0], // system prompt (persistent rules)
+                        { role: 'user', content: combinedPrompt }
+                    ];
+                    const combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
+                    // Do NOT replay the assistant output into persistent history.
+                    // The react phase uses its own fresh messages; the next turn
+                    // restarts with a clean [system, user] context.
                     if (combinedResponse === null) {
                         events.log(`❌ LLM call failed for ${charName} (think/decide phase) - stopping agent`, 'error-msg');
                         VW?.ui?.setStatus("LLM Error - Stopped", "error");
@@ -784,7 +828,7 @@ class AgentEngine {
                     VW?.ui?.setStatus("Deciding...", "info");
                     let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
                     if (parsedDecide.parseError)
-                        parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
+                        parsedDecide = await this._retryOnceOnParseError(charName, decideHistory, 'think-decide', ResponseParser.parseReaction, parsedDecide);
                     if (parsedDecide.parseError) {
                         events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
                     }
@@ -798,10 +842,26 @@ class AgentEngine {
                     if (!agentConfig.lastRoom[charName] && player.current_area)
                         agentConfig.lastRoom[charName] = player.current_area;
                     let actionRejected = '';
-                    if (finalAction && !ActionNormalizer.isValidAction(finalAction, charName)) {
-                        events.log(`⚠️ ${charName} invalid action: "${finalAction}" - skipping`, 'error-msg');
-                        actionRejected = finalAction;
-                        finalAction = '';
+                    let actionRejectCategory = '';
+                    if (finalAction) {
+                        const verdict = ActionNormalizer.classifyAction(finalAction, charName);
+                        if (!verdict.ok) {
+                            // The category is part of the message on purpose: a
+                            // malformed payload and an unknown verb are ENGINE
+                            // failures, and a reader (or a filter) must be able to
+                            // tell them apart from a world refusal.
+                            events.log(`⚠️ ${charName} invalid action: "${finalAction}" - skipping [${verdict.category}: ${verdict.detail}]`, 'error-msg');
+                            actionRejected = finalAction;
+                            actionRejectCategory = verdict.category;
+                            finalAction = '';
+                        }
+                    }
+                    else if (parsedDecide.parseError && /schema_invalid/.test(parsedDecide.parseError)) {
+                        // The model DID choose an action, but the engine could not
+                        // read the payload. The command never reached the world -
+                        // say exactly that instead of faking a world refusal.
+                        actionRejected = '(unreadable command)';
+                        actionRejectCategory = 'schema_invalid';
                     }
                     if (decisionSpeech) {
                         await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
@@ -814,7 +874,7 @@ class AgentEngine {
                     let actionResult = '';
                     let actionSucceeded = true;
                     if (actionRejected) {
-                        actionResult = this._surfaceRejectedAction(charName, actionRejected);
+                        actionResult = this._surfaceRejectedAction(charName, actionRejected, actionRejectCategory);
                         actionSucceeded = false;
                         events.log(actionResult, 'msg-result', { outcome: 'failure' }, charName);
                     }
@@ -889,11 +949,17 @@ class AgentEngine {
                                 actionResult = `Error: ${m}`;
                             }
                     }
-                    // ── Invalid-action auto-retry (task-361) ──
-                    // One same-turn retry when the agent's action failed and the
-                    // setting is on. Not a new turn: no step/plan advance, and the
-                    // retry outcome becomes the actionResult used by the react phase.
-                    if (!actionSucceeded && config.autoRetryInvalid && actionResult) {
+                    // ── Budget-exhaustion auto-retry: if server rejected for
+                    // "no major action left", immediately substitute "wait" instead
+                    // of asking the LLM (which would likely pick another major action).
+                    const budgetExhausted = !actionSucceeded && /no major action left|major action budget exhausted/i.test(actionResult);
+                    if (budgetExhausted) {
+                        events.log(`↩️ ${charName}: budget exhausted — auto-substituting "wait"`, 'system-msg');
+                        actionResult = 'You wait, watching and listening.';
+                        actionSucceeded = true;
+                        PlanTracker.trackStep(charName, 'wait', actionResult, true);
+                    }
+                    else if (!actionSucceeded && config.autoRetryInvalid && actionResult) {
                         const retry = await this._autoRetryInvalidAction(charName, player, history, actionRejected || finalAction, actionResult, memoryNL);
                         if (retry) {
                             finalAction = retry.finalAction;
@@ -918,15 +984,18 @@ class AgentEngine {
                             agentConfig.lastActionResult[charName] = actionResult;
                         }
                         else if (!isNowResting) {
+                            // Fix 7: coalesce with any in-flight fetch
+                            if (worldState._inflight)
+                                await worldState._inflight;
                             await worldState.fetch();
                             const freshState = worldState.data;
                             const freshPlayer = freshState?.players?.[charName] || player;
-                            const freshRoom = freshState?.areas?.[freshState.current_area] || currentArea;
+                            const freshRoom = freshState?.areas?.[freshPlayer?.current_area || freshState.current_area] || currentArea;
                             events.logPhase(charName, 'react', 'reacting');
                             VW?.ui?.setStatus("Reacting...", "info");
                             const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
                             const tickNum = worldState.data?.time_ticks ?? 0;
-                            const areaName = freshRoom?.name || freshState?.current_area || '';
+                            const areaName = freshRoom?.name || freshPlayer?.current_area || freshState?.current_area || '';
                             // task-185: currentArea is the turn-start (pre-action) room -
                             // if it differs from the fresh room the character MOVED this
                             // action, and "surroundings are unchanged" was lying while
@@ -951,7 +1020,7 @@ class AgentEngine {
                                 { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
                                 { role: 'user', content: reactPrompt },
                             ];
-                            let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction');
+                            let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction', charName);
                             if (reactResponse === null) {
                                 events.log(`❌ LLM call failed for ${charName} (reaction phase) - stopping agent`, 'error-msg');
                                 VW?.ui?.setStatus("LLM Error - Stopped", "error");
@@ -969,7 +1038,7 @@ class AgentEngine {
                                     { role: 'assistant', content: reactResponse || '' },
                                     { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON - same schema, and finish every field you start.' },
                                 ];
-                                const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
+                                const retried = await this._callLLMMessages(retryMessages, 'result-reaction', charName);
                                 if (retried) {
                                     reactResponse = retried;
                                     parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact;
@@ -995,7 +1064,7 @@ class AgentEngine {
                             if (reactionEmote) {
                                 await this._performEmote(charName, reactionEmote);
                             }
-                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion);
+                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion, actionSucceeded, actionResult);
                             events.trackAction(charName, reactionInner, reactionSpeech, null, '');
                         }
                         else {
@@ -1029,9 +1098,12 @@ class AgentEngine {
                 // ── Non-reactive (combined) mode ──
                 VW?.ui?.setStatus("Thinking...", "info");
                 const reactionPrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, true);
-                history.push({ role: 'user', content: reactionPrompt });
-                const reactionResponse = await this._callLLMMessages(history, 'combined');
-                history.push({ role: 'assistant', content: reactionResponse || '' });
+                // Fix #6: combined mode also uses fresh context, not accumulated history.
+                const combinedHistory = [
+                    history[0],
+                    { role: 'user', content: reactionPrompt }
+                ];
+                const reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
                 if (reactionResponse === null) {
                     events.log(`❌ LLM call failed for ${charName} - stopping agent`, 'error-msg');
                     VW?.ui?.setStatus("LLM Error - Stopped", "error");
@@ -1055,7 +1127,25 @@ class AgentEngine {
                 events.trackAction(charName, inner, speech, null, '');
                 if (!agentConfig.lastRoom[charName] && player.current_area)
                     agentConfig.lastRoom[charName] = player.current_area;
-                const finalAction = action;
+                let finalAction = action;
+                // The non-reactive path validates the command too. Without
+                // this, a malformed payload went straight to /api/action and
+                // a stringified object reached the world as a command.
+                let combinedRejected = '';
+                let combinedRejectCategory = '';
+                if (finalAction) {
+                    const verdict = ActionNormalizer.classifyAction(finalAction, charName);
+                    if (!verdict.ok) {
+                        events.log(`⚠️ ${charName} invalid action: "${finalAction}" - skipping [${verdict.category}: ${verdict.detail}]`, 'error-msg');
+                        combinedRejected = finalAction;
+                        combinedRejectCategory = verdict.category;
+                        finalAction = '';
+                    }
+                }
+                else if (parsedNonReactive.parseError && /schema_invalid/.test(parsedNonReactive.parseError)) {
+                    combinedRejected = '(unreadable command)';
+                    combinedRejectCategory = 'schema_invalid';
+                }
                 const noopAction = this._isNoopAction(finalAction);
                 if (finalAction && !finalAction.startsWith('speak ') && !noopAction)
                     events.log(`[Action] ${finalAction}`, "msg-action");
@@ -1077,6 +1167,9 @@ class AgentEngine {
                         const area = worldState.players?.[charName]?.current_area;
                         if (area)
                             agentConfig.lastRoom[charName] = area;
+                        // Fix 7: coalesce with any in-flight fetch
+                        if (worldState._inflight)
+                            await worldState._inflight;
                         await worldState.fetch();
                         if (reactionEmote && data?.success !== false) {
                             await this._performEmote(charName, reactionEmote);
@@ -1084,8 +1177,15 @@ class AgentEngine {
                     }
                     catch (err) {
                         events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
+                        // Fix 7: coalesce with any in-flight fetch
+                        if (worldState._inflight)
+                            await worldState._inflight;
                         await worldState.fetch();
                     }
+                }
+                else if (combinedRejected) {
+                    const rejectionText = this._surfaceRejectedAction(charName, combinedRejected, combinedRejectCategory);
+                    events.log(rejectionText, 'msg-result', { outcome: 'failure' }, charName);
                 }
             }
             if (config.running && config.turnBased && this.turnQueue.length > 0) {
@@ -1093,6 +1193,10 @@ class AgentEngine {
                 if (worldState.data)
                     VW?.ui?.renderAll(worldState.data);
             }
+            // Fix #6: reset persistent history to system-only after each turn.
+            const turnHistory = this.getHistory(charName);
+            const sysOnly = turnHistory.length > 0 ? [turnHistory[0]] : [];
+            this.characterHistories[charName] = sysOnly;
         }
         finally {
             worldState.setRuntimeFocusForCharacter(config.controllingPlayer || charName);
@@ -1103,22 +1207,21 @@ class AgentEngine {
         }
     }
     async stepOnce() {
+        // A4: a stop/cancel from a PREVIOUS run must not ghost into this one
+        // ("Step cancelled." firing on a fresh ⏭ was the stale flag leaking).
+        this._cancelRequested = false;
+        this._paused = false;
+        this._pausedAt = null;
+        this._resumeAfterVisibility = false;
+        agentConfig.stepsRun = 0;
         if (config.busy || config.running) {
             events.log("Already running.", "system-msg");
             return;
         }
         if (config.turnBased && this.turnQueue.length === 0)
             TurnQueue.initialize();
-        if (config.turnBased && this.turnQueue.length > 0) {
-            config.controllingPlayer = TurnQueue.getCurrentCharacter();
-        }
-        else if (!config.turnBased) {
-            // bug-544: in non-turn-based mode, ensure controllingPlayer is set
-            // to the active player so the turn-end block executes and slots reset.
-            if (!config.controllingPlayer) {
-                config.controllingPlayer = worldState.data?.active_player || null;
-            }
-        }
+        // Fix 8: use centralized resolution
+        config.controllingPlayer = this._resolveControllingPlayer();
         const steppedCharacter = config.controllingPlayer;
         worldState.setRuntimeFocusForCharacter(steppedCharacter);
         try {
@@ -1142,6 +1245,9 @@ class AgentEngine {
         }
         finally {
             worldState.setRuntimeFocusForCharacter(config.controllingPlayer || steppedCharacter);
+            config.busy = false;
+            VW?.ui?.updateButtons();
+            VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
         }
     }
     async start() {
@@ -1164,9 +1270,8 @@ class AgentEngine {
             config.controllingPlayer = this.turnQueue[this.currentTurnIndex] || this.turnQueue[0];
         }
         else {
-            if (!config.controllingPlayer) {
-                config.controllingPlayer = worldState.data?.active_player || null;
-            }
+            // Fix 8: use centralized resolution
+            config.controllingPlayer = this._resolveControllingPlayer();
             if (!config.controllingPlayer) {
                 events.log("No character selected.", "error-msg");
                 return;
@@ -1463,6 +1568,11 @@ class AgentEngine {
         this._paused = false;
         this._pausedAt = null;
         this._resumeAfterVisibility = false;
+        // Fix 4: clear simultaneous mode deadlines/countdowns so they don't poison next run
+        this._simDeadlines = {};
+        this._simCountdowns = {};
+        this._simRoomCountdowns = {};
+        this._simRound = new Set();
         config.running = false;
         VW?.ui?.updateButtons();
         events.log(reason, 'system-msg');
@@ -1498,9 +1608,19 @@ class AgentEngine {
      * silently dropping it. The rejection lands in lastActionResult (so DECIDE
      * sees it next turn) - no memory write: the hint is transient system
      * feedback, not something the character remembers.
+     *
+     * The wording is CATEGORY-SENSITIVE on purpose. A malformed command or an
+     * unknown verb is an engine-side refusal, and saying "you try to X, but
+     * you can't do that" made characters invent supernatural barriers to
+     * explain a malformed JSON payload. The character is told what actually
+     * happened: the command never reached the world.
+     *
+     * @param {string} charName - Character name
+     * @param {string} rejectedAction - The rejected action text
+     * @param {string} category - 'schema_invalid' | 'unknown_verb' | 'empty'
      */
-    _surfaceRejectedAction(charName, rejectedAction) {
-        const text = `You try to ${rejectedAction}, but you can't do that.`;
+    _surfaceRejectedAction(charName, rejectedAction, category = 'unknown_verb') {
+        const text = ActionNormalizer.rejectionText(category, rejectedAction);
         agentConfig.lastActionResult[charName] = text;
         return text;
     }
@@ -1527,7 +1647,7 @@ class AgentEngine {
         VW?.ui?.setStatus?.('Retrying...', 'info');
         const prompt = PromptBuilder.buildRetryPrompt(attempted, failedResult);
         history.push({ role: 'user', content: prompt });
-        const response = await this._callLLMMessages(history, 'auto-retry');
+        const response = await this._callLLMMessages(history, 'auto-retry', charName);
         if (response === null) {
             history.pop(); // LLM call failed - drop the retry prompt, keep history as before
             return null;
@@ -1590,13 +1710,13 @@ class AgentEngine {
         if (!freshState)
             return resultText;
         const freshPlayer = freshState?.players?.[charName] || player;
-        const currentArea = freshState.areas?.[freshState.current_area] || null;
+        const currentArea = freshState.areas?.[freshPlayer?.current_area || freshState.current_area] || null;
         const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
         events.logPhase(charName, 'decide', `${sourceVerb} follow-up`);
         VW?.ui?.setStatus?.("Chain follow-up...", "info");
         const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceVerb, allowedVerbs);
         history.push({ role: 'user', content: prompt });
-        const response = await this._callLLMMessages(history, 'chain-follow-up');
+        const response = await this._callLLMMessages(history, 'chain-follow-up', charName);
         history.push({ role: 'assistant', content: response || '' });
         if (response === null)
             return resultText;
@@ -1648,9 +1768,24 @@ class AgentEngine {
     async _retryOnceOnParseError(charName, history, stepName, parser, parsed) {
         if (!parsed?.parseError || !history?.length)
             return parsed;
-        events.log(`⚠️ ${charName}: ${stepName} response was repaired (truncated JSON) - retrying once.`, 'error-msg');
+        // The message names the actual failure: a repaired/truncated reply and
+        // a schema-invalid payload are different problems and want different
+        // fixes from the model.
+        const isSchemaError = /schema_invalid/.test(String(parsed.parseError));
+        const reason = isSchemaError
+            ? 'the action payload was malformed'
+            : 'response was repaired (truncated JSON)';
+        events.log(`⚠️ ${charName}: ${stepName} ${reason} - retrying once.`, 'error-msg');
         history.pop(); // drop the broken assistant message so the retry isn't seeded by it
-        const retried = await this._callLLMMessages(history, stepName);
+        // A truncated reply usually repairs itself on a second ask. A schema
+        // error does not: the model has to be told what the field must be,
+        // or it reproduces the same malformed shape.
+        if (isSchemaError) {
+            history.push({ role: 'user', content: 'Your previous reply was rejected: the "action" field must be a single verb string (for example "action": "take"), never an object and never a sentence. Respond again with the same schema, with "action" as a plain verb string.' });
+        }
+        const retried = await this._callLLMMessages(history, stepName, charName);
+        if (isSchemaError)
+            history.pop(); // the correction is transient - do not keep it in the character history
         if (!retried) {
             history.push({ role: 'assistant', content: '' });
             return parsed;
@@ -1662,8 +1797,8 @@ class AgentEngine {
         return parsed;
     }
     /** Thin wrapper: build message array and delegate to _callLLMMessages. */
-    async _callLLM(prompt, history, stepName) {
-        return this._callLLMMessages([...history, { role: 'user', content: prompt }], stepName);
+    async _callLLM(prompt, history, stepName, actorName) {
+        return this._callLLMMessages([...history, { role: 'user', content: prompt }], stepName, actorName);
     }
     /** Structured-output schema for a turn phase (task: structured output).
      *  The client drops it when disabled/unsupported, so null is a fine default. */
@@ -1680,7 +1815,12 @@ class AgentEngine {
     // Send a pre-built message array as-is (system + accumulated history +
     // the new user message, already pushed by the caller). Pruned by the
     // context window when over the token/message limit.
-    async _callLLMMessages(messages, stepName) {
+    //
+    // `actorName` is the character this call is FOR. The raw-LLM chips used
+    // to guess the actor from "whose turn is it", which filed a prompt
+    // written for one character under another one's name - the trace lied
+    // about who was being asked what. The caller knows, so the caller says.
+    async _callLLMMessages(messages, stepName, actorName) {
         // Pause is a turn-boundary gate: let the in-flight request finish, then
         // hold any later LLM phase here until the user resumes the run.
         while (config.running && this._paused) {
@@ -1711,8 +1851,16 @@ class AgentEngine {
         const streamId = `${stepName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         events.startStreaming(streamId, stepName);
         const onChunk = (c) => events.appendStream(streamId, c);
+        // Correlation id: the request chip and its response chip carry the
+        // same one, so a reader can pair them up without guessing from
+        // ordering.
+        const requestId = `${stepName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        // Fix 6: add 120s timeout so a stalled LLM doesn't hang the agent forever
+        const LLM_TIMEOUT_MS = 120000;
         try {
-            const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName, responseFormat: this._formatForStep(stepName) });
+            const chatPromise = llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName, responseFormat: this._formatForStep(stepName), actor: actorName, requestId });
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM timeout')), LLM_TIMEOUT_MS));
+            const r = await Promise.race([chatPromise, timeoutPromise]);
             this._abortController = null;
             events.finishStreaming(streamId, r);
             return r;
@@ -1724,6 +1872,11 @@ class AgentEngine {
             if (errName === 'AbortError') {
                 events.finishStreaming(streamId);
                 events.log('⏹️ LLM call cancelled.', 'system-msg');
+                return null;
+            }
+            if (err instanceof Error && err.message === 'LLM timeout') {
+                events.log(`⏱️ LLM call timed out after ${LLM_TIMEOUT_MS / 1000}s (${stepName})`, 'error-msg');
+                events.finishStreaming(streamId);
                 return null;
             }
             events.log(`LLM error (${stepName}): ${err instanceof Error ? err.message : String(err)}`, "error-msg");

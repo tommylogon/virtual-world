@@ -35,13 +35,20 @@ const _InspectorTriggers = (() => {
     api.removeTriggerFromNode = async function(nodeId: string, source: string, target: string) {
         if (!confirm('Remove this trigger?')) return;
         const node = worldState.getNode(nodeId);
-        if (node && Array.isArray(node.properties?.triggers)) {
-            const updated = node.properties.triggers.filter((t: any) => t && t.id !== target);
-            if (updated.length !== node.properties.triggers.length) {
+        const TG = (window as unknown as { TriggerGraph?: TriggerGraphApi }).TriggerGraph;
+        if (node) {
+            const current = TG
+                ? TG.normalizeTriggerList((node.properties as any)?.triggers)
+                : (Array.isArray(node.properties?.triggers) ? node.properties.triggers : []);
+            const updated = current.filter((t: any) => t && t.id !== target);
+            if (updated.length !== current.length) {
                 await _api().updateNode(nodeId, { properties: { ...node.properties, triggers: updated } });
             }
         }
-        await _api().deleteEdge(source, target, 'triggers');
+        // Only a legacy edge needs deleting; a property entry has none.
+        if (target && api._getNodeTriggers(nodeId).some((edge) => edge.target === target)) {
+            await _api().deleteEdge(source, target, 'triggers');
+        }
         const triggerNode = worldState.getNode(target);
         if (triggerNode && triggerNode.type === 'logic_trigger') {
             await _api().deleteNode(target);
@@ -147,44 +154,65 @@ const _InspectorTriggers = (() => {
      * @param lockedFields - Currently locked fields
      */
     api.buildTriggersHtml = function(nodeId: string, lockedFields?: string[]) {
-        const triggers: TriggerHelpersGraphEdge[] = [];
         const locked = lockedFields || [];
-        const nodeIdLower = String(nodeId).toLowerCase();
-        const node = worldState.getNode(nodeId);
-        const seenIds = new Set<string>();
-
-        // 1. Property-based triggers on the node itself (task-886)
-        if (node && Array.isArray((node.properties as any)?.triggers)) {
-            for (const t of (node.properties as any).triggers) {
-                if (t && typeof t === 'object') {
-                    const tid = t.id || `trig_${triggers.length}`;
-                    seenIds.add(tid);
-                    triggers.push({
-                        source: nodeId,
-                        target: tid,
-                        type: 'triggers',
-                        properties: t
-                    } as TriggerHelpersGraphEdge);
-                }
-            }
-        }
-
-        // 2. Legacy graph edges
-        if (worldState.graph?.edges) {
-            for (const edge of worldState.graph.edges as TriggerHelpersGraphEdge[]) {
-                if (String(edge.source).toLowerCase() === nodeIdLower && edge.type === 'triggers') {
-                    if (!seenIds.has(edge.target)) {
-                        triggers.push(edge);
-                    }
-                }
-            }
-        }
+        // One reader for both stores (properties first, legacy edges deduped by
+        // id), so the card, the suggest diff and the graph editor agree.
+        const triggers = api._getNodeTriggerData(nodeId);
 
         const lockToggle = typeof InspectorHelpers !== 'undefined'
             ? InspectorHelpers.renderLockToggle('triggers', locked, nodeId)
             : window.Lit.nothing;
         const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
         const nothing = window.Lit.nothing;
+
+        /** Short human label for one effect, e.g. `adjust_vital (HP -10)`. */
+        const effectLabel = (eff: TriggerHelpersTriggerEffect): string => {
+            const effectType = eff?.type || 'unknown';
+            const effectParams = eff?.params || {};
+            let detail = effectType;
+            if (effectType === 'damage' && effectParams.amount) detail += ` (${effectParams.amount})`;
+            else if (effectType === 'heal' && effectParams.amount) detail += ` (${effectParams.amount} ${effectParams.stat || 'HP'})`;
+            else if (effectType === 'adjust_vital') detail += ` (${effectParams.stat||'HP'} ${effectParams.amount > 0 ? '+' : ''}${effectParams.amount})`;
+            else if (effectType === 'adjust_environment') {
+                const parts = [];
+                if (effectParams.temperature !== undefined) parts.push(`temp${effectParams.temperature > 0 ? '+' : ''}${effectParams.temperature}`);
+                if (effectParams.light !== undefined) parts.push(`light${effectParams.light > 0 ? '+' : ''}${effectParams.light}`);
+                if (parts.length) detail += ` (${parts.join(', ')})`;
+            }
+            else if (effectType === 'spawn_item' && effectParams.item_id) detail += ` (${effectParams.item_id})`;
+            else if (effectType === 'give_item' && effectParams.item_id) detail += ` → ${effectParams.target || 'self'}: ${effectParams.item_id}`;
+            else if (effectType === 'save') {
+                const check = effectParams.stat || effectParams.skill || 'WIS';
+                detail += ` (${check} DC${effectParams.dc || 12})`;
+            }
+            else if ((effectType === 'add_tag' || effectType === 'remove_tag') && effectParams.tag) {
+                detail += ` (${effectParams.tag} → ${effectParams.node_id || 'self'})`;
+            }
+            else if (effectType === 'set_environment') {
+                const parts = ['light','temperature','air','smell','noise'].filter(k => effectParams[k] !== undefined).map(k => `${k}:${effectParams[k]}`);
+                if (parts.length) detail += ` (${parts.join(', ')})`;
+            }
+            else if (effectType === 'set_state' && effectParams.state) detail += ` (${effectParams.state})`;
+            else if (effectType === 'teleport' && effectParams.area) detail += ` → ${effectParams.area}`;
+            else if (effectType === 'unlock_way' && effectParams.way_id) detail += ` (${effectParams.way_id})`;
+            else if (effectType === 'rename' && (effectParams.name || effectParams.new_name)) detail += ` → ${effectParams.name || effectParams.new_name}`;
+            else if (effectType === 'remove_item' && effectParams.item_id) detail += ` (${effectParams.item_id})`;
+            else if (effectType === 'set_description' && (effectParams.value || effectParams.description)) {
+                const descVal = effectParams.value || effectParams.description || '';
+                detail += ` (${descVal.substring(0, 30)}${descVal.length > 30 ? '...' : ''})`;
+            }
+            else if (effectType === 'append_description' && effectParams.text) detail += ` +"${(effectParams.text||'').substring(0,25)}${(effectParams.text||'').length > 25 ? '...' : ''}"`;
+            else if (effectType === 'apply_trait' || effectType === 'remove_trait') detail += ` (${effectParams.trait || '?'}${effectParams.target && effectParams.target !== 'self' ? ' → ' + effectParams.target : ''}${effectType === 'apply_trait' && effectParams.param !== undefined && effectParams.param !== true ? '=' + effectParams.param : ''})`;
+            else if (effectType === 'apply_condition' || effectType === 'remove_condition') detail += ` (${effectParams.condition || '?'}${effectParams.target && effectParams.target !== 'self' ? ' → ' + effectParams.target : ''}${effectParams.duration ? ', ' + effectParams.duration + 't' : ''})`;
+            return detail;
+        };
+
+        /** Short label for one leaf condition. */
+        const conditionLabel = (cond: TriggerCondition | null): string => {
+            if (!cond) return '';
+            const anyCond = cond as any;
+            return `${cond.type}${anyCond.value !== undefined ? `=${anyCond.value}` : cond.skill ? `(${cond.skill} DC${cond.dc})` : ''}`;
+        };
 
         return htmlTag`<div class="inspector-section">
             <h3 style="display:flex;flex-wrap:wrap;gap:4px;justify-content:space-between;align-items:center;">
@@ -199,71 +227,37 @@ const _InspectorTriggers = (() => {
             </h3>
             <div style="max-height:300px;overflow-y:auto;">
                 ${triggers.length > 0
-                    ? triggers.map((trigger) => {
-                // task-636: show the merged definition (edge copy wins, node
-                // fallback), not just whichever copy this surface happened to read.
-                const def = _triggerGraph().triggerDefFromEdge(trigger, worldState.graph?.nodes);
+                    ? triggers.map((def) => {
+                // Every effect and every condition, not just the first: this
+                // card is the only surface that lists a node's whole trigger set.
                 const rawTriggerType = def.trigger_type || '?';
                 const triggerType = Array.isArray(rawTriggerType) ? rawTriggerType.join(', ') : rawTriggerType;
-                const effectsList = def.effects || [];
-                const conds = def.conditions as { conditions?: unknown[] } | undefined;
+                const effectsList: TriggerHelpersTriggerEffect[] = def.effects || [];
+                const conds = def.conditions as { operator?: string; conditions?: unknown[] } | undefined;
                 const conditionsList: unknown[] = Array.isArray(conds) ? conds : (conds?.conditions || []);
-                const firstEff = effectsList[0] || {};
-                const effectType = effectsList.length > 0 ? (firstEff.type || 'unknown') : 'none';
-                const effectParams = firstEff.params || {};
-                const message = effectParams.message || effectParams.success_message || '';
-                const condition = conditionsList[0] as TriggerCondition | null;
-
-                // Build effect summary
-                let effectDetail = effectType;
-                if (effectType === 'damage' && effectParams.amount) effectDetail += ` (${effectParams.amount})`;
-                else if (effectType === 'heal' && effectParams.amount) effectDetail += ` (${effectParams.amount} ${effectParams.stat || 'HP'})`;
-                else if (effectType === 'adjust_vital') effectDetail += ` (${effectParams.stat||'HP'} ${effectParams.amount > 0 ? '+' : ''}${effectParams.amount})`;
-                else if (effectType === 'adjust_environment') {
-                    const parts = [];
-                    if (effectParams.temperature !== undefined) parts.push(`temp${effectParams.temperature > 0 ? '+' : ''}${effectParams.temperature}`);
-                    if (effectParams.light !== undefined) parts.push(`light${effectParams.light > 0 ? '+' : ''}${effectParams.light}`);
-                    if (parts.length) effectDetail += ` (${parts.join(', ')})`;
-                }
-                else if (effectType === 'spawn_item' && effectParams.item_id) effectDetail += ` (${effectParams.item_id})`;
-                else if (effectType === 'give_item' && effectParams.item_id) effectDetail += ` → ${effectParams.target || 'self'}: ${effectParams.item_id}`;
-                else if (effectType === 'save') {
-                    const check = effectParams.stat || effectParams.skill || 'WIS';
-                    effectDetail += ` (${check} DC${effectParams.dc || 12})`;
-                }
-                else if ((effectType === 'add_tag' || effectType === 'remove_tag') && effectParams.tag) {
-                    effectDetail += ` (${effectParams.tag} → ${effectParams.node_id || 'self'})`;
-                }
-                else if (effectType === 'set_environment') {
-                    const parts = ['light','temperature','air','smell','noise'].filter(k => effectParams[k] !== undefined).map(k => `${k}:${effectParams[k]}`);
-                    if (parts.length) effectDetail += ` (${parts.join(', ')})`;
-                }
-                else if (effectType === 'set_state' && effectParams.state) effectDetail += ` (${effectParams.state})`;
-                else if (effectType === 'teleport' && effectParams.area) effectDetail += ` → ${effectParams.area}`;
-                else if (effectType === 'unlock_way' && effectParams.way_id) effectDetail += ` (${effectParams.way_id})`;
-                else if (effectType === 'rename' && (effectParams.name || effectParams.new_name)) effectDetail += ` → ${effectParams.name || effectParams.new_name}`;
-                else if (effectType === 'remove_item' && effectParams.item_id) effectDetail += ` (${effectParams.item_id})`;
-                else if (effectType === 'set_description' && (effectParams.value || effectParams.description)) {
-                    const descVal = effectParams.value || effectParams.description || '';
-                    effectDetail += ` (${descVal.substring(0, 30)}${descVal.length > 30 ? '...' : ''})`;
-                }
-                else if (effectType === 'append_description' && effectParams.text) effectDetail += ` +"${(effectParams.text||'').substring(0,25)}${(effectParams.text||'').length > 25 ? '...' : ''}"`;
-                else if (effectType === 'apply_trait' || effectType === 'remove_trait') effectDetail += ` (${effectParams.trait || '?'}${effectParams.target && effectParams.target !== 'self' ? ' → ' + effectParams.target : ''}${effectType === 'apply_trait' && effectParams.param !== undefined && effectParams.param !== true ? '=' + effectParams.param : ''})`;
-                else if (effectType === 'apply_condition' || effectType === 'remove_condition') effectDetail += ` (${effectParams.condition || '?'}${effectParams.target && effectParams.target !== 'self' ? ' → ' + effectParams.target : ''}${effectParams.duration ? ', ' + effectParams.duration + 't' : ''})`;
-
-                const conditionStr = condition ? `${condition.type}${condition.value !== undefined ? `=${condition.value}` : condition.skill ? `(${condition.skill} DC${condition.dc})` : ''}` : null;
+                const messageEffect = effectsList.find((e) => e?.params && (e.params.message || e.params.success_message));
+                const message = messageEffect?.params?.message || messageEffect?.params?.success_message || '';
+                const effectDetail = effectsList.length ? effectsList.map(effectLabel).join(' · ') : 'none';
+                const effectPrefix = effectsList.length > 1 ? `${effectsList.length} effects: ` : '';
+                const conditionStr = conditionsList.length
+                    ? conditionsList.map((c) => conditionLabel(c as TriggerCondition)).join(' · ')
+                    : null;
+                const conditionPrefix = conditionsList.length > 1
+                    ? `Conditions${conds?.operator ? ` (${conds.operator})` : ''}: `
+                    : 'Condition: ';
+                const triggerId = def.id || '';
 
                         return htmlTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:4px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <strong>${triggerType}</strong>
                                 <div>
-                                    <button class="btn btn-sm" @click=${() => VW.inspector._editTriggerFromNode(nodeId, JSON.stringify(trigger))} style="font-size:10px;">✏️</button>
-                                    <button class="btn btn-sm btn-red" @click=${() => api.removeTriggerFromNode(nodeId, trigger.source, trigger.target)} style="font-size:10px;">✕</button>
+                                    <button class="btn btn-sm" @click=${() => VW.inspector._editTriggerFromNode(nodeId, JSON.stringify(def))} style="font-size:10px;">✏️</button>
+                                    <button class="btn btn-sm btn-red" @click=${() => api.removeTriggerFromNode(nodeId, nodeId, triggerId)} style="font-size:10px;">✕</button>
                                 </div>
                             </div>
-                            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">Effect: ${effectDetail}</div>
+                            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">Effect: ${effectPrefix}${effectDetail}</div>
                             ${message ? htmlTag`<div style="font-size:10px;color:var(--text-muted);">${message}</div>` : nothing}
-                            ${conditionStr ? htmlTag`<div style="font-size:10px;color:var(--pink);">Condition: ${conditionStr}</div>` : nothing}
+                            ${conditionStr ? htmlTag`<div style="font-size:10px;color:var(--pink);">${conditionPrefix}${conditionStr}</div>` : nothing}
                         </div>`;
                     })
                     : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:8px;">No triggers. Click + Add to add one.</div>`}
@@ -296,67 +290,51 @@ const _InspectorTriggers = (() => {
 
     api._openGraphEditor = function(escId: string) {
         const nodeId = escId.replace(/\\'/g, "'");
-        const triggerEdges = api._getNodeTriggers(nodeId);
-        // task-636: the graph→definition compiler, so a trigger authored on the
-        // edge OR the logic_trigger node opens the same way.
+        const TG = _triggerGraph();
+        // properties.triggers is the authoritative store; legacy edges are read
+        // and deduped by id. Every trigger is drawn, one root block each.
         const triggers = api._getNodeTriggerData(nodeId);
-        if (triggers.length > 1 && typeof toastInfo === 'function') {
-            toastInfo('Graph editor edits the first trigger only — use ✏️ for others.');
-        }
-        const primaryEdge = triggerEdges[0] || null;
-        const triggerData = triggers[0] || {};
-        const graph = _triggerGraph().triggerToGraph(triggerData);
+        const graph = TG.triggersToGraph(triggers);
 
-        const persistCompiled = async (compiled: TriggerDef) => {
-            if (!compiled) return;
-            const typeLabel = Array.isArray(compiled.trigger_type)
-                ? compiled.trigger_type.join(', ')
-                : (compiled.trigger_type || 'custom');
-            const triggerName = `${typeLabel} → ${compiled.effects?.[0]?.type || '?'}`;
-
-            if (primaryEdge) {
-                const triggerId = primaryEdge.target;
-                await _api().updateNode(triggerId, {
-                    properties: compiled,
-                    name: triggerName
-                });
-                await _api().updateEdge(nodeId, triggerId, {
-                    old_type: 'triggers',
-                    properties: compiled
-                });
-            } else {
-                const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                const nodeRes = await _api().createNode({
-                    id: triggerId,
-                    type: 'logic_trigger',
-                    name: triggerName,
-                    properties: compiled
-                });
-                if (nodeRes?.error) {
-                    console.warn('[GraphEditor] trigger node create failed:', nodeRes.error);
-                    return;
-                }
-                await _api().createEdge(nodeId, triggerId, 'triggers', compiled);
+        const persistDefinitions = async (defs: TriggerDef[]) => {
+            if (!defs.length) return;
+            const node = worldState.getNode(nodeId);
+            if (!node) return;
+            const current = TG.normalizeTriggerList((node.properties as any)?.triggers);
+            const byId = new Map<string, TriggerDef>();
+            for (const trigger of current) {
+                if (trigger && trigger.id) byId.set(String(trigger.id), trigger);
             }
+            const next: TriggerDef[] = [];
+            for (const def of defs) {
+                if (!def) continue;
+                const id = String(def.id || `trigger_${nodeId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`);
+                // Merge over the stored entry so fields the graph has no widget
+                // for (once, fired, cooldown, name) survive a canvas save.
+                next.push({ ...(byId.get(id) || {}), ...def, id });
+            }
+            await _api().updateNode(nodeId, {
+                properties: { ...node.properties, triggers: next },
+            });
             worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector.showNode(nodeId); });
         };
 
-        const TG = _triggerGraph();
         TG.show({
             graph,
             contextItemId: nodeId,
             sourceNodeId: nodeId,
             editorBridge: {
                 ...(window.VW?.inspector?._triggerEditorOptions(nodeId) || {}),
-                initialName: primaryEdge ? (worldState.getNode(primaryEdge.target)?.name || '') : '',
-                success_message: triggerData.success_message || '',
-                fail_message: triggerData.fail_message || '',
-                onSave: async (data: TriggerDef) => persistCompiled(data),
+                initialName: triggers[0]?.name || '',
+                success_message: triggers[0]?.success_message || '',
+                fail_message: triggers[0]?.fail_message || '',
+                onSave: async (data: TriggerDef) => persistDefinitions([data]),
             },
             onSave: async (newGraph: unknown) => {
-                const compiled = TG.compileToEngine(newGraph);
-                if (TG.reportCompileError(compiled)) return;
-                await persistCompiled(compiled);
+                const defs = TG.compileToTriggers(newGraph);
+                const refused = defs.find((def) => TG.compileError(def));
+                if (refused && TG.reportCompileError(refused)) return;
+                await persistDefinitions(defs);
             }
         });
     };
@@ -380,26 +358,20 @@ const _InspectorTriggers = (() => {
     };
 
     /**
-     * Create a logic_trigger node + triggers edge for a node, mirroring the
-     * save path in inspector._addTriggerToNode.
+     * Create a trigger on a node by appending to properties.triggers, the
+     * authoritative store (task-886).
      * @param nodeId - Source node ID
      * @param data   - Trigger data ({ trigger_type, effects, conditions, ... })
      */
     api.createTriggerOnNode = async function(nodeId: string, data: TriggerDef) {
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
+        const current = _triggerGraph().normalizeTriggerList((node.properties as any)?.triggers);
         const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
-        const name = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
-        const nodeRes = await _api().createNode({
-            id: triggerId,
-            type: 'logic_trigger',
-            name,
-            properties: data
+        current.push({ ...data, id: triggerId });
+        await _api().updateNode(nodeId, {
+            properties: { ...node.properties, triggers: current },
         });
-        if (nodeRes?.error) {
-            console.warn('[suggestForNode] trigger node create failed:', nodeRes.error);
-            return;
-        }
-        await _api().createEdge(nodeId, triggerId, 'triggers', data);
     };
 
     /**
@@ -534,14 +506,12 @@ const _InspectorTriggers = (() => {
     };
 
     /**
-     * Read the trigger data currently attached to a node (edge → logic_trigger
-     * node properties), for diffing against suggestions.
+     * Read the triggers attached to a node. properties.triggers is authoritative
+     * (task-886); legacy triggers edges are appended, deduped by id.
      * @param nodeId - Graph node ID
-     * @returns [{ trigger_type, effects, conditions, ... }]
+     * @returns [{ id, trigger_type, effects, conditions, ... }]
      */
     api._getNodeTriggerData = function(nodeId: string): TriggerDef[] {
-        // task-636: one compiler, reading the edge copy with the logic_trigger
-        // node as fallback (the engine's own precedence).
         const TG = (window as unknown as { TriggerGraph?: TriggerGraphApi }).TriggerGraph;
         if (!TG || typeof TG.triggersFromGraphEdges !== 'function') return [];
         return TG.triggersFromGraphEdges(
@@ -557,43 +527,35 @@ const _InspectorTriggers = (() => {
      * @param result - { keep: [types], replace: [{type,data}], add: [{type,data}] }
      */
     api._applyTriggerDiff = async function(nodeId: string, existingData: TriggerDef[], result: DiffResult) {
+        const TG = _triggerGraph();
         const toTypeKey = (t: unknown) => Array.isArray(t) ? t.join(',') : String(t || '');
-        const wanted = new Set<string>(result.keep);
-        result.replace.forEach(r => wanted.add(r.type));
-        result.add.forEach(r => wanted.add(r.type));
+        const kept = new Set<string>(result.keep);
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
 
-        const ops: unknown[] = [];
-        const deletes: string[] = [];
-
-        // Delete existing triggers we're NOT keeping (replaced or skipped).
+        // New definitions go to the property array (one update). A legacy edge
+        // whose rule the user did not keep is deleted with its trigger node, so
+        // it cannot keep firing from the retired store.
+        const legacyDeletes: string[] = [];
         for (const edge of api._getNodeTriggers(nodeId)) {
-            const def = _triggerGraph().triggerDefFromEdge(edge, worldState.graph?.nodes);
-            const k = toTypeKey(def.trigger_type);
-            if (wanted.has(k)) continue;
-            ops.push({ type: 'delete_node', payload: { node_id: edge.target } });
-            deletes.push(edge.target);
+            const def = TG.triggerDefFromEdge(edge, worldState.graph?.nodes);
+            if (!kept.has(toTypeKey(def.trigger_type))) legacyDeletes.push(edge.target);
         }
 
-        // Create replacements + additions (new trigger node + triggers edge).
-        const makeName = (data: TriggerDef) => {
-            const typeLabel = toTypeKey(data.trigger_type);
-            return (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
-        };
-        const addItems = [...result.replace, ...result.add];
-        for (const { data } of addItems) {
-            const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-            ops.push({ type: 'create_node', payload: { node: { id: triggerId, type: 'logic_trigger', name: makeName(data), properties: data } } });
-            ops.push({ type: 'attach', payload: { from_id: nodeId, to_id: triggerId, relation: 'triggers', properties: data } });
+        const next = TG.normalizeTriggerList((node.properties as any)?.triggers)
+            .filter((def) => kept.has(toTypeKey(def.trigger_type)));
+        for (const { data } of [...result.replace, ...result.add]) {
+            next.push({ ...data, id: `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` });
         }
 
-        // Prefer the atomic backend batch; fall back to sequential calls if the
-        // batch endpoint is unavailable or returned failures.
-        if (ops.length) {
+        if (legacyDeletes.length) {
             let batchOk = true;
             try {
-                const res = await _api().batchGraph(ops);
+                const res = await _api().batchGraph(
+                    legacyDeletes.map((id) => ({ type: 'delete_node', payload: { node_id: id } })),
+                );
                 const failed = res && Array.isArray(res.errors) && res.errors.length;
-                if (res && failed) {
+                if (failed) {
                     console.warn('[suggestForNode] batch partial failure:', res.errors);
                 }
                 batchOk = !!res && !failed && res.status === 'success';
@@ -603,11 +565,13 @@ const _InspectorTriggers = (() => {
                 batchOk = false;
             }
             if (!batchOk) {
-                // Sequential fallback: delete, then create.
-                for (const id of deletes) { try { await _api().deleteNode(id); } catch (e) {} }
-                for (const { data } of addItems) await api.createTriggerOnNode(nodeId, data);
+                for (const id of legacyDeletes) { try { await _api().deleteNode(id); } catch (e) {} }
             }
         }
+
+        await _api().updateNode(nodeId, {
+            properties: { ...node.properties, triggers: next },
+        });
     };
 
     /**
@@ -714,10 +678,16 @@ interface TriggerDef {
 /** graph/trigger-graph.js — not declared in types/globals.d.ts. */
 interface TriggerGraphApi {
     triggerDefFromEdge(edge: TriggerHelpersGraphEdge, nodes: unknown): TriggerDef;
+    triggerDefFromProperty(entry: unknown): TriggerDef | null;
     triggersFromGraphEdges(edges: unknown, nodes: unknown, nodeId: string): TriggerDef[];
-    triggerToGraph(data: TriggerDef): unknown;
+    normalizeTriggerEntry(entry: unknown): TriggerDef | null;
+    normalizeTriggerList(value: unknown): TriggerDef[];
+    triggerToGraph(data: TriggerDef, opts?: Record<string, unknown>): unknown;
+    triggersToGraph(data: TriggerDef[]): unknown;
     compileToEngine(graph: unknown): TriggerDef;
-    reportCompileError(compiled: TriggerDef): boolean;
+    compileToTriggers(graph: unknown): TriggerDef[];
+    compileError(compiled: TriggerDef | null): string;
+    reportCompileError(compiled: TriggerDef | null): boolean;
     show(opts: Record<string, unknown>): void;
 }
 

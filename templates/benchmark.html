@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benchmark Lab — VirtualWorld</title>
+    <title>Benchmark Lab - VirtualWorld</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/benchmark.css">
 </head>
@@ -145,6 +145,35 @@
     </div>
 </div>
 
+<!--
+    Prompt runtime. The Benchmark Lab sends the SAME prompt the simulation
+    sends, so this page needs the same singletons the turn does: worldState
+    (the graph + player state), config (token limits, modes), the event bus
+    (memory recall renders relative ticks through it), and the shared helpers
+    the prompt builder reads. The order mirrors index.html - storage and
+    simultaneous before config (config reads both while it boots), the stream
+    collaborators before the event bus (it constructs them), and the prompt
+    builder last.
+-->
+<script src="/static/js/storage.js"></script>
+<script src="/static/js/agent/simultaneous.js"></script>
+<script src="/static/js/config.js"></script>
+<script src="/static/js/world-state.js"></script>
+<script src="/static/js/agent/vital-thresholds.js"></script>
+<script src="/static/js/agent/action-tiers.js"></script>
+<script src="/static/js/shared/item-containment.js"></script>
+<script src="/static/js/shared/embedding-client.js"></script>
+<script src="/static/js/shared/emotion-mapper.js"></script>
+<script src="/static/js/stream/stream-turn-cards.js"></script>
+<script src="/static/js/stream/stream-filters.js"></script>
+<script src="/static/js/stream/stream-raw-llm.js"></script>
+<script src="/static/js/stream/stream-persistence.js"></script>
+<script src="/static/js/stream/stream-scrubber.js"></script>
+<script src="/static/js/stream/stream-control-mode.js"></script>
+<script src="/static/js/event-stream.js"></script>
+<!-- Resolves {param:...} in way descriptions, the same way the inspector does. -->
+<script src="/static/js/inspector/helpers.js"></script>
+
 <!-- Shared prompt builder dependencies -->
 <script src="/static/js/agent/prompt-builder/helpers.js"></script>
 <script src="/static/js/agent/prompt-builder/character-state.js"></script>
@@ -156,6 +185,7 @@
 <script src="/static/js/agent/prompt-builder/schema-fragments.js"></script>
 <script src="/static/js/agent/prompt-builder/system-prompt.js"></script>
 <script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
+<script src="/static/js/agent/prompt-builder/capture.js"></script>
 <script src="/static/js/agent/prompt-builder/index.js"></script>
 
 <!-- Benchmark controller -->

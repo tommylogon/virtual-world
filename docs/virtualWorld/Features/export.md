@@ -18,7 +18,7 @@ tags: [status/wired, surface/in-editor, system/ui]
 
 - `static/js/ui/event-log-export.ts` — the event-log projection, the four renderers and the export modal
 - `static/js/ui/world-export.ts` — `saveFileWithDialog` and the three header-button delegators
-- `static/js/event-stream.ts` — `_nextLineLabel` stamps `data-seq` on each emitted row
+- `static/js/event-stream.ts` — `_tickLabel` stamps `data-seq` on each emitted row and shows the world clock tick
 - `static/js/graph/graph-export.ts` — graph export (the other half of this feature)
 
 ## Connected

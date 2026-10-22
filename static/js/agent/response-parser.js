@@ -74,6 +74,36 @@ window.ResponseParser = (() => {
             return [];
         return raw.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5);
     }
+    /**
+     * Detect a malformed `action` field BEFORE it can become a command.
+     *
+     * Two shapes reach us from real models:
+     *   - `{"action": {"action":"take","item":"x"}}` - the action nested one
+     *     level deep. Recoverable: the normalizer unwraps it.
+     *   - `{"action": {"item":"x"}}` or `{"action": "[object Object]"}` - no
+     *     verb to recover. NOT recoverable, and it must never be executed.
+     *
+     * The second case returns a schema error so the caller's one-shot retry
+     * fires, instead of the malformed payload reaching the world as a command.
+     */
+    function detectActionSchemaError(p) {
+        const raw = p.action;
+        if (raw === undefined || raw === null)
+            return null;
+        if (typeof raw === 'object') {
+            const nested = raw;
+            if (typeof nested.action === 'string' && nested.action.trim())
+                return null;
+            return 'schema_invalid: "action" must be a verb string, but it was an object with no "action" field';
+        }
+        if (typeof raw === 'string') {
+            if (ActionNormalizer.looksStringifiedObject(raw)) {
+                return 'schema_invalid: "action" was a stringified object instead of a verb';
+            }
+            return null;
+        }
+        return 'schema_invalid: "action" must be a verb string';
+    }
     /** Parse a reaction/decision response  -  returns full structured object with parseError on failure. */
     function parseReaction(r) {
         if (!r)
@@ -88,6 +118,7 @@ window.ResponseParser = (() => {
                 window.__repairStats.repaired = false;
             const p = JSON.parse(c);
             const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
+            const schemaError = detectActionSchemaError(p);
             return {
                 inner: (p.inner_monologue || ''),
                 speech,
@@ -97,7 +128,8 @@ window.ResponseParser = (() => {
                 memory: extractMemory(p.memory),
                 emotion: extractEmotion(p.emotion),
                 learnedNames: extractLearnedNames(p.learned_names),
-                parseError: repaired ? 'JSON repaired (truncated response)  -  fields after the break were lost' : null
+                parseError: schemaError
+                    || (repaired ? 'JSON repaired (truncated response)  -  fields after the break were lost' : null)
             };
         }
         catch (e) {

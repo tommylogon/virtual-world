@@ -1,38 +1,46 @@
 {
-  "name": "pickled_vegetables",
-  "description": "a sealed jar of pickled vegetables from 1891. the seal is intact — technically still preserved and edible. they smell strongly of vinegar and herbs.",
-  "actions": "examine,take,use,drop",
-  "uses": 2,
-  "weight": 0.8,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a sealed jar of pickled vegetables from 1891. the seal is intact — technically still preserved and edible. they smell strongly of vinegar and herbs.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "supplies",
-    "consumable"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "pickled_vegetables",
+  "tags": {
+    "item": [
+      "food",
+      "supplies",
+      "consumable"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You crack the seal and eat a forkful of the pickles. The vinegar and herbs hit the back of your throat like a slap, and your mouth waters."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "The jar is empty but for brine.",
+      "success_message": "You eat the pickled vegetables.",
+      "target_name": "pickled_vegetables",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "2",
+  "weight": "0.8"
 }

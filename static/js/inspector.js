@@ -506,9 +506,13 @@ class Inspector {
             return;
         }
         if (!triggerNode) {
-            // Edges created before node-existence was enforced may reference
-            // missing trigger nodes — fall back to the edge's data copy.
-            console.warn('[_editTriggerFromNode] trigger node missing, using edge properties:', triggerEdge.target);
+            // A property-array entry has no logic_trigger node; only a legacy
+            // edge with no target node is worth a warning.
+            const stored = Array.isArray(graphNode.properties?.triggers)
+                && graphNode.properties.triggers.some((t) => t && t.id === triggerEdge.target);
+            if (!stored) {
+                console.warn('[_editTriggerFromNode] trigger node missing, using edge properties:', triggerEdge.target);
+            }
         }
         // Prefer the trigger node's properties; fall back to the edge copy.
         const nodeProps = triggerNode?.properties && Object.keys(triggerNode.properties).length ? triggerNode.properties : null;
@@ -524,7 +528,9 @@ class Inspector {
             ...this._triggerEditorOptions(nodeId),
             initialData: triggerData,
             onSave: async (data) => {
-                const updatedProps = { ...data };
+                // Keep the fields the form has no widget for (id, once, fired,
+                // cooldown): the stored definition is the merge base.
+                const updatedProps = { ...props, ...data };
                 const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
                 const newName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
                 // Keep node + edge in sync: the runtime reads edge properties first.
@@ -554,8 +560,9 @@ class Inspector {
                     if (triggerNode && targetId && targetId !== triggerNode.id) {
                         await inspectorGraphApi.renameNode(triggerNode.id, targetId);
                     }
-                    // Update node properties and name
-                    if (triggerNode || (triggerEdge && targetId)) {
+                    // Update node properties and name (a property entry has no
+                    // trigger node; its array row was written above).
+                    if (triggerNode) {
                         await ApiClient.updateNode(targetId || triggerNode.id, {
                             properties: updatedProps,
                             name: newName

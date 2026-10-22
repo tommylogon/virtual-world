@@ -1,38 +1,46 @@
 {
-  "name": "canned_peaches",
-  "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
-  "actions": "examine,take,use,drop",
-  "uses": 1,
-  "weight": 0.8,
+  "actions": "examine,take,eat,use,drop",
   "current_state": "normal",
+  "damage": "0",
+  "defense": "0",
+  "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
+  "insulation": "0",
   "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "food",
-    "supplies",
-    "consumable"
-  ],
-  "triggers": [
-    {
-      "trigger_type": "on_eat",
-      "effects": [
-        {
-          "type": "adjust_vital",
-          "params": {
-            "stat": "Hunger",
-            "amount": -45,
-            "target": "self"
+  "name": "canned_peaches",
+  "tags": {
+    "item": [
+      "food",
+      "supplies",
+      "consumable"
+    ]
+  },
+  "triggers": {
+    "item": {
+      "conditions": "",
+      "effects": {
+        "item": [
+          {
+            "params": {
+              "amount": "-45",
+              "stat": "Hunger",
+              "target": "self"
+            },
+            "type": "adjust_vital"
+          },
+          {
+            "params": {
+              "message": "You prise the lid off and fish out a slice of peach. The syrup has gone cloudy and thick, but the fruit is sweet and startlingly fresh."
+            },
+            "type": "message"
           }
-        }
-      ],
-      "target_name": "",
-      "target_state": "",
-      "conditions": {},
-      "success_message": "",
-      "fail_message": ""
+        ]
+      },
+      "fail_message": "There is nothing left in the jar but syrup.",
+      "success_message": "You eat the preserved peaches.",
+      "target_name": "canned_peaches",
+      "trigger_type": "on_eat"
     }
-  ],
-  "contents": []
+  },
+  "uses": "1",
+  "weight": "0.8"
 }

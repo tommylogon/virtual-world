@@ -9,6 +9,13 @@ from engine.activities import (
 )
 
 
+def new_world():
+    """A fresh TESTING world booted from the inert fixture (task-586)."""
+    from app import create_app
+
+    return create_app({"TESTING": True}).world
+
+
 @pytest.fixture
 def world():
     g = WorldGraph()
@@ -222,6 +229,79 @@ def test_wake_on_noise_success(world):
     out = world.activities.wake_on_noise("Hero")
     assert out and "awake" in out
     assert world.player_manager.players["Hero"].activity is None
+
+
+# bug-525: death clears the activity - a revived character is not stuck behind
+# the activity gate, so no `wake` is needed after a hand-revive.
+
+def _hand_revive(world, name):
+    """The user's manual revive: restore vitals and clear the conditions.
+
+    There is no revive command, so this is exactly what the repro does - and it
+    must leave the character able to act, with no `wake` needed.
+    """
+    player = world.player_manager.players[name]
+    for vital, value in (("HP", 100), ("Energy", 50)):
+        if vital in player.vitals:
+            player.vitals[vital] = value
+    for cond in ("dead", "unconscious"):
+        if cond in player.conditions:
+            player.remove_condition(cond)
+
+
+def test_death_clears_a_blocking_activity():
+    world = new_world()
+    hero = "Kaelen Voss"
+    world.activities.start_activity(hero, "sleeping")
+    assert world.player_manager.players[hero].activity is not None
+
+    world.kill_player(hero, "killed by external force")
+
+    player = world.player_manager.players[hero]
+    assert "dead" in player.conditions, "kill_player did not add the dead condition"
+    assert player.activity is None, (
+        "kill_player left the character 'sleeping', so a revived character is "
+        "stuck behind the activity gate (bug-525)"
+    )
+
+
+def test_revived_character_can_act_without_wake():
+    world = new_world()
+    hero = "Kaelen Voss"
+    world.activities.start_activity(hero, "sleeping")
+    world.kill_player(hero, "killed by external force")
+    _hand_revive(world, hero)
+
+    player = world.player_manager.players[hero]
+    assert "dead" not in player.conditions
+    assert player.activity is None
+    # The condition gate is clear...
+    assert world.conditions.can_act(hero), (
+        "hand-revive left a blocking condition, so the character still cannot act"
+    )
+    # ...and so is the activity gate, for a verb that is NOT on the wake
+    # allow-list. `go` is gated; `look`/`wake` are not, so asserting on `go`
+    # is what separates this from "the character can still look".
+    from routes.action_handlers import _activity_gate
+
+    blocked = _activity_gate("go north", world, lambda _out: None)
+    assert blocked is None, (
+        f"revived character is still gated: {blocked!r}. The defect reads "
+        f"'You're sleeping - you can't do that right now.'"
+    )
+
+
+def test_sleeping_character_is_still_gated():
+    """Negative control: the fix must not open the gate for a character that is
+    genuinely sleeping and never died."""
+    world = new_world()
+    hero = "Kaelen Voss"
+    world.activities.start_activity(hero, "sleeping")
+    from routes.action_handlers import _activity_gate
+
+    blocked = _activity_gate("go north", world, lambda _out: None)
+    assert blocked is not None
+    assert "can't do that right now" in blocked
 
 
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ strip / dress / piles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

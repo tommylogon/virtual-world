@@ -1,11 +1,13 @@
 /**
- * test_trigger_representations.js — task-636.
+ * test_trigger_representations.js - task-636, bug-567.
  *
- * A trigger lives in two copies: the `triggers` edge properties and the target
- * `logic_trigger` node properties. The engine reads the edge first and falls
- * back to the node. These tests pin the one compiler (TriggerGraph.
- * triggerDefFromEdge / triggersFromGraphEdges) that the item library and the
- * inspector both use, so a mechanic authored on either copy is visible.
+ * A trigger is authored in `properties.triggers` on its owner; a legacy pair of
+ * a `logic_trigger` node and a `triggers` edge may still exist from before the
+ * task-886 migration. The readers take the property array first and fall back
+ * to the edge, deduping by definition id. These tests pin the one compiler
+ * (TriggerGraph.triggerDefFromEdge / triggersFromGraphEdges) that the item
+ * library and the inspector both use, so a mechanic authored in either store is
+ * visible, and pin the multi-root graph round trip the editor depends on.
  */
 
 function edgeAndNode(edgeProps, nodeProps) {
@@ -90,11 +92,14 @@ test('an inline definition round-trips graph -> edges -> definition', () => {
     const { edges, nodes } = edgeAndNode(compiled, compiled);
     const out = TriggerGraph.triggersFromGraphEdges(edges, nodes, 'item_1');
     // triggerToGraph canonicalises trigger_type to the multi-select array form.
+    // The legacy edge target is the definition id (bug-567): without it the
+    // editor cannot match an edited block back to the entry it came from.
     assertEq(out, [{
         trigger_type: ['on_use'],
         effects: def.effects,
         conditions: def.conditions,
         target_name: '', target_state: '', success_message: '', fail_message: '',
+        id: 'trig_1',
     }], 'the OR branch survives the full round trip');
 });
 
@@ -108,4 +113,78 @@ test('triggersFromGraphEdges ignores other edge types and other sources', () => 
     const out = TriggerGraph.triggersFromGraphEdges(edges, nodes, 'item_1');
     assertEq(out.length, 1, 'only the source node’s triggers');
     assertEq(out[0].trigger_type, 'on_use', 'correct trigger');
+});
+
+// ─── bug-567: properties.triggers is the authoritative store ───
+
+test('a property-only trigger is read with no triggers edge', () => {
+    const nodes = { item_1: { id: 'item_1', type: 'item', properties: { triggers: [{
+        id: 'trigger_item_1_on_use',
+        trigger_type: ['on_use', 'on_drink'],
+        effects: [{ type: 'message', params: { message: 'sip' } }],
+        once: true,
+        success_message: 'you drink',
+    }] } } };
+    const out = TriggerGraph.triggersFromGraphEdges([], nodes, 'item_1');
+    assertEq(out.length, 1, 'one trigger despite zero edges');
+    assertEq(out[0].id, 'trigger_item_1_on_use', 'the stored id survives');
+    assertEq(out[0].trigger_type, ['on_use', 'on_drink'], 'both trigger types');
+    assertEq(out[0].once, true, 'once survives');
+    assertEq(out[0].success_message, 'you drink', 'the message survives');
+});
+
+test('a property entry and a legacy edge with the same id are one trigger', () => {
+    const { edges } = edgeAndNode({ trigger_type: 'on_use' }, {});
+    const nodes = { item_1: { id: 'item_1', type: 'item', properties: { triggers: [{
+        id: 'trig_1', trigger_type: 'on_use', effects: [{ type: 'message', params: { message: 'stored' } }],
+    }] } }, trig_1: { id: 'trig_1', type: 'logic_trigger', properties: { trigger_type: 'on_use' } } };
+    const out = TriggerGraph.triggersFromGraphEdges(edges, nodes, 'item_1');
+    assertEq(out.length, 1, 'deduped by id');
+    assertEq(out[0].effects, [{ type: 'message', params: { message: 'stored' } }], 'the property copy wins');
+});
+
+test('a wrapped library entry normalises to a definition', () => {
+    const wrapped = { item: {
+        id: 'trigger_item_1_on_use',
+        trigger_type: { item: ['on_use'] },
+        effects: { item: { item: [
+            { type: 'adjust_vital', params: { stat: 'thirst', amount: '-30' } },
+            { type: 'adjust_uses', params: { delta: '-1' } },
+        ] } },
+        conditions: '',
+    } };
+    const entries = TriggerGraph.normalizeTriggerList(wrapped);
+    assertEq(entries.length, 1, 'one definition');
+    assertEq(entries[0].trigger_type, ['on_use'], 'trigger_type unwrapped');
+    assertEq(entries[0].effects.length, 2, 'both effects unwrapped');
+    assertEq(entries[0].conditions, undefined, 'the empty condition string is dropped');
+});
+
+test('triggersToGraph draws one root per definition and keeps their ids', () => {
+    const graph = TriggerGraph.triggersToGraph([
+        { id: 'a', trigger_type: 'on_use', effects: [{ type: 'message', params: { message: 'a' } }] },
+        { id: 'b', trigger_type: 'on_take', effects: [{ type: 'message', params: { message: 'b' } }] },
+    ]);
+    const roots = graph.nodes.filter((n) => n.type === 'trigger');
+    assertEq(roots.length, 2, 'two roots, not one');
+    assertEq(roots[0].props.id, 'a', 'first id stays on its root');
+    assertEq(roots[1].props.id, 'b', 'second id stays on its root');
+    assertEq(graph.nodes.length, new Set(graph.nodes.map((n) => n.id)).size, 'graph ids are unique');
+});
+
+test('compileToTriggers round-trips every root with its state', () => {
+    const graph = TriggerGraph.triggersToGraph([
+        { id: 'a', trigger_type: 'on_use', once: true, success_message: 'yum',
+          effects: [{ type: 'message', params: { message: 'a' } }] },
+        { id: 'b', trigger_type: 'on_take', name: 'grab',
+          effects: [{ type: 'message', params: { message: 'b' } }] },
+    ]);
+    const defs = TriggerGraph.compileToTriggers(graph);
+    assertEq(defs.length, 2, 'both roots compile');
+    assertEq(defs[0].id, 'a', 'first id');
+    assertEq(defs[0].once, true, 'once survives the round trip');
+    assertEq(defs[0].success_message, 'yum', 'success message survives');
+    assertEq(defs[1].id, 'b', 'second id');
+    assertEq(defs[1].name, 'grab', 'name survives');
+    assertEq(TriggerGraph.compileToEngine(graph).id, 'a', 'the single-root wrapper returns the first');
 });

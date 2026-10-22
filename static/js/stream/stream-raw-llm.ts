@@ -38,7 +38,7 @@ class StreamRawLLM {
         } catch (e) { return 0; }
     }
 
-    _chipBubble(tick: number, actorLabel: string, icon: unknown, labelText: unknown, contentHtmlBuilder: (body: HTMLElement) => void, areaName?: string | null): void {
+    _chipBubble(tick: number, actorLabel: string, icon: unknown, labelText: unknown, contentHtmlBuilder: (body: HTMLElement) => void, areaName?: string | null, meta?: LlmTraceMeta): void {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl) return;
         const bubble = document.createElement('div');
@@ -48,9 +48,14 @@ class StreamRawLLM {
         bubble.setAttribute('data-tick', String(tick));
         bubble.setAttribute('data-type', 'rawllm');
         bubble.setAttribute('data-stream-area', areaName || '');
+        // Trace correlation: the actor this call is FOR and the id shared by
+        // the request chip and its response chip. The export reads these.
+        if (meta?.actor) bubble.setAttribute('data-actor-id', meta.actor);
+        if (meta?.requestId) bubble.setAttribute('data-request-id', meta.requestId);
+        if (meta?.phase) bubble.setAttribute('data-phase', meta.phase);
         const header = document.createElement('div');
         header.className = 'rawllm-chip-header';
-        this._bus._nextLineLabel(bubble); // stamps data-seq
+        this._bus._tickLabel(bubble); // stamps data-seq
         window.Lit.render(window.Lit.html`
             <span class="bubble-icon">${icon}</span>
             <span class="bubble-tick">[Tick ${tick} | ${this._bus.tickToTime(tick)}]</span>
@@ -70,12 +75,17 @@ class StreamRawLLM {
     }
 
     /** Log raw LLM request — collapsed chip with token estimate. */
-    logRequest(phaseName: string, messages: LlmMessage[], estTokens?: number | null): void {
+    logRequest(phaseName: string, messages: LlmMessage[], estTokens?: number | null, meta?: LlmTraceMeta): void {
         const tick = VW?.state?.tick || 0;
         // Active character + area for this LLM call (bug-560): chips must carry
         // the real actor/area so the Event Stream filters do not hide them.
+        //
+        // The EXPLICIT actor wins. The fallback used to be "whose turn is it",
+        // which filed a prompt written for one character under another one's
+        // name - a trace that lied about who was being asked what.
         const actorLabel = String(
-            (VW?.agent && typeof VW.agent.getCurrentTurnCharacter === 'function'
+            meta?.actor
+            || (VW?.agent && typeof VW.agent.getCurrentTurnCharacter === 'function'
                 ? VW.agent.getCurrentTurnCharacter()
                 : null)
             || (typeof config !== 'undefined' ? config.controllingPlayer : null)
@@ -106,12 +116,13 @@ class StreamRawLLM {
                 // visible stream line, so it can never be mistaken for prompt text.
                 body.textContent = messages.map((m: LlmMessage) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
             },
-            areaName
+            areaName,
+            { ...(meta || {}), phase: meta?.phase || phaseName }
         );
     }
 
     /** Log raw LLM response with explicit label — collapsed chip. */
-    logResponse(label: string, content: unknown): void {
+    logResponse(label: string, content: unknown, meta?: LlmTraceMeta): void {
         const tick = VW?.state?.tick || 0;
         const respArea = (label && !label.includes('.') && !label.includes('/'))
             ? (worldState.players?.[label]?.current_area || null) : null;
@@ -119,7 +130,8 @@ class StreamRawLLM {
             tick, label, '🤖',
             window.Lit.html`${label} <span class="tok-meter">~${Math.round(String(content || '').length / 4)} tok</span>`,
             (body) => { body.textContent = String(content || ''); },
-            respArea
+            respArea,
+            meta
         );
     }
 
@@ -163,7 +175,7 @@ class StreamRawLLM {
         bubble.style.cursor = 'pointer';
         const err = this._bus._escapeHtml(errMsg || 'parse error');
         window.Lit.render(window.Lit.html`
-<span class="bubble-icon">⚠️</span><span class="bubble-tick">[${this._bus._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-error-actor">${charName}</span> <span class="bubble-text bubble-error-text">parse error: ${phase ? this._bus._escapeHtml(phase) + ' · ' : ''}${window.Lit.unsafeHTML(err)} <span style="color:var(--accent);text-decoration:underline;font-size:10px;">🔍 view raw response</span></span><div class="parse-raw" style="display:none;margin-top:6px;max-height:220px;overflow:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:4px;"></div>`, bubble);
+<span class="bubble-icon">⚠️</span><span class="bubble-tick">[${this._bus._tickLabel(bubble)}]</span> <span class="bubble-actor bubble-error-actor">${charName}</span> <span class="bubble-text bubble-error-text">parse error: ${phase ? this._bus._escapeHtml(phase) + ' · ' : ''}${window.Lit.unsafeHTML(err)} <span style="color:var(--accent);text-decoration:underline;font-size:10px;">🔍 view raw response</span></span><div class="parse-raw" style="display:none;margin-top:6px;max-height:220px;overflow:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:4px;"></div>`, bubble);
         bubble.addEventListener('click', () => {
             const rawBox = bubble.querySelector<HTMLElement>('.parse-raw');
             if (!rawBox) return;
@@ -234,6 +246,16 @@ interface LlmMessage {
     content?: string;
 }
 
+/**
+ * Trace metadata for one LLM call: which character the call is FOR, the
+ * correlation id shared by the request and response chips, and the phase.
+ */
+interface LlmTraceMeta {
+    actor?: string;
+    requestId?: string;
+    phase?: string;
+}
+
 /** A stored raw response, retrievable by `seq` from a parse-error bubble. */
 interface RawResponse {
     seq: number;
@@ -260,7 +282,7 @@ interface RecallStats {
 
 /** The event-stream surface StreamRawLLM renders into. */
 interface EventBusLike {
-    _nextLineLabel(bubble?: HTMLElement): string;
+    _tickLabel(bubble?: HTMLElement): string;
     _appendBubble(streamEl: HTMLElement, bubble: HTMLElement): void;
     _escapeHtml(text: string): string;
     _trimStream(streamEl: HTMLElement): void;

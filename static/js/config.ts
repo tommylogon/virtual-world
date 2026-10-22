@@ -102,6 +102,7 @@ class ConfigManagerImpl {
     declare busy: boolean;
     declare maxSteps: number;
     declare stepsRun: number;
+    declare charTurnCounts: Record<string, number>;
     declare lastActionResult: Record<string, unknown>;
     declare lastRoom: Record<string, unknown>;
     declare _lastRoomMap: Record<string, unknown>;

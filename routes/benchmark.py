@@ -99,7 +99,7 @@ def register_benchmark_routes(app):
                 headers=headers,
                 json=req_payload,
                 stream=stream,
-                timeout=120
+                timeout=300
             )
 
             if not upstream.ok:
