@@ -10,6 +10,47 @@ from typing import Dict, List, Optional, Set
 from graph import EDGE_CONNECTION, WorldGraph
 
 
+def known_route_areas(player, graph) -> Set[str]:
+    """Area names a character may route through.
+
+    The union of what the character has observed (``visited_area_names``) and
+    any **area** in the authored/known registry. ``player.known`` also holds way
+    and item ids for the perception gate, so only entries that resolve to an area
+    node count as a place; an entry that resolves to nothing is a known thing,
+    not a known destination, and must not widen the route search.
+
+    This is the bridge task-467 needs: authored ``known``/``known_areas`` becomes
+    route knowledge without a second store. ``visited_area_names`` stays the
+    source for what was walked.
+    """
+    names: Set[str] = set()
+    visited = getattr(player, "visited_area_names", None)
+    if callable(visited):
+        try:
+            names.update(visited(graph) or ())
+        except TypeError:
+            names.update(visited() or ())
+
+    nodes = getattr(graph, "nodes", {}) or {}
+    by_name: Dict[str, object] = {}
+    for node in nodes.values():
+        if getattr(node, "type", None) == "area" and getattr(node, "name", None):
+            by_name.setdefault(str(node.name), node)
+
+    getter = getattr(graph, "get_node", None)
+    for entry in getattr(player, "known", []) or []:
+        text = str(entry or "").strip()
+        if not text:
+            continue
+        node = getter(text) if callable(getter) else None
+        if node is None:
+            node = by_name.get(text)
+        if (node is not None and getattr(node, "type", None) == "area"
+                and getattr(node, "name", None)):
+            names.add(str(node.name))
+    return names
+
+
 class SpatialMemory:
     """BFS route builder seeded from a player's known_areas."""
 

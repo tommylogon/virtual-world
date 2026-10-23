@@ -675,7 +675,8 @@ class AreaDescription:
                             break
 
                 beyond_suffix = ""
-                if target_area_node and (state == "open" or way_node.properties.get("see_through")):
+                can_see_through = bool(way_node.properties.get("see_through"))
+                if target_area_node and (state == "open" or can_see_through):
                     beyond_suffix = build_beyond_suffix(
                         self.graph,
                         self.player_manager,
@@ -683,6 +684,17 @@ class AreaDescription:
                         target_name,
                         edge.properties,
                         active_player_obj,
+                    )
+                    # task-499: looking down an open or see-through run teaches
+                    # every room the line of sight reaches, not just the one
+                    # behind this door. `sightline_run` is the one decider of how
+                    # far that is, so the map and the prose cannot disagree.
+                    from engine.beyond_visibility import sightline_run
+                    from engine.fog import reveal_sightline
+                    reveal_sightline(
+                        active_player_obj,
+                        self.graph,
+                        sightline_run(self.graph, area_id, direction),
                     )
 
                 if state == "open" and target_name:

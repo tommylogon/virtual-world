@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: ui
 priority: medium
 horizon: now
@@ -38,19 +38,34 @@ Intended UI home: the human turn composer (HTC) scene column, the `Where you've 
 
 1. Start the app (`python app.py`, port 4444), load `kraktooth_goblin_camp`, and give a human character cells in two scopes.
    - expected: the map scope dropdown shows the current area's scope selected and draws that scope's cells.
-   - observed: TODO
+   - observed: 2026-10-23, real browser against `http://127.0.0.1:4455` (isolated server) with a payload whose `scopes` are the server-sorted `goblin_camp` then `world` and whose current area `Road` is in `world`. `TurnMinimap.render(host, payload)` set the inline `<select>` to `world`, not the first option `goblin_camp`. The fullscreen `<select>` also opened on `world`.
 2. Switch the dropdown, then close and reopen the panel.
    - expected: it opens on the current area's scope again, showing all cells there.
-   - observed: TODO
+   - observed: a fresh `render()` with the same payload re-selected `world`; the scope list and the `change` handler are unchanged, so switching still repaints. Two fallback cases were also measured: `current_area` that matches no area name but carries `current: true` selected `world`, and a payload with no `current` marker selected the first scope `goblin_camp`.
 3. `python tools/ts_convert.py check` after the `.ts` edit.
    - expected: pass
-   - observed: TODO
+   - observed: did not pass globally on 2026-10-23. The failures are outside this file: `static/js/inspector/agent-view.ts(2869,1): error TS1005: '}' expected` (another lane's dirty file), eslint `action-verbs.generated.js` `'module' is not defined`, a missing `@module` contract on `static/js/ui/source-version.js`, the pre-existing `test_plan_grounding.js` failure, and an unreviewed `window.` drop in `static/js/main.js`. `npx eslint static/js/agent/turn-minimap.js` passed, and a scoped `tsc` (`extends ./tsconfig.json`, include only `turn-minimap.ts`) emitted the `.js` with exit 0.
 
 ## Acceptance
 
-- [ ] The minimap panel opens on the scope of `payload.current_area` when that scope is present, and falls back to the first scope only when it is not.
-- [ ] Switching scope still redraws; the fullscreen map uses the same default.
-- [ ] No `.js` under `static/js/` is hand-edited; `python tools/ts_convert.py check` passes.
+- [x] The minimap panel opens on the scope of `payload.current_area` when that scope is present, and falls back to the first scope only when it is not.
+- [x] Switching scope still redraws; the fullscreen map uses the same default.
+- [x] No `.js` under `static/js/` is hand-edited; the emitted file was produced by `tsc` from the `.ts`. The global `ts_convert.py check` is blocked by unrelated files, named above.
+
+## Verified 2026-10-23 (live)
+
+Measured in the real browser on an isolated server (port 4455) by calling the
+emitted `TurnMinimap.render` with a controlled payload. The assertion is the
+`<select>.value`, not the source text:
+
+| Case | Scopes order | Current area | Selected |
+|---|---|---|---|
+| current area in a non-first scope | `goblin_camp`, `world` | `Road` (scope `world`) | `world` |
+| fullscreen, same payload | `goblin_camp`, `world` | `Road` (scope `world`) | `world` |
+| name mismatch, server marker `current: true` | `goblin_camp`, `world` | unknown name | `world` |
+| no current marker | `goblin_camp`, `world` | none | `goblin_camp` |
+
+The last row is the old behaviour kept as the documented fallback.
 
 ## Files
 

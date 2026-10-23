@@ -177,6 +177,8 @@ facing untouched rather than inventing a direction nobody travelled.
 - [[Gameplay/Character Spatial Position]] — being *at* a thing versus crossing
   past it, and how witnesses see a crossing.
 - [[Rooms & Areas]] — what is on the far side.
+- [[Per-Agent Knowledge (Fog of War)]] - what a character learns by walking,
+  looking down a corridor, or being told a direction.
 - [[Commands]] — the verb index: every command and its aliases, and where each one is documented.
 
 ## Where it lives

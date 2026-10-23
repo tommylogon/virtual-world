@@ -450,6 +450,38 @@ def test_timeskip_route_accepts_target_type():
     assert resp.get_json()["ok"]
 
 
+def test_timeskip_route_carries_a_heading_and_stops_at_the_first_refusal():
+    """task-467: `heading` reaches the engine, and a wall ends the span."""
+    from app import create_app
+    from area import Area
+
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _safe(_hero(app.world))
+    app.world.player_manager.set_active_player(hero.name)
+
+    app.world.movement.add_area(Area("Heading Hall", "A hall.", []))
+    app.world.movement.add_area(Area("Heading East Room", "An east room.", []))
+    app.world.movement.connect_areas("Heading Hall", "Heading East Room",
+                                     "east", "west", state="open")
+    app.world.set_current_area("Heading Hall")
+
+    resp = app.test_client().post(
+        "/api/world/timeskip",
+        json={"intent": "travel", "heading": "east", "minutes": 10},
+    )
+
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert hero.current_area == "Heading East Room", "the heading was not carried"
+    assert data["ticks"] == 1, (
+        "the next step has no east exit, so the span must stop there instead of "
+        "quietly spending all ten minutes"
+    )
+    assert data["interrupted"]
+    assert data["interrupt"]["kind"] == "no_exit"
+
+
 def test_timeskip_route_rejects_unknown_intent():
     client = _client()
     resp = client.post("/api/world/timeskip", json={"intent": "dance", "minutes": 2})

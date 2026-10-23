@@ -1,6 +1,6 @@
 ---
 type: task
-status: done
+status: inprogress
 area: world
 priority: medium
 ---
@@ -19,10 +19,14 @@ Add an area/scope-level known set per character. player.known already gates hidd
 
 ## Acceptance
 
-- Areas/scopes can be marked known per character; unknown ones are fog on the map.
-- Walking and examining reveal them; a map item's use/read teaches `known` entries via the existing teach path.
-- Agent prompts never disclose unknown areas (perception stays honest).
-- Tests cover the reveal, the fog-rendering data, and map-item knowledge transfer.
+- [x] Areas/scopes can be marked known per character. The reveal verbs and the
+      perception gate are wired. Rendering unknown cells as fog is task-677.
+- [x] Walking and examining reveal them; a charted map's use/read teaches the
+      entries it lists, through the same `known` registry.
+- [ ] Agent prompts never disclose unknown areas. The route block and the exit
+      list are known-filtered; `only_known` itself still has no caller.
+- [x] Tests cover the reveal, map-item knowledge transfer and the authored route
+      bridge.
 
 ## Progress — 2026-09-28 (in `review`)
 
@@ -123,28 +127,102 @@ And the payoff test: a revealed hidden way is visible to the agent that revealed
 it and still hidden from another, through the real
 `room_perception.way_visible_to`. `tests/test_known.py` still passes.
 
-### Not wired here
+### Wired 2026-10-23 (follow-up)
 
-Nothing calls `reveal_*` on movement or examine. The verbs exist, are tested and
-are the right shape; the call sites are `engine/movement.py` (mine) and
-`engine/effect_handlers/examine.py` (contended). Wiring the walk verb into
-movement is a one-line change and is left for a follow-up rather than done blind
-inside this task.
+The follow-up named below has landed. The call sites are:
+
+- **Walk:** `engine/movement.py` calls `reveal_area` for the acting player at the
+  arrival point, right after `_set_player_area`. Best-effort: a reveal failure
+  never breaks a move.
+- **Examine:** `engine/items/examine_actions.py` calls `reveal_area` for the room
+  and `reveal_examined` for the target. A way reveals the far side, and
+  `reveal_examined` now takes `from_area_id` so a two-ended way resolves the room
+  the viewer is not standing in. That bug was invisible while nothing called the
+  verb.
+- **Map:** a charted item (`"charted_areas" in properties`) teaches through
+  `teach_from_map` on `examine`/`read` and on `use`. Uncharted map props are not
+  passed to `teach_from_map`, because its no-chart fallback hands out every area
+  in the world.
+- **Sightline:** `engine/area_description.py` calls `reveal_sightline` for each
+  open or see-through exit in the room description, using
+  `beyond_visibility.sightline_run`. Looking down a corridor therefore teaches
+  every room the line of sight reaches, and the prose and the map read the same
+  run instead of two visibility rules. A shut door stops the run.
+- **Tests:** `tests/test_fog_wiring.py` (13) pins the walk, room examine, way
+  examine, item examine, mapped and unmapped reads, looking down a corridor, a
+  shut door stopping the sightline, idempotence, and the authored route bridge.
+  `tests/test_fog.py` and `tests/test_known.py` still pass.
+
+`known_route_areas` in `engine/spatial_memory.py` unions the walked areas with
+authored `known`/`known_areas`, and the prompt route block plus `recall path`
+now use it. That is the task-467 half that makes authored knowledge navigable
+without a second store.
+
+Still unwired, and why this card stays in `inprogress` rather than `done`:
+
+- `only_known` has no caller. The prompt route block and the exit list are
+  already known-filtered, but the filter itself is not used elsewhere.
+- `fog_view` has no caller. The map endpoint draws visited cells; painting fog
+  for painted-but-unvisited cells is task-677's surface.
+
+### Not wired at filing (historical)
+
+Nothing called `reveal_*` on movement or examine. The verbs existed, were tested
+and were the right shape; the call sites were `engine/movement.py` and the
+examine handler.
 
 ## Why
 
-TODO
+`player.known` gates hidden ways, hidden items and exit visibility, but nothing
+in the runtime wrote to it. Per-agent knowledge therefore only worked for
+authored starting knowledge: a character who walked into a room still did not
+know it, and an agent could not route to a place it had been told about. The
+gate was sound and had no key.
 
 ## How
 
-TODO
+- `engine/fog.py` supplies the verbs: `reveal_area`, `reveal_examined` (a way
+  teaches the far side; `graph` and `from_area_id` make a two-ended way resolve
+  the room the viewer is not in), `teach_from_map`, `only_known` and `fog_view`.
+- `engine/movement.py` calls `reveal_area` at the arrival point.
+- `engine/items/examine_actions.py` reveals the room, the item and the far side
+  of a way; `engine/items/use_actions.py` does the same for a used map.
+- A map is only taught when it declares `charted_areas`. The no-chart fallback
+  in `teach_from_map` hands out every area, so an uncharted map prop must not
+  reach it.
+- `engine/spatial_memory.known_route_areas` unions the walked areas with the area
+  entries in `known`/`known_areas`; the prompt route block (`routes/memories.py`)
+  and `recall path` (`routes/action_handlers.py`) read the union.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. `python -m pytest tests/test_fog_wiring.py tests/test_fog.py tests/test_known.py`
+   - expected: all pass
+   - observed: 40 passed on 2026-10-23
+2. Walk a two-room world and examine the joining way.
+   - expected: the destination room's id and name are both in `player.known`
+   - observed: `test_walking_into_an_area_teaches_it` and
+     `test_examining_a_way_teaches_the_far_side` pass
+3. Read a charted map and an uncharted map prop.
+   - expected: the charted map teaches its chart; the uncharted prop teaches only
+     the room the reader is in
+   - observed: `test_reading_a_charted_map_teaches_its_chart` and
+     `test_reading_an_uncharted_map_does_not_teach_the_world` pass
+4. Seed `known` with an area id and ask for a route.
+   - expected: `find_route` returns the path even with no walked memory
+   - observed: `test_authored_known_area_makes_a_path_findable` passes
+5. Live browser check of the fog reveal.
+   - expected: a walked area appears in `known` in `GET /api/players/<name>`
+   - observed: not run. The wiring is pinned at the engine level; the UI surface
+     for fog is task-677 and does not exist yet.
 
 ## Files
 
-- TODO
+- `engine/fog.py`
+- `engine/movement.py`
+- `engine/items/examine_actions.py`
+- `engine/items/use_actions.py`
+- `engine/spatial_memory.py`
+- `routes/memories.py`
+- `routes/action_handlers.py`
+- `tests/test_fog_wiring.py`

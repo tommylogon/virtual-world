@@ -7,14 +7,15 @@ tags: [system/gameplay]
 
 ## What you can do
 
-Each character maintains a personal `known` list of areas, ways, and items they've been told about — walking into an area reveals it, examining a way teaches where it leads, examining a place teaches itself, and a sightline run teaches every area along it. A map item with `charted_areas` teaches exactly those entries (or the whole world if the key is absent, nothing if it's an empty array). The perception gate uses this list to decide whether hidden ways and items are visible to a character. You can also teach knowledge directly via `teach_from_map`, forget specific entries, and query the fog view (`fog_view`) to get known/unknown sets with counts for map rendering. The honesty filter `only_known` ensures an agent never sees what it hasn't learned — a filter that can't decide returns nothing, never the input. Currently the module is complete and tested but **unwired**: no runtime code calls the reveal functions on movement or examine, so per-agent knowledge only works for authored starting knowledge.
+Each character maintains a personal `known` list of areas, ways, and items they have been told about. Walking into an area reveals it, examining a way teaches where it leads, examining a place teaches itself, looking down an open or see-through run teaches every room the sightline reaches, and a map item with `charted_areas` teaches exactly the entries it lists. A direction spoken aloud in earshot teaches the place it names. The perception gate uses this list to decide whether hidden ways and items are visible to a character. You can also teach knowledge directly via `teach_from_map`, forget specific entries, and query the fog view (`fog_view`) for known/unknown sets with counts for map rendering. The honesty filter `only_known` can withhold but never assert.
+
+As of 2026-10-23 the walk, examine, charted-map, sightline and spoken-direction call sites are wired (see "Wired 2026-10-23"). `only_known` and `fog_view` still have no caller.
 
 `player.known` is a per-character list of the places, ways and items they have been
-told about. `engine/fog.py` (346 lines) is the module that writes it: three reveal
-verbs, a map-teach path, and the one filter that decides what a character may be told.
-It is **unwired** — see "Unwired" below for the measurement.
+told about. `engine/fog.py` is the module that writes it: three reveal verbs, a
+map-teach path, and the one filter that decides what a character may be told.
 
-Tasks: [[dev_tasks/done/world/task-499-per-agent-fog-of-war-and-map-knowledge-transfer|task-499]] ·
+Tasks: [[task-499-per-agent-fog-of-war-and-map-knowledge-transfer|task-499]] ·
 design: `docs/design/worldpainter-knowledge-and-fog.md`
 
 ---
@@ -151,33 +152,51 @@ exactly one place to change if the rule ever becomes "a rough bearing is allowed
 
 ---
 
-## Unwired — verified
+## Wired 2026-10-23
 
-> [!warning] The module is complete, tested (24), and unreachable
-> Nothing in `engine/`, `routes/` or `static/js/` imports this file. A player
-> cannot see per-agent knowledge today, and no amount of soak will change that —
-> the honest reading is "not wired", not "low event rate". The evidence is below.
+The call sites now write `player.known`:
 
-**`engine/fog.py` has zero runtime callers.** The only importer anywhere is
-`tests/test_fog.py:21`.
+| Call site | Calls | When |
+|---|---|---|
+| `engine/movement.py` arrival | `reveal_area` | a character enters an area, including a timeskip heading hop (`traversal.hop` sets `active_player` before it calls `move_to_area`) |
+| `engine/items/examine_actions.py` | `reveal_area` for the room, `reveal_examined` for the target | `examine` and `read` (the verb alias) |
+| `engine/items/use_actions.py` and `examine_actions.py` | `teach_from_map` | `use`, or `examine`/`read`, of an item that declares `charted_areas` |
+| `engine/area_description.py` room description | `reveal_sightline` with `beyond_visibility.sightline_run` | each open or see-through exit, so looking down a corridor teaches the rooms it reaches |
+| `engine/speech.py` spoken-place learning | `reveal_area` | a same-area line that names an area *and* gives a direction ("go west to the Old Mill") |
 
-```
-rg -n "reveal_area|reveal_examined|reveal_sightline|teach_from_map|only_known|fog_view|unknown_are_hidden" \
-   --glob '!.kilo/worktrees/**' -g '!docs/**' -g '!*.md'
-→ engine/fog.py  (definitions only)
-   tests/test_fog.py:21-31, 72-353  (the 24 tests)
-→ nothing in engine/ other than fog.py itself, nothing in routes/, nothing in static/js/
-```
+`reveal_examined` gained a `from_area_id` argument in the same pass: a way with
+two area edges otherwise resolved to whichever edge came first, which could be
+the room the viewer was already in. That bug was invisible while nothing called
+the verb.
 
-(The four `fog.`-shaped hits in `engine/world_grid.py`, `engine/zones.py` and two
-`static/js/worldpainter/` files are `@docs` pointer comments to
-`docs/design/worldpainter-knowledge-and-fog.md`, not imports.)
+The map hook is deliberately gated on `"charted_areas" in properties`. An
+uncharted map prop is not passed to `teach_from_map`, because that function's
+no-chart fallback hands out every area in the world. The two shipped map props
+(`Crude Map`, `Folded Map`) declare no chart and teach nothing.
 
-Nothing calls `reveal_*` on movement or on examine. task-499 says so itself:
+Looking down a run is the same decision the prose makes: `sightline_run` stops at
+a shut door, a turn or a floor step, and `reveal_sightline` writes every room in
+the returned run. Hearsay is the dialogue twin of a map: a line that names an area
+and contains a direction word teaches that area to same-area listeners, never to
+the speaker, and an idle mention ("I like the Old Mill") teaches nothing.
 
-> *Nothing calls `reveal_*` on movement or examine. The verbs exist, are tested and
-> are the right shape; the call sites are `engine/movement.py` (mine) and
-> `engine/effect_handlers/examine.py` (contended).*
+`engine/spatial_memory.known_route_areas` unions the walked areas with authored
+`known`/`known_areas`, and both the prompt route block (`routes/memories.py`)
+and `recall path` (`routes/action_handlers.py`) read it. That is the task-467
+half that makes authored knowledge navigable without a second store.
+
+### Still unwired
+
+| Function | Why |
+|---|---|
+| `only_known` | the route block and exit list are already known-filtered, but the shared filter has no caller |
+| `fog_view` | the map endpoint draws visited cells; painting fog for painted-but-unvisited cells is task-677's surface |
+
+The task's acceptance line "the map view shows only known cells/zones" has no
+implementation surface yet. The design doc records the open question
+(`docs/design/worldpainter-knowledge-and-fog.md`, §Still open): whether fog is
+tracked per cell, per area, or per scope. Task-499 starts at area/scope.
+
 
 ### What *is* live today: the authored half
 
@@ -195,10 +214,10 @@ So a **hidden way an author put in a character's `known` list is genuinely visib
 that character today** — through the real `area_description` / `scene_snapshot` path.
 That is the gate working with an authored key.
 
-The **runtime** half is missing. Nothing in the live world ever *adds* to the list,
-except `AgentMind.know_area` (`engine/agent_memory.py:96`), which is called from
-exactly one place — `load_preconceived` at `:143` — i.e. scenario load, and nowhere
-else (`rg know_area` outside tests returns two hits, both in `agent_memory.py`).
+The **runtime** half is now wired: movement, examine and a charted map add to the
+list through `engine/fog.py` (see "Wired 2026-10-23"). Before that, the only
+writer was `AgentMind.know_area` (`engine/agent_memory.py:96`) from
+`load_preconceived` at `:143`, i.e. scenario load.
 
 ### How much authored knowledge exists
 
@@ -210,27 +229,27 @@ fog-of-war model is authored-only.
 
 ---
 
-## What would make it reachable
+## What remains
 
-Two call sites, and the module already says where they are:
+1. **`only_known` where a prompt lists places it did not derive from the exit
+   list.** The route block and exit list are already known-filtered.
+2. **`fog_view` on the map payload** (task-677). The task's "the map view shows
+   only known cells/zones" line has no implementation surface yet. The design
+   doc records the open question
+   (`docs/design/worldpainter-knowledge-and-fog.md`, §Still open): whether fog is
+   tracked per cell, per area, or per scope. Task-499 starts at area/scope.
+3. **The belief-destination resolver and found / found-not-there record**
+   (task-467). The map teach path, the sightline writer, the HTTP heading form,
+   hearsay writing `known` and the fog reveal on a heading hop have landed; the
+   resolver and the arrival record have not.
 
-1. **`reveal_area` on arrival** — `engine/movement.py`, where a character's
-   `current_area` is set. One line.
-2. **`reveal_examined` on examine** — `engine/effect_handlers/examine.py`. A way
-   teaches where it goes; a place teaches itself.
-
-Plus, for the map to actually teach, `teach_from_map` needs a hook on `use` / `read`
-of an item carrying `charted_areas`.
-
-And for the fog to be *visible*, `fog_view` needs a caller — the task's own acceptance
-line ("the map view shows only known cells/zones") has no implementation surface yet.
-The design doc records the same open question
-(`docs/design/worldpainter-knowledge-and-fog.md`, §Still open): whether fog is tracked
-per cell, per area, or per scope — task-499 starts at area/scope.
+`teach_from_map` with no `charted_areas` key still hands out every area. The call
+sites avoid that by checking for the key, but the function itself is a footgun;
+either its fallback should teach the current area or it should require a chart.
 
 ---
 
-## Tests — `tests/test_fog.py` (24)
+## Tests - `tests/test_fog.py` (24)
 
 | Group | Count | What it pins |
 |---|---|---|
@@ -242,6 +261,14 @@ per cell, per area, or per scope — task-499 starts at area/scope.
 | The payoff | 1 | a revealed hidden way is visible to the agent that revealed it and still hidden from another, through the real `room_perception.way_visible_to` |
 
 `tests/test_known.py` covers the gate itself and still passes.
+
+The wiring is pinned by `tests/test_fog_wiring.py` (13): the walk, room examine,
+way examine, item examine, charted and uncharted map read, looking down a
+corridor, a shut door stopping the sightline, idempotence, and the authored route
+bridge (`known_route_areas` feeding `build_known_routes` and `find_route`).
+Hearsay is pinned by `tests/test_hearsay_places.py` (3): a spoken direction
+teaches the named place, an idle mention does not, and the speaker is not taught
+by their own line.
 
 ---
 
@@ -258,6 +285,8 @@ per cell, per area, or per scope — task-499 starts at area/scope.
 - Core module: `engine/fog.py` — `Known` class, `reveal_area`, `reveal_examined`, `reveal_sightline`, `teach_from_map`, `fog_view`, `only_known`, `unknown_are_hidden`
 - Perception gate (reads `player.known`): `engine/room_perception.py:56` — `way_visible_to`, `visible_area_items`
 - Called from: `engine/area_description.py:259`, `engine/scene_snapshot.py:198,164`, `engine/observation.py:108`, `engine/movement.py:945`
+- Writers (2026-10-23): `engine/movement.py` arrival, `engine/items/examine_actions.py`, `engine/items/use_actions.py`
+- Route bridge: `engine/spatial_memory.py` `known_route_areas`; read by `routes/memories.py` and `routes/action_handlers.py`
 - Serialization: `engine/serialization.py:147,351` — `player.known` list out/in
 - Authored seeding: `player.py:229-234` — `self.known = []` from character data
 - Preconceived knowledge: `engine/serialization.py:433-438` → `agent_memory.load_preconceived`

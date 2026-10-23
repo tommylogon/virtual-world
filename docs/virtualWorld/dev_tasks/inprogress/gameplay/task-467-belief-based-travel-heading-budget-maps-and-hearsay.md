@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: medium
 wiki: "[[World Building/Movement]]"
@@ -34,12 +34,19 @@ grid is the shared model for authoring, movement and knowledge.
 - [ ] A believed destination is resolved from the character's own knowledge
       rather than from world truth, and the arrival outcome (found /
       found-not-there) is recorded against that belief.
-- [ ] A heading plus a time budget spends no more than the requested budget, in
+- [x] A heading plus a time budget spends no more than the requested budget, in
       flat per-area steps, and stops at the first refusal rather than continuing
-      past it.
-- [ ] Reading a map or being told a direction writes into the character's
-      existing `known` store and upgrades only the belief it supports.
-- [ ] Each area entered on a heading walk reveals fog for that character only.
+      past it. (Wired 2026-10-23: the HTTP route carries `heading`; one
+      `_move_heading()` step per tick, which is the flat `per_hop_minutes()` cost
+      at the one-minute target turn, and the first refusal ends the span.)
+- [x] Reading a map or being told a direction writes into the character's
+      existing `known` store. (Wired 2026-10-23: charted maps on read/use, and a
+      spoken direction in earshot.)
+- [ ] The write upgrades only the belief it supports. Nothing links a `known`
+      entry to the belief it corrects yet.
+- [x] Each area entered on a heading walk reveals fog for that character only
+      (wired 2026-10-23: `traversal.hop` sets `active_player` and calls
+      `movement.move_to_area`, which now calls `fog.reveal_area`).
 - [ ] Entering an unmade frontier cell generates content for that character
       (task-398/task-9).
 
@@ -54,8 +61,53 @@ grid is the shared model for authoring, movement and knowledge.
   label matches the heading.
 - [ ] Belief destination: resolve a described/unknown target (task-403 knowledge)
   and validate it on arrival (found / found-not-there).
-- [ ] Maps and hearsay writing knowledge that upgrades a belief to a known route.
+- [x] Maps and hearsay writing knowledge (2026-10-23: charted maps and spoken
+  directions write `known`).
+- [ ] Upgrading only the belief a map or direction supports into a known route.
 - [ ] Generation-on-discovery at the frontier (task-398/task-9).
+
+## Progress 2026-10-23 - the map and fog halves are wired
+
+- [x] **A walked area is taught.** `engine/movement.py` calls
+  `fog.reveal_area` at the arrival point. `traversal.hop` sets `active_player`
+  before it calls `move_to_area`, so a heading walk writes to the acting
+  character's `known` set, not the human's. Covered by
+  `tests/test_fog_wiring.py::test_walking_into_an_area_teaches_it` and the
+  idempotence case.
+- [x] **A charted map teaches on read/use.** `engine/items/examine_actions.py`
+  and `engine/items/use_actions.py` call `fog.teach_from_map` when the item
+  declares `charted_areas`. Uncharted map props are deliberately skipped,
+  because `teach_from_map`'s no-chart fallback hands out every area. Covered by
+  `test_reading_a_charted_map_teaches_its_chart` and
+  `test_reading_an_uncharted_map_does_not_teach_the_world`.
+- [x] **Authored knowledge is route knowledge.** `known_route_areas` unions the
+  walked areas with authored `known`/`known_areas`, and
+  `routes/memories.py` (prompt block) and `routes/action_handlers.py`
+  (`recall path`) both use it. Covered by
+  `test_authored_known_area_feeds_the_route_block` and
+  `test_authored_known_area_makes_a_path_findable`.
+- [x] **Hearsay writes `known`.** `SpeechBroadcaster._teach_places_from_speech`
+  scans a same-area line for an area name when the line also carries a direction
+  ("go west to the Old Mill"), and reveals that area to every listener except the
+  speaker. An idle mention ("I like the Old Mill") teaches nothing. Covered by
+  `tests/test_hearsay_places.py` (3).
+- [x] **A heading is reachable over HTTP and stops at the first refusal.**
+  `routes/timeskip_ops.py` passes `heading` to both `advance` and
+  `soak.declare`; one `_move_heading()` step runs per tick, and a wall ends the
+  span instead of quietly spending the rest of the budget. Covered by
+  `test_timeskip_route_carries_a_heading_and_stops_at_the_first_refusal`.
+
+Still open on this card:
+
+- The belief-destination resolver and found / found-not-there record.
+- "Upgrades only the belief it supports" (the map half writes the registry, but
+  nothing links an entry to the belief it corrects).
+- Generation-on-discovery at the frontier (task-398/task-9).
+
+The 2026-10-20 reconnaissance below said `engine/fog.py` had zero importers.
+That is no longer true for `reveal_area`, `reveal_examined`, `reveal_sightline`
+and `teach_from_map`; `only_known` and `fog_view` still have none. The rest of
+that reconnaissance still stands.
 
 ## Steps to verify
 
@@ -71,11 +123,12 @@ grid is the shared model for authoring, movement and knowledge.
 2. Heading step
    - expected: a heading moves the character through an exit whose label matches
      the heading, and every matching exit is tried before the way is called shut.
-   - observed: implemented but NOT exercised live. Measured 2026-10-20:
-     `engine/timeskip.py:602` `_move_heading()` exists and does the matching,
-     but the HTTP route (`routes/timeskip_ops.py:79`) accepts `minutes`,
-     `hours` and `turns` and no `heading` field, so the path is reachable only
-     from a soak order (`engine/soak.py:34`, `:55`, `:133`).
+   - observed: PASS 2026-10-23. `routes/timeskip_ops.py` now passes
+     `heading=data.get("heading")` to both `advance` and `soak.declare`, so
+     `POST /api/world/timeskip {"intent":"travel","heading":"east","minutes":10}`
+     reaches `_move_heading()`. The targeted test moved into the east exit,
+     stopped at the wall on the next step, spent one tick of the ten-minute
+     budget and reported `no_exit`.
 3. Belief destination
    - expected: a described destination is resolved from the character's own
      knowledge rather than world truth, and the outcome (found /
@@ -88,10 +141,12 @@ grid is the shared model for authoring, movement and knowledge.
    - expected: reading a map reveals the areas it charts into the character's
      `known` list, and a direction given in dialogue reveals one area the same
      way, so a belief becomes a known route.
-   - observed: NOT run live. Measured 2026-10-20: `engine/fog.py:232`
-     `teach_from_map()` exists and writes `player.known`, but `rg` for
-     `teach_from_map|reveal_area|reveal_sightline|only_known` outside
-     `engine/fog.py` returns 0 hits - the module has no importer at all.
+   - observed: PARTIAL 2026-10-23. A charted map writes on `examine`/`read`/`use`
+     and an uncharted prop teaches nothing (`tests/test_fog_wiring.py`). A spoken
+     direction writes `known` for same-area listeners and not for the speaker
+     (`tests/test_hearsay_places.py`). The "upgrades only the belief it supports"
+     link is still absent: a `known` entry has no reference to the belief it
+     corrects.
 5. Generation on discovery at the frontier
    - expected: entering an unmade frontier cell generates content and reveals
      it for that character only.
@@ -128,10 +183,12 @@ Four mechanisms already exist and should be reused, not rebuilt:
 - `engine/memory_dynamics.py` defines `BELIEF = "belief"` (:42) as the memory
   category for "a conclusion the character holds; may be wrong".
 
-The gap is **wiring, not authoring**. Measured 2026-10-20: `engine/fog.py`
-has zero importers anywhere in `engine/` or `routes/` - `reveal_area`,
-`reveal_sightline`, `reveal_examined`, `teach_from_map` and `only_known` are
-all uncalled. So the remaining work is:
+The gap is **wiring, not authoring**. At filing (2026-10-20), `engine/fog.py`
+had zero importers anywhere in `engine/` or `routes/` - `reveal_area`,
+`reveal_sightline`, `reveal_examined`, `teach_from_map` and `only_known` were
+all uncalled. The map teach path, hearsay writing `known`, the sightline writer
+and the heading request landed 2026-10-23; the resolver and belief validation
+remain. The original plan was:
 
 1. **Wire the map teach path.** A map's read or use should call
    `fog.teach_from_map(player, map_item)` and report what it taught. This is
@@ -145,14 +202,13 @@ all uncalled. So the remaining work is:
    character's own knowledge (`AgentMind.knows_area()`, `known_areas`) and
    returns a *believed* target. It must be allowed to return a target that
    does not exist, because a belief may be wrong.
-4. **Give a heading a time budget.** `timeskip.INTENTS` (:37) has no
-   heading-budget intent and `POST /api/world/timeskip`
-   (routes/timeskip_ops.py:79) accepts `minutes`/`hours`/`turns` but no
-   heading. Add a heading-plus-budget request form and spend it as repeated
-   `_move_heading()` steps at the same flat per-area cost `per_hop_minutes()`
-   defines, stopping at the first refusal. The task-466 interrupt path is
-   already inside the timeskip loop, so a hazard during the walk interrupts for
-   free.
+4. **Give a heading a time budget.** `POST /api/world/timeskip` now passes
+   `heading` to `advance` and `soak.declare`, and the timeskip loop spends one
+   `_move_heading()` step per tick, stopping at the first refusal. At the
+   one-minute target turn that is the flat `per_hop_minutes()` cost. No separate
+   heading intent was needed: `intent: "travel"` with `heading` is the form. The
+   task-466 interrupt path is already inside the loop, so a hazard during the
+   walk interrupts for free.
 5. **Validate the belief on arrival.** When the walk ends, compare the area
    actually reached with the believed target and record found /
    found-not-there into the character's memory under the `BELIEF` category.
@@ -194,7 +250,12 @@ land against one shared primitive rather than two.
 
 Intended UI home: game view → enter a believed heading and time budget such as `go west 2h` → inspect the character's resulting area, event stream, and Mind/known-locations view.
 
-Current availability: belief-based heading travel, generation-frontier resolution, and route knowledge learned from dialogue/items are planned. No heading-budget travel or belief upgrade is claimed as available today.
+Current availability: the engine and `POST /api/world/timeskip` accept
+`{"intent":"travel","heading":"east","minutes":N}` and stop at the first
+refusal. Charted maps and spoken directions now write `known`. The game-view
+`go west 2h` command, the belief-destination resolver, the belief-upgrade link
+and generation-frontier resolution remain planned; no UI surface is claimed
+today.
 
 Live steps when available:
 1. In a scratch world with a known westward frontier and a character who has not visited the destination, submit `go west 2h` and inspect the travel events.
@@ -206,12 +267,12 @@ Live steps when available:
 4. Ask the character to recall the destination before and after receiving the map/direction.
    - expected: before learning it, the response represents a belief with uncertainty; after learning it, recall returns the known route without using world truth the character has not learned.
 
-## Reconnaissance (2026-10-20) - still valid
+## Reconnaissance (2026-10-20) - superseded in part 2026-10-23
 
-Re-checked the cited code on 2026-10-20. Newer tasks (464 timeskip actions, 466 interrupt evaluator, 499 fog of war, 398 scoped generation, 403 knowledge) landed, but the belief-based travel pieces this card still asks for are not implemented:
+Re-checked the cited code on 2026-10-20. The belief-based travel pieces this card still asks for were not implemented then. Items 1, 2, 4 and 6 of the plan above have since landed; the resolver and belief validation have not.
 
-- `engine/timeskip.py` still exposes `route_hops()` / `travel_minutes()` and `_move_heading()` (heading step) - those two progress boxes remain accurate.
-- No belief-destination resolver, no map/hearsay knowledge writer, and no generation-on-discovery at the frontier exists in `engine/timeskip.py` or `engine/knowledge.py`. `engine/timeskip.INTENTS` = ("idle", "leisure", "search", "explore", "travel") - no "belief" or "heading-budget" intent.
+- `engine/timeskip.py` exposes `route_hops()` / `travel_minutes()` and `_move_heading()` (heading step) - those two progress boxes remain accurate.
+- The map teach path, spoken-direction hearsay and the HTTP `heading` field now exist. No belief-destination resolver and no generation-on-discovery at the frontier exists in `engine/timeskip.py` or `engine/knowledge.py`. `engine/timeskip.INTENTS` = ("idle", "leisure", "search", "explore", "travel") - no separate belief intent; heading travel uses `intent: "travel"` with a `heading`.
 - Note on the word "belief": it does occur in `engine/`, 11 times in `engine/memory_dynamics.py`, but as a *memory category* (`BELIEF = "belief"`, a conclusion the character holds) and in the reflection docs. That is the memory system's taxonomy, not a travel resolver; none of those sites are reachable from `engine/timeskip.py`.
 
-Verdict: PARTLY_DONE is already recorded; the two checked boxes stand, the three unchecked boxes remain open. Card kept in todo.
+Verdict: PARTLY_DONE. The heading and map/hearsay boxes are checked; the belief resolver, belief-upgrade link and frontier generation remain open. Card moved to `inprogress` 2026-10-23.

@@ -224,6 +224,17 @@ class ExamineActionsMixin:
         # current area by name (or id), describe it and fire its on_examine
         # triggers. Falls through to items when no area matches.
         current_area_node = self.graph.get_node(area_id) if area_id else None
+
+        # task-499: examining anything teaches the room you are in. The walk path
+        # writes the same registry; this is the second writer the fog gate needs.
+        viewer_obj = player_manager.get_active_player_obj()
+        if viewer_obj is not None and current_area_node is not None:
+            try:
+                from engine.fog import reveal_area
+                reveal_area(viewer_obj, current_area_node)
+            except Exception:
+                pass
+
         area_phrases = {"room", "area", "here", "surroundings", "the room",
                         "the area", "current room", "current area"}
         if current_area_node and (
@@ -267,6 +278,18 @@ class ExamineActionsMixin:
                 # hand, worn, or inside a carried container is left alone.
                 approach_item(self.graph, player_manager, target_name, item_node)
                 set_position_examining_item(self.graph, player_manager, target_name, item_node)
+                # task-499: examining an item teaches the item, and a map with a
+                # chart teaches the places it charts ("read" aliases examine).
+                # Gated on an authored chart: a map with no chart is a prop, and
+                # `teach_from_map` without a list would teach the whole world.
+                try:
+                    from engine.fog import reveal_examined, teach_from_map
+                    if viewer_obj is not None:
+                        reveal_examined(viewer_obj, item_node, graph=self.graph)
+                        if "charted_areas" in (item_node.properties or {}):
+                            teach_from_map(viewer_obj, item_node, graph=self.graph)
+                except Exception:
+                    pass
                 # Phase 3 - see_item save_on hook (e.g. hemophobic + blood/corpse)
                 try:
                     player_manager._emit_save_on(
@@ -389,6 +412,15 @@ class ExamineActionsMixin:
             if player_manager.active_player:
                 pid = player_manager._player_node_id(player_manager.active_player)
                 approach_way(self.graph, pid, way_node.id)
+            # task-499: a way is described by where it goes, so examining it
+            # teaches the area on the far side.
+            try:
+                from engine.fog import reveal_examined
+                if viewer_obj is not None:
+                    reveal_examined(viewer_obj, way_node, graph=self.graph,
+                                    from_area_id=area_id)
+            except Exception:
+                pass
             desc = self._render_node_desc(way_node)
             if not desc:
                 desc = f"It's a {direction}."

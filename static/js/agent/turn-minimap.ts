@@ -558,6 +558,29 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
         });
     }
 
+    /** The scope holding the character's current area, else the first scope.
+     *
+     * The server emits `scopes` sorted by scope id, so the first <option> is the
+     * alphabetically-first scope, not the one the character is standing in.
+     * `areas[].current` is the server's own marker for `payload.current_area`, so
+     * the fallback still works if the name and the id disagree. See bug-553.
+     */
+    function defaultScopeId(areas: MapCell[], scopes: MapScope[], currentArea?: string): string {
+        const wanted = String(currentArea || '').trim().toLowerCase();
+        let here = wanted
+            ? areas.find(function (a) {
+                return String(a.name || '').toLowerCase() === wanted
+                    || String(a.id || '').toLowerCase() === wanted;
+            })
+            : undefined;
+        if (!here) here = areas.find(function (a) { return a.current; });
+        const scopeId = here ? here.scope_id : '';
+        if (scopeId && scopes.some(function (s) { return s.id === scopeId; })) {
+            return scopeId;
+        }
+        return scopes.length ? scopes[0].id : '';
+    }
+
     function render(host: HTMLElement, payload: MapPayload): void {
         ensureStyles();
         const existing = document.getElementById(HOST_ID);
@@ -590,6 +613,9 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             opt.value = '';
             sel.appendChild(opt);
         }
+        // Open on the scope that holds the character, not the first server-sorted
+        // option. See bug-553.
+        sel.value = defaultScopeId(areas, scopes, payload.current_area);
         head.appendChild(sel);
         head.appendChild(el('span', 'tmn-sp'));
 
@@ -662,6 +688,10 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             sel.appendChild(opt);
         });
         bar.insertBefore(sel, close);
+
+        // Same default as the inline panel (bug-553): the scan order is the
+        // server's scope sort, not the character's location.
+        sel.value = defaultScopeId(areas, scopes, payload && payload.current_area);
 
         const grid = el('div', 'tmn-grid');
         // No flex:1 - the overlay is a column, so growing would stretch the box

@@ -27,6 +27,16 @@ from graph import EDGE_IN
 WHISPER_EAVESDROP_BAND = "friend"
 
 
+#: Words that make a named place a *direction* rather than an idle mention
+#: (task-467). Hearsay should teach where something is, not hand out every place
+#: a conversation happens to name.
+_DIRECTION_CONTEXT = re.compile(
+    r"\b(?:north|south|east|west|northeast|northwest|southeast|southwest|"
+    r"up|down|left|right|beyond|past|toward|towards|through|across|along)\b",
+    re.IGNORECASE,
+)
+
+
 class SpeechBroadcaster:
     """Delivers speech events to hearers and records them.
 
@@ -186,6 +196,49 @@ class SpeechBroadcaster:
                         f'[{listener_name}] learns that {label} is called "{matched}".'
                     )
 
+    # ──────────────────── Spoken-place learning (task-467) ───────────────
+
+    def _teach_places_from_speech(self, speaker_name: str, speech_text: str,
+                                  target_area: str) -> None:
+        """A direction spoken aloud teaches the place it names (task-467).
+
+        Hearsay is the same operation as a map: a named place enters the
+        listener's ``known`` store. The direction gate keeps an idle mention
+        ("I like the old mill") from handing out the map; the line has to say
+        *where* the place is, not merely name it. Only same-area listeners hear
+        it, and the speaker is not taught by their own line.
+        """
+        if not self.graph or not _DIRECTION_CONTEXT.search(str(speech_text or "")):
+            return
+        present = [
+            pname for pname, p_obj in self.player_manager.players.items()
+            if getattr(p_obj, "current_area", None) == target_area
+        ]
+        if speaker_name not in present:
+            return
+
+        from engine.fog import reveal_area
+
+        text_lower = str(speech_text).lower()
+        for node in list(self.graph.nodes.values()):
+            if getattr(node, "type", "") != "area":
+                continue
+            name = str(getattr(node, "name", "") or "")
+            if not name or name.lower() == str(target_area).lower():
+                continue
+            if not re.search(r'(?<!\w)' + re.escape(name.lower()) + r'(?!\w)', text_lower):
+                continue
+            for listener_name in present:
+                if listener_name == speaker_name:
+                    continue
+                listener = self.player_manager.players.get(listener_name)
+                if listener is None:
+                    continue
+                if reveal_area(listener, node):
+                    self.logging_events.add_log_entry(
+                        f'[{listener_name}] learns of the place called "{name}".'
+                    )
+
     # ──────────────────────── Broadcasting ─────────────────────────────
 
     def broadcast_speech(
@@ -331,6 +384,7 @@ class SpeechBroadcaster:
             self._teach_names_from_speech(
                 speaker_name, speech_text, target_area, event.get("tick", 0) or 0
             )
+            self._teach_places_from_speech(speaker_name, speech_text, target_area)
 
         # Propagate sound to adjacent areas (never for a directed whisper)
         if self.graph and not is_directed_whisper:

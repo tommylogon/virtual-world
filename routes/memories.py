@@ -5,7 +5,7 @@ import time
 import random
 from flask import Flask, request, jsonify
 from logger import setup_logger
-from engine.spatial_memory import SpatialMemory
+from engine.spatial_memory import SpatialMemory, known_route_areas
 from engine.vector_store import VectorStore
 from engine import memory_dynamics
 
@@ -667,7 +667,9 @@ def register_memories_routes(app):
         if not player:
             return jsonify({"error": "Player not found"}), 404
         current_area = getattr(player, 'current_area', None)
-        known = player.visited_area_names(app.world.graph) if hasattr(player, 'visited_area_names') else set()
+        # task-467: authored/known areas are route knowledge too, not only the
+        # areas the character has walked. One union, one route surface.
+        known = known_route_areas(player, app.world.graph)
         sm = SpatialMemory(app.world.graph)
         block = sm.build_known_routes(current_area, known)
         return jsonify({"spatial": block})

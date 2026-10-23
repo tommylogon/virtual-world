@@ -173,11 +173,16 @@ def reveal_area(player, area_node) -> List[str]:
     return Known(player).reveal(area_node)
 
 
-def reveal_examined(player, target) -> List[str]:
+def reveal_examined(player, target, *, graph=None, from_area_id=None) -> List[str]:
     """Examining a thing teaches the place it is in or points at.
 
     A way teaches the area on the far side, because a way is only ever described
-    in terms of where it goes. An area teaches itself.
+    in terms of where it goes. An area teaches itself. ``graph`` lets a caller
+    that already holds the graph (the examine verb) pass it in, so a way still
+    resolves its far area when the player object carries no graph back-reference.
+    ``from_area_id`` is the room the viewer is examining *from*; without it a way
+    with two area edges resolves to whichever edge came first, which can be the
+    room the viewer is already standing in.
     """
     if target is None:
         return []
@@ -185,7 +190,12 @@ def reveal_examined(player, target) -> List[str]:
     if getattr(target, "type", None) == "way":
         from engine.beyond_visibility import _area_across
 
-        far = _area_across(_graph_of(player), target, None)
+        source = graph if graph is not None else _graph_of(player)
+        far = _area_across(source, target, from_area_id)
+        if far:
+            # `_area_across` returns an id; resolve it so the name is written too.
+            getter = getattr(source, "get_node", None)
+            far = (getter(far) if callable(getter) else None) or far
         return known.reveal(far)
     return known.reveal(target)
 

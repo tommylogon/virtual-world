@@ -153,6 +153,16 @@ class UseActionsMixin:
         if refusal:
             raise ValueError(refusal)
 
+        # task-499: using a charted map teaches what it charts, through the same
+        # registry a walk writes. Only an authored chart counts here; the bare
+        # prop maps in the library declare no chart and teach nothing.
+        try:
+            if "charted_areas" in (item_node.properties or {}):
+                from engine.fog import teach_from_map
+                teach_from_map(player_manager.player, item_node, graph=self.graph)
+        except Exception:
+            pass
+
         result = f"You use the {item_name}."
         if hasattr(player_manager.player, 'exhaustion_count') and player_manager.player.exhaustion_count > 0:
             player_manager.player.exhaustion_count = 0

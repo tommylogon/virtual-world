@@ -39,11 +39,7 @@
     <header id="top-bar" role="banner">
         <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span> <span id="scenario-status-chip" style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;"></span></div>
         <div class="sky-time" id="sky-time" aria-live="polite">🕐 08:00</div>
-        <div class="top-actions">
-            <!-- task-885: Play Mode vs Edit Mode -->
-            <button id="play-mode-btn" class="btn btn-sm btn-green" onclick="PlayMode.toggle()" title="Toggle Play Mode: run simulation in a transient sandbox and revert on stop" aria-label="Toggle Play Mode">▶ Play</button>
-            <span id="play-mode-badge">PLAYING</span>
-
+<div class="top-actions">
             <label class="toggle-label" for="spectator-mode">
                 <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
                 <span>👁️ Spectator</span>
@@ -90,6 +86,9 @@
         <!-- LEFT PANEL -->
         <aside id="left-panel" aria-label="Agents and simulation controls">
             <div id="sim-controls" role="toolbar" aria-label="Simulation controls">
+                <!-- task-885: Play Mode - transient simulation sandbox -->
+                <button id="play-mode-btn" class="sim-btn btn-green" onclick="PlayMode.toggle()" title="Toggle Play Mode: run simulation in a transient sandbox and revert on stop" aria-label="Toggle Play Mode">▶ Play</button>
+                <span id="play-mode-badge" style="display:none;">PLAYING</span>
                 <button class="sim-btn" id="sim-play" data-help="run" onclick="startAgent()" title="Run">▶</button>
                 <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
                 <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>

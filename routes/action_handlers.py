@@ -1053,10 +1053,12 @@ def handle_take_action(app):
                         target = target[len(prefix):].strip()
                         break
                 curr = world.current_area.name if world.current_area else ""
-                visited = player.visited_area_names(world.graph) if hasattr(player, "visited_area_names") else set()
-                from engine.spatial_memory import SpatialMemory
+                # task-467: route through what the character knows, including
+                # authored known/known_areas, not only what they walked.
+                from engine.spatial_memory import SpatialMemory, known_route_areas
+                known = known_route_areas(player, world.graph)
                 sm = SpatialMemory(world.graph)
-                route = sm.find_route(curr, target, visited)
+                route = sm.find_route(curr, target, known)
                 if route:
                     steps = [f"go {step['direction']} to {step['to']}" for step in route]
                     add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")
@@ -1065,10 +1067,11 @@ def handle_take_action(app):
             else:
                 target = arg
                 curr = world.current_area.name if world.current_area else ""
-                visited = player.visited_area_names(world.graph) if hasattr(player, "visited_area_names") else set()
-                from engine.spatial_memory import SpatialMemory
+                # task-467: same known union as `recall path to X`.
+                from engine.spatial_memory import SpatialMemory, known_route_areas
+                known = known_route_areas(player, world.graph)
                 sm = SpatialMemory(world.graph)
-                route = sm.find_route(curr, target, visited)
+                route = sm.find_route(curr, target, known)
                 if route:
                     steps = [f"go {step['direction']} to {step['to']}" for step in route]
                     add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")

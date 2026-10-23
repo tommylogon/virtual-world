@@ -707,6 +707,16 @@ class MovementSystem:
 
         self.name_matcher._set_player_area(self.gs.active_player, target_area_node.name)
 
+        # task-499: standing in a place teaches it. The perception gate already
+        # read `player.known`; nothing wrote to it, so a walked room stayed
+        # unknown. Best-effort: fog must never break a move.
+        try:
+            from engine.fog import reveal_area
+            if self.gs.player is not None:
+                reveal_area(self.gs.player, target_area_node)
+        except Exception:
+            logger.debug("[fog] reveal on arrival failed", exc_info=True)
+
         # task-360: presence window - entrance records when you arrived here
         # (per-area ledger {area: {char: entry_tick}}).
         try:
