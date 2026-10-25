@@ -1,6 +1,6 @@
 "use strict";
 /**
- * prompt-builder/turn-prompts.js — Phase prompt builders (observe/decide/react).
+ * prompt-builder/turn-prompts.js - Phase prompt builders (observe/decide/react).
  *
  * The highest-level layer: stitches room context + character-state fragments
  * (from context-sections.js) into the final LLM-facing prompts for each turn
@@ -11,16 +11,16 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/turn-prompts — the per-phase prompt builders
+ * @module prompt-builder/turn-prompts - the per-phase prompt builders
  * @contributes buildReaction/Observation/Decision/ResultReaction/DashFollowUp/ChainFollowUp/Retry prompts
- * @powers Narration, The human turn — the actual user messages for every agent phase (observe → decide → act → react → dash)
+ * @powers Narration, The human turn - the actual user messages for every agent phase (observe → decide → act → react → dash)
  * @relates stitches room-context + context-sections + schema-fragments; consumed by agent-engine
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  *
  * ---------------------------------------------------------------------------
- * PHASE MAP — what each phase outputs and who consumes it downstream.
+ * PHASE MAP - what each phase outputs and who consumes it downstream.
  * (This is the thing you're usually reconstructing by reading four functions
- * — kept here as a standing reference.)
+ * - kept here as a standing reference.)
  *
  *   Phase      | Output fields                              | Consumed by
  *   -----------|----------------------------------------------|--------------------------------------
@@ -30,14 +30,14 @@
  *   dash       | action,target OR action:"wait"                 action-executor.js (mid-sprint chain)
  * ---------------------------------------------------------------------------
  *
- * RESOLVED (2026-09-20) — "reaction" phase memory: `includeMemory` used to add
+ * RESOLVED (2026-09-20) - "reaction" phase memory: `includeMemory` used to add
  * the "memory" field to the JSON schema while never explaining how to fill it.
  * It is now wired, and OPT-IN: memory is normally written at the START of a
  * character's turn, so end-of-turn memory requires Settings → "End-of-turn
  * memory" (`config.endOfTurnMemory`). Off by default.
  *
  * REMOVED (2026-09-20): `buildObservationPrompt` and `buildDecisionPrompt` were
- * dead exports — defined, exported, and never called. The live turn-start call is
+ * dead exports - defined, exported, and never called. The live turn-start call is
  * `buildReactionPrompt`, which covers both think and decide (see task-350). Both
  * builders and their exports were deleted; `git log` has them if the phase split
  * is ever revived.
@@ -79,7 +79,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         return blocks.map(block => String(block || '').trim()).filter(Boolean).join('\n\n');
     }
     function _summaryLine(text) {
-        // N7: RECENTLY must be a one-line summary — the previous action's full
+        // N7: RECENTLY must be a one-line summary - the previous action's full
         // output (room prose + exits) duplicates the current observation block
         // on every call. First line only; the important part is the outcome.
         const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -95,7 +95,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         return lines[0];
     }
     /**
-     * Build the reaction prompt (non-reactive mode) — a combined think/say/do prompt.
+     * Build the reaction prompt (non-reactive mode) - a combined think/say/do prompt.
      * This is the "single phase" mode where the character thinks, speaks, and acts in one LLM call.
      * @param {Object} player - Player data object
      * @param {Object} parts - Room context parts (buildRoomContextParts result)
@@ -129,22 +129,16 @@ window.PromptBuilder = window.PromptBuilder || {};
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
         return `${head}${last}${budgetGuard}
 
-First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
-${PromptBuilder.EMOTE_RULES_REACTION}${memoryInstruction}
+First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) - all in ONE response. The action will be executed by the system and its result comes back in the next message - do not assume the outcome of your action in your inner monologue or speech.${memoryInstruction}
 
-Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
-Your context's === AVAILABLE ACTIONS === section lists the actions you can take beyond what your surroundings already offer — use those verbs and act on what it names.
+Follow the standing ACTION, SPEECH & VOLUME, and JSON rules in your system prompt.
+Your context's === AVAILABLE ACTIONS === lists verbs currently available beyond your surroundings.
 
-Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.
-Examples:
-${PromptBuilder.buildJsonExample(schemaFields)}
-If you say nothing but still emote:
-{"inner_monologue":"...","action":"wait","speech":null,"volume":null,"item":null,"target":null,"emote":"shivers and hugs their shoulders","memory":null,"emotion":null,"learned_names":[]}
-If you have no emote, omit it:
-{"inner_monologue":"...","action":"look","target":"the archway","speech":null,"volume":null,"item":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
+Respond with ONLY a single raw JSON object matching this schema:
+${PromptBuilder.buildJsonExample(schemaFields)}`;
     }
     /**
-     * Build the result reaction prompt (reactive mode, react phase) — respond to action outcome.
+     * Build the result reaction prompt (reactive mode, react phase) - respond to action outcome.
      * The character processes what happened after taking an action.
      * @param {string} charName - Character name
      * @param {Object} player - Player data object
@@ -161,7 +155,7 @@ If you have no emote, omit it:
      */
     function buildResultReactionPrompt(charName, player, roomContext, vitalsNL, emotionNL, relationshipNL, inner, action, actionResult, memoryNL, saidThisTurn) {
         // WHAT HAPPENED must include what the agent already SAID this turn
-        // (decide phase) — otherwise the react LLM, a fresh call with no memory
+        // (decide phase) - otherwise the react LLM, a fresh call with no memory
         // of its own earlier speech, invents a different answer and the
         // character contradicts itself (e.g. changing its favorite color).
         const happenedLines = [];
@@ -175,7 +169,7 @@ If you have no emote, omit it:
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'slots', 'ghost', 'dead']);
         // task-XXX: the react call is a fresh 2-message conversation (no decide
-        // replay), so the persona must ride in THIS message — the model has no
+        // replay), so the persona must ride in THIS message - the model has no
         // other source for voice and identity.
         const persona = player?.personality
             ? `You are ${charName}. Personality: ${player.personality}`
@@ -191,9 +185,9 @@ If you have no emote, omit it:
 
 Based on the outcome of your action, how do you react to it? 
 How do you process this? What goes through your mind now?
-This is the REACT phase: by default you react SILENTLY — keep it to inner_monologue and emote. Speak out loud ONLY if the situation genuinely calls for it (someone addressed you directly, something alarming or unexpected happened). Do not advance to your next planned action here — that happens next turn.
-A moment has just passed — your own action barely completed. The people around you have NOT had time to react or reply yet; their silence or stillness right now means they simply haven't responded, not that they ignored you. Do not infer long stretches of time from one instant. React to what actually happened to you in this single moment.
-CRITICAL: If your action was rejected or failed, your reaction must acknowledge the failure — never describe the action as if it succeeded. A blocked kitchen attempt is not a visit; a refused door is not open.
+This is the REACT phase: by default you react SILENTLY - keep it to inner_monologue and emote. Speak out loud ONLY if the situation genuinely calls for it (someone addressed you directly, something alarming or unexpected happened). Do not advance to your next planned action here - that happens next turn.
+A moment has just passed - your own action barely completed. The people around you have NOT had time to react or reply yet; their silence or stillness right now means they simply haven't responded, not that they ignored you. Do not infer long stretches of time from one instant. React to what actually happened to you in this single moment.
+CRITICAL: If your action was rejected or failed, your reaction must acknowledge the failure - never describe the action as if it succeeded. A blocked kitchen attempt is not a visit; a refused door is not open.
 CRITICAL: In the REACT phase you MUST NOT include "action" or "item" fields. React ONLY via inner_monologue, emote, speech, and memory. Do not attempt to take new actions.
 If you do speak, put your line in the "speech" field and its volume in "volume" (see SPEECH & VOLUME rules in the system prompt).
 ${PromptBuilder.EMOTE_RULES_REACT}
@@ -211,7 +205,7 @@ If you have nothing to react with:
     /**
      * Build the chained follow-up prompt after an action with a CHAIN_RULES
      * entry (task-104): dash→go (the original), lead→go/approach/release,
-     * grab→approach/release. One quick decision — no speech/emote/memory.
+     * grab→approach/release. One quick decision - no speech/emote/memory.
      * @param {string} charName - Character name
      * @param {string} roomContext - Pre-built area context string
      * @param {string} resultText - Result text of the source action
@@ -224,11 +218,11 @@ If you have nothing to react with:
         return `${roomContext}
 
 === CHAIN FOLLOW-UP ===
-You just ${sourceVerb} — ${resultText}
+You just ${sourceVerb} - ${resultText}
 
 You may chain ONE immediate follow-up action before your turn ends: ${verbs}.
 Pick an exit or target from the context above (go/approach), release a grapple, or respond with "wait".
-This is a quick decision — no speech, no emote, no memory.
+This is a quick decision - no speech, no emote, no memory.
 Respond ONLY raw JSON, every field shown (null what you don't need):
 ${PromptBuilder.buildJsonExample(['full_action'])}`;
     }
@@ -286,7 +280,7 @@ Use tool calls for all communication. Plain response text is private thought onl
     }
     /**
      * Invalid-action auto-retry prompt (task-361): feed back the failed action
-     * and its reason, direct a different choice. Same-turn, ONE retry — the
+     * and its reason, direct a different choice. Same-turn, ONE retry - the
      * character's own context prompts already describe the room; this only
      * needs the failure and the instruction, so it reuses the decide schema
      * through the normal parser.

@@ -78,9 +78,7 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "trait_behavior": [
-        "You are thirsty."
-      ],
+      "trait_behavior": [],
       "personality_dials": {},
       "disposition": {
         "weights": [
@@ -912,9 +910,7 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "trait_behavior": [
-        "You are thirsty."
-      ],
+      "trait_behavior": [],
       "personality_dials": {},
       "disposition": {
         "weights": [
@@ -2085,9 +2081,7 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "trait_behavior": [
-        "You are thirsty."
-      ],
+      "trait_behavior": [],
       "personality_dials": {},
       "disposition": {
         "weights": [
@@ -3202,9 +3196,7 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "trait_behavior": [
-        "You are thirsty."
-      ],
+      "trait_behavior": [],
       "personality_dials": {},
       "disposition": {
         "weights": [
@@ -4511,8 +4503,7 @@
       "grappled_by": null,
       "state_timer": 0,
       "trait_behavior": [
-        "You are quick to confront and slow to back down.",
-        "You are thirsty."
+        "You are quick to confront and slow to back down."
       ],
       "personality_dials": {},
       "disposition": {
@@ -5101,9 +5092,7 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "trait_behavior": [
-        "You are thirsty."
-      ],
+      "trait_behavior": [],
       "personality_dials": {},
       "disposition": {
         "weights": [
@@ -18566,7 +18555,7 @@
         "type": "item",
         "name": "Denim Shorts",
         "properties": {
-          "description": "Light blue denim shorts that ride up your thighs. The hem is frayed and the button is slightly loose. They're your favorite pair — broken in perfectly.",
+          "description": "Light blue denim shorts that ride up your thighs. The hem is frayed and the button is slightly loose. They're your favorite pair - broken in perfectly.",
           "actions": [
             "examine",
             "take",

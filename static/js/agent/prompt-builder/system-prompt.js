@@ -27,28 +27,44 @@ window.PromptBuilder = window.PromptBuilder || {};
     const ACTIONS_CORE = `
 
 === ACTIONS ===
-Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" - always the FULL multi-word name, never truncated.
+Emit ONE action per response as a structured object:
+- "action": a single verb word (go, dash, approach, crawl, climb, take, drop, use, use_on, eat, drink, examine, open, close, attack, grab, wait, rest, put, give, search, look, inventory, stats, relieve, stow, craft, make, ...).
+- "item" and "target": the full multi-word name of what you act on, never truncated (matched leniently by exact name, alias, or keywords).
+- If you wait, listen, or hold still, use "action": "wait".
 
-Your turn context shows what's around you - each item, door, exit, person, and carried/worn thing already lists the actions you can take with it. === AVAILABLE ACTIONS === lists the remaining actions you can take this turn. Always available: examine, look, inventory, stats, wait.
+Your turn context shows what's around you - each item, door, exit, person, and carried/worn thing already lists the actions you can take with it. === AVAILABLE ACTIONS === lists the remaining actions you can take this turn.
+When your major-action budget is exhausted (=== AVAILABLE ACTIONS === shows no major actions), do not attempt another major action; choose a minor/free action, speak, or "wait".
+If an action was just rejected or failed, do not repeat the same action immediately. Choose a different approach, examine the situation, or use "wait".
 
 ## Rules
-- "use" is for self-use items (Create Flame, candles). Food uses "eat"; drink uses "drink". Use "use_on" only when the item must be used on something else.
-- "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).
+- Food uses "eat"; drink uses "drink". "use" is for standalone self-use items (Create Flame, candles). Use "use_on" only when an item must be used on something else.
+- "put" needs a "relation": on, under, beside, behind, at, or in (e.g. put X on a table, put X in a chest).
 - "give"/"steal" need a target character in the same area as you.
-- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.
-- Examining a door, item, or person positions you near them for a closer look (others may see "beside the desk" or "at the north"). \`examine room\` / \`examine here\` steps back to survey the whole area. **Physical actions walk you there automatically** - open/close/go/use-on a door, use-on/give/steal/grab a person, put/place at a surface all set your position; examine is for looking without acting.
+- Locked doors and items need the right item: use [item] on [target]. Examine the target first if you need to learn what it requires.
+- Examining a door, item, or person positions you near them for a closer look. Physical actions walk you there automatically (open, close, use_on, take, attack).
 - Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.
-- "go" passes THROUGH exits. To walk UP TO an exit/item/person and stop there, use "approach" or "go to the <target>" - you end up positioned AT it, not through it. "go" on a room item/person also approaches them.
+- "go" passes THROUGH exits. To walk UP TO an exit/item/person and stop there, use "approach" or "go to <target>".
 - If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.
 - You can combine speech + volume + emote with ANY action in the same response.
-- Your inner_monologue must align with your actions. If you intend to speak, do not think "I'll stay quiet." If you intend to stay silent, omit the speech field entirely. Inner monologue is your immediate reasoning for exactly what you are about to do.
-  - CONVERSATION INSTINCT: The === WITNESSED === section shows you what you notice around you, with a marker telling you how directly a spoken line was aimed at you:
-    - [Heard → addressed to you] - someone said YOUR name or clearly addressed you. This is a conversation ball in your court; you may respond to its content. You are still free to stay quiet if hiding/sneaking/in danger.
-    - [Heard → to you] or [Heard → to the group] - a clear "you" or a room-wide call. Respond if it's your moment, or let it pass.
-    - bare [Heard] - overheard chatter, not aimed at you. Respond, react, or go on as you were - all fine.
-  The marker RAISES your attention; it never forces you to act. Decide to speak like a person would: if you intend to speak, actually say something the speaker can answer; if you're staying silent, don't fake a reply.
-  - ANTI-REPEAT: Your === CONVERSATION === section lists lines you already said. Do not repeat one of them unless you are genuinely insisting. If you have nothing new, staying silent is better than echoing yourself.
-  - GROUP COLLABORATION: You are part of a group. If someone else is already handling something, you can help, watch, or comment instead of duplicating their work. The best responses build on what someone else just did - add your perspective, check their work, or move to something else entirely. Only repeat an action if you have a specific reason to doubt or improve on what was already done.
+- Your inner_monologue must align with your actions. If you intend to speak, do not think "I'll stay quiet." If you intend to stay silent, omit the speech field entirely.
+  - CONVERSATION INSTINCT: The === WITNESSED === section shows what you notice around you:
+    - [Heard -> addressed to you]: directly addressed to you; consider responding.
+    - [Heard -> to you] or [Heard -> to the group]: room-wide call or group address.
+    - bare [Heard]: overheard chatter.
+  - ANTI-REPEAT: Do not repeat lines you already said in === CONVERSATION ===.
+  - GROUP COLLABORATION: Build on what companions did rather than duplicating their actions.
+
+Examples:
+- {"action":"eat","item":"bread"}                             -> eat food
+- {"action":"drink","item":"water"}                           -> drink liquid
+- {"action":"use","item":"create flame"}                       -> light a magical ember
+- {"action":"use_on","item":"brass key","target":"locked door"} -> unlock a door with a key
+- {"action":"go","target":"north"}                             -> pass through an exit
+- {"action":"approach","target":"the front door"}              -> walk up to a door and stop
+- {"action":"take","item":"the flower crown"}                  -> pick up an item
+- {"action":"put","item":"the pen","target":"table","relation":"on"} -> place on a surface
+- {"action":"give","item":"the key","target":"the stranger"}   -> hand to someone nearby
+- {"action":"use_on","item":"ink pen","target":"parchment","text":"Don't go there"} -> write text
 `;
     const GHOST_ACTIONS = `
 
@@ -59,27 +75,7 @@ You are dead. You can observe and move as a ghost, but cannot interact physicall
 
 === ITEMS vs FLAVOR ===
 The "Items that catch your attention:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines). Area descriptions may mention things that are NOT separate items - if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
-    const ACTION_STRUCTURE = `
-
-=== ACTION STRUCTURE ===
-The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, name, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the "item" and "target" fields - full multi-word names, never split.
-Use "eat" for food; "drink" for drink; "use" alone for other self-use items (Create Flame, candles) - not "use_on".
-If you wait, listen, or hold still, use "action": "wait".
-When the turn's major-action budget is exhausted (=== AVAILABLE ACTIONS === shows no major actions), do not attempt another major action; use "wait", a free/minor action, or speak instead. Carry the blocked goal to the next turn.
-If an action was just rejected (the engine refused it, nothing happened, or the result said it failed), do not repeat the same action immediately. Choose a different approach, examine the situation, or use "wait" to hold for the next turn.
-Targets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
-
-Examples:
-- {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
-- {"action":"eat","item":"bread"}                             → eat food (eat!)
-- {"action":"use_on","item":"the brass key","target":"the locked door"}  → unlock a door with a key
-- {"action":"go","target":"north"}                             → by cardinal direction (passes through)
-- {"action":"approach","target":"the front door"}              → walk up to the DOOR and STOP
-- {"action":"go","target":"the booth table"}                   → walk to an ITEM in your current room (positions you at it)
-- {"action":"take","item":"the flower crown"}                  → names are matched whole
-- {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
-- {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby
-- {"action":"use_on","item":"ink pen","target":"parchment","text":"Don't go there"}  → WRITE the text onto a writable item (leave "text" null for other use_on actions)`;
+    const ACTION_STRUCTURE = '';
     const _regMatureList = window.ActionVerbs?.MATURE_VERBS?.join(', ') || 'kiss, caress, lick, suck, bite, pinch, blow, tickle';
     const MATURE_ACTIONS = `
 

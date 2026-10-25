@@ -259,7 +259,8 @@ load('static/js/inspector/memory-view.js');
 load('static/js/inspector/behaviors-view.js');
 
 // ── discover + run test files ──
-const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();
+const filterArg = process.argv[2] ? path.basename(process.argv[2]) : null;
+const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f) && (!filterArg || f.includes(filterArg))).sort();
 for (const file of testFiles) {
     currentFile = file;
     const src = fs.readFileSync(path.join(UNIT_DIR, file), 'utf8');
