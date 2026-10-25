@@ -155,13 +155,66 @@ html.bench-doc, html.bench-doc body { height: auto; overflow: visible; }
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 4px;
     font-size: 12px;
     cursor: pointer;
+    flex-wrap: wrap;
 }
 .bench-model-item:hover { background: var(--b-hover); }
-.bench-model-item input[type="checkbox"] { cursor: pointer; }
+.bench-model-item input[type="checkbox"] { cursor: pointer; flex-shrink: 0; }
+.bench-model-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+.bench-model-name {
+    font-weight: 500;
+    color: var(--b-text);
+}
+.bench-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+.bench-tag-quant {
+    background: rgba(227,179,65,0.15);
+    color: var(--b-orange);
+    border: 1px solid rgba(227,179,65,0.3);
+}
+.bench-tag-vision {
+    background: rgba(88,166,255,0.15);
+    color: var(--b-accent);
+    border: 1px solid rgba(88,166,255,0.3);
+}
+.bench-tag-reasoning {
+    background: rgba(188,140,255,0.15);
+    color: var(--b-purple);
+    border: 1px solid rgba(188,140,255,0.3);
+}
+.bench-tag-tools {
+    background: rgba(63,185,80,0.15);
+    color: var(--b-green);
+    border: 1px solid rgba(63,185,80,0.3);
+}
+.bench-tag-ctx {
+    background: rgba(139,148,158,0.15);
+    color: var(--b-dim);
+    border: 1px solid rgba(139,148,158,0.3);
+}
+.bench-tag-loaded {
+    background: rgba(63,185,80,0.25);
+    color: var(--b-green);
+    border: 1px solid var(--b-green);
+}
 
 /* Prompt preview drawer/details */
 .bench-prompt-summary {

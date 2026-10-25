@@ -8,6 +8,7 @@ Provides:
 - Run persistence: GET/POST /api/bench/runs
 """
 import os
+import re
 import json
 import logging
 import requests
@@ -38,7 +39,7 @@ def register_benchmark_routes(app):
 
     @app.route('/api/bench/models', methods=['POST'])
     def fetch_provider_models():
-        """Fetch model list from an external OpenAI-compatible provider."""
+        """Fetch model list from an external provider (with rich LM Studio native detection)."""
         data = request.get_json(silent=True) or {}
         api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
         api_key = data.get('api_key') or ''
@@ -47,6 +48,47 @@ def register_benchmark_routes(app):
         if api_key and api_key not in ('not-needed', 'none'):
             headers['Authorization'] = f'Bearer {api_key}'
 
+        # Try LM Studio native endpoint first if host root provides /api/v1/models
+        host_root = re.sub(r'/v1/?$', '', api_base)
+        native_url = f'{host_root}/api/v1/models'
+
+        try:
+            native_resp = requests.get(native_url, headers=headers, timeout=3)
+            if native_resp.ok:
+                payload = native_resp.json()
+                raw_models = payload.get('models') if isinstance(payload, dict) else None
+                if isinstance(raw_models, list):
+                    models = []
+                    for m in raw_models:
+                        if not isinstance(m, dict):
+                            continue
+                        # Filter out embedding models
+                        if m.get('type') and m.get('type') != 'llm':
+                            continue
+                        key = m.get('key') or m.get('id')
+                        if not key:
+                            continue
+                        caps = m.get('capabilities') or {}
+                        quant = m.get('quantization')
+                        quant_name = quant.get('name') if isinstance(quant, dict) else None
+                        models.append({
+                            'id': key,
+                            'name': m.get('display_name') or key,
+                            'params': m.get('params_string'),
+                            'quant': quant_name,
+                            'context_length': m.get('max_context_length'),
+                            'vision': bool(caps.get('vision')),
+                            'tools': bool(caps.get('trained_for_tool_use')),
+                            'reasoning': bool(caps.get('reasoning')),
+                            'loaded': len(m.get('loaded_instances') or []) > 0,
+                            'size_bytes': m.get('size_bytes'),
+                        })
+                    models.sort(key=lambda x: str(x['name']).lower())
+                    return jsonify({'models': models, 'is_native_lmstudio': True})
+        except Exception:
+            pass
+
+        # Fallback to standard OpenAI /models
         try:
             resp = requests.get(f'{api_base}/models', headers=headers, timeout=5)
             if not resp.ok:
@@ -54,14 +96,122 @@ def register_benchmark_routes(app):
             payload = resp.json()
             models = []
             if isinstance(payload, dict) and 'data' in payload and isinstance(payload['data'], list):
-                models = [m.get('id') or m.get('name') for m in payload['data'] if isinstance(m, dict)]
+                for m in payload['data']:
+                    if isinstance(m, dict):
+                        mid = m.get('id') or m.get('name')
+                        if mid:
+                            models.append({
+                                'id': mid,
+                                'name': mid,
+                                'loaded': False,
+                            })
             elif isinstance(payload, list):
-                models = [m.get('id') if isinstance(m, dict) else str(m) for m in payload]
-            models = [m for m in models if m]
-            models.sort()
-            return jsonify({'models': models})
+                for m in payload:
+                    mid = m.get('id') if isinstance(m, dict) else str(m)
+                    if mid:
+                        models.append({
+                            'id': mid,
+                            'name': mid,
+                            'loaded': False,
+                        })
+            models.sort(key=lambda x: str(x['name']).lower())
+            return jsonify({'models': models, 'is_native_lmstudio': False})
         except requests.exceptions.RequestException as e:
             return jsonify({'error': f'Cannot reach provider at {api_base}: {str(e)}', 'models': []}), 502
+
+    @app.route('/api/bench/unload-all', methods=['POST'])
+    def unload_all_models():
+        """Unload all currently loaded model instances in LM Studio."""
+        data = request.get_json(silent=True) or {}
+        api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        api_key = data.get('api_key') or ''
+        host_base = re.sub(r'/v1/?$', '', api_base)
+        headers = {'Content-Type': 'application/json'}
+        if api_key and api_key not in ('not-needed', 'none'):
+            headers['Authorization'] = f'Bearer {api_key}'
+
+        unloaded = []
+        try:
+            resp = requests.get(f'{host_base}/api/v1/models', headers=headers, timeout=5)
+            if resp.ok:
+                models_data = resp.json().get('models', [])
+                for m in models_data:
+                    for inst in m.get('loaded_instances', []):
+                        inst_id = inst if isinstance(inst, str) else inst.get('id') or inst.get('instance_id')
+                        if inst_id:
+                            try:
+                                requests.post(
+                                    f'{host_base}/api/v1/models/unload',
+                                    headers=headers,
+                                    json={'instance_id': inst_id},
+                                    timeout=10
+                                )
+                                unloaded.append(inst_id)
+                            except Exception:
+                                pass
+            return jsonify({'unloaded': unloaded, 'status': 'ok'})
+        except Exception as e:
+            return jsonify({'error': str(e), 'unloaded': unloaded}), 502
+
+    @app.route('/api/bench/unload', methods=['POST'])
+    def unload_model():
+        """Unload a model instance from LM Studio native API."""
+        data = request.get_json(silent=True) or {}
+        api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        api_key = data.get('api_key') or ''
+        instance_id = data.get('instance_id')
+        if not instance_id:
+            return jsonify({'error': 'Missing instance_id'}), 400
+
+        host_base = re.sub(r'/v1/?$', '', api_base)
+        headers = {'Content-Type': 'application/json'}
+        if api_key and api_key not in ('not-needed', 'none'):
+            headers['Authorization'] = f'Bearer {api_key}'
+
+        try:
+            resp = requests.post(
+                f'{host_base}/api/v1/models/unload',
+                headers=headers,
+                json={'instance_id': instance_id},
+                timeout=10
+            )
+            return jsonify(resp.json() if resp.ok else {'status': 'unloaded', 'instance_id': instance_id}), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 502
+
+    @app.route('/api/bench/load', methods=['POST'])
+    def load_model():
+        """Load a model with custom config into LM Studio native API."""
+        data = request.get_json(silent=True) or {}
+        api_base = (data.get('api_base') or 'http://localhost:1234/v1').rstrip('/')
+        api_key = data.get('api_key') or ''
+        model = data.get('model')
+        if not model:
+            return jsonify({'error': 'Missing model'}), 400
+
+        host_base = re.sub(r'/v1/?$', '', api_base)
+        headers = {'Content-Type': 'application/json'}
+        if api_key and api_key not in ('not-needed', 'none'):
+            headers['Authorization'] = f'Bearer {api_key}'
+
+        load_payload = {
+            'model': model,
+            'flash_attention': True,
+            'offload_kv_cache_to_gpu': True,
+        }
+        if data.get('context_length'):
+            load_payload['context_length'] = int(data['context_length'])
+
+        try:
+            resp = requests.post(
+                f'{host_base}/api/v1/models/load',
+                headers=headers,
+                json=load_payload,
+                timeout=60
+            )
+            return jsonify(resp.json() if resp.ok else {'error': resp.text}), resp.status_code
+        except Exception as e:
+            return jsonify({'error': str(e)}), 502
 
     @app.route('/api/bench/chat', methods=['POST'])
     def proxy_bench_chat():
@@ -75,7 +225,7 @@ def register_benchmark_routes(app):
         model = data.get('model')
         messages = data.get('messages') or []
         temperature = data.get('temperature', 0.7)
-        max_tokens = data.get('max_tokens', 512)
+        max_tokens = data.get('max_tokens', 1512)
         stream = data.get('stream', True)
 
         if not model:
@@ -92,6 +242,8 @@ def register_benchmark_routes(app):
             'max_tokens': max_tokens,
             'stream': stream,
         }
+        if stream:
+            req_payload['stream_options'] = {'include_usage': True}
 
         try:
             upstream = requests.post(

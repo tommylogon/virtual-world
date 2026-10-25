@@ -49,15 +49,32 @@
                 <span>Select Models</span>
                 <button type="button" id="bench-refresh-models" class="bench-btn" style="padding:2px 8px;font-size:11px;">⟳ Refresh</button>
             </div>
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                    <input type="checkbox" id="bench-select-all">
-                    <span>Select / Deselect All</span>
-                </label>
+            <div style="margin-bottom:8px;display:flex;flex-direction:column;gap:6px;">
+                <div>
+                    <input type="text" id="bench-model-search" class="bench-input" placeholder="🔍 Search models (e.g. qwen, vision, 8b)..." style="font-size:11px;padding:4px 8px;">
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--b-dim);margin-bottom:3px;">
+                        <span>Max Model Size</span>
+                        <span id="bench-size-val" style="font-weight:600;color:var(--b-text);">Any</span>
+                    </div>
+                    <input type="range" id="bench-size-slider" min="1" max="40" value="40" step="1" style="width:100%;cursor:pointer;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:2px;">
+                    <label style="font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="bench-select-all">
+                        <span>Select / Deselect All Filtered</span>
+                    </label>
+                    <label style="font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;" title="Calls native /models/unload between runs to release VRAM">
+                        <input type="checkbox" id="bench-unload-cycle" checked>
+                        <span>Unload between models (prevent VRAM OOM)</span>
+                    </label>
+                </div>
             </div>
             <div class="bench-models-box" id="bench-model-list">
                 <div style="color:var(--b-dim);padding:8px;">Loading models...</div>
             </div>
+            <div id="bench-models-count" style="font-size:10px;color:var(--b-dim);margin-top:4px;text-align:right;"></div>
         </section>
 
         <section class="bench-panel">
@@ -66,6 +83,12 @@
                 <label for="bench-character">Character to Benchmark</label>
                 <select id="bench-character" class="bench-select"></select>
             </div>
+            <div class="bench-field">
+                <label for="bench-area">Simulate in Area</label>
+                <select id="bench-area" class="bench-select">
+                    <option value="">(Actual Location)</option>
+                </select>
+            </div>
             <div class="bench-grid-2">
                 <div class="bench-field">
                     <label for="bench-temperature">Temperature</label>
@@ -73,8 +96,12 @@
                 </div>
                 <div class="bench-field">
                     <label for="bench-max-tokens">Max Tokens</label>
-                    <input type="number" id="bench-max-tokens" class="bench-input" value="512" step="64" min="64" max="4096">
+                    <input type="number" id="bench-max-tokens" class="bench-input" value="1512" step="64" min="64" max="8192">
                 </div>
+            </div>
+            <div class="bench-field">
+                <label for="bench-context-length">Context Length (tokens)</label>
+                <input type="number" id="bench-context-length" class="bench-input" value="10240" step="1024" min="2048" max="1048576" placeholder="10240 (or blank for model default)">
             </div>
             <div class="bench-prompt-summary" id="bench-prompt-summary">
                 Prompt not assembled.
@@ -110,6 +137,7 @@
             <span id="bench-status-badge" class="bench-status-badge bench-status-idle">Idle</span>
             <span id="bench-status-text" style="color:var(--b-text);font-size:12px;">Select models and click Run Benchmark to compare.</span>
             <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                <button type="button" id="bench-export-json" class="bench-btn" style="display:none;" title="Export benchmark results to JSON file">📥 Export JSON</button>
                 <button type="button" id="bench-open-diff" class="bench-btn" style="display:none;" title="Compare prose diff between two models">⚖️ Diff Compare</button>
             </div>
         </div>
@@ -155,6 +183,7 @@
     collaborators before the event bus (it constructs them), and the prompt
     builder last.
 -->
+<script src="/static/js/event-bus.js"></script>
 <script src="/static/js/storage.js"></script>
 <script src="/static/js/agent/simultaneous.js"></script>
 <script src="/static/js/config.js"></script>
@@ -170,6 +199,7 @@
 <script src="/static/js/stream/stream-persistence.js"></script>
 <script src="/static/js/stream/stream-scrubber.js"></script>
 <script src="/static/js/stream/stream-control-mode.js"></script>
+<script src="/static/js/stream/stream-sandbox.js"></script>
 <script src="/static/js/event-stream.js"></script>
 <!-- Resolves {param:...} in way descriptions, the same way the inspector does. -->
 <script src="/static/js/inspector/helpers.js"></script>

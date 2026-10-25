@@ -13,6 +13,7 @@ window.BenchmarkApp = (() => {
         worldData: null,
         characters: [],
         selectedChar: null,
+        selectedArea: null,
         models: [],
         selectedModels: new Set(),
         currentPrompt: null,
@@ -20,15 +21,20 @@ window.BenchmarkApp = (() => {
         abortController: null,
         results: {},
         pastRuns: [],
+        profileMap: {},
+        lastLoadedModel: null,
     };
 
     const els = {};
 
-    function init() {
+    async function init() {
         cacheElements();
         attachEvents();
         wireRuntime();
-        refreshModels();
+        await loadProfiles();
+        if (Object.keys(state.profileMap).length === 0) {
+            refreshModels();
+        }
         loadPastRuns();
         loadWorldState();
     }
@@ -50,10 +56,17 @@ window.BenchmarkApp = (() => {
         els.apiKeyInput = document.getElementById('bench-api-key');
         els.refreshModelsBtn = document.getElementById('bench-refresh-models');
         els.modelList = document.getElementById('bench-model-list');
+        els.modelSearchInput = document.getElementById('bench-model-search');
+        els.sizeSlider = document.getElementById('bench-size-slider');
+        els.sizeVal = document.getElementById('bench-size-val');
+        els.modelsCount = document.getElementById('bench-models-count');
         els.selectAllModels = document.getElementById('bench-select-all');
+        els.unloadCycleCb = document.getElementById('bench-unload-cycle');
         els.characterSelect = document.getElementById('bench-character');
+        els.areaSelect = document.getElementById('bench-area');
         els.temperatureInput = document.getElementById('bench-temperature');
         els.maxTokensInput = document.getElementById('bench-max-tokens');
+        els.contextLengthInput = document.getElementById('bench-context-length');
         els.runBtn = document.getElementById('bench-run-btn');
         els.cancelBtn = document.getElementById('bench-cancel-btn');
         els.statusBadge = document.getElementById('bench-status-badge');
@@ -65,6 +78,7 @@ window.BenchmarkApp = (() => {
         els.historyList = document.getElementById('bench-history-list');
         els.refreshRunsBtn = document.getElementById('bench-refresh-runs');
         els.openDiffBtn = document.getElementById('bench-open-diff');
+        els.exportJsonBtn = document.getElementById('bench-export-json');
         els.diffOverlay = document.getElementById('bench-diff-overlay');
         els.diffClose = document.getElementById('bench-diff-close');
         els.diffSelectA = document.getElementById('bench-diff-select-a');
@@ -75,14 +89,73 @@ window.BenchmarkApp = (() => {
         els.diffBoxB = document.getElementById('bench-diff-box-b');
     }
 
+    async function loadProfiles() {
+        if (!window.config || typeof window.config.getProfiles !== 'function') return;
+        try {
+            if (window.config._initPromise) await window.config._initPromise;
+            state.profileMap = await window.config.getProfiles();
+            populateProviders();
+        } catch (e) {
+            console.error('[Benchmark] Error loading profiles:', e);
+        }
+    }
+
+    function populateProviders() {
+        if (!els.providerSelect) return;
+        const profileNames = Object.keys(state.profileMap || {});
+        if (profileNames.length === 0) return;
+
+        els.providerSelect.innerHTML = '';
+        profileNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            els.providerSelect.appendChild(opt);
+        });
+
+        const customOpt = document.createElement('option');
+        customOpt.value = '__custom__';
+        customOpt.textContent = 'Custom (OpenAI-compatible)';
+        els.providerSelect.appendChild(customOpt);
+
+        const activeName = window.config?.currentProfile || profileNames[0];
+        if (state.profileMap[activeName]) {
+            els.providerSelect.value = activeName;
+        } else {
+            els.providerSelect.value = profileNames[0];
+        }
+        applySelectedProfile();
+    }
+
+    function applySelectedProfile() {
+        const val = els.providerSelect.value;
+        if (val === '__custom__') {
+            return;
+        }
+        const profile = state.profileMap[val];
+        if (profile) {
+            if (profile.apiBase) els.apiBaseInput.value = profile.apiBase;
+            if (profile.apiKey !== undefined && profile.apiKey !== 'not-needed') {
+                els.apiKeyInput.value = profile.apiKey;
+            } else if (profile.apiKey === 'not-needed') {
+                els.apiKeyInput.value = '';
+            }
+            refreshModels();
+        }
+    }
+
     function attachEvents() {
         els.refreshModelsBtn.addEventListener('click', refreshModels);
         els.providerSelect.addEventListener('change', () => {
             const val = els.providerSelect.value;
-            if (val === 'lmstudio') els.apiBaseInput.value = 'http://localhost:1234/v1';
-            else if (val === 'ollama') els.apiBaseInput.value = 'http://localhost:11434/v1';
-            else if (val === 'openrouter') els.apiBaseInput.value = 'https://openrouter.ai/api/v1';
-            refreshModels();
+            if (state.profileMap[val]) {
+                applySelectedProfile();
+            } else {
+                if (val === 'lmstudio') els.apiBaseInput.value = 'http://localhost:1234/v1';
+                else if (val === 'ollama') els.apiBaseInput.value = 'http://localhost:11434/v1';
+                else if (val === 'openrouter') els.apiBaseInput.value = 'https://openrouter.ai/api/v1';
+                refreshModels();
+            }
         });
 
         els.selectAllModels.addEventListener('change', (e) => {
@@ -94,15 +167,43 @@ window.BenchmarkApp = (() => {
             });
         });
 
+        if (els.modelSearchInput) {
+            els.modelSearchInput.addEventListener('input', () => {
+                renderModelList();
+            });
+        }
+
+        if (els.sizeSlider) {
+            els.sizeSlider.addEventListener('input', () => {
+                const val = parseInt(els.sizeSlider.value, 10);
+                if (val >= 40) {
+                    if (els.sizeVal) els.sizeVal.textContent = 'Any';
+                } else {
+                    if (els.sizeVal) els.sizeVal.textContent = `≤ ${val}B`;
+                }
+                renderModelList();
+            });
+        }
+
         els.characterSelect.addEventListener('change', () => {
             state.selectedChar = els.characterSelect.value;
+            populateAreas();
             assembleCharacterPrompt();
         });
+
+        if (els.areaSelect) {
+            els.areaSelect.addEventListener('change', () => {
+                state.selectedArea = els.areaSelect.value || null;
+                assembleCharacterPrompt();
+            });
+        }
+
         els.runBtn.addEventListener('click', startBenchmark);
         els.cancelBtn.addEventListener('click', cancelBenchmark);
 
         if (els.refreshRunsBtn) els.refreshRunsBtn.addEventListener('click', loadPastRuns);
         if (els.openDiffBtn) els.openDiffBtn.addEventListener('click', openDiffModal);
+        if (els.exportJsonBtn) els.exportJsonBtn.addEventListener('click', exportResultsAsJson);
         if (els.diffClose) els.diffClose.addEventListener('click', () => { els.diffOverlay.style.display = 'none'; });
         if (els.diffSelectA) els.diffSelectA.addEventListener('change', updateDiffView);
         if (els.diffSelectB) els.diffSelectB.addEventListener('change', updateDiffView);
@@ -138,6 +239,7 @@ window.BenchmarkApp = (() => {
 
         if (names.length === 0) {
             els.characterSelect.innerHTML = '<option value="">No characters in world</option>';
+            if (els.areaSelect) els.areaSelect.innerHTML = '<option value="">(No areas)</option>';
             return;
         }
 
@@ -149,7 +251,36 @@ window.BenchmarkApp = (() => {
         });
 
         state.selectedChar = names[0];
+        populateAreas();
         assembleCharacterPrompt();
+    }
+
+    function populateAreas() {
+        if (!els.areaSelect) return;
+        els.areaSelect.innerHTML = '';
+
+        const player = state.worldData?.players?.[state.selectedChar];
+        const actualArea = player?.current_area || player?.area || 'Unknown';
+
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = `(Actual Location: ${actualArea})`;
+        els.areaSelect.appendChild(defaultOpt);
+
+        const areaNames = Object.keys(state.worldData?.areas || {}).sort();
+        areaNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            els.areaSelect.appendChild(opt);
+        });
+
+        if (state.selectedArea && areaNames.includes(state.selectedArea)) {
+            els.areaSelect.value = state.selectedArea;
+        } else {
+            els.areaSelect.value = '';
+            state.selectedArea = null;
+        }
     }
 
     /**
@@ -158,14 +289,15 @@ window.BenchmarkApp = (() => {
      * shared PromptBuilder capture (prompt-builder/capture.js), which mirrors
      * agent-engine's think-decide call sequence.
      *
-     * There is deliberately no hand-written fallback. A stub prompt measures the
-     * stub, and the silent fallback is exactly how this page shipped a
-     * two-line prompt for months while the real one sat in the code.
+     * Supports area simulation: if an area is selected in bench-area, builds a
+     * simulated state where the character is in that area to evaluate targeting.
      */
     async function assembleCharacterPrompt() {
         if (!state.selectedChar || !state.worldData) return;
 
-        const roomName = state.worldData.players?.[state.selectedChar]?.current_area || 'Unknown';
+        const player = state.worldData.players?.[state.selectedChar] || {};
+        const actualArea = player.current_area || player.area || 'Unknown';
+        const evalArea = state.selectedArea || actualArea;
 
         if (!window.PromptBuilder || typeof window.PromptBuilder.captureTurnPrompt !== 'function') {
             state.currentPrompt = null;
@@ -178,13 +310,29 @@ window.BenchmarkApp = (() => {
         }
 
         try {
-            const captured = await window.PromptBuilder.captureTurnPrompt(state.selectedChar);
-            state.currentPrompt = { system: captured.systemPrompt, user: captured.userPrompt };
+            // Build a cloned world state placing the character in evalArea
+            const simulatedState = {
+                ...state.worldData,
+                players: {
+                    ...state.worldData.players,
+                    [state.selectedChar]: {
+                        ...player,
+                        current_area: evalArea,
+                        area: evalArea,
+                    }
+                }
+            };
+
+            const captured = await window.PromptBuilder.captureTurnPrompt(state.selectedChar, {
+                state: simulatedState
+            });
+            state.currentPrompt = { system: captured.systemPrompt, user: captured.userPrompt, evalArea };
 
             if (els.promptSystem) els.promptSystem.textContent = captured.systemPrompt;
             if (els.promptUser) els.promptUser.textContent = captured.userPrompt;
             if (els.promptSummary) {
-                els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${roomName} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
+                const simNote = state.selectedArea ? ` [Simulated in ${evalArea}, actual: ${actualArea}]` : '';
+                els.promptSummary.textContent = `Character: ${state.selectedChar} | Area: ${evalArea}${simNote} | System: ${captured.systemPrompt.length} chars | User: ${captured.userPrompt.length} chars`;
             }
         } catch (err) {
             console.error('[Benchmark] Prompt capture failed:', err);
@@ -219,44 +367,168 @@ window.BenchmarkApp = (() => {
             }
 
             state.models = data.models || [];
+            if (state.selectedModels.size === 0 && state.models.length > 0) {
+                for (let i = 0; i < Math.min(3, state.models.length); i++) {
+                    const m = state.models[i];
+                    state.selectedModels.add(m.id || m.name || m);
+                }
+            }
             renderModelList();
         } catch (e) {
             els.modelList.innerHTML = `<div style="color:var(--b-red);padding:6px;">Network error: ${e.message}</div>`;
         }
     }
 
+    function parseModelSizeB(m) {
+        if (!m) return null;
+        const pStr = m.params || '';
+        if (pStr) {
+            if (/M$/i.test(pStr)) {
+                const num = parseFloat(pStr);
+                return isNaN(num) ? null : num / 1000;
+            }
+            const moeMatch = pStr.match(/^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)B/i);
+            if (moeMatch) {
+                return parseFloat(moeMatch[1]) * parseFloat(moeMatch[2]);
+            }
+            const bMatch = pStr.match(/^(\d+(?:\.\d+)?)B/i);
+            if (bMatch) {
+                return parseFloat(bMatch[1]);
+            }
+        }
+        const str = `${m.name || ''} ${m.id || ''}`;
+        const match = str.match(/[\-_](\d+(?:\.\d+)?)b\b/i) || str.match(/\b(\d+(?:\.\d+)?)b\b/i);
+        if (match) {
+            return parseFloat(match[1]);
+        }
+        if (m.size_bytes && m.size_bytes > 0) {
+            return (m.size_bytes / (1024 * 1024 * 1024)) * 1.6;
+        }
+        return null;
+    }
+
     function renderModelList() {
         els.modelList.innerHTML = '';
         if (state.models.length === 0) {
             els.modelList.innerHTML = '<div style="color:var(--b-muted);padding:8px;">No models reported by provider.</div>';
+            if (els.modelsCount) els.modelsCount.textContent = '';
             return;
         }
 
-        state.models.forEach((m, idx) => {
+        const searchQuery = (els.modelSearchInput?.value || '').toLowerCase().trim();
+        const searchTokens = searchQuery ? searchQuery.split(/\s+/).filter(Boolean) : [];
+        const maxSize = els.sizeSlider ? parseInt(els.sizeSlider.value, 10) : 40;
+
+        let visibleCount = 0;
+
+        state.models.forEach((mObj, idx) => {
+            const m = typeof mObj === 'string' ? { id: mObj, name: mObj } : mObj;
+            const modelId = m.id || m.name;
+            const modelName = m.name || modelId;
+
+            // 1. Max size filter
+            const sizeB = parseModelSizeB(m);
+            if (maxSize < 40 && sizeB !== null && sizeB > maxSize) {
+                return;
+            }
+
+            // 2. Search query filter
+            if (searchTokens.length > 0) {
+                const searchHaystack = [
+                    modelName,
+                    modelId,
+                    m.params || '',
+                    m.quant || '',
+                    m.vision ? 'vision multimodal image' : '',
+                    m.reasoning ? 'reasoning think thinking' : '',
+                    m.tools ? 'tools tool function' : '',
+                    m.loaded ? 'loaded active vram' : '',
+                ].join(' ').toLowerCase();
+
+                const matchesAll = searchTokens.every(tok => searchHaystack.includes(tok));
+                if (!matchesAll) return;
+            }
+
+            visibleCount++;
+
             const label = document.createElement('label');
             label.className = 'bench-model-item';
 
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.className = 'bench-model-cb';
-            cb.value = m;
-            if (idx < 3) {
-                cb.checked = true;
-                state.selectedModels.add(m);
-            }
+            cb.value = modelId;
+            cb.checked = state.selectedModels.has(modelId);
 
             cb.addEventListener('change', () => {
-                if (cb.checked) state.selectedModels.add(m);
-                else state.selectedModels.delete(m);
+                if (cb.checked) state.selectedModels.add(modelId);
+                else state.selectedModels.delete(modelId);
             });
 
             label.appendChild(cb);
-            const span = document.createElement('span');
-            span.textContent = m;
-            label.appendChild(span);
 
+            const wrap = document.createElement('div');
+            wrap.className = 'bench-model-label-wrap';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'bench-model-name';
+            nameSpan.textContent = modelName;
+            wrap.appendChild(nameSpan);
+
+            // Capabilities and architecture badges
+            if (m.params || m.quant) {
+                const qSpan = document.createElement('span');
+                qSpan.className = 'bench-tag bench-tag-quant';
+                qSpan.textContent = `${m.params || ''} ${m.quant || ''}`.trim();
+                wrap.appendChild(qSpan);
+            }
+            if (m.context_length) {
+                const ctxSpan = document.createElement('span');
+                ctxSpan.className = 'bench-tag bench-tag-ctx';
+                const k = Math.round(m.context_length / 1024);
+                ctxSpan.textContent = k >= 1024 ? `${(k / 1024).toFixed(1)}M ctx` : `${k}K ctx`;
+                wrap.appendChild(ctxSpan);
+            }
+            if (m.loaded) {
+                const loadSpan = document.createElement('span');
+                loadSpan.className = 'bench-tag bench-tag-loaded';
+                loadSpan.textContent = '⚡ Loaded';
+                loadSpan.title = 'Active in VRAM';
+                wrap.appendChild(loadSpan);
+            }
+            if (m.vision) {
+                const vSpan = document.createElement('span');
+                vSpan.className = 'bench-tag bench-tag-vision';
+                vSpan.textContent = '👁️ Vision';
+                vSpan.title = 'Multimodal image support';
+                wrap.appendChild(vSpan);
+            }
+            if (m.reasoning) {
+                const rSpan = document.createElement('span');
+                rSpan.className = 'bench-tag bench-tag-reasoning';
+                rSpan.textContent = '🧠 Reasoning';
+                rSpan.title = 'Thinking model';
+                wrap.appendChild(rSpan);
+            }
+            if (m.tools) {
+                const tSpan = document.createElement('span');
+                tSpan.className = 'bench-tag bench-tag-tools';
+                tSpan.textContent = '🛠️ Tools';
+                tSpan.title = 'Trained for tool use';
+                wrap.appendChild(tSpan);
+            }
+
+            label.appendChild(wrap);
             els.modelList.appendChild(label);
         });
+
+        if (els.modelsCount) {
+            els.modelsCount.textContent = `Showing ${visibleCount} of ${state.models.length} models`;
+        }
+
+        if (visibleCount === 0) {
+            els.modelList.innerHTML = '<div style="color:var(--b-dim);padding:8px;font-size:11px;">No models match filter or size slider.</div>';
+        }
     }
 
     async function loadPastRuns() {
@@ -323,11 +595,18 @@ window.BenchmarkApp = (() => {
                 const flagsEl = document.getElementById(`flags-${id}`);
                 const ttftEl = document.getElementById(`metric-ttft-${id}`);
                 const tpsEl = document.getElementById(`metric-tps-${id}`);
+                const tokensEl = document.getElementById(`metric-tokens-${id}`);
                 const totalEl = document.getElementById(`metric-total-${id}`);
                 const rawEl = document.getElementById(`raw-${id}`);
 
                 if (ttftEl && r.metrics?.ttft) ttftEl.textContent = `${r.metrics.ttft.toFixed(2)}s`;
                 if (tpsEl && r.metrics?.tps) tpsEl.textContent = `${r.metrics.tps}/s`;
+                if (tokensEl && r.metrics?.tokens) {
+                    tokensEl.textContent = `${r.metrics.tokens}`;
+                    if (r.metrics.reasoning_tokens) {
+                        tokensEl.title = `${r.metrics.reasoning_tokens} reasoning / ${r.metrics.content_tokens || 0} content tokens`;
+                    }
+                }
                 if (totalEl && r.metrics?.total) totalEl.textContent = `${r.metrics.total.toFixed(2)}s`;
                 if (proseEl) proseEl.textContent = r.prose || 'No prose';
                 if (rawEl && r.output) rawEl.textContent = r.output;
@@ -386,15 +665,91 @@ window.BenchmarkApp = (() => {
         els.statusBadge.textContent = 'Running';
         els.cardsGrid.innerHTML = '';
         if (els.openDiffBtn) els.openDiffBtn.style.display = 'none';
+        if (els.exportJsonBtn) els.exportJsonBtn.style.display = 'none';
 
         const modelsToRun = Array.from(state.selectedModels);
         modelsToRun.forEach(model => createModelCard(model));
 
+        // 1. Initial cleanup: unload any model currently hanging in VRAM
+        if (els.unloadCycleCb && els.unloadCycleCb.checked) {
+            els.statusText.textContent = 'Clearing VRAM (unloading active models)...';
+            try {
+                await fetch('/api/bench/unload-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        api_base: els.apiBaseInput.value.trim(),
+                        api_key: els.apiKeyInput.value.trim()
+                    })
+                });
+                await new Promise(r => setTimeout(r, 400));
+            } catch (e) {
+                console.warn('[Benchmark] Initial unload-all error:', e);
+            }
+        }
+
+        // 2. Per-model loop: Load -> Generate -> Unload
         for (let i = 0; i < modelsToRun.length; i++) {
             if (!state.activeRun) break;
             const model = modelsToRun[i];
+            let modelInstanceId = model;
+
+            // Step A: Load model into VRAM
+            if (els.unloadCycleCb && els.unloadCycleCb.checked) {
+                els.statusText.textContent = `Loading model ${i + 1}/${modelsToRun.length}: ${model}...`;
+                try {
+                    const loadBody = {
+                        api_base: els.apiBaseInput.value.trim(),
+                        api_key: els.apiKeyInput.value.trim(),
+                        model: model
+                    };
+                    const ctxVal = parseInt(els.contextLengthInput?.value, 10);
+                    if (ctxVal && !isNaN(ctxVal) && ctxVal > 0) {
+                        loadBody.context_length = ctxVal;
+                    }
+                    const loadResp = await fetch('/api/bench/load', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(loadBody)
+                    });
+                    const loadData = await loadResp.json().catch(() => ({}));
+                    if (loadData.instance_id) {
+                        modelInstanceId = loadData.instance_id;
+                    }
+                    state.lastLoadedModel = modelInstanceId;
+                    await new Promise(r => setTimeout(r, 400));
+                } catch (e) {
+                    console.warn('[Benchmark] Load error:', e);
+                }
+            }
+
+            // Step B: Generate output
             els.statusText.textContent = `Running model ${i + 1}/${modelsToRun.length}: ${model}`;
-            await runSingleModel(model, state.abortController.signal);
+            try {
+                await runSingleModel(model, state.abortController.signal);
+            } catch (runErr) {
+                console.error('[Benchmark] Run single model error:', runErr);
+            }
+
+            // Step C: Immediately unload model so VRAM is clear before next model or exit
+            if (els.unloadCycleCb && els.unloadCycleCb.checked) {
+                els.statusText.textContent = `Unloading ${model} (releasing VRAM)...`;
+                try {
+                    await fetch('/api/bench/unload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            api_base: els.apiBaseInput.value.trim(),
+                            api_key: els.apiKeyInput.value.trim(),
+                            instance_id: modelInstanceId
+                        })
+                    });
+                    state.lastLoadedModel = null;
+                    await new Promise(r => setTimeout(r, 400));
+                } catch (e) {
+                    console.warn('[Benchmark] Unload error:', e);
+                }
+            }
         }
 
         state.activeRun = false;
@@ -408,7 +763,7 @@ window.BenchmarkApp = (() => {
         saveRunRecord(modelsToRun);
     }
 
-    function cancelBenchmark() {
+    async function cancelBenchmark() {
         if (!state.activeRun) return;
         state.activeRun = false;
         if (state.abortController) {
@@ -418,7 +773,19 @@ window.BenchmarkApp = (() => {
         els.cancelBtn.disabled = true;
         els.statusBadge.className = 'bench-status-badge bench-status-idle';
         els.statusBadge.textContent = 'Cancelled';
-        els.statusText.textContent = 'Benchmark sweep was cancelled by user.';
+        els.statusText.textContent = 'Benchmark sweep was cancelled by user. Releasing VRAM...';
+        try {
+            await fetch('/api/bench/unload-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    api_base: els.apiBaseInput.value.trim(),
+                    api_key: els.apiKeyInput.value.trim()
+                })
+            });
+            state.lastLoadedModel = null;
+        } catch (e) {}
+        els.statusText.textContent = 'Benchmark sweep was cancelled by user. VRAM released.';
         checkEnableDiff();
     }
 
@@ -438,6 +805,10 @@ window.BenchmarkApp = (() => {
                     <div class="bench-metric">
                         <span class="bench-metric-val" id="metric-tps-${sanitizeId(model)}">-</span>
                         <span class="bench-metric-lbl">TPS</span>
+                    </div>
+                    <div class="bench-metric" title="Completion tokens (reasoning / content)">
+                        <span class="bench-metric-val" id="metric-tokens-${sanitizeId(model)}">-</span>
+                        <span class="bench-metric-lbl">Tokens</span>
                     </div>
                     <div class="bench-metric">
                         <span class="bench-metric-val" id="metric-total-${sanitizeId(model)}">-</span>
@@ -478,6 +849,7 @@ window.BenchmarkApp = (() => {
         const rawEl = document.getElementById(`raw-${id}`);
         const ttftEl = document.getElementById(`metric-ttft-${id}`);
         const tpsEl = document.getElementById(`metric-tps-${id}`);
+        const tokensEl = document.getElementById(`metric-tokens-${id}`);
         const totalEl = document.getElementById(`metric-total-${id}`);
         const flagsEl = document.getElementById(`flags-${id}`);
 
@@ -486,7 +858,9 @@ window.BenchmarkApp = (() => {
         const startTime = performance.now();
         let firstTokenTime = null;
         let tokenCount = 0;
-        let accumulatedText = '';
+        let contentText = '';
+        let reasoningText = '';
+        let serverUsage = null;
 
         try {
             const resp = await fetch('/api/bench/chat', {
@@ -532,15 +906,34 @@ window.BenchmarkApp = (() => {
 
                     try {
                         const parsedChunk = JSON.parse(jsonStr);
+                        if (parsedChunk.usage) {
+                            serverUsage = parsedChunk.usage;
+                        }
                         const delta = parsedChunk.choices?.[0]?.delta?.content || '';
-                        if (delta) {
+                        const reasoningDelta = parsedChunk.choices?.[0]?.delta?.reasoning_content || parsedChunk.choices?.[0]?.delta?.thought || '';
+                        const chunkText = delta || reasoningDelta;
+                        if (chunkText) {
                             if (firstTokenTime === null) {
                                 firstTokenTime = performance.now();
                                 if (ttftEl) ttftEl.textContent = `${((firstTokenTime - startTime) / 1000).toFixed(2)}s`;
                             }
                             tokenCount++;
-                            accumulatedText += delta;
-                            if (rawEl) rawEl.textContent = accumulatedText;
+                            if (delta) contentText += delta;
+                            if (reasoningDelta) reasoningText += reasoningDelta;
+
+                            if (rawEl) {
+                                rawEl.textContent = (reasoningText ? `<think>\n${reasoningText}\n</think>\n\n` : '') + contentText;
+                            }
+                            if (proseEl) {
+                                if (contentText) {
+                                    proseEl.textContent = contentText;
+                                } else if (reasoningText) {
+                                    proseEl.textContent = `[Thinking...]\n${reasoningText.slice(-300)}`;
+                                }
+                            }
+                            if (tokensEl) {
+                                tokensEl.textContent = `${tokenCount}`;
+                            }
                         }
                     } catch (parseErr) {}
                 }
@@ -550,15 +943,46 @@ window.BenchmarkApp = (() => {
             const totalSec = (endTime - startTime) / 1000;
             if (totalEl) totalEl.textContent = `${totalSec.toFixed(2)}s`;
 
-            const tps = tokenCount > 0 && totalSec > 0 ? (tokenCount / totalSec).toFixed(1) : '0';
+            let totalTokens = tokenCount;
+            let rTokens = 0;
+            let cTokens = 0;
+
+            if (serverUsage) {
+                totalTokens = serverUsage.completion_tokens ?? tokenCount;
+                rTokens = serverUsage.completion_tokens_details?.reasoning_tokens ?? 0;
+                cTokens = totalTokens - rTokens;
+            } else {
+                const rLen = reasoningText.length;
+                const cLen = contentText.length;
+                if (rLen + cLen > 0) {
+                    rTokens = Math.round(tokenCount * (rLen / (rLen + cLen)));
+                    cTokens = tokenCount - rTokens;
+                } else {
+                    cTokens = tokenCount;
+                }
+            }
+
+            const tps = totalTokens > 0 && totalSec > 0 ? (totalTokens / totalSec).toFixed(1) : '0';
             if (tpsEl) tpsEl.textContent = `${tps}/s`;
 
-            evaluateModelOutput(model, accumulatedText, {
+            if (tokensEl) {
+                tokensEl.textContent = `${totalTokens}`;
+                if (rTokens > 0) {
+                    tokensEl.title = `${rTokens} reasoning / ${cTokens} content tokens`;
+                } else {
+                    tokensEl.title = `${totalTokens} content tokens`;
+                }
+            }
+
+            const outputToEval = contentText.trim() || reasoningText.trim();
+            evaluateModelOutput(model, outputToEval, {
                 ttft: firstTokenTime ? (firstTokenTime - startTime) / 1000 : null,
                 total: totalSec,
                 tps: parseFloat(tps),
-                tokens: tokenCount
-            });
+                tokens: totalTokens,
+                reasoning_tokens: rTokens,
+                content_tokens: cTokens
+            }, reasoningText.trim());
 
         } catch (err) {
             if (err.name === 'AbortError') {
@@ -570,7 +994,7 @@ window.BenchmarkApp = (() => {
         }
     }
 
-    function evaluateModelOutput(model, text, metrics) {
+    function evaluateModelOutput(model, text, metrics, reasoning = '') {
         const id = sanitizeId(model);
         const proseEl = document.getElementById(`prose-${id}`);
         const actionEl = document.getElementById(`action-${id}`);
@@ -596,9 +1020,18 @@ window.BenchmarkApp = (() => {
         const flags = [];
 
         if (!jsonValid || !parsed) {
-            if (proseEl) proseEl.textContent = text || 'Empty response.';
-            if (flagsEl) flagsEl.innerHTML = '<span class="bench-flag-item bench-flag-fail">❌ Invalid JSON response</span>';
-            state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: 'Invalid JSON' }], output: text };
+            if (proseEl) {
+                if (reasoning && (!text || text === reasoning)) {
+                    proseEl.textContent = `[Thinking - exhausted token budget before JSON response]\n\n${reasoning}`;
+                } else {
+                    proseEl.textContent = text || (reasoning ? `[Thinking]: ${reasoning}` : 'Empty response.');
+                }
+            }
+            const failMsg = (reasoning && (!text || text === reasoning))
+                ? '❌ Hit token limit while reasoning (increase Max Tokens)'
+                : '❌ Invalid JSON response';
+            if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">${failMsg}</span>`;
+            state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: failMsg }], output: text, reasoning: reasoning || '' };
             return;
         }
 
@@ -608,14 +1041,91 @@ window.BenchmarkApp = (() => {
         const prose = `${monologue}${speech}${emote}`.trim() || 'No monologue or dialogue provided.';
         if (proseEl) proseEl.textContent = prose;
 
-        // Ground truth verification against current room
+        // Ground truth verification against simulated or current room
         const player = state.worldData.players?.[state.selectedChar] || {};
-        const roomName = player.current_area || player.area;
+        const roomName = state.selectedArea || player.current_area || player.area || 'Unknown';
         const room = state.worldData.areas?.[roomName] || {};
 
-        const validExits = Object.keys(room.exits || {});
-        const validItems = (room.items || []).concat(player.inventory || []);
-        const validPeople = (room.occupants || []).concat(room.characters || []);
+        // Valid Exits and Ways: query viewerExits using simulated state if possible
+        const simState = {
+            ...state.worldData,
+            players: {
+                ...state.worldData.players,
+                [state.selectedChar]: {
+                    ...player,
+                    current_area: roomName,
+                    area: roomName,
+                }
+            }
+        };
+
+        const promptExits = (window.PromptBuilder && typeof window.PromptBuilder.viewerExits === 'function')
+            ? window.PromptBuilder.viewerExits(simState, state.selectedChar, room)
+            : (room.exits || {});
+
+        const exitCandidates = new Set();
+        Object.entries(promptExits || {}).forEach(([key, ex]) => {
+            exitCandidates.add(key.toLowerCase().trim());
+            if (ex) {
+                if (ex.direction) exitCandidates.add(String(ex.direction).toLowerCase().trim());
+                if (ex.to_area) exitCandidates.add(String(ex.to_area).toLowerCase().trim());
+                if (ex.target_area) exitCandidates.add(String(ex.target_area).toLowerCase().trim());
+                if (ex.name) exitCandidates.add(String(ex.name).toLowerCase().trim());
+                if (ex.way_name) exitCandidates.add(String(ex.way_name).toLowerCase().trim());
+                if (ex.label) exitCandidates.add(String(ex.label).toLowerCase().trim());
+            }
+        });
+        const COMPASS = {
+            n: 'north', s: 'south', e: 'east', w: 'west',
+            ne: 'northeast', nw: 'northwest', se: 'southeast', sw: 'southwest',
+            u: 'up', d: 'down', out: 'outside', 'in': 'inside'
+        };
+
+        // Valid Items in room and character inventory
+        const areaItems = (window.worldState && typeof window.worldState.getItemsInArea === 'function')
+            ? window.worldState.getItemsInArea(roomName)
+            : (room.items || []).map(i => (typeof i === 'string' ? { name: i } : i));
+        const carriedItems = (window.worldState && typeof window.worldState.getInventory === 'function')
+            ? window.worldState.getInventory(state.selectedChar)
+            : (player.inventory || []);
+
+        const validItemNames = areaItems.map(i => String(i.name || i)).concat(carriedItems.map(String));
+
+        // Valid Characters in room (excluding self)
+        const validPeople = [];
+        Object.entries(state.worldData.players || {}).forEach(([pName, pData]) => {
+            if (pName === state.selectedChar) return;
+            const pArea = pData.current_area || pData.area;
+            if (pArea === roomName) {
+                validPeople.push(pName);
+            }
+        });
+        (room.occupants || []).concat(room.characters || []).forEach(occ => {
+            if (occ !== state.selectedChar && !validPeople.includes(occ)) {
+                validPeople.push(occ);
+            }
+        });
+
+        function matchExit(target) {
+            if (!target) return false;
+            const t = String(target).toLowerCase().trim();
+            if (exitCandidates.has(t)) return true;
+            if (COMPASS[t] && exitCandidates.has(COMPASS[t])) return true;
+            for (const cand of exitCandidates) {
+                if (fuzzyMatch(cand, t)) return true;
+            }
+            return false;
+        }
+
+        function matchItem(target) {
+            if (!target) return false;
+            return validItemNames.some(i => fuzzyMatch(i, target));
+        }
+
+        function matchPerson(target) {
+            if (!target) return false;
+            return validPeople.some(p => fuzzyMatch(p, target));
+        }
 
         flags.push({ pass: true, text: 'Valid JSON output' });
 
@@ -643,27 +1153,54 @@ window.BenchmarkApp = (() => {
         }
 
         actionsList.forEach(a => {
-            if (['go', 'approach', 'dash'].includes(a.verb) && a.target) {
-                const matchesExit = validExits.some(e => fuzzyMatch(e, a.target));
+            const verb = String(a.verb || '').toLowerCase();
+            const target = String(a.target || '').trim();
+            const item = String(a.item || '').trim();
+
+            if (['go', 'approach', 'dash', 'move', 'walk', 'head'].includes(verb) && target) {
+                const matchesExit = matchExit(target);
                 if (!matchesExit) {
-                    flags.push({ pass: false, text: `Target exit '${a.target}' not in room exits (${validExits.join(', ') || 'none'})` });
+                    const exitList = Array.from(exitCandidates).filter(x => x.length > 2).slice(0, 6).join(', ') || 'none';
+                    flags.push({ pass: false, text: `Target exit '${target}' not in room exits (${exitList})` });
                 } else {
-                    flags.push({ pass: true, text: `Exit '${a.target}' recognized` });
+                    flags.push({ pass: true, text: `Exit '${target}' recognized` });
                 }
             }
-            if (a.item) {
-                const matchesItem = validItems.some(i => fuzzyMatch(i, a.item));
+
+            if (item && item.toLowerCase() !== target.toLowerCase()) {
+                const matchesItem = matchItem(item);
                 if (!matchesItem) {
-                    flags.push({ pass: false, text: `Item '${a.item}' not in room or inventory` });
+                    flags.push({ pass: false, text: `Item '${item}' not in room or inventory` });
                 } else {
-                    flags.push({ pass: true, text: `Item '${a.item}' verified` });
+                    flags.push({ pass: true, text: `Item '${item}' verified in room/inventory` });
                 }
             }
-            if (a.target && !['go', 'approach', 'dash', 'wait'].includes(a.verb)) {
-                const matchesPerson = validPeople.some(p => fuzzyMatch(p, a.target));
-                const matchesItem = validItems.some(i => fuzzyMatch(i, a.target));
-                if (!matchesPerson && !matchesItem) {
-                    flags.push({ pass: false, text: `Target '${a.target}' not found in room` });
+
+            if (target && !['go', 'approach', 'dash', 'move', 'walk', 'head', 'wait'].includes(verb)) {
+                const isItemVerb = ['take', 'get', 'drop', 'examine', 'inspect', 'look at', 'read', 'use', 'drink', 'eat', 'equip', 'unequip', 'open', 'close', 'wear'].includes(verb);
+                const isSocialVerb = ['talk', 'speak', 'say', 'attack', 'whisper', 'ask', 'tell', 'kiss', 'hug'].includes(verb);
+
+                if (isItemVerb) {
+                    if (matchItem(target)) {
+                        flags.push({ pass: true, text: `Item '${target}' verified in room/inventory` });
+                    } else {
+                        flags.push({ pass: false, text: `Item '${target}' not in room or inventory` });
+                    }
+                } else if (isSocialVerb) {
+                    if (matchPerson(target)) {
+                        flags.push({ pass: true, text: `Target character '${target}' verified in room` });
+                    } else {
+                        flags.push({ pass: false, text: `Character '${target}' not found in room (${validPeople.join(', ') || 'no one else'})` });
+                    }
+                } else {
+                    const matchesPerson = matchPerson(target);
+                    const matchesItem = matchItem(target);
+                    const matchesExit = matchExit(target);
+                    if (!matchesPerson && !matchesItem && !matchesExit && !['room', 'around', 'area'].includes(target.toLowerCase())) {
+                        flags.push({ pass: false, text: `Target '${target}' not found in room context` });
+                    } else {
+                        flags.push({ pass: true, text: `Target '${target}' recognized` });
+                    }
                 }
             }
         });
@@ -684,13 +1221,87 @@ window.BenchmarkApp = (() => {
             prose,
             actions_summary: actionsList,
             output: text,
+            reasoning: reasoning || '',
         };
     }
 
     function checkEnableDiff() {
         const completedModels = Object.keys(state.results);
+        if (completedModels.length >= 1 && els.exportJsonBtn) {
+            els.exportJsonBtn.style.display = 'inline-flex';
+        }
         if (completedModels.length >= 2 && els.openDiffBtn) {
             els.openDiffBtn.style.display = 'inline-flex';
+        }
+    }
+
+    function exportResultsAsJson() {
+        const completedModels = Object.keys(state.results);
+        if (completedModels.length === 0) {
+            alert('No benchmark results to export.');
+            return;
+        }
+
+        const exportData = {
+            benchmark_version: '1.0',
+            exported_at: new Date().toISOString(),
+            character: state.selectedChar || 'unknown',
+            simulated_area: state.selectedArea || '(Actual Location)',
+            prompt: {
+                summary: els.promptSummary?.textContent?.trim() || '',
+                system: state.currentPrompt?.system || '',
+                user: state.currentPrompt?.user || ''
+            },
+            config: {
+                provider: els.providerSelect?.value || 'custom',
+                api_base: els.apiBaseInput?.value?.trim() || '',
+                temperature: parseFloat(els.temperatureInput?.value) || 0.7,
+                max_tokens: parseInt(els.maxTokensInput?.value, 10) || 1512,
+                context_length: parseInt(els.contextLengthInput?.value, 10) || null
+            },
+            summary: {
+                model_count: completedModels.length,
+                models_evaluated: completedModels
+            },
+            results: completedModels.map(model => {
+                const r = state.results[model] || {};
+                return {
+                    model: model,
+                    metrics: {
+                        ttft_seconds: r.metrics?.ttft ?? null,
+                        total_seconds: r.metrics?.total ?? null,
+                        tokens_per_second: r.metrics?.tps ?? null,
+                        total_tokens: r.metrics?.tokens ?? null,
+                        reasoning_tokens: r.metrics?.reasoning_tokens ?? 0,
+                        content_tokens: r.metrics?.content_tokens ?? (r.metrics?.tokens ?? null)
+                    },
+                    json_valid: r.json_valid ?? false,
+                    parsed_response: r.parsed ?? null,
+                    actions: r.actions_summary || [],
+                    validation_flags: r.flags || [],
+                    inner_monologue_prose: r.prose || '',
+                    reasoning_trace: r.reasoning || '',
+                    raw_output: r.output || ''
+                };
+            })
+        };
+
+        const jsonString = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const safeChar = (state.selectedChar || 'bench').replace(/[^a-z0-9_-]/gi, '_');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const fileName = `benchmark_${safeChar}_${timestamp}.json`;
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+        if (els.statusText) {
+            els.statusText.textContent = `Exported ${completedModels.length} model results as ${fileName}`;
         }
     }
 
