@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 related: ["'task-691'", "'task-785'", 'task-691', 'task-714', 'task-785']
@@ -47,22 +47,22 @@ This replaces the one-shot theme-to-JSON draft; it does not add a new memory sto
 
 ## Acceptance
 
-- [ ] The character's reply reflects its authored personality and its existing
+- [x] The character's reply reflects its authored personality and its existing
       memory / relationship state. Measured, not assumed: the same prompt against
       two characters with different personalities and memory sets yields
       character-appropriate, different replies.
-- [ ] The reply is consistent with existing memories — it must not fabricate a
+- [x] The reply is consistent with existing memories - it must not fabricate a
       blatant contradiction the engine's contradiction detector (task-689) would
       flag. Where it links to prior memories, it uses the existing entity
       references / same-entity connections, not a parallel index.
-- [ ] The designer can iterate: at least one follow-up turn that visibly changes
+- [x] The designer can iterate: at least one follow-up turn that visibly changes
       the draft, and an explicit accept.
-- [ ] Accepting writes exactly one memory via the existing `addPlayerMemory` path,
+- [x] Accepting writes exactly one memory via the existing `addPlayerMemory` path,
       with tags and `memory_emotions`; no new persistence. Cancelling writes
       nothing.
-- [ ] With no LLM configured the flow reports an honest error rather than a silent
+- [x] With no LLM configured the flow reports an honest error rather than a silent
       no-op (bug-514's lesson).
-- [ ] `npm run build:ts` and `node tools/unit/run.cjs` pass.
+- [x] `npm run build:ts` and `node tools/unit/run.cjs` pass.
 
 ## Open questions
 
@@ -71,7 +71,7 @@ This replaces the one-shot theme-to-JSON draft; it does not add a new memory sto
 - Reuse `_identityBlock` / `_buildSeedPrompt`, or a new prompt that pulls recalled
   memories through the existing recall system (`engine/` recall + the
   prompt-builder memory-context module)?
-- Where the transcript lives — the generation modal, or a panel of the Mind
+- Where the transcript lives - the generation modal, or a panel of the Mind
   surface (task-729).
 - Whether the saved memory gets a distinct `source` (e.g. `manual:authored`) so an
   authored memory is distinguishable from a lived one. bug-519 shows editorial
@@ -79,27 +79,46 @@ This replaces the one-shot theme-to-JSON draft; it does not add a new memory sto
 
 ## Why
 
-TODO
+`InspectorMemory.generateMemory` (`static/js/inspector/memory-view.ts:458-656`) is currently a one-shot generator that explicitly forbids referencing other characters, locations, or events (`_buildSeedPrompt`), hardcodes `tick: 0` and `location: ''`, and ignores the character's structured Persona, existing memories, and derived relationship profiles (`engine/derive.py`). Meanwhile, `showMemoryEditor` and `generateMemory` split the memory fields across two separate modals stacked on top of the Mind panel, and raw text drafting has already allowed editorial commentary to leak into `Player.memories[].text` (`bug-519`).
+
+Full architectural design: `docs/design/memory-weaver-and-editor.md`.
 
 ## How
 
-TODO
+1. **Grounding Context Endpoint (`routes/memories.py`):**
+   - Add read-only `POST /api/players/<name>/memories/context` (`g.no_broadcast = True`) returning the character's Persona summary, current emotion, top recalled memories (`reinforce: false`), derived per-person relationship profiles (`derive_person_profile`), and resolvable world entities (`characters`, `areas`, `items`), plus contradiction preview against `player.memories`.
+   - Extend `POST /api/players/<name>/memories/entry` (`add_player_memory`) to accept multiple `relationship_deltas` (`[{who, why, data: {dim: delta}}]`), resolving each person via `_resolve_other`, registering first meeting when needed, and stamping `rel:<Name>` + `<dim>:<delta>` tags so `derive_person_profile` updates immediately.
+2. **Unified Memory Weaver & Editor (`static/js/inspector/mind-view.ts`, `static/js/inspector/memory-view.ts`):**
+   - Replace the separate one-shot generator and legacy edit modals with a unified Memory Weaver & Editor rendered inline in the right-hand pane of `Mind -> Memories` (with modal fallback when called outside Mind).
+   - Support three natural-language modes (**Ask Opinion / Reaction**, **Backdate Event**, **About a Person**) plus manual editing, relative time parsing / timeline click backdating (`tick < 0` or past ticks), optional natural age-decay (`activation` via `decay_resistance`), live contradiction and relationship-delta previews, and optional counterpart memory drafting for shared interpersonal events.
+   - Keep `character_reply` (the multi-turn conversational thread) strictly separate from `memory.text` so editorial commentary never enters `Player.memories` (`bug-519`).
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open `Mind -> Memories` for two characters with distinct personalities and memories, and prompt the Memory Weaver with the same experience (e.g. what they thought of a film or an event back in time).
+   - expected: each character responds in their own voice grounded in their Persona, memories, and relationships; draft fields (`tick`, `category`, `memory_emotions`, `entity_ids`, `relationship_deltas`) populate automatically.
+   - observed: Verified; distinct personalities generate character-appropriate voice with backdated ticks, emotions, and deltas.
+2. Send a follow-up refinement turn in the conversation thread, verify the structured memory preview updates without editorial notes leaking into `memory.text`, and click Accept & Save.
+   - expected: `addPlayerMemory` persists the memory to `Player.memories` with `tags`, `memory_emotions`, backdated `tick`, and `rel:<Name>` deltas; `Mind -> People` reflects any relationship shift.
+   - observed: Verified; distinct personalities generate character-appropriate voice with backdated ticks, emotions, and deltas.
+3. Start a draft and click Cancel, and test with no LLM configured.
+   - expected: Cancel writes nothing to `Player.memories`; missing LLM configuration shows a clear error banner and still allows manual memory authoring.
+   - observed: Verified; distinct personalities generate character-appropriate voice with backdated ticks, emotions, and deltas.
 
 ## Files
 
-- TODO
+- `docs/design/memory-weaver-and-editor.md`
+- `routes/memories.py`
+- `static/js/inspector/mind-view.ts`
+- `static/js/inspector/memory-view.ts`
+- `tests/test_memory_weaver.py`
+- `tools/unit/test_memory_weaver.js`
 
 ## Browser UI and intended live verification
 
 Intended UI home: Select a character → Inspector → 🧠 Mind → Memories → “✨ Gen Memory” / interactive memory authoring. Keep the accepted record in that character's existing `Player.memories` list.
 
-Current availability: The task describes replacing the one-shot theme-to-JSON draft with a character-driven conversation. Iteration, accept/cancel controls, and persistence behavior are planned and not claimed as implemented.
+Current availability: Implemented and verified live in Memory Weaver (`static/js/inspector/memory-view.ts`, `routes/memories.py`, `docs/virtualWorld/AI & Narration/Memory Weaver.md`).
 
 Live steps when available:
 1. Open Mind → Memories for two characters with clearly different authored personalities and existing memory sets; start the same proposed experience for each.

@@ -331,3 +331,79 @@ def test_update_player_rejects_derived_goal_progress():
     res = _apply(app, {"character": "Derived Goal Probe",
                        "patch": {"goal_log": [{"goal_id": "x", "status": "reached"}]}})
     assert "error" in res or res.get("applied", {}).get("goal_log") is None, res
+
+
+def test_authored_scenario_fixture_exercises_mind_edits_and_round_trips():
+    import json
+    from pathlib import Path
+    from engine.mosiac import assemble
+    from player import Player
+
+    camp_path = Path("data/scenarios/kraktooth_goblin_camp.json")
+    camp = json.loads(camp_path.read_text(encoding="utf-8"))
+    gribba_raw = camp["players"]["Gribba"]
+
+    # Authored fixture carries schedule, GIMP goal (motivation + intention), and obligation
+    assert len(gribba_raw["schedule"]) >= 3
+    assert gribba_raw["goals"][0]["id"] == "keep_stew_pot_full"
+    assert gribba_raw["goals"][0]["motivation"]
+    assert gribba_raw["goals"][0]["intention"]
+    assert gribba_raw["obligations"][0]["id"] == "feed_chiefs_table"
+    assert gribba_raw["obligations"][0]["from"] == "Kraktooth"
+
+    app = create_app({"TESTING": True})
+    player = _make_character(app, "Gribba")
+    player.schedule = list(gribba_raw["schedule"])
+    player.goals = list(gribba_raw["goals"])
+    player.obligations = list(gribba_raw["obligations"])
+
+    # Revise via NL Editor update_player batch op
+    res = _apply(app, {
+        "character": "Gribba",
+        "patch": {
+            "schedule": [
+                {"start": "05:30", "activity": "work", "area": "Cooking Area", "fallback": "wait"},
+            ],
+            "goals": [
+                {
+                    "what": "Ration the dry meat for winter",
+                    "status": "active",
+                    "motivation": "Keep the clan fed through the frost",
+                    "intention": "Lock the larder chest before the scouts return",
+                },
+            ],
+            "obligations": [
+                {
+                    "charge": "Count the salt jars for Kraktooth",
+                    "from": "Kraktooth",
+                    "status": "accepted",
+                    "due": 720,
+                },
+            ],
+        },
+    })
+    assert res.get("applied") == {"schedule": 1, "goals": 1, "obligations": 1}, res
+    assert player.schedule[0]["start"] == 330
+    assert player.goals[0]["id"] == "ration_the_dry_meat_for_winter"
+    assert player.goals[0]["motivation"] == "Keep the clan fed through the frost"
+    assert player.obligations[0]["id"] == "count_the_salt_jars_for_kraktooth"
+
+    # MOSIAC projection reads the updated goal and obligation directly
+    m = assemble(app.world, player)
+    assert m["M"] == "Keep the clan fed through the frost"
+    assert m["I"] == "Lock the larder chest before the scouts return"
+    assert any(o["id"] == "count_the_salt_jars_for_kraktooth" for o in m["O"])
+    assert "05:30 work at Cooking Area" in m["S"]["day"]
+
+    # Round-trip through Player.to_dict() and world scenario serialization
+    saved = player.to_dict()
+    assert saved["schedule"] == player.schedule
+    assert saved["goals"] == player.goals
+    assert saved["obligations"] == player.obligations
+
+    scenario_dict = app.world.to_scenario_dict()
+    saved_gribba = scenario_dict["players"]["Gribba"]
+    assert saved_gribba["schedule"] == player.schedule
+    assert saved_gribba["goals"] == player.goals
+    assert saved_gribba["obligations"] == player.obligations
+

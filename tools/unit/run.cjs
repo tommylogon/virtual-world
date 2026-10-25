@@ -80,6 +80,7 @@ const win = {
     clearTimeout: () => {},
     setInterval: () => 0,
     clearInterval: () => {},
+    queueMicrotask: (fn) => { fn(); },
     // help-center.js runs `init()` at load, which installs document listeners and
     // reads the seen-flags out of localStorage. Neither exists in a bare vm
     // context, so both are stubbed permissively: a fake element absorbs any
@@ -99,6 +100,7 @@ const win = {
         querySelectorAll: () => [],
         getElementById: () => null,
         createElement: () => makeStubEl(),
+        createElementNS: () => makeStubEl(),
         head: makeStubEl(),
         body: makeStubEl(),
     },
@@ -166,6 +168,8 @@ load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-grounding.js');
 load('static/js/agent/plan-manager.js');
 load('static/js/agent/action-tiers.js');
+load('static/js/agent/turn-scene-view.js');
+load('static/js/agent/turn-minimap.js');
 load('static/js/agent/human-turn-composer.js');
 load('static/js/llm-client.js');
 load('static/js/commons/commons-api.js');
@@ -178,6 +182,8 @@ load('static/js/inspector/sprite-sheet-geometry.js');
 load('static/js/inspector/sprite-sheet.js');
 load('static/js/inspector/doc-panel.js');
 load('static/js/inspector/helpers.js');
+load('static/js/inspector/inspector-view-base.js');
+load('static/js/inspector/components.js');
 // paperdoll-view.js only touches worldState/Lit at call time; its face filter
 // (areasForFacing) and navigate render are driven by tools/unit/test_paperdoll_facing.js.
 load('static/js/inspector/paperdoll-view.js');
@@ -243,6 +249,14 @@ load('static/js/worldpainter/grid-model.js');
 // Pure card/prose pre-parse + prompt builder for the Persona import
 // (task-843): no DOM, no network  -  loads cleanly in this sandbox.
 load('static/js/character-import.js');
+load('static/js/api.js');
+load('static/js/audio.js');
+load('static/js/inspector/lore-view.js');
+load('static/js/inspector/area-view.js');
+load('static/js/inspector/item-view.js');
+load('static/js/inspector/way-view.js');
+load('static/js/inspector/memory-view.js');
+load('static/js/inspector/behaviors-view.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

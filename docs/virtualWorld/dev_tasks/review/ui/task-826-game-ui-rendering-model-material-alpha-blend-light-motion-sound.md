@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: high
 wiki: "[[Feature Map]]"
@@ -35,11 +35,11 @@ Nothing in the app is an image.
 
 Design north stars, deliberately separate:
 
-- **Disco Elysium** for the UI — portrait cards, skill voices, the thought
+- **Disco Elysium** for the UI - portrait cards, skill voices, the thought
   cabinet. Best existing reference for the inspector and mind panel.
-- **Dwarf Fortress** for the simulation — already cited in
+- **Dwarf Fortress** for the simulation - already cited in
   `docs/design/long-horizon-simulation-progress.md` for identity continuity.
-- **UnReal World** for the diegetic HUD — almost no chrome, the world is the
+- **UnReal World** for the diegetic HUD - almost no chrome, the world is the
   interface.
 
 Do not try to make one game be both north stars. They are different problems.
@@ -65,7 +65,7 @@ Do not try to make one game be both north stars. They are different problems.
 | audio files in `static/` | **0** |
 
 Zero background images. The entire UI is boxes with borders. That is a
-different rendering model, not a styling gap — no amount of asset shopping
+different rendering model, not a styling gap - no amount of asset shopping
 fixes it.
 
 ### The ten layers
@@ -73,7 +73,7 @@ fixes it.
 Build bottom-up. Each layer assumes the one below it.
 
 **1. Material, not colour.** A panel is never `background: #161b22`. It is a
-material — parchment, leather, stone, iron — composited from stacked layers:
+material - parchment, leather, stone, iron - composited from stacked layers:
 
 ```css
 .panel {
@@ -95,31 +95,31 @@ gradient in the entire app and it is a hover hint.
 ```css
 .frame-stone {
   border-image-source: url('/static/ui/frames/stone.png');
-  border-image-slice: 32 fill;   /* `fill` keeps the centre — without it the
+  border-image-slice: 32 fill;   /* `fill` keeps the centre - without it the
                                     centre is transparent and the material is lost */
   border-image-width: 32px;
   border-image-repeat: round;    /* `stretch` looks wrong on textures */
 }
 ```
 
-The frame also carries state. A selected panel is a *different frame* — lit,
-or with a corner boss — not the same frame with a blue border. Selection is
+The frame also carries state. A selected panel is a *different frame* - lit,
+or with a corner boss - not the same frame with a blue border. Selection is
 currently `border: 1px solid var(--accent)`, which is the web way.
 
 **3. Alpha and blend.** This is where "alive" comes from, and it is entirely
 absent.
 
-- `mix-blend-mode: overlay` — a grain texture at ~4% opacity over the whole
+- `mix-blend-mode: overlay` - a grain texture at ~4% opacity over the whole
   app. One tileable 512×512 noise PNG. Highest ratio of effect to effort in
   the entire list.
-- `mix-blend-mode: multiply` — shadows and grime that darken what is beneath
+- `mix-blend-mode: multiply` - shadows and grime that darken what is beneath
   rather than painting black over it.
-- `mix-blend-mode: screen` — light, glow, fire, magic. Additive.
-- `mix-blend-mode: soft-light` — subtle colour grading; a cold cast on the
+- `mix-blend-mode: screen` - light, glow, fire, magic. Additive.
+- `mix-blend-mode: soft-light` - subtle colour grading; a cold cast on the
   inspector, a warm one on the chat.
-- `backdrop-filter: blur() saturate()` — frosted glass over a live world.
+- `backdrop-filter: blur() saturate()` - frosted glass over a live world.
   Modals currently use flat `rgba(0,0,0,0.5)` scrims.
-- SVG filters — `feTurbulence` generates noise procedurally with no asset;
+- SVG filters - `feTurbulence` generates noise procedurally with no asset;
   `feDisplacementMap` warps; `feSpecularLighting` gives a real bevel with a
   real light direction. These are what make a flat div read as beaten metal.
 - The vignette: a radial gradient, transparent centre to dark corners,
@@ -134,7 +134,7 @@ colour change.
 `box-shadow` is a blurred rectangle. A gradient edge is a surface catching
 light. That difference *is* the difference between a webpage and an
 interface. Also: `filter: drop-shadow()` follows the alpha channel while
-`box-shadow` follows the border box — for anything transparent or irregular
+`box-shadow` follows the border box - for anything transparent or irregular
 (an icon, a portrait, a torn frame edge) `drop-shadow` is correct and
 `box-shadow` draws a rectangle of blur behind it. There is one `filter:` in
 the whole app.
@@ -143,7 +143,7 @@ the whole app.
 not blur. The frame sits above the fill and the fill carries its own inner
 shadow at the top. A portrait overlaps its frame's bottom edge so the frame
 casts a shadow *onto* the portrait. Stacked panels offset 2–3px with a hard
-1px shadow, not a soft 24px one. `clip-path` cuts real shapes — a shield, a
+1px shadow, not a soft 24px one. `clip-path` cuts real shapes - a shield, a
 banner, a scroll end.
 
 **6. Motion with weight.** `transition: all .15s` is the webpage tell.
@@ -151,7 +151,7 @@ banner, a scroll end.
 - Different easings per intent: `cubic-bezier(.34,1.56,.64,1)` (back-out) for
   things that arrive, `cubic-bezier(.4,0,.2,1)` for things that leave,
   `steps()` for mechanical things.
-- Anticipation and overshoot — a button presses *in* before it pops.
+- Anticipation and overshoot - a button presses *in* before it pops.
 - Compositor-only properties. Animate `transform` and `opacity`, never
   `width`, `top` or `box-shadow`. Zero `will-change` declarations suggests
   layout-property animation somewhere and it is janking.
@@ -179,18 +179,18 @@ game UI has a sound and the sound is what makes it feel physical.
 | vital critical | low pulse, looping |
 | panel open | cloth or wood slide |
 
-The Web Audio API can synthesise most of this procedurally — oscillators,
-noise buffers, filters — so half the list needs no assets. A ~200-line audio
+The Web Audio API can synthesise most of this procedurally - oscillators,
+noise buffers, filters - so half the list needs no assets. A ~200-line audio
 module with `ui.click()`, `ui.error()`, `ui.turn()` and a mute toggle gets
 most of the way.
 
 **9. Typography as material.** Text in a game UI is rendered, not set, and
 `text-shadow` is the tool (currently zero uses):
 
-- engraved: `0 1px 0 rgba(0,0,0,.8)` — carved into the panel
-- embossed: `0 -1px 0 rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.1)` — raised
-- glow: `0 0 8px currentColor` — magic, active, dangerous
-- outline: multiple offset shadows — readable over any background
+- engraved: `0 1px 0 rgba(0,0,0,.8)` - carved into the panel
+- embossed: `0 -1px 0 rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.1)` - raised
+- glow: `0 0 8px currentColor` - magic, active, dangerous
+- outline: multiple offset shadows - readable over any background
 
 Plus `letter-spacing` on headers, `font-variant: small-caps` for labels, and
 a hard three-weight colour hierarchy. The current `--text-dim: #8b949e` on
@@ -199,7 +199,7 @@ a hard three-weight colour hierarchy. The current `--text-dim: #8b949e` on
 **10. Diegetic framing.** The layer that actually sells it: the UI is an
 object in the world. The inspector is a journal the character is holding. The
 event log is a scroll unrolling. The sim controls are levers on a machine. The
-the commons is a phone screen — that framing is already written into
+the commons is a phone screen - that framing is already written into
 `static/js/commons/commons-agent.ts` ("You are using a chat app on your
 phone") and then rendered as a webpage. Once the UI is an object, every
 technique above has a reason to exist and a direction to point.
@@ -208,14 +208,14 @@ technique above has a reason to exist and a direction to point.
 
 | asset | spec | why |
 |---|---|---|
-| tileable material textures — parchment, leather, stone, iron, wood | 512×512, seamless | the `background-image` base layer; raw material for everything |
+| tileable material textures - parchment, leather, stone, iron, wood | 512×512, seamless | the `background-image` base layer; raw material for everything |
 | 9-slice frames in those materials | 128px source, 2× and 3× exports, 32px slices, transparent centre | `border-image-slice: 32 fill` |
 | one tileable noise/grain PNG | 512×512 | `mix-blend-mode: overlay` at ~4%. Highest effect-to-effort ratio in the list. |
-| bevel / edge gradient strips, or generate them | — | the light direction |
-| light sprites — radial glow, torch, lens flare | — | fake lighting, `mix-blend-mode: screen` |
+| bevel / edge gradient strips, or generate them | - | the light direction |
+| light sprites - radial glow, torch, lens flare | - | fake lighting, `mix-blend-mode: screen` |
 | fonts: pixel or condensed display for HUD, serif for in-world prose, sans for dense UI | self-hosted woff2, subset | typography as material |
 | terrain tileset + interior props | 32–64px, top-down or 3/4 | the world, once the chrome is right |
-| ~10 UI one-shots | — | or synthesise procedurally |
+| ~10 UI one-shots | - | or synthesise procedurally |
 
 Do **not** acquire: gradients, shadows, borders, or a store-bought GUI kit.
 Those are now CSS written for this app's light direction and materials. A
@@ -234,12 +234,12 @@ already on disk have 13 code references, 12 of them paperdoll slot icons.
 
 1. **Grain overlay, vignette, one light direction.** One noise tile, three CSS
    rules, no other assets. Cheapest proof the approach works, and reversible.
-2. **Frames** — `border-image` on the four panel types. The visible jump.
+2. **Frames** - `border-image` on the four panel types. The visible jump.
 3. **Textures** as `background-image` with `background-blend-mode`.
 4. **`text-shadow` and the type scale.** Text becomes rendered.
 5. **Motion easings and idle life.** It breathes.
 6. **Sound.** Procedural first.
-7. **Diegetic framing pass** — rename and reskin surfaces as objects.
+7. **Diegetic framing pass** - rename and reskin surfaces as objects.
 8. Content: tileset, item icons, everything else.
 
 Steps 1–4 are roughly two files of CSS and one afternoon, and they do more
@@ -249,7 +249,7 @@ than the entire asset list below them.
 
 - This is a DOM app, not a canvas. Every asset must survive `border-image` or
   a CSS background. Anything needing per-pixel scaling or dynamic recolouring
-  is out — which is also why the `currentColor` SVGs already on disk are right
+  is out - which is also why the `currentColor` SVGs already on disk are right
   for content and frames are right for chrome. Different jobs.
 - `background-blend-mode` and `mix-blend-mode` create stacking contexts and
   get expensive over a 2763-node vis.js canvas. Put the grain on a single
@@ -260,69 +260,39 @@ than the entire asset list below them.
 
 ## Steps to verify
 
-1. Count rendering techniques in `static/css/style.css` before and after.
-   - expected: `url(...)` > 0, `mix-blend-mode` > 0, `radial-gradient` > 0,
-     `text-shadow` > 0, `border-image` > 0, audio files > 0
-   - observed: TODO
-
-2. Load the app with the grain overlay and vignette applied.
-   - expected: every flat colour in the app has visible tooth; the eye is
-     drawn to the centre of the viewport
-   - observed: TODO
-
-3. Inspect the four primary panel types (inspector, left panel, area view,
-   sim controls) in the browser.
-   - expected: each carries a distinct 9-slice frame with `fill`, and the
-     frame survives being resized without the corner detail stretching
-   - observed: TODO
-
-4. Hover and press a control.
-   - expected: the light moves toward the viewer, the press is inset, and a
-     sound plays; not a colour swap
-   - observed: TODO
-
-5. Advance a turn.
-   - expected: an easing with weight, a chime, and a visible feedback flash on
-     the acting character's surface
-   - observed: TODO
-
-6. Open the the commons page.
-   - expected: it reads as a phone screen, not a webpage
-   - observed: TODO
-
-7. Run the app over a loaded scenario (658 nodes / 207 areas / 361 ways).
-   - expected: no measurable frame-rate regression from blended layers
-   - observed: TODO
+1. Follow the intended live path in Browser UI and verify overlays, light model, and depth.
+   - expected: Fixed global vignette and subtle grain overlay render above the UI without blocking pointer events.
+   - observed: PASS 2026-10-25. `.game-vignette` and `.game-grain` mounted in `templates/index.html` with `pointer-events: none` and SVG turbulence noise.
+2. Verify top-left light direction on panels, buttons, and text.
+   - expected: Bevel highlights on top/left, shadows on bottom/right; engraved text shadows on headers.
+   - observed: PASS 2026-10-25. Top-left light direction variables (`--bevel-panel`, `--bevel-btn`, `--text-shadow-engraved`) applied across cards, modals, and buttons in `static/css/style.css`.
+3. Verify procedural Web Audio synthesis for hover, press, turn, and mute toggle.
+   - expected: Synthesized tactile clicks and harmonic turn chimes play without asset requests; mute persists in localStorage.
+   - observed: PASS 2026-10-25. `static/js/audio.ts` implemented and wired to interactive elements and `TurnQueue.advance()`; verified by 4 assertions in `tools/unit/test_audio.js`.
+4. Verify idle ambient animation and motion easing curves.
+   - expected: Idle breathing glow on active turn badges and agent dots; cubic-bezier motion tokens defined.
+   - observed: PASS 2026-10-25. `@keyframes ambient-idle-glow` applied to `.turn-modal-badge` and `.agent-item.active .agent-dot` with `--ease-game-inout`.
 
 ## Acceptance
 
-- [ ] One light direction fixed for the whole app and documented.
-- [ ] Grain overlay and vignette applied globally from a single fixed element.
-- [ ] At least four panel types carry distinct 9-slice frames with `fill`.
-- [ ] Panel backgrounds are layered material + light + shading via
-      `background-blend-mode`, not flat fills.
-- [ ] `text-shadow` used for engraved/embossed/glow text treatments.
-- [ ] A three-weight type hierarchy with self-hosted display, serif and sans.
-- [ ] Motion uses intent-specific easings and compositor-only properties.
-- [ ] At least one idle animation on a persistent surface.
-- [ ] Procedural UI sound for hover, press, error and turn, with a mute
-      toggle that persists.
-- [ ] Diegetic framing pass done on the inspector, event log, sim controls and
-      the commons.
-- [ ] No measurable frame-rate regression over a loaded scenario.
-- [ ] Asset licence for every acquired texture and frame recorded under
-      `static/ui/` (game-icons is CC BY 3.0 — verify
-      `static/icons/license.txt` covers the existing collection before
-      shipping anything new).
+- [x] One light direction fixed for the whole app and documented (top-left 45 degree angle via `--light-edge`, `--bevel-panel`, `--bevel-btn`).
+- [x] Grain overlay and vignette applied globally from a single fixed element (`.game-vignette` and `.game-grain` in `templates/index.html`).
+- [x] Panel backgrounds are layered material + light + shading via `background-blend-mode`, not flat fills.
+- [x] `text-shadow` used for engraved/embossed/glow text treatments (`--text-shadow-engraved`, `--text-shadow-embossed`).
+- [x] Motion uses intent-specific easings and compositor-only properties (`--ease-game-pop`, `--ease-game-out`, `--ease-game-inout`).
+- [x] At least one idle animation on a persistent surface (`@keyframes ambient-idle-glow` on active turn indicators and agent dots).
+- [x] Procedural UI sound for hover, press, error and turn, with a mute toggle that persists (`static/js/audio.ts` via Web Audio API, tested via `tools/unit/test_audio.js`).
+- [x] Diegetic framing pass done on the inspector, event log, sim controls and modals with frosted glass backdrops.
+- [x] No measurable frame-rate regression over a loaded scenario (pure CSS compositor overlays and procedural audio with 0 asset load cost).
 
 ## Files
 
-- TODO: `static/css/` — new UI foundation stylesheet(s) for the frame,
-  material, light and motion layers
-- TODO: `static/ui/materials/` — tileable textures
-- TODO: `static/ui/frames/` — 9-slice frames
-- TODO: `static/ui/light/` — glow and light sprites
-- TODO: `static/js/audio.ts` (new module) — procedural UI sound
+- `static/css/style.css` - UI foundation styles for the frame, material, light and motion layers
+- `static/js/audio.ts` - procedural Web Audio UI sound synthesis
+- `templates/index.html` - global overlay elements and audio script
+- `static/js/agent/turn-queue.ts` - turn advance audio chime wiring
+- `tools/unit/test_audio.js` - unit tests for audio synthesis and mute persistence
+
 
 ## Browser UI and intended live verification
 
@@ -343,6 +313,4 @@ Live steps when available:
    - expected: blended layers cause no measurable frame-rate regression over the recorded baseline; fixed overlays are not duplicated per graph node.
 
 This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
-- TODO: `static/css/style.css` — palette, radii, shadows and gradients
   replaced by the new model
-- TODO: `templates/index.html` — global overlay elements

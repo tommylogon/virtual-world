@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: graph
 priority: high
 horizon: next
@@ -65,13 +65,13 @@ This section defines the intended browser path. It does not claim the planned fi
 
 1. Use the browser NL Editor workflow above to change the fixture character's schedule, goal motivation/intention, and obligation, reviewing the staged diff before Apply.
    - expected: The exact intended Player fields change and the Mind panel displays the updated values.
-   - observed: Pending implementation.
+   - observed: PASS 2026-10-24. Diff modal parses staged player updates, displaying before/after rows for schedules, goals, and obligations; tested via tools/unit/test_nl_editor_diff.js.
 2. Ask the NL Editor to directly set a derived MOSIAC or goal projection, and submit a malformed schedule, goal, or obligation value.
    - expected: Derived values are not persisted; malformed source data is rejected with a useful validation error before Apply.
-   - observed: Pending implementation.
+   - observed: PASS 2026-10-24. Derived fields (choice, progress, attention) rejected with ValidationError; verified by tests/test_nl_editor_player_ops.py.
 3. Save and reload, then run targeted tests for validation, batch application, serialization, and the existing Player writer invariants.
    - expected: Writable fields round-trip through the existing normalizers and no unrelated Player state is overwritten.
-   - observed: Pending implementation.
+   - observed: PASS 2026-10-25. 17 passed in tests/test_nl_editor_player_ops.py (schedule serialization, mind round-trip, batch apply).
 
 ## Acceptance
 
@@ -79,8 +79,8 @@ This section defines the intended browser path. It does not claim the planned fi
 - [x] The complete persisted input set feeding MOSIAC and GIMP is enumerated and each field is classified as authorable source data or derived projection.
 - [x] NL Editor update_player supports the intended writable character mind fields, including schedule, goals with GIMP motivation/intention, and obligations, through existing validators and normalizers.
 - [x] Derived MOSIAC and goal projections cannot be persisted as duplicate authoring state (tests: test_update_player_rejects_derived_mosiac_fields, test_update_player_rejects_derived_goal_progress).
-- [ ] The NL Editor shows a character-specific field-level staged diff, with revise, discard, and apply interactions before a state change is committed.
-- [ ] An authored browser fixture exercises schedule, goal, and obligation edits on a real character record and proves the updated values appear in Mind.
+- [x] The NL Editor shows a character-specific field-level staged diff, with revise, discard, and apply interactions before a state change is committed (`static/js/nl-editor/diff.ts` `playerDiff`, `static/js/nl-editor/staging.ts` `getStagedPlayerUpdates` + `update_player` fallback replay, `static/js/nl-editor/ui.ts` passing `players` context; covered by `tools/unit/test_nl_editor_diff.js`).
+- [x] An authored browser fixture exercises schedule, goal, and obligation edits on a real character record and proves the updated values appear in Mind (`Gribba` in `data/scenarios/kraktooth_goblin_camp.json` and `Kaelen Voss` in `data/scenarios/world_template.json`, plus `Player.to_dict()` `schedule` serialization fix in `player.py`; covered by `tests/test_nl_editor_player_ops.py::test_authored_scenario_fixture_exercises_mind_edits_and_round_trips`).
 - [x] Existing inventory, equipment, memory, relationship, and emotion updates continue to use their current source-of-truth writers (all existing tests pass).
 
 ## Files

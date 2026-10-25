@@ -129,18 +129,23 @@ test('snapping pulls an edge onto a neighbour and leaves distant rects alone', (
 });
 
 test('screen→graph conversion inverts the transform the layers are drawn with', () => {
-    // A 400x300 graph area at (100,50) on screen, scaled 2x, centred on graph (10,20).
-    window.document = {
-        getElementById: () => ({ getBoundingClientRect: () => ({ left: 100, top: 50, width: 400, height: 300 }) }),
-    };
-    window.graphManager = { network: { getScale: () => 2, getViewPosition: () => ({ x: 10, y: 20 }) } };
-    const point = GB._internals._clientToGraph(340, 240);
-    assertEq(point.x, 30, 'x maps back');
-    assertEq(point.y, 40, 'y maps back');
-    // The container centre maps to the view position.
-    const centre = GB._internals._clientToGraph(100 + 200, 50 + 150);
-    assertEq(centre.x, 10, 'centre x is the view position');
-    assertEq(centre.y, 20, 'centre y is the view position');
+    const savedDoc = window.document;
+    try {
+        // A 400x300 graph area at (100,50) on screen, scaled 2x, centred on graph (10,20).
+        window.document = {
+            getElementById: () => ({ getBoundingClientRect: () => ({ left: 100, top: 50, width: 400, height: 300 }) }),
+        };
+        window.graphManager = { network: { getScale: () => 2, getViewPosition: () => ({ x: 10, y: 20 }) } };
+        const point = GB._internals._clientToGraph(340, 240);
+        assertEq(point.x, 30, 'x maps back');
+        assertEq(point.y, 40, 'y maps back');
+        // The container centre maps to the view position.
+        const centre = GB._internals._clientToGraph(100 + 200, 50 + 150);
+        assertEq(centre.x, 10, 'centre x is the view position');
+        assertEq(centre.y, 20, 'centre y is the view position');
+    } finally {
+        window.document = savedDoc;
+    }
 });
 
 /* ─────────────────────────────────────────────────────────────────────────

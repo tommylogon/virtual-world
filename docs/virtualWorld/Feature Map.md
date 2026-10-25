@@ -79,7 +79,8 @@ implemented whole. The verbs you type (`go`, `take`, `attack`) are a feature's
 
 - [[NPC Behavior System]] — **NPC behaviour.** Autonomous states: idle, forage, eat, flee, hide.
 - [[Background Simulation]] — **everyone off-screen.** The background tier and the coarse social layer.
-- [[Gameplay/Turn Queue & Human Turns|Turns]] — **whose turn it is.** Initiative, the human's slot, timeskip, the turn composer, and the modes.
+- [[Gameplay/Turn Queue & Human Turns|Turns]] - **whose turn it is.** Initiative, the human's slot, timeskip, the turn composer, and the modes.
+- [[Gameplay/Turn Queue & Human Turns|Where you've been]] - **the player map.** A visited-cell minimap in the human turn composer showing explored cells, last-seen observations, and known blocked ways.
 - [[Time & Weather]] — **spectator mode.** Watch the simulation run without acting.
 - [[AI & Narration/Narration System|Narration]] — **the prose you are told** on a turn.
 - [[LLM Providers]] — **the calls.** Every character and narration call, and which provider served it.

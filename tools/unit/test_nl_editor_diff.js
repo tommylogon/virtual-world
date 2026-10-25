@@ -73,3 +73,57 @@ test('diff: long change lists are capped', () => {
     assertEq(lines.length, 4);
     assertEq(lines[3], '+3 more');
 });
+
+test('diff: update_player diffs schedule/goals against context.players', () => {
+    const players = {
+        Alice: {
+            name: 'Alice',
+            schedule: [],
+            goals: [{ id: 'eat', text: 'Eat breakfast', priority: 1, status: 'active' }],
+        },
+    };
+    const op = {
+        type: 'update_player',
+        payload: {
+            character: 'Alice',
+            patch: {
+                schedule: [{ start: '08:00', duration_minutes: 60, activity: 'work', area: 'area_smithy' }],
+                goals: [{ id: 'eat', text: 'Eat breakfast', priority: 1, status: 'active' }],
+            },
+        },
+    };
+    const diff = NLEditorDiff.opDiff(op, { players });
+    assertEq(diff.kind, 'update-player');
+    assertEq(diff.changes.length, 1);
+    assertEq(diff.changes[0].key, 'schedule');
+    const lines = NLEditorDiff.summaryLines(op, { players });
+    assertEq(lines.length, 1);
+    assertTrue(lines[0].startsWith('schedule: [] → '));
+});
+
+test('diff: spawn_library_item, attach, detach, connect_areas, create_trigger, rename_character get one-line labels', () => {
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'spawn_library_item', payload: { library_id: 'torch', parent_id: 'character_alice' } }, {}),
+        ['+ spawn torch into character_alice']
+    );
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'attach', payload: { from_id: 'item_sword', to_id: 'character_alice', relation: 'carrying' } }, {}),
+        ['+ attach item_sword -> character_alice (carrying)']
+    );
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'detach', payload: { from_id: 'item_sword', to_id: 'character_alice', relation: 'carrying' } }, {}),
+        ['− detach item_sword from character_alice (carrying)']
+    );
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'connect_areas', payload: { area_a_id: 'area_a', area_b_id: 'area_b', way_id: 'way_ab' } }, {}),
+        ['+ connect area_a <-> area_b via way_ab']
+    );
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'create_trigger', payload: { owner_id: 'item_trap', trigger: { trigger_type: 'enter_area' } } }, {}),
+        ['+ trigger (enter_area) on item_trap']
+    );
+    assertEq(
+        NLEditorDiff.summaryLines({ type: 'rename_character', payload: { character: 'Bob', new_name: 'Robert' } }, {}),
+        ['rename Bob -> Robert']
+    );
+});

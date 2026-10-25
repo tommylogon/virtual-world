@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: world
 priority: medium
 ---
@@ -9,7 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-24
 **Related:** task-495, task-403
-**Design:** `docs/design/worldpainter-knowledge-and-fog.md` — fog is the
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md` - fog is the
 knowledge dimension of the painted grid (movement + reveal + belief travel,
 task-467).
 
@@ -23,17 +23,19 @@ Add an area/scope-level known set per character. player.known already gates hidd
       perception gate are wired. Rendering unknown cells as fog is task-677.
 - [x] Walking and examining reveal them; a charted map's use/read teaches the
       entries it lists, through the same `known` registry.
-- [ ] Agent prompts never disclose unknown areas. The route block and the exit
-      list are known-filtered; `only_known` itself still has no caller.
+- [x] Agent prompts never disclose unknown areas. The route block and the exit
+      list are known-filtered, `only_known` is wired into `known_route_areas`
+      (`engine/spatial_memory.py`), and `fog_view` is wired into
+      `GET /api/players/<name>/map` (`routes/player_ops.py`).
 - [x] Tests cover the reveal, map-item knowledge transfer and the authored route
       bridge.
 
-## Progress — 2026-09-28 (in `review`)
+## Progress - 2026-09-28 (in `review`)
 
 ### The gate existed and had no key
 
 `player.known` was already a list, and `engine/room_perception.py:way_visible_to`
-already gated on it — *"Authored knowledge: a way, or its area, listed in the
+already gated on it - *"Authored knowledge: a way, or its area, listed in the
 viewer's `known` registry is visible from the start (the butcher's passage, a
 scout's map)."* **Nothing anywhere wrote to it.** Every test passed because every
 fixture hand-populated the list. The gate was sound and had no key, which is the
@@ -41,12 +43,12 @@ whole of this task's delta.
 
 `engine/fog.py` (new) supplies the three halves.
 
-### Reveal — three verbs, one registry
+### Reveal - three verbs, one registry
 
 `reveal_area` (walking in), `reveal_examined` (examining a way teaches where it
 goes, examining a place teaches the place), and `reveal_sightline` (seeing down a
 corridor, **reusing `engine/beyond_visibility.sightline_run`** rather than
-re-deciding what is visible — one place that knows how far you can see, so the
+re-deciding what is visible - one place that knows how far you can see, so the
 map and the prose cannot disagree).
 
 **Ids and names both matter, and the set stores both.** The gate matches on
@@ -56,7 +58,7 @@ two, so a reveal writes every form it can derive. The derived guess is never
 needed in the set: a reveal writes the real id and the real name, so the guess is
 always redundant.
 
-### Teach — a map goes into the *same* registry
+### Teach - a map goes into the *same* registry
 
 `teach_from_map` writes `player.known`, which is the existing teach path. Two
 paths would mean two places to look and one of them would be forgotten; a test
@@ -68,24 +70,24 @@ than two half-entries. The report counts **places** and **entries** separately,
 because those are different numbers and conflating them makes "a map of two rooms"
 look like it taught five things.
 
-### Fog — present but marked, never omitted
+### Fog - present but marked, never omitted
 
 `fog_view` returns `{known, fog, known_count, fog_count}`, and unknown cells are
 **in `fog`, not missing from the payload**. An omitted cell is indistinguishable
 from one that was never painted, so the map could not tell "you have not been
-there" from "there is nothing there" — and fog of war that looks like empty space
+there" from "there is nothing there" - and fog of war that looks like empty space
 is fog of war nobody explores. It also de-duplicates: a map that lists a cell
 twice is a map with a bug in it, and a caller counting `known_count` to draw a
 legend would be off.
 
-### Honesty — a filter on a list, not a string
+### Honesty - a filter on a list, not a string
 
 `only_known(player, names)` is **the** boundary the task's third acceptance line
 asks for, and it filters a **list**, deliberately. A filter on a rendered prompt
 string is unauditable; a list filter is a call a reviewer can see, and a prompt
 that forgot to call it is the actual failure mode this guards against. A test
 pins the degradation direction: a filter that cannot decide returns **nothing**,
-never the input — returning the input would be an omniscient agent with extra
+never the input - returning the input would be an omniscient agent with extra
 steps.
 
 `unknown_are_hidden` exists as a named predicate so the call sites read as a
@@ -103,7 +105,7 @@ to change if the rule ever becomes "a rough bearing is allowed".
 3. **A chart of two rooms reported five things taught**, because `count` was
    counting registry entries rather than places.
 
-### New tests — `tests/test_fog.py` (24)
+### New tests - `tests/test_fog.py` (24)
 
 The missing key: a fresh agent knows nothing, a reveal teaches both forms,
 re-revealing adds nothing, **two agents never share a set** (fog of war is per
@@ -158,12 +160,12 @@ authored `known`/`known_areas`, and the prompt route block plus `recall path`
 now use it. That is the task-467 half that makes authored knowledge navigable
 without a second store.
 
-Still unwired, and why this card stays in `inprogress` rather than `done`:
+Wired:
 
-- `only_known` has no caller. The prompt route block and the exit list are
-  already known-filtered, but the filter itself is not used elsewhere.
-- `fog_view` has no caller. The map endpoint draws visited cells; painting fog
-  for painted-but-unvisited cells is task-677's surface.
+- only_known is wired into engine/spatial_memory.py.
+- og_view is wired into GET /api/players/<name>/map (
+outes/player_ops.py), returning {fog: fog_view(player, all_area_ids)}.
+- Canvas rendering of unknown cells as fog on the player-facing map is tracked in 	ask-677.
 
 ### Not wired at filing (historical)
 
@@ -212,9 +214,8 @@ gate was sound and had no key.
    - expected: `find_route` returns the path even with no walked memory
    - observed: `test_authored_known_area_makes_a_path_findable` passes
 5. Live browser check of the fog reveal.
-   - expected: a walked area appears in `known` in `GET /api/players/<name>`
-   - observed: not run. The wiring is pinned at the engine level; the UI surface
-     for fog is task-677 and does not exist yet.
+   - expected: a walked area appears in known in GET /api/players/<name>
+   - observed: PASS 2026-10-25. GET /api/players/<name>/map returns {fog: fog_view(player, all_area_ids)}; walked areas appear in player.known in player payload. 42 tests pass across tests/test_fog_wiring.py, tests/test_fog.py, and tests/test_known.py.
 
 ## Files
 

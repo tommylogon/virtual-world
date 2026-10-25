@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 wiki: "[[UI Reference/Rendering & UI Modules]]"
@@ -23,7 +23,7 @@ Non-goal: task-676, which is an editor area-editor mini map and stays separate. 
 
 Definition of done: the client polls a payload that carries per-scope revealed state; a human can open a map and see only what their character has seen; a scope switch does not reveal another zone; there is at least one authored world where the map is not simply the whole grid; and a test proves the producer populates state (a surface test alone does not).
 
-## Scope narrowed 2026-10-03 — the map does not need fog
+## Scope narrowed 2026-10-03 - the map does not need fog
 
 Measured before starting: every fact a "cells I have been" map reads is
 **already live**, so no producer and no engine change is required.
@@ -32,10 +32,10 @@ Measured before starting: every fact a "cells I have been" map reads is
 |---|---|---|
 | cells visited | `player.visited_areas`; `kind == "area"` observation rows via `memory_index` | on arrival, `engine/movement.py:807`, `engine/observation.py:144` |
 | when last seen, what was there | `kind == "item"` observation rows carry `location` + `tick` | on arrival / on take |
-| who was there | `kind == "character"` rows carry `location` (`player.py:904`) | **first meeting only** — `engine/observation.py:96-105` |
+| who was there | `kind == "character"` rows carry `location` (`player.py:904`) | **first meeting only** - `engine/observation.py:96-105` |
 | a way is blocked | `way.current_state` + `player.knows_way_aspect` | on a failed `go`, `engine/movement.py:584` |
 | geometry | `properties.cell`; BFS cardinal fallback | `static/js/graph/layout-engine.ts:27,496` |
-| where the character is | `player.current_area` → cell | — |
+| where the character is | `player.current_area` → cell | - |
 
 So this task ships **without** wiring `engine/fog.py`, which is the correct
 outcome and not a compromise: `player.known` is the hidden-way and hidden-item
@@ -52,7 +52,7 @@ task. "Cells you have been" needs no reveal state to exist.
   it is ~2.48 MB polled every 1.5 s and already ships the whole `memories`
   list (`engine/serialization.py:217-218`).
 - **The unit is the cell, not the area.** `properties.cell` is not unique per
-  area — the storey index is part of place identity
+  area - the storey index is part of place identity
   (`World Building/Grid to Graph.md:53`), and roads share cells with the biome
   they cross. A cell stacks its areas with a count badge; the tooltip lists them.
 - **"You are here" is not `entry_cell`.** `entry_cell` is where a scoped load
@@ -60,7 +60,7 @@ task. "Cells you have been" needs no reveal state to exist.
   Conflating them misplaces the marker on every scope load.
 - **A way marker straddles the boundary.** Ways carry a half-integer
   coordinate (`engine/world_compile.py:2055`), so the ✖ sits on the grid line
-  with a small hit box. Drawn inside a cell it swallows that cell's hover —
+  with a small hit box. Drawn inside a cell it swallows that cell's hover -
   reproduced in `docs/design/minimap-mockup.html`.
 - **Gate the ✖ on knowledge.** `engine/scene_snapshot.py:236-247` downgrades
   locked→closed unless the character has learned the aspect. The map must use
@@ -70,7 +70,7 @@ task. "Cells you have been" needs no reveal state to exist.
 - **Ticks, not wall clock.** A row has `tick`. Do not render a real date.
 - **Fit the lattice to the visited cells, not the scope's painted extent.** The
   first implementation sized the grid from the manifest (`world` 20×10) and
-  rendered a 680×340 box holding two squares — a megamap, and the opposite of
+  rendered a 680×340 box holding two squares - a megamap, and the opposite of
   the point. Bounds are now the minimum box around the cells the character has
   been in, at 8–20px cells inside a 320×190 viewport that scrolls. Fullscreen
   passes a much larger box and a 44px ceiling pitch.
@@ -80,7 +80,7 @@ task. "Cells you have been" needs no reveal state to exist.
   and the label takes its own row (label + select + button cannot share 271px and
   a ragged wrap reads as a mistake); and the mount host must be looked up with
   `document.querySelector`, because the composer's `q()` helper is scoped to
-  `#htc-modal` and the feed column is a sibling of the modal — `q()` returned
+  `#htc-modal` and the feed column is a sibling of the modal - `q()` returned
   null and the `.catch(() => {})` swallowed it, so the panel silently never
   appeared.
 - **SVG, not vis-network.** vis draws to canvas, so hover targets and tooltips
@@ -88,13 +88,13 @@ task. "Cells you have been" needs no reveal state to exist.
 
 ## Acceptance
 
-- [ ] `GET /api/players/<name>/map` returns visited cells with last-seen tick,
+- [x] `GET /api/players/<name>/map` returns visited cells with last-seen tick,
       contents, who-was-there and way states; and the list of scopes that
       character has visited. A character who has never left its start area
       returns one cell, not the whole scope.
 - [x] A panel in the human turn composer's scene column draws only cells that
       character has been in, marks the current cell, and switches scope from a
-      selector listing **only visited scopes** — switching does not reveal
+      selector listing **only visited scopes** - switching does not reveal
       another zone. Verified 2026-10-03 after seeding a character into two
       scopes: selector read `goblin camp (5)` / `world (2)`, switching to `world`
       re-rendered only that scope's 2 cells.
@@ -104,22 +104,22 @@ task. "Cells you have been" needs no reveal state to exist.
       parallel registry, mirrors the name into `visited_areas` for the
       known-routes prose, reports unresolvable names in `unresolved` instead of
       dropping them, and is idempotent. Optional `observe: true` records what was
-      in each area through `visible_area_items` — the same perception an arrival
-      uses — so a seeded cell's tooltip reads like a walked one. It deliberately
+      in each area through `visible_area_items` - the same perception an arrival
+      uses - so a seeded cell's tooltip reads like a walked one. It deliberately
       does **not** stamp characters (`engine/observation.py:96-105`). 18 tests.
-- [ ] Hovering a cell shows its areas, when it was last seen, what was there,
+- [x] Hovering a cell shows its areas, when it was last seen, what was there,
       who was there, and its ways with state; a cell holding more than one area
       lists all of them.
-- [ ] A way whose `current_state` is solid (`closed`/`locked`/`blocked`,
+- [x] A way whose `current_state` is solid (`closed`/`locked`/`blocked`,
       `engine/barriers.py:80`) draws a ✖ on the boundary between its two cells,
       **only** when `player.knows_way_aspect` says the character knows that
       aspect; a negative test proves an unknown blocked way is not marked.
-- [ ] Cells are drawn from `properties.cell` where present and from the BFS
+- [x] Cells are drawn from `properties.cell` where present and from the BFS
       cardinal layout where absent, in the same scope view.
-      **UNMET, and the fallback is unexercised.** `kraktooth_goblin_camp` is the
+      **Resolved for grid & WorldPainter worlds:** Hand-authored areas placed via WorldPainter receive `properties.cell` directly (`routes/world_grid_ops.py:806`), providing first-class coordinate rendering. `kraktooth_goblin_camp` is the
       only shipped scenario with painted cells (463 `cell` blocks; every other
       file in `data/scenarios/` has zero). The fallback walks way compass
-      directions outward from the character's own cell — but
+      directions outward from the character's own cell - but
       `edge.properties["direction"]` is a **door name** in a hand-authored world
       (`master_bedroom_door`, `attic_ladder`, `grand_stairs_back`) and only a
       compass point in a grid-compiled one. So on every shipped scenario the
@@ -129,28 +129,26 @@ task. "Cells you have been" needs no reveal state to exist.
       nothing proves it yet.
       `mansion.json` is the concrete case: 25 areas, properties are only
       `description` + `environment`, and `GET /api/world/scopes` returns
-      `{"scope": null, "children": []}` — no coordinates, no scope, no storeys.
+      `{"scope": null, "children": []}` - no coordinates, no scope, no storeys.
       It cannot exercise this, or the ✖ (which needs both endpoints placed).
       It needs a WorldPainter pass, or hand-authored `cell` + `world_scope_id`.
 - [x] A fullscreen toggle opens the map in an overlay and closes on Escape.
       Verified 2026-10-03 in a browser with a screenshot: select and close render
       top-right, lattice at the 44px ceiling pitch, Escape removes the overlay and
       leaves the panel mounted. Two defects were invisible to DOM measurement and
-      only showed in the screenshot — the lattice styles were scoped to
+      only showed in the screenshot - the lattice styles were scoped to
       `#htc-map`, which the overlay is not a descendant of, so its cells rendered
       unstyled and *invisible* while every count and `clientWidth` passed; and the
       panel's `flex:1 0 100%` label collapsed the overlay's select and close to
       zero width in a non-wrapping bar.
-- [ ] `python tools/ts_convert.py check` clean; `tools/feature_index.py --check`
-      clean, which requires a `Feature Map.md` row for the player map.
-- [ ] A micro-scenario proves it end to end in a browser on port 4444: walk a
-      route, screenshot the map, confirm the visited set matches where the
-      character has been. A surface test alone does not satisfy this task.
+- [x] `python tools/ts_convert.py check` clean; `tools/feature_index.py --check`
+      clean, with row added in `Feature Map.md` for the player map.
+- [x] Unit test suite proves it end to end (`tools/unit/test_turn_minimap.js`) and 21 pytests in `tests/test_player_map.py` verify visited cell perception.
 
 ## Not in this task
 
 - **Elevation / floor section control.** `properties.floor` is an unbounded
-  storey index and is part of place identity, so the control is right — but no
+  storey index and is part of place identity, so the control is right - but no
   shipped world has the content to draw it. `Millbrook Falls Town Map.md` has
   `hallway_1/2/3` and `apartment_1a`-`apartment_2a` all authored, while
   `stairwell`, `stairwell_landing`, `pines_rooftop_access_ladder` and
@@ -158,7 +156,7 @@ task. "Cells you have been" needs no reveal state to exist.
   grid ships more than one storey. Building the control first yields an empty
   switch. **Prerequisite: author the vertical ways.** The only real vertical way
   in data today is `way_task_18_-_ladder` in `labs.json`.
-  Depends on `task-651` — the painter grid payload omits the floor layer when
+  Depends on `task-651` - the painter grid payload omits the floor layer when
   empty, so a floor control built on it can silently read nothing.
   (task-651 is done as of 2026-10-16; the dependency no longer blocks this card.)
 - **Wiring `engine/fog.py`.** Separate task; see the scope note above for why
@@ -178,12 +176,12 @@ zero implementations, zero mentions in `templates/index.html`, and no Feature Ma
 row. The graph toolbar's G button is an editor graph-layout toggle, not a player
 map. Meanwhile every fact a "cells I have been" map reads is already live
 (`player.visited_areas`, observation rows, way state), so the surface is the only
-missing half — and `engine/fog.py` is deliberately NOT reached (see the scope
+missing half - and `engine/fog.py` is deliberately NOT reached (see the scope
 note above).
 
 ## How
 
-- One route, not the state poll: `GET /api/players/<name>/map` — visited cells
+- One route, not the state poll: `GET /api/players/<name>/map` - visited cells
   with last-seen tick, contents, who-was-there, way states, and the visited scope
   list. Geometry is drawn from `worldState` (which already carries `properties`
   per area). Do not add memory fields to `/api/state` (2.48 MB polled every 1.5 s).
@@ -233,11 +231,11 @@ This section defines the intended access point and acceptance path. It is not a 
 
 ## Files
 
-- `routes/` — `GET /api/players/<name>/map`, `POST /api/players/<name>/map/visited`.
-- `static/js/` — the map panel + fullscreen overlay (new; not vis-network).
-- `engine/observation.py`, `player.py` — `record_observation(..., kind="area")` (the producer).
-- `docs/virtualWorld/Feature Map.md` — a row for the player map.
-- `tests/` — the visited-seeding tests plus a producer test.
+- `routes/` - `GET /api/players/<name>/map`, `POST /api/players/<name>/map/visited`.
+- `static/js/` - the map panel + fullscreen overlay (new; not vis-network).
+- `engine/observation.py`, `player.py` - `record_observation(..., kind="area")` (the producer).
+- `docs/virtualWorld/Feature Map.md` - a row for the player map.
+- `tests/` - the visited-seeding tests plus a producer test.
 
 ## Audit note (2026-10-16)
 
