@@ -117,3 +117,85 @@ test('inspector modular: HeaderComponent and SectionComponent render header badg
         assertTrue(sec.includes('section-hint'), 'renders optional section hint');
     });
 });
+
+test('inspector modular: InspectorNodeHeader and InspectorDangerZone render identity and delete controls', () => {
+    withInterpolatingLit(() => {
+        let renamed = '';
+        let synced = false;
+        let closed = false;
+        let deleted = false;
+        const hdr = String(InspectorComponents.InspectorNodeHeader({
+            nodeId: 'item_torch',
+            nodeType: 'item',
+            name: 'Torch',
+            color: '#e3b341',
+            onRename: (n) => { renamed = n; },
+            onSyncId: () => { synced = true; },
+            onClose: () => { closed = true; },
+        }));
+        assertTrue(hdr.includes('inspector-header'), 'renders .inspector-header');
+        assertTrue(hdr.includes('Torch'), 'renders node name');
+        assertTrue(hdr.includes('item_torch'), 'renders node ID');
+        assertTrue(hdr.includes('Sync ID from name'), 'renders sync button');
+
+        const danger = String(InspectorComponents.InspectorDangerZone({
+            nodeId: 'item_torch',
+            nodeName: 'Torch',
+            nodeType: 'item',
+            onDelete: () => { deleted = true; },
+        }));
+        assertTrue(danger.includes('danger-zone'), 'renders .danger-zone');
+        assertTrue(danger.includes('Delete Item'), 'renders delete button label');
+    });
+});
+
+test('shared ui primitives: StatusBadge, CollapsibleSection, ModalDialog, ActionBtn render cleanly', () => {
+    withInterpolatingLit(() => {
+        const badge = String(window.UiPrimitives.StatusBadge({
+            label: 'Online',
+            color: '#2a6a3a',
+            icon: '🟢',
+            active: true
+        }));
+        assertTrue(badge.includes('status-badge'), 'renders .status-badge');
+        assertTrue(badge.includes('Online'), 'renders badge label');
+        assertTrue(badge.includes('🟢'), 'renders badge icon');
+
+        const section = String(window.UiPrimitives.CollapsibleSection({
+            title: 'Inventory',
+            content: '<div>5 items</div>',
+            defaultOpen: true,
+            badge: '5'
+        }));
+        assertTrue(section.includes('collapsible-section'), 'renders .collapsible-section');
+        assertTrue(section.includes('Inventory'), 'renders section title');
+        assertTrue(section.includes('5 items'), 'renders section content');
+
+        const modal = String(window.UiPrimitives.ModalDialog({
+            title: 'Confirm Action',
+            isOpen: true,
+            size: 'md',
+            content: '<div>Proceed?</div>',
+            onClose: () => {}
+        }));
+        assertTrue(modal.includes('modal-backdrop'), 'renders .modal-backdrop');
+        assertTrue(modal.includes('Confirm Action'), 'renders modal title');
+        assertTrue(modal.includes('Proceed?'), 'renders modal content');
+
+        const closedModal = String(window.UiPrimitives.ModalDialog({
+            title: 'Hidden',
+            isOpen: false,
+            content: '<div>Hidden</div>',
+            onClose: () => {}
+        }));
+        assertEq(closedModal, '', 'closed modal renders empty string');
+
+        const btn = String(window.UiPrimitives.ActionBtn({
+            label: 'Save',
+            variant: 'primary',
+            onClick: () => {}
+        }));
+        assertTrue(btn.includes('btn-primary'), 'renders .btn-primary');
+        assertTrue(btn.includes('Save'), 'renders button label');
+    });
+});

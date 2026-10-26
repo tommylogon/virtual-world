@@ -477,22 +477,18 @@ window.InspectorWayView = (() => {
             api.updateNode(nodeId, { properties: { needs_open: patch } }).then(() => worldState.fetch());
         };
 
+        const headerTmpl = InspectorComponents.InspectorNodeHeader({
+            nodeId,
+            nodeType: 'way',
+            name,
+            color: '#4ec9b0',
+            onRename: (newName: string) => api.updateNode(nodeId, { name: newName }).then(() => worldState.fetch()),
+            onSyncId: () => InspectorHelpers.syncIdFromName(nodeId, name),
+            onClose: () => hideInspectorPanel(),
+        });
+
         const template = htmlTag`
-            <div class="inspector-header">
-                <span class="inspector-type-badge" style="background:#4ec9b0">🚪 Way</span>
-                <div style="flex:1;display:flex;flex-direction:column;">
-                     <h2 style="margin:0;font-size:16px;"><input type="text" .value=${name} @change=${(ev: Event) => api.updateNode(nodeId, { name: (ev.target as HTMLInputElement).value }).then(() => worldState.fetch())} style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
-                    <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                        <div style="display:flex;gap:2px;align-items:center;">
-                            ${InspectorHelpers.isGeneratedNode(nodeId)
-                                ? htmlTag`<span style="font-size:10px;color:var(--text-muted);width:100%;" title="Generated node id  -  owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
-                                : htmlTag`<input type="text" .value=${nodeId} @change=${(ev: Event) => InspectorHelpers.renameNode(nodeId, (ev.target as HTMLInputElement).value)} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);width:100%;cursor:text;" title="Change node ID (lowercase, no spaces)">
-                                    <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(nodeId, name)} title="Sync ID from name">🔄</button>`}
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-sm btn-ghost" @click=${() => hideInspectorPanel()}>✕</button>
-            </div>
+            ${headerTmpl}
             ${wayView._renderWayTabNav()}
             ${window.Lit.unsafeHTML(window.InspectorHelpers.renderImageSection(nodeId, props))}
             <div data-tab="Passage" style=${showTab('Passage')}>
@@ -565,9 +561,13 @@ window.InspectorWayView = (() => {
             <div style="display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;">
                 <button class="btn btn-sm btn-green" @click=${() => wayView._saveToLibrary(nodeId)}>💾 Save to Library</button>
                 ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('way', nodeId, props)) : ''}
-                <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete Way</button>
             </div>
-        `;
+            ${InspectorComponents.InspectorDangerZone({
+                nodeId,
+                nodeName: name,
+                nodeType: 'way',
+                onDelete: () => graphManager._deleteNode(nodeId),
+            })}`
 
         window.InspectorPanel.render(template);
 

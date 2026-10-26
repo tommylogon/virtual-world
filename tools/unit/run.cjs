@@ -183,6 +183,7 @@ load('static/js/inspector/sprite-sheet.js');
 load('static/js/inspector/doc-panel.js');
 load('static/js/inspector/helpers.js');
 load('static/js/inspector/inspector-view-base.js');
+load('static/js/shared/components/ui-primitives.js');
 load('static/js/inspector/components.js');
 // paperdoll-view.js only touches worldState/Lit at call time; its face filter
 // (areasForFacing) and navigate render are driven by tools/unit/test_paperdoll_facing.js.

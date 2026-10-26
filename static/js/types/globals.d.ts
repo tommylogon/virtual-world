@@ -758,5 +758,26 @@ declare namespace Models {
     export type ConditionInstance = import('./models/index.js').ConditionInstance;
 }
 
+interface Window {
+    UiPrimitives?: {
+        StatusBadge(opts: { label: string; color?: string; icon?: string; active?: boolean; title?: string }): unknown;
+        CollapsibleSection(opts: { title: string; content: unknown; defaultOpen?: boolean; badge?: string; onToggle?: (isOpen: boolean) => void }): unknown;
+        ModalDialog(opts: { title: string; isOpen: boolean; size?: 'sm' | 'md' | 'lg'; content: unknown; actions?: unknown; onClose: () => void }): unknown;
+        ActionBtn(opts: { label: string; variant?: 'primary' | 'danger' | 'ghost' | 'success'; icon?: string; disabled?: boolean; onClick: () => void }): unknown;
+    };
+    InspectorComponents?: {
+        InspectorNodeHeader(opts: { nodeId: string; nodeType: string; name: string; color?: string; isGenerated?: boolean; onRename: (newName: string) => void; onSyncId: () => void; onClose?: () => void; actions?: unknown }): unknown;
+        InspectorDangerZone(opts: { nodeId: string; nodeName: string; nodeType: string; onDelete: () => void }): unknown;
+        HeaderComponent(opts: { title: string; subtitle?: string; nodeType?: string; color?: string; onClose?: () => void }): unknown;
+        SectionComponent(opts: { title?: string; hint?: string; content: unknown }): unknown;
+        PropertyGridComponent(opts: { fields: any[]; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; lockedFields?: string[] }): unknown;
+        TabNavComponent(opts: { tabs: string[]; activeTab: string; onTabChange: (tab: string) => void }): unknown;
+        ActionGridComponent(opts: { actions: string[]; onAction: (action: string) => void; locked?: string[] }): unknown;
+        BreadcrumbComponent(opts: { onBack?: () => void; onCrumbClick?: (index: number) => void }): unknown;
+    };
+}
+
+
+
 
 

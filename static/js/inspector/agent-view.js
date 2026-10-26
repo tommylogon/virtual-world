@@ -1,8 +1,8 @@
 "use strict";
 /**
- * InspectorAgentView — Full agent inspector (showAgent + all agent-related methods)
+ * InspectorAgentView - Full agent inspector (showAgent + all agent-related methods)
  *
- * @module inspector/agent-view — the full character inspector
+ * @module inspector/agent-view - the full character inspector
  * @contributes InspectorAgentView: Inventory/Bio/Images/Advanced tabs, paperdoll, traits, relationships, memories
  * @powers clicking a character to inspect and edit them, their timeline, and export
  * @relates uses inspector/helpers + paperdoll-view + memory-view + behaviors-view
@@ -60,6 +60,7 @@ window.InspectorAgentView = (() => {
      * @param {string} agentName - Character name
      */
     AV.showAgent = function (agentName) {
+        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         const panel = document.getElementById('inspector-panel');
         if (!panel || !worldState.data)
             return;
@@ -79,8 +80,22 @@ window.InspectorAgentView = (() => {
         const escName = agentName.replace(/'/g, "\\'");
         const characterNode = Object.entries(worldState.graph?.nodes || {})
             .find(([, node]) => node.type === 'character' && node.name === agentName);
-        let html = AV._renderAgentHeader(agentName, player, color, characterNode);
-        html += AV._renderStatusRow(agentName, player, color, isAuto, escName);
+        const agentNodeId = characterNode ? characterNode[0] : (player?.node_id || `player_${agentName.replace(/\s+/g, '_')}`);
+        const headerTmpl = InspectorComponents.InspectorNodeHeader({
+            nodeId: agentNodeId,
+            nodeType: 'character',
+            name: agentName,
+            color,
+            onRename: (newName) => ApiClient.updateCharacter(agentName, { name: newName }).then(() => worldState.fetch()),
+            onSyncId: () => {
+                if (characterNode && characterNode[0]) {
+                    InspectorHelpers.syncIdFromName(characterNode[0], agentName);
+                }
+            },
+            onClose: () => hideInspectorPanel(),
+            actions: htmlTag `<span style="font-size:10px;color:var(--text-muted);margin-right:6px;">tick ${worldState.tick}</span>`
+        });
+        let html = AV._renderStatusRow(agentName, player, color, isAuto, escName);
         html += AV._renderEmotionSelector(agentName, player, escName);
         html += AV._renderVitals(player, agentName);
         // Tab navigation
@@ -89,7 +104,7 @@ window.InspectorAgentView = (() => {
         html += AV._renderInventoryTab(agentName, player, escName);
         // Bio tab (personality, appearance, stats/skills/traits, relationships, memories)
         html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
-        // Images tab (Expression Pack + sheet splitter) — task-512: art lives on
+        // Images tab (Expression Pack + sheet splitter) - task-512: art lives on
         // its own tab so the overview stays about who the character is.
         html += AV._renderImagesTab(agentName, player, characterNode);
         // Advanced tab (behaviors, timeline, save/export)
@@ -98,8 +113,7 @@ window.InspectorAgentView = (() => {
         // handlers. Render it through InspectorPanel (single panel owner) inside
         // an unsafeHTML marker so lit never tries to diff against string content
         // and its part tracking stays intact across re-renders.
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-        window.InspectorPanel.render(htmlTag `${window.Lit.unsafeHTML(html)}`);
+        window.InspectorPanel.render(htmlTag `${headerTmpl}${window.Lit.unsafeHTML(html)}`);
         // Known-by authoring: who knows THIS character (the Knowledge modal
         // for what they know lives in the Advanced tab). Render into a slot
         // inside the Advanced tab so it only shows when that tab is active.
@@ -135,7 +149,7 @@ window.InspectorAgentView = (() => {
         // Initialize Tippy tooltips
         if (typeof tippy !== 'undefined') {
             try {
-                // Multi-line tips (vital hover) need pre-line whitespace —
+                // Multi-line tips (vital hover) need pre-line whitespace -
                 // tippy renders content as text, so a bare \n collapses.
                 if (!document.getElementById('tippy-preline-style')) {
                     const st = document.createElement('style');
@@ -244,7 +258,7 @@ window.InspectorAgentView = (() => {
                 ${nodeId ? (window.InspectorHelpers.isGeneratedNode(nodeId)
             ? `<div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
                     <div style="display:flex;gap:2px;align-items:center;">
-                        <span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id — owned by the world compiler; it is regenerated on recompile and cannot be renamed">${escapedNodeId}</span>
+                        <span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id - owned by the world compiler; it is regenerated on recompile and cannot be renamed">${escapedNodeId}</span>
                     </div>
                 </div>`
             : `<div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
@@ -283,7 +297,7 @@ window.InspectorAgentView = (() => {
         };
         const conds = (player.conditions && typeof player.conditions === 'object' && !Array.isArray(player.conditions)) ? player.conditions : {};
         // The state badge duplicates the interactive condition chip when the
-        // state IS a listed condition (e.g. "grappled") — show the chip only.
+        // state IS a listed condition (e.g. "grappled") - show the chip only.
         const stateHasChip = Array.isArray(conds[player.state]) && conds[player.state].length > 0;
         const condBadges = Object.entries(conds).map(([cid, instances]) => {
             if (!Array.isArray(instances) || instances.length === 0)
@@ -306,7 +320,7 @@ window.InspectorAgentView = (() => {
             }).join('');
             return `<span style="position:relative;display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${color}22;color:${color};border:1px solid ${color};cursor:pointer;" onclick="const pop=this.querySelector('.cond-pop'); pop.style.display = pop.style.display==='block'?'none':'block';">${label} ▾<div class="cond-pop" style="display:none;position:absolute;top:100%;left:0;z-index:99;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:4px;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">${cards}<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:3px;"><span style="cursor:pointer;color:var(--red);font-size:10px;" onclick="event.stopPropagation();InspectorAgentView._removeCondition('${escName}','${cid}')">✕ Clear ${cid}</span></div></div></span>`;
         }).join(' ');
-        // Control mode: npc | human | llm — one vocabulary with the graph badges and
+        // Control mode: npc | human | llm - one vocabulary with the graph badges and
         // the agent list (StreamControlMode.controlBadge).
         const mode = events.getControlMode(agentName);
         const modeBadge = events.controlBadge
@@ -415,7 +429,7 @@ window.InspectorAgentView = (() => {
         </div>`;
     };
     /**
-     * Polarity-aware vital bar color — shared implementation
+     * Polarity-aware vital bar color - shared implementation
      * (static/js/shared/vital-color.js, task-337/342).
      */
     function vitalBarColor(vitalName, value) {
@@ -591,7 +605,7 @@ window.InspectorAgentView = (() => {
                 const chipDef = window._traitLibrary?.[traitId] || {};
                 const tip = [chipDef.behavior_prompt, chipDef.description,
                     chipDef.conflicts ? 'Conflicts: ' + chipDef.conflicts.join(', ') : '']
-                    .filter(Boolean).join(' — ');
+                    .filter(Boolean).join(' - ');
                 html += `<span title="${tip}" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(188,140,255,0.15);color:#bc8cff;border:1px solid rgba(188,140,255,0.3);cursor:help;">
                     ${traitId}${displayVal}
                     <span onclick="var t=Object.assign({},worldState.players['${escName}']?.traits||{});delete t['${traitId}'];ApiClient.updateCharacter('${escName}',{traits:t}).then(()=>{worldState.fetch();VW.inspector._reRender();});" style="cursor:pointer;color:var(--red);margin-left:2px;font-size:12px;">\u2715</span>
@@ -680,7 +694,7 @@ window.InspectorAgentView = (() => {
         window.Lit.render(agentViewTag `
             <div class="modal-window" style="width:480px;max-width:94vw;max-height:90vh;display:flex;flex-direction:column;">
                 <div class="modal-head">
-                    <h3 style="margin:0;font-size:14px;">🩸 Add Condition — ${charName}</h3>
+                    <h3 style="margin:0;font-size:14px;">🩸 Add Condition - ${charName}</h3>
                 </div>
                 <div style="padding:12px 16px;overflow:auto;font-size:12px;color:var(--text);">
                     <label style="font-size:10px;color:var(--text-dim);display:block;margin-bottom:2px;">Condition</label>
@@ -694,7 +708,7 @@ window.InspectorAgentView = (() => {
                         </div>
                         <div>
                             <label style="font-size:10px;color:var(--text-dim);display:block;margin-bottom:2px;">Level</label>
-                            <input id="ce-level" type="number" min="1" style="width:100%;" placeholder="—">
+                            <input id="ce-level" type="number" min="1" style="width:100%;" placeholder="-">
                             <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">e.g. exhausted 1–6.</div>
                         </div>
                     </div>
@@ -750,7 +764,7 @@ window.InspectorAgentView = (() => {
                     return JSON.parse(raw);
                 }
                 catch (err) {
-                    events.log(`Invalid ${field} JSON — not adding.`, 'error-msg');
+                    events.log(`Invalid ${field} JSON - not adding.`, 'error-msg');
                     throw err;
                 }
             };
@@ -938,7 +952,7 @@ window.InspectorAgentView = (() => {
         html += `<div class="inspector-section"><h3>🏷️ Tags</h3>
             <div id="tag-multiselect-agent-${escName}"></div>
         </div>`;
-        // Aliases — subjective names others use to target this character
+        // Aliases - subjective names others use to target this character
         const agentNodeId = `player_${agentName.replace(/\s+/g, '_')}`;
         const agentNode = worldState.getNode(agentNodeId);
         html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
@@ -952,7 +966,7 @@ window.InspectorAgentView = (() => {
     };
     /**
      * Render the Images tab: the character Expression Pack and sheet splitter.
-     * Character-only — the caller only renders this for character nodes.
+     * Character-only - the caller only renders this for character nodes.
      * @param {string} agentName - Character name
      * @param {object} player - Player data
      * @param {Array|null} characterNode - [nodeId, node] for the character, if found
@@ -974,7 +988,7 @@ window.InspectorAgentView = (() => {
         }
         else {
             html += `<div class="inspector-section"><h3>🎭 Expression Pack</h3>
-                <div class="section-hint">No character node yet — art is available once this character is placed on the graph.</div></div>`;
+                <div class="section-hint">No character node yet - art is available once this character is placed on the graph.</div></div>`;
         }
         html += `</div>`; // End Images tab
         return html;
@@ -1040,7 +1054,7 @@ window.InspectorAgentView = (() => {
             html += `<div style="font-size:11px;color:var(--text-muted);padding:8px;grid-column:1/-1;text-align:center;">Nothing carried.</div>`;
         }
         html += `</div>`;
-        // Container contents section — show what's inside containers inline
+        // Container contents section - show what's inside containers inline
         const containerCandidates = [];
         for (const itemName of inventory) {
             const itemNode = worldState.getNodeByIdentifier(itemName);
@@ -1127,7 +1141,7 @@ window.InspectorAgentView = (() => {
     AV._renderAdvancedTab = function (agentName, player, charState, escName, isAuto, characterNode) {
         const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
-        // Graph physics — the character's own layout/physics overrides. Lives
+        // Graph physics - the character's own layout/physics overrides. Lives
         // here rather than in the header: it is a tuning setting, not part of
         // who the character is. Rendered once, via the deferred helper, because
         // graphGravityControl returns a lit TemplateResult.
@@ -1394,7 +1408,7 @@ window.InspectorAgentView = (() => {
         // If no expressions exist yet, suggest the canonical authored set:
         // EXPRESSION_ORDER minus `neutral`, which the sheet carries as tile 1 and
         // which the generator is told about separately below. This prompt needs
-        // nothing from the sprite-sheet splitter — it only borrows the name list,
+        // nothing from the sprite-sheet splitter - it only borrows the name list,
         // and the copy that used to sit here is how it drifted to a stale 12-name
         // list padded out to a 40-item `slot13..slot40` suggestion.
         const helpers = window.InspectorHelpers;
@@ -1435,7 +1449,7 @@ ${isNewPack
      * player.description must stay THIRD person: strangers see it (examine,
      * labels) and the agent prompt converts it to second person for the owner
      * via secondPersonDesc. Catches the stored repro slips ("you is",
-     * "body is who") plus any first/second-person leak — small models emit
+     * "body is who") plus any first/second-person leak - small models emit
      * both and the text becomes permanent, load-bearing prompt content.
      * @param {string} text - Generated description
      * @returns {string[]} Detected issues (empty array = clean)
@@ -1468,7 +1482,7 @@ ${isNewPack
                         + 'Keep every content detail exactly as it is; correct only grammar and rewrite any '
                         + 'first-person or second-person wording ("I/my/me/you/your") into consistent THIRD person '
                         + '(she/he/they + her/his/their). Subject-verb agreement must be exact.\n'
-                        + 'Output ONLY the corrected description — no commentary.\n\n'
+                        + 'Output ONLY the corrected description - no commentary.\n\n'
                         + text }
             ], { temperature: 0.4, label: 'inspector/appearance-repair' });
             const fixed = (repair || '').trim();
@@ -1509,16 +1523,16 @@ ${isNewPack
             }
         }
         const equipText = equipLines.length > 0 ? equipLines.join('\n') : 'Nothing worn.';
-        const prompt = `Describe this character's appearance as a narrator would — vivid, natural, and specific.\n\n`
+        const prompt = `Describe this character's appearance as a narrator would - vivid, natural, and specific.\n\n`
             + `CHARACTER BASELINE\n${base || '(no base description)'}\n\n`
             + `CURRENT ATTIRE\n${equipText}\n\n`
             + `Writing Directives\n`
-            + `Open with a single striking sentence about their face, hair, or a defining physical feature — this is the first thing a stranger would notice. Do not lead with clothing.\n`
-            + `Weave the clothing into the description naturally. Mention how each piece fits, drapes, or contrasts with their skin. Use the item descriptions as texture and detail — not as a checklist.\n`
+            + `Open with a single striking sentence about their face, hair, or a defining physical feature - this is the first thing a stranger would notice. Do not lead with clothing.\n`
+            + `Weave the clothing into the description naturally. Mention how each piece fits, drapes, or contrasts with their skin. Use the item descriptions as texture and detail - not as a checklist.\n`
             + `If they are nude, describe their body, posture, and how they carry themselves without flinching.\n`
             + `2-4 sentences total. No bullet points. No backstory. No personality. No internal thoughts. Only what can be seen.\n`
-            + `Write in consistent third person (she/he/they + her/his/their). NEVER use "you", "your", or "I" — the character's own prompt converts this description to second person for them, so the stored text must stay third person.\n`
-            + `Grammar must be exact: no "you is", no "body is who", no "she have" — subject-verb agreement only.\n`
+            + `Write in consistent third person (she/he/they + her/his/their). NEVER use "you", "your", or "I" - the character's own prompt converts this description to second person for them, so the stored text must stay third person.\n`
+            + `Grammar must be exact: no "you is", no "body is who", no "she have" - subject-verb agreement only.\n`
             + `\nExamples:\n- "A wiry, olive-skinned woman with sharp cheekbones picks at her sleeve..."\n- "He is all lean bone and coltish angles at 171cm, self-conscious about his flat-chested frame."`;
         const textarea = document.getElementById('inspector-description');
         if (textarea)
@@ -1530,7 +1544,7 @@ ${isNewPack
             if (response && response.trim()) {
                 // task-345: the stored description feeds EVERY prompt forever
                 // and is seen by other characters, so never persist broken
-                // grammar/voice — validate, then one silent repair pass, else
+                // grammar/voice - validate, then one silent repair pass, else
                 // fall through to the safe client-side merge below.
                 const cleaned = await AV._sanitizeAppearanceGrammar(response.trim());
                 if (cleaned) {
@@ -1540,7 +1554,7 @@ ${isNewPack
                     return;
                 }
                 if (AV._appearanceGrammarIssues(response.trim()).length > 0) {
-                    events.log(`⚠️ ${charName}: generated appearance failed grammar check — using safe fallback`, 'error-msg');
+                    events.log(`⚠️ ${charName}: generated appearance failed grammar check - using safe fallback`, 'error-msg');
                 }
             }
         }
@@ -1596,7 +1610,7 @@ ${isNewPack
             parts.push(firstSentence);
         if (parts.length === 0)
             parts.push('the stranger');
-        return parts.join(' — ');
+        return parts.join(' - ');
     };
     /**
      * Live-update the first impression preview as the description is typed.
@@ -1737,7 +1751,7 @@ ${isNewPack
     /**
      * Auto-dress a character (task-325, LLM selection task-660).
      *
-     * The engine cannot call a model — keys live in the browser — so the flow is
+     * The engine cannot call a model - keys live in the browser - so the flow is
      * ask the engine for a wearable pool, let the model pick from it, post the
      * ids back, and let the engine equip. With no model configured, or if the
      * call fails or returns nothing usable, this falls through to the original
@@ -1774,7 +1788,7 @@ ${cand.personality ? `PERSONALITY\n${cand.personality}\n` : ''}${cand.base_descr
 AVAILABLE ITEMS (id | name | tags | slots)
 ${listing}
 
-Pick the pieces this specific person would wear right now: the clothes and tools that fit their work, their life, and the weather. Judge the CHARACTER, not the tag vocabulary — a shared tag is not a reason to pick something, and a strong reason to pick something overrides a missing tag.
+Pick the pieces this specific person would wear right now: the clothes and tools that fit their work, their life, and the weather. Judge the CHARACTER, not the tag vocabulary - a shared tag is not a reason to pick something, and a strong reason to pick something overrides a missing tag.
 
 Rules:
 - Only use ids from the list above. Never invent one.
@@ -1893,8 +1907,8 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * Fold a model-supplied tag into a usable id.
      *
      * A tag the vocabulary already knows is returned UNCHANGED. That matters:
-     * the real data contains ids outside [a-z0-9_-] — `faction:goblin`,
-     * `held_by:goblin`, `taco bell` — and an earlier version rewrote them to
+     * the real data contains ids outside [a-z0-9_-] - `faction:goblin`,
+     * `held_by:goblin`, `taco bell` - and an earlier version rewrote them to
      * `faction-goblin`, offering the model ids that cannot match anything while
      * claiming they were in use. Reshaping is only safe for ids we invented.
      * @param {*} tag - Raw tag from the model
@@ -1916,7 +1930,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * `weapons` -> `weapon`, `mechanisms` -> `mechanism`, `bodies` -> `body`.
      * A caller accepts a form only when that form exists in the vocabulary, so
      * an id with no singular (`wanderer`, `squire`) yields no candidate and
-     * cannot be mangled. This is deliberately NOT difflib — the existing
+     * cannot be mangled. This is deliberately NOT difflib - the existing
      * `/api/tags/validate` matcher at cutoff 0.6 suggests `wanderer ->
      * underwear` and `fear -> footwear`, which is worse than no suggestion.
      * @param {string} id
@@ -1938,7 +1952,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * The model is asked for short noun phrases ("worn iron tools"), because a
      * bare id it invents is as likely to be `iron_tools` as `tool`. Resolution
      * therefore tries the whole phrase first, then each word and each word's
-     * singular — so "a goblin chief" yields both ids rather than only the first.
+     * singular - so "a goblin chief" yields both ids rather than only the first.
      *
      * Deliberately no fuzzy fallback. When nothing real matches, the head noun
      * is kept as a new id and the caller reports it as carrying nothing, which
@@ -1999,10 +2013,10 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * instead of by what the character would want. Grounding is a local string
      * operation, so the vocabulary belongs on this side of the boundary.
      *
-     *   live     — what a tag is matched against for the field being generated
+     *   live     - what a tag is matched against for the field being generated
      *              (items for interests, anything present for fears)
-     *   library  — the curated tag registry: a real id, but nothing carries it
-     *   known    — union of the above; ids passed through normalization intact
+     *   library  - the curated tag registry: a real id, but nothing carries it
+     *   known    - union of the above; ids passed through normalization intact
      *
      * Reads only. It never POSTs to /api/library/tags, which is an upsert by id
      * (see write_library_entry) and would overwrite a curated entry's
@@ -2045,7 +2059,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * Kept separate from the "live" set above because a character tag is live
      * for a fear and useless for an interest.
      *
-     * `/api/library/items` answers with an id-keyed OBJECT, not a list — the
+     * `/api/library/items` answers with an id-keyed OBJECT, not a list - the
      * previous generator read it as an array, silently got nothing back, and
      * fell through to its graph-node fallback, which is why the "library"
      * vocabulary it showed was never the library at all.
@@ -2074,7 +2088,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * Shared by the interest and fear generators; only the instruction line
      * differs. The model is shown the world and library vocabularies and is
      * explicitly allowed to invent ids outside them, so its picks are NOT
-     * filtered against the vocabulary — only normalized and capped. The picks
+     * filtered against the vocabulary - only normalized and capped. The picks
      * are then unioned into whatever is already on the character (see
      * _mergeGeneratedTags), never replacing hand-placed tags.
      *
@@ -2190,7 +2204,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     };
     /**
      * Side-effect-free provider check. `AIGenerator.isConfigured()` toasts when
-     * it is false, so it must not be called from render — only from a click.
+     * it is false, so it must not be called from render - only from a click.
      * @returns {boolean}
      */
     AV._isAiConfigured = function () {
@@ -2198,7 +2212,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     };
     /**
      * LLM interest-tag generator (task-325). interest_tags is matched against
-     * items only — the room attention list scores an item by exact tag match or
+     * items only - the room attention list scores an item by exact tag match or
      * by the tag appearing in the item's name (room-context.js:305-307), and
      * auto-dress scans item tags (dressing.py:62). So "live" for this field
      * means an item carries the id, which is why it collects item tags rather
@@ -2221,9 +2235,9 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             vocab,
             // The whole point of the note: the field has exactly one kind of
             // consumer, and it is items. A mood or a self-description cannot
-            // reach it however well it describes the person — "wary", "lonely",
+            // reach it however well it describes the person - "wary", "lonely",
             // "desperation" are not things a character is interested in.
-            contextNote: 'IMPORTANT — what an interest is matched against: it surfaces a thing only when some ITEM carries that id as a tag, or has that word in its name. So name categories of STUFF this character would seek out or notice — materials, tools, food, drink, weapons, clothing, valuables, trade goods. Do NOT name feelings or descriptions of the person.',
+            contextNote: 'IMPORTANT - what an interest is matched against: it surfaces a thing only when some ITEM carries that id as a tag, or has that word in its name. So name categories of STUFF this character would seek out or notice - materials, tools, food, drink, weapons, clothing, valuables, trade goods. Do NOT name feelings or descriptions of the person.',
             ask: 'Given who they are, what kinds of things would this character actually be drawn to?',
             toastPrefix: 'Interest tags',
             limit: 8
@@ -2233,7 +2247,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * LLM fear-tag generator. fear_tags is matched against characters, areas and
      * held items (engine/fear.py::character_tags unions `tags`, trait keys and
      * the graph node's tags), so here "live" genuinely means the world
-     * vocabulary — a character tag is exactly what this field wants, unlike an
+     * vocabulary - a character tag is exactly what this field wants, unlike an
      * interest. Picks are unioned into hand-placed tags.
      * @param {string} charName - Character name
      */
@@ -2246,7 +2260,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             charName,
             field: 'fear_tags',
             vocab,
-            contextNote: 'IMPORTANT — what a fear is matched against: it bites when a co-located CHARACTER presents that id (their tags, or their traits), when the AREA they stand in carries it, or when an item held there carries it. So name kinds of person, creature or place rather than feelings. If nothing would genuinely frighten this character, say so with an empty list.',
+            contextNote: 'IMPORTANT - what a fear is matched against: it bites when a co-located CHARACTER presents that id (their tags, or their traits), when the AREA they stand in carries it, or when an item held there carries it. So name kinds of person, creature or place rather than feelings. If nothing would genuinely frighten this character, say so with an empty list.',
             ask: 'Given who they are, what would frighten this character specifically? Not what they dislike or find tedious.',
             toastPrefix: 'Fear tags',
             limit: 8
@@ -2262,7 +2276,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     /**
      * Build the canonical character library payload from live world state.
      * This is the single source of truth for saving to the library AND for
-     * exporting — both must produce the same shape so exports round-trip
+     * exporting - both must produce the same shape so exports round-trip
      * back into the library without data loss.
      *
      * `inventory` is stored as structured entries `{name, library_id, node_id}`
@@ -2425,7 +2439,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         }
     };
     /**
-     * Import character from JSON file — loads arbitrary JSON into the WORLD as
+     * Import character from JSON file - loads arbitrary JSON into the WORLD as
      * an active player (not the library). Distinct from "Add from Library":
      * no library entry required; sets active player and inventory edges.
      */
@@ -2488,7 +2502,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             return;
         const res = await ApiClient.deleteCharacter(charName);
         if (res.error) {
-            // Not a registered player (e.g. a bare character node) — fall back
+            // Not a registered player (e.g. a bare character node) - fall back
             // to deleting the graph node itself so the node can always be removed.
             const nodeId = `player_${charName.replace(/\s+/g, '_')}`;
             const fallback = await ApiClient.deleteNode(nodeId);
@@ -2785,7 +2799,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         const equipped = player?.equipped || {};
         // Containers are identified by node ID. Deduplicating by name merged two
         // distinct containers that happen to share one ("Bag"), and
-        // `getNodeByIdentifier(name)` then resolved to whichever came first — so
+        // `getNodeByIdentifier(name)` then resolved to whichever came first - so
         // "put in Bag" could target the wrong one.
         const candidates = [];
         const seen = new Set();
