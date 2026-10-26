@@ -22,10 +22,10 @@
 
 /** Category of a memory, derived the same way memory-view and the recall
  *  block derive it for pre-dynamics entries. */
-function _catOf(m: *FIX*): string {
+function _catOf(m: any): string {
     if (m.category) return String(m.category);
     if (String(m.type || '') === 'reflection') return 'belief';
-    const tags = Array.isArray(m.tags) ? m.tags.map((t: *FIX*) => String(t).toLowerCase()) : [];
+    const tags = Array.isArray(m.tags) ? m.tags.map((t: any) => String(t).toLowerCase()) : [];
     if (tags.some((t: string) => t.startsWith('rel:'))) return 'social';
     return 'episodic';
 }
@@ -59,15 +59,15 @@ interface MindState {
 
 interface PersonaState {
     status: 'loading' | 'ok' | 'error';
-    record: Record<string, *FIX*>;
-    schema: *FIX*;
+    record: Record<string, any>;
+    schema: any;
     hints: Record<string, string>;
     /** Identity pick-list vocabulary served by GET /record (engine owns it). */
     suggestions?: Record<string, string[]>;
-    lifecycle?: *FIX*;
+    lifecycle?: any;
     stale: boolean;
     dirty: boolean;
-    preview: *FIX*;
+    preview: any;
     msg: string;
     openSections: string[];
     bodyNav?: string | null;
@@ -88,19 +88,19 @@ const InspectorMindView = (() => {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     };
-    const act = (m: *FIX*): number => (typeof m.activation === 'number' ? m.activation : 1);
-    const conf = (m: *FIX*): number => (typeof m.confidence === 'number' ? m.confidence : (String(m.source) === 'manual' || String(m.source) === 'preconceived' ? 1 : 0.7));
+    const act = (m: any): number => (typeof m.activation === 'number' ? m.activation : 1);
+    const conf = (m: any): number => (typeof m.confidence === 'number' ? m.confidence : (String(m.source) === 'manual' || String(m.source) === 'preconceived' ? 1 : 0.7));
 
-    function _memories(): *FIX*[] {
+    function _memories(): any[] {
         if (!_state) return [];
         return worldState.players?.[_state.charName]?.memories || [];
     }
 
-    function _visible(memories: *FIX*[]): *FIX*[] {
+    function _visible(memories: any[]): any[] {
         if (!_state) return [];
         const f = _state.filter;
         const q = _state.query.toLowerCase().trim();
-        return memories.filter((m: *FIX*) => {
+        return memories.filter((m: any) => {
             if (f === 'episodic' && _catOf(m) !== 'episodic') return false;
             if (f === 'beliefs' && !['belief', 'semantic'].includes(_catOf(m))) return false;
             if (f === 'social' && _catOf(m) !== 'social') return false;
@@ -109,7 +109,7 @@ const InspectorMindView = (() => {
             if (f === 'faded' && !(act(m) < 0.5)) return false;
             if (f.startsWith('person:')) {
                 const who = f.slice(7).toLowerCase();
-                const tags = (Array.isArray(m.tags) ? m.tags : []).map((t: *FIX*) => String(t).toLowerCase());
+                const tags = (Array.isArray(m.tags) ? m.tags : []).map((t: any) => String(t).toLowerCase());
                 if (!tags.includes('rel:' + who)) return false;
             }
             if (q && !String(m.text || '').toLowerCase().includes(q)) return false;
@@ -118,16 +118,16 @@ const InspectorMindView = (() => {
     }
 
     // ── pieces ───────────────────────────────────────────────────────────
-    function _statsHtml(memories: *FIX*[]): string {
-        const n = (pred: (m: *FIX*) => boolean) => memories.filter(pred).length;
-        const epis = n((m: *FIX*) => _catOf(m) === 'episodic');
-        const beliefs = n((m: *FIX*) => ['belief', 'semantic'].includes(_catOf(m)));
-        const social = n((m: *FIX*) => _catOf(m) === 'social');
-        const proc = n((m: *FIX*) => _catOf(m) === 'procedural');
-        const contra = n((m: *FIX*) => Array.isArray(m.contradicts) && m.contradicts.length);
-        const faded = n((m: *FIX*) => act(m) < 0.5);
-        const reinf = memories.reduce((a: number, m: *FIX*) => a + (Number(m.reinforcements) || 0), 0);
-        const avgConf = memories.length ? Math.round(memories.reduce((a: number, m: *FIX*) => a + conf(m), 0) / memories.length * 100) : 100;
+    function _statsHtml(memories: any[]): string {
+        const n = (pred: (m: any) => boolean) => memories.filter(pred).length;
+        const epis = n((m: any) => _catOf(m) === 'episodic');
+        const beliefs = n((m: any) => ['belief', 'semantic'].includes(_catOf(m)));
+        const social = n((m: any) => _catOf(m) === 'social');
+        const proc = n((m: any) => _catOf(m) === 'procedural');
+        const contra = n((m: any) => Array.isArray(m.contradicts) && m.contradicts.length);
+        const faded = n((m: any) => act(m) < 0.5);
+        const reinf = memories.reduce((a: number, m: any) => a + (Number(m.reinforcements) || 0), 0);
+        const avgConf = memories.length ? Math.round(memories.reduce((a: number, m: any) => a + conf(m), 0) / memories.length * 100) : 100;
         const chip = (num: number | string, label: string, color?: string): string =>
             `<div class="mstat" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:4px 10px;text-align:center;min-width:64px;">
                 <div style="font-size:14px;font-weight:600;${color ? `color:${color};` : ''}">${num}</div>
@@ -145,13 +145,13 @@ const InspectorMindView = (() => {
         ].join('');
     }
 
-    function _timelineHtml(memories: *FIX*[]): string {
-        const ticks = memories.map((m: *FIX*) => Number(m.tick) || 0);
+    function _timelineHtml(memories: any[]): string {
+        const ticks = memories.map((m: any) => Number(m.tick) || 0);
         const min = Math.min(0, ...ticks);
         const max = Math.max(1, ...ticks);
         const W = 760, H = 64, PAD = 18;
         const span = Math.max(1, max - min);
-        const dots = memories.map((m: *FIX*) => {
+        const dots = memories.map((m: any) => {
             const x = PAD + ((Number(m.tick) || 0) - min) / span * (W - 2 * PAD);
             const imp = Number(m.importance) || 5;
             const r = 2.5 + imp * 0.35;
@@ -173,7 +173,7 @@ const InspectorMindView = (() => {
         return `<span style="font-size:9px;padding:1px 6px;border-radius:8px;border:1px solid ${color};color:${color};${title ? '' : ''}" ${title ? `title="${esc(title)}"` : ''}>${esc(label)}</span>`;
     }
 
-    function _cardHtml(m: *FIX*): string {
+    function _cardHtml(m: any): string {
         const cat = _catOf(m);
         const imp = Number(m.importance) || 5;
         const impColor = imp >= 8 ? '#e05555' : imp >= 6 ? '#e0a33c' : imp >= 4 ? '#4caf50' : '#888';
@@ -218,24 +218,24 @@ const InspectorMindView = (() => {
      * lived_log evidence entries so the user can inspect the raw record and
      * the simulation trace that produced it.
      */
-    function _recordAndEvidenceHtml(m: *FIX*, charName?: string): string {
+    function _recordAndEvidenceHtml(m: any, charName?: string): string {
         if (!m) return '';
         const cname = charName || (_state ? _state.charName : '');
-        const p: *FIX* = cname ? worldState.players?.[cname] : null;
-        const livedLog: *FIX*[] = Array.isArray(p?.lived_log) ? p.lived_log : [];
+        const p: any = cname ? worldState.players?.[cname] : null;
+        const livedLog: any[] = Array.isArray(p?.lived_log) ? p.lived_log : [];
         const mTick = Number(m.tick ?? 0);
         const mLoc = String(m.location || '').trim().toLowerCase();
-        const mTags = (Array.isArray(m.tags) ? m.tags : []).map((t: *FIX*) => String(t).toLowerCase());
+        const mTags = (Array.isArray(m.tags) ? m.tags : []).map((t: any) => String(t).toLowerCase());
         const mRelTags = mTags.filter((t: string) => t.startsWith('rel:'));
 
-        const matchedLog = livedLog.filter((entry: *FIX*) => {
+        const matchedLog = livedLog.filter((entry: any) => {
             if (!entry || typeof entry !== 'object') return false;
             const eTick = Number(entry.tick ?? NaN);
             if (!isNaN(eTick) && eTick === mTick) return true;
             if (!isNaN(eTick) && Math.abs(eTick - mTick) <= 2) {
                 const eArea = String(entry.area || '').trim().toLowerCase();
                 if (mLoc && eArea && mLoc === eArea) return true;
-                const eTags = (Array.isArray(entry.tags) ? entry.tags : []).map((t: *FIX*) => String(t).toLowerCase());
+                const eTags = (Array.isArray(entry.tags) ? entry.tags : []).map((t: any) => String(t).toLowerCase());
                 if (mRelTags.length && mRelTags.some((rt: string) => eTags.includes(rt))) return true;
             }
             return false;
@@ -244,8 +244,8 @@ const InspectorMindView = (() => {
         const timeFormatted = (typeof events !== 'undefined' && events && typeof events.tickToTime === 'function')
             ? String(events.tickToTime(mTick) || '')
             : '';
-        const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e: *FIX*) => String(e));
-        const tags = (Array.isArray(m.tags) ? m.tags : []).map((t: *FIX*) => String(t));
+        const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e: any) => String(e));
+        const tags = (Array.isArray(m.tags) ? m.tags : []).map((t: any) => String(t));
 
         const kvRow = (k: string, v: string): string =>
             `<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:1.5px 0;border-bottom:1px dotted var(--border-light);">
@@ -266,7 +266,7 @@ const InspectorMindView = (() => {
         if (tags.length) recordRows.push(kvRow('tags', esc(tags.join(', '))));
 
         const evidenceBody = matchedLog.length
-            ? matchedLog.map((entry: *FIX*) => {
+            ? matchedLog.map((entry: any) => {
                 const metaParts: string[] = [];
                 if (entry.why) metaParts.push(`why: ${entry.why}`);
                 if (entry.area) metaParts.push(`at ${entry.area}`);
@@ -288,13 +288,13 @@ const InspectorMindView = (() => {
         </details>`;
     }
 
-    function _detailHtml(m: *FIX* | null, all: *FIX*[]): string {
+    function _detailHtml(m: any | null, all: any[]): string {
         if (!m) return `<div style="font-size:11px;color:var(--text-muted);">Select a memory to see its dynamics and connections.</div>`;
         const cat = _catOf(m);
         const emoList = Array.isArray(m.memory_emotions) && m.memory_emotions.length
             ? m.memory_emotions
             : (m.emotion && m.emotion.label ? [m.emotion] : []);
-        const byId = (id: string) => all.find((x: *FIX*) => x.id === id);
+        const byId = (id: string) => all.find((x: any) => x.id === id);
         const contraRows = (Array.isArray(m.contradicts) ? m.contradicts : []).map((id: string) => {
             const other = byId(id);
             return `<div class="mind-conn" data-id="${esc(id)}" style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:10.5px;cursor:pointer;">
@@ -309,16 +309,16 @@ const InspectorMindView = (() => {
                 <span style="color:#bc8cff;">derived from</span>
                 <span style="color:var(--text-dim);flex:1;">${esc(other ? String(other.text).slice(0, 70) : id)}</span></div>`;
         }).join('');
-        const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e: *FIX*) => String(e));
+        const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e: any) => String(e));
         const siblings = entityIds.length
-            ? all.filter((x: *FIX*) => x.id !== m.id && (x.entity_ids || []).some((e: *FIX*) => entityIds.includes(String(e)))).slice(0, 5)
+            ? all.filter((x: any) => x.id !== m.id && (x.entity_ids || []).some((e: any) => entityIds.includes(String(e)))).slice(0, 5)
             : [];
-        const sibRows = siblings.map((other: *FIX*) =>
+        const sibRows = siblings.map((other: any) =>
             `<div class="mind-conn" data-id="${esc(other.id)}" style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:10.5px;cursor:pointer;">
                 <span style="font-family:monospace;font-size:9px;color:var(--text-muted);min-width:46px;">${esc(other.tick ?? '?')}</span>
                 <span style="color:var(--text-muted);">same entity</span>
                 <span style="color:var(--text-dim);flex:1;">${esc(String(other.text || '').slice(0, 70))}</span></div>`).join('');
-        const relTags = (Array.isArray(m.tags) ? m.tags : []).filter((t: *FIX*) => String(t).toLowerCase().startsWith('rel:'));
+        const relTags = (Array.isArray(m.tags) ? m.tags : []).filter((t: any) => String(t).toLowerCase().startsWith('rel:'));
         const eName = _state ? _state.escName : '';
         const mid = esc(m.id);
         const isSuppressed = Array.isArray(m.suppressions) && m.suppressions.length > 0;
@@ -345,13 +345,13 @@ const InspectorMindView = (() => {
             </div>
             ${emoList.length ? `<div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Emotional encoding</div>
-                ${emoList.map((e: *FIX*) => _bar(String(e.label || ''), (Number(e.intensity) || 0) / 10, 1, '#e0a33c')).join('')}
+                ${emoList.map((e: any) => _bar(String(e.label || ''), (Number(e.intensity) || 0) / 10, 1, '#e0a33c')).join('')}
             </div>` : ''}
             ${(contraRows || derivedRows || sibRows) ? `<div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Connections</div>
                 ${contraRows}${derivedRows}${sibRows}
             </div>` : ''}
-            ${relTags.length ? `<div style="font-size:10px;color:var(--f788ba, #f778ba);margin-bottom:8px;">${relTags.map((t: *FIX*) => _badge(String(t), '#f778ba')).join(' ')}</div>` : ''}
+            ${relTags.length ? `<div style="font-size:10px;color:var(--f788ba, #f778ba);margin-bottom:8px;">${relTags.map((t: any) => _badge(String(t), '#f778ba')).join(' ')}</div>` : ''}
             ${_recordAndEvidenceHtml(m)}
             <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Feelings - edit</div>
@@ -362,11 +362,11 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _accessibilityHtml(all: *FIX*[]): string {
+    function _accessibilityHtml(all: any[]): string {
         if (!all.length) return '';
-        const sorted = [...all].sort((a: *FIX*, b: *FIX*) => act(a) - act(b)).slice(0, 7);
-        const faded = all.filter((m: *FIX*) => act(m) < 0.5).length;
-        const row = (m: *FIX*): string => {
+        const sorted = [...all].sort((a: any, b: any) => act(a) - act(b)).slice(0, 7);
+        const faded = all.filter((m: any) => act(m) < 0.5).length;
+        const row = (m: any): string => {
             const a = act(m);
             const color = a < 0.5 ? '#d29922' : '#4caf50';
             return `<div class="mind-conn" data-id="${esc(m.id)}" style="cursor:pointer;margin:5px 0;">
@@ -385,7 +385,7 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _goals(): *FIX*[] {
+    function _goals(): any[] {
         if (!_state) return [];
         return worldState.players?.[_state.charName]?.goals || [];
     }
@@ -400,11 +400,11 @@ const InspectorMindView = (() => {
         }
     }
 
-    function _goalRowHtml(g: *FIX*): string {
+    function _goalRowHtml(g: any): string {
         const inputStyle = 'font-size:10.5px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
         const statuses = ['proposed', 'active', 'reached', 'blocked', 'dropped'];
         const color = _goalStatusColor(String(g.status || 'proposed'));
-        const val = (s: *FIX*) => esc(String(s ?? ''));
+        const val = (s: any) => esc(String(s ?? ''));
         const blocked = Array.isArray(g.blocked_by) && g.blocked_by.length
             ? `<div style="font-size:9.5px;color:#e05555;margin-top:3px;">⛔ blocked by ${esc(g.blocked_by.join(', '))}</div>` : '';
         return `<div class="mind-goal" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
@@ -423,21 +423,21 @@ const InspectorMindView = (() => {
     function _goalsHtml(): string {
         const goals = _goals();
         const body = goals.length
-            ? goals.map((g: *FIX*) => _goalRowHtml(g)).join('')
+            ? goals.map((g: any) => _goalRowHtml(g)).join('')
             : `<div class="mind-goal-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no goals - driven only by needs right now.</div>`;
         return `${body}<button class="btn btn-sm mind-add-goal" style="font-size:10px;">➕ Add goal</button>`;
     }
 
-    function _collectGoals(): *FIX*[] {
+    function _collectGoals(): any[] {
         const box = _container?.querySelector('#mind-goals');
         if (!box) return [];
-        return Array.from(box.querySelectorAll('.mind-goal')).map((row: *FIX*) => ({
+        return Array.from(box.querySelectorAll('.mind-goal')).map((row: any) => ({
             what: (row.querySelector('.mind-goal-what')?.value || '').trim(),
             status: row.querySelector('.mind-goal-status')?.value || 'proposed',
             motivation: (row.querySelector('.mind-goal-motivation')?.value || '').trim(),
             intention: (row.querySelector('.mind-goal-intention')?.value || '').trim(),
             blocks: (row.querySelector('.mind-goal-blocks')?.value || '').trim(),
-        })).filter((g: *FIX*) => g.what);
+        })).filter((g: any) => g.what);
     }
 
     async function _saveGoals(): Promise<void> {
@@ -446,7 +446,7 @@ const InspectorMindView = (() => {
         await worldState.fetch();
     }
 
-    function _goalHistory(): *FIX*[] {
+    function _goalHistory(): any[] {
         if (!_state) return [];
         return worldState.players?.[_state.charName]?.goal_log || [];
     }
@@ -454,7 +454,7 @@ const InspectorMindView = (() => {
     function _goalHistoryHtml(): string {
         const log = _goalHistory();
         if (!log.length) return '';
-        const rows = log.slice().reverse().map((e: *FIX*) => {
+        const rows = log.slice().reverse().map((e: any) => {
             const color = _goalStatusColor(String(e.status || ''));
             return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;padding:2px 0;border-bottom:1px solid var(--border-light);">
                 <span style="font-family:monospace;color:var(--text-muted);min-width:34px;">t${esc(e.tick)}</span>
@@ -468,7 +468,7 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _obligations(): *FIX*[] {
+    function _obligations(): any[] {
         if (!_state) return [];
         return worldState.players?.[_state.charName]?.obligations || [];
     }
@@ -485,7 +485,7 @@ const InspectorMindView = (() => {
     function _obligationsHtml(): string {
         const obligations = _obligations();
         if (!obligations.length) return '';
-        const rows = obligations.map((o: *FIX*) => {
+        const rows = obligations.map((o: any) => {
             const color = _obligationColor(String(o.status || 'offered'));
             const meta = [o.from ? `from ${o.from}` : '', o.due ? `due t${o.due}` : ''].filter(Boolean).join(' / ');
             return `<div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
@@ -502,12 +502,12 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _schedule(): *FIX*[] {
+    function _schedule(): any[] {
         if (!_state) return [];
         return worldState.players?.[_state.charName]?.schedule || [];
     }
 
-    function _hhmm(minutes: *FIX*): string {
+    function _hhmm(minutes: any): string {
         const m = (Number(minutes) || 0) % 1440;
         return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
     }
@@ -515,7 +515,7 @@ const InspectorMindView = (() => {
     function _scheduleHtml(): string {
         const steps = _schedule();
         if (!steps.length) return '';
-        const rows = steps.map((s: *FIX*) => `<div style="display:flex;gap:8px;align-items:baseline;font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);">
+        const rows = steps.map((s: any) => `<div style="display:flex;gap:8px;align-items:baseline;font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);">
             <span style="font-family:monospace;color:var(--text-muted);min-width:34px;">${_hhmm(s.start)}</span>
             <span style="color:var(--text);">${esc(s.activity || '')}</span>
             ${s.area ? `<span style="color:var(--text-dim);">at ${esc(s.area)}</span>` : ''}
@@ -526,17 +526,17 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    function _activePursuit(): *FIX* {
+    function _activePursuit(): any {
         if (!_state) return null;
         return worldState.players?.[_state.charName]?.active_pursuit || null;
     }
 
-    function _plan(): *FIX* {
+    function _plan(): any {
         if (!_state) return null;
         return worldState.players?.[_state.charName]?.plan || null;
     }
 
-    function _stepLabel(step: *FIX*): string {
+    function _stepLabel(step: any): string {
         if (!step) return '-';
         switch (step.kind) {
             case 'travel': return 'travel ' + (step.area || (step.tags || []).join('/') || '');
@@ -576,7 +576,7 @@ const InspectorMindView = (() => {
 
     function _activityHtml(): string {
         if (!_state) return '';
-        const a: *FIX* = worldState.players?.[_state.charName]?.activity;
+        const a: any = worldState.players?.[_state.charName]?.activity;
         if (!a || !a.type) return '';
         const parts: string[] = [];
         if (a.elapsed_minutes != null) parts.push(`${Math.round(Number(a.elapsed_minutes))} min`);
@@ -593,9 +593,9 @@ const InspectorMindView = (() => {
 
     function _feelingHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
+        const p: any = worldState.players?.[_state.charName];
         if (!p) return '';
-        const emo: *FIX* = p.emotion || null;
+        const emo: any = p.emotion || null;
         const axes = (p.emotions && typeof p.emotions === 'object') ? p.emotions : {};
         const raised = Object.entries(axes)
             .map(([axis, amt]) => [axis, Number(amt)] as [string, number])
@@ -613,13 +613,13 @@ const InspectorMindView = (() => {
         // task-714: the cause the panel can honestly show without task-725 (the
         // memory gap): the most recent memory that itself carried this feeling.
         // A true triggering event needs a memory that records it - see task-725.
-        const mems: *FIX*[] = Array.isArray(p.memories) ? p.memories : [];
-        let lastFeeling: *FIX* = null;
+        const mems: any[] = Array.isArray(p.memories) ? p.memories : [];
+        let lastFeeling: any = null;
         for (const mem of mems) {
             const labels = (Array.isArray(mem.memory_emotions) && mem.memory_emotions.length
                 ? mem.memory_emotions
                 : (mem.emotion && mem.emotion.label ? [mem.emotion] : []))
-                .map((e: *FIX*) => String(e.label || '').toLowerCase());
+                .map((e: any) => String(e.label || '').toLowerCase());
             if (!labels.length) continue;
             if (current && !labels.includes(String(current).toLowerCase())) continue;
             if (!lastFeeling || (Number(mem.tick) || 0) > (Number(lastFeeling.tick) || 0)) lastFeeling = mem;
@@ -643,10 +643,10 @@ const InspectorMindView = (() => {
     // memory that records it (task-725) - this shows the state and the drivers.
     function _bodyHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
+        const p: any = worldState.players?.[_state.charName];
         if (!p) return '';
         const state = String(p.state || 'awake');
-        const instances: *FIX* = p.conditions || {};
+        const instances: any = p.conditions || {};
         const condRows: string[] = [];
         for (const [cid, list] of Object.entries(instances)) {
             if (cid === 'awake') continue;
@@ -659,7 +659,7 @@ const InspectorMindView = (() => {
                 condRows.push(`<div style="font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);"><b style="color:#e05555;">${esc(cid)}</b>${bits.length ? ` <span style="color:var(--text-muted);">${bits.join(' / ')}</span>` : ''}</div>`);
             }
         }
-        const VW: *FIX* = window as *FIX*;
+        const VW: any = window as any;
         const vitals = p.vitals || {};
         // The core vitals the header row renders. Optional scenario vitals
         // (Arousal / Pleasure / Stimulation) sit at 0 when their system is off
@@ -697,7 +697,7 @@ const InspectorMindView = (() => {
 
     /** Is an AI provider configured? Mirrors agent-view's side-effect-free read. */
     function _isAiReady(): boolean {
-        const AV: *FIX* = (window as *FIX*).InspectorAgentView;
+        const AV: any = (window as any).InspectorAgentView;
         return !!(AV && AV._isAiConfigured && AV._isAiConfigured());
     }
 
@@ -719,7 +719,7 @@ const InspectorMindView = (() => {
         const suffix = AI ? '' : ' - No AI provider configured. Add an API key and model in Settings first.';
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Fear tags - what unsettles them</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying *FIX* of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying any of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
             <div id="fear-tag-multiselect-mind-${_safeId()}"></div>
             <button class="btn btn-sm" ${AI ? '' : 'disabled'} onclick="InspectorAgentView._generateFearTags('${_state.escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. Your hand-placed tags are kept - picks are added.${suffix}">😨 Generate from Personality</button>
         </div>`;
@@ -727,16 +727,16 @@ const InspectorMindView = (() => {
 
     function _whatISeeHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
+        const p: any = worldState.players?.[_state.charName];
         if (!p) return '';
         const area = worldState.areas?.[p.current_area];
         let body: string;
         if (area) {
             body = `<div>${area.description || ''}</div>`;
-            const items = (area.items || []).map((item: *FIX*) => item.name).filter(Boolean).join(', ');
+            const items = (area.items || []).map((item: any) => item.name).filter(Boolean).join(', ');
             if (items) body += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${items}</div>`;
-            const others = Object.entries(worldState.players || {} as Record<string, *FIX*>)
-                .filter(([name, q]: [string, *FIX*]) => name !== _state!.charName && q.current_area === p.current_area);
+            const others = Object.entries(worldState.players || {} as Record<string, any>)
+                .filter(([name, q]: [string, any]) => name !== _state!.charName && q.current_area === p.current_area);
             if (others.length) body += `<div style="margin-top:4px;color:var(--pink);font-size:11px;">Also: ${others.map(([name]) => name).join(', ')}</div>`;
         } else {
             body = `<span style="color:var(--text-muted);">Unknown location</span>`;
@@ -749,7 +749,7 @@ const InspectorMindView = (() => {
 
     function _latestThoughtsHtml(): string {
         if (!_state) return '';
-        const cs: *FIX* = events.getCharacterState(_state.charName) || {};
+        const cs: any = events.getCharacterState(_state.charName) || {};
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Latest thoughts - the last turn</div>
             <div class="decision-trace" style="font-size:11px;">
@@ -763,11 +763,11 @@ const InspectorMindView = (() => {
 
     function _planHtml(): string {
         if (!_state) return '';
-        const plan: *FIX*[] | null = (PlanTracker && PlanTracker.getPlan) ? PlanTracker.getPlan(_state.charName) : null;
+        const plan: any[] | null = (PlanTracker && PlanTracker.getPlan) ? PlanTracker.getPlan(_state.charName) : null;
         if (!plan || !plan.length) return '';
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Plan - the current intent</div>
-            <ol style="margin:0;padding-left:20px;font-size:11px;line-height:1.7;">${plan.map((step: *FIX*) => `<li>${esc(step)}</li>`).join('')}</ol>
+            <ol style="margin:0;padding-left:20px;font-size:11px;line-height:1.7;">${plan.map((step: any) => `<li>${esc(step)}</li>`).join('')}</ol>
         </div>`;
     }
 
@@ -809,14 +809,14 @@ const InspectorMindView = (() => {
                 const controlled = player && player.autonomy === false;
                 const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
                 if (!list.length) {
-                    live.*FIX*= `${head}<div style="font-size:10px;color:var(--text-dim);">None yet - teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
+                    live.innerHTML = `${head}<div style="font-size:10px;color:var(--text-dim);">None yet - teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
                     return;
                 }
                 const srcColor: Record<string, string> = {
                     global: 'var(--text-dim)', taught: '#58a6ff', discovered: '#3fb950',
                     cookbook: '#d29922', skill: '#bc8cff',
                 };
-                live.*FIX*= `${head}${list.map((r) => {
+                live.innerHTML = `${head}${list.map((r) => {
                     const meta = [
                         r.skill ? `${esc(r.skill)} ${r.dc ?? 10}` : '',
                         r.duration_min ? `${r.duration_min}m` : '',
@@ -829,7 +829,7 @@ const InspectorMindView = (() => {
                 live.querySelectorAll('[data-recipe-lib]').forEach((a) => {
                     a.addEventListener('click', (ev: Event) => {
                         ev.preventDefault();
-                        const lib = (window as unknown as { VW?: *FIX* }).VW?.libraryBrowser;
+                        const lib = (window as unknown as { VW?: any }).VW?.libraryBrowser;
                         if (lib && typeof lib.open === 'function') lib.open('recipes');
                     });
                 });
@@ -839,8 +839,8 @@ const InspectorMindView = (() => {
 
     function _eventsTimelineHtml(): string {
         if (!_state) return '';
-        const cs: *FIX* = events.getCharacterState(_state.charName) || {};
-        const timeline: *FIX*[] = cs.detailedTimeline || [];
+        const cs: any = events.getCharacterState(_state.charName) || {};
+        const timeline: any[] = cs.detailedTimeline || [];
         let body: string;
         if (timeline.length > 0) {
             const startIdx = Math.max(0, timeline.length - 50);
@@ -879,10 +879,10 @@ const InspectorMindView = (() => {
 
     function _conversationHtml(): string {
         if (!_state) return '';
-        const hist: *FIX*[] = (agent && agent.getDisplayHistory) ? agent.getDisplayHistory(_state.charName) : [];
+        const hist: any[] = (agent && agent.getDisplayHistory) ? agent.getDisplayHistory(_state.charName) : [];
         let body: string;
         if (hist.length > 0) {
-            body = hist.map((msg: *FIX*, i: number) => {
+            body = hist.map((msg: any, i: number) => {
                 const role = msg.role || 'unknown';
                 const content = String(msg.content || '');
                 const roleLabel = role === 'user' ? '👤 Prompt' : '🤖 Response';
@@ -910,7 +910,7 @@ const InspectorMindView = (() => {
     /** Emotion select + intensity, writing `{ emotion: { current, intensity } }`. */
     function _emotionEditorHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
+        const p: any = worldState.players?.[_state.charName];
         if (!p) return '';
         const emotion = p.emotion || { current: 'neutral', intensity: 0 };
         const icons: Record<string, string> = { happy: '😊', sad: '😢', angry: '😠', afraid: '😨', surprised: '😲', disgusted: '🤢', neutral: '😐' };
@@ -929,9 +929,9 @@ const InspectorMindView = (() => {
     function _relationshipsHtml(): string {
         if (!_state) return '';
         const me = _state.charName;
-        const p: *FIX* = worldState.players?.[me];
+        const p: any = worldState.players?.[me];
         if (!p) return '';
-        const othersExMe = (Object.entries(worldState.players || {}) as Array<[string, *FIX*]>)
+        const othersExMe = (Object.entries(worldState.players || {}) as Array<[string, any]>)
             .filter(([name]) => name !== me);
         const rows: string[] = [];
         for (const [otherName] of othersExMe) {
@@ -991,7 +991,7 @@ const InspectorMindView = (() => {
         worldState.on('update', () => {
             if (!_state || !_container) return;
             // Never wipe an in-progress persona edit: a background state
-            // push while typing would destroy unsaved form input. *FIX*
+            // push while typing would destroy unsaved form input. Any
             // focused field counts - including chip inputs, which carry
             // no data-path until their pill is committed.
             const active = document.activeElement as HTMLElement | null;
@@ -1002,7 +1002,7 @@ const InspectorMindView = (() => {
         });
     }
 
-    function _mosiac(): *FIX* {
+    function _mosiac(): any {
         if (!_state) return null;
         return worldState.players?.[_state.charName]?.mosiac || null;
     }
@@ -1011,7 +1011,7 @@ const InspectorMindView = (() => {
         const m = _mosiac();
         if (!m) return '';
         const letter = (key: string, label: string, body: string) => `<div style="margin-bottom:5px;"><span style="font-family:monospace;color:#58a6ff;">${key}</span> <span style="color:var(--text-muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;">${label}</span><div style="font-size:10.5px;line-height:1.4;">${body}</div></div>`;
-        const needs = (m.A || []).map((n: *FIX*) => `${esc(n.need)} ${n.value}`).join(', ') || 'nothing pressing';
+        const needs = (m.A || []).map((n: any) => `${esc(n.need)} ${n.value}`).join(', ') || 'nothing pressing';
         const step = m.S && m.S.step
             ? `${_hhmm(m.S.step.start)} ${esc(m.S.step.activity)}${m.S.step.area ? ' at ' + esc(m.S.step.area) : ''}`
             : 'no schedule';
@@ -1020,7 +1020,7 @@ const InspectorMindView = (() => {
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">MOSIAC - the decision context</div>
             ${letter('M', 'motivation', esc(m.M || '-'))}
             ${letter('I', 'intention', esc(m.I || '-'))}
-            ${letter('O', 'obligations', (m.O || []).length ? (m.O || []).map((o: *FIX*) => esc(o.charge)).join(', ') : 'none')}
+            ${letter('O', 'obligations', (m.O || []).length ? (m.O || []).map((o: any) => esc(o.charge)).join(', ') : 'none')}
             ${letter('S', 'schedule', step)}
             ${letter('A', 'attention', esc(needs))}
             ${letter('C', 'choices', esc(tierCounts))}
@@ -1031,20 +1031,20 @@ const InspectorMindView = (() => {
     // the whispered lines - the same traits the soak weighs (task-804's input).
     function _dispositionHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
+        const p: any = worldState.players?.[_state.charName];
         if (!p) return '';
-        const disp: *FIX* = p.disposition || {};
-        const weights: *FIX*[] = Array.isArray(disp.weights) ? disp.weights : [];
+        const disp: any = p.disposition || {};
+        const weights: any[] = Array.isArray(disp.weights) ? disp.weights : [];
         const dials = disp.dials || (p.personality_dials || {});
         const whispers: string[] = Array.isArray(p.trait_behavior) ? p.trait_behavior : [];
         const entries = weights.slice().sort(
-            (a: *FIX*, b: *FIX*) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)));
+            (a: any, b: any) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)));
         const dialEntries = Object.entries(dials);
         const gated: string[] = Array.isArray(disp.gated) ? disp.gated : [];
         if (!entries.length && !dialEntries.length && !whispers.length && !gated.length) {
             return `<div style="font-size:10.5px;color:var(--text-muted);">no disposition signals - an unauthored character scores neutral.</div>`;
         }
-        const weightRows = entries.map((w: *FIX*) => {
+        const weightRows = entries.map((w: any) => {
             const v = Number(w.value);
             const label = w.kind
                 ? `${esc(w.name)} <span style="color:var(--text-muted);">${esc(w.kind)}</span>`
@@ -1080,11 +1080,11 @@ const InspectorMindView = (() => {
     // which the character's values exclude - the action side of the score model.
     function _actionsHtml(): string {
         if (!_state) return '';
-        const p: *FIX* = worldState.players?.[_state.charName];
-        const actions: *FIX*[] = (p && p.disposition && Array.isArray(p.disposition.actions)) ? p.disposition.actions : [];
+        const p: any = worldState.players?.[_state.charName];
+        const actions: any[] = (p && p.disposition && Array.isArray(p.disposition.actions)) ? p.disposition.actions : [];
         if (!actions.length) return '';
         const gated = new Set<string>(((p.disposition && p.disposition.gated) || []).map((g: string) => String(g).toLowerCase()));
-        const rows = actions.map((a: *FIX*) => {
+        const rows = actions.map((a: any) => {
             const off = gated.has(String(a.verb).toLowerCase());
             const scores = (a.scores || []).join(', ') || '-';
             return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;${off ? 'opacity:.45;text-decoration:line-through;' : ''}">
@@ -1274,7 +1274,7 @@ const InspectorMindView = (() => {
             : '';
     }
 
-    function _personaFieldHtml(section: string, field: string, decl: *FIX*): { html: string; wide: boolean } {
+    function _personaFieldHtml(section: string, field: string, decl: any): { html: string; wide: boolean } {
         const path = `${section}.${field}`;
         const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
         const hintIco = hint ? ` <span class="pf-hint" title="${esc(hint)}">ⓘ</span>` : '';
@@ -1372,7 +1372,7 @@ const InspectorMindView = (() => {
     }
 
     function _bodyNavSideHtml(area: string): string {
-        const pd = (window as unknown as { InspectorPaperdoll?: *FIX* }).InspectorPaperdoll;
+        const pd = (window as unknown as { InspectorPaperdoll?: any }).InspectorPaperdoll;
         const regions = ((pd?.AREA_TO_REGIONS || {})[area] || []) as string[];
         const player = (worldState.players || {})[_state?.charName || ''];
         const bodyState = player?.body_state || {};
@@ -1381,17 +1381,17 @@ const InspectorMindView = (() => {
             (player?.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
         const rows = regions.map((regionId) => {
             const bs = bodyState[regionId] || {};
-            const injured = ((playerConditions.injured || []) as *FIX*[])
-                .filter((i: *FIX*) => i.body_part === regionId);
-            const bleeding = ((playerConditions.bleeding || []) as *FIX*[])
-                .filter((i: *FIX*) => i.body_part === regionId);
-            const missing = ((playerConditions.missing || []) as *FIX*[])
-                .filter((i: *FIX*) => i.body_part === regionId);
+            const injured = ((playerConditions.injured || []) as any[])
+                .filter((i: any) => i.body_part === regionId);
+            const bleeding = ((playerConditions.bleeding || []) as any[])
+                .filter((i: any) => i.body_part === regionId);
+            const missing = ((playerConditions.missing || []) as any[])
+                .filter((i: any) => i.body_part === regionId);
             const exposed = player?.region_exposed?.[regionId] !== false;
             const sensNum = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity) : NaN;
             const sens = Number.isFinite(sensNum) ? sensNum.toFixed(2) : '-';
             const chips: string[] = [];
-            if (injured.length) chips.push(`<span style="color:var(--yellow);">🤕 Lv${Math.max(...injured.map((i: *FIX*) => i.level || 1))}</span>`);
+            if (injured.length) chips.push(`<span style="color:var(--yellow);">🤕 Lv${Math.max(...injured.map((i: any) => i.level || 1))}</span>`);
             if (bleeding.length) chips.push(`<span style="color:var(--red);">🩸 bleeding</span>`);
             if (missing.length) chips.push(`<span style="color:var(--red);">✖ missing</span>`);
             if (!exposed) chips.push(`<span style="color:var(--text-dim);">🛡️ covered</span>`);
@@ -1434,7 +1434,7 @@ const InspectorMindView = (() => {
     }
 
     function _bodyNavHtml(): string {
-        const pd = (window as unknown as { InspectorPaperdoll?: *FIX* }).InspectorPaperdoll;
+        const pd = (window as unknown as { InspectorPaperdoll?: any }).InspectorPaperdoll;
         const map = pd?.AREA_TO_REGIONS || {};
         const areas = Object.keys(map).filter((a) => ((map[a] || []) as string[]).length > 0);
         if (!areas.length || typeof pd?.renderPaperdollFigureHtml !== 'function') return '';
@@ -1464,7 +1464,7 @@ const InspectorMindView = (() => {
     }
 
     function _wireBodyNav(pane: Element): void {
-        const pd = (window as unknown as { InspectorPaperdoll?: *FIX* }).InspectorPaperdoll;
+        const pd = (window as unknown as { InspectorPaperdoll?: any }).InspectorPaperdoll;
         if (pd) {
             pd.onNavigate = (charName: string, area: string) => {
                 if (!_state?.persona || charName !== _state.charName) return;
@@ -1512,13 +1512,13 @@ const InspectorMindView = (() => {
 
     function _refreshBodyNav(pane: Element): void {
         if (!_state?.persona) return;
-        const pd = (window as unknown as { InspectorPaperdoll?: *FIX* }).InspectorPaperdoll;
+        const pd = (window as unknown as { InspectorPaperdoll?: any }).InspectorPaperdoll;
         const sel = _state.persona.bodyNav || null;
         const facing = _state.persona.dollFacing === 'back' ? 'back' : 'front';
         const doll = pane.querySelector('#mind-persona-doll');
         if (doll && pd?.renderPaperdollFigureHtml) {
             const player = (worldState.players || {})[_state?.charName || ''];
-            doll.*FIX*= pd.renderPaperdollFigureHtml(
+            doll.innerHTML = pd.renderPaperdollFigureHtml(
                 _state?.charName || '', player || {}, esc,
                 _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing });
         }
@@ -1528,7 +1528,7 @@ const InspectorMindView = (() => {
         });
         const nav = pane.querySelector('#mind-persona-bodynav');
         if (nav) {
-            nav.*FIX*= sel
+            nav.innerHTML = sel
                 ? _bodyNavSideHtml(sel)
                 : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll - live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
             _wireBodyNavJumps(pane);
@@ -1539,7 +1539,7 @@ const InspectorMindView = (() => {
 
     // The faces' area lists are declared once, in paperdoll-view (AREA_FACE).
     function _navAreas(): string[] {
-        const pd = (window as unknown as { InspectorPaperdoll?: *FIX* }).InspectorPaperdoll;
+        const pd = (window as unknown as { InspectorPaperdoll?: any }).InspectorPaperdoll;
         const facing = _state?.persona?.dollFacing === 'back' ? 'back' : 'front';
         return typeof pd?.areasForFacing === 'function' ? (pd.areasForFacing(facing) as string[]) : [];
     }
@@ -1725,7 +1725,7 @@ const InspectorMindView = (() => {
         if (p.status === 'error') {
             return `<div style="font-size:11px;color:var(--text-muted);">record unavailable. <button class="btn btn-sm" id="mind-persona-retry" style="font-size:10px;">↻ retry</button></div>`;
         }
-        const props = (p.schema?.properties || {}) as Record<string, *FIX*>;
+        const props = (p.schema?.properties || {}) as Record<string, any>;
         const openSet = new Set(p.openSections || []);
         const sections = _PERSONA_SECTIONS.map(([section, label]) => {
             const fields = props[section]?.properties || {};
@@ -1775,7 +1775,7 @@ const InspectorMindView = (() => {
         return `${_personaCss()}
             ${_personaHeaderHtml()}
             <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry - live preview</summary>
-                <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type - the compiled entry appears here without storing *FIX*thing.</div></div>
+                <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type - the compiled entry appears here without storing anything.</div></div>
             </details>
             ${preview}
             <div class="pf-workspace">
@@ -1784,7 +1784,7 @@ const InspectorMindView = (() => {
             </div>`;
     }
 
-    // A dirty sheet lives only in the DOM (inputs write nowhere else). *FIX*
+    // A dirty sheet lives only in the DOM (inputs write nowhere else). Any
     // rebuild of the pane or the whole modal must read the form back into the
     // record first, or the edits vanish while the chip still says unsaved.
     function _syncPersonaFromForm(): void {
@@ -1797,7 +1797,7 @@ const InspectorMindView = (() => {
     function _personaRepaint(syncForm = true): void {
         if (syncForm) _syncPersonaFromForm();
         const el = _container?.querySelector('#mind-persona');
-        if (el) { el.*FIX*= _personaHtml(); _wirePersona(); }
+        if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
     }
 
     function _fetchPersona(): void {
@@ -1815,7 +1815,7 @@ const InspectorMindView = (() => {
         fetch(`/api/players/${encodeURIComponent(_state.charName)}/record`, {
             headers: { 'Accept': 'application/json' }
         }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
-            .then((data: *FIX*) => {
+            .then((data: any) => {
                 if (!_state || !_state.persona) return;
                 const keepOpen = _state.persona.openSections || ['Identity', 'Appearance'];
                 const keepNav = _state.persona.bodyNav;
@@ -1837,8 +1837,8 @@ const InspectorMindView = (() => {
             });
     }
 
-    function _collectPersona(): Record<string, *FIX*> {
-        const out: Record<string, *FIX*> = {};
+    function _collectPersona(): Record<string, any> {
+        const out: Record<string, any> = {};
         _container?.querySelectorAll<HTMLElement>('[data-persona-path]').forEach((el) => {
             const path = el.dataset.personaPath || '';
             const parts = path.split('.');
@@ -1864,7 +1864,7 @@ const InspectorMindView = (() => {
             let cursor = out;
             for (let i = 0; i < parts.length - 1; i++) {
                 cursor[parts[i]] = cursor[parts[i]] || {};
-                cursor = cursor[parts[i]] as Record<string, *FIX*>;
+                cursor = cursor[parts[i]] as Record<string, any>;
             }
             cursor[parts[parts.length - 1]] = value;
         });
@@ -1885,8 +1885,8 @@ const InspectorMindView = (() => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ record, render: false }),
-        }).then(r => r.json().then((data: *FIX*) => ({ ok: r.ok, data })))
-            .then(({ ok, data }: *FIX*) => {
+        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+            .then(({ ok, data }: any) => {
                 if (!ok) {
                     _personaMsg(`save rejected: ${data.error || _shortErr(data)}`);
                     return;
@@ -1897,7 +1897,7 @@ const InspectorMindView = (() => {
             .catch((e: unknown) => _personaMsg(`save failed: ${String(e)}`));
     }
 
-    function _shortErr(data: *FIX*): string {
+    function _shortErr(data: any): string {
         try { return JSON.stringify(data).slice(0, 160); } catch { return 'unknown error'; }
     }
 
@@ -1911,8 +1911,8 @@ const InspectorMindView = (() => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(force ? { force: true } : {}),
-        }).then(r => r.json().then((data: *FIX*) => ({ ok: r.ok, data })))
-            .then(({ ok, data }: *FIX*) => {
+        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+            .then(({ ok, data }: any) => {
                 if (!ok || !_state?.persona) {
                     _personaMsg(`compile rejected: ${data.error || _shortErr(data)}`);
                     return;
@@ -1936,7 +1936,7 @@ const InspectorMindView = (() => {
     function _personaDirty(): void {
         if (_state?.persona) _state.persona.dirty = true;
         const box = _container?.querySelector('#mind-persona-states');
-        if (box) box.*FIX*= _personaStatesHtml();
+        if (box) box.innerHTML = _personaStatesHtml();
     }
 
     function _chipValues(box: Element): string[] {
@@ -1980,23 +1980,23 @@ const InspectorMindView = (() => {
         if (!box || !(box.closest('details') as HTMLDetailsElement | null)?.open) return;
         const record = _collectPersona();
         if (!Object.keys(record).length) {
-            box.*FIX*= `<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`;
+            box.innerHTML = `<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`;
             return;
         }
         fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ record }),
-        }).then(r => r.json().then((data: *FIX*) => ({ ok: r.ok, data })))
-            .then(({ ok, data }: *FIX*) => {
+        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+            .then(({ ok, data }: any) => {
                 const live = _container?.querySelector('#mind-persona-codex');
                 if (!live) return;
                 if (!ok) {
-                    live.*FIX*= `<span style="color:#e08a92;">cannot project: ${esc(data.error || 'rejected')}</span>`;
+                    live.innerHTML = `<span style="color:#e08a92;">cannot project: ${esc(data.error || 'rejected')}</span>`;
                     return;
                 }
                 const c = data.compiled || {};
-                live.*FIX*= `${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
+                live.innerHTML = `${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
                     ${c.personality ? `<div style="color:var(--text-dim);">${esc(c.personality)}</div>` : ''}
                     ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '-'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '-'}</div>` : ''}`;
             })
@@ -2005,8 +2005,8 @@ const InspectorMindView = (() => {
 
     function _importPersonaFile(file: File): void {
         if (!_state?.persona) return;
-        const CI = (window as unknown as { CharacterImport?: *FIX* }).CharacterImport;
-        const llm = (window as unknown as { llmClient?: *FIX* }).llmClient;
+        const CI = (window as unknown as { CharacterImport?: any }).CharacterImport;
+        const llm = (window as unknown as { llmClient?: any }).llmClient;
         if (!CI) { _personaMsg('importer not loaded - rebuild the frontend.'); return; }
         if (!llm || typeof llm.chat !== 'function') {
             _personaMsg('no model connected - configure one in Settings first.');
@@ -2157,7 +2157,7 @@ const InspectorMindView = (() => {
         const dollHadFocus = document.activeElement?.id === 'mind-persona-doll';
         const all = _memories();
         const visible = _visible(all);
-        const selected = all.find((m: *FIX*) => m.id === _state!.selectedId) || null;
+        const selected = all.find((m: any) => m.id === _state!.selectedId) || null;
         const filters: Array<[string, string]> = [
             ['all', 'All'], ['episodic', 'Episodic'], ['beliefs', 'Beliefs'],
             ['social', 'Social'], ['procedural', 'Procedural'],
@@ -2168,7 +2168,7 @@ const InspectorMindView = (() => {
             return `<span class="mind-fbtn" data-filter="${key}" style="padding:2px 9px;border:1px solid ${active ? '#1f6feb' : 'var(--border)'};border-radius:11px;font-size:10.5px;color:${active ? '#58a6ff' : 'var(--text-dim)'};background:var(--bg-input);cursor:pointer;">${label}</span>`;
         }).join('');
         const cards = visible.length
-            ? visible.slice().reverse().map((m: *FIX*) => _cardHtml(m)).join('')
+            ? visible.slice().reverse().map((m: any) => _cardHtml(m)).join('')
             : `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">nothing matches this view.</div>`;
 
         // task-820: one tabbed mind surface over the existing renderers.
@@ -2239,10 +2239,10 @@ const InspectorMindView = (() => {
             </div>
         </div>`;
 
-        if ((window as *FIX*).Lit?.render && (window as *FIX*).Lit?.unsafeHTML) {
-            (window as *FIX*).Lit.render((window as *FIX*).Lit.unsafeHTML(modalContent), _container);
+        if ((window as any).Lit?.render && (window as any).Lit?.unsafeHTML) {
+            (window as any).Lit.render((window as any).Lit.unsafeHTML(modalContent), _container);
         } else {
-            _container.*FIX*= modalContent;
+            _container.innerHTML = modalContent;
         }
 
         // wiring
@@ -2253,7 +2253,7 @@ const InspectorMindView = (() => {
         // task-756: per-memory emotion editing lives here, not in the memory modal.
         const emoBox = _container.querySelector('#mind-mem-emotions') as HTMLElement | null;
         if (emoBox && selected) {
-            const IM: *FIX* = (window as *FIX*).InspectorMemory;
+            const IM: any = (window as any).InspectorMemory;
             const initial = Array.isArray(selected.memory_emotions) && selected.memory_emotions.length
                 ? selected.memory_emotions
                 : (selected.emotion && selected.emotion.label ? [selected.emotion] : []);
@@ -2262,7 +2262,7 @@ const InspectorMindView = (() => {
             if (saveEmo) saveEmo.addEventListener('click', async () => {
                 if (!_state) return;
                 const emotions = Array.isArray(IM?._emoSelected) ? IM._emoSelected : [];
-                const payload: *FIX* = { memory_emotions: emotions };
+                const payload: any = { memory_emotions: emotions };
                 if (emotions.length) payload.emotion = emotions[0];
                 await ApiClient.updatePlayerMemory(_state.charName, selected.id, payload);
                 await worldState.fetch();
@@ -2275,7 +2275,7 @@ const InspectorMindView = (() => {
         if (goalsBox) {
             goalsBox.addEventListener('focusout', () => _saveGoals());
             goalsBox.addEventListener('change', () => _saveGoals());
-            goalsBox.addEventListener('click', (ev: *FIX*) => {
+            goalsBox.addEventListener('click', (ev: any) => {
                 const del = ev.target.closest('.mind-goal-del');
                 if (del) { del.closest('.mind-goal')?.remove(); _saveGoals(); return; }
                 if (ev.target.closest('.mind-add-goal')) {
@@ -2288,30 +2288,30 @@ const InspectorMindView = (() => {
         }
         // task-787: interest/fear tag multiselects and the knowledge chips, moved
         // out of the Bio / Advanced tabs. Same stores, same handlers.
-        const TM: *FIX* = (window as unknown as { TagMultiselect?: unknown }).TagMultiselect;
-        const migPlayer: *FIX* = _state ? worldState.players?.[_state.charName] : null;
+        const TM: any = (window as unknown as { TagMultiselect?: unknown }).TagMultiselect;
+        const migPlayer: any = _state ? worldState.players?.[_state.charName] : null;
         if (TM && migPlayer) {
             const itBox = _container.querySelector(`#interest-tag-multiselect-mind-${_safeId()}`);
             if (itBox) new TM(itBox, {
                 tags: Array.isArray(migPlayer.interest_tags) ? migPlayer.interest_tags : [],
                 appliesTo: 'characters', allowNew: true, placeholder: 'e.g. magic, food, documents...',
-                onChange: (tags: *FIX*[]) => { ApiClient.updateCharacter(_state!.charName, { interest_tags: tags }).then(() => worldState.fetch()); }
+                onChange: (tags: any[]) => { ApiClient.updateCharacter(_state!.charName, { interest_tags: tags }).then(() => worldState.fetch()); }
             });
             const ftBox = _container.querySelector(`#fear-tag-multiselect-mind-${_safeId()}`);
             if (ftBox) new TM(ftBox, {
                 tags: Array.isArray(migPlayer.fear_tags) ? migPlayer.fear_tags : [],
                 appliesTo: 'characters', allowNew: true, placeholder: 'e.g. goblin, the dark, magic...',
-                onChange: (tags: *FIX*[]) => { ApiClient.updateCharacter(_state!.charName, { fear_tags: tags }).then(() => worldState.fetch()); }
+                onChange: (tags: any[]) => { ApiClient.updateCharacter(_state!.charName, { fear_tags: tags }).then(() => worldState.fetch()); }
             });
         }
-        const KB: *FIX* = (window as unknown as { KnownBySection?: unknown }).KnownBySection;
+        const KB: any = (window as unknown as { KnownBySection?: unknown }).KnownBySection;
         const kbBox = _container.querySelector(`#mind-knowledge-chips-${_safeId()}`);
         if (KB && kbBox && _state) kbBox.appendChild(KB.buildKnownChips(_state.charName));
 
         // task-729: the relationship editor reuses agent-view's binder (same
         // selectors, same store); the emotion control writes the same
         // `{ emotion: { current, intensity } }` payload as the header row.
-        const AV: *FIX* = (window as unknown as { InspectorAgentView?: unknown }).InspectorAgentView;
+        const AV: any = (window as unknown as { InspectorAgentView?: unknown }).InspectorAgentView;
         if (AV && AV._bindRelationshipSliders && _state) AV._bindRelationshipSliders(_container, _state.charName);
         _container.querySelectorAll<HTMLElement>('.mind-rel-del').forEach(el =>
             el.addEventListener('click', () => {
@@ -2349,12 +2349,12 @@ const InspectorMindView = (() => {
                 const svgX = ((ev.clientX - rect.left) / rect.width) * w;
                 const ratio = Math.max(0, Math.min(1, (svgX - pad) / (w - 2 * pad)));
                 let clickedTick = Math.round(min + ratio * span);
-                const rawBirth = _state.persona?.lifecycle?.birth_tick ?? (worldState.players?.[_state.charName] as *FIX*)?.birth_tick;
+                const rawBirth = _state.persona?.lifecycle?.birth_tick ?? (worldState.players?.[_state.charName] as any)?.birth_tick;
                 if (rawBirth !== null && rawBirth !== undefined && Number.isFinite(Number(rawBirth))) {
                     const birthTick = Math.round(Number(rawBirth));
                     if (clickedTick < birthTick) clickedTick = birthTick;
                 }
-                const IM: *FIX* = (window as *FIX*).InspectorMemory;
+                const IM: any = (window as any).InspectorMemory;
                 if (IM && typeof IM.openWeaverAtTick === 'function') {
                     IM.openWeaverAtTick(_state.charName, clickedTick, 'event');
                 }
@@ -2381,8 +2381,8 @@ const InspectorMindView = (() => {
                 if (_state) { _state.query = search.value; 
                     const list = _container?.querySelector('#mind-list');
                     const all2 = _memories();
-                    if (list) list.*FIX*= (_visible(all2).length
-                        ? _visible(all2).slice().reverse().map((m: *FIX*) => _cardHtml(m)).join('')
+                    if (list) list.innerHTML = (_visible(all2).length
+                        ? _visible(all2).slice().reverse().map((m: any) => _cardHtml(m)).join('')
                         : `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">nothing matches this view.</div>`);
                     _wireList();
                 }
@@ -2407,17 +2407,17 @@ const InspectorMindView = (() => {
                 _state.people = data.people || [];
                 _state.peopleStatus = 'ok';
                 const el = _container?.querySelector('#mind-people');
-                if (el) el.*FIX*= _peopleHtml();
+                if (el) el.innerHTML = _peopleHtml();
             })
             .catch(() => {
                 if (!_state) return;
                 _state.peopleStatus = 'error';
                 const el = _container?.querySelector('#mind-people');
-                if (el) el.*FIX*= _peopleHtml();
+                if (el) el.innerHTML = _peopleHtml();
             });
     }
 
-    const base = (window as *FIX*).InspectorView ? new (window as *FIX*).InspectorView() : {};
+    const base = (window as any).InspectorView ? new (window as any).InspectorView() : {};
     const M = Object.assign(base, {
         /**
          * Open the Memory Mind for a character. A snapshot of the live

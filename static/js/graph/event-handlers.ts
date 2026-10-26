@@ -154,7 +154,7 @@ const GraphEventHandlersModule = {
      */
     onAddNode(data: unknown, callback: (result: unknown) => void): void {
         callback(null);
-        openCreateModal('area', async (formData: Record<string, *FIX*>) => {
+        openCreateModal('area', async (formData: Record<string, any>) => {
             if (!formData.name) { toastInfo('Area name required'); return; }
             const res = await (ApiClient as unknown as EventHandlersApiClient).createRoom(formData);
             if (res.error) toastError('Error: ' + res.error);
@@ -183,7 +183,7 @@ const GraphEventHandlersModule = {
         const toNode: VisNode = graphManager.nodes.get(data.to);
         if (!fromNode || !toNode) { toastInfo('Invalid nodes.'); return; }
         if (fromNode.type === 'area' && toNode.type === 'area') {
-            openCreateModal('connection', async (formData: Record<string, *FIX*>) => {
+            openCreateModal('connection', async (formData: Record<string, any>) => {
             if (!formData.room1 || !formData.room2) { toastInfo('Select both areas'); return; }
             if (formData.room1 === formData.room2) { toastInfo('Pick two different areas.'); return; }
             const payload = {

@@ -23,11 +23,11 @@
             form?.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const text = input?.value.trim() || '';
-                const state = (window as *FIX*).CommonsState;
+                const state = (window as any).CommonsState;
                 if (!text || !state.selectedChannelId) return;
                 if (input) input.value = '';
                 try {
-                    const result = await (window as *FIX*).CommonsApi.postMessage(
+                    const result = await (window as any).CommonsApi.postMessage(
                         state.perspective, text, state.selectedChannelId
                     );
                     state.receiveMessage(result.message);
@@ -38,18 +38,18 @@
             });
 
             document.getElementById('commons-pause-btn')?.addEventListener('click', () => {
-                const state = (window as *FIX*).CommonsState;
+                const state = (window as any).CommonsState;
                 state.setPaused(!state.manualPaused, 'manual');
             });
             document.getElementById('commons-step-btn')?.addEventListener('click', () => {
-                void (window as *FIX*).CommonsAgent.stepOne();
+                void (window as any).CommonsAgent.stepOne();
             });
 
             perspective?.addEventListener('change', () => {
-                void (window as *FIX*).CommonsState.selectPerspective(perspective.value);
+                void (window as any).CommonsState.selectPerspective(perspective.value);
             });
             themeSelect?.addEventListener('change', async () => {
-                const state = (window as *FIX*).CommonsState;
+                const state = (window as any).CommonsState;
                 try {
                     await state.selectTheme(themeSelect.value);
                 } catch (error) {
@@ -59,7 +59,7 @@
             });
             channelList?.addEventListener('click', (event) => {
                 const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-channel-id]');
-                if (button) void (window as *FIX*).CommonsState.selectChannel(button.dataset.channelId || '');
+                if (button) void (window as any).CommonsState.selectChannel(button.dataset.channelId || '');
             });
 
             if (participantList) {
@@ -68,7 +68,7 @@
                     const randomButton = target.closest<HTMLButtonElement>('[data-role="pace-random"]');
                     const name = randomButton?.dataset.character;
                     if (name) {
-                        const pace = (window as *FIX*).CommonsAgent.randomizeTalkativeness(name, true);
+                        const pace = (window as any).CommonsAgent.randomizeTalkativeness(name, true);
                         const slider = participantList.querySelector<HTMLInputElement>(`input[data-role="pace"][data-character="${CSS.escape(name)}"]`);
                         if (slider) slider.value = String(pace);
                         const output = participantList.querySelector(`[data-pace-for="${CSS.escape(name)}"]`);
@@ -79,7 +79,7 @@
                     const button = target.closest<HTMLButtonElement>('[data-role="act"]');
                     const actName = button?.dataset.character;
                     if (actName) {
-                        void (window as *FIX*).CommonsAgent.stepOne(actName);
+                        void (window as any).CommonsAgent.stepOne(actName);
                     }
                 });
                 participantList.addEventListener('change', (event: Event) => {
@@ -88,13 +88,13 @@
                     if (!target || !name) return;
                     if (target.dataset.role === 'active') void this.toggleParticipant(name, { active: target.checked });
                     if (target.dataset.role === 'blocked') void this.toggleParticipant(name, { blocked: target.checked });
-                    if (target.dataset.role === 'pace') (window as *FIX*).CommonsAgent.setTalkativeness(name, target.value, true);
+                    if (target.dataset.role === 'pace') (window as any).CommonsAgent.setTalkativeness(name, target.value, true);
                 });
                 participantList.addEventListener('input', (event: Event) => {
                     const target = event.target as HTMLInputElement | null;
                     const name = target?.dataset.character;
                     if (!target || target.dataset.role !== 'pace' || !name) return;
-                    (window as *FIX*).CommonsAgent.setTalkativeness(name, target.value);
+                    (window as any).CommonsAgent.setTalkativeness(name, target.value);
                     const output = participantList.querySelector(`[data-pace-for="${CSS.escape(name)}"]`);
                     if (output) output.textContent = `${target.value}s`;
                     this.renderRateEstimate();
@@ -135,25 +135,25 @@
             });
 
             document.getElementById('commons-drawer-close')?.addEventListener('click', () => {
-                (window as *FIX*).CommonsState.closeDrawer();
+                (window as any).CommonsState.closeDrawer();
             });
             document.getElementById('commons-drawer-scrim')?.addEventListener('click', () => {
-                (window as *FIX*).CommonsState.closeDrawer();
+                (window as any).CommonsState.closeDrawer();
             });
             document.addEventListener('keydown', (e: KeyboardEvent) => {
-                if (e.key === 'Escape' && (window as *FIX*).CommonsState.selectedDrawerCharacter) {
-                    (window as *FIX*).CommonsState.closeDrawer();
+                if (e.key === 'Escape' && (window as any).CommonsState.selectedDrawerCharacter) {
+                    (window as any).CommonsState.closeDrawer();
                 }
             });
             document.addEventListener('click', (event: Event) => {
                 const trigger = (event.target as HTMLElement).closest<HTMLElement>('.commons-char-trigger');
                 const charName = trigger?.dataset.character;
                 if (charName && charName !== 'User') {
-                    (window as *FIX*).CommonsState.openDrawer(charName);
+                    (window as any).CommonsState.openDrawer(charName);
                 }
             });
 
-            (window as *FIX*).CommonsState.subscribe(() => this.render());
+            (window as any).CommonsState.subscribe(() => this.render());
         }
 
         static render() {
@@ -170,7 +170,7 @@
         }
 
         static renderTheme() {
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const townBoard = state.theme === 'town_board';
             const themeSelect = document.getElementById('commons-theme') as HTMLSelectElement | null;
             if (themeSelect) themeSelect.value = townBoard ? 'town_board' : 'live_social';
@@ -201,11 +201,11 @@
         static renderPerspective() {
             const select = document.getElementById('commons-perspective') as HTMLSelectElement | null;
             if (!select) return;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const names = ['User', ...Object.keys(state.participants || {}).filter((name: string) => name !== 'User')];
             const signature = names.join('\0');
             if (select.dataset.signature !== signature) {
-                select.*FIX*= names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+                select.innerHTML = names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
                 select.dataset.signature = signature;
             }
             select.value = state.perspective;
@@ -216,9 +216,9 @@
         static renderChannels() {
             const list = document.getElementById('commons-channel-list');
             if (!list) return;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const channels = state.channels || [];
-            list.*FIX*= channels.map((channel: *FIX*) => {
+            list.innerHTML = channels.map((channel: any) => {
                 const townBoard = state.theme === 'town_board';
                 const icon = channel.kind === 'public'
                     ? (townBoard ? '▤' : '#')
@@ -244,8 +244,8 @@
         }
 
         static renderConversation() {
-            const state = (window as *FIX*).CommonsState;
-            const channel = (state.channels || []).find((item: *FIX*) => item.id === state.selectedChannelId);
+            const state = (window as any).CommonsState;
+            const channel = (state.channels || []).find((item: any) => item.id === state.selectedChannelId);
             const title = document.getElementById('commons-channel-name');
             const subtitle = document.getElementById('commons-channel-subtitle');
             const avatar = document.getElementById('commons-channel-avatar');
@@ -261,8 +261,8 @@
                 if (subtitle) subtitle.textContent = 'Choose a conversation to open your inbox.';
                 if (avatar) avatar.textContent = '·';
                 if (count) count.textContent = '';
-                if (membersList) membersList.*FIX*= '';
-                if (editor) editor.*FIX*= '';
+                if (membersList) membersList.innerHTML = '';
+                if (editor) editor.innerHTML = '';
                 if (send) send.disabled = true;
                 if (input) input.disabled = true;
                 if (feed) feed.setAttribute('aria-label', townBoard ? 'Posts and letters' : 'Messages');
@@ -272,7 +272,7 @@
                 ? Object.keys(state.participants || {})
                 : (channel.members || []);
             const subtitleText = channel.kind === 'public'
-                ? (townBoard ? 'Public notice board · everyone can read and post' : 'Open conversation · *FIX*one can join')
+                ? (townBoard ? 'Public notice board · everyone can read and post' : 'Open conversation · anyone can join')
                 : channel.kind === 'group' ? `Private group · ${members.length} members`
                     : (townBoard ? 'Private letters · just the two of you' : 'Direct message · just the two of you');
             if (title) title.textContent = townBoard && channel.kind === 'public' ? 'Town notice board' : channel.name;
@@ -291,7 +291,7 @@
                 ? (channel.kind === 'public' ? 'Write a public notice…' : 'Write a private letter…')
                 : 'Write a message…';
             if (membersList) {
-                membersList.*FIX*= members.map((name: string, index: number) =>
+                membersList.innerHTML = members.map((name: string, index: number) =>
                     `<span class="commons-member-chip commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`
                 ).join('') || '<div class="commons-empty-note">No members listed.</div>';
             }
@@ -303,17 +303,17 @@
             if (input) input.disabled = !allowed;
         }
 
-        static renderMemberEditor(channel: *FIX*) {
+        static renderMemberEditor(channel: any) {
             const editor = document.getElementById('commons-member-editor');
             if (!editor) return;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             if (channel.kind !== 'group' || channel.created_by !== state.perspective) {
-                editor.*FIX*= '';
+                editor.innerHTML = '';
                 return;
             }
             const available = Object.keys(state.participants || {})
                 .filter((name: string) => !channel.members.includes(name));
-            editor.*FIX*= `<div class="commons-member-edit-title">Manage members</div>
+            editor.innerHTML = `<div class="commons-member-edit-title">Manage members</div>
                 <div class="commons-member-add-row"><select id="commons-member-to-add" class="commons-select" ${available.length ? '' : 'disabled'}>
                     ${available.map((name: string) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}
                 </select><button type="button" class="commons-small-btn" data-member-action="add" ${available.length ? '' : 'disabled'}>Add</button></div>
@@ -326,16 +326,16 @@
             const feed = document.getElementById('commons-feed');
             if (!feed) return;
             const wasNearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 90;
-            const messages = (window as *FIX*).CommonsState.messages || [];
-            feed.*FIX*= messages.map((message: *FIX*) => {
-                const own = message.author === (window as *FIX*).CommonsState.perspective;
+            const messages = (window as any).CommonsState.messages || [];
+            feed.innerHTML = messages.map((message: any) => {
+                const own = message.author === (window as any).CommonsState.perspective;
                 const time = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 return `<article class="chat-msg ${own ? 'own' : ''}">
                     <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>
                     <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time></div>
                     <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>
                 </article>`;
-            }).join('') || ((window as *FIX*).CommonsState.theme === 'town_board'
+            }).join('') || ((window as any).CommonsState.theme === 'town_board'
                 ? `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Leave a notice or write a private letter.</p></div>`
                 : `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Send a note, ask a question, or let the conversation find its way.</p></div>`);
             if (wasNearBottom) feed.scrollTop = feed.scrollHeight;
@@ -346,14 +346,14 @@
             if (!list) return;
             const activeElement = document.activeElement as HTMLElement | null;
             if (activeElement && list.contains(activeElement) && activeElement.matches('input')) return;
-            const participants = (window as *FIX*).CommonsState.participants || {};
+            const participants = (window as any).CommonsState.participants || {};
             const names = Object.keys(participants).filter(name => name !== 'User');
-            if ((window as *FIX*).Lit?.html && (window as *FIX*).Lit?.render) {
-                const lit = (window as *FIX*).Lit;
+            if ((window as any).Lit?.html && (window as any).Lit?.render) {
+                const lit = (window as any).Lit;
                 const itemsTmpl = names.map(name => {
                     const participant = participants[name];
-                    const pace = (window as *FIX*).CommonsAgent.getTalkativeness(name);
-                    const isActing = Boolean((window as *FIX*).CommonsAgent.controllers?.[name]);
+                    const pace = (window as any).CommonsAgent.getTalkativeness(name);
+                    const isActing = Boolean((window as any).CommonsAgent.controllers?.[name]);
                     const controlMode = participant.control_mode || 'unavailable';
                     const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
                     const canUseLlm = controlMode === 'llm';
@@ -375,10 +375,10 @@
                 });
                 lit.render(lit.html`${itemsTmpl}`, list);
             } else {
-                list.*FIX*= names.map(name => {
+                list.innerHTML = names.map(name => {
                     const participant = participants[name];
-                    const pace = (window as *FIX*).CommonsAgent.getTalkativeness(name);
-                    const isActing = Boolean((window as *FIX*).CommonsAgent.controllers?.[name]);
+                    const pace = (window as any).CommonsAgent.getTalkativeness(name);
+                    const isActing = Boolean((window as any).CommonsAgent.controllers?.[name]);
                     const controlMode = participant.control_mode || 'unavailable';
                     const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
                     const canUseLlm = controlMode === 'llm';
@@ -398,10 +398,10 @@
 
         static renderGroupRoster() {
             const roster = document.getElementById('commons-group-roster');
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             if (!roster) return;
             const names = Object.keys(state.participants || {}).filter((name: string) => name !== 'User' && name !== state.perspective);
-            roster.*FIX*= names.map((name: string) => `<label class="commons-roster-option">
+            roster.innerHTML = names.map((name: string) => `<label class="commons-roster-option">
                 <input type="checkbox" value="${escapeHtml(name)}"><span class="commons-member-avatar avatar-${hash(name) % 6}">${escapeHtml(initials(name))}</span><span>${escapeHtml(name)}</span></label>`).join('');
             const error = document.getElementById('commons-group-error');
             if (error) error.textContent = '';
@@ -409,7 +409,7 @@
 
         static renderDmRecipients() {
             const select = document.getElementById('commons-dm-recipient') as HTMLSelectElement | null;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             if (!select) return;
             let eligibleNames: string[] = [];
             if (state.perspective === 'User') {
@@ -419,22 +419,22 @@
                 eligibleNames = known.filter((name: string) => name !== 'User' && name !== state.perspective);
             }
             if (eligibleNames.length === 0) {
-                select.*FIX*= '<option value="" disabled selected>No known characters to contact</option>';
+                select.innerHTML = '<option value="" disabled selected>No known characters to contact</option>';
             } else {
-                select.*FIX*= eligibleNames.map((name: string) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+                select.innerHTML = eligibleNames.map((name: string) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
             }
             const error = document.getElementById('commons-dm-error');
             if (error) error.textContent = '';
         }
 
         static async createGroup(dialog: HTMLDialogElement | null) {
-            if ((window as *FIX*).CommonsState.theme === 'town_board') return;
-            const state = (window as *FIX*).CommonsState;
+            if ((window as any).CommonsState.theme === 'town_board') return;
+            const state = (window as any).CommonsState;
             const name = (document.getElementById('commons-group-name') as HTMLInputElement | null)?.value.trim() || '';
             const selected = [...(document.querySelectorAll('#commons-group-roster input:checked') as NodeListOf<HTMLInputElement>)]
                 .map((input) => input.value);
             try {
-                const result = await (window as *FIX*).CommonsApi.createChannel({
+                const result = await (window as any).CommonsApi.createChannel({
                     creator: state.perspective, kind: 'group', name,
                     members: [state.perspective, ...selected],
                 });
@@ -449,10 +449,10 @@
         }
 
         static async createDm(dialog: HTMLDialogElement | null) {
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const recipient = (document.getElementById('commons-dm-recipient') as HTMLSelectElement | null)?.value || '';
             try {
-                const result = await (window as *FIX*).CommonsApi.createChannel({
+                const result = await (window as any).CommonsApi.createChannel({
                     creator: state.perspective, kind: 'dm', other: recipient,
                 });
                 dialog?.close();
@@ -465,11 +465,11 @@
         }
 
         static async changeMember(name: string, add: boolean) {
-            const state = (window as *FIX*).CommonsState;
-            const channel = (state.channels || []).find((item: *FIX*) => item.id === state.selectedChannelId);
+            const state = (window as any).CommonsState;
+            const channel = (state.channels || []).find((item: any) => item.id === state.selectedChannelId);
             if (!channel) return;
             try {
-                await (window as *FIX*).CommonsApi.updateMembers(
+                await (window as any).CommonsApi.updateMembers(
                     channel.id, state.perspective, add ? [name] : [], add ? [] : [name]
                 );
                 await state.sync();
@@ -479,29 +479,29 @@
         }
 
         static async toggleParticipant(name: string, change: { active?: boolean; blocked?: boolean }) {
-            await (window as *FIX*).CommonsApi.updateParticipant(name, change.active, change.blocked);
-            const state = (window as *FIX*).CommonsState;
+            await (window as any).CommonsApi.updateParticipant(name, change.active, change.blocked);
+            const state = (window as any).CommonsState;
             await state.sync();
-            (window as *FIX*).CommonsAgent.resetTimer(name);
+            (window as any).CommonsAgent.resetTimer(name);
         }
 
         static renderRateEstimate() {
             const estimate = document.getElementById('commons-rate-estimate');
             if (!estimate) return;
-            const participants = (window as *FIX*).CommonsState.participants || {};
+            const participants = (window as any).CommonsState.participants || {};
             const active = Object.keys(participants).filter(name => name !== 'User' && participants[name].control_mode === 'llm' && participants[name].active && !participants[name].blocked);
-            const perMinute = active.reduce((sum, name) => sum + 60 / (window as *FIX*).CommonsAgent.getTalkativeness(name), 0);
+            const perMinute = active.reduce((sum, name) => sum + 60 / (window as any).CommonsAgent.getTalkativeness(name), 0);
             estimate.textContent = `${active.length} active · about ${perMinute.toFixed(1)} scheduled turns/min`;
         }
 
         static renderPauseState() {
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const pause = document.getElementById('commons-pause-btn');
             const chip = document.getElementById('commons-status-chip');
             const step = document.getElementById('commons-step-btn') as HTMLButtonElement | null;
             if (pause) pause.textContent = state.isPaused ? '▶ Resume' : '⏸ Pause';
 
-            const actingNames = Object.keys((window as *FIX*).CommonsAgent?.controllers || {});
+            const actingNames = Object.keys((window as any).CommonsAgent?.controllers || {});
             if (chip) {
                 if (actingNames.length > 0) {
                     chip.textContent = `${actingNames[0]} thinking...`;
@@ -520,7 +520,7 @@
         static renderActorChip() {
             const chip = document.getElementById('commons-actor-chip');
             if (!chip) return;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const acting = state.actingCharacter;
             if (acting) {
                 chip.textContent = `Acting: ${acting}...`;
@@ -538,7 +538,7 @@
             const drawer = document.getElementById('commons-inner-drawer');
             const scrim = document.getElementById('commons-drawer-scrim');
             if (!drawer || !scrim) return;
-            const state = (window as *FIX*).CommonsState;
+            const state = (window as any).CommonsState;
             const charName = state.selectedDrawerCharacter;
             if (!charName) {
                 drawer.hidden = true;
@@ -563,17 +563,17 @@
                 avatarEl.className = `commons-drawer-avatar avatar-${hash(charName) % 6}`;
             }
 
-            const isActing = Boolean((window as *FIX*).CommonsAgent?.controllers?.[charName]);
+            const isActing = Boolean((window as any).CommonsAgent?.controllers?.[charName]);
             if (presenceEl) {
                 const statusText = isActing ? 'Thinking right now...' : 'In conversation';
-                if ((window as *FIX*).Lit?.html && (window as *FIX*).UiPrimitives?.StatusBadge) {
-                    const badge = (window as *FIX*).UiPrimitives.StatusBadge({
+                if ((window as any).Lit?.html && (window as any).UiPrimitives?.StatusBadge) {
+                    const badge = (window as any).UiPrimitives.StatusBadge({
                         label: statusText,
                         color: isActing ? '#3b82f6' : '#22c55e',
                         icon: isActing ? '💭' : '🟢',
                         active: true
                     });
-                    (window as *FIX*).Lit.render(badge, presenceEl);
+                    (window as any).Lit.render(badge, presenceEl);
                 } else {
                     presenceEl.textContent = statusText;
                     presenceEl.className = `commons-drawer-presence ${isActing ? 'thinking' : 'active'}`;
@@ -582,9 +582,9 @@
 
             // Fetch or get context
             let context = state.characterContextCache?.[charName];
-            if (!context && (window as *FIX*).CommonsApi?.getCharacterContext) {
+            if (!context && (window as any).CommonsApi?.getCharacterContext) {
                 try {
-                    context = await (window as *FIX*).CommonsApi.getCharacterContext(charName);
+                    context = await (window as any).CommonsApi.getCharacterContext(charName);
                     state.characterContextCache[charName] = context;
                 } catch (e) {}
             }
@@ -594,14 +594,14 @@
             }
             if (traitsEl) {
                 const traitKeys = Object.keys(context?.traits || {}).filter(k => context.traits[k]);
-                if ((window as *FIX*).Lit?.html && (window as *FIX*).UiPrimitives?.StatusBadge) {
-                    const badges = traitKeys.map((t: string) => (window as *FIX*).UiPrimitives.StatusBadge({
+                if ((window as any).Lit?.html && (window as any).UiPrimitives?.StatusBadge) {
+                    const badges = traitKeys.map((t: string) => (window as any).UiPrimitives.StatusBadge({
                         label: t,
                         color: 'var(--bg-inset, #242a33)'
                     }));
-                    (window as *FIX*).Lit.render((window as *FIX*).Lit.html`${badges}`, traitsEl);
+                    (window as any).Lit.render((window as any).Lit.html`${badges}`, traitsEl);
                 } else {
-                    traitsEl.*FIX*= traitKeys.map((t: string) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
+                    traitsEl.innerHTML = traitKeys.map((t: string) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
                 }
             }
 
@@ -610,16 +610,16 @@
             const latest = turns[0];
             if (monologueEl) {
                 if (latest?.inner) {
-                    monologueEl.*FIX*= `<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
+                    monologueEl.innerHTML = `<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
                     <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`;
                 } else {
-                    monologueEl.*FIX*= `<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`;
+                    monologueEl.innerHTML = `<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`;
                 }
             }
 
             if (decisionEl) {
                 if (latest) {
-                    decisionEl.*FIX*= `<div class="commons-decision-card">
+                    decisionEl.innerHTML = `<div class="commons-decision-card">
                         <div class="commons-decision-header">
                             <span class="commons-decision-action ${escapeHtml(latest.action)}">${escapeHtml(latest.action.replace('_', ' '))}</span>
                             <span class="commons-decision-summary">${escapeHtml(latest.summary)}</span>
@@ -627,13 +627,13 @@
                         ${latest.detail?.text ? `<div class="commons-decision-text">"${escapeHtml(latest.detail.text)}"</div>` : ''}
                     </div>`;
                 } else {
-                    decisionEl.*FIX*= `<div class="commons-drawer-empty-state">No recent decisions.</div>`;
+                    decisionEl.innerHTML = `<div class="commons-drawer-empty-state">No recent decisions.</div>`;
                 }
             }
 
             if (historyEl) {
                 if (turns.length > 1) {
-                    historyEl.*FIX*= turns.slice(1, 8).map((t: *FIX*) => `
+                    historyEl.innerHTML = turns.slice(1, 8).map((t: any) => `
                         <div class="commons-history-row">
                             <div class="commons-history-header">
                                 <span class="commons-decision-action small ${escapeHtml(t.action)}">${escapeHtml(t.action.replace('_', ' '))}</span>
@@ -643,7 +643,7 @@
                         </div>
                     `).join('');
                 } else {
-                    historyEl.*FIX*= `<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`;
+                    historyEl.innerHTML = `<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`;
                 }
             }
         }
@@ -661,5 +661,5 @@
         return [...String(value || '')].reduce((total, character) => total + character.charCodeAt(0), 0);
     }
 
-    (window as *FIX*).CommonsUI = CommonsUI;
+    (window as any).CommonsUI = CommonsUI;
 })();

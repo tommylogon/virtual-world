@@ -149,7 +149,7 @@ class ContextWindowManager {
         const sorted = Array.from(keepIndices).sort((a, b) => a - b);
         // The leading system prompt is always kept, so gating the marker on
         // "index 0 was dropped" meant it was never emitted and the model lost
-        // context with no signal. Emit it whenever *FIX*thing was omitted.
+        // context with no signal. Emit it whenever anything was omitted.
         const leadingSystemKept = sorted.length > 0 && sorted[0] === 0;
         const omitted = messages.length - sorted.length;
         const pruned: ContextMessage[] = [];

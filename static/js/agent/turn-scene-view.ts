@@ -341,12 +341,12 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         const who = person.display_name;
 
         // Speaking to someone is two different things, so the menu offers both:
-        //   · Whisper to them  -  directed. Only they hear it, plus *FIX*one standing
+        //   · Whisper to them  -  directed. Only they hear it, plus anyone standing
         //     close enough to be "at" you who is a friend or better (the engine's
         //     whisper audience, engine/speech.py). Use it for a secret.
         //   · Say it aloud  -  undirected. Everyone in the area hears it, exactly
         //     as if you had simply spoken. This is the "the whole room can hear"
-        //     option, and it is NOT addressed to this person in *FIX* way.
+        //     option, and it is NOT addressed to this person in any way.
         const menus: MenuButton[] = [
             applyBudgetGate({ label: `Whisper to ${who}`, talk: true, volume: 'whisper', target: who }, 'whisper', s),
             applyBudgetGate({ label: `Say aloud (everyone hears)`, talk: true, volume: 'say' }, 'say', s),

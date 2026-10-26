@@ -41,15 +41,15 @@ const PlanManager = (() => {
     /** PlanGrounding (agent/plan-grounding.js) — task-700's grounding validator. */
     interface PlanGroundingApi {
         ACTS: Set<string>;
-        collectFacts(charName: string, state: *FIX*, player: *FIX*, areaName: string): {
+        collectFacts(charName: string, state: any, player: any, areaName: string): {
             areaItems: string[]; carried: string[]; people: string[];
             exits: string[]; knownAreas: string[];
         };
-        ground(steps: *FIX*[], facts: *FIX*, areaName: string): {
-            grounded: Array<{ step: *FIX*; text: string; index: number }>;
-            rejections: Array<{ step: *FIX*; reason: string; index: number }>;
+        ground(steps: any[], facts: any, areaName: string): {
+            grounded: Array<{ step: any; text: string; index: number }>;
+            rejections: Array<{ step: any; reason: string; index: number }>;
         };
-        render(step: *FIX*): string;
+        render(step: any): string;
     }
 
     function _planGrounding(): PlanGroundingApi | undefined {
@@ -89,9 +89,9 @@ const PlanManager = (() => {
      */
     function _buildRepairPrompt(
         grounding: PlanGroundingApi,
-        originalSteps: *FIX*[],
-        grounded: Array<{ step: *FIX*; text: string; index: number }>,
-        rejections: Array<{ step: *FIX*; reason: string; index: number }>,
+        originalSteps: any[],
+        grounded: Array<{ step: any; text: string; index: number }>,
+        rejections: Array<{ step: any; reason: string; index: number }>,
         facts: { areaItems: string[]; carried: string[]; people: string[]; exits: string[]; knownAreas: string[] },
     ): string {
         const reasonByIndex = new Map<number, string>();
@@ -130,22 +130,22 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
      * merged plan is re-grounded end to end before it is accepted.
      */
     function _mergeWithPreserved(
-        repairedGrounded: Array<{ step: *FIX*; text: string; index: number }>,
-        originalSteps: *FIX*[],
-        originalGrounded: Array<{ step: *FIX*; text: string; index: number }>,
+        repairedGrounded: Array<{ step: any; text: string; index: number }>,
+        originalSteps: any[],
+        originalGrounded: Array<{ step: any; text: string; index: number }>,
         grounding: PlanGroundingApi,
-        facts: *FIX*,
+        facts: any,
         areaName: string,
-    ): Array<{ step: *FIX*; text: string }> {
+    ): Array<{ step: any; text: string }> {
         if (!originalSteps.length) {
-            return repairedGrounded.map((g: { step: *FIX*; text: string }) => ({ step: g.step, text: g.text }));
+            return repairedGrounded.map((g: { step: any; text: string }) => ({ step: g.step, text: g.text }));
         }
-        const okByIndex = new Map<number, { step: *FIX*; text: string }>();
+        const okByIndex = new Map<number, { step: any; text: string }>();
         for (const g of originalGrounded) okByIndex.set(g.index, { step: g.step, text: g.text });
-        const repairedByIndex = new Map<number, { step: *FIX*; text: string }>();
+        const repairedByIndex = new Map<number, { step: any; text: string }>();
         for (const g of repairedGrounded) repairedByIndex.set(g.index, { step: g.step, text: g.text });
         const usedRepaired = new Set<number>();
-        const merged: Array<{ step: *FIX*; text: string }> = [];
+        const merged: Array<{ step: any; text: string }> = [];
 
         for (let i = 0; i < originalSteps.length; i++) {
             const ok = okByIndex.get(i);
@@ -167,7 +167,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
                 continue;
             }
             // Otherwise take the first unused repaired step that grounds.
-            let picked: { step: *FIX*; text: string } | null = null;
+            let picked: { step: any; text: string } | null = null;
             for (const g of repairedGrounded) {
                 if (usedRepaired.has(g.index)) continue;
                 picked = { step: g.step, text: g.text };
@@ -188,8 +188,8 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             merged.push({ step: g.step, text: g.text });
         }
         // Final validation: the whole merged plan must ground.
-        const validated = grounding.ground(merged.map((m: { step: *FIX* }) => m.step), facts, areaName);
-        return validated.grounded.map((g: { step: *FIX*; text: string }) => ({ step: g.step, text: g.text }));
+        const validated = grounding.ground(merged.map((m: { step: any }) => m.step), facts, areaName);
+        return validated.grounded.map((g: { step: any; text: string }) => ({ step: g.step, text: g.text }));
     }
 
     /**
@@ -302,8 +302,8 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
             // (with the fact list) to the LLM once; whatever still does not
             // ground is dropped, never executed.
             let groundingBlock = '';
-            let originalSteps: *FIX*[] = [];
-            let originalGrounded: Array<{ step: *FIX*; text: string; index: number }> = [];
+            let originalSteps: any[] = [];
+            let originalGrounded: Array<{ step: any; text: string; index: number }> = [];
             for (let attempt = 0; attempt < 2; attempt++) {
                 // max_tokens 560: a live run truncated a typed re-composition
                 // mid-JSON at 300 and the turn ran planless.
@@ -312,7 +312,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                 let cleaned = _repairJSON(response);
                 const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
                 if (codeBlockMatch) cleaned = codeBlockMatch[1].trim();
-                let parsed: *FIX* = null;
+                let parsed: any = null;
                 try {
                     parsed = JSON.parse(cleaned);
                 } catch {
@@ -332,7 +332,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
 
                 // Legacy prose contract ({"steps": ["..."]}) — accepted as fallback.
                 const legacy = rawSteps.filter((s: unknown) => typeof s === 'string') as string[];
-                const typed = rawSteps.filter((s: unknown) => s && typeof s === 'object') as *FIX*[];
+                const typed = rawSteps.filter((s: unknown) => s && typeof s === 'object') as any[];
                 if (legacy.length && !typed.length) return legacy.slice(0, 5);
                 if (!typed.length) return [];
 
@@ -385,7 +385,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
         let cleaned = _repairJSON(response);
         const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
         if (codeBlockMatch) cleaned = codeBlockMatch[1].trim();
-        let parsed: *FIX*;
+        let parsed: any;
         try {
             parsed = JSON.parse(cleaned);
         } catch {
@@ -397,7 +397,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
         const steps = arr.filter((s: unknown) => typeof s === 'string').slice(0, 5);
         if (steps.length > 0) return steps as string[];
         if (typeof arr[0] === 'object' && arr[0] !== null) {
-            const objs = (arr as *FIX*[]).map((e: *FIX*) => e.examine || e.action || e.step || '').filter(Boolean).slice(0, 5);
+            const objs = (arr as any[]).map((e: any) => e.examine || e.action || e.step || '').filter(Boolean).slice(0, 5);
             if (objs.length) return objs as string[];
         }
         return [];
@@ -409,8 +409,8 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
      * live run (kraktooth, Rikka) hit max_tokens mid-string and the whole
      * plan was lost, leaving the character to act with no plan at all.
      */
-    function _salvageTypedSteps(cleaned: string): *FIX*[] {
-        const out: *FIX*[] = [];
+    function _salvageTypedSteps(cleaned: string): any[] {
+        const out: any[] = [];
         const objs = cleaned.match(/\{[^{}]*\}/g) || [];
         for (const chunk of objs) {
             try {

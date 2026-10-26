@@ -20,17 +20,17 @@
      * so this reads the real singleton rather than fighting a stale shape at 25
      * call sites.
      */
-    const S = window.SoakState as *FIX*;
+    const S = window.SoakState as any;
     const ST = window.SoakSpacetime;
     /**
      * Every element in the soak dashboard is reached through this one helper, and
      * the call sites read `.value` / `.checked` / `.innerHTML` / `.textContent`
      * / `.hidden` straight off the result - none of which `Element` declares, and
      * 147 sites are guarded only by an `if (!box) return;` a few lines up. The ids
-     * are this file's own markup constants, so `*FIX*` is the honest annotation:
+     * are this file's own markup constants, so `any` is the honest annotation:
      * it keeps each call site a one-liner instead of a cast per property.
      */
-    const el = (id: string): *FIX* => document.getElementById(id);
+    const el = (id: string): any => document.getElementById(id);
     const esc = F.esc;
 
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => {
@@ -53,7 +53,7 @@
         if (window.Lit?.render) {
             window.Lit.render(template, container);
         } else if (typeof template === 'string') {
-            (container as HTMLElement).*FIX*= template;
+            (container as HTMLElement).innerHTML = template;
         }
     };
 
@@ -95,13 +95,13 @@
         charSelected: null as string | null,
         trackVitals: null as string[] | null,
         lastDeathCount: 0,
-        compareData: null as *FIX*,
+        compareData: null as any,
     };
 
     /**
-     * `globals.d.ts` declares `SoakSpacetime` as `*FIX*`, so whyOverTime()'s return
+     * `globals.d.ts` declares `SoakSpacetime` as `any`, so whyOverTime()'s return
      * shape is invisible here. These two state the contract renderWhyStack()
-     * actually depends on, rather than letting `*FIX*` propagate into the stacking
+     * actually depends on, rather than letting `any` propagate into the stacking
      * arithmetic below - `series.groups` drives the loop, `series.series.get()`
      * is assumed present for every group, and `series.buckets` sizes the totals.
      */
@@ -119,9 +119,9 @@
     type SoakUiVitalSeries = {
         name: string;
         color: string;
-        points: *FIX*[];
+        points: any[];
         width: number;
-        area?: { lower: *FIX*[]; upper: *FIX*[] };
+        area?: { lower: any[]; upper: any[] };
     };
 
     /**
@@ -184,19 +184,19 @@
         a.remove();
     }
 
-    function data(): *FIX* { return S.selected(); }
-    function meta(): *FIX* { return S.state.meta || {}; }
-    function scenarioInfo(path: string): *FIX* {
-        return (meta().scenarios || []).find((s: *FIX*) => s.path === path) || {};
+    function data(): any { return S.selected(); }
+    function meta(): any { return S.state.meta || {}; }
+    function scenarioInfo(path: string): any {
+        return (meta().scenarios || []).find((s: any) => s.path === path) || {};
     }
-    function minutesPerTick(config: *FIX*): number {
+    function minutesPerTick(config: any): number {
         const chosen = Number((config || ({} as ConfigManager)).minutes_per_tick);
         if (chosen > 0) return chosen;
         const s = scenarioInfo((config || ({} as ConfigManager)).scenario);
         const m = Number(s.minutes_per_tick);
         return m > 0 ? m : 1;
     }
-    function gameSpan(ticks: number, config: *FIX*): string {
+    function gameSpan(ticks: number, config: any): string {
         const total = Math.max(0, ticks || 0) * minutesPerTick(config);
         const days = Math.floor(total / 1440);
         const hours = Math.floor((total % 1440) / 60);
@@ -210,7 +210,7 @@
         const sel = el('soak-scenario');
         if (!sel) return;
         const current = S.getConfig().scenario;
-        const options = (meta().scenarios || []).map((s: *FIX*) => {
+        const options = (meta().scenarios || []).map((s: any) => {
             const bits = [];
             if (s.characters != null) bits.push(`${s.characters} chars`);
             if (s.minutes_per_tick) bits.push(`${s.minutes_per_tick} min/tick`);
@@ -222,7 +222,7 @@
         renderLit(htmlTag`${options}`, sel);
     }
 
-    function setForm(config: *FIX*): void {
+    function setForm(config: any): void {
         const c = config || S.getConfig();
         el('soak-scenario').value = c.scenario;
         el('soak-ticks').value = c.ticks;
@@ -245,7 +245,7 @@
         updateHorizon();
     }
 
-    function stringifyMap(value: *FIX*): string {
+    function stringifyMap(value: any): string {
         if (!value) return '';
         if (typeof value === 'string') return value;
         return Object.keys(value).map((k) => `${k}=${value[k]}`).join(',');
@@ -276,7 +276,7 @@
         };
     }
 
-    function applyConfig(config: *FIX*): void {
+    function applyConfig(config: any): void {
         S.setConfig(config);
         setForm(config);
     }
@@ -305,7 +305,7 @@
             </button>`;
         });
         renderLit(htmlTag`${chips}`, box);
-        box.querySelectorAll('[data-vital]').forEach((btn: *FIX*) => {
+        box.querySelectorAll('[data-vital]').forEach((btn: any) => {
             btn.addEventListener('click', () => {
                 const v = btn.getAttribute('data-vital');
                 if (track.includes(v)) track = track.filter((x) => x !== v);
@@ -329,7 +329,7 @@
     function renderPresets() {
         const box = el('soak-presets');
         if (!box) return;
-        const presets = P.PRESETS.map((p: *FIX*) => htmlTag`<button type="button" class="soak-preset" data-preset="${p.id}">
+        const presets = P.PRESETS.map((p: any) => htmlTag`<button type="button" class="soak-preset" data-preset="${p.id}">
             <span class="soak-preset-icon">${p.icon}</span>
             <span>
                 <span class="soak-preset-name">${p.name}</span>
@@ -337,9 +337,9 @@
             </span>
         </button>`);
         renderLit(htmlTag`${presets}`, box);
-        box.querySelectorAll('[data-preset]').forEach((btn: *FIX*) => {
+        box.querySelectorAll('[data-preset]').forEach((btn: any) => {
             btn.addEventListener('click', () => {
-                const preset = P.PRESETS.find((p: *FIX*) => p.id === btn.getAttribute('data-preset'));
+                const preset = P.PRESETS.find((p: any) => p.id === btn.getAttribute('data-preset'));
                 if (!preset) return;
                 applyConfig(P.resolve(preset, S.getConfig(), meta().defaults));
                 toast(`Preset applied: ${preset.name}`, 'info', 2200);
@@ -355,18 +355,18 @@
             renderLit(htmlTag`<div class="soak-hint">No saved configs yet.</div>`, box);
             return;
         }
-        const savedItems = list.map((item: *FIX*, idx: number) => htmlTag`<div class="soak-saved">
+        const savedItems = list.map((item: any, idx: number) => htmlTag`<div class="soak-saved">
             <span class="name" data-load="${idx}" title="${item.name}">💾 ${item.name}</span>
             <button type="button" data-del="${idx}" title="Delete">✕</button>
         </div>`);
         renderLit(htmlTag`${savedItems}`, box);
-        box.querySelectorAll('[data-load]').forEach((node: *FIX*) => {
+        box.querySelectorAll('[data-load]').forEach((node: any) => {
             node.addEventListener('click', () => {
                 const item = P.loadSaved()[Number(node.getAttribute('data-load'))];
                 if (item) { applyConfig(Object.assign({}, meta().defaults, item.config)); toast('Config loaded', 'info', 2000); }
             });
         });
-        box.querySelectorAll('[data-del]').forEach((node: *FIX*) => {
+        box.querySelectorAll('[data-del]').forEach((node: any) => {
             node.addEventListener('click', () => {
                 P.removeSaved(Number(node.getAttribute('data-del')));
                 renderSaved();
@@ -412,7 +412,7 @@
             renderLit(htmlTag`<div class="soak-hint">No runs yet this session.</div>`, box);
             return;
         }
-        const runItems = runs.map((r: *FIX*) => {
+        const runItems = runs.map((r: any) => {
             const selected = r.id === S.state.selectedRunId ? ' selected' : '';
             const frac = Math.round((r.progress_frac || 0) * 100);
             return htmlTag`<div class="soak-run${selected}" data-run="${r.id}">
@@ -431,14 +431,14 @@
             </div>`;
         });
         renderLit(htmlTag`${runItems}`, box);
-        box.querySelectorAll('[data-run]').forEach((node: *FIX*) => {
-            node.addEventListener('click', (ev: *FIX*) => {
+        box.querySelectorAll('[data-run]').forEach((node: any) => {
+            node.addEventListener('click', (ev: any) => {
                 if (ev.target.getAttribute('data-del')) return;
-                S.selectRun(node.getAttribute('data-run')).catch((e: *FIX*) => toast(e.message, 'error'));
+                S.selectRun(node.getAttribute('data-run')).catch((e: any) => toast(e.message, 'error'));
             });
         });
-        box.querySelectorAll('[data-del]').forEach((node: *FIX*) => {
-            node.addEventListener('click', async (ev: *FIX*) => {
+        box.querySelectorAll('[data-del]').forEach((node: any) => {
+            node.addEventListener('click', async (ev: any) => {
                 ev.stopPropagation();
                 try { await S.removeRun(node.getAttribute('data-del')); }
                 catch (e) { toast((e as Error).message, 'error'); }
@@ -525,7 +525,7 @@
 
     // ─────────────────────────── chart helpers ───────────────────────────
 
-    function samples(): *FIX*[] { const d = data(); return (d && d.samples) || []; }
+    function samples(): any[] { const d = data(); return (d && d.samples) || []; }
     function charactersCount(): number {
         const d = data();
         if (d && d.progress && d.progress.characters) return d.progress.characters;
@@ -533,23 +533,23 @@
         return 0;
     }
 
-    function vitalSeries(stat: string, mode: string): *FIX*[] {
-        return samples().map((s: *FIX*) => {
+    function vitalSeries(stat: string, mode: string): any[] {
+        return samples().map((s: any) => {
             const agg = (s.vitals || {})[stat];
             return [s.tick, agg && agg[mode] != null ? agg[mode] : null];
         });
     }
 
-    function vitalBand(stat: string): { lower: *FIX*[]; upper: *FIX*[] } {
+    function vitalBand(stat: string): { lower: any[]; upper: any[] } {
         return {
-            lower: samples().map((s: *FIX*) => [s.tick, ((s.vitals || {})[stat] || {}).min]),
-            upper: samples().map((s: *FIX*) => [s.tick, ((s.vitals || {})[stat] || {}).max]),
+            lower: samples().map((s: any) => [s.tick, ((s.vitals || {})[stat] || {}).min]),
+            upper: samples().map((s: any) => [s.tick, ((s.vitals || {})[stat] || {}).max]),
         };
     }
 
-    function survivalPoints(): *FIX*[] {
+    function survivalPoints(): any[] {
         const total = charactersCount() || 1;
-        return samples().map((s: *FIX*) => [s.tick, (s.alive / total) * 100]);
+        return samples().map((s: any) => [s.tick, (s.alive / total) * 100]);
     }
 
     function deathsByCause(): Record<string, number> {
@@ -559,7 +559,7 @@
             return d.progress.deaths_by_cause;
         }
         const counts: Record<string, number> = {};
-        ((d && d.deaths) || []).forEach((x: *FIX*) => { counts[x.cause] = (counts[x.cause] || 0) + 1; });
+        ((d && d.deaths) || []).forEach((x: any) => { counts[x.cause] = (counts[x.cause] || 0) + 1; });
         return counts;
     }
 
@@ -567,7 +567,7 @@
         const d = data();
         if (d && d.report && d.report.summary && d.report.summary.death_by_area) return d.report.summary.death_by_area;
         const counts: Record<string, number> = {};
-        ((d && d.deaths) || []).forEach((x: *FIX*) => { const k = x.area || 'unknown'; counts[k] = (counts[k] || 0) + 1; });
+        ((d && d.deaths) || []).forEach((x: any) => { const k = x.area || 'unknown'; counts[k] = (counts[k] || 0) + 1; });
         return counts;
     }
 
@@ -591,7 +591,7 @@
 
         const vitalsLegend = el('soak-overview-vitals-legend');
         if (vitalsLegend) {
-            const legendItems = series.map((s: *FIX*) => htmlTag`<span class="soak-legend-item"><span class="soak-legend-swatch" style="background:${s.color}"></span>${s.name}</span>`);
+            const legendItems = series.map((s: any) => htmlTag`<span class="soak-legend-item"><span class="soak-legend-swatch" style="background:${s.color}"></span>${s.name}</span>`);
             renderLit(htmlTag`${legendItems}`, vitalsLegend);
         }
 
@@ -629,8 +629,8 @@
         const rows = samples();
         // The final sample of a wipe has no living characters, so its aggregate
         // vitals are empty - fall back to the last sample that still had data.
-        const first = rows.find((s: *FIX*) => Object.keys(s.vitals || {}).length);
-        let last: *FIX* = null;
+        const first = rows.find((s: any) => Object.keys(s.vitals || {}).length);
+        let last: any = null;
         for (let i = rows.length - 1; i >= 0; i -= 1) {
             if (Object.keys(rows[i].vitals || {}).length) { last = rows[i]; break; }
         }
@@ -711,7 +711,7 @@
         };
     }
 
-    function syncRangeInputs(payload: *FIX*): void {
+    function syncRangeInputs(payload: any): void {
         const run = (data() && data().run) || {};
         const last = Number(run.tick || 0);
         const minutes = Number(run.minutes_per_tick || 1) || 1;
@@ -730,7 +730,7 @@
     async function renderSpacetime() {
         const box = el('soak-st-lanes');
         if (!box) return;
-        let payload: *FIX*;
+        let payload: any;
         try {
             payload = await S.telemetry(false);
         } catch (e) {
@@ -770,7 +770,7 @@
             minutesPerTick: minutes,
             // Deaths for other characters would be drawn on a chart that no
             // longer contains them, so they are filtered with the rest.
-            deaths: solo ? deaths.filter((d: *FIX*) => d.name === ui.stCharacter) : deaths,
+            deaths: solo ? deaths.filter((d: any) => d.name === ui.stCharacter) : deaths,
             condition_spans: ribbons ? (shown.condition_spans || []) : [],
         })), box);
 
@@ -798,7 +798,7 @@
      * is about legibility, not performance - it draws fine, it just cannot be
      * read.
      */
-    function renderSpaceTimeDensity(layout: *FIX*): void {
+    function renderSpaceTimeDensity(layout: any): void {
         const box = el('soak-st-density');
         if (!box) return;
         if (layout.visibleIntervals <= 900) {
@@ -811,7 +811,7 @@
         );
     }
 
-    function renderSpaceTimeIntegrity(payload: *FIX*): void {
+    function renderSpaceTimeIntegrity(payload: any): void {
         const box = el('soak-st-integrity');
         if (!box) return;
         const integrity = payload.integrity || {};
@@ -844,7 +844,7 @@
         renderLit(htmlTag`${alertNodes}`, box);
     }
 
-    function renderSpaceTimeLegend(payload: *FIX*): void {
+    function renderSpaceTimeLegend(payload: any): void {
         const characters = payload.characters || [];
         const selected = ui.stCharacter;
         const box = el('soak-st-legend');
@@ -861,7 +861,7 @@
         renderLit(htmlTag`${clearBtn}${items}${more}`, box);
     }
 
-    function renderCollisions(collisions: *FIX*): void {
+    function renderCollisions(collisions: any): void {
         const box = el('soak-st-collisions');
         if (!box) return;
         const solo = ui.stCharacter;
@@ -876,15 +876,15 @@
         const heading = solo
             ? htmlTag`<div class="soak-hint" style="margin-bottom:6px">${solo} shared a room with - click a name to isolate them:</div>`
             : '';
-        const rows = collisions.map((row: *FIX*) => {
+        const rows = collisions.map((row: any) => {
             const pairs = row.pairs.slice(0, 5)
-                .map((p: *FIX*) => htmlTag`<div><button type="button" class="soak-link-btn" data-st-pair="${p.pair}">${p.pair}</button> <span class="soak-hint">${F.fmtInt(p.ticks)}t</span></div>`);
+                .map((p: any) => htmlTag`<div><button type="button" class="soak-link-btn" data-st-pair="${p.pair}">${p.pair}</button> <span class="soak-hint">${F.fmtInt(p.ticks)}t</span></div>`);
             return htmlTag`<tr><td>${row.area}</td><td class="soak-num">${F.fmtInt(row.ticks)}</td><td>${pairs}</td></tr>`;
         });
         renderLit(htmlTag`${heading}<table class="soak-table"><thead><tr><th>Area</th><th>Shared ticks</th><th>Who</th></tr></thead><tbody>${rows}</tbody></table>`, box);
     }
 
-    async function renderWhy(payload: *FIX*, range: *FIX*, minutes: number): Promise<void> {
+    async function renderWhy(payload: any, range: any, minutes: number): Promise<void> {
         const box = el('soak-st-why');
         if (!box) return;
         const why = payload.why || [];
@@ -898,15 +898,15 @@
         // The ranked distribution is the core panel, not an extra: `why` is the
         // only field that says which rule drove the behaviour, and without it the
         // view answers "who was where" but not "what decided it".
-        const groups = why.map((row: *FIX*) => row.group);
-        const total = why.reduce((sum: number, row: *FIX*) => sum + row.count, 0);
-        const rows = why.map((row: *FIX*) => htmlTag`<tr><td>${row.group}</td><td class="soak-num">${F.fmtInt(row.count)}</td><td class="soak-num">${F.pct(row.share, 0)}</td></tr>`);
+        const groups = why.map((row: any) => row.group);
+        const total = why.reduce((sum: number, row: any) => sum + row.count, 0);
+        const rows = why.map((row: any) => htmlTag`<tr><td>${row.group}</td><td class="soak-num">${F.fmtInt(row.count)}</td><td class="soak-num">${F.pct(row.share, 0)}</td></tr>`);
         const tableTmpl = htmlTag`<table class="soak-table soak-table-compact"><thead><tr><th>Rule</th><th>Actions</th><th>Share</th></tr></thead><tbody>${rows}</tbody></table>`;
 
         // Stacked over time, because a rule *starting to dominate* is the finding
         // a flat bar chart cannot show.
         let stack = '';
-        let stackEvents: *FIX*[] = [];
+        let stackEvents: any[] = [];
         try {
             const full = await S.telemetry(true);
             stackEvents = (full && full.events) || [];
@@ -919,7 +919,7 @@
         renderLit(htmlTag`${tableTmpl}${unsafeSvg(stack)}`, box);
         const legendBox = el('soak-st-why-legend');
         if (legendBox) {
-            const legendItems = why.map((row: *FIX*) => htmlTag`<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:${whyColor(row.group, groups)}"></i>${row.group} · ${F.fmtInt(row.count)}</span>`);
+            const legendItems = why.map((row: any) => htmlTag`<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:${whyColor(row.group, groups)}"></i>${row.group} · ${F.fmtInt(row.count)}</span>`);
             renderLit(htmlTag`${legendItems}`, legendBox);
         }
         const unattributed = payload.unattributed || 0;
@@ -992,7 +992,7 @@
         return `<div class="soak-why-stack">${svg}</div>`;
     }
 
-    function renderKinds(payload: *FIX*) {
+    function renderKinds(payload: any) {
         const kinds = payload.kinds || [];
         const box = el('soak-st-kinds');
         const legendBox = el('soak-st-kinds-legend');
@@ -1004,16 +1004,16 @@
         }
         const palette = ['#58a6ff', '#3fb950', '#e3b341', '#f85149', '#bc8cff', '#f778ba',
             '#56d4dd', '#d29922', '#7ee787', '#ff7b72'];
-        const slices = kinds.slice(0, 8).map((row: *FIX*, i: number) => ({
+        const slices = kinds.slice(0, 8).map((row: any, i: number) => ({
             label: row.kind, value: row.count, color: palette[i % palette.length],
         }));
         if (kinds.length > 8) {
-            const rest = kinds.slice(8).reduce((sum: number, row: *FIX*) => sum + row.count, 0);
+            const rest = kinds.slice(8).reduce((sum: number, row: any) => sum + row.count, 0);
             slices.push({ label: `${kinds.length - 8} more`, value: rest, color: '#6e7681' });
         }
         renderLit(unsafeSvg(C.renderDonut({ slices, size: 190, thickness: 28, centerLabel: 'actions' })), box);
         if (legendBox) {
-            const legendItems = kinds.slice(0, 8).map((row: *FIX*, i: number) => htmlTag`<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:${palette[i % palette.length]}"></i>${row.kind} · ${F.fmtInt(row.count)}</span>`);
+            const legendItems = kinds.slice(0, 8).map((row: any, i: number) => htmlTag`<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:${palette[i % palette.length]}"></i>${row.kind} · ${F.fmtInt(row.count)}</span>`);
             renderLit(htmlTag`${legendItems}`, legendBox);
         }
     }
@@ -1092,7 +1092,7 @@
             </button>`;
         });
         renderLit(htmlTag`${chips}`, box);
-        box.querySelectorAll('[data-vital]').forEach((btn: *FIX*) => {
+        box.querySelectorAll('[data-vital]').forEach((btn: any) => {
             btn.addEventListener('click', () => {
                 const v = btn.getAttribute('data-vital');
                 if (activeVitals().includes(v)) {
@@ -1140,7 +1140,7 @@
             yDomain: [0, 100], yLabel: '% alive', xLabel: 'ticks',
             yFormat: (v: number) => `${Math.round(v)}%`, emptyText: 'Waiting for samples…',
         })), el('soak-survival-chart'));
-        const deathTicks = ((data() && data().deaths) || []).map((d: *FIX*) => d.tick);
+        const deathTicks = ((data() && data().deaths) || []).map((d: any) => d.tick);
         renderLit(unsafeSvg(C.renderVerticalBars({
             width: panelWidth() / 2 - 20, height: 240,
             items: C.histogram(deathTicks, 12),
@@ -1151,7 +1151,7 @@
 
     function renderDeathsTable() {
         const d = data() || {};
-        const deaths = (d.deaths || []).filter((x: *FIX*) => {
+        const deaths = (d.deaths || []).filter((x: any) => {
             if (!ui.deathSearch) return true;
             const q = ui.deathSearch.toLowerCase();
             return `${x.name} ${x.cause} ${x.area}`.toLowerCase().includes(q);
@@ -1163,7 +1163,7 @@
             renderLit(htmlTag`<div class="soak-hint">No deaths match.</div>`, box);
             return;
         }
-        const rows = deaths.map((x: *FIX*) => htmlTag`<tr>
+        const rows = deaths.map((x: any) => htmlTag`<tr>
             <td>${x.game_span}</td>
             <td>${F.fmtInt(x.tick)}</td>
             <td>${x.name}</td>
@@ -1173,7 +1173,7 @@
             <td>${F.fmtNum(x.thirst)}</td>
             <td>${F.fmtNum(x.energy)}</td>
             <td>${F.fmtNum(x.hp)}</td>
-            <td>${(x.tags || []).slice(0, 4).map((t: *FIX*) => htmlTag`<span class="soak-tag">${t}</span>`)}</td>
+            <td>${(x.tags || []).slice(0, 4).map((t: any) => htmlTag`<span class="soak-tag">${t}</span>`)}</td>
         </tr>`);
         const tableTmpl = htmlTag`<table class="soak-table"><thead><tr>
             <th>Game time</th><th>Tick</th><th>Name</th><th>Cause</th><th>Area</th>
@@ -1204,7 +1204,7 @@
             </button>`;
         });
         renderLit(htmlTag`${chips}`, box);
-        box.querySelectorAll('[data-metric]').forEach((btn: *FIX*) => {
+        box.querySelectorAll('[data-metric]').forEach((btn: any) => {
             btn.addEventListener('click', () => {
                 const k = btn.getAttribute('data-metric');
                 if (activeGrowth().includes(k)) {
@@ -1240,7 +1240,7 @@
         const tableBox = el('soak-growth-table');
         if (tableBox) {
             const growthRows = Object.keys(GROWTH_LABELS).map((k) => {
-                const a: *FIX* = firstGrowth[k]; const b: *FIX* = finalGrowth[k];
+                const a: any = firstGrowth[k]; const b: any = finalGrowth[k];
                 const delta: number | null = (b != null && a != null) ? b - a : null;
                 const deltaCls = delta != null && delta > 0 ? 'soak-up' : 'soak-flat';
                 const deltaVal = delta == null ? '-' : F.fmtSigned(delta, 0);
@@ -1261,14 +1261,14 @@
             try { chars = await S.loadCharacters(); } catch (e) { chars = []; }
         }
         el('soak-char-count').textContent = chars.length;
-        let rows = chars.filter((c: *FIX*) => {
+        let rows = chars.filter((c: any) => {
             if (ui.charFilter === 'alive' && !c.alive) return false;
             if (ui.charFilter === 'dead' && c.alive) return false;
             if (!ui.charSearch) return true;
             const q = ui.charSearch.toLowerCase();
             return `${c.name} ${c.area} ${(c.tags || []).join(' ')} ${c.cause || ''}`.toLowerCase().includes(q);
         });
-        rows.sort((a: *FIX*, b: *FIX*) => {
+        rows.sort((a: any, b: any) => {
             if (ui.charSort === 'death') return (a.death_tick || Infinity) - (b.death_tick || Infinity);
             if (ui.charSort === 'hp') return (b.vitals.HP || 0) - (a.vitals.HP || 0);
             if (ui.charSort === 'hunger') return (b.vitals.Hunger || 0) - (a.vitals.Hunger || 0);
@@ -1283,7 +1283,7 @@
             return;
         }
         const vitals = ['HP', 'Hunger', 'Thirst', 'Energy', 'Sanity', 'Social'];
-        const charRows = rows.map((c: *FIX*) => {
+        const charRows = rows.map((c: any) => {
             const statusLabel = c.alive ? 'alive' : F.titleCase(c.cause || 'dead');
             const badge = window.UiPrimitives?.StatusBadge
                 ? window.UiPrimitives.StatusBadge({
@@ -1297,14 +1297,14 @@
                 <td>${c.area || '-'}</td>
                 <td>${c.death_game_span || '-'}</td>
                 ${vitals.map((v) => htmlTag`<td>${F.fmtNum((c.vitals || {})[v])}</td>`)}
-                <td>${(c.tags || []).slice(0, 3).map((t: *FIX*) => htmlTag`<span class="soak-tag">${t}</span>`)}</td>
+                <td>${(c.tags || []).slice(0, 3).map((t: any) => htmlTag`<span class="soak-tag">${t}</span>`)}</td>
             </tr>`;
         });
         renderLit(htmlTag`<table class="soak-table"><thead><tr>
             <th>Name</th><th>State</th><th>Area</th><th>Died</th>
             ${vitals.map((v) => htmlTag`<th>${v}</th>`)}<th>Tags</th>
         </tr></thead><tbody>${charRows}</tbody></table>`, tableBox);
-        tableBox.querySelectorAll('[data-char]').forEach((row: *FIX*) => {
+        tableBox.querySelectorAll('[data-char]').forEach((row: any) => {
             row.addEventListener('click', () => openCharacter(row.getAttribute('data-char')));
         });
     }
@@ -1327,14 +1327,14 @@
         const metrics = Object.keys(series.series);
         const points = metrics.map((m, i) => ({
             name: m, color: F.vitalColor(m, i),
-            points: series.series[m].map((y: *FIX*, idx: number) => [series.ticks[idx], y]),
+            points: series.series[m].map((y: any, idx: number) => [series.ticks[idx], y]),
             width: 1.6,
         }));
         renderLit(unsafeSvg(C.renderLineChart({
             width: panelWidth(), height: 300, series: points, yLabel: 'vital', xLabel: 'ticks',
             emptyText: 'No samples',
         })), chartBox);
-        const char = ((data() && data().characters) || []).find((c: *FIX*) => c.name === name);
+        const char = ((data() && data().characters) || []).find((c: any) => c.name === name);
         const stats = (char && char.stats) || {};
         if (statsBox) {
             const deltaCards = Object.keys(stats).map((m) => htmlTag`<div class="soak-delta">
@@ -1356,7 +1356,7 @@
             <span class="dot"></span>${k}
         </button>`);
         renderLit(htmlTag`${chips}`, box);
-        box.querySelectorAll('[data-kind]').forEach((btn: *FIX*) => {
+        box.querySelectorAll('[data-kind]').forEach((btn: any) => {
             btn.addEventListener('click', () => {
                 const k = btn.getAttribute('data-kind');
                 activeEventKinds()[k] = !activeEventKinds()[k];
@@ -1370,7 +1370,7 @@
         if (!box) return;
         const all = (data() && data().events) || [];
         const q = ui.eventSearch.toLowerCase();
-        const filtered = all.filter((e: *FIX*) => {
+        const filtered = all.filter((e: any) => {
             if (ui.eventKinds && ui.eventKinds[e.kind] === false) return false;
             if (q && !e.message.toLowerCase().includes(q)) return false;
             return true;
@@ -1380,7 +1380,7 @@
         if (!filtered.length) {
             renderLit(htmlTag`<div class="soak-hint">No events yet.</div>`, box);
         } else {
-            const eventRows = filtered.slice(-500).map((e: *FIX*) => htmlTag`<div class="soak-event soak-event-${e.kind}">
+            const eventRows = filtered.slice(-500).map((e: any) => htmlTag`<div class="soak-event soak-event-${e.kind}">
                 <span class="soak-event-t">${F.fmtDuration(e.t)}</span>
                 <span class="soak-event-kind">${e.kind}</span>
                 <span class="soak-event-msg">${e.message}</span>
@@ -1396,7 +1396,7 @@
         if (!selA || !selB) return;
         const runs = S.state.runs || [];
         if (!selA.options.length || force) {
-            const opts = runs.map((r: *FIX*) => htmlTag`<option value="${r.id}">${r.label} (${r.status})</option>`);
+            const opts = runs.map((r: any) => htmlTag`<option value="${r.id}">${r.label} (${r.status})</option>`);
             const a = selA.value; const b = selB.value;
             renderLit(htmlTag`${opts}`, selA);
             renderLit(htmlTag`${opts}`, selB);
@@ -1423,10 +1423,10 @@
         try {
             [A, B] = await Promise.all([S.fullSamples(a), S.fullSamples(b)]);
         } catch (e) { toast((e as Error).message, 'error'); return; }
-        const toSeries = (body: *FIX*, color: string, dash?: string) => ({
+        const toSeries = (body: any, color: string, dash?: string) => ({
             name: (body.summary && body.summary.scenario_name) || 'run',
             color: color, dash: dash,
-            points: (body.samples || []).map((s: *FIX*) => [s.tick, (((s.vitals || {})[metric]) || {}).avg]),
+            points: (body.samples || []).map((s: any) => [s.tick, (((s.vitals || {})[metric]) || {}).avg]),
         });
         ui.compareData = { A: A, B: B, metric: metric };
         renderLit(unsafeSvg(C.renderLineChart({
@@ -1434,11 +1434,11 @@
             series: [toSeries(A, '#58a6ff'), toSeries(B, '#e3b341', '5 4')],
             yLabel: metric + ' (avg)', xLabel: 'ticks', emptyText: 'No samples in these runs',
         })), chartBox);
-        const runsById: Record<string, *FIX*> = {};
-        (S.state.runs || []).forEach((r: *FIX*) => { runsById[r.id] = r; });
+        const runsById: Record<string, any> = {};
+        (S.state.runs || []).forEach((r: any) => { runsById[r.id] = r; });
         const fields = ['ticks_completed', 'characters', 'deaths', 'survivors', 'ticks_per_second',
             'game_log_entries', 'total_memories', 'total_lived_log', 'graph_nodes'];
-        const getVal = (body: *FIX*, id: string, field: string) => {
+        const getVal = (body: any, id: string, field: string) => {
             if (body.summary && body.summary[field] !== undefined) return body.summary[field];
             const r = runsById[id] || {};
             return r[field];
@@ -1456,7 +1456,7 @@
         }
     }
 
-    function buildCli(config: *FIX*) {
+    function buildCli(config: any) {
         const parts = ['python tools/soak_sim.py', '--scenario', config.scenario];
         parts.push('--ticks', config.ticks);
         if (config.minutes_per_tick) parts.push('--minutes-per-tick', config.minutes_per_tick);
@@ -1640,7 +1640,7 @@
     }
 
     function bindState() {
-        S.on((type: string, payload: *FIX*) => {
+        S.on((type: string, payload: any) => {
             switch (type) {
             case 'meta':
                 renderScenarioOptions(); renderPresets(); renderSaved();
@@ -1660,8 +1660,8 @@
                 break;
             case 'events': {
                 const events = payload || [];
-                const deaths = events.filter((e: *FIX*) => e.kind === 'death');
-                deaths.forEach((e: *FIX*) => toast(e.message, 'warn', 5000));
+                const deaths = events.filter((e: any) => e.kind === 'death');
+                deaths.forEach((e: any) => toast(e.message, 'warn', 5000));
                 if (ui.activeTab === 'events') renderEvents();
                 break;
             }

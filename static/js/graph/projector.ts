@@ -24,7 +24,7 @@
  */
 const _physicsBeforeHide = new Map<string, boolean>();
 
-(window as unknown as { GraphProjector: *FIX* }).GraphProjector = {
+(window as unknown as { GraphProjector: any }).GraphProjector = {
 
     /**
      * A node's **storey index**: 0 ground, 1 up, -1 down, unbounded.
@@ -35,7 +35,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * Kept here, next to the filter that uses it, so "what is a floor" has one
      * answer in the visibility model.
      */
-    floorOf(nodeData: *FIX*) {
+    floorOf(nodeData: any) {
         const parsed = Number((nodeData && nodeData.properties && nodeData.properties.floor) ?? 0);
         return Number.isFinite(parsed) ? Math.round(parsed) : 0;
     },
@@ -70,7 +70,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
     },
 
     /**
-     * Does a node match a search query by name OR by *FIX* of its tags?
+     * Does a node match a search query by name OR by any of its tags?
      *
      * Search matches a node when its name/id contains the query, or when one of
      * its tags contains the query — so writing what you think exists in tags
@@ -80,7 +80,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * @param {string} q    - lowercased, trimmed query
      * @returns {boolean}
      */
-    nodeMatchesQuery(node: *FIX*, q: string) {
+    nodeMatchesQuery(node: any, q: string) {
         if (!node || !q) return false;
         if (String(node.name || node.id || '').toLowerCase().includes(q)) return true;
         const tags = node.properties?.tags;
@@ -96,7 +96,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * Compute the set of visible node ids from raw graph data + view state.
      *
      * Search mode is special: it surfaces every matching node PLUS its direct
-     * neighbours (one hop over *FIX* edge), so results come into view with their
+     * neighbours (one hop over any edge), so results come into view with their
      * connecting edges — overriding spatial/inhabited/item/trigger filters so a
      * match is never buried. When no query is active, visibility derives from
      * the floor filter, inhabited-areas mode, and the items/triggers toggles,
@@ -107,7 +107,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * @param {object} vs        - view state bag (from _viewState)
      * @returns {Set<string>} visible node ids
      */
-    computeVisibleNodeIds(nodesObj: *FIX*, edgesArr: *FIX*[], state: *FIX*) {
+    computeVisibleNodeIds(nodesObj: any, edgesArr: any[], state: any) {
         const query = state.searchQuery;
 
         // ── SEARCH MODE ────────────────────────────────────────────────
@@ -194,7 +194,7 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * @param {object} edge            - a vis.js edge ({from, to})
      * @returns {boolean}
      */
-    edgeVisible(visibleIds: Set<string>, edge: *FIX*) {
+    edgeVisible(visibleIds: Set<string>, edge: any) {
         return (visibleIds.has(edge.from) && visibleIds.has(edge.to));
     },
 
@@ -214,14 +214,14 @@ const _physicsBeforeHide = new Map<string, boolean>();
      * @param {object} network     - live vis.Network
      * @param {Set<string>} visibleIds - visible node ids
      */
-    applyVisibility(network: *FIX*, visibleIds: Set<string>) {
+    applyVisibility(network: any, visibleIds: Set<string>) {
         if (!network) return;
         const nodesDs = network.body?.data?.nodes;
         const edgesDs = network.body?.data?.edges;
         if (!nodesDs || !edgesDs) return;
 
-        const nodeUpdates: *FIX*[] = [];
-        nodesDs.forEach((node: *FIX*) => {
+        const nodeUpdates: any[] = [];
+        nodesDs.forEach((node: any) => {
             const shouldHide = !visibleIds.has(node.id);
             if (node.hidden === shouldHide) return;
             if (shouldHide) {
@@ -237,8 +237,8 @@ const _physicsBeforeHide = new Map<string, boolean>();
         });
         if (nodeUpdates.length > 0) nodesDs.update(nodeUpdates);
 
-        const edgeUpdates: *FIX*[] = [];
-        edgesDs.forEach((edge: *FIX*) => {
+        const edgeUpdates: any[] = [];
+        edgesDs.forEach((edge: any) => {
             const shouldHide = !(visibleIds.has(edge.from) && visibleIds.has(edge.to));
             if (edge.hidden !== shouldHide) edgeUpdates.push({ id: edge.id, hidden: shouldHide });
         });

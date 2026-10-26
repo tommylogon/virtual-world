@@ -1,9 +1,9 @@
 /**
  * InspectorPanel — THE single render entrypoint for #inspector-panel (task-216 migration)
  *
- * Every other file that once did `panel.*FIX*= ...` must instead call
+ * Every other file that once did `panel.innerHTML = ...` must instead call
  * `InspectorPanel.render(template)` with a lit-html TemplateResult. Mixing raw
- * *FIX*writes with lit's render() on the same container corrupts lit's
+ * innerHTML writes with lit's render() on the same container corrupts lit's
  * internal part tracking, so this module is the ONLY place allowed to touch
  * the panel element.
  *
@@ -14,7 +14,7 @@
  *
  * @module inspector/panel — the single owner of #inspector-panel
  * @contributes InspectorPanel.render(template): the only code allowed to write the panel element
- * @powers Node inspectors — all inspector rendering (mixing *FIX*with lit corrupts lit's part tracking)
+ * @powers Node inspectors — all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
  * @relates every inspector view hands it a lit-html TemplateResult
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -42,7 +42,7 @@ const InspectorPanel = (() => {
         const panel = panelEl();
         if (!panel) return;
         if (!window.Lit) { console.warn('InspectorPanel.render: window.Lit not ready'); return; }
-        // lit-html never removes children it doesn't own — *FIX* pre-lit static
+        // lit-html never removes children it doesn't own — any pre-lit static
         // markup in the container would linger above every render. Clear it
         // once, before lit takes ownership (empty states are lit-rendered by
         // Inspector.showEmpty; index.html ships no static placeholder).
@@ -74,12 +74,12 @@ const InspectorPanel = (() => {
     P.clear = function (): void {
         const panel = panelEl();
         if (!panel) return;
-        if (!window.Lit) { panel.*FIX*= ''; return; }
+        if (!window.Lit) { panel.innerHTML = ''; return; }
         window.Lit.render(window.Lit.nothing, panel);
     };
 
     /**
-     * Escape helpers are obsolete under lit (auto-escaping). Kept only so *FIX*
+     * Escape helpers are obsolete under lit (auto-escaping). Kept only so any
      * straggler call doesn't hard-crash during migration.
      */
     P.htmlTag = htmlTag;

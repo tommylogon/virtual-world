@@ -145,8 +145,8 @@
         try { positions = live.getPositions(); } catch (error) { positions = {}; }
 
         const visible = new Set<unknown>();
-        const nodes: *FIX*[] = [];
-        data.nodes.get().forEach((node: *FIX*) => {
+        const nodes: any[] = [];
+        data.nodes.get().forEach((node: any) => {
             if (node.hidden) return;
             visible.add(node.id);
             const clone = Object.assign({}, node);
@@ -157,8 +157,8 @@
             nodes.push(clone);
         });
 
-        const edges: *FIX*[] = [];
-        data.edges.get().forEach((edge: *FIX*) => {
+        const edges: any[] = [];
+        data.edges.get().forEach((edge: any) => {
             if (edge.hidden) return;
             if (!visible.has(edge.from) || !visible.has(edge.to)) return;
             const clone = Object.assign({}, edge);
@@ -181,10 +181,10 @@
     }
 
     /** Decode node thumbnail images so circularImage nodes are not drawn blank. */
-    function _preloadImages(nodes: *FIX*[]): Promise<void[]> {
+    function _preloadImages(nodes: any[]): Promise<void[]> {
         const seen = new Set<string>();
         const jobs: Array<Promise<void>> = [];
-        nodes.forEach((node: *FIX*) => {
+        nodes.forEach((node: any) => {
             if (node.shape !== 'circularImage' || !node.image || seen.has(node.image)) return;
             seen.add(node.image);
             jobs.push(new Promise<void>((resolve) => {
@@ -310,7 +310,7 @@
 
         let net: VisNetwork | null = null;
         try {
-            const options = (window as unknown as { GraphNetwork: { buildOptions(): Record<string, *FIX*> } }).GraphNetwork.buildOptions();
+            const options = (window as unknown as { GraphNetwork: { buildOptions(): Record<string, any> } }).GraphNetwork.buildOptions();
             options.physics = { enabled: false };
             options.interaction = { hover: false, dragNodes: false, dragView: false, zoomView: false };
             options.manipulation = { enabled: false };
@@ -467,7 +467,7 @@ interface GraphExportLayer {
 
 /** The slice of the vis.Network surface this module drives. */
 interface VisNetwork {
-    body: { data: { nodes: { get(): *FIX*[] }; edges: { get(): *FIX*[] } } };
+    body: { data: { nodes: { get(): any[] }; edges: { get(): any[] } } };
     getPositions(): Record<string, { x: number; y: number }>;
     once(event: string, cb: () => void): void;
     getViewPosition(): { x: number; y: number };

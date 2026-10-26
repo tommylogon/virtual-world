@@ -11,7 +11,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
 // runs, so window.Lit only exists when this module actually renders.
-const createModalHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): *FIX* => window.Lit.html(strings, ...values);
+const createModalHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
 
 // document.getElementById returns HTMLElement, which has no value/checked/dataset.
 // Every lookup in this file is a form field, so the element type is the caller's
@@ -61,15 +61,15 @@ const ITEM_MECH = [
 // same global name is TS2451. Kept as the top-level lexical `const` the runtime
 // has always had, so `window.CreateModal` stays undefined exactly as before.
 const CreateModal: ThisType<{
-    _tagMSArea?: *FIX*; _tagMSItem?: *FIX*; _tagMSConn?: *FIX*;
-    [key: string]: *FIX*;
+    _tagMSArea?: any; _tagMSItem?: any; _tagMSConn?: any;
+    [key: string]: any;
 }> = {
     /** Open the create modal for a given entity type with a submit callback. */
-    open(type: string, onSubmit?: (data: *FIX*) => void) {
+    open(type: string, onSubmit?: (data: any) => void) {
         const modal = createModalById('create-modal');
         if (!modal) return;
 
-        let formTemplate: *FIX*;
+        let formTemplate: any;
         let titleText = '';
         if (type === 'area') {
             formTemplate = this._buildRoomForm();
@@ -179,7 +179,7 @@ const CreateModal: ThisType<{
         }
     },
 
-    async _searchPlacementTargets(query: string): Promise<*FIX*[]> {
+    async _searchPlacementTargets(query: string): Promise<any[]> {
         const targetType = document.querySelector<HTMLInputElement>('input[name="item-target-type"]:checked')?.value || 'item';
         const q = encodeURIComponent(query.trim().toLowerCase());
         try {
@@ -203,7 +203,7 @@ const CreateModal: ThisType<{
                 results.style.display = 'none';
                 return;
             }
-            results.*FIX*= items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
+            results.innerHTML = items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
             results.style.display = 'block';
             results.querySelectorAll<HTMLElement>('.tag-option').forEach(el => {
                 el.addEventListener('click', () => {
@@ -287,7 +287,7 @@ const CreateModal: ThisType<{
             <div style="display:flex;gap:8px;">
                 <div style="flex:1;"><label style="margin-top:2px;">Name</label><input type="text" id="item-name" placeholder="Brass Lantern"></div>
             </div>
-            <label>Description</label><textarea id="item-desc" rows="2" placeholder="What it looks like, and *FIX*thing odd about it…"></textarea>
+            <label>Description</label><textarea id="item-desc" rows="2" placeholder="What it looks like, and anything odd about it…"></textarea>
         </div>
 
         <div class="cm-section">
@@ -446,7 +446,7 @@ const CreateModal: ThisType<{
         const row = document.createElement('div');
         row.className = 'cm-content-row';
         const relOptions = ITEM_RELATIONS.map(r => `<option value="${r}"${r === relation ? ' selected' : ''}>${r}</option>`).join('');
-        row.*FIX*= `
+        row.innerHTML = `
             <input type="text" class="cr-name" placeholder="Name" value="${name.replace(/"/g, '&quot;')}">
             <input type="text" class="cr-desc" placeholder="Short description" value="${description.replace(/"/g, '&quot;')}">
             <select class="cr-rel">${relOptions}</select>
@@ -485,7 +485,7 @@ const CreateModal: ThisType<{
         <datalist id="conn-cardinals">
             ${window.Lit.unsafeHTML(CARDINALS.map(c => `<option value="${c}"></option>`).join(''))}
         </datalist>
-        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Type *FIX*thing - "swinging door" and "enter" are as valid as a cardinal.</div>
+        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Type anything - "swinging door" and "enter" are as valid as a cardinal.</div>
         <div style="margin-top:6px;">
             <label style="font-size:11px;">View when open (from Area A)</label>
             <textarea id="conn-view-from-a" rows="2" placeholder="What you see through the way when open…" style="width:100%;font-size:11px;"></textarea>
@@ -575,7 +575,7 @@ const CreateModal: ThisType<{
             const targetType = document.querySelector<HTMLInputElement>('input[name="item-target-type"]:checked')?.value || 'item';
             const targetId = createModalById('item-target-id')?.value || '';
             const relation = createModalById('item-target-relation')?.value || 'in';
-            const payload: Record<string, *FIX*> = {
+            const payload: Record<string, any> = {
                 target_type: targetType,
                 target_id: targetId,
                 relation: relation,
@@ -658,8 +658,8 @@ const CreateModal: ThisType<{
     },
 
     /** Apply AI-generated item data to the form fields (called by generateWithAI). */
-    _applyItemAIData(data: *FIX*) {
-        const set = (id: string, val: *FIX*) => { const el = createModalById(id); if (el) el.value = val ?? ''; };
+    _applyItemAIData(data: any) {
+        const set = (id: string, val: any) => { const el = createModalById(id); if (el) el.value = val ?? ''; };
         set('item-name', data.name);
         set('item-desc', data.description);
         set('item-uses', data.uses ?? -1);

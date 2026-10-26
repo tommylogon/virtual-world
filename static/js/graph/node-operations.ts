@@ -297,7 +297,7 @@ const GraphNodeOpsModule = {
 
         // Track which nodes we've duplicated (id map: originalId -> newCopyId).
         // The map is shared across the whole recursion so each original node is
-        // cloned at most once, no matter how m*FIX* paths reach it.
+        // cloned at most once, no matter how many paths reach it.
         const dupMap: Map<string, string> = sharedDupMap !== null ? sharedDupMap : new Map();
         dupMap.set(sourceId, newId);
 

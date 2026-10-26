@@ -29,7 +29,7 @@ function saveloadToastSuccess(message: string) {
 }
 
 // catch vars are `unknown` under strict; this keeps the original
-// `err.message` behaviour for Error throws and stringifies *FIX*thing else.
+// `err.message` behaviour for Error throws and stringifies anything else.
 function saveloadErrMessage(err: unknown): string {
     return err instanceof Error ? err.message : String(err);
 }
@@ -110,7 +110,7 @@ window.SaveLoadView = (() => {
      * Download the current world state as a JSON file.
      */
     function downloadWorld() {
-        api.saveWorld().then(function(data: *FIX*) {
+        api.saveWorld().then(function(data: any) {
             var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             WorldExport.saveFileWithDialog(blob, 'world_save.json');
         });
@@ -118,7 +118,7 @@ window.SaveLoadView = (() => {
 
     /**
      * Upload/load a world from a user-selected JSON file  -  WITH a preview.
-     * Shows counts + sanity issues before *FIX*thing touches the live world.
+     * Shows counts + sanity issues before anything touches the live world.
      * @param {Event} event - The file input change event
      */
     function uploadWorld(event: Event) {
@@ -144,7 +144,7 @@ window.SaveLoadView = (() => {
      * Rough counts + sanity pass over an incoming world/template dict.
      * Never blocks  -  the preview is informational; Apply is undo-protected.
      */
-    function inspectImport(data: *FIX*) {
+    function inspectImport(data: any) {
         var isTemplate = ('player' in data) && !('players' in data);
         var areas = data.areas || {};
         var areaKeys: Record<string, boolean> = {};
@@ -154,7 +154,7 @@ window.SaveLoadView = (() => {
 
         // Authoring templates store areas in `areas`; saved world states use
         // graph area nodes as the single source of truth.
-        function addArea(id: *FIX*, name: *FIX*) {
+        function addArea(id: any, name: any) {
             var aliases = [id, name].filter(function(value) {
                 return value !== undefined && value !== null && String(value).trim();
             }).map(function(value) { return String(value).toLowerCase(); });
@@ -175,7 +175,7 @@ window.SaveLoadView = (() => {
         });
         var itemCount = 0, wayCount = 0, playerNames = [];
 
-        function countExits(exits: *FIX*) {
+        function countExits(exits: any) {
             var n = 0;
             Object.keys(exits || {}).forEach(function(dir) {
                 n += 1;
@@ -191,7 +191,7 @@ window.SaveLoadView = (() => {
 
         if (isTemplate) {
             playerNames.push(data.player && data.player.name ? data.player.name : 'Traveler');
-            (data.characters || []).forEach(function(c: *FIX*) {
+            (data.characters || []).forEach(function(c: any) {
                 if (c && c.name) playerNames.push(c.name);
                 if (c && c.area && !areaKeys[String(c.area).toLowerCase()]) {
                     issues.push('- Character "' + (c.name || c.area) + '" starts in missing area "' + c.area + '".');
@@ -211,7 +211,7 @@ window.SaveLoadView = (() => {
         if (isTemplate) {
             Object.keys(areas).forEach(function(aname) {
                 var a = areas[aname] || {};
-                (a.items || []).forEach(function(it: *FIX*) {
+                (a.items || []).forEach(function(it: any) {
                     itemCount += 1;
                     itemCount += (it && it.contents ? it.contents.length : 0);
                 });
@@ -221,7 +221,7 @@ window.SaveLoadView = (() => {
             });
         }
         if (!isTemplate) {
-            Object.values(data.players || {}).forEach(function(p: *FIX*) {
+            Object.values(data.players || {}).forEach(function(p: any) {
                 var currentArea = p && (p.current_area || p.current_area_id);
                 if (currentArea && !areaKeys[String(currentArea).toLowerCase()]) {
                     issues.push('- Player "' + p.name + '" is in missing area "' + currentArea + '".');
@@ -244,7 +244,7 @@ window.SaveLoadView = (() => {
     /** Refresh every client view after the server replaces the world. */
     async function refreshReplacedWorld() {
         worldState.setRuntimeFocus([]);
-        var gm = (window as *FIX*).graphManager;
+        var gm = (window as any).graphManager;
         if (gm) {
             gm._scopeFilter = null;
             if (typeof gm._persistScopeFilter === 'function') gm._persistScopeFilter();
@@ -252,14 +252,14 @@ window.SaveLoadView = (() => {
         }
         await worldState.fetch();
         if (gm && typeof gm.loadGraphData === 'function') await gm.loadGraphData();
-        var playMode = (window as *FIX*).PlayMode;
+        var playMode = (window as any).PlayMode;
         if (playMode && typeof playMode.checkStatus === 'function') await playMode.checkStatus();
     }
 
     /**
      * Preview modal for imported worlds: counts + issues, then [Apply] / [Cancel].
      */
-    function openImportPreview(fileName: string, scenarioName: string, data: *FIX*) {
+    function openImportPreview(fileName: string, scenarioName: string, data: any) {
         var info = inspectImport(data);
         info.file = fileName;
         var overlay = document.createElement('div');
@@ -283,7 +283,7 @@ window.SaveLoadView = (() => {
 
         var counts = document.createElement('div');
         counts.style.cssText = 'font-size:12px;';
-        counts.*FIX*=
+        counts.innerHTML =
             '🏠 <strong>' + info.rooms + '</strong> rooms · 📦 <strong>' + info.items +
             '</strong> items · 🚪 <strong>' + info.ways + '</strong> ways · 🧍 <strong>' +
             info.players.length + '</strong> characters<br>' +
@@ -296,7 +296,7 @@ window.SaveLoadView = (() => {
         if (info.issues.length) {
             issuesBox = document.createElement('div');
             issuesBox.style.cssText = 'font-size:11px;color:#e3b341;background:rgba(227,179,65,0.08);border:1px solid rgba(227,179,65,0.3);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;';
-            issuesBox.*FIX*= '<strong>⚠ Notes:</strong><br>' + info.issues.map(function(i) { return i.replace(/^- /, ''); }).join('<br>');
+            issuesBox.innerHTML = '<strong>⚠ Notes:</strong><br>' + info.issues.map(function(i) { return i.replace(/^- /, ''); }).join('<br>');
             box.appendChild(issuesBox);
         } else {
             issuesBox = document.createElement('div');
@@ -336,11 +336,11 @@ window.SaveLoadView = (() => {
                 if (sev.error) parts.push(sev.error + ' error(s)');
                 if (sev.warning) parts.push(sev.warning + ' warning(s)');
                 if (sev.info) parts.push(sev.info + ' info note(s)');
-                var detail = (j.issues || []).slice(0, 6).map(function(i: *FIX*) {
+                var detail = (j.issues || []).slice(0, 6).map(function(i: any) {
                     return (i.severity === 'error' ? '✕ ' : i.severity === 'warning' ? '⚠ ' : 'ℹ ') +
                         String(i.message || '');
                 }).join('<br>');
-                issuesBox!.*FIX*= '<strong>🔬 Deep audit:</strong> ' + (j.count === 0 ? parts[0] : parts.join(' · ')) +
+                issuesBox!.innerHTML = '<strong>🔬 Deep audit:</strong> ' + (j.count === 0 ? parts[0] : parts.join(' · ')) +
                     (detail ? '<br>' + detail : '') +
                     (j.count > 6 ? '<br><span style="color:var(--text-muted);">…and ' + (j.count - 6) + ' more (load the world to see them in Issues).</span>' : '');
             }).catch(function(e) {
@@ -356,7 +356,7 @@ window.SaveLoadView = (() => {
             overlay.remove();
             data._scenario_name = scenarioName;
             data.persist = true;  // GUI apply: keep the scenario file as the source
-            api.loadWorld(data).then(async function(resp: *FIX*) {
+            api.loadWorld(data).then(async function(resp: any) {
                 if (resp && resp.error) {
                     toastError('Load failed: ' + resp.error);
                     events.log('❌ Load failed: ' + resp.error, 'error-msg');
@@ -368,7 +368,7 @@ window.SaveLoadView = (() => {
                 agent.reset();
                 await refreshReplacedWorld();
                 events.log('World loaded!', 'system-msg');
-            }).catch(function(err: *FIX*) {
+            }).catch(function(err: any) {
                 toastError('Network error: ' + err.message);
                 events.log('❌ Load network error: ' + err.message, 'error-msg');
             });
@@ -491,7 +491,7 @@ window.SaveLoadView = (() => {
 
         try {
             var saves = await api.listSaveGames() || [];
-            if (saves.some(function(s: *FIX*) { return s.filename !== filename && (s.name === newName || s.filename === newName); })) {
+            if (saves.some(function(s: any) { return s.filename !== filename && (s.name === newName || s.filename === newName); })) {
                 toastError('A save named "' + newName + '" already exists.');
                 return;
             }
@@ -518,7 +518,7 @@ window.SaveLoadView = (() => {
     /**
      * Render a single savegame row for the load-game list (task-456).
      */
-    function renderSaveRow(save: *FIX*) {
+    function renderSaveRow(save: any) {
         var ts = save.timestamp ? save.timestamp.replace('_', ' ') : '';
         var tickStr = events.tickToTime(save.tick ?? 0);
         var stats = [];
@@ -580,7 +580,7 @@ window.SaveLoadView = (() => {
      * Load a saved game by filename or save object with in-modal confirmation (task-455).
      * @param {string|object} filenameOrSave - The save file name or save object to load
      */
-    async function doLoadGame(filenameOrSave: *FIX*) {
+    async function doLoadGame(filenameOrSave: any) {
         var filename = typeof filenameOrSave === 'object' ? filenameOrSave.filename : filenameOrSave;
         var displayName = (typeof filenameOrSave === 'object' && filenameOrSave.name) ? filenameOrSave.name : filename;
         var ts = (typeof filenameOrSave === 'object' && filenameOrSave.timestamp) ? filenameOrSave.timestamp.replace('_', ' ') : '';
@@ -617,7 +617,7 @@ window.SaveLoadView = (() => {
      * Delete a saved game with in-modal confirmation (task-455).
      * @param {string|object} filenameOrSave - The save file name or save object to delete
      */
-    async function doDeleteSave(filenameOrSave: *FIX*) {
+    async function doDeleteSave(filenameOrSave: any) {
         var filename = typeof filenameOrSave === 'object' ? filenameOrSave.filename : filenameOrSave;
         var displayName = (typeof filenameOrSave === 'object' && filenameOrSave.name) ? filenameOrSave.name : filename;
         var ts = (typeof filenameOrSave === 'object' && filenameOrSave.timestamp) ? filenameOrSave.timestamp.replace('_', ' ') : '';
@@ -649,14 +649,14 @@ window.SaveLoadView = (() => {
      * Delete all user saves, keeping the autosave slot (bug-42, task-455).
      */
     async function confirmDeleteAllSaves() {
-        var saves: *FIX*[] = [];
+        var saves: any[] = [];
         try {
             saves = await api.listSaveGames() || [];
         } catch (err) {
             toastError('Could not list saves: ' + saveloadErrMessage(err));
             return;
         }
-        var userSaves = saves.filter(function(s: *FIX*) { return !s.autosave; });
+        var userSaves = saves.filter(function(s: any) { return !s.autosave; });
         if (userSaves.length === 0) {
             toastInfo('No user saves to delete. Autosave is kept.');
             return;

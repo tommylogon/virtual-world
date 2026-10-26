@@ -13,7 +13,7 @@
  * classic script, so a top-level `class ConfigManager` would merge with (and
  * collide with) the `interface ConfigManager` in `types/globals.d.ts`, which
  * exists so unconverted files can still read `config.controllingPlayer`. The
- * class is not referenced by name *FIX*where else; only `config` is.
+ * class is not referenced by name anywhere else; only `config` is.
  */
 class ConfigManagerImpl {
     // Every field is assigned in `_loadFromStorage()`/`saveFromForm()` rather
@@ -174,7 +174,7 @@ class ConfigManagerImpl {
         this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.1;
         this.graphItemEdgeLength = parseInt(await storage.getConfig('graph_item_edge_length')) || 60;
         this.graphSolver = await storage.getConfig('graph_solver') || 'forceAtlas2Based';
-        // Above this m*FIX* nodes physics is suppressed (task-768). Adjustable so a
+        // Above this many nodes physics is suppressed (task-768). Adjustable so a
         // big world can be re-enabled deliberately; default is a safety valve.
         this.graphPhysicsNodeLimit = parseInt(await storage.getConfig('graph_physics_node_limit')) || 8000;
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
@@ -553,7 +553,7 @@ class ConfigManagerImpl {
             }
             return defaults;
         }
-        // Bring an older install up to the current built-ins: add *FIX* default
+        // Bring an older install up to the current built-ins: add any default
         // profile the seed no longer carries (so 'LM Studio (Local)' exists on a
         // browser seeded before it did), and refresh the LM Studio model only
         // while it still holds the previous default. A user's own profile and

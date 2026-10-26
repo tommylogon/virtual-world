@@ -2,12 +2,12 @@
  * emote-picker.js — reusable, searchable, categorized emote quick-pick.
  *
  * A standalone window.EmotePicker that renders a search box + chip grid into
- * *FIX* container and calls a callback when an emote is picked. Shared by the
+ * any container and calls a callback when an emote is picked. Shared by the
  * human turn composer (and available to lift into a standalone panel later —
- * *FIX*time-emote / emote browser).
+ * anytime-emote / emote browser).
  *
  * Emotes are bare verb phrases, never including a character name (see
- * schema-fragments.js EMOTE_RULES), so *FIX*thing picked here is engine-valid.
+ * schema-fragments.js EMOTE_RULES), so anything picked here is engine-valid.
  *
  * API:
  *   EmotePicker.open(container, { onPick(emote) })
@@ -16,7 +16,7 @@
  *   EmotePicker.setCatalog(catalog)   // optional override, e.g. from library
  *
  * Uses window.Lit at call time only (deferred module bootstrap); load after
- * the lit-html shim, before *FIX* consumer that mounts it.
+ * the lit-html shim, before any consumer that mounts it.
  *
  * @module agent/emote-picker — reusable emote quick-pick
  * @contributes EmotePicker.open/close/toggle + setCatalog (searchable chip grid)

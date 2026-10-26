@@ -232,7 +232,7 @@ const SettingsView = (() => {
      */
     function toggleSpectator() {
         var checkbox = document.getElementById('spectator-mode') as HTMLInputElement | null;
-        var ws = (window as *FIX*).worldState;
+        var ws = (window as any).worldState;
         if (!ws) return;
         if (checkbox?.checked) {
             ws.startPolling();
@@ -246,7 +246,7 @@ const SettingsView = (() => {
      * @param {number} minutes - Game minutes per agent step
      */
     async function updateTimePerTick(minutes: number) {
-        var ev = (window as *FIX*).events;
+        var ev = (window as any).events;
         try {
             var resp = await fetch('/api/settings/time_per_tick', {
                 method: 'POST',
@@ -256,7 +256,7 @@ const SettingsView = (() => {
             var data = await resp.json();
             if (data.status === 'success') {
                 if (ev?.log) ev.log('Time per tick set to ' + data.time_per_tick_minutes + ' min', 'system-msg');
-                (window as *FIX*).worldState?.fetch();
+                (window as any).worldState?.fetch();
             }
         } catch (err) {
             if (ev?.log) ev.log('Failed to update time per tick: ' + (err instanceof Error ? err.message : String(err)), 'error-msg');
@@ -268,7 +268,7 @@ const SettingsView = (() => {
      * @param {string} value - "HH:MM" 24h time string
      */
     async function updateClockStart(value: string) {
-        var ev = (window as *FIX*).events;
+        var ev = (window as any).events;
         var m = /^(\d{1,2}):(\d{2})$/.exec(value || '');
         if (!m) {
             if (ev?.log) ev.log('Invalid clock start time: ' + value, 'error-msg');
@@ -285,7 +285,7 @@ const SettingsView = (() => {
             var data = await resp.json();
             if (data.status === 'success') {
                 if (ev?.log) ev.log('Clock start set to ' + String(data.clock_start_hour).padStart(2, '0') + ':' + String(data.clock_start_minute).padStart(2, '0'), 'system-msg');
-                (window as *FIX*).worldState?.fetch();
+                (window as any).worldState?.fetch();
             } else {
                 if (ev?.log) ev.log(data.error || 'Failed to update clock start', 'error-msg');
             }

@@ -1,6 +1,6 @@
 /**
  * Shared JSON parsing utilities.
- * M*FIX* functions across the codebase strip ```json code fences and extract JSON.
+ * Many functions across the codebase strip ```json code fences and extract JSON.
  * This centralises that pattern.
  *
  * @module shared/json-utils — JSON extraction and repair
@@ -70,13 +70,13 @@ function parseJSONFromResponse(response: string | null | undefined): ParsedRespo
 
 /** Safe parse a JSON string, returning null on failure instead of throwing.
  *
- *  Return type is `*FIX*`, NOT `unknown`, and that is the honest annotation:
- * JSON.parse returns `*FIX*`, and every caller indexes straight into the result.
+ *  Return type is `any`, NOT `unknown`, and that is the honest annotation:
+ * JSON.parse returns `any`, and every caller indexes straight into the result.
  * Declaring `unknown` here pushed the error to ~50 call sites, each of which
- * then needed a cast or an `*FIX*` - strictly worse than saying so once, here,
+ * then needed a cast or an `any` - strictly worse than saying so once, here,
  * where the contract really is "arbitrary JSON or null".
  */
-function parseJsonSafely(str: string): *FIX* {
+function parseJsonSafely(str: string): any {
     try {
         return JSON.parse(str);
     } catch {
@@ -163,7 +163,7 @@ function repairJSON(raw: string): string {
     }
     // If it already parses cleanly, return as-is and skip aggressive repair
     try { JSON.parse(s); return s; } catch {}
-    // *FIX*thing past this point was repaired — flag it.
+    // Anything past this point was repaired — flag it.
     _stats().__repairStats!.repaired = true;
     // Qwen 3.5 with empty-assistant-message workaround sometimes drops the outer {}.
     // If the string does not start with { or [, wrap it in {} so the parser

@@ -173,7 +173,7 @@ const ActionNormalizerModule = (() => {
         const relation = String(p.relation || '').trim().toLowerCase() || 'on';
         // The object being acted on may land in either "item" (e.g. the LLM wrote
         // {"action":"examine","item":"front_door"}) or "target". Fall back to item for
-        // *FIX* verb whose object is a thing/place/person so a missing "target" doesn't
+        // any verb whose object is a thing/place/person so a missing "target" doesn't
         // silently degrade the action to a bare verb.
         const obj = target || item;
         const isPlain = /\s/.test(verb) || /^(use .* on |go |take |open |close |examine |attack |whisper |say |shout |scream )/.test(verb);

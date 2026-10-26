@@ -87,7 +87,7 @@ const VitalThresholds = (() => {
         Thirst: 'a drive — it fills over time; drink before it maxes at 100.',
         Bladder: 'fills over time; find a bathroom before 100.',
         Sanity: 'drains in isolation and darkness; at 0 you take damage.',
-        Social: 'drains alone, refills with comp*FIX*.',
+        Social: 'drains alone, refills with company.',
         Hygiene: 'drains with grime — wash up.',
         Entertainment: 'drains with monotony — seek something new.',
         Temperature: 'core temperature — the comfort band depends on species (cold-blooded, warm-blooded, hot-blooded).',

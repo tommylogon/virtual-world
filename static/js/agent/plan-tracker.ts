@@ -32,7 +32,7 @@
     const lastCriticalSet: Record<string, string> = {};
     const lastCriticalReplanTick: Record<string, number> = {};
     // task-185: stop-word list for step tracking — the old >2 char filter passed
-    // "the", so *FIX* action containing "the" completed *FIX* step containing "the".
+    // "the", so any action containing "the" completed any step containing "the".
     const STOP_WORDS = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'at', 'in', 'on', 'for', 'with', 'is', 'are', 'was', 'it', 'its', "it's"]);
 
     function getPlan(charName: string) {
@@ -102,7 +102,7 @@
      * task-340 crisis log line) or null when the current plan is still fine.
      * Side effects unchanged.
      */
-    function shouldReplan(charName: string, turnNumber: number, threatAlert: unknown, vitals: *FIX*): string | null {
+    function shouldReplan(charName: string, turnNumber: number, threatAlert: unknown, vitals: any): string | null {
         if (threatAlert) return 'threat detected';
         // Needs-driven replanning (task-92): fire when needs CROSS into critical
         // territory, then re-nudge at most every 5 turns while still critical.
@@ -136,21 +136,21 @@
      * @param {Object} vitals - Character vitals object (Capitalized keys)
      * @returns {string[]} e.g. ["exhaustion — rest or sleep", "hunger — eat"]
      */
-    function criticalNeeds(vitals: *FIX*): string[] {
+    function criticalNeeds(vitals: any): string[] {
         if (!vitals) return [];
         const labels: Record<string, string> = {
             Energy: 'exhaustion — you need to rest or sleep',
             Hunger: 'hunger — you need to eat',
             Thirst: 'thirst — you need to drink',
             Sanity: 'fracturing sanity — you need safety or calm',
-            Social: 'crushing loneliness — you need comp*FIX*',
+            Social: 'crushing loneliness — you need company',
             Bladder: 'a bursting bladder — you need a bathroom'
         };
         const out: string[] = [];
         // VitalThresholds (agent/vital-thresholds.js) is a window singleton that
         // is not declared in static/js/types/globals.d.ts, hence the local cast.
         const thresholds = (window as unknown as {
-            VitalThresholds: { isCritical(key: string, values: *FIX*): boolean };
+            VitalThresholds: { isCritical(key: string, values: any): boolean };
         }).VitalThresholds;
         for (const key of Object.keys(labels)) {
             if (thresholds.isCritical(key, vitals[key])) out.push(labels[key]);

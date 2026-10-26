@@ -123,5 +123,5 @@
         }
     }
 
-    (window as *FIX*).CommonsApi = CommonsApi;
+    (window as any).CommonsApi = CommonsApi;
 })();

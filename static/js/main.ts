@@ -90,9 +90,9 @@ VW.worldSync = worldSync;
 VW.agentLens = agentLens;
 VW.humanTurnComposer = HumanTurnComposer;
 // WorldPainter (task-495): bare globals defined before this bootstrap.
-VW.gridModel = (window as *FIX*).gridModel;
-VW.worldPainter = (window as *FIX*).worldPainter;
-VW.structures = (window as *FIX*).structures;
+VW.gridModel = (window as any).gridModel;
+VW.worldPainter = (window as any).worldPainter;
+VW.structures = (window as any).structures;
 })();
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ VW.structures = (window as *FIX*).structures;
 //
 // `config`, `events`, `agent`, `api`, `llmClient`, `storage`, `worldSync`,
 // `agentLens` are top-level `const` declarations — lexical globals. They are
-// NOT window properties, so *FIX* module that tests `if (window.events)` or
+// NOT window properties, so any module that tests `if (window.events)` or
 // reads `window.agent?.turnQueue` silently resolves `undefined` and takes the
 // dead-code branch — the exact bug class that made every graph slider a no-op
 // (config was read as `window.config` in buildOptions(), always undefined).
@@ -119,7 +119,7 @@ VW.structures = (window as *FIX*).structures;
         worldSync: worldSync,
         agentLens: agentLens,
     };
-    const win = window as *FIX*;
+    const win = window as any;
     for (const [name, value] of Object.entries(singletons)) {
         if (typeof value === 'undefined') {
             throw new Error(
@@ -181,7 +181,7 @@ function createCharacter() {
     const input = (document.getElementById('char-name') as HTMLInputElement);
     const name = (input?.value || '').trim();
     if (!name) { toastInfo('Enter a character name.'); return; }
-    api.createCharacter(name).then((res: *FIX*) => {
+    api.createCharacter(name).then((res: any) => {
         events.log('Created character: ' + res.player, 'system-msg');
         if (input) input.value = '';
         worldState.fetch();
@@ -189,7 +189,7 @@ function createCharacter() {
 }
 function deleteCharacter(name: string) {
     if (!confirm("Delete character '" + name + "'?")) return;
-    api.deleteCharacter(name).then((res: *FIX*) => {
+    api.deleteCharacter(name).then((res: any) => {
         if (res.error) toastError('Error: ' + res.error);
         else { events.log('Deleted: ' + name, 'system-msg'); worldState.fetch(); }
     });
@@ -197,7 +197,7 @@ function deleteCharacter(name: string) {
 
 // Graph toolbar buttons
 function addRoomViaGraph() {
-    openCreateModal('area', async (data: *FIX*) => {
+    openCreateModal('area', async (data: any) => {
         if (!data.name) { toastInfo('Area name required'); return; }
         const res = await api.createRoom(data);
         if (res.error) toastError('Error: ' + res.error);
@@ -205,7 +205,7 @@ function addRoomViaGraph() {
     });
 }
 function addItemViaGraph() {
-    openCreateModal('item', async (data: *FIX*) => {
+    openCreateModal('item', async (data: any) => {
         if (!data.name) { toastInfo('Item name required'); return; }
         const res = await api.createItem(data);
         if (res.error) toastError('Error: ' + res.error);
@@ -229,7 +229,7 @@ function addItemViaGraph() {
         }
     });
 }
-function connectSummary(res: *FIX*, payload: *FIX*) {
+function connectSummary(res: any, payload: any) {
     const from = res.area_from || payload.room1 || '?';
     const to = res.area_to || payload.room2 || '?';
     const way = res.way_name || res.way_id || payload.way_id || 'way';
@@ -239,10 +239,10 @@ function connectSummary(res: *FIX*, payload: *FIX*) {
     return `Connected "${from}" <-> "${to}" via way '${way}'`;
 }
 function connectRoomsViaGraph() {
-    openCreateModal('connection', async (data: *FIX*) => {
+    openCreateModal('connection', async (data: any) => {
         if (!data.room1 || !data.room2) { toastInfo('Select both rooms'); return; }
         if (data.room1 === data.room2) { toastInfo('Pick two different areas.'); return; }
-        const payload: Record<string, *FIX*> = {
+        const payload: Record<string, any> = {
             room1: data.room1, room2: data.room2,
             dir1: data.dir1.trim(), dir2: data.dir2.trim(),
             name: data.name || '',
@@ -275,10 +275,10 @@ function openWorldSync() { VW.worldSync.open(); }
 function closeWorldSync() { VW.worldSync.close(); }
 
 // Settings/profile buttons — used by templates/index.html
-function switchProfile(name: string) { (config as *FIX*).switchProfile(name); }
-function saveProfileFromCurrent() { (config as *FIX*).saveProfileFromCurrent(); }
-function saveProfileAsNew() { (config as *FIX*).saveProfileAsNew(); }
-function deleteProfile() { (config as *FIX*).deleteProfile_(); }
+function switchProfile(name: string) { (config as any).switchProfile(name); }
+function saveProfileFromCurrent() { (config as any).saveProfileFromCurrent(); }
+function saveProfileAsNew() { (config as any).saveProfileAsNew(); }
+function deleteProfile() { (config as any).deleteProfile_(); }
 function saveAgentSettings() { SettingsView.saveConfigToServer(); }
 
 // Graph editor toolbar
@@ -287,8 +287,8 @@ const graphEditor = {
     // the 'update' it emits routes to graphManager.syncGraphData() — one in-place
     // node update, not a full rebuild. (The server also broadcasts `world_changed`,
     // but fetching here keeps it deterministic rather than SSE-timing-dependent.)
-    undo() { (ApiClient as *FIX*).undo().then((res: *FIX*) => { if (!res.error) { worldState.fetch(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch((e: *FIX*) => events.log('Undo failed: ' + e.message, 'error-msg')); },
-    redo() { (ApiClient as *FIX*).redo().then((res: *FIX*) => { if (!res.error) { worldState.fetch(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch((e: *FIX*) => events.log('Redo failed: ' + e.message, 'error-msg')); },
+    undo() { (ApiClient as any).undo().then((res: any) => { if (!res.error) { worldState.fetch(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Undo failed: ' + e.message, 'error-msg')); },
+    redo() { (ApiClient as any).redo().then((res: any) => { if (!res.error) { worldState.fetch(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Redo failed: ' + e.message, 'error-msg')); },
     showTemplates() { VW?.inspector?.showTemplates?.() || events.log('Templates panel', 'system-msg'); }
 };
 
@@ -353,7 +353,7 @@ function generateWithAI(type: string) {
             const useContext = (document.getElementById('gen-use-context') as HTMLInputElement)?.checked !== false;
             let systemMsg = `You are a procedural content generator for a game. Generate a ${type} based on the user's prompt. Respond ONLY with raw JSON matching the form fields. No markdown.
 
-For connections, the 'description' is what the player sees when they look at the passage — be creative and contextually appropriate. The connection could be a way, gate, archway, stone portal, natural rock bridge, woven vine tunnel, frozen waterfall, narrow ravine, animal trail, fallen log, rope bridge, tunnel through roots, or *FIX* other passage that fits the two rooms. Use area descriptions to decide what makes sense. A forest path should NOT be described as a way with hinges and a handle — it should be a trail, a gap in the trees, a root arch, etc. The view_from_a and view_from_b describe what you see looking THROUGH the passage into the other area.
+For connections, the 'description' is what the player sees when they look at the passage — be creative and contextually appropriate. The connection could be a way, gate, archway, stone portal, natural rock bridge, woven vine tunnel, frozen waterfall, narrow ravine, animal trail, fallen log, rope bridge, tunnel through roots, or any other passage that fits the two rooms. Use area descriptions to decide what makes sense. A forest path should NOT be described as a way with hinges and a handle — it should be a trail, a gap in the trees, a root arch, etc. The view_from_a and view_from_b describe what you see looking THROUGH the passage into the other area.
 
 For items, generate appropriate triggers based on the item's purpose. Common patterns:
 - Food/drink → on_eat/on_drink with adjust_vital (Hunger/Thirst)
@@ -368,7 +368,7 @@ Use conditions (has_item, state_equals, random_chance) for gated interactions.
 Use the effects array for multi-step effects.`;
             if (useContext) {
                 if (type === 'area') {
-                    const existing = Object.entries(worldState.areas || {}).map(([name, r]: [string, *FIX*]) =>
+                    const existing = Object.entries(worldState.areas || {}).map(([name, r]: [string, any]) =>
                         `- ${name}: ${(r.description || '(no description)').split('\n')[0]}`
                     ).join('\n');
                     if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
@@ -443,7 +443,7 @@ Only set fields for capabilities the item actually has.`;
             }
             const data = result.data;
 
-            const set = (id: string, val: *FIX*) => { const el = document.getElementById(id) as HTMLInputElement; if (el) el.value = val ?? ''; };
+            const set = (id: string, val: any) => { const el = document.getElementById(id) as HTMLInputElement; if (el) el.value = val ?? ''; };
             if (type === 'area') {
                 set('area-name', data.name); set('area-desc', data.description);
                 const lightEl = (document.getElementById('area-light') as HTMLInputElement);
@@ -461,8 +461,8 @@ Only set fields for capabilities the item actually has.`;
                 }
                 set('area-temp', data.temperature); (document.getElementById('area-air') as HTMLInputElement) && ((document.getElementById('area-air') as HTMLInputElement).value = data.air || 'fresh');
                 set('area-smell', data.smell); set('area-noise', data.noise);
-                if ((window as *FIX*).CreateModal?._tagMSArea && data.tags) {
-                    (window as *FIX*).CreateModal._tagMSArea.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []);
+                if ((window as any).CreateModal?._tagMSArea && data.tags) {
+                    (window as any).CreateModal._tagMSArea.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []);
                 }
             } else if (type === 'item') {
                 CreateModal._applyItemAIData(data);
@@ -487,8 +487,8 @@ Only set fields for capabilities the item actually has.`;
                     const dcEl = (document.getElementById('conn-needs-dc') as HTMLInputElement);
                     if (dcEl) dcEl.value = needsOpenConfig.dc || 15;
                 }
-                if ((window as *FIX*).CreateModal?._tagMSConn && data.tags) {
-                    (window as *FIX*).CreateModal._tagMSConn.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []);
+                if ((window as any).CreateModal?._tagMSConn && data.tags) {
+                    (window as any).CreateModal._tagMSConn.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []);
                 }
                 const seeThroughEl = (document.getElementById('conn-see-through') as HTMLInputElement);
                 if (seeThroughEl && data.see_through !== undefined) seeThroughEl.checked = data.see_through;
@@ -498,7 +498,7 @@ Only set fields for capabilities the item actually has.`;
                 if (tf && data.triggers) tf.value = JSON.stringify(data.triggers, null, 2);
             }
             events.log(`AI generated ${type}: ${data.name || 'unnamed'}`, 'system-msg');
-        } catch (err: *FIX*) {
+        } catch (err: any) {
             events.log('AI generation failed: ' + err.message, 'error-msg');
         } finally {
             promptInput.disabled = false;
@@ -551,7 +551,7 @@ VW._previewPrompt = function(type: string) {
     const useContext = (document.getElementById('gen-use-context') as HTMLInputElement)?.checked !== false;
     let systemMsg = `You are a procedural content generator for a game. Generate a ${type} based on the user's prompt. Respond ONLY with raw JSON matching the form fields. No markdown.`;
     if (useContext && type === 'area') {
-        const existing = Object.entries(worldState.areas || {}).map(([n, r]: [string, *FIX*]) =>
+        const existing = Object.entries(worldState.areas || {}).map(([n, r]: [string, any]) =>
             `- ${n}: ${(r.description || '(no description)').split('\n')[0]}`
         ).join('\n');
         if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
@@ -651,11 +651,11 @@ VW._sendPreviewPrompt = function() {
 }
 
 // Create modal — delegates to CreateModal module
-function openCreateModal(type: string, onSubmit: (data: *FIX*) => void) { CreateModal.open(type, onSubmit); }
+function openCreateModal(type: string, onSubmit: (data: any) => void) { CreateModal.open(type, onSubmit); }
 function closeCreateModal() { CreateModal.close(); }
 
 // Toggle way state (open/close) from area inspector — authoring path, so
-// designers can set *FIX* state even on open-passage ways (task-223). Goes
+// designers can set any state even on open-passage ways (task-223). Goes
 // straight to the node PATCH like the way editor's State dropdown.
 function toggleDoorState(exitName: string, action: string, wayId?: string) {
     if (wayId) {
@@ -663,11 +663,11 @@ function toggleDoorState(exitName: string, action: string, wayId?: string) {
         api.updateNode(wayId, { properties: { current_state: newState } }).then(() => {
             events.log(`${action === 'open' ? 'Opened' : 'Closed'} ${wayId} (designer).`, 'system-msg');
             worldState.fetch();
-        }).catch((err: *FIX*) => events.log('Failed to toggle way: ' + (err?.message || err), 'error-msg'));
+        }).catch((err: any) => events.log('Failed to toggle way: ' + (err?.message || err), 'error-msg'));
         return;
     }
     const cmd = action + ' ' + exitName;
-    api.action(cmd).then((data: *FIX*) => {
+    api.action(cmd).then((data: any) => {
         const output = data?.output || data?.error || 'Toggled ' + (wayId || exitName);
         events.log(output, 'system-msg');
         if (data?.system_messages) {
@@ -695,7 +695,7 @@ function toggleDoorState(exitName: string, action: string, wayId?: string) {
         
         // Third-person identity so NPCs don't read their own speech as "you"
         const speakerName = '👤 A Guest';
-    api.playerSpeak(speakerName, text, areaName).then((res: *FIX*) => {
+    api.playerSpeak(speakerName, text, areaName).then((res: any) => {
         if (res.error) {
             events.log(`Speak failed: ${res.error}`, 'error-msg');
             return;
@@ -791,7 +791,7 @@ async function newScenario() {
         await SaveLoadView.refreshReplacedWorld();
         const scStatus = (window as unknown as { ScenarioStatus?: { refresh(): void } }).ScenarioStatus;
         if (scStatus && typeof scStatus.refresh === 'function') scStatus.refresh();
-    } catch(e: *FIX*) { toastError('Failed to create new scenario: ' + e.message); }
+    } catch(e: any) { toastError('Failed to create new scenario: ' + e.message); }
 }
 
 // Restart scenario
@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // lit-bootstrap.js is a deferred module script, so window.Lit may not
     // be stamped yet even though main.js runs right after its tag. block
-    // until it is ready before *FIX*thing that renders via window.Lit.
+    // until it is ready before anything that renders via window.Lit.
     const litDeadline = Date.now() + 5000;
     while (!window.Lit && Date.now() < litDeadline) {
         await new Promise(resolve => setTimeout(resolve, 20));
@@ -848,8 +848,8 @@ document.addEventListener('DOMContentLoaded', () => {
     await events.restoreLog();
     
     // Configure LLM client from persisted config
-    llmClient.configure((config as *FIX*).toLLMConfig());
-    llmClient._manualMode = !!(config as *FIX*).manualMode;
+    llmClient.configure((config as any).toLLMConfig());
+    llmClient._manualMode = !!(config as any).manualMode;
 
     // Sync filter checkboxes from persisted config
     const syncFilter = (id: string, val: unknown) => { const el = document.getElementById(id) as HTMLInputElement; if (el) el.checked = val as boolean; };
@@ -872,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial state fetch
     await worldState.fetch(true); // lite=true for fast initial paint
-    (window as *FIX*).VWSimultaneousControls?.init();
+    (window as any).VWSimultaneousControls?.init();
     agentLens.init();
     
     // Fetch equipment slot configuration
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => events._persistLog(), 5000);
     
     // Wire state change handler for UI rendering
-    worldState.on('update', (state: *FIX*) => {
+    worldState.on('update', (state: any) => {
         // Re-initialize or clear turn queue after scenario load/reset
         if (state?.players) {
             if (Object.keys(state.players).length === 0) {
@@ -900,9 +900,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update play/pause buttons
         ui.showPlayPause(!config.running || agent.isPaused, Boolean(config.running && !agent.isPaused));
-        (window as *FIX*).VWSimultaneousControls?.render();
+        (window as any).VWSimultaneousControls?.render();
         
-        // Reflect *FIX* graph change IN PLACE (task-764). This fires on every
+        // Reflect any graph change IN PLACE (task-764). This fires on every
         // state update — the spectator poll and every `world_changed` edit — so
         // it must not refetch or rebuild: syncGraphData() updates a changed node
         // in place and only falls back to a full load when the node/edge set
@@ -957,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // selected agent is a product decision, not a typing one.
                 const uiSel = ui as unknown as { selectedAgent?: string };
                 const activeChar = (typeof ui !== 'undefined' && uiSel.selectedAgent) ? uiSel.selectedAgent : null;
-                const res = await (ApiClient as *FIX*).getAutocomplete(verb, typedPrefix, activeChar);
+                const res = await (ApiClient as any).getAutocomplete(verb, typedPrefix, activeChar);
                 const opts = res?.options || [];
                 if (opts.length === 0) {
                     resetAutocomplete();
@@ -987,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cmd = this.value.trim();
                 events.log('> ' + cmd, 'user-msg');
                 this.value = '';
-                api.action(cmd).then((data: *FIX*) => {
+                api.action(cmd).then((data: any) => {
                     const msg = data?.output || data?.error || cmd;
                     events.log(msg, msg.includes('ValueError') ? 'error-msg' : 'system-msg');
                     if (data?.system_messages) {
@@ -1002,14 +1002,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize ghost mode toggle from backend
                 (async () => {
                     try {
-                        const res = await (ApiClient as *FIX*).getGhostMode();
+                        const res = await (ApiClient as any).getGhostMode();
                         const cb = (document.getElementById('agent-ghost-mode') as HTMLInputElement);
                         if (cb) {
                             cb.checked = res.ghost_mode;
                             config.ghostMode = res.ghost_mode;
                             cb.addEventListener('change', async () => {
                                 config.ghostMode = cb.checked;
-                                await (ApiClient as *FIX*).setGhostMode(cb.checked);
+                                await (ApiClient as any).setGhostMode(cb.checked);
                                 // Rebuild turn queue to reflect new ghost mode state
                                 if (config.turnBased) {
                                     agent.initializeTurnQueue();
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // If backend doesn't support it, still check config persistence
                         const cb = (document.getElementById('agent-ghost-mode') as HTMLInputElement);
                         if (cb) {
-                            cb.checked = !!(config as *FIX*).ghostMode;
+                            cb.checked = !!(config as any).ghostMode;
                             cb.addEventListener('change', () => {
                                 config.ghostMode = cb.checked;
                                 if (config.turnBased) {
@@ -1036,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize narration mode select from backend
                 (async () => {
                     try {
-                        const narrationUi = (window as *FIX*).narrationUI;
+                        const narrationUi = (window as any).narrationUI;
                         await narrationUi._initPromise;
                         const select = (document.getElementById('narration-select') as HTMLInputElement);
                         if (select) {

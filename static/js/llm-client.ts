@@ -12,12 +12,12 @@
 
 // Shared by editor and standalone pages. The LLM client logs into VW when the
 // editor namespace is available, but communication pages also use this client.
-(window as *FIX*).VW = (window as *FIX*).VW || {};
+(window as any).VW = (window as any).VW || {};
 
-/** How m*FIX* times a length-stopped response is re-requested with a larger
+/** How many times a length-stopped response is re-requested with a larger
  *  budget before the caller is told the answer is genuinely incomplete. */
 const MAX_TRUNCATION_RETRIES = 3;
-/** Hard ceiling for that escalation - well past *FIX* local model's practical
+/** Hard ceiling for that escalation - well past any local model's practical
  *  output length, so this only stops a pathological loop. */
 const MAX_TOKEN_CEILING = 32768;
 
@@ -26,7 +26,7 @@ interface LLMMessage {
     role?: string;
     content?: string;
     tool_call_id?: string;
-    tool_calls?: *FIX*[];
+    tool_calls?: any[];
     [key: string]: unknown;
 }
 
@@ -46,7 +46,7 @@ interface LLMChatOptions {
     signal?: AbortSignal;
     onChunk?: (chunk: string) => void;
     max_tokens?: number;
-    tools?: *FIX*[];
+    tools?: any[];
     tool_choice?: unknown;
     responseFormat?: LLMResponseFormat | null;
     withTools?: boolean;
@@ -154,7 +154,7 @@ class LLMClient {
      *  options.label - human name for this call shown on the raw-LLM chips
      *  (e.g. 'think-decide', 'result-reaction', 'plan', 'reflect'); defaults
      *  to the model id. */
-    async chat(messages: LLMMessage[], options: LLMChatOptions = {}): Promise<*FIX*> {
+    async chat(messages: LLMMessage[], options: LLMChatOptions = {}): Promise<any> {
         const model = options.model || this.model;
         const label = options.label || model;
         const temperature = options.temperature !== undefined ? options.temperature : this.temperature;
@@ -224,7 +224,7 @@ class LLMClient {
                 const requestBody = isResponses
                     ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: effectiveMaxTokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
                     : (() => {
-                        const body: Record<string, *FIX*> = { model, messages, temperature: parseFloat(temperature as unknown as string) || 0.7 };
+                        const body: Record<string, any> = { model, messages, temperature: parseFloat(temperature as unknown as string) || 0.7 };
                         if (streaming) body.stream = true;
                         if (effectiveMaxTokens) body.max_tokens = effectiveMaxTokens;
                         if (responseFormat) body.response_format = responseFormat;
@@ -372,7 +372,7 @@ class LLMClient {
     }
 
     /** Chat completion helper for tool calling (forces non-streaming and returns { content, tool_calls }). */
-    async chatWithTools(messages: LLMMessage[], options: LLMChatOptions = {}): Promise<*FIX*> {
+    async chatWithTools(messages: LLMMessage[], options: LLMChatOptions = {}): Promise<any> {
         return this.chat(messages, { ...options, streaming: false, withTools: true });
     }
 
@@ -381,7 +381,7 @@ class LLMClient {
      * No-ops unless `config.showRawLLM` is on and the collector is loaded;
      * never throws and never affects the LLM call result.
      */
-    _captureRawExchange(label: string, requestBody: *FIX*, body: *FIX*, resp: Response | null, startedAt: number, requestHeaders: Record<string, string>): void {
+    _captureRawExchange(label: string, requestBody: any, body: any, resp: Response | null, startedAt: number, requestHeaders: Record<string, string>): void {
         try {
             if (typeof window === 'undefined' || !(window as unknown as ClientWin).DatasetCollector?.captureRaw) return;
             if (typeof config !== 'undefined' && config && !config.showRawLLM) return;
@@ -405,7 +405,7 @@ class LLMClient {
     /**
      * Resolve the response_format to send for this call, or null when
      * structured output is off, unsupported, or mixed with tool calls
-     * (m*FIX* providers reject response_format together with tools).
+     * (many providers reject response_format together with tools).
      * @param {Object} options - chat() options, may carry responseFormat
      * @returns {Object|null} response_format payload or null
      */
@@ -469,7 +469,7 @@ class LLMClient {
         return String(raw || '').trim();
     }
 
-    _extractChatCompletionContent(completion: *FIX*): string {
+    _extractChatCompletionContent(completion: any): string {
         const msg = completion?.choices?.[0]?.message;
         if (!msg) return '';
         return this._normalizeAssistantText(msg.content || '');
@@ -482,7 +482,7 @@ class LLMClient {
      * finished on its own ('stop' / 'tool_calls' / no signal at all), so a
      * provider that omits the field never triggers a spurious retry.
      */
-    _truncationReason(completion: *FIX*, isResponses: boolean): string | null {
+    _truncationReason(completion: any, isResponses: boolean): string | null {
         if (!completion || typeof completion !== 'object') return null;
         if (isResponses) {
             const reason = completion?.incomplete_details?.reason;
@@ -534,7 +534,7 @@ class LLMClient {
     }
 
     /** Build a Responses API request body from chat-style messages. */
-    _buildResponsesBody(messages: LLMMessage[], opts: LLMChatOptions): Record<string, *FIX*> {
+    _buildResponsesBody(messages: LLMMessage[], opts: LLMChatOptions): Record<string, any> {
         const systemMessage = messages.find(m => m.role === 'system');
         const input = [];
         for (const m of messages) {
@@ -560,7 +560,7 @@ class LLMClient {
                 input.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content });
             }
         }
-        const body: Record<string, *FIX*> = {
+        const body: Record<string, any> = {
             model: opts.model,
             input,
             temperature: parseFloat(opts.temperature as unknown as string) || 0.7
@@ -599,11 +599,11 @@ class LLMClient {
     }
 
     /** Extract tool_calls from a Responses API completion (output[] entries of type 'function_call'). */
-    _extractResponsesToolCalls(completion: *FIX*): *FIX*[] | null {
+    _extractResponsesToolCalls(completion: any): any[] | null {
         const output = Array.isArray(completion?.output) ? completion.output : [];
         const calls = output
-            .filter((o: *FIX*) => o.type === 'function_call')
-            .map((o: *FIX*) => ({
+            .filter((o: any) => o.type === 'function_call')
+            .map((o: any) => ({
                 id: o.call_id || o.id,
                 type: 'function',
                 function: { name: o.name, arguments: o.arguments || '{}' }
@@ -616,13 +616,13 @@ class LLMClient {
      * Prefers top-level output_text (DeepSeek), falls back to concatenating
      * output[] message items (LM Studio), then empty string.
      */
-    _extractResponsesContent(completion: *FIX*): string {
+    _extractResponsesContent(completion: any): string {
         if (completion?.output_text) return completion.output_text;
         if (Array.isArray(completion?.output)) {
             return completion.output
-                .filter((item: *FIX*) => item.type === 'message')
-                .map((item: *FIX*) => Array.isArray(item.content)
-                    ? item.content.map((c: *FIX*) => c.text || '').join('')
+                .filter((item: any) => item.type === 'message')
+                .map((item: any) => Array.isArray(item.content)
+                    ? item.content.map((c: any) => c.text || '').join('')
                     : (item.content || ''))
                 .join('');
         }
@@ -729,8 +729,8 @@ class LLMClient {
             });
             if (resp.ok) {
                 const data = await resp.json();
-                if (data.data && Array.isArray(data.data)) return data.data.map((m: *FIX*) => m.id || m.name || m).filter(Boolean).sort();
-                if (Array.isArray(data)) return data.map((m: *FIX*) => m.id || m.name || m).filter(Boolean).sort();
+                if (data.data && Array.isArray(data.data)) return data.data.map((m: any) => m.id || m.name || m).filter(Boolean).sort();
+                if (Array.isArray(data)) return data.map((m: any) => m.id || m.name || m).filter(Boolean).sort();
             }
         } catch (e) {}
         return null;
@@ -769,7 +769,7 @@ class LLMClient {
     }
 }
 
-// globals.d.ts already declares `llmClient: *FIX*` so every other module can reach
+// globals.d.ts already declares `llmClient: any` so every other module can reach
 // this singleton without importing it, which rules out re-declaring the same
 // `const` here. Publishing through `window` is equivalent for a classic script:
 // a bare `llmClient` reference in another file resolves through the global

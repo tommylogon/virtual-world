@@ -3,7 +3,7 @@
  *
  * The app loads plain `<script>` tags and shares state through globals rather
  * than ES module imports, so cross-file symbols are declared here as files are
- * migrated. Prefer a precise shape for a global's used surface over `*FIX*`;
+ * migrated. Prefer a precise shape for a global's used surface over `any`;
  * widen it as more consumers are converted.
  *
  * See docs/design/typescript-migration.md.
@@ -27,62 +27,62 @@ interface ConfigManager {
     controllingPlayer?: string;
     // Every remaining settings key read off `config` across static/js,
     // generated rather than hand-picked: the hand-curated list surfaced one
-    // TS2339 at a time. `*FIX*` because these come from storage and their
+    // TS2339 at a time. `any` because these come from storage and their
     // shapes differ per key; the index signature already allowed them, so
-    // this documents them instead of widening *FIX*thing.
-    background_all?: *FIX*;
-    decay_overrides?: *FIX*;
-    embed?: *FIX*;
-    engine_decay?: *FIX*;
-    fields?: *FIX*;
-    graphArrows?: *FIX*;
-    graphCardinalLayout?: *FIX*;
-    graphDamping?: *FIX*;
-    graphEdgeWidth?: *FIX*;
-    graphGravitationalConstant?: *FIX*;
-    graphImprovedLayout?: *FIX*;
-    graphItemEdgeLength?: *FIX*;
-    graphLabelMaxNodes?: *FIX*;
-    graphLabelMinScale?: *FIX*;
-    graphLayoutMode?: *FIX*;
-    graphMapSpacing?: *FIX*;
-    graphMapSpacingAuto?: *FIX*;
-    graphRepelEnabled?: *FIX*;
-    graphRepelMax?: *FIX*;
-    graphRepelMin?: *FIX*;
-    graphRepelPull?: *FIX*;
-    graphSolver?: *FIX*;
-    graphSpringConstant?: *FIX*;
-    graphSpringLength?: *FIX*;
-    js?: *FIX*;
-    lastActionResult?: *FIX*;
-    lastProfile?: *FIX*;
-    manualMode?: *FIX*;
-    mature?: *FIX*;
-    maxSteps?: *FIX*;
-    minutes_per_tick?: *FIX*;
-    neutral_environment?: *FIX*;
-    provider?: *FIX*;
-    reactiveMode?: *FIX*;
-    running?: *FIX*;
-    saveFromForm?: *FIX*;
-    scenario?: *FIX*;
-    sections?: *FIX*;
-    seed?: *FIX*;
-    showLogs?: *FIX*;
-    showRawLLM?: *FIX*;
-    simultaneousMode?: *FIX*;
-    starting_vitals?: *FIX*;
-    stepsRun?: *FIX*;
-    streaming?: *FIX*;
-    structuredOutput?: *FIX*;
-    suppressLocalThinking?: *FIX*;
-    temperature?: *FIX*;
-    ticks?: *FIX*;
-    toLLMConfig?: *FIX*;
-    traits?: *FIX*;
-    turnBased?: *FIX*;
-    turnOrder?: *FIX*;
+    // this documents them instead of widening anything.
+    background_all?: any;
+    decay_overrides?: any;
+    embed?: any;
+    engine_decay?: any;
+    fields?: any;
+    graphArrows?: any;
+    graphCardinalLayout?: any;
+    graphDamping?: any;
+    graphEdgeWidth?: any;
+    graphGravitationalConstant?: any;
+    graphImprovedLayout?: any;
+    graphItemEdgeLength?: any;
+    graphLabelMaxNodes?: any;
+    graphLabelMinScale?: any;
+    graphLayoutMode?: any;
+    graphMapSpacing?: any;
+    graphMapSpacingAuto?: any;
+    graphRepelEnabled?: any;
+    graphRepelMax?: any;
+    graphRepelMin?: any;
+    graphRepelPull?: any;
+    graphSolver?: any;
+    graphSpringConstant?: any;
+    graphSpringLength?: any;
+    js?: any;
+    lastActionResult?: any;
+    lastProfile?: any;
+    manualMode?: any;
+    mature?: any;
+    maxSteps?: any;
+    minutes_per_tick?: any;
+    neutral_environment?: any;
+    provider?: any;
+    reactiveMode?: any;
+    running?: any;
+    saveFromForm?: any;
+    scenario?: any;
+    sections?: any;
+    seed?: any;
+    showLogs?: any;
+    showRawLLM?: any;
+    simultaneousMode?: any;
+    starting_vitals?: any;
+    stepsRun?: any;
+    streaming?: any;
+    structuredOutput?: any;
+    suppressLocalThinking?: any;
+    temperature?: any;
+    ticks?: any;
+    toLLMConfig?: any;
+    traits?: any;
+    turnBased?: any;
+    turnOrder?: any;
     apiKey?: string;
     // Graph physics, read by network-manager.ts off `config || {}`. The class in
     // config.ts declares these too, but `ConfigManager` as a type reference
@@ -125,15 +125,15 @@ declare const config: {
 };
 
 /** Remaining shared globals  -  narrowed as their modules are converted. */
-declare const worldState: *FIX*;
-declare const events: *FIX*;
-declare const api: *FIX*;
-declare const graphManager: *FIX*;
-declare const llmClient: *FIX*;
-declare const storage: *FIX*;
-declare const VW: *FIX*;
-declare const TurnFeed: *FIX*;
-declare const PromptBuilder: *FIX*;
+declare const worldState: any;
+declare const events: any;
+declare const api: any;
+declare const graphManager: any;
+declare const llmClient: any;
+declare const storage: any;
+declare const VW: any;
+declare const TurnFeed: any;
+declare const PromptBuilder: any;
 
 /** ApiClient (api.js): the HTTP surface. Only the calls converted code makes. */
 declare const ApiClient: {
@@ -168,7 +168,7 @@ declare const appEvents: {
  *
  * Exactly 14 members, enumerable from lit-bootstrap.js  -  not a guess from call
  * sites. Template *values* are `unknown` because these templates are dynamic by
- * design and lit accepts *FIX*thing at runtime; the directive arguments are
+ * design and lit accepts anything at runtime; the directive arguments are
  * typed.
  */
 interface LitApi {
@@ -193,7 +193,7 @@ declare const Lit: LitApi;
 
 /**
  * Soak lab singletons (soak/soak-ui.js, soak/soak-state.js). Declared with the
- * surface converted callers use, not a bare `*FIX*`, so soak-app.js type-checks
+ * surface converted callers use, not a bare `any`, so soak-app.js type-checks
  * against the real contract.
  */
 interface SoakUiApi {
@@ -213,59 +213,59 @@ interface Window {
     Lit: LitApi;
     SoakUI: SoakUiApi;
     SoakState: SoakStateApi;
-    // Both are declared as bare `*FIX*` above (9 such globals exist); mirroring
+    // Both are declared as bare `any` above (9 such globals exist); mirroring
     // that on Window is what makes the `window.worldState?.…` spelling  -  used
     // throughout the views  -  type-check at all.
-    worldState: *FIX*;
-    VW: *FIX*;
+    worldState: any;
+    VW: any;
     // The prompt-builder modules build this namespace with Object.assign.
-    PromptBuilder: *FIX*;
+    PromptBuilder: any;
 }
 
 /**
  * Provisional declarations for singletons owned by modules that are still .js.
  *
  * These exist so parallel conversion lanes never have to edit this file  -  it is
- * a hub, and concurrent edits lose declarations. Each is `*FIX*` on purpose and
+ * a hub, and concurrent edits lose declarations. Each is `any` on purpose and
  * honestly: the real shape belongs to the owning module, and should replace
  * these when that module converts. The plan doc's warning applies  -  a file that
- * compiles against `*FIX*` here is typed only as far as its own logic.
+ * compiles against `any` here is typed only as far as its own logic.
  *
  * Format: name  -  owning module.
  */
-declare const InspectorHelpers: *FIX*;   // inspector/helpers.js
-declare const GraphToolbar: *FIX*;       // graph/toolbar.js
-declare const GraphPhysics: *FIX*;       // graph/physics.js  -  the one physics policy
-declare const DiffModal: *FIX*;          // shared/diff-modal.js
-declare const WayAuthoring: *FIX*;       // inspector/way-authoring.js
-declare const EmbeddingClient: *FIX*;    // shared/embedding-client.js (converted; narrow when convenient)
-declare const GraphProjector: *FIX*;     // graph/projector.js
-declare const GraphEventHandlers: *FIX*; // graph/event-handlers.js
-declare const NodeBadges: *FIX*;         // graph/node-badges.js
-declare const ActionVerbs: *FIX*;        // agent/action-verbs.generated.js
-declare const ActionNormalizer: *FIX*;   // agent/action-normalizer.js
-declare const TurnQueue: *FIX*;          // agent/turn-queue.js
-declare const GraphContextMenu: *FIX*;   // graph/context-menu.js
-declare const InspectorAgentView: *FIX*; // inspector/agent-view.js
-declare const WorldExport: *FIX*;        // ui/world-export.js
-declare const GraphFocus: *FIX*;         // graph/focus.js
-declare const GraphOverlays: *FIX*;      // graph/overlays.js
-declare const GraphTooltips: *FIX*;      // graph/tooltips.js
-declare const HumanTurnComposer: *FIX*;  // agent/human-turn-composer.js
-declare const PlanTracker: *FIX*;        // agent/plan-tracker.js
-declare const ResponseParser: *FIX*;     // agent/response-parser.js
-declare const TriggerSuggestAI: *FIX*;   // shared/trigger-suggest-ai.js
-declare const InspectorTriggers: *FIX*;  // inspector/trigger-helpers.js
-declare const InspectorWayView: *FIX*;   // inspector/way-view.js
-declare const ValidatorPanel: *FIX*;     // validator-panel.js
-declare const ItemLibraryAI: *FIX*;      // item-library/ai-generation.js
-declare const SkyScape: *FIX*;           // sky-scape.js
-declare const Structures: *FIX*;         // structures.js
-declare const NarrationUi: *FIX*;        // narration-ui.js
+declare const InspectorHelpers: any;   // inspector/helpers.js
+declare const GraphToolbar: any;       // graph/toolbar.js
+declare const GraphPhysics: any;       // graph/physics.js  -  the one physics policy
+declare const DiffModal: any;          // shared/diff-modal.js
+declare const WayAuthoring: any;       // inspector/way-authoring.js
+declare const EmbeddingClient: any;    // shared/embedding-client.js (converted; narrow when convenient)
+declare const GraphProjector: any;     // graph/projector.js
+declare const GraphEventHandlers: any; // graph/event-handlers.js
+declare const NodeBadges: any;         // graph/node-badges.js
+declare const ActionVerbs: any;        // agent/action-verbs.generated.js
+declare const ActionNormalizer: any;   // agent/action-normalizer.js
+declare const TurnQueue: any;          // agent/turn-queue.js
+declare const GraphContextMenu: any;   // graph/context-menu.js
+declare const InspectorAgentView: any; // inspector/agent-view.js
+declare const WorldExport: any;        // ui/world-export.js
+declare const GraphFocus: any;         // graph/focus.js
+declare const GraphOverlays: any;      // graph/overlays.js
+declare const GraphTooltips: any;      // graph/tooltips.js
+declare const HumanTurnComposer: any;  // agent/human-turn-composer.js
+declare const PlanTracker: any;        // agent/plan-tracker.js
+declare const ResponseParser: any;     // agent/response-parser.js
+declare const TriggerSuggestAI: any;   // shared/trigger-suggest-ai.js
+declare const InspectorTriggers: any;  // inspector/trigger-helpers.js
+declare const InspectorWayView: any;   // inspector/way-view.js
+declare const ValidatorPanel: any;     // validator-panel.js
+declare const ItemLibraryAI: any;      // item-library/ai-generation.js
+declare const SkyScape: any;           // sky-scape.js
+declare const Structures: any;         // structures.js
+declare const NarrationUi: any;        // narration-ui.js
 /**
  * GraphBackground (graph/graph-background.ts)  -  the map art behind the graph.
  *
- * **Not `*FIX*`, on purpose.** This one was `*FIX*`, and `*FIX*` is why commit
+ * **Not `any`, on purpose.** This one was `any`, and `any` is why commit
  * 6fd774b8 could delete `refreshForScope`, `reconcileAllForGapChange` and
  * `_reconcileReferenceArt` without `tsc` noticing: every cross-module call was
  * unchecked, and the four call sites guarded each one with
@@ -281,7 +281,7 @@ declare const NarrationUi: *FIX*;        // narration-ui.js
  * compile error instead of a silent no-op.
  *
  * `tools/unit/test_graph_background.js` pins the same surface at runtime and
- * fails if *FIX*one reintroduces a `typeof … === 'function'` guard at a call site.
+ * fails if anyone reintroduces a `typeof … === 'function'` guard at a call site.
  */
 declare const GraphBackground: {
     init(): void;
@@ -293,14 +293,14 @@ declare const GraphBackground: {
     reconcileAllForGapChange(): Promise<void>;
     getExportLayers(): unknown[];
 };
-declare const InspectorPanelRef: *FIX*;  // inspector/panel.ts (converted)
+declare const InspectorPanelRef: any;  // inspector/panel.ts (converted)
 
 /** lit-html's template type. Our LitApi types template *values* as unknown. */
 type TemplateResult = unknown;
 
 /** Vendored / CDN globals that are not modules. */
-declare const tippy: *FIX*;              // tooltip library
-declare const vis: *FIX*;                // vis-network, canvas-rendered
+declare const tippy: any;              // tooltip library
+declare const vis: any;                // vis-network, canvas-rendered
 
 /** Toast helpers (ui/create-modal.js and friends): transient notifications. */
 declare function toastInfo(message: string, ...rest: unknown[]): void;
@@ -329,10 +329,10 @@ declare const GraphLayoutEngine: {
 // lexical top-level `const` are deliberately absent, because `window.X`
 // would typecheck for them while being `undefined` at runtime.
 //
-// WHY `*FIX*` AND NOT `unknown`: the whole point of this interface is to make
+// WHY `any` AND NOT `unknown`: the whole point of this interface is to make
 // `window.config.maxTokens` COMPILE. With `unknown` every property access
 // through a window member errors, the converter is tempted to drop the
-// `window.` prefix again, and we are back to ReferenceError land. `*FIX*`
+// `window.` prefix again, and we are back to ReferenceError land. `any`
 // keeps the guard intact. Behaviour-correctness beats strictness here: the
 // alternative is code that compiles and throws.
 //
@@ -341,133 +341,133 @@ declare const GraphLayoutEngine: {
 //
 // Sources: 123 names assigned to window across static/js.
 interface Window {
-    ActionVerbs: *FIX*;
-    ActionNormalizer: *FIX*;
-    AgentMemory: *FIX*;
-    AgentState: *FIX*;
-    AutoDressModal: *FIX*;
-    ChangesPanel: *FIX*;
-    BugReport: *FIX*;
-    CharacterArt: *FIX*;
-    CommandPalette: *FIX*;
-    ContextWindowManager: *FIX*;
-    DatasetCollector: *FIX*;
-    DiffModal: *FIX*;
-    DocPanel: *FIX*;
-    EdgeInspector: *FIX*;
-    EdgeTypes: *FIX*;
-    EditFeed: *FIX*;
-    EmbeddingClient: *FIX*;
-    EmotePicker: *FIX*;
-    EmotionMapper: *FIX*;
-    EngineConfigView: *FIX*;
-    EnvPresets: *FIX*;
-    GraphBackground: *FIX*;
-    GraphContextMenu: *FIX*;
-    GraphEventHandlers: *FIX*;
-    GraphExport: *FIX*;
-    GraphFocus: *FIX*;
-    GraphNetwork: *FIX*;
-    GraphNodeOps: *FIX*;
-    GraphOverlays: *FIX*;
-    GraphPhysics: *FIX*;
-    GraphProjector: *FIX*;
-    GraphRelativeLayout: *FIX*;
-    GraphScopeTree: *FIX*;
-    GraphSeparation: *FIX*;
-    GraphToolbar: *FIX*;
-    GraphTooltips: *FIX*;
-    GraphTreeView: *FIX*;
-    HelpCenter: *FIX*;
-    HumanTurnComposer: *FIX*;
-    InspectorAgentView: *FIX*;
-    InspectorBehaviors: *FIX*;
-    InspectorHelpers: *FIX*;
-    InspectorItemView: *FIX*;
-    InspectorLore: *FIX*;
-    InspectorMemory: *FIX*;
-    InspectorPanel: *FIX*;
-    InspectorPaperdoll: *FIX*;
-    InspectorTemplateSync: *FIX*;
-    InspectorTriggers: *FIX*;
-    InspectorWayView: *FIX*;
-    InspectorWayViewConnections: *FIX*;
-    Involuntary: *FIX*;
-    ItemContainment: *FIX*;
-    ItemLibraryAI: *FIX*;
-    ItemLibraryContents: *FIX*;
-    ItemLibraryPlacement: *FIX*;
-    ItemLibraryTriggerSuggester: *FIX*;
-    KnownBySection: *FIX*;
-    NLEditor: *FIX*;
-    NLEditorAgent: *FIX*;
-    NLEditorDiff: *FIX*;
-    NLEditorGhosts: *FIX*;
-    NLEditorStaging: *FIX*;
-    NLEditorTools: *FIX*;
-    NLEditorUI: *FIX*;
-    NodeBadges: *FIX*;
-    ObjectResponder: *FIX*;
-    PlanManager: *FIX*;
-    PlanTracker: *FIX*;
-    RateLimiter: *FIX*;
-    ResponseParser: *FIX*;
-    RoomTemplatePalette: *FIX*;
-    SaveLoadView: *FIX*;
-    ScenarioHealth: *FIX*;
-    ScenarioManager: *FIX*;
-    ScenarioStatus: *FIX*;
-    ScenarioWizard: *FIX*;
-    SearchSelect: *FIX*;
-    SettingsView: *FIX*;
-    SetupChecklist: *FIX*;
-    SkyScape: *FIX*;
-    SoakApi: *FIX*;
-    SoakCharts: *FIX*;
-    SoakFormat: *FIX*;
-    SoakPresets: *FIX*;
-    SoakSpacetime: *FIX*;
-    SpriteSheet: *FIX*;
-    SpriteSheetGeometry: *FIX*;
-    StructuredFormats: *FIX*;
-    TagMultiselect: *FIX*;
-    ThreatDetector: *FIX*;
-    Timeskip: *FIX*;
-    TriggerGraph: *FIX*;
-    TriggerSuggestAI: *FIX*;
-    TriggerSuggestDiff: *FIX*;
-    TriggerTypes: *FIX*;
-    TurnFeed: *FIX*;
-    TurnQueue: *FIX*;
-    TurnSceneView: *FIX*;
-    TurnYouStrip: *FIX*;
-    UndoHistory: *FIX*;
-    VWSimRound: *FIX*;
-    VWSimultaneous: *FIX*;
-    VitalColor: *FIX*;
-    VitalThresholds: *FIX*;
-    WayAuthoring: *FIX*;
-    WorldExport: *FIX*;
-    _lastRecallStats: *FIX*;
-    _traitLibrary: *FIX*;
-    _traitLibraryAt: *FIX*;
-    appEvents: *FIX*;
-    config: *FIX*;
-    escapeForHtmlAttribute: *FIX*;
-    events: *FIX*;
-    graphManager: *FIX*;
-    gridModel: *FIX*;
-    llmClient: *FIX*;
-    runAction: *FIX*;
-    storage: *FIX*;
-    structures: *FIX*;
-    worldPainter: *FIX*;
+    ActionVerbs: any;
+    ActionNormalizer: any;
+    AgentMemory: any;
+    AgentState: any;
+    AutoDressModal: any;
+    ChangesPanel: any;
+    BugReport: any;
+    CharacterArt: any;
+    CommandPalette: any;
+    ContextWindowManager: any;
+    DatasetCollector: any;
+    DiffModal: any;
+    DocPanel: any;
+    EdgeInspector: any;
+    EdgeTypes: any;
+    EditFeed: any;
+    EmbeddingClient: any;
+    EmotePicker: any;
+    EmotionMapper: any;
+    EngineConfigView: any;
+    EnvPresets: any;
+    GraphBackground: any;
+    GraphContextMenu: any;
+    GraphEventHandlers: any;
+    GraphExport: any;
+    GraphFocus: any;
+    GraphNetwork: any;
+    GraphNodeOps: any;
+    GraphOverlays: any;
+    GraphPhysics: any;
+    GraphProjector: any;
+    GraphRelativeLayout: any;
+    GraphScopeTree: any;
+    GraphSeparation: any;
+    GraphToolbar: any;
+    GraphTooltips: any;
+    GraphTreeView: any;
+    HelpCenter: any;
+    HumanTurnComposer: any;
+    InspectorAgentView: any;
+    InspectorBehaviors: any;
+    InspectorHelpers: any;
+    InspectorItemView: any;
+    InspectorLore: any;
+    InspectorMemory: any;
+    InspectorPanel: any;
+    InspectorPaperdoll: any;
+    InspectorTemplateSync: any;
+    InspectorTriggers: any;
+    InspectorWayView: any;
+    InspectorWayViewConnections: any;
+    Involuntary: any;
+    ItemContainment: any;
+    ItemLibraryAI: any;
+    ItemLibraryContents: any;
+    ItemLibraryPlacement: any;
+    ItemLibraryTriggerSuggester: any;
+    KnownBySection: any;
+    NLEditor: any;
+    NLEditorAgent: any;
+    NLEditorDiff: any;
+    NLEditorGhosts: any;
+    NLEditorStaging: any;
+    NLEditorTools: any;
+    NLEditorUI: any;
+    NodeBadges: any;
+    ObjectResponder: any;
+    PlanManager: any;
+    PlanTracker: any;
+    RateLimiter: any;
+    ResponseParser: any;
+    RoomTemplatePalette: any;
+    SaveLoadView: any;
+    ScenarioHealth: any;
+    ScenarioManager: any;
+    ScenarioStatus: any;
+    ScenarioWizard: any;
+    SearchSelect: any;
+    SettingsView: any;
+    SetupChecklist: any;
+    SkyScape: any;
+    SoakApi: any;
+    SoakCharts: any;
+    SoakFormat: any;
+    SoakPresets: any;
+    SoakSpacetime: any;
+    SpriteSheet: any;
+    SpriteSheetGeometry: any;
+    StructuredFormats: any;
+    TagMultiselect: any;
+    ThreatDetector: any;
+    Timeskip: any;
+    TriggerGraph: any;
+    TriggerSuggestAI: any;
+    TriggerSuggestDiff: any;
+    TriggerTypes: any;
+    TurnFeed: any;
+    TurnQueue: any;
+    TurnSceneView: any;
+    TurnYouStrip: any;
+    UndoHistory: any;
+    VWSimRound: any;
+    VWSimultaneous: any;
+    VitalColor: any;
+    VitalThresholds: any;
+    WayAuthoring: any;
+    WorldExport: any;
+    _lastRecallStats: any;
+    _traitLibrary: any;
+    _traitLibraryAt: any;
+    appEvents: any;
+    config: any;
+    escapeForHtmlAttribute: any;
+    events: any;
+    graphManager: any;
+    gridModel: any;
+    llmClient: any;
+    runAction: any;
+    storage: any;
+    structures: any;
+    worldPainter: any;
 }
 // <<< window members <<<
 
 // >>> hoisted from converted modules - generated, do not hand-edit >>>
 // CreateModal  -  owner: main.ts
-declare const CreateModal: *FIX*;       // ui/create-modal.js
+declare const CreateModal: any;       // ui/create-modal.js
 
 // DatasetCollector  -  owner: llm-client.ts
 declare const DatasetCollector: { capture(messages: unknown, content: unknown, label: string, extra?: unknown): void } | undefined;
@@ -481,82 +481,82 @@ declare const EmotePicker: {
 // GraphNetwork  -  owner: graph/event-handlers.ts
 // owner: static/js/graph/network-manager.js
 declare const GraphNetwork: {
-    _applyCardinalOverlay(...args: *FIX*[]): *FIX*;
-    _applyHeatOverlay(...args: *FIX*[]): *FIX*;
-    _applyLightOverlay(...args: *FIX*[]): *FIX*;
-    _applyNodeLabelDecorations(...args: *FIX*[]): *FIX*;
-    _applySoundOverlay(...args: *FIX*[]): *FIX*;
-    _applyTagIconsToLabels(...args: *FIX*[]): *FIX*;
-    _applyTriggerOverlay(...args: *FIX*[]): *FIX*;
-    _attachTippyTooltips(...args: *FIX*[]): *FIX*;
-    _bindEdgeHoverTooltips(...args: *FIX*[]): *FIX*;
-    _captureBaseStyles(...args: *FIX*[]): *FIX*;
-    _cellSig(...args: *FIX*[]): *FIX*;
-    _clearOverlay(...args: *FIX*[]): *FIX*;
-    _computeAmbientLight(...args: *FIX*[]): *FIX*;
-    _computeVisibleNodeIds(...args: *FIX*[]): *FIX*;
-    _escHtml(...args: *FIX*[]): *FIX*;
-    _findGraphEdge(...args: *FIX*[]): *FIX*;
-    _fitToSearchMatches(...args: *FIX*[]): *FIX*;
-    _heatColors(...args: *FIX*[]): *FIX*;
-    _kickClusterPhysics(...args: *FIX*[]): *FIX*;
-    _lightColors(...args: *FIX*[]): *FIX*;
-    _lightToInt(...args: *FIX*[]): *FIX*;
-    _nodeLabelPolicy(...args: *FIX*[]): *FIX*;
-    _noiseColors(...args: *FIX*[]): *FIX*;
-    _syncLayoutButton(...args: *FIX*[]): *FIX*;
-    _tagMetaFor(...args: *FIX*[]): *FIX*;
-    _updateOverlayLegend(...args: *FIX*[]): *FIX*;
-    applyAutoMapSpacing(...args: *FIX*[]): *FIX*;
-    applyFilter(...args: *FIX*[]): *FIX*;
-    applyGraphSettings(...args: *FIX*[]): *FIX*;
-    applyModePhysics(...args: *FIX*[]): *FIX*;
-    applyNodeLabelVisibility(...args: *FIX*[]): *FIX*;
-    applyOverlay(...args: *FIX*[]): *FIX*;
-    applyTagFilter(...args: *FIX*[]): *FIX*;
-    applyVisibility(...args: *FIX*[]): *FIX*;
-    buildLegendHTML(...args: *FIX*[]): *FIX*;
-    buildLegendRows(...args: *FIX*[]): *FIX*;
-    buildNodeConfig(...args: *FIX*[]): *FIX*;
-    buildOptions(...args: *FIX*[]): *FIX*;
-    isNodePinned(...args: *FIX*[]): *FIX*;
-    PHYSICS_NODE_LIMIT: *FIX*;
-    nodesOverPhysicsLimit(...args: *FIX*[]): *FIX*;
-    buildTooltip(...args: *FIX*[]): *FIX*;
-    buildTooltipHtml(...args: *FIX*[]): *FIX*;
-    centralGravityFor(...args: *FIX*[]): *FIX*;
-    ensureTagLibrary(...args: *FIX*[]): *FIX*;
-    filterNodes(...args: *FIX*[]): *FIX*;
-    fitView(...args: *FIX*[]): *FIX*;
-    hideRevealedAreas(...args: *FIX*[]): *FIX*;
-    hideRevealedItems(...args: *FIX*[]): *FIX*;
-    init(...args: *FIX*[]): *FIX*;
-    legendChrome(...args: *FIX*[]): *FIX*;
-    loadGraphData(...args: *FIX*[]): *FIX*;
-    syncGraphData(...args: *FIX*[]): *FIX*;
-    _nodeProjection(...args: *FIX*[]): *FIX*;
-    _posTrace(...args: *FIX*[]): *FIX*;
-    _edgeSig(...args: *FIX*[]): *FIX*;
-    _scopedEdgeSig(...args: *FIX*[]): *FIX*;
-    mapCompact(...args: *FIX*[]): *FIX*;
-    mapSizeScale(...args: *FIX*[]): *FIX*;
-    nodeSizeScale(...args: *FIX*[]): *FIX*;
-    refreshEdgeLengths(...args: *FIX*[]): *FIX*;
+    _applyCardinalOverlay(...args: any[]): any;
+    _applyHeatOverlay(...args: any[]): any;
+    _applyLightOverlay(...args: any[]): any;
+    _applyNodeLabelDecorations(...args: any[]): any;
+    _applySoundOverlay(...args: any[]): any;
+    _applyTagIconsToLabels(...args: any[]): any;
+    _applyTriggerOverlay(...args: any[]): any;
+    _attachTippyTooltips(...args: any[]): any;
+    _bindEdgeHoverTooltips(...args: any[]): any;
+    _captureBaseStyles(...args: any[]): any;
+    _cellSig(...args: any[]): any;
+    _clearOverlay(...args: any[]): any;
+    _computeAmbientLight(...args: any[]): any;
+    _computeVisibleNodeIds(...args: any[]): any;
+    _escHtml(...args: any[]): any;
+    _findGraphEdge(...args: any[]): any;
+    _fitToSearchMatches(...args: any[]): any;
+    _heatColors(...args: any[]): any;
+    _kickClusterPhysics(...args: any[]): any;
+    _lightColors(...args: any[]): any;
+    _lightToInt(...args: any[]): any;
+    _nodeLabelPolicy(...args: any[]): any;
+    _noiseColors(...args: any[]): any;
+    _syncLayoutButton(...args: any[]): any;
+    _tagMetaFor(...args: any[]): any;
+    _updateOverlayLegend(...args: any[]): any;
+    applyAutoMapSpacing(...args: any[]): any;
+    applyFilter(...args: any[]): any;
+    applyGraphSettings(...args: any[]): any;
+    applyModePhysics(...args: any[]): any;
+    applyNodeLabelVisibility(...args: any[]): any;
+    applyOverlay(...args: any[]): any;
+    applyTagFilter(...args: any[]): any;
+    applyVisibility(...args: any[]): any;
+    buildLegendHTML(...args: any[]): any;
+    buildLegendRows(...args: any[]): any;
+    buildNodeConfig(...args: any[]): any;
+    buildOptions(...args: any[]): any;
+    isNodePinned(...args: any[]): any;
+    PHYSICS_NODE_LIMIT: any;
+    nodesOverPhysicsLimit(...args: any[]): any;
+    buildTooltip(...args: any[]): any;
+    buildTooltipHtml(...args: any[]): any;
+    centralGravityFor(...args: any[]): any;
+    ensureTagLibrary(...args: any[]): any;
+    filterNodes(...args: any[]): any;
+    fitView(...args: any[]): any;
+    hideRevealedAreas(...args: any[]): any;
+    hideRevealedItems(...args: any[]): any;
+    init(...args: any[]): any;
+    legendChrome(...args: any[]): any;
+    loadGraphData(...args: any[]): any;
+    syncGraphData(...args: any[]): any;
+    _nodeProjection(...args: any[]): any;
+    _posTrace(...args: any[]): any;
+    _edgeSig(...args: any[]): any;
+    _scopedEdgeSig(...args: any[]): any;
+    mapCompact(...args: any[]): any;
+    mapSizeScale(...args: any[]): any;
+    nodeSizeScale(...args: any[]): any;
+    refreshEdgeLengths(...args: any[]): any;
     _lastArrangement: string;
-    renderTagPanel(...args: *FIX*[]): *FIX*;
-    resetOverlayStyles(...args: *FIX*[]): *FIX*;
-    revealAreasForWay(...args: *FIX*[]): *FIX*;
-    revealItemsForNode(...args: *FIX*[]): *FIX*;
-    setTagFilter(...args: *FIX*[]): *FIX*;
-    settleSearch(...args: *FIX*[]): *FIX*;
-    toggleImages(...args: *FIX*[]): *FIX*;
-    toggleInhabitedAreas(...args: *FIX*[]): *FIX*;
-    toggleItems(...args: *FIX*[]): *FIX*;
-    toggleLayoutMode(...args: *FIX*[]): *FIX*;
-    toggleLegend(...args: *FIX*[]): *FIX*;
-    togglePhysics(...args: *FIX*[]): *FIX*;
-    toggleTagPanel(...args: *FIX*[]): *FIX*;
-    toggleTriggers(...args: *FIX*[]): *FIX*;
+    renderTagPanel(...args: any[]): any;
+    resetOverlayStyles(...args: any[]): any;
+    revealAreasForWay(...args: any[]): any;
+    revealItemsForNode(...args: any[]): any;
+    setTagFilter(...args: any[]): any;
+    settleSearch(...args: any[]): any;
+    toggleImages(...args: any[]): any;
+    toggleInhabitedAreas(...args: any[]): any;
+    toggleItems(...args: any[]): any;
+    toggleLayoutMode(...args: any[]): any;
+    toggleLegend(...args: any[]): any;
+    togglePhysics(...args: any[]): any;
+    toggleTagPanel(...args: any[]): any;
+    toggleTriggers(...args: any[]): any;
 };
 
 // GraphTreeView  -  owner: ui-controller.ts
@@ -571,19 +571,19 @@ declare const ItemLibraryContents: {
 };
 
 // NLEditorGhosts  -  owner: nl-editor/index.ts
-declare const NLEditorGhosts: *FIX*;
+declare const NLEditorGhosts: any;
 
 // NLEditorStaging  -  owner: nl-editor/index.ts
-declare const NLEditorStaging: *FIX*;
+declare const NLEditorStaging: any;
 
 // NLEditorTools  -  owner: nl-editor/index.ts
-declare const NLEditorTools: *FIX*;
+declare const NLEditorTools: any;
 
 // NLEditorUI  -  owner: nl-editor/index.ts
-declare const NLEditorUI: *FIX*;
+declare const NLEditorUI: any;
 
 // SaveLoadView  -  owner: main.ts
-declare const SaveLoadView: *FIX*;       // ui/save-load-view.js
+declare const SaveLoadView: any;       // ui/save-load-view.js
 
 // TriggerEditor  -  owner: item-library.ts
 declare const TriggerEditor: {
@@ -596,20 +596,20 @@ declare const TriggerGraph: {
     triggerToGraph(triggerData: unknown, opts?: Record<string, unknown>): unknown;
     triggersToGraph(triggerData: unknown[]): unknown;
     show(...args: unknown[]): unknown;
-    compileToEngine(graph: unknown): Record<string, *FIX*> | null;
-    compileToTriggers(graph: unknown): Array<Record<string, *FIX*>>;
+    compileToEngine(graph: unknown): Record<string, any> | null;
+    compileToTriggers(graph: unknown): Array<Record<string, any>>;
     compileError(compiled: unknown): string;
     reportCompileError(compiled: unknown): boolean;
-    engineToFormData(compiled: unknown): Record<string, *FIX*>;
-    triggerDefFromEdge(edge: unknown, nodes: unknown): Record<string, *FIX*>;
-    triggerDefFromProperty(entry: unknown): Record<string, *FIX*> | null;
-    normalizeTriggerEntry(entry: unknown): Record<string, *FIX*> | null;
-    normalizeTriggerList(value: unknown): Array<Record<string, *FIX*>>;
+    engineToFormData(compiled: unknown): Record<string, any>;
+    triggerDefFromEdge(edge: unknown, nodes: unknown): Record<string, any>;
+    triggerDefFromProperty(entry: unknown): Record<string, any> | null;
+    normalizeTriggerEntry(entry: unknown): Record<string, any> | null;
+    normalizeTriggerList(value: unknown): Array<Record<string, any>>;
     triggersFromGraphEdges(...args: unknown[]): unknown[];
 };
 
 // agent  -  owner: ui-controller.ts
-declare const agent: *FIX*;              // VW.agent, the turn-queue owner (agent/turn-queue.js)
+declare const agent: any;              // VW.agent, the turn-queue owner (agent/turn-queue.js)
 
 // durabilityChip  -  owner: inspector/paperdoll-view.ts
 declare const durabilityChip: (props: unknown) => string;
@@ -618,7 +618,7 @@ declare const durabilityChip: (props: unknown) => string;
 declare function hideInspectorPanel(): void;
 
 // inspector  -  owner: main.ts
-declare const inspector: *FIX*;         // inspector/inspector.js
+declare const inspector: any;         // inspector/inspector.js
 
 // runAction  -  owner: inspector/agent-view.ts
 declare function runAction(command: string, charName: string): void;
@@ -632,15 +632,15 @@ declare const viewerExitMap: Record<string, ExitEntry>;
 // >>> ambient shapes for still-unconverted .js modules >>>
 // owner: static/js/item-library/placement.js
 declare const ItemLibraryPlacement: {
-    pickTarget(...args: *FIX*[]): *FIX*;
+    pickTarget(...args: any[]): any;
     // The generator stopped after pickTarget: a multi-line template literal
     // inside it desynchronised the brace-depth walk, so the three members
     // defined later in the same literal were not seen. Added by hand from
     // item-library/placement.js:134, :160, :202. They are `this`-bound and
     // item-library.ts calls them via .call(this), hence the loose signatures.
-    placeInRoom(...args: *FIX*[]): *FIX*;
-    placeSelectedInRoom(...args: *FIX*[]): *FIX*;
-    updatePlaceButton(...args: *FIX*[]): *FIX*;
+    placeInRoom(...args: any[]): any;
+    placeSelectedInRoom(...args: any[]): any;
+    updatePlaceButton(...args: any[]): any;
 };
 // <<< ambient shapes <<<
 
@@ -653,44 +653,44 @@ declare const ItemLibraryPlacement: {
  * inert for `tsconfig.check.json`, which includes the .js and prefers the real
  * class - the same config asymmetry documented for `config`.
  *
- * `*FIX*` rather than inferred shapes on purpose: `unknown` rejects every
+ * `any` rather than inferred shapes on purpose: `unknown` rejects every
  * property access, which just moves the error to each reader.
  *
  * Disappears when graph-manager.js converts.
  */
 interface GraphManager {
-    _bulkBar: *FIX*;
+    _bulkBar: any;
     _bulkScopesFilled: boolean;
-    _bulkSelection: *FIX*;
-    _cardinalLayout: *FIX*;
-    _contextTarget: *FIX*;
+    _bulkSelection: any;
+    _cardinalLayout: any;
+    _contextTarget: any;
     _edgeLabelSize: number;
     _floorFilter: string;
-    _floorOptions: *FIX*;
-    _labelCache: *FIX*;
+    _floorOptions: any;
+    _labelCache: any;
     _lastSig: string;
-    _nodeProj: *FIX*;
+    _nodeProj: any;
     _lastEdgeSig: string;
-    _legendEl: *FIX*;
-    _mapSpacingAuto: *FIX*;
-    _nodeLabelsShown: *FIX*;
+    _legendEl: any;
+    _mapSpacingAuto: any;
+    _nodeLabelsShown: any;
     _paintedGridLayout: boolean;
-    _pendingConnection: *FIX*;
+    _pendingConnection: any;
     _physicsEnabled: boolean;
-    _revealedAreaIds: *FIX*;
-    _revealedItemIds: *FIX*;
-    _scopeFilter: *FIX*;
-    _scopeOffsets: *FIX*;
-    _scopeSummaries: *FIX*;
+    _revealedAreaIds: any;
+    _revealedItemIds: any;
+    _scopeFilter: any;
+    _scopeOffsets: any;
+    _scopeSummaries: any;
     _searchQuery: string;
     _showEdgeLabels: boolean;
-    _showImages: *FIX*;
+    _showImages: any;
     _showItems: boolean;
-    _showNodeLabels: *FIX*;
+    _showNodeLabels: any;
     _showOnlyInhabitedAreas: boolean;
     _viewMode: string;
-    network: *FIX*;
-    nodes: *FIX*;
+    network: any;
+    nodes: any;
 }
 
 // ---------------------------------------------------------------------------
@@ -770,7 +770,7 @@ interface Window {
         InspectorDangerZone(opts: { nodeId: string; nodeName: string; nodeType: string; onDelete: () => void }): unknown;
         HeaderComponent(opts: { title: string; subtitle?: string; nodeType?: string; color?: string; onClose?: () => void }): unknown;
         SectionComponent(opts: { title?: string; hint?: string; content: unknown }): unknown;
-        PropertyGridComponent(opts: { fields: *FIX*[]; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; lockedFields?: string[] }): unknown;
+        PropertyGridComponent(opts: { fields: any[]; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; lockedFields?: string[] }): unknown;
         TabNavComponent(opts: { tabs: string[]; activeTab: string; onTabChange: (tab: string) => void }): unknown;
         ActionGridComponent(opts: { actions: string[]; onAction: (action: string) => void; locked?: string[] }): unknown;
         BreadcrumbComponent(opts: { onBack?: () => void; onCrumbClick?: (index: number) => void }): unknown;

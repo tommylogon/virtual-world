@@ -109,7 +109,7 @@ const WayAuthoringModule = (() => {
     /**
      * The glyph for a cardinal.
      *
-     * @param cardinal the cardinal word, in *FIX* case
+     * @param cardinal the cardinal word, in any case
      * @returns the glyph, or the word itself when it is not a known cardinal
      *   (an authored value the map does not know still shows what it says
      *   rather than being hidden), or '' when there is no cardinal at all.

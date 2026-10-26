@@ -77,7 +77,7 @@
       + '<span style="font-size:9px;color:var(--text-muted);">File-level scan only — open a scenario and run 🧩 Audit for deep trigger validation.</span>'
       + '<button class="btn btn-sm btn-ghost" id="sh-refresh">🔄 Refresh</button></div>';
 
-    box.*FIX*= html;
+    box.innerHTML = html;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 

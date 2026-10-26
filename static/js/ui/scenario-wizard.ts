@@ -24,7 +24,7 @@
 (window as unknown as ScenarioWizardWindowSurface).ScenarioWizard = (() => {
     'use strict';
 
-    const wizardHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): *FIX* => window.Lit.html(strings, ...values);
+    const wizardHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
 
     const OPPOSITE: Record<string, string> = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up', in: 'out', out: 'in', left: 'right', right: 'left', inside: 'outside', outside: 'inside' };
 
@@ -211,7 +211,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
 
         const content = wizardHtmlTag`
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-                Describe a world in one or two sentences. The AI drafts rooms, doors, items, characters, and lore - you review every card before *FIX*thing touches the graph. Applying REPLACES the current world; ↩ Undo restores it.
+                Describe a world in one or two sentences. The AI drafts rooms, doors, items, characters, and lore - you review every card before anything touches the graph. Applying REPLACES the current world; ↩ Undo restores it.
             </div>
             <textarea id="wz-premise" rows="5"
                 placeholder="e.g. A mountain hunting lodge cut off by a blizzard. Eight guests, one dead, an old grudge in the walls. The survivor has to find out who killed the guide before the lights go out."
@@ -277,7 +277,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.*FIX*= `<strong>${esc(c.name || '?')}</strong> <span style="color:var(--text-dim);">- starts in ${esc(c.area || '?')}</span><br><span style="color:var(--text-dim);">${esc((c.description || '').slice(0, 160))}</span>`;
+                body.innerHTML = `<strong>${esc(c.name || '?')}</strong> <span style="color:var(--text-dim);">- starts in ${esc(c.area || '?')}</span><br><span style="color:var(--text-dim);">${esc((c.description || '').slice(0, 160))}</span>`;
                 el.appendChild(body);
                 return el;
             })));
@@ -292,7 +292,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.*FIX*= `<strong>${esc(l.title || 'untitled')}</strong> <span style="color:var(--text-dim);">[${esc(l.category || '')}]</span><br><span style="color:var(--text-dim);">${esc(String(l.content ?? '').slice(0, 180))}</span>`;
+                body.innerHTML = `<strong>${esc(l.title || 'untitled')}</strong> <span style="color:var(--text-dim);">[${esc(l.category || '')}]</span><br><span style="color:var(--text-dim);">${esc(String(l.content ?? '').slice(0, 180))}</span>`;
                 el.appendChild(body);
                 return el;
             })));
@@ -335,7 +335,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
             if (exits.length) {
                 const x = document.createElement('div');
                 x.style.cssText = 'font-size:10px;margin:4px 0;';
-                x.*FIX*= exits.map(([dir, data]: [string, DraftExit]) => `<span style="margin-right:6px;">🚪 ${esc(dir)} → <strong>${esc(data && data.target)}</strong></span>`).join('');
+                x.innerHTML = exits.map(([dir, data]: [string, DraftExit]) => `<span style="margin-right:6px;">🚪 ${esc(dir)} → <strong>${esc(data && data.target)}</strong></span>`).join('');
                 card.appendChild(x);
             }
 
@@ -453,7 +453,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
         const name = names[idx];
         const area = _state!.draft.areas[name];
         const neighbors = (Object.values(area.exits || {}) as DraftExit[]).map((e: DraftExit) => e.target).join(', ');
-        const prompt = `Regenerate ONLY the room "${name}" (keep its identity and position, improve content).\nPremise: ${_state!.premise || _state!.name}\nNeighbors: ${neighbors || 'none'}\nCurrent description: ${area.description || 'none'}\nReturn ONLY the room JSON in this exact shape: {\"name\":\"...\",\"description\":\"...\",\"environment\":{\"light\":80,\"temperature\":21,\"air\":\"fresh\",\"smell\":\"neutral\",\"noise\":\"quiet\"},\"exits\":{\"<direction>\":{\"target\":\"<room>\",\"state\":\"open\",\"hidden\":false,\"description\":\"...\"}},\"items\":[...]}\nKeep verbatim: the room name and *FIX* exit target names that already exist.`;
+        const prompt = `Regenerate ONLY the room "${name}" (keep its identity and position, improve content).\nPremise: ${_state!.premise || _state!.name}\nNeighbors: ${neighbors || 'none'}\nCurrent description: ${area.description || 'none'}\nReturn ONLY the room JSON in this exact shape: {\"name\":\"...\",\"description\":\"...\",\"environment\":{\"light\":80,\"temperature\":21,\"air\":\"fresh\",\"smell\":\"neutral\",\"noise\":\"quiet\"},\"exits\":{\"<direction>\":{\"target\":\"<room>\",\"state\":\"open\",\"hidden\":false,\"description\":\"...\"}},\"items\":[...]}\nKeep verbatim: the room name and any exit target names that already exist.`;
         card.querySelectorAll('button').forEach((b: HTMLButtonElement) => b.disabled = true);
         if (!aiGenerator || !aiGenerator.isConfigured()) { toastError('AI not configured'); return; }
         aiGenerator.generate(prompt, 'You refine one room of a world draft. Respond with ONLY raw JSON.', { temperature: 0.75 })
@@ -684,7 +684,7 @@ interface ScenarioWizardAiOptions {
 
 interface ScenarioWizardAiResult {
     success: boolean;
-    data?: *FIX*;
+    data?: any;
     raw?: string;
     error?: string | null;
 }

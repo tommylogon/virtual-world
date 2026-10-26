@@ -487,7 +487,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">
                 ${placement
                     ? htmlTag`On the map at ${placement}  -  <button class="btn btn-sm btn-ghost" style="font-size:9px;" @click=${() => RV._openInPainter(actualNodeId, props)}>open in WorldPainter</button>`
-                    : 'Not placed on *FIX* painted cell. Membership alone decides which scope lists it.'}
+                    : 'Not placed on any painted cell. Membership alone decides which scope lists it.'}
             </div>
         </div>`;
     };
@@ -505,7 +505,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             const live = document.getElementById(`area-scope-${actualNodeId}`);
             if (!live) return;
             const scopes = (data && data.scopes) || [];
-            live.*FIX*= '';
+            live.innerHTML = '';
             const none = document.createElement('option');
             none.value = '';
             none.textContent = ' -  no scope  - ';
@@ -557,7 +557,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 }
             });
         }).catch(() => {
-            if (sel.isConnected) sel.*FIX*= '<option value="">scopes unavailable</option>';
+            if (sel.isConnected) sel.innerHTML = '<option value="">scopes unavailable</option>';
         });
     };
 
@@ -704,11 +704,11 @@ Current environment:
 Improve this area's description and environment settings. Make the description much richer  -  paint a vivid picture with sensory details (sights, sounds, smells, textures, atmosphere). Suggest appropriate environment values that match the mood. Return the full area as JSON with name, description, and environment fields.`;
         };
 
-        const apply = (parsed: Record<string, *FIX*>, node: AreaViewGraphNode, lockedFields: string[], update: Record<string, *FIX*>) => {
+        const apply = (parsed: Record<string, any>, node: AreaViewGraphNode, lockedFields: string[], update: Record<string, any>) => {
             const props = node.properties || {};
             const env = props.environment || {};
             if (parsed.name) update.name = parsed.name;
-            const propUpdate: Record<string, *FIX*> = {};
+            const propUpdate: Record<string, any> = {};
             if (parsed.description !== undefined) propUpdate.description = parsed.description;
             if (parsed.environment) propUpdate.environment = { ...env, ...parsed.environment };
             if (Object.keys(propUpdate).length > 0) update.properties = propUpdate;
@@ -889,7 +889,7 @@ interface AreaEvent {
 /** One active sound source from GET /api/areas/<id>/sounds. */
 interface AreaSound {
     name?: string;
-    /** 1 nearby, 2 loud, 3 carrying; *FIX*thing else renders unlabelled. */
+    /** 1 nearby, 2 loud, 3 carrying; anything else renders unlabelled. */
     level?: number;
     pattern?: string;
     [key: string]: unknown;
@@ -948,9 +948,9 @@ interface InspectorPanelApi {
  */
 interface AreaViewWindow {
     Lit: LitApi;
-    VW: *FIX*;
-    worldState: *FIX*;
-    SkyScape: *FIX*;
+    VW: any;
+    worldState: any;
+    SkyScape: any;
     events: { log(message: string, level: string): void };
     InspectorHelpers: typeof InspectorHelpers;
     InspectorTriggers: typeof InspectorTriggers;

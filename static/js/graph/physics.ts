@@ -52,13 +52,13 @@ window.GraphPhysics = {
      * @returns {GraphPhysicsState}
      */
     readState(): GraphPhysicsState {
-        const gm: *FIX* = (typeof graphManager !== 'undefined' && graphManager) || null;
-        const cfg: *FIX* = (typeof config !== 'undefined' && config) || {};
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const cfg: any = (typeof config !== 'undefined' && config) || {};
         let overNodeLimit = false;
         try {
-            overNodeLimit = !!(GraphNetwork && (GraphNetwork as *FIX*).nodesOverPhysicsLimit
-                && (GraphNetwork as *FIX*).nodesOverPhysicsLimit());
-        } catch (e) { /* no network yet — not over *FIX* limit */ }
+            overNodeLimit = !!(GraphNetwork && (GraphNetwork as any).nodesOverPhysicsLimit
+                && (GraphNetwork as any).nodesOverPhysicsLimit());
+        } catch (e) { /* no network yet — not over any limit */ }
         const layout = gm && typeof gm.activeLayout === 'function'
             ? gm.activeLayout()
             : (cfg.graphLayoutMode === 'levels' ? 'levels' : (gm && gm._cardinalLayout ? 'map' : 'graph'));
@@ -82,7 +82,7 @@ window.GraphPhysics = {
 
     /**
      * The one decision. Pure over a state object (unit-tested in
-     * tools/unit/test_graph_physics.js). *FIX* gate that says "positions are not
+     * tools/unit/test_graph_physics.js). Any gate that says "positions are not
      * the solver's to move" wins; otherwise the user's own choice decides.
      *
      * @param {Partial<GraphPhysicsState>} [state]
@@ -139,7 +139,7 @@ window.GraphPhysics = {
      * @param {Object} nodeData
      * @returns {boolean} true = hold this node in place
      */
-    nodePinned(nodeData: *FIX*): boolean {
+    nodePinned(nodeData: any): boolean {
         const props = (nodeData && nodeData.properties) || {};
         // An explicit "on" is an opt-in override and wins even over a painted
         // coordinate, so the author keeps control (task-766).
@@ -148,10 +148,10 @@ window.GraphPhysics = {
         // A painted cell coordinate pins the node in every layout (task-766).
         const cell = props.cell;
         if (cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y))) {
-            const le = (window as *FIX*).GraphLayoutEngine;
+            const le = (window as any).GraphLayoutEngine;
             if (le && typeof le.gridPosition === 'function' && le.gridPosition(cell)) return true;
         }
-        const rl = (window as *FIX*).GraphRelativeLayout;
+        const rl = (window as any).GraphRelativeLayout;
         if (rl && typeof rl.isStatic === 'function') {
             try { return rl.isStatic(nodeData); } catch (e) { /* fall through */ }
         }
@@ -166,7 +166,7 @@ window.GraphPhysics = {
      * graph per node.
      */
     _snapshotBodyToDataset(): void {
-        const gm: *FIX* = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
         const nodesDS = gm && gm.network && gm.network.body && gm.network.body.data
             && gm.network.body.data.nodes;
         const body = gm && gm.network && gm.network.body && gm.network.body.nodes;
@@ -179,7 +179,7 @@ window.GraphPhysics = {
             const b = body[id];
             if (b && Number.isFinite(b.x) && Number.isFinite(b.y)) {
                 updates.push({ id, x: b.x as number, y: b.y as number });
-                (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.('physics._snapshotBodyToDataset', id, b.x, b.y);
+                (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.('physics._snapshotBodyToDataset', id, b.x, b.y);
             }
         }
         if (updates.length) {
@@ -193,8 +193,8 @@ window.GraphPhysics = {
      *
      * @param {Object} [customOptions] - optional solver/stabilization block (e.g. map settling)
      */
-    apply(customOptions?: *FIX*): void {
-        const gm: *FIX* = (typeof graphManager !== 'undefined' && graphManager) || null;
+    apply(customOptions?: any): void {
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
         if (!gm || !gm.network || !gm.network.setOptions) return;
         const run = GraphPhysics.shouldRun(GraphPhysics.readState());
         if (!run) {
@@ -221,10 +221,10 @@ window.GraphPhysics = {
             try { gm.network.startSimulation(); } catch (e) { /* already running */ }
             return;
         }
-        const cfg: *FIX* = (typeof config !== 'undefined' && config) || {};
+        const cfg: any = (typeof config !== 'undefined' && config) || {};
         const solver = cfg.graphSolver || 'forceAtlas2Based';
-        const centralGravity = (GraphNetwork as *FIX*).centralGravityFor
-            ? (GraphNetwork as *FIX*).centralGravityFor()
+        const centralGravity = (GraphNetwork as any).centralGravityFor
+            ? (GraphNetwork as any).centralGravityFor()
             : 0;
         gm.network.setOptions({ physics: { enabled: true, [solver]: { centralGravity } } });
         try { gm.network.startSimulation(); } catch (e) { /* already running */ }
@@ -250,10 +250,10 @@ window.GraphPhysics = {
      * @param {boolean} enabled
      */
     setUserEnabled(enabled: boolean): void {
-        const gm: *FIX* = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
         if (gm) gm._physicsEnabled = !!enabled;
         GraphPhysics.apply();
-        if ((window as *FIX*).GraphToolbar) (window as *FIX*).GraphToolbar.syncAll();
+        if ((window as any).GraphToolbar) (window as any).GraphToolbar.syncAll();
         if (gm && typeof gm._saveGraphConfigKey === 'function') {
             gm._saveGraphConfigKey('graph.physics_enabled', !!enabled);
         }
@@ -261,7 +261,7 @@ window.GraphPhysics = {
 
     /** Flip the user's choice. */
     toggleUserEnabled(): void {
-        const gm: *FIX* = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
         GraphPhysics.setUserEnabled(!(gm && gm._physicsEnabled));
     },
 
@@ -274,11 +274,11 @@ window.GraphPhysics = {
     setLocked(locked: boolean): void {
         GraphPhysics._locked = !!locked;
         GraphPhysics.apply();
-        // The lock decides whether the Physics button can do *FIX*thing, so the
+        // The lock decides whether the Physics button can do anything, so the
         // affordance must follow it exactly as it follows the user's own toggle
         // (setUserEnabled). Without this the lock lands during load — after the
         // toolbar's initial paint — and the button keeps offering a resume that
         // the solver will refuse (bug-542).
-        if ((window as *FIX*).GraphToolbar) (window as *FIX*).GraphToolbar.syncAll();
+        if ((window as any).GraphToolbar) (window as any).GraphToolbar.syncAll();
     }
 };

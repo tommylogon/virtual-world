@@ -19,23 +19,23 @@
                 const target = event.target as HTMLInputElement | null;
                 if (!target || target.type !== 'range' || !target.dataset.character) return;
                 const character = target.dataset.character;
-                const config = (window as *FIX*).config;
-                const mode = (window as *FIX*).VWSimultaneous;
+                const config = (window as any).config;
+                const mode = (window as any).VWSimultaneous;
                 const pace = mode.normalizeTalkativeness(target.value);
                 config.talkativenessByCharacter[character] = pace;
                 const output = root.querySelector(`[data-pace-for="${CSS.escape(character)}"]`);
                 if (output) output.textContent = `${pace}s`;
-                (window as *FIX*).agent?.resetSimCharacterDeadline?.(character);
+                (window as any).agent?.resetSimCharacterDeadline?.(character);
                 this.renderEstimate();
             });
 
             root.addEventListener('change', (event: Event) => {
                 const target = event.target as HTMLInputElement | null;
                 if (!target || target.type !== 'range' || !target.dataset.character) return;
-                (window as *FIX*).config.setTalkativeness(target.dataset.character, target.value);
+                (window as any).config.setTalkativeness(target.dataset.character, target.value);
             });
 
-            const bus = (window as *FIX*).appEvents;
+            const bus = (window as any).appEvents;
             if (bus?.on) bus.on('state:updated', () => this.render());
             this.render();
         }
@@ -43,9 +43,9 @@
         static render() {
             const root = document.getElementById('sim-character-pacing');
             if (!root) return;
-            const config = (window as *FIX*).config;
-            const state = (window as *FIX*).VW?.state?.data || (window as *FIX*).worldState?.data;
-            const mode = (window as *FIX*).VWSimultaneous;
+            const config = (window as any).config;
+            const state = (window as any).VW?.state?.data || (window as any).worldState?.data;
+            const mode = (window as any).VWSimultaneous;
             const enabled = config.turnOrder === mode.MODES.SIMULTANEOUS;
             const players = state?.players || {};
             const names = Object.keys(players);
@@ -55,7 +55,7 @@
                 return;
             }
 
-            root.*FIX*= names.map(name => {
+            root.innerHTML = names.map(name => {
                 const pace = config.getTalkativeness(name);
                 const escaped = escapeHtml(name);
                 return `<label class="sim-pacing-row">
@@ -70,14 +70,14 @@
         static renderEstimate() {
             const estimate = document.getElementById('sim-rate-estimate');
             if (!estimate) return;
-            const config = (window as *FIX*).config;
-            const state = (window as *FIX*).VW?.state?.data || (window as *FIX*).worldState?.data;
+            const config = (window as any).config;
+            const state = (window as any).VW?.state?.data || (window as any).worldState?.data;
             if (config.turnOrder !== 'simultaneous' || !state?.players) {
                 estimate.textContent = '';
                 estimate.hidden = true;
                 return;
             }
-            const events = (window as *FIX*).events;
+            const events = (window as any).events;
             const active = Object.keys(state.players).filter(name => {
                 const player = state.players[name];
                 return player && (player.state !== 'dead' || config.ghostMode) && events?.isAutonomous?.(name);
@@ -94,5 +94,5 @@
         }[char] || char));
     }
 
-    (window as *FIX*).VWSimultaneousControls = VWSimultaneousControls;
+    (window as any).VWSimultaneousControls = VWSimultaneousControls;
 })();

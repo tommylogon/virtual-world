@@ -41,7 +41,7 @@ const ObjectResponder = (() => {
     );
     const user = heard
       ? `What was said to you: "${heard}"\n\nYour spoken line:`
-      : `Respond aloud${heard ? '' : ' (no one said *FIX*thing — react naturally)'}.`;
+      : `Respond aloud${heard ? '' : ' (no one said anything — react naturally)'}.`;
     try {
       if (!config.apiKey || !config.model) return null;
       const resp = await llmClient.chat(

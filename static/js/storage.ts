@@ -98,9 +98,9 @@ class StorageProvider {
 
     // --- Generic CRUD ---
 
-    async get(storeName: string, key: string): Promise<*FIX*> {
+    async get(storeName: string, key: string): Promise<any> {
         if (!await this._ensureReady()) return this._localFallback('get', storeName, key);
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
@@ -111,9 +111,9 @@ class StorageProvider {
         });
     }
 
-    async set(storeName: string, key: string, value: unknown): Promise<*FIX*> {
+    async set(storeName: string, key: string, value: unknown): Promise<any> {
         if (!await this._ensureReady()) { this._localFallback('set', storeName, key, value); return; }
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -124,9 +124,9 @@ class StorageProvider {
         });
     }
 
-    async delete(storeName: string, key: string): Promise<*FIX*> {
+    async delete(storeName: string, key: string): Promise<any> {
         if (!await this._ensureReady()) { this._localFallback('delete', storeName, key); return; }
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -137,9 +137,9 @@ class StorageProvider {
         });
     }
 
-    async getAll(storeName: string): Promise<*FIX*> {
+    async getAll(storeName: string): Promise<any> {
         if (!await this._ensureReady()) return this._localFallback('getAll', storeName);
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
@@ -147,7 +147,7 @@ class StorageProvider {
                 req.onsuccess = () => {
                     const items = req.result || [];
                     const map: Record<string, unknown> = {};
-                    items.forEach((item: *FIX*) => { map[item.key] = item.value; });
+                    items.forEach((item: any) => { map[item.key] = item.value; });
                     resolve(map);
                 };
                 req.onerror = () => resolve({});
@@ -155,9 +155,9 @@ class StorageProvider {
         });
     }
 
-    async getAllAsArray(storeName: string): Promise<*FIX*> {
+    async getAllAsArray(storeName: string): Promise<any> {
         if (!await this._ensureReady()) return [];
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
@@ -168,9 +168,9 @@ class StorageProvider {
         });
     }
 
-    async clear(storeName: string): Promise<*FIX*> {
+    async clear(storeName: string): Promise<any> {
         if (!await this._ensureReady()) return;
-        return new Promise<*FIX*>((resolve) => {
+        return new Promise<any>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -276,8 +276,8 @@ class StorageProvider {
 
     // --- Event Log persistence ---
 
-    async saveEventLog(entries: string[]): Promise<*FIX*> {
-        return new Promise<*FIX*>((resolve) => {
+    async saveEventLog(entries: string[]): Promise<any> {
+        return new Promise<any>((resolve) => {
             if (!this._db) { resolve(false); return; }
             try {
                 const tx = this._db.transaction('event_log', 'readwrite');
@@ -293,8 +293,8 @@ class StorageProvider {
         });
     }
 
-    async loadEventLog(): Promise<*FIX*> {
-        return new Promise<*FIX*>((resolve) => {
+    async loadEventLog(): Promise<any> {
+        return new Promise<any>((resolve) => {
             if (!this._db) { resolve([]); return; }
             try {
                 const tx = this._db.transaction('event_log', 'readonly');

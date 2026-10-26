@@ -10,7 +10,7 @@
  * This modal puts the two things a person needs to see on screen together:
  *
  *   1. **The context the model was given** - name, personality, base_description.
- *      If that text belongs to somebody else, it is now obvious before *FIX*thing
+ *      If that text belongs to somebody else, it is now obvious before anything
  *      is worn rather than three layers downstream.
  *   2. **What it proposed**, as per-slot checkboxes, so one absurd pick is
  *      unticked rather than accepted wholesale or thrown away entirely.
@@ -181,26 +181,26 @@ const AutoDressModal = (() => {
 
             const contentHtml = (note ? `<div style="font-size:10px;color:var(--orange,#e8890c);margin-bottom:8px;">${esc(note)}</div>` : '')
                 + contextBlock(context)
-                + `<div style="font-size:10px;color:var(--text-muted);margin:10px 0 4px;"><b>Proposed</b> - untick *FIX*thing they would not wear</div>`
+                + `<div style="font-size:10px;color:var(--text-muted);margin:10px 0 4px;"><b>Proposed</b> - untick anything they would not wear</div>`
                 + body
                 + wornBlock(worn);
 
-            const modalTmpl = (window as *FIX*).UiPrimitives?.ModalDialog ? (window as *FIX*).UiPrimitives.ModalDialog({
+            const modalTmpl = (window as any).UiPrimitives?.ModalDialog ? (window as any).UiPrimitives.ModalDialog({
                 title: `Auto-dress ${esc(character || '')}`,
                 isOpen: true,
                 size: 'md',
-                content: (window as *FIX*).Lit ? (window as *FIX*).Lit.unsafeHTML(contentHtml) : contentHtml,
-                actions: (window as *FIX*).Lit?.html ? (window as *FIX*).Lit.html`
+                content: (window as any).Lit ? (window as any).Lit.unsafeHTML(contentHtml) : contentHtml,
+                actions: (window as any).Lit?.html ? (window as any).Lit.html`
                     <button class="btn btn-sm" id="ad-cancel">Cancel</button>
                     <button class="btn btn-sm btn-primary" id="ad-apply">Equip selected</button>
                 ` : '',
                 onClose: () => close(null)
             }) : '';
 
-            if ((window as *FIX*).Lit?.render && modalTmpl) {
-                (window as *FIX*).Lit.render(modalTmpl, mountEl);
+            if ((window as any).Lit?.render && modalTmpl) {
+                (window as any).Lit.render(modalTmpl, mountEl);
             } else {
-                mountEl.*FIX*= contentHtml;
+                mountEl.innerHTML = contentHtml;
             }
 
             mountEl.querySelector<HTMLButtonElement>('#ad-cancel')?.addEventListener('click', () => close(null));

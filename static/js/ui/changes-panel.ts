@@ -83,7 +83,7 @@ const ChangesPanel = (() => {
 
     const groups: Record<string, string[]> = data.groups || {};
     const source = data.source || '';
-    const *FIX*Diff = Object.values(groups).some(list => Array.isArray(list) && list.length > 0);
+    const anyDiff = Object.values(groups).some(list => Array.isArray(list) && list.length > 0);
 
     let body = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🔄 Changes since source</h3>'
       + '<button class="modal-close-btn" id="cp-close">✕</button></div>'
@@ -91,7 +91,7 @@ const ChangesPanel = (() => {
 
     if (!source) {
       body += '<div style="padding:12px 0;color:var(--text-dim);font-size:12px;">No scenario source yet — use 💾 Commit Scenario first.</div>';
-    } else if (!*FIX*Diff) {
+    } else if (!anyDiff) {
       body += '<div style="padding:12px 0;color:#3fb950;font-size:12px;">✅ No drift — the live world matches the source.</div>';
     } else {
       // group rows
@@ -138,10 +138,10 @@ const ChangesPanel = (() => {
     // footer: full commit + refresh
     body += '<div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:8px;">'
       + '<button class="btn btn-sm btn-ghost" id="cp-refresh">🔄 Refresh</button>'
-      + (source && *FIX*Diff ? '<button class="btn btn-sm btn-green" id="cp-commit-all">💾 Commit All</button>' : '')
+      + (source && anyDiff ? '<button class="btn btn-sm btn-green" id="cp-commit-all">💾 Commit All</button>' : '')
       + '</div>';
 
-    box.*FIX*= body;
+    box.innerHTML = body;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 

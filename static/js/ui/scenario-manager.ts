@@ -23,10 +23,10 @@
     // task-598: filter state survives repaints and ⟳ Refresh, so the list does
     // not silently reset when an action re-renders it.
     let _filterText = '';
-    let _filterOpts: Record<string, string> = { modified: '*FIX*', health: '*FIX*', characters: '*FIX*', areas: '*FIX*' };
+    let _filterOpts: Record<string, string> = { modified: 'any', health: 'any', characters: 'any', areas: 'any' };
 
     function filterActive() {
-        return !!_filterText.trim() || Object.keys(_filterOpts).some(k => _filterOpts[k] !== '*FIX*');
+        return !!_filterText.trim() || Object.keys(_filterOpts).some(k => _filterOpts[k] !== 'any');
     }
 
     // Multi-strategy match, consistent with the library browser's search:
@@ -66,7 +66,7 @@ if (s === 0) {
     function scenarioMatchesFilters(sc: ScenarioManagerScenarioSummary) {
         if (scenarioSearchScore(sc) === 0) return false;
         const o = _filterOpts;
-        if (o.modified !== '*FIX*') {
+        if (o.modified !== 'any') {
             const ageDays = (Date.now() / 1000 - Number(sc.modified)) / 86400;
             if (o.modified === 'today' && ageDays > 1) return false;
             if (o.modified === 'week' && ageDays > 7) return false;
@@ -178,23 +178,23 @@ if (s === 0) {
             return wrap;
         };
         controls.appendChild(mkSelect('modified', 'Modified', [
-            ['*FIX*', '*FIX* time'], ['today', 'today'], ['week', 'last 7 days'],
+            ['any', 'any time'], ['today', 'today'], ['week', 'last 7 days'],
             ['month', 'last 30 days'], ['old', 'older than 30 days']]));
         controls.appendChild(mkSelect('health', 'Health', [
-            ['*FIX*', '*FIX*'], ['clean', 'clean'], ['issues', 'has issues'], ['broken', "won't parse"]]));
+            ['any', 'any'], ['clean', 'clean'], ['issues', 'has issues'], ['broken', "won't parse"]]));
         controls.appendChild(mkSelect('characters', 'Characters', [
-            ['*FIX*', '*FIX*'], ['none', 'none'], ['some', 'has characters']]));
+            ['any', 'any'], ['none', 'none'], ['some', 'has characters']]));
         controls.appendChild(mkSelect('areas', 'Areas', [
-            ['*FIX*', '*FIX*'], ['none', 'none'], ['some', 'has areas']]));
+            ['any', 'any'], ['none', 'none'], ['some', 'has areas']]));
         const reset = document.createElement('button');
         reset.className = 'btn btn-sm';
         reset.style.cssText = 'font-size:10px;';
         reset.textContent = 'Reset';
         reset.onclick = () => {
             _filterText = '';
-            _filterOpts = { modified: '*FIX*', health: '*FIX*', characters: '*FIX*', areas: '*FIX*' };
+            _filterOpts = { modified: 'any', health: 'any', characters: 'any', areas: 'any' };
             filter.value = '';
-            controls.querySelectorAll<HTMLSelectElement>('select').forEach(s => { s.value = '*FIX*'; });
+            controls.querySelectorAll<HTMLSelectElement>('select').forEach(s => { s.value = 'any'; });
             renderList(list);
         };
         controls.appendChild(reset);

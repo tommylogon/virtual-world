@@ -291,7 +291,7 @@ class ApiClientImpl {
      * This is deliberately not `updateNode({properties: {world_scope_id}})`:
      * membership also has to move in the manifest's `area_ids` mirror, and a
      * multi-selection has to land as one undo step. `add`/`remove` are arrays;
-     * leaving a scope releases *FIX* cell the area was parked on there, while a cell
+     * leaving a scope releases any cell the area was parked on there, while a cell
      * it holds in the target scope is kept. */
     static async setScopeAreas(scopeId: string, add: string[] = [], remove: string[] = []): Promise<ApiResult> {
         const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/areas`, {
@@ -730,4 +730,4 @@ async function(cmd: string, charName?: string, opts?: { enforceSlots?: boolean }
 // Type declarations sit below the first value statement on purpose: TypeScript
 // drops a file's leading JSDoc when the first statement is type-only, which
 // would strip the `@module` header `tools/js_module_index.py` reads.
-type ApiResult = Record<string, *FIX*>;
+type ApiResult = Record<string, any>;

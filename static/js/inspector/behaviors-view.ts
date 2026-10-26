@@ -13,7 +13,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 window.InspectorBehaviors = (() => {
-    const B: *FIX* = (window as *FIX*).InspectorView ? new (window as *FIX*).InspectorView() : {};
+    const B: any = (window as any).InspectorView ? new (window as any).InspectorView() : {};
 
     // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
     // runs, so window.Lit only exists when a view actually renders.
@@ -33,9 +33,9 @@ window.InspectorBehaviors = (() => {
      * @returns {Array<{value:string, label:string, params:string[]}>}
      */
     B.BEHAVIOR_ACTION_TYPES = function() {
-        const shared = (window as *FIX*).TriggerTypes;
+        const shared = (window as any).TriggerTypes;
         if (shared && shared.BEHAVIOR_ACTION_TYPES && shared.BEHAVIOR_ACTION_TYPES.length) {
-            return shared.BEHAVIOR_ACTION_TYPES.map((a: *FIX*) => ({
+            return shared.BEHAVIOR_ACTION_TYPES.map((a: any) => ({
                 value: a.value,
                 label: a.label,
                 params: shared.ACTION_PARAMS(a.value)
@@ -74,7 +74,7 @@ window.InspectorBehaviors = (() => {
      * Add a new behavior to a character and open the editor
      * @param {string} charName - Character name
      */
-    B.addBehavior = function(charName: *FIX*) {
+    B.addBehavior = function(charName: any) {
         const player = worldState.players[charName];
         if (!player) return;
         if (!Array.isArray(player.behaviors)) player.behaviors = [];
@@ -87,7 +87,7 @@ window.InspectorBehaviors = (() => {
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.deleteBehavior = function(charName: *FIX*, index: *FIX*) {
+    B.deleteBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
         if (!player || !Array.isArray(player.behaviors)) return;
         if (!confirm('Delete this behavior?')) return;
@@ -104,8 +104,8 @@ window.InspectorBehaviors = (() => {
      * @param {object} action - Action data object
      * @returns {TemplateResult}
      */
-    B.buildBehaviorActionCard = function(behIndex: *FIX*, actIndex: *FIX*, action: *FIX*) {
-        const actOpts = B.BEHAVIOR_ACTION_TYPES().map((a: *FIX*) =>
+    B.buildBehaviorActionCard = function(behIndex: any, actIndex: any, action: any) {
+        const actOpts = B.BEHAVIOR_ACTION_TYPES().map((a: any) =>
             htmlTag`<option value=${a.value} ?selected=${a.value === action.type}>${a.label}</option>`
         );
 
@@ -730,7 +730,7 @@ window.InspectorBehaviors = (() => {
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.editBehavior = function(charName: *FIX*, index: *FIX*) {
+    B.editBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
         if (!player || !Array.isArray(player.behaviors)) return;
         const behavior = player.behaviors[index];
@@ -746,7 +746,7 @@ window.InspectorBehaviors = (() => {
         const isCompound = cond.operator ? true : false;
         const condType = isCompound ? 'compound' : (cond.type || 'none');
 
-        const condOpts = B.BEHAVIOR_CONDITION_TYPES().map((c: *FIX*) =>
+        const condOpts = B.BEHAVIOR_CONDITION_TYPES().map((c: any) =>
             htmlTag`<option value=${c.value} ?selected=${condType === c.value}>${c.label}</option>`
         );
 
@@ -764,7 +764,7 @@ window.InspectorBehaviors = (() => {
 
         // Build action cards
         const actions = b.actions || [];
-        const actionCards = actions.map((a: *FIX*, ai: *FIX*) => B.buildBehaviorActionCard(index, ai, a));
+        const actionCards = actions.map((a: any, ai: any) => B.buildBehaviorActionCard(index, ai, a));
 
         const content = htmlTag`
             <div>
@@ -941,7 +941,7 @@ window.InspectorBehaviors = (() => {
                         <div class="field"><label>Operator</label>
                             <select id="beh-cond-operator-${index}" style="width:100%;">
                                 <option value="and" ?selected=${compoundOperator === 'and'}>AND (all must match)</option>
-                                <option value="or" ?selected=${compoundOperator === 'or'}>OR (*FIX* can match)</option>
+                                <option value="or" ?selected=${compoundOperator === 'or'}>OR (any can match)</option>
                                 <option value="not" ?selected=${compoundOperator === 'not'}>NOT (invert)</option>
                             </select>
                         </div>
@@ -969,8 +969,8 @@ window.InspectorBehaviors = (() => {
             <button class="btn btn-green" @click=${() => B.saveBehavior(charName, index)}>Save</button>
         `;
 
-        const modalTmpl = (window as *FIX*).UiPrimitives?.ModalDialog
-            ? (window as *FIX*).UiPrimitives.ModalDialog({
+        const modalTmpl = (window as any).UiPrimitives?.ModalDialog
+            ? (window as any).UiPrimitives.ModalDialog({
                   title: 'Edit Behavior',
                   isOpen: true,
                   size: 'lg',
@@ -993,7 +993,7 @@ window.InspectorBehaviors = (() => {
         const container = document.createElement('div');
         container.id = 'behavior-modal';
         document.body.appendChild(container);
-        if ((window as *FIX*).Lit?.render && modalTmpl) {
+        if ((window as any).Lit?.render && modalTmpl) {
             window.Lit.render(modalTmpl, container);
         } else {
             window.Lit.render(content, container);
@@ -1012,7 +1012,7 @@ window.InspectorBehaviors = (() => {
      * Add an action card to the behavior editor
      * @param {number} behIndex - Behavior index
      */
-    B.addBehaviorAction = function(behIndex: *FIX*) {
+    B.addBehaviorAction = function(behIndex: any) {
         const actionsList = inputById(`beh-actions-list-${behIndex}`);
         if (!actionsList) return;
         const card = B.buildBehaviorActionCard(behIndex, Date.now(), { type: 'message', text: '' });
@@ -1028,7 +1028,7 @@ window.InspectorBehaviors = (() => {
      * @param {HTMLElement} btn - The remove button element
      * @param {number} behIndex - Behavior index
      */
-    B.removeBehaviorAction = function(btn: *FIX*, behIndex: *FIX*) {
+    B.removeBehaviorAction = function(btn: any, behIndex: any) {
         const cards = document.querySelectorAll(`#beh-actions-list-${behIndex} .beh-action-card`);
         if (cards.length <= 1) return;
         btn.closest('.beh-action-card')?.remove();
@@ -1038,7 +1038,7 @@ window.InspectorBehaviors = (() => {
      * Toggle between simple and compound condition modes
      * @param {number} behIndex - Behavior index
      */
-    B.toggleConditionMode = function(behIndex: *FIX*) {
+    B.toggleConditionMode = function(behIndex: any) {
         const mode = inputById(`beh-cond-mode-${behIndex}`)?.value;
         const simple = inputById(`beh-cond-simple-${behIndex}`);
         const compound = inputById(`beh-cond-compound-${behIndex}`);
@@ -1050,7 +1050,7 @@ window.InspectorBehaviors = (() => {
      * Toggle condition fields display based on selected condition type
      * @param {number} behIndex - Behavior index
      */
-    B.toggleBehaviorConditionFields = function(behIndex: *FIX*) {
+    B.toggleBehaviorConditionFields = function(behIndex: any) {
         const condType = inputById(`beh-cond-type-${behIndex}`)?.value || 'none';
         document.querySelectorAll<HTMLElement>(`#beh-cond-fields-${behIndex} .beh-cond-field`).forEach(el => {
             el.style.display = 'none';
@@ -1065,7 +1065,7 @@ window.InspectorBehaviors = (() => {
         }
     };
 
-    B.toggleGoModeFields = function(selectEl: *FIX*) {
+    B.toggleGoModeFields = function(selectEl: any) {
         const card = selectEl.closest('.beh-action-card');
         if (!card) return;
         const mode = selectEl.value;
@@ -1080,14 +1080,14 @@ window.InspectorBehaviors = (() => {
      * @param {HTMLElement} selectEl - The action type select element
      * @param {number} behIndex - Behavior index
      */
-    B.toggleActionFields = function(selectEl: *FIX*, behIndex: *FIX*) {
+    B.toggleActionFields = function(selectEl: any, behIndex: any) {
         const card = selectEl.closest('.beh-action-card');
         if (!card) return;
         const actType = selectEl.value;
-        card.querySelectorAll('.beh-act-field').forEach((el: *FIX*) => {
+        card.querySelectorAll('.beh-act-field').forEach((el: any) => {
             el.style.display = 'none';
         });
-        card.querySelectorAll(`.beh-act-field[data-act*="${actType}"]`).forEach((el: *FIX*) => {
+        card.querySelectorAll(`.beh-act-field[data-act*="${actType}"]`).forEach((el: any) => {
             el.style.display = 'block';
         });
         if (actType === 'go') {
@@ -1101,7 +1101,7 @@ window.InspectorBehaviors = (() => {
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.saveBehavior = function(charName: *FIX*, index: *FIX*) {
+    B.saveBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
         if (!player || !Array.isArray(player.behaviors)) return;
         const behavior = player.behaviors[index];
@@ -1131,7 +1131,7 @@ window.InspectorBehaviors = (() => {
             if (condType === 'none') {
                 behavior.conditions = {};
             } else {
-                const cond: Record<string, *FIX*> = { type: condType };
+                const cond: Record<string, any> = { type: condType };
                 if (condType === 'eq') {
                     cond.target = inputById(`beh-cond-target-${index}`)?.value || '';
                     cond.value = inputById(`beh-cond-value-${index}`)?.value || '';
@@ -1178,12 +1178,12 @@ window.InspectorBehaviors = (() => {
 
         // Build actions
         const actionCards = document.querySelectorAll(`#beh-actions-list-${index} .beh-action-card`);
-        const actions: *FIX*[] = [];
-        actionCards.forEach((card: *FIX*) => {
+        const actions: any[] = [];
+        actionCards.forEach((card: any) => {
             const typeSelect = card.querySelector('.beh-act-type');
             if (!typeSelect) return;
             const actType = typeSelect.value;
-            const action: Record<string, *FIX*> = { type: actType };
+            const action: Record<string, any> = { type: actType };
 
             if (actType === 'message' || actType === 'speak') {
                 const textInput = card.querySelector('.beh-act-text');
@@ -1241,7 +1241,7 @@ window.InspectorBehaviors = (() => {
                  action.text = card.querySelector('.beh-act-mem-text')?.value || '';
                  action.importance = parseInt(card.querySelector('.beh-act-mem-importance')?.value) || 5;
                  const tagsRaw = card.querySelector('.beh-act-mem-tags')?.value || '';
-                  action.tags = tagsRaw ? tagsRaw.split(',').map((t: *FIX*) => t.trim()).filter(Boolean) : [];
+                  action.tags = tagsRaw ? tagsRaw.split(',').map((t: any) => t.trim()).filter(Boolean) : [];
              } else if (actType === 'set_emotion') {
                  action.emotion = card.querySelector('.beh-act-emotion-name')?.value || 'neutral';
                  action.intensity = parseFloat(card.querySelector('.beh-act-emotion-intensity')?.value) || 0.5;
@@ -1406,7 +1406,7 @@ window.InspectorBehaviors = (() => {
      * Open the behavior graph editor for a character (all behaviors at once).
      * @param {string} charName - Character name
      */
-    B.openGraphEditor = function(charName: *FIX*) {
+    B.openGraphEditor = function(charName: any) {
         const player = worldState.players[charName];
         if (!player) return;
         const behaviors = Array.isArray(player.behaviors) ? player.behaviors : [];
@@ -1417,7 +1417,7 @@ window.InspectorBehaviors = (() => {
         window.TriggerGraph.show({
             mode: 'behavior',
             graph,
-            onSave: async (newGraph: *FIX*) => {
+            onSave: async (newGraph: any) => {
                 const compiled = window.TriggerGraph.compileToBehaviorsWithIssues(newGraph);
                 if (window.TriggerGraph.reportCompileError(compiled)) return;
                 await ApiClient.updateCharacter(charName, { behaviors: compiled.behaviors });

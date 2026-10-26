@@ -5,7 +5,7 @@
  *
  * @module inspector/item-view - the item inspector
  * @contributes InspectorItemView: actions, parameters, tags, state, move, AI improve, contents
- * @powers Node inspectors, Examine - inspecting and editing *FIX* item in the world
+ * @powers Node inspectors, Examine - inspecting and editing any item in the world
  * @relates renders through InspectorPanel; uses helpers + trigger-helpers
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
@@ -17,8 +17,8 @@
  * the rest - so an open record is the honest type here, not an interface that
  * would have to enumerate every property the engine may ever grow.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-*FIX*
-type PropBag = Record<string, *FIX*>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PropBag = Record<string, any>;
 
 /** A graph node as the item inspector reads it. */
 interface ItemViewItemNode {
@@ -872,7 +872,7 @@ IV._renderFooter = function(nodeId) {
                 const all: PlacementTarget[] = await resp.json();
                 const items = all.filter(r => r.type === targetType);
                 if (!items.length) { results.style.display = 'none'; return; }
-                results.*FIX*= items.map((r: PlacementTarget) => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
+                results.innerHTML = items.map((r: PlacementTarget) => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
                 results.style.display = 'block';
                 results.querySelectorAll('.tag-option').forEach(el => {
                     const row = el as HTMLElement;

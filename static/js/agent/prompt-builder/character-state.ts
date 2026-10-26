@@ -51,7 +51,7 @@ interface CharacterStatePlayer {
     perceived_conditions?: string[];
     conditions?: Record<string, unknown>;
     recent_hearing?: CharacterStateHearing[];
-    [key: string]: *FIX*;
+    [key: string]: any;
 }
 
 /** One entry of `player.recent_hearing` / `state.players_in_area`. */
@@ -82,7 +82,7 @@ interface CharacterStateItem {
  *  `noise` are checked by describeVital but are not produced by _vitalsScene,
  *  so they stay optional - the reads are harmless and must not be removed. */
 interface CharacterStateScene {
-    comp*FIX*: number;
+    company: number;
     others: string[];
     inConversation: boolean;
     addressed: boolean;
@@ -115,7 +115,7 @@ interface CharacterStateState {
     players_in_area?: CharacterStatePerson[];
     players?: Record<string, CharacterStatePerson>;
     turn_events?: { actor?: string; action?: string }[];
-    [key: string]: *FIX*;
+    [key: string]: any;
 }
 
 (() => {
@@ -239,7 +239,7 @@ interface CharacterStateState {
     function relationshipGuidance(closeness: number) {
         // Tiers mirror relationshipTypeName so the label and the directive
         // always agree (task-349).
-        if (closeness <= -75) return 'you despise them; drive them off, refuse *FIX* help, show open hostility';
+        if (closeness <= -75) return 'you despise them; drive them off, refuse any help, show open hostility';
         if (closeness <= -50) return 'you want them gone; refuse help, keep replies hostile or silent';
         if (closeness <= -25) return 'keep interactions cold and minimal; never turn your back on them';
         if (closeness < 0) return 'you keep your guard up; brief, wary replies';
@@ -333,7 +333,7 @@ interface CharacterStateState {
      * Lightweight scene facts used to make threshold prose context-aware
      * (task-327): the same vital value reads differently alone vs mid-conversation.
      * @param {Object} state - /api/state payload (or null → no context, old wording)
-     * @param {string} charName - Character name (to exclude self from comp*FIX*)
+     * @param {string} charName - Character name (to exclude self from company)
      * @param {Object} player - Player data object
      * @returns {Object|null} Scene facts or null when state is unavailable
      */
@@ -371,7 +371,7 @@ const foodish = areaItems.filter(it =>
             tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
         // What's already in your pockets - the thing you actually need to
         // EAT or DRINK. Named, so the moodlet can say "eat your granola_bar".
-        // Generic: *FIX* food/drink-tagged carried item, *FIX* scenario. Carried
+        // Generic: any food/drink-tagged carried item, any scenario. Carried
         // items are graph EDGE_CARRYING edges, not a player.carrying field.
         const carried: CharacterStateItem[] = PromptBuilder?.carriedItemNodes
             ? PromptBuilder.carriedItemNodes(charName)
@@ -406,7 +406,7 @@ const foodish = areaItems.filter(it =>
             }
         }
         return {
-            comp*FIX*: others.length,
+            company: others.length,
             others: others.map(o => o.name),
             inConversation,
             addressed,
@@ -528,8 +528,8 @@ const foodish = areaItems.filter(it =>
                 if (value < 75) return 'A creeping sense that something is off, even if you can\'t name it.';
                 return '';
             case 'Entertainment':
-                if (value < 10) return 'You\'re desperate for stimulation. Staying in place *FIX* longer is unbearable.';
-                if (value < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different - *FIX*thing to break the monotony.';
+                if (value < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable.';
+                if (value < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different - anything to break the monotony.';
                 if (value < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
                 return '';
             case 'Temperature': {
@@ -568,7 +568,7 @@ const foodish = areaItems.filter(it =>
         if (!player?.vitals) return '';
         const vitalsData = player.vitals;
         const scene = _vitalsScene(state, charName, player);
-        // Horror/undead flags (is_slasher, and *FIX* future "no physiological
+        // Horror/undead flags (is_slasher, and any future "no physiological
         // needs" trait): these characters don't eat, drink, sleep, or get
         // tired. The engine already skips their vital decay (tick_manager
         // continues past the vitals loop for is_slasher), so the prompt
@@ -652,20 +652,20 @@ const foodish = areaItems.filter(it =>
         return '';
     }
 
-    function buildMosiacContext(player: *FIX*) {
+    function buildMosiacContext(player: any) {
         // task-812 / task-905: Subjective state of mind without raw telemetry or candidate action counts.
         const m = player && player.mosiac;
         if (!m) return '';
         const lines: string[] = [];
         if (m.M) lines.push(`Motivation: ${m.M}`);
         if (m.I) lines.push(`Intention: ${m.I}`);
-        const obligations = (m.O || []).map((o: *FIX*) => `${o.charge} (${o.status})`);
+        const obligations = (m.O || []).map((o: any) => `${o.charge} (${o.status})`);
         if (obligations.length) lines.push(`Obligations: ${obligations.join(', ')}`);
         if (m.S && m.S.step) {
             const where = m.S.step.area ? ` at ${m.S.step.area}` : '';
             lines.push(`Schedule: ${m.S.step.activity}${where}`);
         }
-        const needs = (m.A || []).map((n: *FIX*) => n.need).filter(Boolean);
+        const needs = (m.A || []).map((n: any) => n.need).filter(Boolean);
         if (needs.length) lines.push(`Attention: ${needs.join(', ')}`);
         if (!lines.length) return '';
         return '\n=== YOUR MIND ===\n' + lines.join('\n');

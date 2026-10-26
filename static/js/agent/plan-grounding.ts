@@ -122,11 +122,11 @@
      */
     function collectFacts(
         charName: string,
-        state: *FIX*,
-        player: *FIX*,
+        state: any,
+        player: any,
         areaName: string,
     ): { areaItems: string[]; carried: string[]; people: string[]; exits: string[]; knownAreas: string[] } {
-        const win = window as *FIX*;
+        const win = window as any;
         const ws = win.worldState;
         const pb = win.PromptBuilder;
 
@@ -161,7 +161,7 @@
         // Include worn/equipped items so stow/remove/examine on equipped gear grounds
         if (player?.equipment && typeof player.equipment === 'object') {
             for (const val of Object.values(player.equipment)) {
-                const name = typeof val === 'string' ? val : (val as *FIX*)?.name;
+                const name = typeof val === 'string' ? val : (val as any)?.name;
                 if (name && !carriedList.includes(name)) carriedList.push(String(name));
             }
         }
@@ -237,7 +237,7 @@
         const area = (areaName && state?.areas?.[areaName]) || {};
         const exitSource = area.exits_authoring || area.exits || {};
         const exitList: string[] = [];
-        for (const [dir, exitData] of Object.entries(exitSource as Record<string, *FIX*>)) {
+        for (const [dir, exitData] of Object.entries(exitSource as Record<string, any>)) {
             if (dir && !exitList.includes(dir)) exitList.push(dir);
             if (exitData?.direction && !exitList.includes(exitData.direction)) exitList.push(exitData.direction);
             if (exitData?.label && !exitList.includes(exitData.label)) exitList.push(exitData.label);
@@ -287,7 +287,7 @@
      * prompt had just listed that door under "From where you stand, you can
      * see the following paths".
      */
-    function groundStep(step: *FIX*, facts: ReturnType<typeof collectFacts>, areaName: string): string | null {
+    function groundStep(step: any, facts: ReturnType<typeof collectFacts>, areaName: string): string | null {
         const act = String(step?.act || '').toLowerCase().trim();
         if (!ACTS.has(act)) {
             return `unknown act "${act || '(empty)'}" - use one of: ${[...ACTS].join(', ')}`;
@@ -441,7 +441,7 @@
     }
 
     /** Canonical one-line rendering of a typed step, for PlanTracker storage. */
-    function render(step: *FIX*): string {
+    function render(step: any): string {
         const act = String(step?.act || '').toLowerCase().trim();
         const item = String(step?.item ?? '').trim();
         const target = String(step?.target ?? '').trim();
@@ -472,12 +472,12 @@
      * rebuild the plan positionally (the repair contract is "keep the steps
      * that already grounded, replace only the rejected ones").
      */
-    function ground(steps: *FIX*[], facts: ReturnType<typeof collectFacts>, areaName: string): {
-        grounded: Array<{ step: *FIX*; text: string; index: number }>;
-        rejections: Array<{ step: *FIX*; reason: string; index: number }>;
+    function ground(steps: any[], facts: ReturnType<typeof collectFacts>, areaName: string): {
+        grounded: Array<{ step: any; text: string; index: number }>;
+        rejections: Array<{ step: any; reason: string; index: number }>;
     } {
-        const grounded: Array<{ step: *FIX*; text: string; index: number }> = [];
-        const rejections: Array<{ step: *FIX*; reason: string; index: number }> = [];
+        const grounded: Array<{ step: any; text: string; index: number }> = [];
+        const rejections: Array<{ step: any; reason: string; index: number }> = [];
         (steps || []).forEach((step, index) => {
             if (!step || typeof step !== 'object') return;
             const reason = groundStep(step, facts, areaName);

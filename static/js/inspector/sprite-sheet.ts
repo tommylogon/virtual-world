@@ -213,10 +213,10 @@ const _SpriteSheet: SpriteSheetApi = (() => {
     /**
      * Source rectangles for a rows×cols grid over a sheet of `width`×`height`.
      *
-     * Kept as the public, count-based entry point (the unit tests and *FIX* caller
+     * Kept as the public, count-based entry point (the unit tests and any caller
      * outside the dialog use it) and now a thin wrapper over the frame+dividers
      * model, so the two can never disagree. Rows/cols are fractions of the sheet,
-     * so the last row/column absorbs *FIX* rounding remainder — tiles always tile
+     * so the last row/column absorbs any rounding remainder — tiles always tile
      * the sheet exactly with no gaps or overlap. `labelTrim` (0-0.9) drops that
      * fraction off the BOTTOM of every cell, which is where sprite sheets put the
      * caption banner.
@@ -239,7 +239,7 @@ const _SpriteSheet: SpriteSheetApi = (() => {
     /**
      * Normalise two drag corners into a clamped, positive-size box.
      *
-     * Coordinates may be given in *FIX* order (dragging up/left is fine). The box
+     * Coordinates may be given in any order (dragging up/left is fine). The box
      * is clamped to the sheet and `null` is returned for a too-small drag so the
      * caller can treat it as a stray click rather than a panel.
      *
@@ -283,7 +283,7 @@ const _SpriteSheet: SpriteSheetApi = (() => {
 
     /**
      * Default names for `count` cells: the canonical 31-tile expression order
-     * first, then blank for *FIX* overflow. The canonical order is read from
+     * first, then blank for any overflow. The canonical order is read from
      * InspectorHelpers so the dialog and the gallery never drift apart.
      *
      * Overflow is deliberately left blank rather than filled with `slotN`
@@ -478,7 +478,7 @@ const _SpriteSheet: SpriteSheetApi = (() => {
  * Two per edge rather than one at the midpoint, because the midpoint is exactly
  * where an even grid puts a divider — and a divider is hit-tested first, since a
  * line running along the frame edge is more often meant to be dragged inward. With
- * a single midpoint grip, the north and south frame edges were unreachable on *FIX*
+ * a single midpoint grip, the north and south frame edges were unreachable on any
  * even-column or even-row grid, which is most of them.
  */
 function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number }> {
@@ -683,7 +683,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
      * This is the check the old dialog made impossible: the overlay shows where
      * the CUT is, the strip shows what comes back from it. An unnamed cell is
      * drawn dimmed and marked "skip", so a grid that covers a banner or a text
-     * block is visible as such before *FIX*thing is uploaded.
+     * block is visible as such before anything is uploaded.
      */
     function _drawTiles() {
         const s = _state;
@@ -702,13 +702,13 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
             });
         }
         if (!items.length) {
-            wrap.*FIX*= '<div style="font-size:11px;color:var(--text-muted);">No tiles yet.</div>';
+            wrap.innerHTML = '<div style="font-size:11px;color:var(--text-muted);">No tiles yet.</div>';
             return;
         }
 
         const THUMB = 68;
         const src = s.src || s.img;
-        wrap.*FIX*= '';
+        wrap.innerHTML = '';
         items.forEach((it, i) => {
             const scale = Math.min(THUMB / Math.max(1, it.w), THUMB / Math.max(1, it.h));
             const tw = Math.max(1, Math.round(it.w * scale));
@@ -752,7 +752,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         const tol = GRAB_PX / s.scale;
 
         if (_mode() === 'boxes') {
-            // Grips of *FIX* box, topmost first — not just the selected one. Requiring a
+            // Grips of ANY box, topmost first — not just the selected one. Requiring a
             // prior selection (by clicking its list row) meant a corner grab silently
             // did nothing and, because the press then fell through to the
             // contains-the-point test, usually moved the box instead of resizing it.
@@ -934,10 +934,10 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         const list = document.getElementById('ss-box-list');
         if (!list) return;
         if (!s.boxes.length) {
-            list.*FIX*= '<div style="font-size:11px;color:var(--text-muted);">No boxes yet — drag on the image to box each panel. Click a box to move or resize it.</div>';
+            list.innerHTML = '<div style="font-size:11px;color:var(--text-muted);">No boxes yet — drag on the image to box each panel. Click a box to move or resize it.</div>';
             return;
         }
-        list.*FIX*= s.boxes.map((b, i) => `
+        list.innerHTML = s.boxes.map((b, i) => `
             <div class="ss-box-row" data-i="${i}" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;padding:2px 4px;border-radius:3px;${i === s.selected ? 'background:var(--bg-inset);' : ''}">
                 <span style="font-size:10px;color:var(--text-muted);width:34px;">#${i + 1}</span>
                 <input type="text" class="ss-box-name" data-i="${i}" value="${_escAttr(b.name)}" style="flex:1;font-size:11px;">
@@ -1045,7 +1045,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         if (hint) {
             hint.textContent = boxes
                 ? 'Drag a rectangle over each panel. Click a box to move or resize it; drag its corner to change size.'
-                : 'Drag the yellow frame onto the art, and drag *FIX* white line to make rows or columns uneven. The dashed red line is where the caption banner is trimmed.';
+                : 'Drag the yellow frame onto the art, and drag any white line to make rows or columns uneven. The dashed red line is where the caption banner is trimmed.';
         }
         _renderBoxList();
         _render();
@@ -1088,7 +1088,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
             : G.cutsFromGrid(s.img.naturalWidth, s.img.naturalHeight, rows, cols);
         _setStatus(usable
             ? `Auto-fit: ${cuts.colCuts.length + 1} columns × ${cuts.rowCuts.length + 1} rows `
-              + `from whitespace in ${Date.now() - started}ms. Drag *FIX*thing to adjust.`
+              + `from whitespace in ${Date.now() - started}ms. Drag anything to adjust.`
             : 'No clean gutters found — kept the even grid. Drag the frame and lines to fit the art.');
         s.cuts = cuts;
         _syncRowColInputs();
@@ -1216,7 +1216,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         const root = document.createElement('div');
         root.id = 'sprite-sheet-modal';
         root.className = 'modal';
-        root.*FIX*= `
+        root.innerHTML = `
             <div class="modal-content" style="width:min(1180px,96vw);">
                 <div class="modal-header">
                     <h3>✂️ Split sprite sheet</h3>

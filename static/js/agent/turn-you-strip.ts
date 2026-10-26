@@ -60,7 +60,7 @@ const TurnYouStrip = (() => {
         return node;
     }
 
-    // Preferred display order; *FIX* vitals outside this list render after
+    // Preferred display order; any vitals outside this list render after
     // it (task-342: the strip shows ALL vitals, not a hardcoded six).
     const VITAL_ORDER = ['HP', 'Energy', 'Hunger', 'Thirst', 'Hygiene', 'Bladder',
                          'Temperature', 'Sanity', 'Social', 'Entertainment', 'Mana'];
@@ -138,7 +138,7 @@ const TurnYouStrip = (() => {
         else if (ratio >= 0.8) { label = 'carrying your limit'; cls += ' tys-load-bad'; }
         else if (ratio >= 0.5) { label = 'heavily loaded'; cls += ' tys-load-warn'; }
         else if (ratio >= 0.25) { label = 'light load'; }
-        else { label = 'barely carrying *FIX*thing'; }
+        else { label = 'barely carrying anything'; }
         const chip = el('span', cls, `⚖️ ${label}`);
         const tsv = _turnSceneView();
         if (tsv?.attachHover) {

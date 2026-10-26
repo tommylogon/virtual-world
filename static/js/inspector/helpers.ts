@@ -37,7 +37,7 @@ const InspectorHelpersModule = (() => {
     H.graphGravityControl = function(nodeId: string, props: HelpersNodeProps = {}) {
         // Reflect the EFFECTIVE physics, not the stored flag: a painted node is
         // pinned at build time, so the switch must show that too (task-766).
-        const GN = (window as unknown as { GraphNetwork?: { isNodePinned(n: *FIX*): boolean } }).GraphNetwork;
+        const GN = (window as unknown as { GraphNetwork?: { isNodePinned(n: any): boolean } }).GraphNetwork;
         const enabled = !(GN && typeof GN.isNodePinned === 'function'
             ? GN.isNodePinned({ properties: props })
             : (props.central_gravity_enabled === false || props.layout_static === true));
@@ -102,9 +102,9 @@ const InspectorHelpersModule = (() => {
      * The inspector's "Physics enabled" switch for a node.
      *
      * The stored flag is still `central_gravity_enabled`, but it no longer means
-     * *FIX*thing about gravity: the solver has none (`centralGravity: 0` in
+     * anything about gravity: the solver has none (`centralGravity: 0` in
      * graph/network-manager.js). It is a straight "simulate this node or pin it
-     * where it is" — off for *FIX* node type, and a frozen node's dragged position
+     * where it is" — off for any node type, and a frozen node's dragged position
      * is written back so it survives a reload.
      * @param {string} nodeId - Graph node ID
      * @param {boolean} enabled - Whether the node is simulated
@@ -609,7 +609,7 @@ const InspectorHelpersModule = (() => {
         const grid = document.getElementById(`expr-grid-${escId}`);
         if (grid) {
             grid.dataset.kind = kind;
-            grid.*FIX*= H._expressionCardsHtml(nodeId, props, kind);
+            grid.innerHTML = H._expressionCardsHtml(nodeId, props, kind);
         }
         document.querySelectorAll(`#expr-section-${escId} .expr-tab`).forEach((btn: Element) => {
             btn.classList.toggle('btn-blue', (btn as HTMLElement).dataset.kind === kind);
@@ -732,7 +732,7 @@ const InspectorHelpersModule = (() => {
     /**
      * Persist a rewritten `expressions` map.
      *
-     * Re-filing a key does not move *FIX* file: the image stays exactly where it is
+     * Re-filing a key does not move any file: the image stays exactly where it is
      * and only the key it is filed under moves, so this is a property write and
      * reuses the generic node PATCH rather than adding an endpoint. (The filename
      * keeps the old slug until that slot is replaced once, at which point the
@@ -1077,7 +1077,7 @@ const InspectorHelpersModule = (() => {
 // Type declarations sit below the first value statement on purpose: TypeScript
 // drops a file's leading JSDoc when the first statement is type-only, which
 // would strip the `@module` header `tools/js_module_index.py` reads.
-type HelpersNodeProps = Record<string, *FIX*>;
+type HelpersNodeProps = Record<string, any>;
 
 interface InspectorNode {
     id?: string;
@@ -1090,7 +1090,7 @@ interface ImproveSpec {
     id?: string;
     system: string;
     buildPrompt(node: InspectorNode, lockedFields: string[]): string;
-    apply(parsed: *FIX*, node: InspectorNode, lockedFields: string[], update: HelpersNodeProps): void;
+    apply(parsed: any, node: InspectorNode, lockedFields: string[], update: HelpersNodeProps): void;
 }
 
 interface InspectorHelpersApi {

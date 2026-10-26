@@ -38,7 +38,7 @@ const InspectorViewBase = (() => {
         /** Sub-classes override to clean up (remove listeners, clear timers). */
         dispose(): void { /* no-op by default */ }
 
-        /** Show this view for the given node id. Coalesces with *FIX* pending render. */
+        /** Show this view for the given node id. Coalesces with any pending render. */
         show(nodeId: string): void {
             this.nodeId = nodeId;
             this.mounted = true;
@@ -65,7 +65,7 @@ const InspectorViewBase = (() => {
 
         /** Push a breadcrumb crumb via the Inspector singleton. */
         _pushCrumb(kind: string, idOrName: string, label: string): void {
-            const inspector = (window as unknown as { inspector?: *FIX* }).inspector;
+            const inspector = (window as unknown as { inspector?: any }).inspector;
             if (!inspector || typeof inspector._pushCrumb !== 'function') return;
             inspector._pushCrumb({ kind, id: kind === 'node' ? idOrName : undefined,
                                    name: kind === 'agent' ? idOrName : undefined,
@@ -73,12 +73,12 @@ const InspectorViewBase = (() => {
         }
 
         /** Read the current worldState safely. */
-        _worldState(): *FIX* {
-            return (window as unknown as { worldState?: *FIX* }).worldState;
+        _worldState(): any {
+            return (window as unknown as { worldState?: any }).worldState;
         }
 
-        /** Read the current graph node for this view's nodeId, if *FIX*. */
-        _node(): *FIX* {
+        /** Read the current graph node for this view's nodeId, if any. */
+        _node(): any {
             const ws = this._worldState();
             if (!ws || !this.nodeId) return null;
             return ws.getNode ? ws.getNode(this.nodeId) : null;
@@ -98,7 +98,7 @@ const InspectorViewBase = (() => {
             });
         }
 
-        /** Cancel *FIX* pending render. */
+        /** Cancel any pending render. */
         _cancelRender(): void {
             this._renderQueued = false;
         }

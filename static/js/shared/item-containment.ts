@@ -2,7 +2,7 @@
  * item-containment.js — ONE rule for what a character can see inside things.
  *
  * @module shared/item-containment — the single item-containment walk
- * @contributes `window.ItemContainment`: sealed/hidden predicates, *FIX*-depth
+ * @contributes `window.ItemContainment`: sealed/hidden predicates, any-depth
  *   `walkContents`, and a reachability-ordered `collectReachable`
  * @powers Take / drop / give — the item listings in world-state.js and
  *   agent/prompt-builder/room-context.js
@@ -11,7 +11,7 @@
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  *
  * Why this exists: every renderer that re-implemented "what is inside this?"
- * drifted. The engine walks *FIX* depth and honours container state; the client
+ * drifted. The engine walks any depth and honours container state; the client
  * walked ONE level and checked almost nothing, so a prompt could list a battery
  * inside a locked cabinet, or a part three levels down, or nothing at all
  * depending on which code path ran. This is the one walk, so the two agree by
@@ -21,7 +21,7 @@
  *   - a `hidden` node is pruned entirely, and so is everything inside it;
  *   - a node that is `closed`/`locked`/`sealed` (or has `locked: true`) is
  *     still listed — the box is there — but its contents are sealed away;
- *   - otherwise descend, to *FIX* depth.
+ *   - otherwise descend, to any depth.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (window as unknown as ItemContainmentWindowSurface).ItemContainment = (() => {

@@ -31,7 +31,7 @@
  * the bare `GraphFocus` global at every call site. The singleton is declared
  * here (rather than inferred from the literal) so the recursive references
  * inside the methods — `_parkHiddenSet` calling `GraphFocus._visibleSet()` — type
- * against a real shape instead of `*FIX*`.
+ * against a real shape instead of `any`.
  */
 interface GraphFocusApi {
     /** Debounce timer handle (module state, not graphManager). */
@@ -87,7 +87,7 @@ type FocusWin = { GraphToolbar?: { syncDisabled(): void } };
     /**
      * Sets the search query and instantly reveals matches (cheap — only toggles
      * node/edge hidden flags). The frame-fit + physics kick are deferred to
-     * settleSearch(). Clearing the query restores *FIX* parked physics + cluster
+     * settleSearch(). Clearing the query restores any parked physics + cluster
      * layout from the previous search session.
      *
      * @param {string} query - raw search input
@@ -100,7 +100,7 @@ type FocusWin = { GraphToolbar?: { syncDisabled(): void } };
         if (wasActive && !q) {
             GraphFocus._restoreAfterSearch();
         }
-        // Keep-in-place only means *FIX*thing while matches are on screen, so the
+        // Keep-in-place only means anything while matches are on screen, so the
         // toolbar greys it out for an empty query instead of letting it flip a
         // preference that does nothing (task-530).
         if ((window as unknown as FocusWin).GraphToolbar) GraphToolbar.syncDisabled();
@@ -164,7 +164,7 @@ type FocusWin = { GraphToolbar?: { syncDisabled(): void } };
         const visible = GraphFocus._visibleSet();
         GraphFocus._parked = GraphFocus._parked || {};
         const updates: { id: string; physics: boolean }[] = [];
-        nodesDs.forEach((node: *FIX*) => {
+        nodesDs.forEach((node: any) => {
             const hidden = !visible.has(node.id);
             if (hidden) {
                 if (node.physics !== false) { updates.push({ id: node.id, physics: false }); GraphFocus._parked[node.id] = true; }
@@ -182,7 +182,7 @@ type FocusWin = { GraphToolbar?: { syncDisabled(): void } };
     },
 
     /**
-     * Restore the pre-search layout & *FIX* parked physics after a query clears.
+     * Restore the pre-search layout & any parked physics after a query clears.
      * Idempotent / safe to call with nothing pending.
      */
     _restoreAfterSearch() {

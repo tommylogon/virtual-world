@@ -185,7 +185,7 @@ ${PromptBuilder.buildJsonExample(schemaFields)}`;
      * @param {string} action - The action that was taken
      * @param {string} actionResult - The result text of the action
      * @param {string} memoryNL - Memory context string
-     * @param {string} saidThisTurn - What the character already said this turn (decide phase), if *FIX*
+     * @param {string} saidThisTurn - What the character already said this turn (decide phase), if any
      * @returns {string} Result reaction prompt string
      */
     function buildResultReactionPrompt(charName: string, player: PlayerData, roomContext: string, vitalsNL: string, emotionNL: string, relationshipNL: string, inner: string, action: string, actionResult: string, memoryNL: string, saidThisTurn: string) {
@@ -283,8 +283,8 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
         const context = PromptBuilder.buildContextBlock(player, { phase: 'communication' },
             ['emotion', 'insanity', 'trait', 'mosiac', 'dead']);
         const availableChannels = (Array.isArray(channels) ? channels : [])
-            .filter((channel: *FIX*) => !isTownBoard || channel?.kind !== 'group');
-        const channelLines = availableChannels.map((channel: *FIX*) => {
+            .filter((channel: any) => !isTownBoard || channel?.kind !== 'group');
+        const channelLines = availableChannels.map((channel: any) => {
             const unread = Number(channel?.unread_count || 0);
             const members = Array.isArray(channel?.members) ? channel.members.join(', ') : '';
             if (isTownBoard) {

@@ -377,7 +377,7 @@ if (VW?.PromptDocs?.ITEM_GENERATION_SYSTEM) {
                 title: '🤖 Review AI-suggested triggers',
                 subtitle: `${name || 'item'} — AI authored these; keep working triggers or swap per-row.`,
                 rows,
-                onApply: (result: *FIX*) => {
+                onApply: (result: any) => {
                     field!.value = JSON.stringify(DiffUI.merge(existing, result));
                     this._refreshEditorWithTriggers();
                     events.log(`🤖 applied ${result.add.length + result.replace.length} AI trigger${result.add.length + result.replace.length === 1 ? '' : 's'} (${result.keep.length} kept).`, 'system-msg');

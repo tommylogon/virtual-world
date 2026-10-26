@@ -98,7 +98,7 @@
                 continue;
             }
             if (type === 'on_use') {
-                // if *FIX* consume action exists, the engine's consume trigger
+                // if any consume action exists, the engine's consume trigger
                 // already covers "use"; don't double-offer on_use.
                 if (act.has('eat') || act.has('drink')) continue;
             }
@@ -424,7 +424,7 @@
     }
 
     /**
-     * The ordered trigger-type plan for *FIX* node kind — what the heuristic will
+     * The ordered trigger-type plan for any node kind — what the heuristic will
      * build and exactly what the AI path is asked to author (one entry per type).
      */
     function planForNode(kind: string, fields: ItemFields = {}): string[] {

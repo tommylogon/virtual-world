@@ -55,7 +55,7 @@ const HumanTurnComposerModule = (() => {
     let _volume = 'say';
     let _pendingSpeechTarget: string | null = null;
     let _advanced = false;
-    let _scene: Record<string, *FIX*> | null = null;
+    let _scene: Record<string, any> | null = null;
 
     const q = (sel: string) => _modal.querySelector(sel) as HTMLElement;
     const qa = (sel: string): HTMLElement[] => Array.from(_modal.querySelectorAll(sel)) as HTMLElement[];
@@ -253,7 +253,7 @@ const HumanTurnComposerModule = (() => {
     }
 
     /** Same normalization an agent reply goes through. */
-    function normalizeReply(p: Record<string, *FIX*> | null | undefined): NormalizedReply {
+    function normalizeReply(p: Record<string, any> | null | undefined): NormalizedReply {
         if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null, target: null };
         const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
         return {
@@ -285,8 +285,8 @@ const HumanTurnComposerModule = (() => {
         pips.push(`<span class="htc-pip major ${s.major ? '' : 'spent'}" title="major ${s.major || 0} left"></span>`);
         pips.push(`<span class="htc-pip minor ${s.minor ? '' : 'spent'}" title="minor ${s.minor || 0} left"></span>`);
         for (let i = 0; i < 3; i += 1) pips.push(`<span class="htc-pip free ${i < (s.free || 0) ? '' : 'spent'}" title="free ${s.free || 0} left"></span>`);
-        q('#htc-pips').*FIX*= pips.join('');
-        q('#htc-budgetlab').*FIX*= `<b>${s.major || 0}</b> major · <b>${s.minor || 0}</b> minor · <b>${s.free || 0}</b> free`;
+        q('#htc-pips').innerHTML = pips.join('');
+        q('#htc-budgetlab').innerHTML = `<b>${s.major || 0}</b> major · <b>${s.minor || 0}</b> minor · <b>${s.free || 0}</b> free`;
     }
 
     function setPhase(phase: 'compose' | 'react') {
@@ -356,7 +356,7 @@ const HumanTurnComposerModule = (() => {
         } catch { /* queue not initialized */ }
         if (nextUp && nextUp !== _charName) bits.push(`next up: <b>${nextUp}</b>`);
         else if (nextUp) bits.push('next up: <b>you</b>');
-        meta.*FIX*= bits.join(' · ');
+        meta.innerHTML = bits.join(' · ');
     }
 
     function renderDatalist() {
@@ -364,10 +364,10 @@ const HumanTurnComposerModule = (() => {
         dl.textContent = '';
         if (!_scene) return;
         const names = new Set<unknown>();
-        for (const item of (_scene.items || []) as Array<Record<string, *FIX*>>) names.add(item.name);
-        for (const p of (_scene.people || []) as Array<Record<string, *FIX*>>) names.add(p.display_name);
-        for (const way of (_scene.ways || []) as Array<Record<string, *FIX*>>) { names.add(way.direction); if (way.to) names.add(way.to); }
-        for (const inv of [...(_scene.you?.carrying || []), ...(_scene.you?.wearing || [])] as Array<Record<string, *FIX*>>) names.add(inv.name);
+        for (const item of (_scene.items || []) as Array<Record<string, any>>) names.add(item.name);
+        for (const p of (_scene.people || []) as Array<Record<string, any>>) names.add(p.display_name);
+        for (const way of (_scene.ways || []) as Array<Record<string, any>>) { names.add(way.direction); if (way.to) names.add(way.to); }
+        for (const inv of [...(_scene.you?.carrying || []), ...(_scene.you?.wearing || [])] as Array<Record<string, any>>) names.add(inv.name);
         for (const name of names) {
             const opt = document.createElement('option');
             opt.value = String(name);
@@ -382,17 +382,17 @@ const HumanTurnComposerModule = (() => {
         const stripHandlers = {
             onDraft: applyDraft,
             menu: (x: number, y: number, title: string, buttons: unknown[]) =>
-                (htcGlobals.TurnSceneView as { menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: *FIX*) => void): void })
+                (htcGlobals.TurnSceneView as { menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: any) => void): void })
                     .menu(x, y, title, buttons, applyDraft),
         };
         if (!htcGlobals.TurnSceneView) return;
         const sceneView = htcGlobals.TurnSceneView;
-        sceneView.fetch(charName).then((scene: *FIX*) => {
+        sceneView.fetch(charName).then((scene: any) => {
             if (!scene || scene.error || _charName !== charName) return;
             _scene = scene;
             sceneView.renderScene(sceneHost, scene, {
                 onDraft: applyDraft,
-                onTalkFocus: (talkOpts: *FIX*) => {
+                onTalkFocus: (talkOpts: any) => {
                     if (talkOpts && talkOpts.volume) {
                         _volume = talkOpts.volume;
                         syncVolumeButtons();
@@ -401,7 +401,7 @@ const HumanTurnComposerModule = (() => {
                     (q('#htc-speech') as HTMLInputElement).focus();
                 },
             });
-            (htcGlobals.TurnYouStrip as { render(host: HTMLElement, you: *FIX*, handlers: Record<string, unknown>): void })
+            (htcGlobals.TurnYouStrip as { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void })
                 .render(q('#htc-you'), scene.you, stripHandlers);
             if (htcGlobals.TurnMinimap) {
                 const feed = document.querySelector('.htc-feed') as HTMLElement | null;
@@ -647,7 +647,7 @@ const HumanTurnComposerModule = (() => {
         if (hintEl) { hintEl.textContent = ''; hintEl.style.display = 'none'; }
     }
 
-    function applyDraft(parts: Record<string, *FIX*> | null | undefined) {
+    function applyDraft(parts: Record<string, any> | null | undefined) {
         if (!parts || _phase === 'react') return;
         (q('#htc-do') as HTMLInputElement).value = [parts.action, parts.item, parts.target]
             .filter(Boolean).join(' ');
@@ -745,12 +745,12 @@ const HumanTurnComposerModule = (() => {
 const htcGlobals = window as unknown as {
     Timeskip?: { openDialog(): void };
     TurnSceneView?: {
-        menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: *FIX*) => void): void;
-        fetch(charName: string): Promise<*FIX*>;
-        renderScene(host: HTMLElement, scene: *FIX*, opts: Record<string, unknown>): void;
+        menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: any) => void): void;
+        fetch(charName: string): Promise<any>;
+        renderScene(host: HTMLElement, scene: any, opts: Record<string, unknown>): void;
         invalidateCache?(charName?: string): void;
     };
-    TurnYouStrip?: { render(host: HTMLElement, you: *FIX*, handlers: Record<string, unknown>): void };
+    TurnYouStrip?: { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void };
     TurnMinimap?: { mount(host: HTMLElement, charName: string): Promise<void> };
     CharacterArt?: { open(charName: string): void };
 };

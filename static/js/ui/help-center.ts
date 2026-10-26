@@ -15,7 +15,7 @@
  * plus a session-scoped set so tips can re-appear on the next run but not
  * while you're clicking around.
  *
- * Load AFTER event-bus.js (mandatory), *FIX* time before user interaction.
+ * Load AFTER event-bus.js (mandatory), any time before user interaction.
  *
  * @module ui/help-center — help, coach tips, and guided tours
  * @contributes HelpCenter: tip registry, smart triggers, spotlight, tours, and the Help index modal
@@ -34,14 +34,14 @@ window.HelpCenter = (() => {
     /**
      * One entry of the tip registry. `match` receives whatever the trigger
      * delivered — a [data-help] string, the inspector:view detail object, or
-     * null — so it stays `*FIX*`: the gates disagree about the shape on
+     * null — so it stays `any`: the gates disagree about the shape on
      * purpose and each one tests only what its own event carries.
      */
     interface HelpCenterTip {
         id: string;
         tour?: string;
         event: string;
-        match?: (d: *FIX*) => boolean;
+        match?: (d: any) => boolean;
         group: string;
         title: string;
         body: string;
@@ -82,7 +82,7 @@ window.HelpCenter = (() => {
             match: d => d === 'run',
             group: 'Beginner',
             title: 'Running the simulation',
-            body: 'By default <b>▶</b> runs only the <b>selected</b> agent, one turn at a time (click an agent in the left panel to choose who). <b>Turn-Based Mode</b> in Agent Settings rotates <i>every</i> character in initiative order — the left panel shows who is up. Either way: click *FIX* agent to inspect its vitals, thoughts and gear.',
+            body: 'By default <b>▶</b> runs only the <b>selected</b> agent, one turn at a time (click an agent in the left panel to choose who). <b>Turn-Based Mode</b> in Agent Settings rotates <i>every</i> character in initiative order — the left panel shows who is up. Either way: click any agent to inspect its vitals, thoughts and gear.',
             target: '#sim-play',
         },
         {
@@ -175,7 +175,7 @@ window.HelpCenter = (() => {
             match: d => d === 'snippets',
             group: 'Items & triggers',
             title: 'Trigger snippets',
-            body: 'In the trigger editor, <b>snippets</b> fill a whole trigger in one click — Chest, Light Source, Heat Source, First Aid, Whispering Door, Recorder. Ctrl+K finds *FIX*thing.',
+            body: 'In the trigger editor, <b>snippets</b> fill a whole trigger in one click — Chest, Light Source, Heat Source, First Aid, Whispering Door, Recorder. Ctrl+K finds anything.',
         },
         {
             id: 'nl-editor',
@@ -201,7 +201,7 @@ window.HelpCenter = (() => {
             match: d => d === 'turn-model',
             group: 'Advanced',
             title: 'Time, turns and travel',
-            body: 'One <b>turn</b> is roughly one in-game minute, and a character gets <b>one decision set per turn</b> no matter how the clock is configured — <b>time_per_tick_minutes</b> changes how much world time a tick advances, never how m*FIX* actions you get. Travelling from one area to the next costs at least one turn per cell crossed, so a long road is a real cost. Ticks and decay run <b>once per cycle</b>, when the last actor of a round passes — not inside each action.',
+            body: 'One <b>turn</b> is roughly one in-game minute, and a character gets <b>one decision set per turn</b> no matter how the clock is configured — <b>time_per_tick_minutes</b> changes how much world time a tick advances, never how many actions you get. Travelling from one area to the next costs at least one turn per cell crossed, so a long road is a real cost. Ticks and decay run <b>once per cycle</b>, when the last actor of a round passes — not inside each action.',
             target: '[data-help="turn-model"]',
         },
         {
@@ -278,7 +278,7 @@ window.HelpCenter = (() => {
             match: d => d === 'help',
             group: 'Beginner',
             title: '❓ Help, coach tips and tours',
-            body: 'This is the whole learning layer. Coach cards appear by themselves as you touch things for the first time, and <b>F1</b> reopens this index at *FIX* time. Every tip can be re-shown individually with <b>again</b>, and <b>Reset all</b> forgets every seen-flag so the tour runs again from the start. The <b>guided tours</b> at the top chain the cards into a walkthrough — <i>Painting a town</i> is the WorldPainter one.',
+            body: 'This is the whole learning layer. Coach cards appear by themselves as you touch things for the first time, and <b>F1</b> reopens this index at any time. Every tip can be re-shown individually with <b>again</b>, and <b>Reset all</b> forgets every seen-flag so the tour runs again from the start. The <b>guided tours</b> at the top chain the cards into a walkthrough — <i>Painting a town</i> is the WorldPainter one.',
             target: '[data-help="help"]',
         },
         {
@@ -346,7 +346,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-add-feature',
             group: 'WorldPainter',
             title: '➕ Add feature — it makes, it does not place',
-            body: 'Asks for a name, then creates an <b>empty child scope</b> and selects it. It does <b>not</b> put it *FIX*where: pick <b>🏠 Feature</b> and click the cell it belongs on. The mode follows the parent — a child of a <i>town</i> is an <i>interior</i> — and the grid starts at 8×8, which you then resize. This is also the <b>only</b> way to make a scope you can paint: <b>🪜 Make this a scope…</b> promotes areas you already wrote and gives you a scope that can never be generated.',
+            body: 'Asks for a name, then creates an <b>empty child scope</b> and selects it. It does <b>not</b> put it anywhere: pick <b>🏠 Feature</b> and click the cell it belongs on. The mode follows the parent — a child of a <i>town</i> is an <i>interior</i> — and the grid starts at 8×8, which you then resize. This is also the <b>only</b> way to make a scope you can paint: <b>🪜 Make this a scope…</b> promotes areas you already wrote and gives you a scope that can never be generated.',
             target: '[data-help="wp-add-feature"]',
             tour: 'paint-a-town',
         },
@@ -357,7 +357,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-generate',
             group: 'WorldPainter',
             title: '⚙ Generate — per scope, parent first',
-            body: 'Turns <b>this scope\'s unclaimed painted cells</b> into real areas and ways. Hand-placed areas (the ones you drop with the Area tool) already own their cells — they are final and Generate ignores them; it only creates new places from paint that has no placement on top. Do it <b>last</b>, and generate the <b>parent before its children</b>: the gateway between a scope and its parent is minted by whichever of the two compiles second. A scope that is already generated asks before redoing it, and a redo replaces *FIX*thing edited by hand afterwards. Do not paint a scope after generating it — see the blockers tip.',
+            body: 'Turns <b>this scope\'s unclaimed painted cells</b> into real areas and ways. Hand-placed areas (the ones you drop with the Area tool) already own their cells — they are final and Generate ignores them; it only creates new places from paint that has no placement on top. Do it <b>last</b>, and generate the <b>parent before its children</b>: the gateway between a scope and its parent is minted by whichever of the two compiles second. A scope that is already generated asks before redoing it, and a redo replaces anything edited by hand afterwards. Do not paint a scope after generating it — see the blockers tip.',
             target: '[data-help="wp-generate"]',
         },
         {
@@ -412,7 +412,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-cell-size',
             group: 'WorldPainter',
             title: 'px / cell - size the grid by the cell',
-            body: 'Drag to change how m*FIX* pixels of the reference image one cell covers. Smaller cells mean more of them; the count beside the slider is the <i>result</i>, not the input. The grid redraws as you drag, and *FIX* painted or placed cell that the new extent would leave outside is highlighted red before you let go. One cell is one minute of walking, so cell size is also how long the place takes to cross. Cells larger than the image\'s shorter side are one cell, and 400 columns is the widest grid. Disabled once the scope is generated: the cells have become areas, and re-keying them would move every place.',
+            body: 'Drag to change how many pixels of the reference image one cell covers. Smaller cells mean more of them; the count beside the slider is the <i>result</i>, not the input. The grid redraws as you drag, and any painted or placed cell that the new extent would leave outside is highlighted red before you let go. One cell is one minute of walking, so cell size is also how long the place takes to cross. Cells larger than the image\'s shorter side are one cell, and 400 columns is the widest grid. Disabled once the scope is generated: the cells have become areas, and re-keying them would move every place.',
             target: '[data-help="wp-cell-size"]',
         },
         {
@@ -448,7 +448,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-tool-erase',
             group: 'WorldPainter',
             title: '🧽 Erase',
-            body: 'Clears the <b>current layer</b> on a cell — so erasing while a biome layer is active leaves *FIX* road underneath, which is usually what you want. It does not touch names, so a place can lose its paint and keep its name until you clear that too.',
+            body: 'Clears the <b>current layer</b> on a cell — so erasing while a biome layer is active leaves any road underneath, which is usually what you want. It does not touch names, so a place can lose its paint and keep its name until you clear that too.',
             target: '[data-help="wp-tool-erase"]',
         },
         {
@@ -494,8 +494,8 @@ window.HelpCenter = (() => {
             event: 'data-help',
             match: d => d === 'wp-tool-inspect',
             group: 'WorldPainter',
-            title: '🔍 Inspect — and right-click does this on *FIX* tool',
-            body: 'Reads a cell without changing it: what is painted on each layer, which area or child scope sits there, and its <b>name</b> field. Right-click works the same panel from <b>*FIX*</b> tool, so you can name a cell without switching. A place with no name compiles to coordinates like "Inn (Eldenford 12,7)" and cannot be asked for by name — "go inn" has nothing to match.',
+            title: '🔍 Inspect — and right-click does this on any tool',
+            body: 'Reads a cell without changing it: what is painted on each layer, which area or child scope sits there, and its <b>name</b> field. Right-click works the same panel from <b>any</b> tool, so you can name a cell without switching. A place with no name compiles to coordinates like "Inn (Eldenford 12,7)" and cannot be asked for by name — "go inn" has nothing to match.',
             target: '[data-help="wp-tool-inspect"]',
         },
         {
@@ -504,7 +504,7 @@ window.HelpCenter = (() => {
             match: d => d === 'wp-tool-vision',
             group: 'WorldPainter',
             title: '👁 Vision - raycast line of sight debugger',
-            body: 'Tests 2.5D geometric line of sight (LoS) raycasting across elevation and obscuring biomes. Click an origin cell to set the observer position, then click *FIX* target cell to cast a Bresenham ray with elevation clearance and obscurity accumulation. Supports directional facing arcs (120° primary cone).',
+            body: 'Tests 2.5D geometric line of sight (LoS) raycasting across elevation and obscuring biomes. Click an origin cell to set the observer position, then click any target cell to cast a Bresenham ray with elevation clearance and obscurity accumulation. Supports directional facing arcs (120° primary cone).',
             target: '[data-help="wp-tool-vision"]',
         },
     ];
@@ -621,7 +621,7 @@ window.HelpCenter = (() => {
         _card = document.createElement('div');
         _card.className = 'hc-card';
         const hasTarget = !!tip.target;
-        _card.*FIX*= `
+        _card.innerHTML = `
             <h4>💡 ${tip.title}</h4>
             <div class="hc-body">${tip.body}</div>
             <div class="hc-actions">
@@ -650,7 +650,7 @@ window.HelpCenter = (() => {
     }
 
     // ─────────────────────── Triggers ───────────────────────
-    function maybe(eventName: string, detail: *FIX*) {
+    function maybe(eventName: string, detail: any) {
         if (_tourQueue.length) return; // tours own the screen
         for (const tip of TIPS) {
             if (tip.event !== eventName) continue;
@@ -692,7 +692,7 @@ window.HelpCenter = (() => {
             <div class="hc-tiprow"><span>${t.group} — ${t.title} ${_isSeen(t.id) ? '<span class="done">✓</span>' : ''}</span>
                 <span><button onclick="HelpCenter._resetTip('${t.id}')">again</button></span>
             </div>`).join('');
-        m.*FIX*= `<div class="hc-modal-inner">
+        m.innerHTML = `<div class="hc-modal-inner">
             <h3>❓ Help &amp; Guides</h3>
             <div style="font-size:11px;color:#5b6570;margin-bottom:10px;">Coach tips appear as you touch things. F1 reopens this. Reset restores every tip.</div>
             <b>Guided tours</b>

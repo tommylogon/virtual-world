@@ -191,7 +191,7 @@ const _SkyScape = (() => {
         el.title = 'World Sky — click to open';
         el.style.cursor = 'pointer';
         const span = document.createElement('span');
-        span.*FIX*= html;
+        span.innerHTML = html;
         el.appendChild(span);
         if (!el._skyClickBound) {
             el._skyClickBound = true;
@@ -334,7 +334,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         overlay.id = 'sky-overlay';
         const box = document.createElement('div');
         box.className = 'vwsky';
-        box.*FIX*= `
+        box.innerHTML = `
             <div class="vwsky-head">
                 <span style="font-size:15px;">🌦</span>
                 <span class="vwsky-title">World Sky</span>
@@ -696,7 +696,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         add('Light', env.light != null ? `${Math.round(Number(env.light))}%` : '');
         add('Precip', env.precipitation ? `${env.precipitation} mm/h` : '');
         add('Snow', env.snow_depth ? `${env.snow_depth} cm` : '');
-        el.*FIX*= parts.join('');
+        el.innerHTML = parts.join('');
     }
 
     let _playTimer: number | null = null;
@@ -782,12 +782,12 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 .catch(() => {
                     _regionsFetching = false;
                     if (status) status.textContent = 'could not load outlook';
-                    grid.*FIX*= '<div class="vwsky-empty">Could not load the outlook.</div>';
+                    grid.innerHTML = '<div class="vwsky-empty">Could not load the outlook.</div>';
                 });
             return;
         }
         if (!_regionsData) return;
-        grid.*FIX*= _regionsTable(_regionsData);
+        grid.innerHTML = _regionsTable(_regionsData);
     }
 
     /** The table: one row per open-sky area, one column per day, today first. */
@@ -871,7 +871,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         return html;
     }
 
-    /** Weather ids for the entry select: the canonical set plus *FIX* registry ids. */
+    /** Weather ids for the entry select: the canonical set plus any registry ids. */
     function _weatherIds(): string[] {
         const ids = [...SCHED_WEATHER_ORDER];
         for (const id of _WEATHER_IDS) if (!ids.includes(id)) ids.push(id);
@@ -888,7 +888,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (sel.dataset.sig === sig) return;     // registry unchanged since last build
         sel.dataset.sig = sig;
         const current = sel.value;
-        sel.*FIX*= '<option value="">— weather</option>' + ids.map((id) => {
+        sel.innerHTML = '<option value="">— weather</option>' + ids.map((id) => {
             const chip = _weatherChip(id, '');
             return `<option value="${_esc(id)}"${id === current ? ' selected' : ''}>${chip ? chip + ' ' : ''}${_esc(id)}</option>`;
         }).join('');
@@ -931,7 +931,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const granularity = (document.getElementById('sky-sched-granularity') as HTMLSelectElement | null)?.value || 'hourly';
         const row = document.createElement('div');
         row.className = 'vwsky-grid sky-sched-row';
-        row.*FIX*= _entryFieldsHtml(e || { offset: _nextOffset() });
+        row.innerHTML = _entryFieldsHtml(e || { offset: _nextOffset() });
         _wireRow(row);
         // Drop the "no entries" placeholder if present.
         box.querySelector('div:not(.sky-sched-row)')?.remove();
@@ -972,16 +972,16 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (box) {
             const entries = Array.isArray(sched.entries) ? sched.entries : [];
             if (entries.length) {
-                box.*FIX*= '';
+                box.innerHTML = '';
                 for (const e of entries) _addEntryRow(e);
             } else {
-                box.*FIX*= `<div class="vwsky-empty">No entries yet — add one, or pick a preset below.</div>`;
+                box.innerHTML = `<div class="vwsky-empty">No entries yet — add one, or pick a preset below.</div>`;
             }
         }
         _renderTimeline(sched);
         const presets = document.getElementById('sky-sched-presets');
         if (presets && !presets.childElementCount) {
-            presets.*FIX*= SCHED_PRESETS.map((p, i) =>
+            presets.innerHTML = SCHED_PRESETS.map((p, i) =>
                 `<button class="vwsky-chip" data-preset="${i}">${_esc(p.name)}</button>`).join('');
             presets.querySelectorAll<HTMLElement>('[data-preset]').forEach((b) => {
                 b.addEventListener('click', () => _applyPreset(SCHED_PRESETS[Number(b.dataset.preset)].hours));
@@ -1117,7 +1117,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const playhead = (nowPct >= 0 && nowPct <= 100)
             ? `<div class="vwsky-now" style="left:${nowPct}%" title="now"></div>` : '';
 
-        tl.*FIX*= `<div class="vwsky-ruler">${ruler}</div>`
+        tl.innerHTML = `<div class="vwsky-ruler">${ruler}</div>`
             + `<div class="vwsky-trackwrap">`
             + `<div class="vwsky-track" id="sky-tl-track">${blocks}${playhead}</div>`
             + `<div class="vwsky-scrub" id="sky-scrub" style="display:none;"></div>`
@@ -1178,7 +1178,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     function _applyPreset(hours: Array<[number, string]>): void {
         const box = document.getElementById('sky-sched-entries');
         if (!box) return;
-        box.*FIX*= '';
+        box.innerHTML = '';
         for (const [h, weather] of hours) _addEntryRow({ offset: Math.round(h * 60), weather });
         _renderTimeline(_state().forecast_schedule as ForecastSchedule);
     }

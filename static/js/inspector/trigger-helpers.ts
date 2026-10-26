@@ -38,9 +38,9 @@ const _InspectorTriggers = (() => {
         const TG = (window as unknown as { TriggerGraph?: TriggerGraphApi }).TriggerGraph;
         if (node) {
             const current = TG
-                ? TG.normalizeTriggerList((node.properties as *FIX*)?.triggers)
+                ? TG.normalizeTriggerList((node.properties as any)?.triggers)
                 : (Array.isArray(node.properties?.triggers) ? node.properties.triggers : []);
-            const updated = current.filter((t: *FIX*) => t && t.id !== target);
+            const updated = current.filter((t: any) => t && t.id !== target);
             if (updated.length !== current.length) {
                 await _api().updateNode(nodeId, { properties: { ...node.properties, triggers: updated } });
             }
@@ -210,8 +210,8 @@ const _InspectorTriggers = (() => {
         /** Short label for one leaf condition. */
         const conditionLabel = (cond: TriggerCondition | null): string => {
             if (!cond) return '';
-            const *FIX*Cond = cond as *FIX*;
-            return `${cond.type}${*FIX*Cond.value !== undefined ? `=${*FIX*Cond.value}` : cond.skill ? `(${cond.skill} DC${cond.dc})` : ''}`;
+            const anyCond = cond as any;
+            return `${cond.type}${anyCond.value !== undefined ? `=${anyCond.value}` : cond.skill ? `(${cond.skill} DC${cond.dc})` : ''}`;
         };
 
         return htmlTag`<div class="inspector-section">
@@ -300,7 +300,7 @@ const _InspectorTriggers = (() => {
             if (!defs.length) return;
             const node = worldState.getNode(nodeId);
             if (!node) return;
-            const current = TG.normalizeTriggerList((node.properties as *FIX*)?.triggers);
+            const current = TG.normalizeTriggerList((node.properties as any)?.triggers);
             const byId = new Map<string, TriggerDef>();
             for (const trigger of current) {
                 if (trigger && trigger.id) byId.set(String(trigger.id), trigger);
@@ -366,7 +366,7 @@ const _InspectorTriggers = (() => {
     api.createTriggerOnNode = async function(nodeId: string, data: TriggerDef) {
         const node = worldState.getNode(nodeId);
         if (!node) return;
-        const current = _triggerGraph().normalizeTriggerList((node.properties as *FIX*)?.triggers);
+        const current = _triggerGraph().normalizeTriggerList((node.properties as any)?.triggers);
         const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
         current.push({ ...data, id: triggerId });
         await _api().updateNode(nodeId, {
@@ -436,7 +436,7 @@ const _InspectorTriggers = (() => {
                 }
                 triggers = await suggestAi.suggest(fields, fields.kind, planTypes);
                 if (triggers === null) return;
-                // Backfill *FIX* planned type the model skipped from the heuristic
+                // Backfill any planned type the model skipped from the heuristic
                 // floor, so the suggested set always matches the plan.
                 if (planTypes) {
                     const have = new Set<string>(triggers.map(t => String(t.trigger_type)));
@@ -542,7 +542,7 @@ const _InspectorTriggers = (() => {
             if (!kept.has(toTypeKey(def.trigger_type))) legacyDeletes.push(edge.target);
         }
 
-        const next = TG.normalizeTriggerList((node.properties as *FIX*)?.triggers)
+        const next = TG.normalizeTriggerList((node.properties as any)?.triggers)
             .filter((def) => kept.has(toTypeKey(def.trigger_type)));
         for (const { data } of [...result.replace, ...result.add]) {
             next.push({ ...data, id: `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` });
@@ -629,7 +629,7 @@ interface TriggerHelpersGraphNode {
     id?: string;
     type?: string;
     name?: string;
-    properties?: Record<string, *FIX*>;
+    properties?: Record<string, any>;
 }
 
 /** The graph edge fields these helpers read. */
@@ -660,7 +660,7 @@ interface WorldArea {
 /** One effect of a compiled trigger. */
 interface TriggerHelpersTriggerEffect {
     type?: string;
-    params?: Record<string, *FIX*>;
+    params?: Record<string, any>;
 }
 
 /** A compiled trigger definition (edge copy merged with node copy). */
@@ -672,7 +672,7 @@ interface TriggerDef {
     name?: string;
     success_message?: string;
     fail_message?: string;
-    [key: string]: *FIX*;
+    [key: string]: any;
 }
 
 /** graph/trigger-graph.js — not declared in types/globals.d.ts. */

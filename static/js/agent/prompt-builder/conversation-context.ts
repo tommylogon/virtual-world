@@ -27,7 +27,7 @@ window.PromptBuilder = window.PromptBuilder || {};
     'use strict';
 
     const GROUP_WORDS = [
-        'everyone', 'everybody', 'everyone here', '*FIX*one', '*FIX*body',
+        'everyone', 'everybody', 'everyone here', 'anyone', 'anybody',
         'you all', 'you two', 'you both', 'you guys', 'folks', 'everybody here'
     ];
 
@@ -61,7 +61,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {'overheard'|'addressed_to_you'|'to_you'|'to_group'}
      *   - addressed_to_you: the listener's name (or an alias) appears.
      *   - to_you: a clear second-person pronoun targets them, no name needed.
-     *   - to_group: group-open wording ("everyone/*FIX*one/you all", ...).
+     *   - to_group: group-open wording ("everyone/anyone/you all", ...).
      *   - overheard: nothing marks it as being for the listener.
      */
     function classifySpeechType(text: string, charName: string, player?: PlayerLike): SpeechType {

@@ -4,7 +4,7 @@
  * Lists library areas (data/library/areas/*) as room templates. Picking one
  * creates a fresh area from the template via POST /api/build/area (env +
  * description + tags), then optionally imports its template items into the
- * room. The new room is NOT connected to *FIX*thing — use the graph to wire
+ * room. The new room is NOT connected to anything — use the graph to wire
  * ways to it.
  *
  * @module ui/room-template-palette — New Room from Template
@@ -51,7 +51,7 @@ function api() {
 
     let html = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🏗️ New Room from Template</h3>'
       + '<button class="modal-close-btn" id="rp-close">✕</button></div>'
-      + '<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">' + entries.length + ' library area templates. Pick one to spawn a fresh room (not wired to *FIX*thing yet).</div>'
+      + '<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">' + entries.length + ' library area templates. Pick one to spawn a fresh room (not wired to anything yet).</div>'
       + '<div style="overflow-y:auto;flex:1;">';
 
     entries.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
@@ -73,7 +73,7 @@ function api() {
     }
     html += '</div>';
 
-    box.*FIX*= html;
+    box.innerHTML = html;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 

@@ -33,7 +33,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     interface CaptureOptions {
         /** World state to read. Defaults to the live `worldState.data` cache. */
-        state?: *FIX*;
+        state?: any;
         /** Text of the previous action's result. Empty string = the first turn. */
         lastResult?: string;
         /** Ask the model for emotion_toward / learned_names (the live think-decide prompt does). */
@@ -44,9 +44,9 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     interface CaptureResult {
         charName: string;
-        player: *FIX*;
-        currentArea: *FIX*;
-        roomParts: *FIX*;
+        player: any;
+        currentArea: any;
+        roomParts: any;
         systemPrompt: string;
         userPrompt: string;
     }

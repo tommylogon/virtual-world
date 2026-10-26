@@ -15,7 +15,7 @@
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */
 
-interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
+interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
 (window as unknown as PromptBuilderWindowSurface).PromptBuilder = (window as unknown as PromptBuilderWindowSurface).PromptBuilder || {};
 (() => {
     'use strict';
@@ -81,7 +81,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
                         body: JSON.stringify({ vector: vec, character: charName, k: 3 })
                     });
                     const data = await resp.json();
-                    for (const r of ((data.results || []) as Array<Record<string, *FIX*>>)) {
+                    for (const r of ((data.results || []) as Array<Record<string, any>>)) {
                         const key = r.key || '';
                         const memId = key.includes('::') ? key.split('::').pop() : key;
                         const entry = memories.find(m => String(m.id) === String(memId));
@@ -179,10 +179,10 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         preview = false,
     ): CurrentArea {
         if (preview) return currentArea;
-        const ownName = String((player as *FIX*)?.current_area || '').trim();
-        const givenName = String((currentArea as *FIX*)?.name || '').trim();
+        const ownName = String((player as any)?.current_area || '').trim();
+        const givenName = String((currentArea as any)?.name || '').trim();
         if (!ownName || ownName === givenName) return currentArea;
-        const ownArea = (state as *FIX*)?.areas?.[ownName];
+        const ownArea = (state as any)?.areas?.[ownName];
         return ownArea || currentArea;
     }
 
@@ -326,16 +326,16 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         // for another agent shows that agent the wrong room - items, people,
         // exits and action brackets all follow the wrong area (bug-565).
         currentArea = resolveCharacterArea(state, player, currentArea, preview);
-        const light = (currentArea as Record<string, *FIX*>)?.ambient_light
-            ?? (currentArea as Record<string, *FIX*>)?.environment?.light ?? 50;
+        const light = (currentArea as Record<string, any>)?.ambient_light
+            ?? (currentArea as Record<string, any>)?.environment?.light ?? 50;
         const level = PromptBuilder.lightToLevel(light);
         // Check for dark_vision trait
-        const traits: Record<string, *FIX*> = player?.traits || {};
+        const traits: Record<string, any> = player?.traits || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
         // Blind characters are effectively pitch-black regardless of light  -  their
         // observation is rebuilt from sound/smell/touch, not sight (they aren't told
         // to "pretend"; the visual data is simply not presented to them).
-        const isBlind = !!((player as Record<string, *FIX*>)?.conditions?.blind);
+        const isBlind = !!((player as Record<string, any>)?.conditions?.blind);
         let warn = '', items = '';
         // Authored `known` registry: hidden items flagged for this character
         // show up in their attention list (a cache she knows about is never
@@ -374,8 +374,8 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         // drop off the attention list entirely  -  their facts live in the
         // investigation notes. Capped at ATTENTION_MAX; no truncation, just a
         // natural trailing line.
-        const interestTags = ((player as Record<string, *FIX*>)?.interest_tags || []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
-        const memIdx: Record<string, *FIX*> = (player as Record<string, *FIX*>)?.memory_index || {};
+        const interestTags = ((player as Record<string, any>)?.interest_tags || []).map((tag: unknown) => String(tag).toLowerCase().trim()).filter(Boolean);
+        const memIdx: Record<string, any> = (player as Record<string, any>)?.memory_index || {};
         const knownItemNames = new Set<string>();
         if (Array.isArray(player?.memories)) {
             for (const m of player.memories) {
@@ -422,7 +422,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         } else if (hasDarkVision) {
             items = buildAttention(areaItems.filter(roomItem => roomItem.properties?.current_state !== 'hidden'), false);
         } else if (level === 'pitch_black') {
-            warn = '⚠️ PITCH BLACK  -  You cannot see *FIX*thing. Try to go back to a brighter area or use a light source.';
+            warn = '⚠️ PITCH BLACK  -  You cannot see anything. Try to go back to a brighter area or use a light source.';
         } else if (level === 'dim') {
             items = buildAttention(areaItems.filter(roomItem => roomItem.properties?.current_state !== 'hidden' && (roomItem.properties?.weight||1)>=3), false);
             warn = '⚠️ Dim light  -  only large objects visible. Fine actions limited. Use a light source or move to a brighter area.';
@@ -442,7 +442,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         };
         // task-313: the old transit branch renamed a way's handle to the literal
         // "back"/"forward" in this prompt, so an agent was told to walk to a door
-        // that had no such name. It could never fire *FIX*way  -  the `transit` tag
+        // that had no such name. It could never fire anyway  -  the `transit` tag
         // was declared for ways while this read it off the AREA. Relative facing
         // is now the default and needs no tag, so the branch is gone and the
         // prompt keeps the authored handle, exactly like the server-side
@@ -560,7 +560,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorRawDescription = exitData.description || doorNode.properties?.description || `A way here.`;
                     // Window-scoped on purpose: a bare `InspectorHelpers` throws
-                    // a ReferenceError on *FIX* page that does not load the
+                    // a ReferenceError on any page that does not load the
                     // inspector (the benchmark page), and optional chaining does
                     // not guard an undeclared identifier. Same pattern as
                     // itemContainment()/embeddingClient() above.
@@ -645,7 +645,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         // Known = equipped/worn-now (direct interaction), authored "Known by"
         // entity ids (player.known), runtime discovery (examined/taken ->
         // observation memories, matched by id or name), or an intrinsic ability.
-        // *FIX*thing else has not been examined/used with this character.
+        // Anything else has not been examined/used with this character.
         const knownIds = new Set((player?.known || []).map(String));
         const isKnown = (item: ItemNode, wornNow: boolean): string =>
             wornNow ||
@@ -757,10 +757,10 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         const socialSeeds: SocialSeed[] = [];
 
         // Include recent_hearing for cross-room sound propagation
-        const recentHearing = ((player as Record<string, *FIX*>)?.recent_hearing || []) as HearingEntry[];
+        const recentHearing = ((player as Record<string, any>)?.recent_hearing || []) as HearingEntry[];
         // N3: hearing is a rolling buffer  -  lines must age out, or a guest's
         // instruction stays in WITNESSED five turns later. Entries now carry a
-        // real tick (engine speech.py); *FIX*thing older than 8 ticks is stale.
+        // real tick (engine speech.py); anything older than 8 ticks is stale.
         const curTick = (worldState.data?.time_ticks) || 0;
         const hearingFresh = (h: HearingEntry) => !h.tick || (curTick - Number(h.tick)) <= 8;
         const heardSpeech = recentHearing.filter((h: HearingEntry) => h.type !== 'sound_source' && h.speaker !== charName && hearingFresh(h)).slice(-5);
@@ -796,7 +796,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
             // N12: emote/action descriptions are stored with the RAW actor name
             // ("Lyrie stamps snow off boots")  -  anonymize the inside too while
             // the name is unknown, so pre-introduction rows never leak it.
-            const firstSighting = (player as Record<string, *FIX*>)?.relationships?.[evt.actor as string]?.first_sighting;
+            const firstSighting = (player as Record<string, any>)?.relationships?.[evt.actor as string]?.first_sighting;
             const nameKnown = firstSighting === false;
             let descText = String(evt.description || '');
             if (!nameKnown && evt.actor) {
@@ -821,7 +821,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
             witnessedLines.push(line);
         });
 
-        // Heard speech from other rooms  -  skip *FIX* already shown as local events
+        // Heard speech from other rooms  -  skip any already shown as local events
         heardSpeech.forEach(h => {
             const heardText = String(h.text || '');
             const dedupeKey = `${h.speaker}|${heardText.toLowerCase()}`;
@@ -874,7 +874,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
         // affect, so a preview must not do either.
         if (!preview && socialSeeds.length) _fireSocialRecall(charName, socialSeeds);
         // Build narrative lead-in  -  use feels_like from backend state if available
-        const feelsLike = (player as Record<string, *FIX*>)?.feels_like ?? (currentArea as Record<string, *FIX*>)?.environment?.temperature;
+        const feelsLike = (player as Record<string, any>)?.feels_like ?? (currentArea as Record<string, any>)?.environment?.temperature;
         const tempFeel = feelsLike != null
             ? (feelsLike >= 35 ? 'very hot' : feelsLike >= 30 ? 'hot' : feelsLike >= 25 ? 'warm' : feelsLike >= 18 ? 'pleasant' : feelsLike >= 12 ? 'cool' : feelsLike >= 5 ? 'chilly' : feelsLike >= 0 ? 'cold' : feelsLike >= -10 ? 'freezing' : feelsLike >= -25 ? 'bitterly cold' : 'arctic')
             : '';
@@ -884,12 +884,12 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, *FIX*> }
             : level === 'bright' ? 'bright'
             : level === 'blinding' ? 'blindingly bright'
             : '';
-        const smellNote = (currentArea as Record<string, *FIX*>)?.environment?.smell
-            ? ` The air smells of ${(currentArea as Record<string, *FIX*>).environment.smell}.` : '';
+        const smellNote = (currentArea as Record<string, any>)?.environment?.smell
+            ? ` The air smells of ${(currentArea as Record<string, any>).environment.smell}.` : '';
         let leadIn: string;
         if (isBlind) {
-            const soundNote = (currentArea as Record<string, *FIX*>)?.environment?.noise
-                ? ` You hear ${(currentArea as Record<string, *FIX*>).environment.noise}.` : '';
+            const soundNote = (currentArea as Record<string, any>)?.environment?.noise
+                ? ` You hear ${(currentArea as Record<string, any>).environment.noise}.` : '';
             leadIn = `You are in the ${currentArea?.name || '(none)'}, though you cannot see it  -  it is pitch black to you. It feels ${tempFeel}.${smellNote}${soundNote}`;
         } else {
             leadIn = `You are currently in the ${currentArea?.name || '(none)'}. It is ${lightFeel} and ${tempFeel}.${smellNote}`;
@@ -1152,7 +1152,7 @@ interface RoomContextGraphNode {
     id?: string;
     name?: string;
     type?: string;
-    properties?: Record<string, *FIX*>;
+    properties?: Record<string, any>;
     [key: string]: unknown;
 }
 
@@ -1161,7 +1161,7 @@ interface ItemNode {
     name?: string;
     /** Containment depth; only depth > 0 counts as "inside" something. */
     depth?: number;
-    properties?: Record<string, *FIX*>;
+    properties?: Record<string, any>;
     [key: string]: unknown;
 }
 

@@ -54,7 +54,7 @@ interface DialogApi {
             const root = document.createElement('div');
             root.className = 'vw-dialog-overlay';
             root.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);';
-            root.*FIX*= `<div class="vw-dialog" role="dialog" aria-modal="true" style="min-width:320px;max-width:560px;background:var(--bg-panel,#1b1f27);border:1px solid var(--border,#333a45);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6);padding:16px;color:var(--text,#e6e6e6);font-size:13px;">
+            root.innerHTML = `<div class="vw-dialog" role="dialog" aria-modal="true" style="min-width:320px;max-width:560px;background:var(--bg-panel,#1b1f27);border:1px solid var(--border,#333a45);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6);padding:16px;color:var(--text,#e6e6e6);font-size:13px;">
                 ${opts.title ? `<div class="vw-dialog-title" style="font-weight:600;margin-bottom:8px;">${esc(opts.title)}</div>` : ''}
                 ${opts.bodyHtml || ''}
                 <div class="vw-dialog-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">${opts.actionsHtml}</div>

@@ -56,7 +56,7 @@ const PlayMode = (() => {
 
         document.body.classList.toggle('play-mode-active', isPlaying);
 
-        const scStatus = (window as *FIX*).ScenarioStatus;
+        const scStatus = (window as any).ScenarioStatus;
         if (scStatus && typeof scStatus.refresh === 'function') {
             scStatus.refresh().catch(() => {});
         }
@@ -76,11 +76,11 @@ const PlayMode = (() => {
             updateUI(true);
             // Play Mode owns the event stream for the duration of the run: the
             // authored log is parked, so no transient row can survive Stop.
-            const ev = (window as *FIX*).events;
+            const ev = (window as any).events;
             if (ev && typeof ev.enterSandbox === 'function') {
                 ev.enterSandbox();
             }
-            const tInfo = (window as *FIX*).toastInfo;
+            const tInfo = (window as any).toastInfo;
             if (typeof tInfo === 'function') {
                 tInfo('Entered Play Mode. Simulation is running in sandbox.');
             }
@@ -90,7 +90,7 @@ const PlayMode = (() => {
             return true;
         } catch (e) {
             console.error('[PlayMode] enter failed:', e);
-            const tErr = (window as *FIX*).toastError;
+            const tErr = (window as any).toastError;
             if (typeof tErr === 'function') {
                 tErr('Could not enter Play Mode: ' + (e instanceof Error ? e.message : String(e)));
             }
@@ -105,7 +105,7 @@ const PlayMode = (() => {
         _busy = true;
         try {
             // If the autonomous agent loop is active, stop it first
-            const ag = (window as *FIX*).agent;
+            const ag = (window as any).agent;
             if (ag && ag.isRunning && typeof ag.stop === 'function') {
                 try { ag.stop(); } catch (err) {}
             }
@@ -120,18 +120,18 @@ const PlayMode = (() => {
             updateUI(false);
 
             // Refresh live world state back to restored authored snapshot
-            const ws = (window as *FIX*).worldState;
+            const ws = (window as any).worldState;
             if (ws && typeof ws.fetch === 'function') {
                 await ws.fetch(true);
             }
 
             // Drop every row the run logged and put the authored log back.
-            const ev = (window as *FIX*).events;
+            const ev = (window as any).events;
             if (ev && typeof ev.exitSandbox === 'function') {
                 ev.exitSandbox();
             }
 
-            const tInfo = (window as *FIX*).toastInfo;
+            const tInfo = (window as any).toastInfo;
             if (typeof tInfo === 'function') {
                 tInfo('Exited Play Mode. Simulation state reverted to authored baseline.');
             }
@@ -141,7 +141,7 @@ const PlayMode = (() => {
             return true;
         } catch (e) {
             console.error('[PlayMode] stop failed:', e);
-            const tErr = (window as *FIX*).toastError;
+            const tErr = (window as any).toastError;
             if (typeof tErr === 'function') {
                 tErr('Could not stop Play Mode: ' + (e instanceof Error ? e.message : String(e)));
             }
@@ -171,9 +171,9 @@ const PlayMode = (() => {
 
     function init() {
         checkStatus();
-        const ws = (window as *FIX*).worldState;
+        const ws = (window as any).worldState;
         if (ws && typeof ws.on === 'function') {
-            ws.on('update', (data?: *FIX*) => {
+            ws.on('update', (data?: any) => {
                 if (data && typeof data.is_play_mode === 'boolean' && data.is_play_mode !== _isPlaying) {
                     updateUI(data.is_play_mode);
                 }
@@ -197,4 +197,4 @@ const PlayMode = (() => {
     };
 })();
 
-(window as *FIX*).PlayMode = PlayMode;
+(window as any).PlayMode = PlayMode;

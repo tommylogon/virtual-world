@@ -7,7 +7,7 @@
  */
 
 /**
- * Base graph node model representing *FIX* node in WorldGraph.
+ * Base graph node model representing any node in WorldGraph.
  */
 export interface BaseNodeModel<TProps extends Record<string, unknown> = Record<string, unknown>> {
     id: string;

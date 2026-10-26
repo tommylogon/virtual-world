@@ -24,13 +24,13 @@
      */
     function api() {
         return ApiClient as unknown as {
-            post(path: string, body: unknown): Promise<*FIX*>;
-            createNode(data: unknown): Promise<*FIX*>;
-            createEdge(from: string, to: string, type: string, props?: unknown): Promise<*FIX*>;
-            deleteEdge(from: string, to: string, type: string): Promise<*FIX*>;
-            deleteNode(nodeId: string): Promise<*FIX*>;
-            updateNode(nodeId: string, changes: unknown): Promise<*FIX*>;
-            placeItemFromLibrary(target: unknown, libraryId: string): Promise<*FIX*>;
+            post(path: string, body: unknown): Promise<any>;
+            createNode(data: unknown): Promise<any>;
+            createEdge(from: string, to: string, type: string, props?: unknown): Promise<any>;
+            deleteEdge(from: string, to: string, type: string): Promise<any>;
+            deleteNode(nodeId: string): Promise<any>;
+            updateNode(nodeId: string, changes: unknown): Promise<any>;
+            placeItemFromLibrary(target: unknown, libraryId: string): Promise<any>;
         };
     }
 
@@ -226,7 +226,7 @@
             if (targets.length === 0) return { success: true, appliedCount: 0 };
 
             const opsPayload = targets.map((op: StagedOp) => ({ type: op.type, payload: op.payload }));
-            let batch: *FIX*;
+            let batch: any;
             try {
                 batch = await api().post('/api/graph/batch', { ops: opsPayload, strict_validation: true });
             } catch (e) {
@@ -237,7 +237,7 @@
                 // applied; keep every op staged and surface the findings.
                 const issues = batch.validation || [];
                 const messages = (batch.errors || issues)
-                    .map((er: *FIX*) => er.message || er.error || String(er))
+                    .map((er: any) => er.message || er.error || String(er))
                     .filter(Boolean);
                 return {
                     success: false,
@@ -258,7 +258,7 @@
                     const op = targets[entry.index];
                     if (op) appliedIds.add(op.id);
                 }
-                const errs = (batch.errors || []).map((er: *FIX*) => {
+                const errs = (batch.errors || []).map((er: any) => {
                     if (typeof er === 'string') return er;
                     const label = er.type || 'op';
                     const name = targets[er.index]?.summary || `#${er.index}`;
@@ -435,10 +435,10 @@
         /** Wrap an NL-editor flat property patch for the PATCH route.
          *  Mirrors the batch route's folding: a top-level `name` is a rename,
          *  every other flat key becomes a property. */
-        _nodePatch(patch: Record<string, *FIX*>): Record<string, *FIX*> {
+        _nodePatch(patch: Record<string, any>): Record<string, any> {
             if ('properties' in patch || 'id' in patch) return patch;
-            const rest: Record<string, *FIX*> = { ...patch };
-            const out: Record<string, *FIX*> = {};
+            const rest: Record<string, any> = { ...patch };
+            const out: Record<string, any> = {};
             if (typeof rest.name === 'string') { out.name = rest.name; delete rest.name; }
             if (Object.keys(rest).length) out.properties = rest;
             return out;
@@ -468,7 +468,7 @@
  * `apply`, so the honest type here is an open record rather than a guess at a
  * closed union.
  */
-type StagedOpPayload = Record<string, *FIX*>;
+type StagedOpPayload = Record<string, any>;
 
 interface StagedOp {
     id: string;

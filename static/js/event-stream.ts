@@ -17,7 +17,7 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
-const eventStreamHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): *FIX* => window.Lit.html(strings, ...values);
+const eventStreamHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
 
 /**
  * The v2 collaborators in static/js/stream/*. They are separate classic-script
@@ -51,7 +51,7 @@ class EventBus {
     declare _streamSpans: Record<string, HTMLElement>;
     declare _streamLabels: Record<string, string>;
     declare _isStreaming: boolean;
-    declare _areaEventLog: Record<string, *FIX*[]>;
+    declare _areaEventLog: Record<string, any[]>;
     declare _characterState: Record<string, CharacterStreamState>;
     declare _characterAutonomy: Record<string, unknown>;
     declare _knownActors: Set<string>;
@@ -267,7 +267,7 @@ class EventBus {
             btn.addEventListener('click', async () => {
                 btn.disabled = true;
                 try {
-                    const data = await (ApiClient as unknown as { action(verb: string, actor?: string): Promise<*FIX*> }).action(`${verb} key:${option.key}`, actor || undefined);
+                    const data = await (ApiClient as unknown as { action(verb: string, actor?: string): Promise<any> }).action(`${verb} key:${option.key}`, actor || undefined);
                     if (data?.output) {
                         this.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
                     } else if (data?.error) {
@@ -416,7 +416,7 @@ class EventBus {
     /**
      * Record a phase entry in the character's detailed timeline.
      */
-    _recordPhase(charName: string, phase: string, data: Record<string, *FIX*> = {}): void {
+    _recordPhase(charName: string, phase: string, data: Record<string, any> = {}): void {
         const state = this.initCharacterState(charName);
         if (!state.detailedTimeline) {
             state.detailedTimeline = [];
@@ -435,7 +435,7 @@ class EventBus {
     /**
      * Record a full phase transition: think → decide → act → result → react
      */
-    trackPhase(charName: string, phase: string, data: Record<string, *FIX*> = {}): void {
+    trackPhase(charName: string, phase: string, data: Record<string, any> = {}): void {
         this._recordPhase(charName, phase, data);
 
         const state = this.initCharacterState(charName);
@@ -565,7 +565,7 @@ class EventBus {
         if (this.autoScroll) streamEl.scrollTop = streamEl.scrollHeight;
     }
 
-    _addBubble(tick: number, agentName: string, type: string, text: string, icon: string, meta: Record<string, *FIX*> = {}): void {
+    _addBubble(tick: number, agentName: string, type: string, text: string, icon: string, meta: Record<string, any> = {}): void {
         const streamEl = document.getElementById('event-stream');
         if (!streamEl) return;
 
@@ -687,8 +687,8 @@ class EventBus {
     logRawLLMRequest(phaseName: string, messages: LlmMessage[], estTokens?: number, meta?: LlmTraceMeta): void { this._rawllm.logRequest(phaseName, messages, estTokens, meta); }
     logRawLLMResponse(label: string, content: unknown, meta?: LlmTraceMeta): void { this._rawllm.logResponse(label, content, meta); }
     logRawLLM(contentOrLabel: string, optionalContent?: string): void { this._rawllm.log(contentOrLabel, optionalContent); }
-    storeRawResponse(charName: string, phase: string, raw: string): *FIX* { return this._rawllm.storeRawResponse(charName, phase, raw); }
-    getRawResponse(seq: number): *FIX* { return this._rawllm.getRawResponse(seq); }
+    storeRawResponse(charName: string, phase: string, raw: string): any { return this._rawllm.storeRawResponse(charName, phase, raw); }
+    getRawResponse(seq: number): any { return this._rawllm.getRawResponse(seq); }
     logParseError(charName: string, phase: string, errMsg: string, raw?: string): void { this._rawllm.logParseError(charName, phase, errMsg, raw); }
 
     /** Log a phase marker as a colored pill inside the actor's turn card. */
@@ -737,7 +737,7 @@ class EventBus {
         if (this._areaEventLog[area].length > 50) this._areaEventLog[area].shift();
     }
 
-    getAreaEvents(area: string): *FIX*[] {
+    getAreaEvents(area: string): any[] {
         return this._areaEventLog[area] || [];
     }
 
@@ -770,7 +770,7 @@ class EventBus {
 
     async clearStream(): Promise<void> {
         let confirmed = false;
-        const dialogApi = (window as *FIX*).Dialog || (window as *FIX*).VW?.dialog;
+        const dialogApi = (window as any).Dialog || (window as any).VW?.dialog;
         if (typeof dialogApi?.confirm === 'function') {
             confirmed = await dialogApi.confirm({
                 title: 'Clear Event Stream',
@@ -919,7 +919,7 @@ class EventBus {
     }
 }
 
-// globals.d.ts already declares `events: *FIX*` so the rest of the app can reach this
+// globals.d.ts already declares `events: any` so the rest of the app can reach this
 // bus without importing it; publishing through `window` keeps a bare `events`
 // reference in another file resolving to the same singleton.
 (window as unknown as { events: unknown }).events = new EventBus();

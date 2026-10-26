@@ -11,26 +11,26 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class WorldState {
     /** Raw payload from /api/state; null until the first successful fetch. */
-    declare data: *FIX*;
+    declare data: any;
     /** Separate, character-focused projection; never replaces the global/editor state. */
-    declare runtimeData: *FIX*;
+    declare runtimeData: any;
     /** Character IDs whose runtime projections should refresh on world_changed. */
     declare _runtimeFocus: string[];
     /** In-flight focused snapshot request. */
-    declare _runtimeInflight: Promise<*FIX*> | null;
+    declare _runtimeInflight: Promise<any> | null;
     /** A focused refresh was requested while one was in flight. */
     declare _runtimeRefetchRequested: boolean;
     /** Latest requested identity set and focus generation for stale-response rejection. */
     declare _runtimeRequestIds: string[];
     declare _runtimeGeneration: number;
     /** event name -> subscriber callbacks. */
-    declare _listeners: Record<string, Array<(data?: *FIX*) => void>>;
+    declare _listeners: Record<string, Array<(data?: any) => void>>;
     /** Spectator-mode poll handle; null when not polling. */
     declare _pollTimer: number | null;
     /** Cached /api/settings/equip_slots; null until fetched. */
-    declare _equipSlots: Record<string, *FIX*> | null;
+    declare _equipSlots: Record<string, any> | null;
     /** In-flight /api/state fetch, so concurrent requests coalesce into one. */
-    declare _inflight: Promise<*FIX*> | null;
+    declare _inflight: Promise<any> | null;
     /** A fetch was requested while one was in flight; run one more before resolving callers. */
     declare _refetchRequested: boolean;
 
@@ -50,7 +50,7 @@ class WorldState {
     }
 
     /** Subscribe to state changes */
-    on(event: string, callback: (data?: *FIX*) => void) {
+    on(event: string, callback: (data?: any) => void) {
         if (!this._listeners[event]) this._listeners[event] = [];
         this._listeners[event].push(callback);
         if (event === 'update' && this.data) {
@@ -58,13 +58,13 @@ class WorldState {
         }
     }
 
-    _emit(event: string, data?: *FIX*) {
+    _emit(event: string, data?: any) {
         const subs = this._listeners[event] || [];
         subs.forEach(cb => cb(data));
     }
 
     /** Sync backend turn events into the frontend area event log */
-    _syncTurnEvents(state: *FIX*) {
+    _syncTurnEvents(state: any) {
         if (!(window as unknown as { events?: unknown }).events || !state.turn_events) return;
         for (const evt of state.turn_events) {
             if (!evt.area) continue;
@@ -78,7 +78,7 @@ class WorldState {
                     result: evt.description || ''
                 }];
             } else {
-                const exists = roomLog.some((e: *FIX*) => e.tick === evt.tick && e.actor === evt.actor && e.action === evt.action);
+                const exists = roomLog.some((e: any) => e.tick === evt.tick && e.actor === evt.actor && e.action === evt.action);
                 if (!exists) {
                     roomLog.push({
                         tick: evt.tick,
@@ -116,7 +116,7 @@ class WorldState {
         }
         let fetchedFullState = !lite;
         this._inflight = (async () => {
-            let state: *FIX*;
+            let state: any;
             let fetchLite = lite;
             do {
                 this._refetchRequested = false;
@@ -161,7 +161,7 @@ class WorldState {
             return this._runtimeInflight;
         }
         this._runtimeInflight = (async () => {
-            let state: *FIX*;
+            let state: any;
             do {
                 this._runtimeRefetchRequested = false;
                 const requestIds = this._runtimeRequestIds;
@@ -197,7 +197,7 @@ class WorldState {
     }
 
     /** Patch the global/editor cache with the focused projection without refetching the world. */
-    applyRuntimeSnapshot(snapshot: *FIX*) {
+    applyRuntimeSnapshot(snapshot: any) {
         const global = this.data;
         if (!global || snapshot?.snapshot_type !== 'character_runtime') return false;
 
@@ -209,10 +209,10 @@ class WorldState {
         const playerNodeIds = new Set(Object.values(snapshot.player_node_ids || {}) as string[]);
         Object.assign(graph.nodes, runtimeNodes);
 
-        const edgeKey = (edge: *FIX*) => JSON.stringify([
+        const edgeKey = (edge: any) => JSON.stringify([
             edge.source, edge.target, edge.type, edge.properties || {}
         ]);
-        const edges = new Map<string, *FIX*>();
+        const edges = new Map<string, any>();
         for (const edge of graph.edges) {
             const replaceScopedEdge = runtimeNodeIds.has(edge.source)
                 && runtimeNodeIds.has(edge.target);
@@ -226,7 +226,7 @@ class WorldState {
         Object.assign(global.players, snapshot.players || {});
         global.areas_by_id ||= {};
         global.areas ||= {};
-        for (const [areaId, area] of Object.entries(snapshot.areas_by_id || {}) as Array<[string, *FIX*]>) {
+        for (const [areaId, area] of Object.entries(snapshot.areas_by_id || {}) as Array<[string, any]>) {
             const previous = global.areas_by_id[areaId];
             if (previous?.name && global.areas[previous.name]?.id === areaId) {
                 delete global.areas[previous.name];
@@ -359,8 +359,8 @@ class WorldState {
         }
         const gm = (window as unknown as {
             graphManager?: {
-                _graphNodesObj?: Record<string, *FIX*>;
-                nodes?: Map<string, *FIX*>;
+                _graphNodesObj?: Record<string, any>;
+                nodes?: Map<string, any>;
             };
         }).graphManager;
         const gmObj = gm?._graphNodesObj;
@@ -412,10 +412,10 @@ class WorldState {
         return !rel.first_sighting;
     }
 
-    getNodesByType(type: string): Array<Record<string, *FIX*>> {
-        const result: Array<Record<string, *FIX*>> = [];
+    getNodesByType(type: string): Array<Record<string, any>> {
+        const result: Array<Record<string, any>> = [];
         if (!this.graph?.nodes) return result;
-        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, *FIX*]>) {
+        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, any]>) {
             if (node.type === type) result.push({ id, ...node });
         }
         return result;
@@ -444,7 +444,7 @@ class WorldState {
      * Character's item node **ids** by edge type - the id-based sibling of
      * `getInventory`, which returns display names.
      *
-     * Use this for *FIX*thing that has to *identify* or compare items. Names are
+     * Use this for anything that has to *identify* or compare items. Names are
      * not identity: three mages can each know a "Fireball", a camp can hold two
      * items called "Bag", and `getInventory` collapses them into one string. A
      * caller that compares names will both wrongly hide a distinct item and
@@ -473,7 +473,7 @@ class WorldState {
     getNodeByIdentifier(name: string) {
         if (!this.graph?.nodes) return null;
         // First try exact ID match
-        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, *FIX*]>) {
+        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, any]>) {
             if (id === name || node.name === name) {
                 return { id, ...node };
             }
@@ -482,13 +482,13 @@ class WorldState {
     }
 
     /** Get items in a area from graph */
-    getItemsInArea(areaName: string): Array<Record<string, *FIX*>> {
-        const items: Array<Record<string, *FIX*>> = [];
+    getItemsInArea(areaName: string): Array<Record<string, any>> {
+        const items: Array<Record<string, any>> = [];
         // Resolve the actual area node id by name - ids may differ in case
         // from the derived id (e.g. "Task 3 - main area" vs "area_Task_3_-_main_area"),
         // which used to make every item in such areas invisible.
         let areaId = null;
-        for (const [nodeId, node] of Object.entries(this.graph?.nodes || {}) as Array<[string, *FIX*]>) {
+        for (const [nodeId, node] of Object.entries(this.graph?.nodes || {}) as Array<[string, any]>) {
             if (node.type === 'area' && (node.name === areaName || nodeId === areaName)) {
                 areaId = nodeId;
                 break;
@@ -497,7 +497,7 @@ class WorldState {
         if (!areaId) areaId = `area_${areaName.toLowerCase().replace(/\s+/g, '_')}`;
         const candidates = [areaId];
         const areaEdgeTypes = ['in'];
-        const pushItem = (edgeSource: string, node: *FIX*) => {
+        const pushItem = (edgeSource: string, node: any) => {
             if (node && node.type === 'item' && node.properties?.current_state !== 'hidden' && !items.some(item => item.id === edgeSource)) {
                 items.push({ id: edgeSource, name: node.name, properties: node.properties });
             }
@@ -514,7 +514,7 @@ class WorldState {
         }
         // Spatially placed items (on/under/behind/beside/at) - attached to the
         // area itself or to a surface that is in the area, so they are present
-        // and visible like *FIX* other item.
+        // and visible like any other item.
         const spatialTypes = ['on', 'under', 'behind', 'beside', 'at'];
         const anchors = new Set([...anchorIds, areaId]);
         for (const edge of this.graph?.edges || []) {
@@ -523,7 +523,7 @@ class WorldState {
                 pushItem(edge.source, itemNode);
             }
         }
-        // Also include items inside containers in the area, at *FIX* depth and
+        // Also include items inside containers in the area, at ANY depth and
         // behind the same state gate the engine applies (task-493). This used
         // to be one flat level that only skipped `locked`, so a prompt could
         // list a battery in a `closed` cabinet, miss a part three levels down,
@@ -588,7 +588,7 @@ class WorldState {
   // the authoritative `world_changed` fetch below.
   let streaming = false;
 
-  function onWorldTick(ev: *FIX*): void {
+  function onWorldTick(ev: any): void {
     if (typeof events === 'undefined' || !Array.isArray(ev.events)) return;
     if (!streaming) {
       streaming = true;

@@ -72,7 +72,7 @@ const StructuredFormats = (() => {
             importance: { type: ['integer', 'null'] },
             tags: { type: ['array', 'null'], items: { type: 'string' } },
             emotions: {
-                *FIX*Of: [
+                anyOf: [
                     { type: 'null' },
                     {
                         type: 'object',

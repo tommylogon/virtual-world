@@ -601,7 +601,7 @@ interface BackgroundState {
         container.insertBefore(paintLayer, container.firstChild);
 
         // Everything the user can actually touch lives ABOVE the canvas: the
-        // canvas owns pointer events, so *FIX*thing painted beneath it is inert.
+        // canvas owns pointer events, so anything painted beneath it is inert.
         const interactLayer = document.createElement('div');
         interactLayer.id = 'graph-bg-interact-layer';
         interactLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:5;';
@@ -1125,7 +1125,7 @@ interface BackgroundState {
      * than the cells bending to the picture's aspect.
      *
      * This used to contain-fit (aspect preserved, centred), which letterboxed the
-     * art inside *FIX* grid whose aspect differed from the image's — a 3:1 world map
+     * art inside any grid whose aspect differed from the image's — a 3:1 world map
      * in a 2:1 grid covered only ~2/3 of the grid height, leaving the top and
      * bottom rows of cells bare (measured on `world`, `goblin_camp`,
      * `abandoned_farms`, `west_woods`).
@@ -1151,7 +1151,7 @@ interface BackgroundState {
     /** Canvas units per painted cell, matching what the Map layout uses. */
     function _mapUnitsPerCell(scale?: number): number {
         if (typeof scale === 'number') return PAINT_CELL_UNITS * scale;
-        const griddy: *FIX* = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
+        const griddy: any = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
             ? GraphLayoutEngine
             : undefined;
         const pitch = (griddy && typeof griddy.mapSpacing === 'function') ? griddy.mapSpacing() : null;
@@ -1353,7 +1353,7 @@ interface BackgroundState {
         document.addEventListener('mouseup', onUp);
     }
 
-    /** The layer to fit: the scope's painter reference if *FIX*, else the active one. */
+    /** The layer to fit: the scope's painter reference if any, else the active one. */
     async function _layerForFit(payload: GraphBackgroundGridPayload | null,
                                 scopeId: string): Promise<MapLayer | null> {
         const src = String((payload && payload.reference && payload.reference.image) || '');
@@ -1455,7 +1455,7 @@ interface BackgroundState {
             width: rect.width,
             height: rect.height,
         };
-        (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.(
+        (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.(
             'background.fitToPaintedGrid', 'bg:' + scopeId, placedRect.x, placedRect.y,
             'offset=' + offset.x.toFixed(2) + ',' + offset.y.toFixed(2) + ' gap=' + gap);
         const layer = await _layerForFit(payload, scopeId);
@@ -1519,7 +1519,7 @@ interface BackgroundState {
             width: gridRect.width,
             height: gridRect.height,
         };
-        (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.(
+        (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.(
             'background.reconcileArt', 'bg:' + scopeId, placed.x, placed.y,
             'gridRect=' + Math.round(gridRect.x) + ',' + Math.round(gridRect.y)
             + ' offset=' + offset.x.toFixed(2) + ',' + offset.y.toFixed(2) + ' gap=' + gap);
@@ -1736,7 +1736,7 @@ interface BackgroundState {
             const ids = vis!.body?.data?.nodes?.getIds?.();
             if (ids && ids.length) live = new Set(ids as string[]);
         } catch (error) { live = null; }
-        for (const [id, node] of Object.entries<*FIX*>(body)) {
+        for (const [id, node] of Object.entries<any>(body)) {
             if (!node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
             if (live && !live.has(id)) continue;
             out[id] = { x: node.x, y: node.y };
@@ -1771,9 +1771,9 @@ interface BackgroundState {
         // CELL-LESS node (way, item, character) back to its stale canvas coords,
         // stranding it and stretching its edges across the map on every world
         // refetch (bug-543 for painted nodes; bug-556 for the cell-less ones it
-        // missed). A saved canvas snapshot only means *FIX*thing in Graph (free)
+        // missed). A saved canvas snapshot only means anything in Graph (free)
         // mode, where nothing derives it.
-        const gm = (typeof graphManager !== 'undefined' ? graphManager : null) as unknown as { _cardinalLayout?: boolean; _levelsMode?: () => boolean; _graphNodesObj?: Record<string, *FIX*> } | null;
+        const gm = (typeof graphManager !== 'undefined' ? graphManager : null) as unknown as { _cardinalLayout?: boolean; _levelsMode?: () => boolean; _graphNodesObj?: Record<string, any> } | null;
         const gridOwns = !!gm && (gm._cardinalLayout === true || !!(gm._levelsMode && gm._levelsMode()));
         if (gridOwns) return;
         // Graph mode: leave a painted node where the grid put it — its cell is
@@ -1836,8 +1836,8 @@ interface BackgroundState {
         let positions: Record<string, GraphPoint> = {};
         try { positions = _allNodePositions(network); } catch (error) { return { saved: 0 }; }
 
-        const nodesObj = ((graphManager as unknown as { _graphNodesObj?: Record<string, *FIX*> } | undefined)
-            ? (graphManager as unknown as { _graphNodesObj?: Record<string, *FIX*> })._graphNodesObj
+        const nodesObj = ((graphManager as unknown as { _graphNodesObj?: Record<string, any> } | undefined)
+            ? (graphManager as unknown as { _graphNodesObj?: Record<string, any> })._graphNodesObj
             : null) || {};
         const isDerivedOrPainted = (id: string): boolean => {
             const node = nodesObj[id];
@@ -1997,7 +1997,7 @@ interface BackgroundState {
         const show = (state.editing || state.cropping) && state.layers.length > 0;
         panel.style.display = show ? 'block' : 'none';
         if (!show) return;
-        // _render() runs on every mousemove of a drag; rewriting *FIX*that
+        // _render() runs on every mousemove of a drag; rewriting innerHTML that
         // often is wasteful and fights drag-and-drop, so only redraw when the
         // list actually changes.
         const signature = state.layers
@@ -2022,7 +2022,7 @@ interface BackgroundState {
                 <span data-act="remove" data-id="${layer.id}" title="Remove" style="cursor:pointer;color:#f85149;">🗑</span>
             </div>`;
         }).join('');
-        panel.*FIX*= `
+        panel.innerHTML = `
             <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid var(--border,#444);">
                 <span style="flex:1;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim,#999);">🗺 Maps (${state.layers.length})</span>
                 <span data-act="add" title="Add another image" style="cursor:pointer;">➕</span>
@@ -2075,12 +2075,12 @@ interface BackgroundState {
         }
         const layer = _active();
         if (state.zoneMove) {
-            chip.*FIX*= `<span>✥ drag to move the zone · Esc or the button to finish</span>
+            chip.innerHTML = `<span>✥ drag to move the zone · Esc or the button to finish</span>
                 <button class="btn btn-sm" id="gbg-zone-done">✔ Done</button>`;
             chip.querySelector('#gbg-zone-done')?.addEventListener('click', () => setZoneMove(false));
             return;
         }
-        chip.*FIX*= `<span>${state.cropping
+        chip.innerHTML = `<span>${state.cropping
             ? '✂ drag the amber edges to crop'
             : (layer ? '🖼 drag to move · corners resize · top dot rotates · alt-click cycles' : '🖼 add an image from the panel')}</span>
             <label style="display:flex;align-items:center;gap:4px;">🎚<input id="gbg-op" type="range" min="0" max="1" step="0.05" value="${layer ? layer.opacity : OPACITY_DEFAULT}" style="width:70px;"></label>
@@ -2126,7 +2126,7 @@ interface BackgroundState {
         rows.push(separator);
         rows.push(item('lock', state.layoutLocked ? '🔓 Unlock nodes' : '🔒 Lock nodes', state.layoutLocked));
         rows.push(item('save', '💾 Save layout to world'));
-        menu.*FIX*= rows.join('');
+        menu.innerHTML = rows.join('');
         menu.style.display = 'block';
         menu.style.left = event.clientX + 'px';
         menu.style.top = event.clientY + 'px';

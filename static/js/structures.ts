@@ -43,10 +43,10 @@
 
     /** `_req` returns whatever JSON the route produced. Callers that need a
      *  specific shape cast at the call site (`as StructuresPreview` below);
-     *  `*FIX*` here because the routes differ per endpoint. */
-    async function _req(url: string, options?: RequestInit): Promise<*FIX*> {
+     *  `any` here because the routes differ per endpoint. */
+    async function _req(url: string, options?: RequestInit): Promise<any> {
         const resp = await fetch(url, options);
-        let data: *FIX* = null;
+        let data: any = null;
         try { data = await resp.json(); } catch (e) { data = null; }
         if (!resp.ok) {
             throw new Error((data && data.error) || `${resp.status} ${resp.statusText}`);
@@ -95,28 +95,28 @@
 
     const Structures = {
         list(): Promise<StructuresListEntry[]> { return _req(BASE); },
-        preview(areaId: string, opts?: Record<string, unknown> | null): Promise<*FIX*> {
+        preview(areaId: string, opts?: Record<string, unknown> | null): Promise<any> {
             return _req(`${BASE}/preview`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(Object.assign({ area_id: areaId }, opts || {})),
             });
         },
-        save(areaId: string, name: string | undefined, opts?: Record<string, unknown> | null): Promise<*FIX*> {
+        save(areaId: string, name: string | undefined, opts?: Record<string, unknown> | null): Promise<any> {
             return _req(`${BASE}/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(Object.assign({ area_id: areaId, name }, opts || {})),
             });
         },
-        materialize(id: string, opts?: Record<string, unknown> | null): Promise<*FIX*> {
+        materialize(id: string, opts?: Record<string, unknown> | null): Promise<any> {
             return _req(`${BASE}/${encodeURIComponent(id)}/materialize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(opts || {}),
             });
         },
-        remove(id: string): Promise<*FIX*> { return _req(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
+        remove(id: string): Promise<any> { return _req(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
 
         /** Save dialog for one area (boundary graft point is hand-added later). */
         openSaveDialog(areaId: string, areaName?: string): void {

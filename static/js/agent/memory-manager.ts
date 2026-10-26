@@ -189,7 +189,7 @@ const AgentMemory = (() => {
             }).then(resp => resp.ok ? resp.json() : null).then(data => {
                 _embedAndStoreVector(charName, data?.entry?.id, text);
             }).catch(() => {});
-            // Register *FIX* new single-word tags into the tag library (id-keyed → dedupes)
+            // Register any new single-word tags into the tag library (id-keyed → dedupes)
             if (cleanTags.length > 0) {
                 cleanTags.forEach((tagId: string) => _ensureLibraryTag(tagId));
             }
@@ -200,7 +200,7 @@ const AgentMemory = (() => {
 
     /**
      * Fire-and-forget: embed a stored memory's text and upsert the vector into
-     * the backend store (task-91). *FIX* failure is silent — semantic recall just
+     * the backend store (task-91). Any failure is silent — semantic recall just
      * degrades to keyword-only for that memory.
      */
     function _embedAndStoreVector(charName: string, memoryId: string | undefined, text: string): void {

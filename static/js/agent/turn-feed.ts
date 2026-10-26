@@ -43,7 +43,7 @@ const TurnFeedModule = (() => {
             // console output, not something that happened in the fiction.
             // Filtering here rather than in isObserverVisible closes the whole
             // class: parseEntry re-labels a system row as an action whenever
-            // _tryParsePrefixedName matches, so *FIX* saved/loaded line that
+            // _tryParsePrefixedName matches, so any saved/loaded line that
             // happened to read "<Name> <verb>" surfaced as your turn's action.
             // The one system row that IS a turn row  -  an NPC doing nothing  - 
             // stays.
@@ -556,7 +556,7 @@ const TurnFeedModule = (() => {
         if (narrative) {
             const sumEl = document.createElement('div');
             sumEl.className = 'tf-summary';
-            sumEl.*FIX*= '<b>Observed:</b> ' + escapeHtml(narrative);
+            sumEl.innerHTML = '<b>Observed:</b> ' + escapeHtml(narrative);
             host.appendChild(sumEl);
         }
 
@@ -677,7 +677,7 @@ const TurnFeedModule = (() => {
         if (summary) {
             const sumEl = document.createElement('div');
             sumEl.className = 'tf-summary';
-            sumEl.*FIX*= '<b>Since your turn:</b> ' + escapeHtml(summary);
+            sumEl.innerHTML = '<b>Since your turn:</b> ' + escapeHtml(summary);
             host.appendChild(sumEl);
         }
 

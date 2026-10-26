@@ -11,7 +11,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 (window as unknown as { InspectorPaperdoll: unknown }).InspectorPaperdoll = (() => {
-    const P: PaperdollApi = (window as *FIX*).InspectorView ? new (window as *FIX*).InspectorView() : {};
+    const P: PaperdollApi = (window as any).InspectorView ? new (window as any).InspectorView() : {};
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     // Used only for the small popups/modals/pickers that render into standalone
@@ -23,7 +23,7 @@
     // the paperdoll and the slot modal both render it; while it lived inside
     // renderPaperdollEquipmentHtml the showSlotModal call was out of scope (a
     // ReferenceError that a globals.d.ts `declare` was papering over).
-    function durabilityChip(props: *FIX*): string {
+    function durabilityChip(props: any): string {
         const maxUses = parseInt(props?.max_uses, 10) || 0;
         const uses = parseInt(props?.uses ?? -1, 10);
         if (maxUses <= 0 || uses < 0) return '';
@@ -153,7 +153,7 @@
      *            resistances:Object, bestDamage:Object|null,
      *            contributors:{defense:[],insulation:[],damage:[],resistances:[]}}}
      */
-    P.computeEquipmentTotals = function(player: *FIX*) {
+    P.computeEquipmentTotals = function(player: any) {
         const totals: EquipmentTotals = {
             defense: 0, insulation: 0, weight: 0, resistances: {}, bestDamage: null,
             contributors: { defense: [], insulation: [], damage: [], resistances: [] },
@@ -180,7 +180,7 @@
                 totals.weight += parseFloat(props.weight) || 0;
                 if (isResistance) {
                     const res = props.resistances || {};
-                    for (const [dtype, val] of Object.entries<*FIX*>(res)) {
+                    for (const [dtype, val] of Object.entries<any>(res)) {
                         const resistanceValue = parseInt(val, 10) || 0;
                         if ((totals.resistances[dtype] || 0) < resistanceValue) {
                             totals.resistances[dtype] = resistanceValue;
@@ -216,7 +216,7 @@
      * @param {string} escName - HTML-escaped agent name (single quotes escaped)
      * @returns {string} HTML for the paperdoll block
      */
-    P.renderPaperdollEquipmentHtml = function(agentName: string, player: *FIX*, esc: EscFn, escName: string) {
+    P.renderPaperdollEquipmentHtml = function(agentName: string, player: any, esc: EscFn, escName: string) {
         let html = '';
         _ensureIcons();
         const equipped = player.equipped || {};
@@ -229,7 +229,7 @@
         else if (carryRatio >= 0.5) carryColor = 'var(--yellow)';
         // Character-wide gear totals (single source - see computeEquipmentTotals).
         const t = P.computeEquipmentTotals(player);
-        const fmtDmg = (d: *FIX*) => {
+        const fmtDmg = (d: any) => {
             if (!d) return null;
             if (d.dice && d.dice[0] > 0) {
                 return `${d.dice[0]}d${d.dice[1]}${d.dice[2] ? `+${d.dice[2]}` : ''}${d.type ? ` ${d.type}` : ''}`;
@@ -297,7 +297,7 @@
      * @param {object} opts - {mode: 'equip'|'navigate', selectedArea?: string, facing?: 'front'|'back'}
      * @returns {string} HTML for the figure grid
      */
-    P.renderPaperdollFigureHtml = function(agentName: string, player: *FIX*, esc: EscFn, escName: string, opts?: { mode?: string; selectedArea?: string | null; facing?: string | null }) {
+    P.renderPaperdollFigureHtml = function(agentName: string, player: any, esc: EscFn, escName: string, opts?: { mode?: string; selectedArea?: string | null; facing?: string | null }) {
         const mode = opts?.mode === 'navigate' ? 'navigate' : 'equip';
         const selected = opts?.selectedArea || null;
         // task-852 P2: front/back filter uses the same slots - no second artwork.
@@ -308,9 +308,9 @@
         const regionName = (regionId: string) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
         const regionStatus = (regionId: string) => {
             const bs = player.body_state?.[regionId] || {};
-            const injuredInstances = ((playerConditions.injured || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
-            const bleedingInstances = ((playerConditions.bleeding || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
-            const missingInstances = ((playerConditions.missing || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
+            const injuredInstances = ((playerConditions.injured || []) as any[]).filter((i: any) => i.body_part === regionId);
+            const bleedingInstances = ((playerConditions.bleeding || []) as any[]).filter((i: any) => i.body_part === regionId);
+            const missingInstances = ((playerConditions.missing || []) as any[]).filter((i: any) => i.body_part === regionId);
             const exposed = player.region_exposed?.[regionId] !== false;
             return {
                 sensitivity: parseFloat(bs.sensitivity) ?? 0,
@@ -454,7 +454,7 @@
         const maxDepthDisplay = maxDepth === null || maxDepth === undefined ? '∞' : maxDepth;
         const slotLabel = SLOT_LABELS[slot] || slot;
 
-        const getItemBonuses = (nodeProps: *FIX*) => {
+        const getItemBonuses = (nodeProps: any) => {
             const tags = ((nodeProps.tags || []) as unknown[]).map((t: unknown) => String(t).toLowerCase());
             const isArmor = tags.some(t => t === 'armor' || t === 'clothing');
             const isWeapon = tags.includes('weapon');
@@ -470,7 +470,7 @@
             };
         };
 
-        const formatDamage = (dmg: *FIX*, dice: number[] | null) => {
+        const formatDamage = (dmg: any, dice: number[] | null) => {
             if (dice && dice[0] > 0) {
                 const flat = dice[2] ? `+${dice[2]}` : '';
                 return `${dice[0]}d${dice[1]}${flat}`;
@@ -486,11 +486,11 @@
             return { id, name, props, bonuses, depth: idx + 1 };
         });
 
-        const totals = layers.reduce((acc: *FIX*, layer: *FIX*) => {
+        const totals = layers.reduce((acc: any, layer: any) => {
             acc.defense += layer.bonuses.defense;
             acc.insulation += layer.bonuses.insulation;
             acc.weight += layer.bonuses.weight;
-            for (const [dtype, val] of Object.entries<*FIX*>(layer.bonuses.resistances)) {
+            for (const [dtype, val] of Object.entries<any>(layer.bonuses.resistances)) {
                 acc.resistances[dtype] = Math.max(acc.resistances[dtype] || 0, parseInt(val) || 0);
             }
             if (layer.bonuses.damage) {
@@ -512,7 +512,7 @@
         </div>`;
 
         html += `<div style="margin-bottom:12px;">`;
-        layers.slice().reverse().forEach((layer: *FIX*, revIdx: number) => {
+        layers.slice().reverse().forEach((layer: any, revIdx: number) => {
             const isOuter = revIdx === 0;
             const isInner = revIdx === layers.length - 1;
             html += `<div style="padding:8px;margin-bottom:6px;background:var(--bg-inset);border-radius:6px;border:1px solid var(--border);">
@@ -559,7 +559,7 @@
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
         window.Lit.render(paperdollTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:400px;max-height:80vh;overflow-y:auto;">
             ${window.Lit.unsafeHTML(html)}
-            <button class="btn btn-sm btn-ghost" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="width:100%;margin-top:8px;">Close</button>
+            <button class="btn btn-sm btn-ghost" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="width:100%;margin-top:8px;">Close</button>
         </div>`, modal);
         document.body.appendChild(modal);
     };
@@ -586,14 +586,14 @@
         for (const regionId of regions) {
             const label = regionName(regionId);
             const bs = bodyState[regionId] || {};
-            const injuredInstances = ((playerConditions.injured || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
-            const bleedingInstances = ((playerConditions.bleeding || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
-            const missingInstances = ((playerConditions.missing || []) as *FIX*[]).filter((i: *FIX*) => i.body_part === regionId);
+            const injuredInstances = ((playerConditions.injured || []) as any[]).filter((i: any) => i.body_part === regionId);
+            const bleedingInstances = ((playerConditions.bleeding || []) as any[]).filter((i: any) => i.body_part === regionId);
+            const missingInstances = ((playerConditions.missing || []) as any[]).filter((i: any) => i.body_part === regionId);
             const exposed = player.region_exposed?.[regionId] !== false;
             const sensitivity = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity).toFixed(2) : '-';
-            const injuryLevel = bs.injury ?? (injuredInstances.length ? Math.max(...injuredInstances.map((i: *FIX*) => i.level || 1)) : null);
+            const injuryLevel = bs.injury ?? (injuredInstances.length ? Math.max(...injuredInstances.map((i: any) => i.level || 1)) : null);
             const statusChips: string[] = [];
-            if (injuredInstances.length) statusChips.push(`<span style="color:var(--yellow);">🤕 Injured Lv${Math.max(...injuredInstances.map((i: *FIX*) => i.level || 1))}</span>`);
+            if (injuredInstances.length) statusChips.push(`<span style="color:var(--yellow);">🤕 Injured Lv${Math.max(...injuredInstances.map((i: any) => i.level || 1))}</span>`);
             if (missingInstances.length) statusChips.push(`<span style="color:var(--red);">✖ Missing</span>`);
             if (bleedingInstances.length) statusChips.push(`<span style="color:var(--red);">🩸 Bleeding</span>`);
             if (!exposed) statusChips.push(`<span style="color:var(--text-dim);">🛡️ Covered</span>`);
@@ -616,7 +616,7 @@
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
         window.Lit.render(paperdollTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:360px;max-height:80vh;overflow-y:auto;">
             ${window.Lit.unsafeHTML(html)}
-            <button class="btn btn-sm btn-ghost" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="width:100%;margin-top:8px;">Close</button>
+            <button class="btn btn-sm btn-ghost" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="width:100%;margin-top:8px;">Close</button>
         </div>`, modal);
         document.body.appendChild(modal);
     };
@@ -657,7 +657,7 @@
         const equippable = inventory.filter((n: string) => {
             const node = worldState.getNodeByIdentifier(n);
             const slots = node?.properties?.equip_slots || [];
-            // 'all' is the "Equip from Inventory" button's slot: it means *FIX*
+            // 'all' is the "Equip from Inventory" button's slot: it means any
             // slot the item declares. Matching it literally (slots.includes
             // ('all')) matched nothing, so the button only ever toasted
             // "No items in inventory that can be equipped to all."
@@ -671,13 +671,13 @@
         const picker = document.createElement('div');
         picker.className = 'modal-overlay';
         picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
-        const slotItems = equippable.map((n: string) => paperdollTag`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);cursor:pointer;" @click=${(e: *FIX*) => { e.currentTarget.closest('.modal-overlay').remove(); (window as unknown as { runAction: RunActionFn }).runAction(`wear ${n}`, charName); }}>
+        const slotItems = equippable.map((n: string) => paperdollTag`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);cursor:pointer;" @click=${(e: any) => { e.currentTarget.closest('.modal-overlay').remove(); (window as unknown as { runAction: RunActionFn }).runAction(`wear ${n}`, charName); }}>
             📦 ${n} <span style="font-size:10px;color:var(--accent);">Equip</span>
         </div>`);
         window.Lit.render(paperdollTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:300px;">
-            <h3 style="margin:0 0 12px 0;">Equip to ${slot === 'all' ? '*FIX* slot' : slot}</h3>
+            <h3 style="margin:0 0 12px 0;">Equip to ${slot === 'all' ? 'any slot' : slot}</h3>
             ${slotItems}
-            <button class="btn btn-sm" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
+            <button class="btn btn-sm" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
         </div>`, picker);
         document.body.appendChild(picker);
     };
@@ -749,7 +749,7 @@
 
 /** The exported bag; consumers reach it as `window.InspectorPaperdoll`. */
 interface PaperdollApi {
-    [key: string]: *FIX*;
+    [key: string]: any;
 }
 
 /** HTML escaping for attribute values, as passed in by the inspector panel. */
