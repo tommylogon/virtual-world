@@ -6,7 +6,7 @@
  * views embed in their own render() output.
  *
  * @module inspector/components
- * @contributes InspectorComponents: Header, PropertyGrid, TabNav, Section, ActionGrid, Breadcrumb
+ * @contributes InspectorComponents: Header, PropertyGrid, TabNav, Section, ActionGrid, Breadcrumb, NodeHeader, DangerZone
  * @powers Node inspectors - reusable sections instead of duplicated HTML strings
  * @relates InspectorView base class, InspectorHelpers field builders
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
@@ -224,6 +224,119 @@ const InspectorComponents = (() => {
         return htmlTag`${back}${trail}`;
     }
 
+    // ----------------------------------------------------------------------
+    // InspectorNodeHeader - standardized node header with rename and sync ID
+    // ----------------------------------------------------------------------
+
+    const TYPE_ICONS: Record<string, string> = {
+        item: '📦',
+        area: '🏠',
+        way: '🚪',
+        agent: '👤',
+        character: '👤',
+        player: '👤',
+    };
+
+    const TYPE_COLORS: Record<string, string> = {
+        item: '#e3b341',
+        area: '#58a6ff',
+        way: '#4ec9b0',
+        agent: '#bc8cff',
+        character: '#bc8cff',
+    };
+
+    /**
+     * Standardized component rendering the type badge, color indicator,
+     * name input with rename callback, generated-node check/label, and sync ID button.
+     * @param {object} opts - { nodeId, nodeType, name, color?, isGenerated?, onRename, onSyncId, onClose?, onRenameId?, actions? }
+     */
+    function InspectorNodeHeader(opts: {
+        nodeId: string;
+        nodeType: string;
+        name: string;
+        color?: string;
+        isGenerated?: boolean;
+        onRename: (newName: string) => void;
+        onSyncId: () => void;
+        onClose?: () => void;
+        onRenameId?: (newId: string) => void;
+        actions?: unknown;
+    }): unknown {
+        const { nodeId, nodeType, name, color, onRename, onSyncId, onClose, onRenameId, actions } = opts;
+        const isGenerated = opts.isGenerated !== undefined
+            ? opts.isGenerated
+            : Boolean((window as unknown as { InspectorHelpers?: { isGeneratedNode?: (id: string) => boolean } }).InspectorHelpers?.isGeneratedNode?.(nodeId));
+
+        const icon = TYPE_ICONS[nodeType.toLowerCase()];
+        const badgeLabel = (icon && !nodeType.includes(icon))
+            ? `${icon} ${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}`
+            : nodeType;
+        const badgeColor = color || TYPE_COLORS[nodeType.toLowerCase()] || 'var(--bg-inset)';
+
+        const closeHandler = onClose || (() => {
+            const w = window as unknown as { hideInspectorPanel?: () => void; InspectorPanel?: { hide?: () => void } };
+            if (typeof w.hideInspectorPanel === 'function') w.hideInspectorPanel();
+            else if (w.InspectorPanel?.hide) w.InspectorPanel.hide();
+        });
+
+        const renameIdHandler = onRenameId || ((newId: string) => {
+            (window as unknown as { InspectorHelpers?: { renameNode?: (oldId: string, nextId: string) => void } }).InspectorHelpers?.renameNode?.(nodeId, newId);
+        });
+
+        const closeBtn = htmlTag`<button class="btn btn-sm btn-ghost" @click=${closeHandler}>✕</button>`;
+
+        return htmlTag`<div class="inspector-header">
+            <span class="inspector-type-badge" style="background:${badgeColor}">${badgeLabel}</span>
+            <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+                <h2 style="margin:0;font-size:16px;">
+                    <input type="text" .value=${name}
+                        @change=${(ev: Event) => onRename((ev.target as HTMLInputElement).value)}
+                        style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;">
+                </h2>
+                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
+                    <div style="display:flex;gap:2px;align-items:center;">
+                        ${isGenerated
+                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id - owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
+                            : htmlTag`<input type="text" .value=${nodeId}
+                                @change=${(ev: Event) => renameIdHandler((ev.target as HTMLInputElement).value)}
+                                style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;"
+                                title="Change node ID (lowercase, no spaces)">
+                                <button class="btn btn-sm btn-ghost" @click=${onSyncId} title="Sync ID from name">🔄</button>`}
+                    </div>
+                </div>
+            </div>
+            ${actions || ''}
+            ${closeBtn}
+        </div>`;
+    }
+
+    // ----------------------------------------------------------------------
+    // InspectorDangerZone - standardized node deletion with confirm trigger
+    // ----------------------------------------------------------------------
+
+    /**
+     * Standardized component rendering the delete node button, confirmation prompt/modal trigger, and delete callback.
+     * @param {object} opts - { nodeId, nodeName, nodeType, onDelete }
+     */
+    function InspectorDangerZone(opts: {
+        nodeId: string;
+        nodeName: string;
+        nodeType: string;
+        onDelete: () => void;
+    }): unknown {
+        const { nodeId, nodeName, nodeType, onDelete } = opts;
+        const typeLabel = nodeType ? (nodeType.charAt(0).toUpperCase() + nodeType.slice(1)) : 'Node';
+        return htmlTag`<div class="inspector-danger-zone inspector-section" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-danger, rgba(248,81,73,0.3));">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:11px;font-weight:600;color:var(--red, #f85149);">Danger Zone</div>
+                    <div style="font-size:10px;color:var(--text-muted);">Permanently delete this ${nodeType} (${nodeName || nodeId}) from the world.</div>
+                </div>
+                <button class="btn btn-sm btn-red" @click=${onDelete} title="Delete this ${nodeType}">🗑 Delete ${typeLabel}</button>
+            </div>
+        </div>`;
+    }
+
     return {
         FieldDef,
         HeaderComponent,
@@ -232,6 +345,8 @@ const InspectorComponents = (() => {
         TabNavComponent,
         ActionGridComponent,
         BreadcrumbComponent,
+        InspectorNodeHeader,
+        InspectorDangerZone,
     };
 })();
 

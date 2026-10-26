@@ -692,3 +692,71 @@ interface GraphManager {
     network: any;
     nodes: any;
 }
+
+// ---------------------------------------------------------------------------
+// Domain models (static/js/types/models/)
+// Ambient type definitions for classic scripts and global scope
+// ---------------------------------------------------------------------------
+
+type BaseNodeModel<TProps extends Record<string, unknown> = Record<string, unknown>> = import('./models/index.js').BaseNodeModel<TProps>;
+type ItemModel = import('./models/index.js').ItemModel;
+type ItemProperties = import('./models/index.js').ItemProperties;
+type AreaModel = import('./models/index.js').AreaModel;
+type AreaProperties = import('./models/index.js').AreaProperties;
+type WayModel = import('./models/index.js').WayModel;
+type WayProperties = import('./models/index.js').WayProperties;
+type CharacterNodeModel = import('./models/index.js').CharacterNodeModel;
+type CharacterNodeProperties = import('./models/index.js').CharacterNodeProperties;
+type TriggerModel = import('./models/index.js').TriggerModel;
+
+type PlayerRuntimeModel = import('./models/index.js').PlayerRuntimeModel;
+type PlayerVitals = import('./models/index.js').PlayerVitals;
+type PlayerStats = import('./models/index.js').PlayerStats;
+type GoalModel = import('./models/index.js').GoalModel;
+type GoalStatus = import('./models/index.js').GoalStatus;
+type ObligationModel = import('./models/index.js').ObligationModel;
+type PlanModel = import('./models/index.js').PlanModel;
+type PlanStep = import('./models/index.js').PlanStep;
+type ActivePursuitModel = import('./models/index.js').ActivePursuitModel;
+type ConditionInstance = import('./models/index.js').ConditionInstance;
+
+interface MemoryRecord extends import('./models/index.js').MemoryRecord {}
+
+declare namespace Models {
+    export type BaseNode<TProps extends Record<string, unknown> = Record<string, unknown>> = import('./models/index.js').BaseNodeModel<TProps>;
+    export type BaseNodeModel<TProps extends Record<string, unknown> = Record<string, unknown>> = import('./models/index.js').BaseNodeModel<TProps>;
+    export type Item = import('./models/index.js').ItemModel;
+    export type ItemModel = import('./models/index.js').ItemModel;
+    export type ItemProperties = import('./models/index.js').ItemProperties;
+    export type Area = import('./models/index.js').AreaModel;
+    export type AreaModel = import('./models/index.js').AreaModel;
+    export type AreaProperties = import('./models/index.js').AreaProperties;
+    export type Way = import('./models/index.js').WayModel;
+    export type WayModel = import('./models/index.js').WayModel;
+    export type WayProperties = import('./models/index.js').WayProperties;
+    export type Character = import('./models/index.js').CharacterNodeModel;
+    export type CharacterNodeModel = import('./models/index.js').CharacterNodeModel;
+    export type CharacterNodeProperties = import('./models/index.js').CharacterNodeProperties;
+    export type Trigger = import('./models/index.js').TriggerModel;
+    export type TriggerModel = import('./models/index.js').TriggerModel;
+
+    export type PlayerRuntime = import('./models/index.js').PlayerRuntimeModel;
+    export type PlayerRuntimeModel = import('./models/index.js').PlayerRuntimeModel;
+    export type PlayerVitals = import('./models/index.js').PlayerVitals;
+    export type PlayerStats = import('./models/index.js').PlayerStats;
+    export type Memory = import('./models/index.js').MemoryRecord;
+    export type MemoryRecord = import('./models/index.js').MemoryRecord;
+    export type Goal = import('./models/index.js').GoalModel;
+    export type GoalModel = import('./models/index.js').GoalModel;
+    export type GoalStatus = import('./models/index.js').GoalStatus;
+    export type Obligation = import('./models/index.js').ObligationModel;
+    export type ObligationModel = import('./models/index.js').ObligationModel;
+    export type Plan = import('./models/index.js').PlanModel;
+    export type PlanModel = import('./models/index.js').PlanModel;
+    export type PlanStep = import('./models/index.js').PlanStep;
+    export type ActivePursuitModel = import('./models/index.js').ActivePursuitModel;
+    export type ConditionInstance = import('./models/index.js').ConditionInstance;
+}
+
+
+

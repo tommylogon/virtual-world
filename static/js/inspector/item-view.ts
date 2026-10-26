@@ -1,20 +1,20 @@
 /**
- * InspectorItemView — Item inspector (showItem, improveItem, actions, parameters, move, tags)
+ * InspectorItemView - Item inspector (showItem, improveItem, actions, parameters, move, tags)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  *
- * @module inspector/item-view — the item inspector
+ * @module inspector/item-view - the item inspector
  * @contributes InspectorItemView: actions, parameters, tags, state, move, AI improve, contents
- * @powers Node inspectors, Examine — inspecting and editing any item in the world
+ * @powers Node inspectors, Examine - inspecting and editing any item in the world
  * @relates renders through InspectorPanel; uses helpers + trigger-helpers
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 /**
- * A node's `properties` bag. It is engine-authored JSON with no fixed shape —
+ * A node's `properties` bag. It is engine-authored JSON with no fixed shape -
  * each inspector section reads the keys it cares about and the server validates
- * the rest — so an open record is the honest type here, not an interface that
+ * the rest - so an open record is the honest type here, not an interface that
  * would have to enumerate every property the engine may ever grow.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,7 +133,7 @@ interface ItemViewExternals {
 const _warnedMissingExternals = new Set<string>();
 function _external<K extends keyof ItemViewExternals>(name: K): ItemViewExternals[K] | null {
     // Resolve a dependency published either bare on `window` (InspectorPanel,
-    // TagMultiselect, ...) or under the `VW` namespace (itemLib — published as
+    // TagMultiselect, ...) or under the `VW` namespace (itemLib - published as
     // `VW.itemLib`, never `window.itemLib`). A bare-global-only read silently
     // returned null for itemLib, so Save to Library was a no-op (bug-533).
     const root = globalThis as unknown as Record<string, unknown>;
@@ -191,7 +191,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
         'activate', 'equip', 'unequip', 'throw', 'break', 'drop'
     ];
 
-    // Actions that imply their inverse — toggling one also toggles the other.
+    // Actions that imply their inverse - toggling one also toggles the other.
     const INVERSE_ACTIONS: Record<string, string> = {
         'take': 'drop', 'drop': 'take',
         'equip': 'unequip', 'unequip': 'equip',
@@ -285,7 +285,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
                 placeholder: 'Search or create tags...',
                 onChange: (newTags: string[]) => {
                     // Auto-stamp engine defaults when a mechanical tag lands
-                    // on an item that doesn't carry its values yet — keeps
+                    // on an item that doesn't carry its values yet - keeps
                     // the data honest and the validator quiet.
                     const liveProps: PropBag = worldState.getNode(nodeId)?.properties || {};
                     const update: PropBag = { tags: newTags };
@@ -325,21 +325,15 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
      * @returns {TemplateResult}
      */
     IV._renderItemHeader = function(name: string, nodeId: string) {
-        return htmlTag`<div class="inspector-header">
-            <span class="inspector-type-badge" style="background:#e3b341">📦 Item</span>
-            <div style="flex:1;display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:16px;"><input type="text" .value=${name} @change=${(ev: Event) => IV._updateItemProp(nodeId, 'name', _evValue(ev))} style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
-                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                    <div style="display:flex;gap:2px;align-items:center;">
-                        ${InspectorHelpers.isGeneratedNode(nodeId)
-                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);width:100%;" title="Generated node id — owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
-                            : htmlTag`<input type="text" .value=${nodeId} @change=${(ev: Event) => InspectorHelpers.renameNode(nodeId, _evValue(ev))} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);width:100%;cursor:text;" title="Change node ID (lowercase, no spaces)">
-                                <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(nodeId, name)} title="Sync ID from name">🔄</button>`}
-                    </div>
-                </div>
-            </div>
-            <button class="btn btn-sm btn-ghost" @click=${() => _external('hideInspectorPanel')?.()}>✕</button>
-        </div>`;
+        return InspectorComponents.InspectorNodeHeader({
+            nodeId,
+            nodeType: 'item',
+            name,
+            color: '#e3b341',
+            onRename: (newName: string) => IV._updateItemProp(nodeId, 'name', newName),
+            onSyncId: () => InspectorHelpers.syncIdFromName(nodeId, name),
+            onClose: () => _external('hideInspectorPanel')?.(),
+        });
     };
 
     /**
@@ -438,7 +432,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
                 const color = pct <= 25 ? 'var(--red)' : pct <= 50 ? 'var(--yellow)' : 'var(--green)';
                 const word = u <= 0 ? 'broken' : pct <= 25 ? 'about to break' : pct <= 50 ? 'battered' : pct <= 90 ? 'worn' : 'pristine';
                 return htmlTag`<div class="field" style="margin-top:2px;">
-                    <label>Durability — ${word}</label>
+                    <label>Durability - ${word}</label>
                     <div style="width:100%;height:8px;background:var(--bg-inset);border-radius:4px;overflow:hidden;">
                         <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;"></div>
                     </div>
@@ -464,7 +458,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
                 </div>
                 <div class="field"><label>Damage Type</label>
                     <select @change=${(ev: Event) => api.updateNode(nodeId, { properties: { damage_type: _evValue(ev) } }).then(() => worldState.fetch())} style="width:100%;font-size:11px;">
-                        <option value="">— None —</option>
+                        <option value="">- None -</option>
                         ${DAMAGE_TYPES.map(dt => htmlTag`<option value=${dt} ?selected=${damageType === dt}>${dt}</option>`)}
                     </select>
                 </div>
@@ -482,7 +476,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
             <div id="insp-light-source-${nodeId}" style="display:${showLightSource ? 'block' : 'none'};margin-top:4px;">
                 <div class="field"><label>Light Level</label>
                     <select @change=${(ev: Event) => IV._updateLightLevel(nodeId, _evValue(ev))} style="width:100%;font-size:11px;">
-                        <option value="" ?selected=${!props.light_level}>— unset (engine uses Dim) —</option>
+                        <option value="" ?selected=${!props.light_level}>- unset (engine uses Dim) -</option>
                         <option value="pitch_black" ?selected=${props.light_level === 'pitch_black'}>Pitch Black</option>
                         <option value="dim" ?selected=${props.light_level === 'dim'}>Dim</option>
                         <option value="normal" ?selected=${props.light_level === 'normal'}>Normal</option>
@@ -652,13 +646,20 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
      * @returns {TemplateResult}
      */
 IV._renderFooter = function(nodeId) {
+        const node = worldState.getNode(nodeId);
+        const nodeName = node?.name || nodeId;
         return htmlTag`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
             <div id="item-lib-template-wrap-${nodeId}" title="Library template this node syncs against (task-295)" style="flex:1;min-width:160px;"></div>
             <button class="btn btn-sm btn-green" @click=${() => IV._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
             <button class="btn btn-sm btn-yellow" @click=${() => _external('itemLib')?.saveWorldItem(nodeId)}>📚 Save to Library</button>
             <button class="btn btn-sm btn-blue" @click=${() => graphManager._duplicateNode(nodeId)} title="Duplicate this item (with contents + triggers)" style="font-size:10px;">📋 Duplicate</button>
-            <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete</button>
-        </div>`;
+        </div>
+        ${InspectorComponents.InspectorDangerZone({
+            nodeId,
+            nodeName,
+            nodeType: 'item',
+            onDelete: () => graphManager._deleteNode(nodeId),
+        })}`;
     };
 
     /**
@@ -735,7 +736,7 @@ IV._renderFooter = function(nodeId) {
      *
      * Called when an allowed action is toggled ON: creates a base empty trigger
      * so the designer immediately has a hook to author effects (task-252).
-     * Toggling an action OFF never removes triggers. Idempotent — if an
+     * Toggling an action OFF never removes triggers. Idempotent - if an
      * on_<action> trigger already exists, nothing is created.
      * @param {string} nodeId - Graph node ID (item)
      * @param {string} action - Action name (e.g. 'use')
@@ -918,7 +919,7 @@ IV._renderFooter = function(nodeId) {
         if (!node) return;
         const templateSelect = _valueEl(`item-lib-template-${nodeId}`);
         const libId = (templateSelect && templateSelect.value) || node.properties?.library_id;
-        if (!libId) { toastInfo('No library template selected — cannot refresh.'); return; }
+        if (!libId) { toastInfo('No library template selected - cannot refresh.'); return; }
 
         let libEntry: PropBag = {};
         try {

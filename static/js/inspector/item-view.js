@@ -1,12 +1,12 @@
 "use strict";
 /**
- * InspectorItemView — Item inspector (showItem, improveItem, actions, parameters, move, tags)
+ * InspectorItemView - Item inspector (showItem, improveItem, actions, parameters, move, tags)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  *
- * @module inspector/item-view — the item inspector
+ * @module inspector/item-view - the item inspector
  * @contributes InspectorItemView: actions, parameters, tags, state, move, AI improve, contents
- * @powers Node inspectors, Examine — inspecting and editing any item in the world
+ * @powers Node inspectors, Examine - inspecting and editing any item in the world
  * @relates renders through InspectorPanel; uses helpers + trigger-helpers
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
@@ -14,7 +14,7 @@
 const _warnedMissingExternals = new Set();
 function _external(name) {
     // Resolve a dependency published either bare on `window` (InspectorPanel,
-    // TagMultiselect, ...) or under the `VW` namespace (itemLib — published as
+    // TagMultiselect, ...) or under the `VW` namespace (itemLib - published as
     // `VW.itemLib`, never `window.itemLib`). A bare-global-only read silently
     // returned null for itemLib, so Save to Library was a no-op (bug-533).
     const root = globalThis;
@@ -53,7 +53,7 @@ const _InspectorItemView = (() => {
     const ALL_ACTIONS = ['examine', 'take', 'use', 'open', 'close', 'eat', 'drink', 'read', 'light',
         'activate', 'equip', 'unequip', 'throw', 'break', 'drop'
     ];
-    // Actions that imply their inverse — toggling one also toggles the other.
+    // Actions that imply their inverse - toggling one also toggles the other.
     const INVERSE_ACTIONS = {
         'take': 'drop', 'drop': 'take',
         'equip': 'unequip', 'unequip': 'equip',
@@ -137,7 +137,7 @@ const _InspectorItemView = (() => {
                 placeholder: 'Search or create tags...',
                 onChange: (newTags) => {
                     // Auto-stamp engine defaults when a mechanical tag lands
-                    // on an item that doesn't carry its values yet — keeps
+                    // on an item that doesn't carry its values yet - keeps
                     // the data honest and the validator quiet.
                     const liveProps = worldState.getNode(nodeId)?.properties || {};
                     const update = { tags: newTags };
@@ -184,21 +184,15 @@ const _InspectorItemView = (() => {
      * @returns {TemplateResult}
      */
     IV._renderItemHeader = function (name, nodeId) {
-        return htmlTag `<div class="inspector-header">
-            <span class="inspector-type-badge" style="background:#e3b341">📦 Item</span>
-            <div style="flex:1;display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:16px;"><input type="text" .value=${name} @change=${(ev) => IV._updateItemProp(nodeId, 'name', _evValue(ev))} style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
-                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                    <div style="display:flex;gap:2px;align-items:center;">
-                        ${InspectorHelpers.isGeneratedNode(nodeId)
-            ? htmlTag `<span style="font-size:10px;color:var(--text-muted);width:100%;" title="Generated node id — owned by the world compiler; it is regenerated on recompile and cannot be renamed">${nodeId}</span>`
-            : htmlTag `<input type="text" .value=${nodeId} @change=${(ev) => InspectorHelpers.renameNode(nodeId, _evValue(ev))} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);width:100%;cursor:text;" title="Change node ID (lowercase, no spaces)">
-                                <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(nodeId, name)} title="Sync ID from name">🔄</button>`}
-                    </div>
-                </div>
-            </div>
-            <button class="btn btn-sm btn-ghost" @click=${() => _external('hideInspectorPanel')?.()}>✕</button>
-        </div>`;
+        return InspectorComponents.InspectorNodeHeader({
+            nodeId,
+            nodeType: 'item',
+            name,
+            color: '#e3b341',
+            onRename: (newName) => IV._updateItemProp(nodeId, 'name', newName),
+            onSyncId: () => InspectorHelpers.syncIdFromName(nodeId, name),
+            onClose: () => _external('hideInspectorPanel')?.(),
+        });
     };
     /**
      * Render the description section with AI improve button
@@ -285,7 +279,7 @@ const _InspectorItemView = (() => {
             const color = pct <= 25 ? 'var(--red)' : pct <= 50 ? 'var(--yellow)' : 'var(--green)';
             const word = u <= 0 ? 'broken' : pct <= 25 ? 'about to break' : pct <= 50 ? 'battered' : pct <= 90 ? 'worn' : 'pristine';
             return htmlTag `<div class="field" style="margin-top:2px;">
-                    <label>Durability — ${word}</label>
+                    <label>Durability - ${word}</label>
                     <div style="width:100%;height:8px;background:var(--bg-inset);border-radius:4px;overflow:hidden;">
                         <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;"></div>
                     </div>
@@ -311,7 +305,7 @@ const _InspectorItemView = (() => {
                 </div>
                 <div class="field"><label>Damage Type</label>
                     <select @change=${(ev) => api.updateNode(nodeId, { properties: { damage_type: _evValue(ev) } }).then(() => worldState.fetch())} style="width:100%;font-size:11px;">
-                        <option value="">— None —</option>
+                        <option value="">- None -</option>
                         ${DAMAGE_TYPES.map(dt => htmlTag `<option value=${dt} ?selected=${damageType === dt}>${dt}</option>`)}
                     </select>
                 </div>
@@ -329,7 +323,7 @@ const _InspectorItemView = (() => {
             <div id="insp-light-source-${nodeId}" style="display:${showLightSource ? 'block' : 'none'};margin-top:4px;">
                 <div class="field"><label>Light Level</label>
                     <select @change=${(ev) => IV._updateLightLevel(nodeId, _evValue(ev))} style="width:100%;font-size:11px;">
-                        <option value="" ?selected=${!props.light_level}>— unset (engine uses Dim) —</option>
+                        <option value="" ?selected=${!props.light_level}>- unset (engine uses Dim) -</option>
                         <option value="pitch_black" ?selected=${props.light_level === 'pitch_black'}>Pitch Black</option>
                         <option value="dim" ?selected=${props.light_level === 'dim'}>Dim</option>
                         <option value="normal" ?selected=${props.light_level === 'normal'}>Normal</option>
@@ -497,13 +491,20 @@ const _InspectorItemView = (() => {
      * @returns {TemplateResult}
      */
     IV._renderFooter = function (nodeId) {
+        const node = worldState.getNode(nodeId);
+        const nodeName = node?.name || nodeId;
         return htmlTag `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
             <div id="item-lib-template-wrap-${nodeId}" title="Library template this node syncs against (task-295)" style="flex:1;min-width:160px;"></div>
             <button class="btn btn-sm btn-green" @click=${() => IV._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
             <button class="btn btn-sm btn-yellow" @click=${() => _external('itemLib')?.saveWorldItem(nodeId)}>📚 Save to Library</button>
             <button class="btn btn-sm btn-blue" @click=${() => graphManager._duplicateNode(nodeId)} title="Duplicate this item (with contents + triggers)" style="font-size:10px;">📋 Duplicate</button>
-            <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete</button>
-        </div>`;
+        </div>
+        ${InspectorComponents.InspectorDangerZone({
+            nodeId,
+            nodeName,
+            nodeType: 'item',
+            onDelete: () => graphManager._deleteNode(nodeId),
+        })}`;
     };
     /**
      * Populate the Library Template search select from the item library registry.
@@ -589,7 +590,7 @@ const _InspectorItemView = (() => {
      *
      * Called when an allowed action is toggled ON: creates a base empty trigger
      * so the designer immediately has a hook to author effects (task-252).
-     * Toggling an action OFF never removes triggers. Idempotent — if an
+     * Toggling an action OFF never removes triggers. Idempotent - if an
      * on_<action> trigger already exists, nothing is created.
      * @param {string} nodeId - Graph node ID (item)
      * @param {string} action - Action name (e.g. 'use')
@@ -792,7 +793,7 @@ const _InspectorItemView = (() => {
         const templateSelect = _valueEl(`item-lib-template-${nodeId}`);
         const libId = (templateSelect && templateSelect.value) || node.properties?.library_id;
         if (!libId) {
-            toastInfo('No library template selected — cannot refresh.');
+            toastInfo('No library template selected - cannot refresh.');
             return;
         }
         let libEntry = {};

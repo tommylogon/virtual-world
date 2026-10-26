@@ -153,6 +153,12 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
             </div>
 
             ${(window as unknown as AreaViewWindow).InspectorTemplateSync ? (window as unknown as AreaViewWindow).Lit.unsafeHTML((window as unknown as AreaViewWindow).InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
+            ${InspectorComponents.InspectorDangerZone({
+                nodeId: actualNodeId,
+                nodeName: name,
+                nodeType: 'area',
+                onDelete: () => graphManager._deleteNode(actualNodeId),
+            })}
         `;
 
         (window as unknown as AreaViewWindow).InspectorPanel.render(template);
@@ -194,24 +200,27 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
      * @returns {TemplateResult}
      */
     RV._renderRoomHeader = function(name: string, actualNodeId: string): TemplateResult {
-        return htmlTag`<div class="inspector-header">
-            <span class="inspector-type-badge" style="background:#58a6ff">🏠 Area</span>
-            <div style="flex:1;display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:16px;"><input type="text" .value=${name} @change=${(ev: Event) => api.updateNode(actualNodeId, { name: (ev.target as HTMLInputElement).value }).then(() => worldState.fetch())} style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
-                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                    <div style="display:flex;gap:2px;align-items:center;">
-                        ${InspectorHelpers.isGeneratedNode(actualNodeId)
-                            ? htmlTag`<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id  -  owned by the world compiler; it is regenerated on recompile and cannot be renamed">${actualNodeId}</span>`
-                            : htmlTag`<input type="text" .value=${actualNodeId} @change=${(ev: Event) => InspectorHelpers.renameNode(actualNodeId, (ev.target as HTMLInputElement).value)} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;" title="Change node ID (lowercase, no spaces)">
-                                <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(actualNodeId, name)} title="Sync ID from name">🔄</button>`}
-                    </div>
-                </div>
-            </div>
+        const actions = htmlTag`
             <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
-                    <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
             <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => (window as unknown as AreaViewWindow).hideInspectorPanel()}>✕</button>
-        </div>`;
+        `;
+        return InspectorComponents.InspectorNodeHeader({
+            nodeId: actualNodeId,
+            nodeType: 'area',
+            name,
+            color: '#58a6ff',
+            onRename: (newName: string) => {
+                api.updateNode(actualNodeId, { name: newName }).then(() => worldState.fetch());
+            },
+            onSyncId: () => {
+                InspectorHelpers.syncIdFromName(actualNodeId, name);
+            },
+            onClose: () => {
+                (window as unknown as AreaViewWindow).hideInspectorPanel();
+            },
+            actions,
+        }) as TemplateResult;
     };
 
     /**

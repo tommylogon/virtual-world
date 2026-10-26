@@ -68,8 +68,8 @@ This section defines intended access and live acceptance. It is not a claim that
 
 ## Acceptance
 
-- [ ] `static/js/inspector/components.ts` exports `InspectorNodeHeader` and `InspectorDangerZone`.
-- [ ] `item-view.ts`, `area-view.ts`, `way-view.ts`, and `agent-view.ts` delegate node header and deletion markup to the shared inspector components.
+- [x] `static/js/inspector/components.ts` exports `InspectorNodeHeader` and `InspectorDangerZone`.
+- [ ] `item-view.ts`, `area-view.ts`, `way-view.ts`, and `agent-view.ts` delegate node header and deletion markup to the shared inspector components (`item-view.ts` and `area-view.ts` completed in Phase 1).
 - [ ] `static/js/shared/components/` hosts reusable presentational primitives (`CollapsibleSection`, `StatusBadge`).
 - [ ] The Commons drawer and Viwo panels import and use the shared components with consistent styling.
 - [ ] `npm run build:ts` and `npm run typecheck` pass with 0 errors.

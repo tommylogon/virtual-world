@@ -141,6 +141,12 @@ window.InspectorAreaView = (() => {
             </div>
 
             ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
+            ${InspectorComponents.InspectorDangerZone({
+            nodeId: actualNodeId,
+            nodeName: name,
+            nodeType: 'area',
+            onDelete: () => graphManager._deleteNode(actualNodeId),
+        })}
         `;
         window.InspectorPanel.render(template);
         // task-173: live "sounds heard here" readout (engine-sourced).
@@ -176,24 +182,27 @@ window.InspectorAreaView = (() => {
      * @returns {TemplateResult}
      */
     RV._renderRoomHeader = function (name, actualNodeId) {
-        return htmlTag `<div class="inspector-header">
-            <span class="inspector-type-badge" style="background:#58a6ff">🏠 Area</span>
-            <div style="flex:1;display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:16px;"><input type="text" .value=${name} @change=${(ev) => api.updateNode(actualNodeId, { name: ev.target.value }).then(() => worldState.fetch())} style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
-                <div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
-                    <div style="display:flex;gap:2px;align-items:center;">
-                        ${InspectorHelpers.isGeneratedNode(actualNodeId)
-            ? htmlTag `<span style="font-size:10px;color:var(--text-muted);flex:1;min-width:0;" title="Generated node id  -  owned by the world compiler; it is regenerated on recompile and cannot be renamed">${actualNodeId}</span>`
-            : htmlTag `<input type="text" .value=${actualNodeId} @change=${(ev) => InspectorHelpers.renameNode(actualNodeId, ev.target.value)} style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;" title="Change node ID (lowercase, no spaces)">
-                                <button class="btn btn-sm btn-ghost" @click=${() => InspectorHelpers.syncIdFromName(actualNodeId, name)} title="Sync ID from name">🔄</button>`}
-                    </div>
-                </div>
-            </div>
+        const actions = htmlTag `
             <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
-                    <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowserRef().saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
             <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => window.hideInspectorPanel()}>✕</button>
-        </div>`;
+        `;
+        return InspectorComponents.InspectorNodeHeader({
+            nodeId: actualNodeId,
+            nodeType: 'area',
+            name,
+            color: '#58a6ff',
+            onRename: (newName) => {
+                api.updateNode(actualNodeId, { name: newName }).then(() => worldState.fetch());
+            },
+            onSyncId: () => {
+                InspectorHelpers.syncIdFromName(actualNodeId, name);
+            },
+            onClose: () => {
+                window.hideInspectorPanel();
+            },
+            actions,
+        });
     };
     /**
      * Render the description section with AI improve button
