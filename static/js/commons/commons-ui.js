@@ -372,24 +372,52 @@
                 return;
             const participants = window.CommonsState.participants || {};
             const names = Object.keys(participants).filter(name => name !== 'User');
-            list.innerHTML = names.map(name => {
-                const participant = participants[name];
-                const pace = window.CommonsAgent.getTalkativeness(name);
-                const isActing = Boolean(window.CommonsAgent.controllers?.[name]);
-                const controlMode = participant.control_mode || 'unavailable';
-                const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
-                const canUseLlm = controlMode === 'llm';
-                const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
-                return `<div class="participant-item"><div class="participant-row">
-                    <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}${controlLabel ? ` <span class="commons-control-badge">${controlLabel}</span>` : ''}</span>
-                    <span class="participant-presence ${isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : ''}">${isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
-                    <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="${escapeHtml(actTitle)}" ${!canUseLlm || isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
-                </div><div class="participant-controls">
-                    <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="active" ${participant.active ? 'checked' : ''}> In chat</label>
-                    <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
-                </div>${canUseLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
-                    <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
-            }).join('');
+            if (window.Lit?.html && window.Lit?.render) {
+                const lit = window.Lit;
+                const itemsTmpl = names.map(name => {
+                    const participant = participants[name];
+                    const pace = window.CommonsAgent.getTalkativeness(name);
+                    const isActing = Boolean(window.CommonsAgent.controllers?.[name]);
+                    const controlMode = participant.control_mode || 'unavailable';
+                    const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
+                    const canUseLlm = controlMode === 'llm';
+                    const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
+                    const presenceClass = isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : '';
+                    const presenceLabel = isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused';
+                    return lit.html `<div class="participant-item"><div class="participant-row">
+                        <span class="participant-name commons-char-trigger" data-character="${name}" title="Inspect ${name} inner world">
+                            ${name}${controlLabel ? lit.html ` <span class="commons-control-badge">${controlLabel}</span>` : ''}
+                        </span>
+                        <span class="participant-presence ${presenceClass}">${presenceLabel}</span>
+                        <button type="button" class="commons-act-btn" data-character="${name}" data-role="act" title="${actTitle}" ?disabled=${!canUseLlm || isActing || participant.blocked}>▶ Act</button>
+                    </div><div class="participant-controls">
+                        <label><input type="checkbox" data-character="${name}" data-role="active" .checked=${participant.active}> In chat</label>
+                        <label><input type="checkbox" data-character="${name}" data-role="blocked" .checked=${participant.blocked}> Block</label>
+                    </div>${canUseLlm ? lit.html `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${name}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${name}" data-role="pace-random" title="Choose a random turn pace for ${name}" aria-label="Randomize ${name} turn pace">🎲</button></span></div>
+                        <input type="range" class="talkativeness-slider" min="5" max="120" .value=${String(pace)} data-character="${name}" data-role="pace" aria-label="${name} automatic turn cooldown"></div>` : lit.html `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
+                });
+                lit.render(lit.html `${itemsTmpl}`, list);
+            }
+            else {
+                list.innerHTML = names.map(name => {
+                    const participant = participants[name];
+                    const pace = window.CommonsAgent.getTalkativeness(name);
+                    const isActing = Boolean(window.CommonsAgent.controllers?.[name]);
+                    const controlMode = participant.control_mode || 'unavailable';
+                    const controlLabel = controlMode === 'human' ? 'Human' : controlMode === 'npc' ? 'Simple NPC' : controlMode === 'llm' ? '' : 'Unavailable';
+                    const canUseLlm = controlMode === 'llm';
+                    const actTitle = controlMode === 'human' ? `${name} is human-controlled` : controlMode === 'npc' ? `${name} uses simple NPC behavior` : controlMode === 'llm' ? `Trigger an LLM turn for ${name}` : `${name} has no available character record`;
+                    return `<div class="participant-item"><div class="participant-row">
+                        <span class="participant-name commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world">${escapeHtml(name)}${controlLabel ? ` <span class="commons-control-badge">${controlLabel}</span>` : ''}</span>
+                        <span class="participant-presence ${isActing ? 'thinking' : participant.active && !participant.blocked ? 'online' : ''}">${isActing ? 'thinking...' : participant.blocked ? 'blocked' : participant.active ? 'active' : 'paused'}</span>
+                        <button type="button" class="commons-act-btn" data-character="${escapeHtml(name)}" data-role="act" title="${escapeHtml(actTitle)}" ${!canUseLlm || isActing || participant.blocked ? 'disabled' : ''}>▶ Act</button>
+                    </div><div class="participant-controls">
+                        <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="active" ${participant.active ? 'checked' : ''}> In chat</label>
+                        <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
+                    </div>${canUseLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
+                        <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
+                }).join('');
+            }
         }
         static renderGroupRoster() {
             const roster = document.getElementById('commons-group-roster');

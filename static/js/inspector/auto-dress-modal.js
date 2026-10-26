@@ -1,6 +1,6 @@
 "use strict";
 /**
- * AutoDressModal — confirm an outfit before it is equipped.
+ * AutoDressModal - confirm an outfit before it is equipped.
  *
  * Auto-dress (task-660) asks the character's LLM to pick clothing from the item
  * library and then equips whatever comes back. That was silent, and silence is
@@ -10,7 +10,7 @@
  *
  * This modal puts the two things a person needs to see on screen together:
  *
- *   1. **The context the model was given** — name, personality, base_description.
+ *   1. **The context the model was given** - name, personality, base_description.
  *      If that text belongs to somebody else, it is now obvious before anything
  *      is worn rather than three layers downstream.
  *   2. **What it proposed**, as per-slot checkboxes, so one absurd pick is
@@ -24,7 +24,7 @@
  * Pure UI: no engine calls, and the selection arithmetic is separated out
  * (`defaultSelection`, `applyToggles`) so it can be unit-tested without a DOM.
  *
- * @module inspector/auto-dress-modal — review an auto-dress proposal before equipping
+ * @module inspector/auto-dress-modal - review an auto-dress proposal before equipping
  * @contributes AutoDressModal: show the context the model used and let the user accept or drop individual items
  * @powers reviewing what a character wears before it is equipped
  * @relates called by InspectorAgentView._autoDress; equips via POST /api/auto_dress
@@ -163,46 +163,43 @@ const AutoDressModal = (() => {
                     + g.items.map(itemRow).join('')
                     + `</div>`).join('')
                 : `<div style="font-size:11px;opacity:0.7;">The model proposed nothing wearable.</div>`;
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);'
-                + 'display:flex;align-items:center;justify-content:center;z-index:10000;';
-            overlay.innerHTML = `<div style="background:var(--bg-panel,#1a1a1a);`
-                + `border:1px solid var(--border);border-radius:6px;padding:14px 16px;`
-                + `max-width:520px;width:92%;max-height:86vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,0.5);">`
-                + `<div style="font-weight:600;font-size:13px;margin-bottom:8px;">`
-                + `Auto-dress ${esc(character || '')}</div>`
-                + (note ? `<div style="font-size:10px;color:var(--orange,#e8890c);margin-bottom:8px;">`
-                    + `${esc(note)}</div>` : '')
-                + contextBlock(context)
-                + `<div style="font-size:10px;color:var(--text-muted);margin:10px 0 4px;">`
-                + `<b>Proposed</b> — untick anything they would not wear</div>`
-                + body
-                + wornBlock(worn)
-                + `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">`
-                + `<button class="btn btn-sm" id="ad-cancel">Cancel</button>`
-                + `<button class="btn btn-sm" id="ad-apply">Equip selected</button>`
-                + `</div></div>`;
+            const mountEl = document.createElement('div');
+            document.body.appendChild(mountEl);
             const close = (value) => {
-                overlay.remove();
-                document.removeEventListener('keydown', onKey);
+                if (mountEl.parentNode)
+                    mountEl.parentNode.removeChild(mountEl);
                 resolve(value);
             };
-            const onKey = (ev) => { if (ev.key === 'Escape')
-                close(null); };
-            overlay.addEventListener('click', (ev) => {
-                if (ev.target === overlay)
-                    close(null);
-            });
-            overlay.querySelector('#ad-cancel').addEventListener('click', () => close(null));
-            overlay.querySelector('#ad-apply').addEventListener('click', () => {
-                const rejected = [...overlay.querySelectorAll('.ad-item')]
+            const contentHtml = (note ? `<div style="font-size:10px;color:var(--orange,#e8890c);margin-bottom:8px;">${esc(note)}</div>` : '')
+                + contextBlock(context)
+                + `<div style="font-size:10px;color:var(--text-muted);margin:10px 0 4px;"><b>Proposed</b> - untick anything they would not wear</div>`
+                + body
+                + wornBlock(worn);
+            const modalTmpl = window.UiPrimitives?.ModalDialog ? window.UiPrimitives.ModalDialog({
+                title: `Auto-dress ${esc(character || '')}`,
+                isOpen: true,
+                size: 'md',
+                content: window.Lit ? window.Lit.unsafeHTML(contentHtml) : contentHtml,
+                actions: window.Lit?.html ? window.Lit.html `
+                    <button class="btn btn-sm" id="ad-cancel">Cancel</button>
+                    <button class="btn btn-sm btn-primary" id="ad-apply">Equip selected</button>
+                ` : '',
+                onClose: () => close(null)
+            }) : '';
+            if (window.Lit?.render && modalTmpl) {
+                window.Lit.render(modalTmpl, mountEl);
+            }
+            else {
+                mountEl.innerHTML = contentHtml;
+            }
+            mountEl.querySelector('#ad-cancel')?.addEventListener('click', () => close(null));
+            mountEl.querySelector('#ad-apply')?.addEventListener('click', () => {
+                const rejected = [...mountEl.querySelectorAll('.ad-item')]
                     .filter((cb) => !cb.checked)
                     .map((cb) => cb.dataset.lib || '');
                 close(applyToggles(items, rejected));
             });
-            document.addEventListener('keydown', onKey);
-            document.body.appendChild(overlay);
-            overlay.querySelector('#ad-apply').focus();
+            mountEl.querySelector('#ad-apply')?.focus();
         });
     }
     return { show, groupBySlot, defaultSelection, applyToggles };
