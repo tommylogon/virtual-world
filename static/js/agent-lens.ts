@@ -221,7 +221,7 @@ class AgentLens {
         }
 
         const playersInArea: { name: string; state: string; description: string; activity: string | null }[] = [];
-        Object.entries(base.players || {}).forEach(([name, pdata]: [string, any]) => {
+        Object.entries(base.players || {}).forEach(([name, pdata]: [string, *FIX*]) => {
             if (name === charName || pdata.current_area !== areaName) return;
             playersInArea.push({
                 name,
@@ -328,8 +328,8 @@ class AgentLens {
     _areaStats(areaName: string) {
         const area = worldState.data?.areas?.[areaName];
         if (!area) return null;
-        const items = worldState.getItemsInArea(areaName).filter((i: any) => i.properties?.current_state !== 'hidden');
-        const people = Object.values(worldState.players || {}).filter((p: any) => p.current_area === areaName).length;
+        const items = worldState.getItemsInArea(areaName).filter((i: *FIX*) => i.properties?.current_state !== 'hidden');
+        const people = Object.values(worldState.players || {}).filter((p: *FIX*) => p.current_area === areaName).length;
         const lightVal = area.ambient_light ?? area.environment?.light ?? 50;
         const light = PromptBuilder.lightToLevel(Number(lightVal));
         const rawTemp = area.environment?.temperature;
@@ -390,10 +390,10 @@ class AgentLens {
             const wayId = exit.way_id || '';
             const doorNode = wayId ? worldState.getNode(wayId) : null;
             const badges = typeof WayAuthoring !== 'undefined'
-                ? WayAuthoring.collectExitBadges(exit, doorNode).filter((b: any) => b.kind !== 'state')
+                ? WayAuthoring.collectExitBadges(exit, doorNode).filter((b: *FIX*) => b.kind !== 'state')
                 : [];
             const badgeHtml = badges.length
-                ? agentLensHtmlTag`<span style="margin-left:6px;font-size:10px;">${badges.map((b: any) => b.emoji).join(' ')}</span>`
+                ? agentLensHtmlTag`<span style="margin-left:6px;font-size:10px;">${badges.map((b: *FIX*) => b.emoji).join(' ')}</span>`
                 : window.Lit.nothing;
             const current = this._wayStateOverrides[wayId] || '';
             const actual = exit.state || 'closed';
@@ -433,7 +433,7 @@ class AgentLens {
         const fields: unknown[] = [
             agentLensHtmlTag`<div class="agent-lens-field">
                 <label>View as character</label>
-                <select id="lens-view-as" @change=${(e: any) => this.setViewAs(e.target.value)}>
+                <select id="lens-view-as" @change=${(e: *FIX*) => this.setViewAs(e.target.value)}>
                     ${names.map(name => agentLensHtmlTag`<option value=${name} ?selected=${name === this._viewAs}>${name}</option>`)}
                 </select>
             </div>`
@@ -442,7 +442,7 @@ class AgentLens {
         if (mode === 'agent') {
             fields.push(agentLensHtmlTag`<div class="agent-lens-field">
                 <label>Hypothetical location</label>
-                <select id="lens-hypo-area" @change=${(e: any) => this.setHypotheticalArea(e.target.value)}>
+                <select id="lens-hypo-area" @change=${(e: *FIX*) => this.setHypotheticalArea(e.target.value)}>
                     <option value="">📍 Actual — ${areaName || 'unknown'}</option>
                     ${areaNames.map(name => agentLensHtmlTag`<option value=${name} ?selected=${this._hypotheticalArea === name}>${name}</option>`)}
                 </select>
@@ -600,7 +600,7 @@ class AgentLens {
     async _renderWayLens(wayId: string) {
         const wayNode = worldState.getNode(wayId);
         if (!wayNode) return '<div class="agent-lens-empty">Way not found.</div>';
-        const edges = (worldState.graph?.edges || []).filter((edge: any) =>
+        const edges = (worldState.graph?.edges || []).filter((edge: *FIX*) =>
             edge.target === wayId && edge.type === 'connection'
         );
         const charName = this._viewAs || worldState.data?.active_player;
@@ -644,7 +644,7 @@ class AgentLens {
         const live = worldState.data?.players?.[this._viewAs || ''] || null;
         const areaName = selection ? this._resolveAreaName(selection) : null;
         const areaData = areaName ? worldState.data?.areas?.[areaName] : null;
-        const areaItems = areaName ? worldState.getItemsInArea(areaName).map((i: any) => String(i.name) + '|' + String(i.properties?.current_state || '')).join(',') : '';
+        const areaItems = areaName ? worldState.getItemsInArea(areaName).map((i: *FIX*) => String(i.name) + '|' + String(i.properties?.current_state || '')).join(',') : '';
         const sig = JSON.stringify({
             sel: selection ? [selection.type, selection.type === 'agent' ? selection.name : selection.id] : null,
             viewAs: this._viewAs,
@@ -652,7 +652,7 @@ class AgentLens {
             ways: this._wayStateOverrides,
             tick: (worldState.data && worldState.data.time_ticks) || 0,
             live: live ? [live.current_area, live.state, JSON.stringify(live.vitals || {}), live.emotion && live.emotion.current] : null,
-            area: areaData ? [areaData.description || '', JSON.stringify(areaData.environment || {}), (areaData.exits ? Object.values(areaData.exits).map((e: any) => e.state).join(',') : ''), areaItems] : null,
+            area: areaData ? [areaData.description || '', JSON.stringify(areaData.environment || {}), (areaData.exits ? Object.values(areaData.exits).map((e: *FIX*) => e.state).join(',') : ''), areaItems] : null,
         });
         if (sig === this._lastSig) return;
 

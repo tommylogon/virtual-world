@@ -13,7 +13,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 // Locals for cross-module globals not yet in static/js/types/globals.d.ts.
-// `graphManager` and `worldState` ARE declared there, but as bare consts (any),
+// `graphManager` and `worldState` ARE declared there, but as bare consts (*FIX*),
 // which is not enough here: this module reaches `graphManager._scopeFilter`
 // and indexes `worldState.areas`, so it reads them through a local shape.
 interface TreeViewWindowSurface {
@@ -39,7 +39,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
 /** Select a character in the world — published by the character/spectator layer. */
 // IIFE, not a top-level const: the object references itself, and a
 // top-level `const treeViewApi` would be a global lexical binding that
-// collides at parse time with any other script declaring that name.
+// collides at parse time with *FIX* other script declaring that name.
 (window as unknown as { GraphTreeView: GraphTreeViewApi }).GraphTreeView = (() => {
     const treeViewApi: GraphTreeViewApi = {
     /**
@@ -157,9 +157,9 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
 
         const areaObjects = rooms.map(areaName => {
             const area = (worldState.areas as Record<string, AreaData>)[areaName] || ({} as AreaData);
-            const node = (worldState as any).getNodeByIdentifier?.(areaName);
+            const node = (worldState as *FIX*).getNodeByIdentifier?.(areaName);
             const world_scope_id = (node && node.properties && node.properties.world_scope_id)
-                || (area as any).world_scope_id
+                || (area as *FIX*).world_scope_id
                 || '';
             return { name: areaName, world_scope_id };
         });
@@ -239,7 +239,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
         // The **whole** hierarchy, not just the areas (task-592). Copying areas
         // alone silently drops the two levels above them, so a pasted outline of a
         // five-scope world would read as one flat room list with no indication of
-        // which scope any of it was in.
+        // which scope *FIX* of it was in.
         let text = `Virtual World — ${rooms.length} areas, ${players.length} characters\n\n`;
         const scopes = ((window as unknown as TreeViewWindowSurface).graphManager && (window as unknown as TreeViewWindowSurface).graphManager._scopeSummaries) || [];
         if (scopes.length && (window as unknown as TreeViewWindowSurface).GraphScopeTree) {
@@ -264,7 +264,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
         }
         if (scopes.length && (window as unknown as TreeViewWindowSurface).GraphScopeTree?.foldScopeAreas) {
             const areaObjects = rooms.map((name: string) => {
-                const node = (worldState as any).getNodeByIdentifier?.(name);
+                const node = (worldState as *FIX*).getNodeByIdentifier?.(name);
                 const world_scope_id = (node && node.properties && node.properties.world_scope_id) || '';
                 return { name, world_scope_id };
             });

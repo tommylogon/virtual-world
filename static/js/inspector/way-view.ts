@@ -12,7 +12,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorWayView = (() => {
     const Base = (window as unknown as { InspectorView?: new () => unknown }).InspectorView;
-    const wayView: any = Base ? new Base() : {};
+    const wayView: *FIX* = Base ? new Base() : {};
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
@@ -35,15 +35,15 @@ window.InspectorWayView = (() => {
         up: 'down', down: 'up'
     };
 
-    wayView._renderLockToggle = function(field: any, lockedFields: any, escapedId: any) {
+    wayView._renderLockToggle = function(field: *FIX*, lockedFields: *FIX*, escapedId: *FIX*) {
         return InspectorHelpers.renderLockToggle(field, lockedFields, escapedId);
     };
 
-    wayView._toggleFieldLock = function(nodeId: any, field: any) {
+    wayView._toggleFieldLock = function(nodeId: *FIX*, field: *FIX*) {
         return InspectorHelpers.toggleFieldLock(nodeId, field);
     };
 
-    wayView._getLockedFields = function(props: any) {
+    wayView._getLockedFields = function(props: *FIX*) {
         return InspectorHelpers.getLockedFields(props);
     };
 
@@ -64,14 +64,14 @@ window.InspectorWayView = (() => {
     // cardinals (engine/facing.py keeps them off the rotation ring, and the map
     // layout offsets them by two rows), and the area inspector's badge renders
     // them - but this dial could not select one, so a vertical way showed no
-    // selection at all and clicking any button overwrote its 'down' with a
+    // selection at all and clicking *FIX* button overwrote its 'down' with a
     // horizontal heading. They get their own column beside the dial.
     const VERTICAL_COMPASS = [
         { value: 'up', label: '⬆', title: 'up' },
         { value: 'down', label: '⬇', title: 'down' },
     ];
 
-    wayView._renderCompassSelector = function(prefix: any, escapedId: any, cardinal: any) {
+    wayView._renderCompassSelector = function(prefix: *FIX*, escapedId: *FIX*, cardinal: *FIX*) {
         const radius = 55;
         const centerX = 65;
         const centerY = 65;
@@ -131,7 +131,7 @@ window.InspectorWayView = (() => {
         </div>`;
     };
 
-    wayView._selectCompassDirection = function(prefix: any, escapedId: any, cardinal: any) {
+    wayView._selectCompassDirection = function(prefix: *FIX*, escapedId: *FIX*, cardinal: *FIX*) {
         const sel = document.getElementById(`way-side-${prefix}-cardinal-${escapedId}`) as HTMLInputElement | null;
         if (sel) sel.value = cardinal;
         const container = sel?.closest('.inspector-section') || sel?.parentElement;
@@ -156,7 +156,7 @@ window.InspectorWayView = (() => {
         </div>`;
     };
 
-    wayView._switchWayTab = function(tabName: any) {
+    wayView._switchWayTab = function(tabName: *FIX*) {
         _activeWayTab = tabName;
         document.querySelectorAll<HTMLElement>('.inspector-tab').forEach(el => {
             const on = el.dataset.tabBtn === tabName;
@@ -169,7 +169,7 @@ window.InspectorWayView = (() => {
         });
     };
 
-    wayView._renderParametersSection = function(props: any, nodeId: any) {
+    wayView._renderParametersSection = function(props: *FIX*, nodeId: *FIX*) {
         const params = props.parameters || {};
         const paramKeys = Object.keys(params);
         return htmlTag`<div class="inspector-section"><h3>📐 Parameters <span class="section-hint">(key-value pairs for {param:&lt;key&gt;} in descriptions/triggers)</span></h3>
@@ -190,7 +190,7 @@ window.InspectorWayView = (() => {
         </div>`;
     };
 
-    wayView._updateCardinal = function(edgeSource: any, wayId: any, oppositeSource: any, cardinal: any) {
+    wayView._updateCardinal = function(edgeSource: *FIX*, wayId: *FIX*, oppositeSource: *FIX*, cardinal: *FIX*) {
         const rev = OPPOSITE_CARDINAL[cardinal] || '';
         const updates = [
             api.updateEdge(edgeSource, wayId, { old_type: 'connection', properties: { cardinal: cardinal || '' } }),
@@ -206,7 +206,7 @@ window.InspectorWayView = (() => {
     // The reconnect implementation lives in way-view-connections.js (module
     // InspectorWayViewConnections); expose it here so the onclick handlers that
     // call InspectorWayView._reconnectWays resolve.
-    wayView._reconnectWays = function(wayId: any) {
+    wayView._reconnectWays = function(wayId: *FIX*) {
         const impl = window.InspectorWayViewConnections && window.InspectorWayViewConnections._reconnectWays;
         if (typeof impl === 'function') return impl(wayId);
         console.error('InspectorWayViewConnections._reconnectWays missing  -  did way-view-connections.js fail to load?');
@@ -216,15 +216,15 @@ window.InspectorWayView = (() => {
     // Trigger extraction lives in way-view-triggers.js (module
     // InspectorWayViewTriggers); expose it here so _saveToLibrary and the
     // trigger preview paths resolve on the way-view module itself.
-    wayView._extractTriggersFromEdges = function(nodeId: any) {
-        const triggerHost = (window as unknown as { InspectorWayViewTriggers?: any }).InspectorWayViewTriggers;
+    wayView._extractTriggersFromEdges = function(nodeId: *FIX*) {
+        const triggerHost = (window as unknown as { InspectorWayViewTriggers?: *FIX* }).InspectorWayViewTriggers;
         const impl = triggerHost && triggerHost._extractTriggersFromEdges;
         if (typeof impl === 'function') return impl(nodeId);
         console.error('InspectorWayViewTriggers._extractTriggersFromEdges missing  -  did way-view-triggers.js fail to load?');
         return [];
     };
 
-    wayView._refreshParamPreview = function(wayId: any) {
+    wayView._refreshParamPreview = function(wayId: *FIX*) {
         const previewEl = document.getElementById(`way-param-preview-${wayId}`);
         if (!previewEl) return;
         const descEl = inputById(`way-passage-desc-${wayId}`);
@@ -232,24 +232,24 @@ window.InspectorWayView = (() => {
         const params = node?.properties?.parameters || {};
         const text = descEl?.value ?? node?.properties?.description ?? '';
         const block = InspectorHelpers.renderParamPreviewBlock(text, params);
-        previewEl.innerHTML = block.replace(/^<div class="way-param-preview"[^>]*>/, '').replace(/<\/div>\s*$/, '');
+        previewEl.*FIX*= block.replace(/^<div class="way-param-preview"[^>]*>/, '').replace(/<\/div>\s*$/, '');
     };
 
-    wayView._renderUnifiedPassage = function(nodeId: any, escapedId: any, graphNode: any, props: any, connInfo: any) {
+    wayView._renderUnifiedPassage = function(nodeId: *FIX*, escapedId: *FIX*, graphNode: *FIX*, props: *FIX*, connInfo: *FIX*) {
         const { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir } = connInfo;
         const state = props.current_state || 'closed';
         const sides = typeof WayAuthoring !== 'undefined' ? WayAuthoring.getWaySides(nodeId) : [];
-        const sideA = sides.find((s: any) => s.areaId === roomAId) || sides[0] || {};
-        const sideB = sides.find((s: any) => s.areaId === roomBId) || sides[1] || {};
+        const sideA = sides.find((s: *FIX*) => s.areaId === roomAId) || sides[0] || {};
+        const sideB = sides.find((s: *FIX*) => s.areaId === roomBId) || sides[1] || {};
 
-        const renderSide = (prefix: any, areaName: any, areaId: any, cmd: any, view: any, cardinal: any, targetName: any, visibleItems: any, allowSee: any) => {
+        const renderSide = (prefix: *FIX*, areaName: *FIX*, areaId: *FIX*, cmd: *FIX*, view: *FIX*, cardinal: *FIX*, targetName: *FIX*, visibleItems: *FIX*, allowSee: *FIX*) => {
             if (!areaId) return '';
             const escArea = esc(areaName);
             const escTarget = esc(targetName || '?');
             const items = worldState.getItemsInArea(targetName) || [];
-            const selected = new Set((visibleItems || []).map((n: any) => String(n).toLowerCase()));
+            const selected = new Set((visibleItems || []).map((n: *FIX*) => String(n).toLowerCase()));
             const itemOptions = items.length
-                ? items.map((item: any) => {
+                ? items.map((item: *FIX*) => {
                     const iname = item.name || '';
                     return `<option value="${esc(iname)}" ${selected.has(String(iname).toLowerCase()) ? 'selected' : ''}>${esc(iname)}</option>`;
                 }).join('')
@@ -291,7 +291,7 @@ window.InspectorWayView = (() => {
         if (roomAId && roomBId) {
             const roomNodes = worldState.graph?.nodes || {};
             const roomNameMap: Record<string, string> = {};
-            Object.entries(roomNodes).forEach(([nid, node]: [string, any]) => {
+            Object.entries(roomNodes).forEach(([nid, node]: [string, *FIX*]) => {
                 if (node.type === 'area') roomNameMap[node.name || nid] = nid;
             });
             const roomOptions = Object.keys(roomNameMap).sort().map(areaName =>
@@ -366,7 +366,7 @@ window.InspectorWayView = (() => {
                         <input type="checkbox" id="way-passage-prevent-close-${escapedId}" ?checked=${!!props.prevent_close}> 🔒 Prevent closing (open passage)
                     </label>
                 </div>
-                <div class="section-hint">Jump/climb/crawl passages are always uncloseable. <b>Prevent closing</b> extends that to any way  -  the state can then only be changed by triggers.</div>
+                <div class="section-hint">Jump/climb/crawl passages are always uncloseable. <b>Prevent closing</b> extends that to *FIX* way  -  the state can then only be changed by triggers.</div>
                 ${wayView._renderParametersSection(props, escapedId)}
                 ${sanityHtml ? window.Lit.unsafeHTML(sanityHtml) : ''}
             </div>
@@ -379,10 +379,10 @@ window.InspectorWayView = (() => {
             </div>`;
     };
 
-    wayView.saveWayPassage = async function(wayId: any) {
+    wayView.saveWayPassage = async function(wayId: *FIX*) {
         const node = worldState.getNode(wayId);
         if (!node) return;
-        const connEdges = (worldState.graph?.edges || []).filter((edge: any) =>
+        const connEdges = (worldState.graph?.edges || []).filter((edge: *FIX*) =>
             edge.type === 'connection'
             && (String(edge.source).toLowerCase() === wayId.toLowerCase() || String(edge.target).toLowerCase() === wayId.toLowerCase())
         );
@@ -399,8 +399,8 @@ window.InspectorWayView = (() => {
             auto_close: !!inputById(`way-passage-auto-close-${wayId}`)?.checked,
             prevent_close: !!inputById(`way-passage-prevent-close-${wayId}`)?.checked,
         };
-        const edgeUpdates: any[] = [];
-        const saveSide = (prefix: any, areaId: any) => {
+        const edgeUpdates: *FIX*[] = [];
+        const saveSide = (prefix: *FIX*, areaId: *FIX*) => {
             if (!areaId) return;
             const cmd = inputById(`way-side-${prefix}-cmd-${wayId}`)?.value?.trim() || '';
             const view = inputById(`way-side-${prefix}-view-${wayId}`)?.value ?? '';
@@ -442,7 +442,7 @@ window.InspectorWayView = (() => {
      * @param {string} nodeId - Graph node ID
      * @param {object} graphNode - Graph node data
      */
-    wayView.showWay = function(nodeId: any, graphNode: any) {
+    wayView.showWay = function(nodeId: *FIX*, graphNode: *FIX*) {
         const name = graphNode.name;
         const props = graphNode.properties || {};
         const tags = props.tags || [];
@@ -452,7 +452,7 @@ window.InspectorWayView = (() => {
         // Find connection edges
         const edges = worldState.graph?.edges || [];
         const nodeIdLower = String(nodeId).toLowerCase();
-        const connEdges = edges.filter((edge: any) => edge.type === 'connection' && (String(edge.source).toLowerCase() === nodeIdLower || String(edge.target).toLowerCase() === nodeIdLower));
+        const connEdges = edges.filter((edge: *FIX*) => edge.type === 'connection' && (String(edge.source).toLowerCase() === nodeIdLower || String(edge.target).toLowerCase() === nodeIdLower));
 
         // Parse area connections
         const connectionInfo = wayView._parseConnections(connEdges, nodeId);
@@ -470,7 +470,7 @@ window.InspectorWayView = (() => {
             if (configEl) configEl.style.display = enabled ? 'flex' : 'none';
             api.updateNode(nodeId, { properties: { needs_open: { enabled, skill, dc } } }).then(() => worldState.fetch());
         };
-        const saveNeedsOpenField = (field: any) => (ev: Event) => {
+        const saveNeedsOpenField = (field: *FIX*) => (ev: Event) => {
             const existing = worldState.getNode(nodeId)?.properties?.needs_open || {};
             const patch = { ...existing };
             patch[field] = field === 'dc' ? (parseInt((ev.target as HTMLInputElement).value) || 15) : (ev.target as HTMLInputElement).value;
@@ -533,7 +533,7 @@ window.InspectorWayView = (() => {
                         <label for="way-max-size-${nodeId}" style="font-size:11px;flex:0 0 auto;">📏 Max size through</label>
                         <select id="way-max-size-${nodeId}" style="flex:1;font-size:10px;"
                             @change=${(ev: Event) => api.updateNode(nodeId, { properties: { max_size: (ev.target as HTMLInputElement).value } }).then(() => worldState.fetch())}>
-                            <option value="" ?selected=${!props.max_size || props.max_size === 'none'}>Any size (no limit)</option>
+                            <option value="" ?selected=${!props.max_size || props.max_size === 'none'}>*FIX* size (no limit)</option>
                             ${['tiny', 'small', 'normal', 'huge', 'giant', 'titanic'].map(sizeName => htmlTag`<option value=${sizeName} ?selected=${props.max_size === sizeName}>${sizeName}</option>`)}
                         </select>
                     </div>
@@ -579,7 +579,7 @@ window.InspectorWayView = (() => {
                 appliesTo: 'areas',
                 allowNew: true,
                 placeholder: 'Search or create tags...',
-                onChange: (newTags: any) => {
+                onChange: (newTags: *FIX*) => {
                     api.updateNode(nodeId, { properties: { tags: newTags } }).then(() => worldState.fetch());
                 }
             });
@@ -598,15 +598,15 @@ window.InspectorWayView = (() => {
      * @param {string} nodeId - Way node ID
      * @returns {{roomAId:string, roomAName:string, roomADir:string, roomBId:string, roomBName:string, roomBDir:string}}
      */
-    wayView._parseConnections = function(connEdges: any, nodeId: any) {
+    wayView._parseConnections = function(connEdges: *FIX*, nodeId: *FIX*) {
         const roomNodes = worldState.graph?.nodes || {};
         const wayNode = roomNodes[nodeId];
         const props = wayNode?.properties || {};
 
         // Collect the distinct area→way edges (canonical direction carriers).
-        const areaToWay: any[] = [];
+        const areaToWay: *FIX*[] = [];
         const seen = new Set();
-        connEdges.forEach((edge: any) => {
+        connEdges.forEach((edge: *FIX*) => {
             if (edge.target === nodeId && !seen.has(edge.source.toLowerCase())) {
                 seen.add(edge.source.toLowerCase());
                 areaToWay.push(edge);
@@ -614,7 +614,7 @@ window.InspectorWayView = (() => {
         });
 
         const edgeDir = (id: string) => {
-            const hit = connEdges.find((e: any) =>
+            const hit = connEdges.find((e: *FIX*) =>
                 e.target === nodeId && e.source.toLowerCase() === id.toLowerCase());
             return hit?.properties?.direction || '';
         };
@@ -625,7 +625,7 @@ window.InspectorWayView = (() => {
         const fromName = props.area_from || '';
         const toName = props.area_to || '';
         const nameToId: Record<string, string> = {};
-        Object.values(roomNodes).forEach((n: any) => {
+        Object.values(roomNodes).forEach((n: *FIX*) => {
             if (n.type === 'area') nameToId[String(n.name || '').toLowerCase()] = n.id;
         });
         const fromId = nameToId[fromName.toLowerCase()];
@@ -649,14 +649,14 @@ window.InspectorWayView = (() => {
         return { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir };
     };
 
-    wayView._renderVisibleItemSelect = function(sourceAreaId: any, wayId: any, targetAreaName: any, selectedItems: any) {
+    wayView._renderVisibleItemSelect = function(sourceAreaId: *FIX*, wayId: *FIX*, targetAreaName: *FIX*, selectedItems: *FIX*) {
         const items = worldState.getItemsInArea(targetAreaName) || [];
-        const selected = new Set((selectedItems || []).map((name: any) => String(name).toLowerCase()));
+        const selected = new Set((selectedItems || []).map((name: *FIX*) => String(name).toLowerCase()));
         if (!items.length) {
             return `<div style="font-size:10px;color:var(--text-muted);">No items in ${esc(targetAreaName)}</div>`;
         }
         const size = Math.min(5, Math.max(2, items.length));
-        const options = items.map((item: any) => {
+        const options = items.map((item: *FIX*) => {
             const name = item.name || '';
             const isSelected = selected.has(String(name).toLowerCase());
             return `<option value="${esc(name)}" ${isSelected ? 'selected' : ''}>${esc(name)}</option>`;
@@ -665,13 +665,13 @@ window.InspectorWayView = (() => {
             onchange="InspectorWayView._saveVisibleItems('${esc(sourceAreaId)}','${esc(wayId)}',this)">${options}</select>`;
     };
 
-    wayView._saveVisibleItems = function(sourceId: any, wayId: any, selectEl: any) {
-        const visible_items = Array.from(selectEl.selectedOptions).map((opt: any) => opt.value);
+    wayView._saveVisibleItems = function(sourceId: *FIX*, wayId: *FIX*, selectEl: *FIX*) {
+        const visible_items = Array.from(selectEl.selectedOptions).map((opt: *FIX*) => opt.value);
         api.updateEdge(sourceId, wayId, { old_type: 'connection', properties: { visible_items } })
             .then(() => worldState.fetch());
     };
 
-    wayView._saveAllowSeeCharacters = function(sourceId: any, wayId: any, checked: any) {
+    wayView._saveAllowSeeCharacters = function(sourceId: *FIX*, wayId: *FIX*, checked: *FIX*) {
         api.updateEdge(sourceId, wayId, { old_type: 'connection', properties: { allow_see_characters: !!checked } })
             .then(() => worldState.fetch());
     };
@@ -684,13 +684,13 @@ window.InspectorWayView = (() => {
      * @param {string} escapedId - HTML-escaped node ID
      * @returns {string} HTML for the connections section
      */
-    wayView._renderConnections = function(connEdges: any, connInfo: any, nodeId: any, escapedId: any) {
+    wayView._renderConnections = function(connEdges: *FIX*, connInfo: *FIX*, nodeId: *FIX*, escapedId: *FIX*) {
         const { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir } = connInfo;
 
         // Build area name → node ID map
         const roomNodes = worldState.graph?.nodes || {};
         const roomNameMap: Record<string, string> = {};
-        Object.entries(roomNodes).forEach(([nodeIdKey, node]: [string, any]) => {
+        Object.entries(roomNodes).forEach(([nodeIdKey, node]: [string, *FIX*]) => {
             if (node.type === 'area') {
                 roomNameMap[node.name || nodeIdKey] = nodeIdKey;
             }
@@ -704,8 +704,8 @@ window.InspectorWayView = (() => {
 
         if (!roomAId || !roomBId) return '';
 
-        const roomAEdge = connEdges.find((edge: any) => edge.source.toLowerCase() === roomAId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
-        const roomBEdge = connEdges.find((edge: any) => edge.source.toLowerCase() === roomBId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
+        const roomAEdge = connEdges.find((edge: *FIX*) => edge.source.toLowerCase() === roomAId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
+        const roomBEdge = connEdges.find((edge: *FIX*) => edge.source.toLowerCase() === roomBId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
         const viewAB = roomAEdge?.properties?.visible_in_direction || '';
         const viewBA = roomBEdge?.properties?.visible_in_direction || '';
         const allowSeeAB = !!roomAEdge?.properties?.allow_see_characters;
@@ -784,7 +784,7 @@ window.InspectorWayView = (() => {
 
 
 
-    wayView._saveToLibrary = async function(nodeId: any) {
+    wayView._saveToLibrary = async function(nodeId: *FIX*) {
         const node = worldState.getNode(nodeId);
         if (!node || node.type !== 'way') {
             events.log('Cannot save: not a way node.', 'error-msg');
@@ -795,7 +795,7 @@ window.InspectorWayView = (() => {
         const wayId = name.toLowerCase().replace(/[^a-z0-9_]+/g, '_');
         const triggers = wayView._extractTriggersFromEdges(nodeId);
 
-        const payload: Record<string, any> = {
+        const payload: Record<string, *FIX*> = {
             id: wayId,
             name,
             description: props.description || '',
@@ -816,7 +816,7 @@ window.InspectorWayView = (() => {
         };
 
         // Check if library entry already exists
-        let existing: Record<string, any> = {};
+        let existing: Record<string, *FIX*> = {};
         try {
             const libData = await api.getLibraryType('ways');
             if (libData[wayId]) existing = libData[wayId];
@@ -862,8 +862,8 @@ window.InspectorWayView = (() => {
             if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
             events.log(`Updated "${name}" in library.`, 'system-msg');
         } else if (result.action === 'duplicate') {
-            const dupePayload: Record<string, any> = { ...payload, id: result.id, name: result.name };
-            const merged: Record<string, any> = { ...dupePayload };
+            const dupePayload: Record<string, *FIX*> = { ...payload, id: result.id, name: result.name };
+            const merged: Record<string, *FIX*> = { ...dupePayload };
             if (result.sections) {
                 for (const key of result.sections) {
                     merged[key] = dupePayload[key];
@@ -875,7 +875,7 @@ window.InspectorWayView = (() => {
         }
     };
 
-    wayView._refreshFromLibrary = async function(nodeId: any) {
+    wayView._refreshFromLibrary = async function(nodeId: *FIX*) {
         const node = worldState.getNode(nodeId);
         if (!node || node.type !== 'way') {
             toastInfo('No library_id  -  cannot refresh.');
@@ -949,14 +949,14 @@ window.InspectorWayView = (() => {
         events.log(`Refreshed "${name}" from library: ${data.applied?.join(', ')}`, 'system-msg');
     };
 
-    wayView.improveWayWithAI = async function(nodeId: any) {
+    wayView.improveWayWithAI = async function(nodeId: *FIX*) {
         const system = `You are a procedural way enhancer for a text adventure game. A "way" is a door, passage, or path between two areas. The way data schema supports:
 
 PROPERTIES: current_state (open/closed/locked/blocked/broken/hidden), pass_message (text shown when passing through), needs_open (object with enabled boolean, skill name, and dc number), auto_close (boolean), see_through (boolean), one_way (boolean), requires (passage mode: empty/crawl/climb/jump), max_size (largest size that fits through: empty/tiny/small/normal/huge/giant/titanic), sound_barrier (optional number: how much speech penetration this door blocks when closed/blocked/locked  -  1 = normal door, 2 = vault-thick, omit for default), edge_length (number 20-500 for graph layout)
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`;
 
-        const buildPrompt = (node: any, lockedFields: any) => {
+        const buildPrompt = (node: *FIX*, lockedFields: *FIX*) => {
             const name = node.name || '';
             const props = node.properties || {};
             const description = props.description || '';
@@ -981,9 +981,9 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             return promptLines.join('\n');
         };
 
-        const apply = (parsed: any, node: any, lockedFields: any, update: any) => {
+        const apply = (parsed: *FIX*, node: *FIX*, lockedFields: *FIX*, update: *FIX*) => {
             if (parsed.name) update.name = parsed.name;
-            const propUpdate: Record<string, any> = {};
+            const propUpdate: Record<string, *FIX*> = {};
             if (parsed.description !== undefined && !lockedFields.includes('description')) propUpdate.description = parsed.description;
             if (parsed.current_state !== undefined && !lockedFields.includes('current_state')) propUpdate.current_state = parsed.current_state;
             if (parsed.pass_message !== undefined && !lockedFields.includes('pass_message')) propUpdate.pass_message = parsed.pass_message;
@@ -995,7 +995,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             if (parsed.max_size !== undefined && !lockedFields.includes('max_size')) propUpdate.max_size = ['tiny', 'small', 'normal', 'huge', 'giant', 'titanic'].includes(parsed.max_size) ? parsed.max_size : '';
             if (parsed.edge_length !== undefined && !lockedFields.includes('edge_length')) propUpdate.edge_length = parsed.edge_length;
             if (parsed.tags && !lockedFields.includes('tags')) {
-                propUpdate.tags = Array.isArray(parsed.tags) ? parsed.tags : parsed.tags.split(',').map((t: any) => t.trim());
+                propUpdate.tags = Array.isArray(parsed.tags) ? parsed.tags : parsed.tags.split(',').map((t: *FIX*) => t.trim());
             }
             if (parsed.parameters && !lockedFields.includes('parameters')) {
                 propUpdate.parameters = parsed.parameters;
@@ -1010,7 +1010,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
     if (window.InspectorTemplateSync) {
         window.InspectorTemplateSync.register('way', {
             title: 'Refresh Way from Library',
-            buildWorldPayload(nodeId: any) {
+            buildWorldPayload(nodeId: *FIX*) {
                 const node = worldState.getNode(nodeId);
                 if (!node) return null;
                 const props = node.properties || {};

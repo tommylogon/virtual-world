@@ -99,7 +99,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         return [...types];
     }
 
-    /** target_name of the first on_use_on trigger on an item, if any. */
+    /** target_name of the first on_use_on trigger on an item, if *FIX*. */
     function useOnTargetName(itemId: string): string {
         for (const edge of worldState.graph?.edges || []) {
             if (edge.type !== 'triggers') continue;
@@ -209,7 +209,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // wear/remove are the prompt display names for the equip/unequip pair.
         // Equippable when the item declares the pair, is tagged wearable, OR has
-        // non-empty equip_slots (the engine's gate  -  equipment.py equips anything
+        // non-empty equip_slots (the engine's gate  -  equipment.py equips *FIX*thing
         // with slots). An empty equip_slots array must never imply wearability.
         const intrinsic = isIntrinsicAbility(props);
         const equipSlots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
@@ -264,9 +264,9 @@ window.PromptBuilder = window.PromptBuilder || {};
      * background); matches ingredients against carried + area items the
      * same lenient way the backend does. Guidance only.
      */
-    const _recipeCache: Record<string, { at: number; list: Array<Record<string, any>> }> = {};
+    const _recipeCache: Record<string, { at: number; list: Array<Record<string, *FIX*>> }> = {};
 
-    function knownRecipes(charName: string): Array<Record<string, any>> {
+    function knownRecipes(charName: string): Array<Record<string, *FIX*>> {
         return (_recipeCache[charName] && _recipeCache[charName].list) || [];
     }
 
@@ -278,7 +278,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
             headers: { 'Accept': 'application/json' }
         }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
-            .then((data: any) => {
+            .then((data: *FIX*) => {
                 _recipeCache[charName] = { at: Date.now(), list: data.recipes || [] };
             })
             .catch(() => { /* guidance is best-effort; stale list stands */ });
@@ -307,7 +307,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const out: string[] = [];
         for (const recipe of known) {
             const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
-            const missing = ingredients.filter((ing: any) => {
+            const missing = ingredients.filter((ing: *FIX*) => {
                 const needle = String(ing.item || '').toLowerCase();
                 return needle && ![...have].some((h) => h.includes(needle) || needle.includes(h));
             });

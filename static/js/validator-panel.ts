@@ -156,7 +156,7 @@
 
         /**
          * Remove a node's empty logic_trigger stubs (triggers with no effects)
-         * as ONE batch so a single Undo reverts it. Also clears them from any
+         * as ONE batch so a single Undo reverts it. Also clears them from *FIX*
          * dismiss list, since the problem vanishes.
          */
         async removeEmptyTriggers(nodeId: string): Promise<void> {
@@ -209,7 +209,7 @@
         /** Launch NL editor pre-seeded to fix a specific validation issue. */
         fixWithNL(nodeId: string, code: string, message: string): void {
             const prompt = `Fix world validation issue on ${nodeId || 'this node'} (${code}): "${message}". Stage necessary graph fixes and verify remediation.`;
-            const nlEditor = (window as any).NLEditor;
+            const nlEditor = (window as *FIX*).NLEditor;
             if (nlEditor) {
                 nlEditor.openPanel();
                 nlEditor.send(prompt);
@@ -265,7 +265,7 @@
 
         /**
          * Way-orientation triage (task-395 rework):
-         *   1. CLEAN — remove any values our OLD bulk-fill invented ("north"
+         *   1. CLEAN — remove *FIX* values our OLD bulk-fill invented ("north"
          *      cardinals, templated pass_message / visible_in_direction) so a
          *      "fixed" way isn't holding false data. Exact-string match only —
          *      author text is untouched.

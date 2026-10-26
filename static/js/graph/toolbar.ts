@@ -178,7 +178,7 @@ window.GraphToolbar = {
             // GraphBackground and fed to the physics policy — `GraphPhysics.
             // _locked` is the ONE flag the solver's gate reads (task-765). Read
             // that, not a graph-manager field: the old `_mapLayoutLocked` was
-            // never assigned anywhere, so the lock never disabled this button
+            // never assigned *FIX*where, so the lock never disabled this button
             // and a locked world looked like a dead toggle (bug-542). The lock
             // holds positions in every layout, so it is not gated to Map.
             mapLocked: !!(window.GraphPhysics && window.GraphPhysics._locked),

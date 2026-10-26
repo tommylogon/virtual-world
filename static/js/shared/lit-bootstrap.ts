@@ -15,7 +15,7 @@
  * @module shared/lit-bootstrap — the deferred lit-html bootstrap
  * @contributes stamps html / render / directives onto window.Lit for classic scripts
  * @powers every template-rendering view (the ONLY deferred module load; avoids the async race)
- * @relates must load before any view renders; classic scripts read window.Lit at call time only
+ * @relates must load before *FIX* view renders; classic scripts read window.Lit at call time only
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
@@ -42,7 +42,7 @@ export function renderPanel(template: TemplateResult): void {
 }
 
 /**
- * Render a lit-html TemplateResult into any element.
+ * Render a lit-html TemplateResult into *FIX* element.
  * @param {TemplateResult} template - lit-html template to render
  * @param {HTMLElement} target - element to render into
  */

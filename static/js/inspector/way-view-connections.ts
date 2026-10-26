@@ -16,12 +16,12 @@ window.InspectorWayViewConnections = (() => {
         id: string;
         name?: string;
         type?: string;
-        properties?: Record<string, any>;
+        properties?: Record<string, *FIX*>;
     }
     interface WVCEdge {
         source: string;
         target: string;
-        properties?: Record<string, any>;
+        properties?: Record<string, *FIX*>;
     }
     interface WVCConnInfo {
         roomAId: string; roomAName: string; roomADir: string;
@@ -75,7 +75,7 @@ window.InspectorWayViewConnections = (() => {
     C._parseConnections = function(connEdges: WVCEdge[], nodeId: string): WVCConnInfo {
         const roomNodes: Record<string, WVCNode> = worldState.graph?.nodes || {};
         const wayNode = roomNodes[nodeId];
-        const props: Record<string, any> = wayNode?.properties || {};
+        const props: Record<string, *FIX*> = wayNode?.properties || {};
 
         const areaToWay: WVCEdge[] = [];
         const seen = new Set<string>();

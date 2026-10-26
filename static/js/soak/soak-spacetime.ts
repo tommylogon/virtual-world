@@ -251,7 +251,7 @@ const F = (window as unknown as { SoakFormat: { esc(s: unknown): string } }).Soa
      * Returns lanes (with their packed rows), the totals needed to size the
      * canvas, and the collisions. Keeping this pure means the layout can be
      * asserted in a test without a DOM — the failure mode being guarded is
-     * "renders without freezing and without dropping anyone", which a screenshot
+     * "renders without freezing and without dropping *FIX*one", which a screenshot
      * cannot check.
      */
     function buildLayout(payload: SpacetimePayload, options?: Partial<LayoutOptions>): Layout {
@@ -292,7 +292,7 @@ const F = (window as unknown as { SoakFormat: { esc(s: unknown): string } }).Soa
             // the ones buildLayout needs itself. A missing one becomes an
             // `undefined`/`NaN` SVG attribute, which the browser silently drops —
             // the grid lines and death rules then simply do not appear, with no
-            // error anywhere. Pinned by a test.
+            // error *FIX*where. Pinned by a test.
             paddingLeft: o.paddingLeft,
             paddingRight: o.paddingRight,
             paddingTop: o.paddingTop,

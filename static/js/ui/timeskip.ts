@@ -36,7 +36,7 @@ window.Timeskip = (() => {
     // divs. A union return type made every .value/.disabled access an error at
     // the call site instead of here, so it is ny - the honest annotation
     // for a helper whose element type varies by id.
-    function _el(id: string): any {
+    function _el(id: string): *FIX* {
         return document.getElementById(id);
     }
 
@@ -94,12 +94,12 @@ window.Timeskip = (() => {
     function _isDeadNoGhost(): boolean {
         try {
             const ghostMode = Boolean(
-                (window.worldState && (window.worldState as any).data && (window.worldState as any).data.ghost_mode) ||
-                (window.config && (window.config as any).ghostMode)
+                (window.worldState && (window.worldState as *FIX*).data && (window.worldState as *FIX*).data.ghost_mode) ||
+                (window.config && (window.config as *FIX*).ghostMode)
             );
             if (ghostMode) return false;
-            if (window.worldState && (window.worldState as any).data) {
-                const data = (window.worldState as any).data;
+            if (window.worldState && (window.worldState as *FIX*).data) {
+                const data = (window.worldState as *FIX*).data;
                 const who = data.active_player;
                 if (!who) return false;
                 const players = data.players || {};
@@ -192,7 +192,7 @@ window.Timeskip = (() => {
      * an order and no elapsed figures at all. Printing the elapsed line for it is
      * what produced "Elapsed: undefined min (undefined ticks)".
      */
-    function _soakLines(order: any): string[] {
+    function _soakLines(order: *FIX*): string[] {
         const who = _activeCharacter() || 'The character';
         const span = _round(order.declared_minutes);
         if (order.ended || order.reason || order.interrupted) {
@@ -213,7 +213,7 @@ window.Timeskip = (() => {
     }
 
     /** Summary lines for a timeskip response. Pure, so it is unit-testable. */
-    function _summarize(data: any): string[] {
+    function _summarize(data: *FIX*): string[] {
         const lines = [];
         if (data.mode === 'world') {
             lines.push('No active character - the world advances.');
@@ -246,7 +246,7 @@ window.Timeskip = (() => {
         return lines;
     }
 
-    function _renderSummary(data: any): void {
+    function _renderSummary(data: *FIX*): void {
         const box = _el('timeskip-result');
         if (!box) return;
         box.textContent = _summarize(data).join('\n');
@@ -272,7 +272,7 @@ window.Timeskip = (() => {
             ? 'Advancing the world with everyone in soak mode…'
             : 'Advancing the world minute by minute…');
         try {
-            const data = await (ApiClient as unknown as { post(p: string, b: unknown): Promise<any> }).post('/api/world/timeskip', body);
+            const data = await (ApiClient as unknown as { post(p: string, b: unknown): Promise<*FIX*> }).post('/api/world/timeskip', body);
             if (!data || data.error || data.ok === false) {
                 _setStatus('⚠ ' + ((data && (data.error || data.reason)) || 'Timeskip failed.'));
                 return;
@@ -328,7 +328,7 @@ window.Timeskip = (() => {
         const minutes = await _askMinutes();
         if (minutes === null) return;
         try {
-            const data = await (ApiClient as unknown as { post(p: string, b: unknown): Promise<any> })
+            const data = await (ApiClient as unknown as { post(p: string, b: unknown): Promise<*FIX*> })
                 .post('/api/world/timeskip', { minutes, world: true });
             if (!data || data.error || data.ok === false) {
                 toastError('Advance world failed: ' + ((data && (data.error || data.reason)) || 'unknown error'));

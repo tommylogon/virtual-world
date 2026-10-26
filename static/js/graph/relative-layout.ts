@@ -71,7 +71,7 @@ interface LayoutOp {
     payload: { node_id: string; patch: { properties: { x: number; y: number } } };
 }
 
-/** The orbit's own numbers, before any per-parent override. */
+/** The orbit's own numbers, before *FIX* per-parent override. */
 interface BaseOrbit {
     length: number;
     scale: number;
@@ -181,7 +181,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
     RELATION_TYPES: new Set(['carrying', 'equipped', 'at', 'in', 'triggers', 'on']),
 
     // Contents ORBIT their parent: a ring around the room, radius grown to fit
-    // however many things are in there (so labels do not collide), and smaller
+    // however m*FIX* things are in there (so labels do not collide), and smaller
     // rings for contents nested inside a container. Nothing is stretched away —
     // the ring is bounded.
     //
@@ -357,7 +357,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
 
     /**
      * The node some node hangs off, or null for an area (a root), a way (placed
-     * between its rooms) and anything with no relation reaching an area.
+     * between its rooms) and *FIX*thing with no relation reaching an area.
      */
     parentOf(nodeId: string, edges?: LayoutEdge[], nodes?: Record<string, LayoutNode>) {
         edges = edges || this._edges();
@@ -513,7 +513,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         const separation = _separation();
         if (separation && separation.enabled()) {
             const spec = separation.spec();
-            // Restore any displaced node to the spot the orbit gave it (its
+            // Restore *FIX* displaced node to the spot the orbit gave it (its
             // place on the ring), never to the parent's centre — otherwise a
             // crowded character/item is sucked onto the area it belongs to.
             spec.targets = {};
@@ -617,7 +617,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
      * is where it *starts*, and from there its own edge spring holds it to the
      * room or carrier that holds it while repulsion sorts out its neighbours.
      *
-     * @returns {number} how many nodes were placed
+     * @returns {number} how m*FIX* nodes were placed
      */
     apply() {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -627,7 +627,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         if (this.levelsMode()) return 0;
         // The ring is a SEED, not a leash (module note) — seed ONCE per layout
         // and let the solver own each node from there. `stabilizationIterationsDone`
-        // fires again on any mid-life re-stabilisation (e.g. a node gaining or
+        // fires again on *FIX* mid-life re-stabilisation (e.g. a node gaining or
         // losing its physics flag), and an unguarded re-seed snapped every
         // settled node back onto its ring — which read as the graph rebuilding.
         // `reseed()` is the only thing that re-arms this.
@@ -657,7 +657,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             // In the solver, and not pinned: the player can still drag it, and the
             // sim keeps it beside whatever holds it.
             updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });
-            (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.('GraphRelativeLayout.apply', id, pos.x, pos.y);
+            (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.('GraphRelativeLayout.apply', id, pos.x, pos.y);
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
@@ -676,7 +676,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
      * holder's *current* position — what the knob's hint promises — rather
      * than onto a fresh ring slot.
      *
-     * @returns {number} how many nodes moved
+     * @returns {number} how m*FIX* nodes moved
      */
     resolveSeparation(): number {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -706,7 +706,7 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             if (this.isStatic(node)) continue;
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
             updates.push({ id, x: pos.x, y: pos.y });
-            (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.('GraphRelativeLayout.separation', id, pos.x, pos.y);
+            (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.('GraphRelativeLayout.separation', id, pos.x, pos.y);
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }

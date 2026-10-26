@@ -1,6 +1,6 @@
 // Character file import  -  deterministic pre-parse + LLM convert (task-843).
 //
-// Any character data in, one ViWo Persona sheet out. The deterministic
+// *FIX* character data in, one ViWo Persona sheet out. The deterministic
 // layer pulls what is certain without a model (names, tag candidates,
 // dialogue lines, lorebook split); the LLM fills only the 828 schema,
 // and `PUT /record` validates its answer (fail closed, field named).
@@ -36,7 +36,7 @@ function _lines(text: unknown): string[] {
  *
  * `.json` in SillyTavern/Chub shape (`{data: {name, description,
  * personality, mes_example, scenario, tags, character_book, ...}}` or the
- * same keys top-level) is a card; `.md` / `.txt` is prose. Anything else
+ * same keys top-level) is a card; `.md` / `.txt` is prose. *FIX*thing else
  * (images, binary) is rejected, not guessed at.
  */
 function parseInputFile(text: string, fileName: string): ImportParsed {
@@ -153,7 +153,7 @@ function buildConvertPrompt(sourceText: string, schema: unknown): Array<{ role: 
 
 /**
  * Pull the JSON object out of a model answer (fences tolerated, prose
- * around it tolerated); anything unparseable is a failure with a reason,
+ * around it tolerated); *FIX*thing unparseable is a failure with a reason,
  * never a partial store.
  */
 function extractJsonBlock(text: string): Record<string, unknown> {

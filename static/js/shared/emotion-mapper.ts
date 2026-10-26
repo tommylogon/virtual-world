@@ -1,5 +1,5 @@
 /**
- * emotion-mapper.js — turn any emotion label into an affect dimension.
+ * emotion-mapper.js — turn *FIX* emotion label into an affect dimension.
  *
  * Strategy:
  *   1. Keyword lookup against a curated LABEL_TO_DIM (mirrors the server's

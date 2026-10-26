@@ -10,18 +10,18 @@
     'use strict';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const config = (window as any).config;
+        const config = (window as *FIX*).config;
         await config?._initPromise;
-        (window as any).llmClient?.configure(config?.toLLMConfig?.());
-        (window as any).CommonsUI.init();
-        await (window as any).CommonsState.sync();
-        (window as any).CommonsState.startLiveUpdates();
-        (window as any).CommonsAgent.start();
+        (window as *FIX*).llmClient?.configure(config?.toLLMConfig?.());
+        (window as *FIX*).CommonsUI.init();
+        await (window as *FIX*).CommonsState.sync();
+        (window as *FIX*).CommonsState.startLiveUpdates();
+        (window as *FIX*).CommonsAgent.start();
 
         // Auto-pause when tab is hidden, resume when visible
         document.addEventListener('visibilitychange', () => {
-            (window as any).CommonsState.setPaused(document.hidden, 'visibility');
+            (window as *FIX*).CommonsState.setPaused(document.hidden, 'visibility');
         });
-        if (document.hidden) (window as any).CommonsState.setPaused(true, 'visibility');
+        if (document.hidden) (window as *FIX*).CommonsState.setPaused(true, 'visibility');
     });
 })();

@@ -25,7 +25,7 @@ class RateLimiter {
     private _timestamps: number[] = [];
 
     /**
-     * Calculate how many milliseconds to wait before making the next API call,
+     * Calculate how m*FIX* milliseconds to wait before making the next API call,
      * based on the configured `config.rpmLimit` (requests per minute).
      * Consumes a slot when one is free.
      */

@@ -138,7 +138,7 @@ const InspectorTemplateSync = (() => {
         const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
         html += `<option value="${esc(id)}">${esc(label)}</option>`;
       }
-      list.innerHTML = html;
+      list.*FIX*= html;
     }
     if (current && !input.value) input.value = current;
   }

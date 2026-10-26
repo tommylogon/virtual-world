@@ -1052,7 +1052,7 @@ var triggerEditorApi = {
         const opSelect = document.createElement('select');
         opSelect.className = 'cond-group-op';
         opSelect.style.cssText = 'font-size:10px;padding:1px 4px;border-radius:4px;background:var(--bg-input);color:var(--text);border:1px solid var(--pink);';
-        window.Lit.render(triggerEditorTag`<option value="and" ?selected=${operator === 'and'}>ALL</option><option value="or" ?selected=${operator === 'or'}>ANY</option>`, opSelect);
+        window.Lit.render(triggerEditorTag`<option value="and" ?selected=${operator === 'and'}>ALL</option><option value="or" ?selected=${operator === 'or'}>*FIX*</option>`, opSelect);
         header.appendChild(opSelect);
         const label = document.createElement('span');
         label.style.cssText = 'font-size:10px;color:var(--text-muted);';
@@ -1166,7 +1166,7 @@ var triggerEditorApi = {
                         : triggerEditorTag`<label style="font-size:9px;">${ctype === 'has_items' ? 'Comma-separated items' : 'Value'}</label><input type="text" class="cond-value" .value=${dispVal} style="width:100%;font-size:11px;">`}
                     </div>
                     <div data-subcond="has_tag" style="display:${ctype === 'has_tag' ? 'block' : 'none'};">
-                        <label style="font-size:9px;">Tags (any of)</label><div class="cond-tag-multi" data-value=${Array.isArray(existingCond?.value) ? existingCond.value.join(',') : (existingCond?.value || '')}></div>
+                        <label style="font-size:9px;">Tags (*FIX* of)</label><div class="cond-tag-multi" data-value=${Array.isArray(existingCond?.value) ? existingCond.value.join(',') : (existingCond?.value || '')}></div>
                     </div>
                 </div>
                 <div class="cond-field" data-cond="area_has_status" style="display:${SHOWS(['area_has_status'])};">
@@ -1181,7 +1181,7 @@ var triggerEditorApi = {
                             <select class="cond-operator" style="width:100%;font-size:10px;">${OPTS}</select>
                         </div>
                         <div style="flex:1;"><label style="font-size:9px;">Value</label>
-                            <input type="number" class="cond-value" .value=${condValue} step="any" style="width:100%;font-size:11px;">
+                            <input type="number" class="cond-value" .value=${condValue} step="*FIX*" style="width:100%;font-size:11px;">
                         </div>
                     </div>
                 </div>
@@ -1972,7 +1972,7 @@ var triggerEditorApi = {
                             ${['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].map(v => triggerEditorTag`
                                 <label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
                                     <span style="flex:1;">${v}</span>
-                                    <input type="number" step="any" class="eff-periodic-${v}" .value=${String(effParams.periodic?.[v] !== undefined ? effParams.periodic[v] : 0)} style="width:52px;font-size:10px;">
+                                    <input type="number" step="*FIX*" class="eff-periodic-${v}" .value=${String(effParams.periodic?.[v] !== undefined ? effParams.periodic[v] : 0)} style="width:52px;font-size:10px;">
                                 </label>
                             `)}
                         </div>

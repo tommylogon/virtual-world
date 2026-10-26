@@ -106,7 +106,7 @@ class WorldSync {
         return (name || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_');
     }
 
-    _findLibraryMatch(type: string, worldPayload: Record<string, any>): LibraryMatch | null {
+    _findLibraryMatch(type: string, worldPayload: Record<string, *FIX*>): LibraryMatch | null {
         const lib = this.cache[type] || {};
         const name = String(worldPayload.name || '');
         const candidates = [
@@ -134,15 +134,15 @@ class WorldSync {
         // are recognised by a `worldpainter` provenance marker once stamped at
         // generation time (there is none today).
         this._generatedAreaNames = new Set<string>();
-        for (const node of Object.values(nodes) as Array<any>) {
+        for (const node of Object.values(nodes) as Array<*FIX*>) {
             if (node && node.type === 'area' && node.properties
                 && (node.properties.cell != null || node.properties.generated != null || node.properties.source === 'worldpainter') && node.name) {
                 this._generatedAreaNames.add(node.name);
             }
         }
-        const items: Array<{ nodeId: string; node: any }> = [];
-        const ways: Array<{ nodeId: string; node: any }> = [];
-        for (const [nodeId, node] of Object.entries(nodes) as Array<[string, any]>) {
+        const items: Array<{ nodeId: string; node: *FIX* }> = [];
+        const ways: Array<{ nodeId: string; node: *FIX* }> = [];
+        for (const [nodeId, node] of Object.entries(nodes) as Array<[string, *FIX*]>) {
             if (node.type === 'item') items.push({ nodeId, node });
             else if (node.type === 'way') ways.push({ nodeId, node });
         }
@@ -226,7 +226,7 @@ class WorldSync {
         return out;
     }
 
-    _buildItem(nodeId: string, node: any, depth = 0, seen: Set<string> | null = null): SyncEntity | null {
+    _buildItem(nodeId: string, node: *FIX*, depth = 0, seen: Set<string> | null = null): SyncEntity | null {
         const built = itemLib._buildWorldItemPayload(nodeId);
         if (!built) return null;
         const payload = built.payload as Record<string, unknown>;
@@ -247,7 +247,7 @@ class WorldSync {
         return { type: 'item', nodeId, payload, match, status, generated };
     }
 
-    _buildWay(nodeId: string, node: any): SyncEntity {
+    _buildWay(nodeId: string, node: *FIX*): SyncEntity {
         const props = node.properties || {};
         const name = node.name || 'Unnamed Way';
         const payload = {
@@ -293,7 +293,7 @@ class WorldSync {
     }
 
     // Drop id/library_id so comparison is about content, not linkage key.
-    _clean(payload: Record<string, any>) {
+    _clean(payload: Record<string, *FIX*>) {
         const c = { ...payload };
         delete c.id;
         delete c.library_id;
@@ -321,7 +321,7 @@ class WorldSync {
      * overwrite their matched library entry. Already-synced entities are left
      * untouched. Generated entities are skipped (bug-526: procedurally painted
      * areas carry a grid `cell`; generated items/ways carry a provenance marker).
-     * After the batch, saved entities flip to "synced ✓" in the list and any
+     * After the batch, saved entities flip to "synced ✓" in the list and *FIX*
      * failures stay marked.
      */
     async syncAll() {
@@ -340,8 +340,8 @@ class WorldSync {
         }
         const diffCount = pending.filter(g => g.status === 'diff').length;
         if (diffCount > 0) {
-            const confirmed = typeof (window as any).Dialog?.confirm === 'function'
-                ? await (window as any).Dialog.confirm({
+            const confirmed = typeof (window as *FIX*).Dialog?.confirm === 'function'
+                ? await (window as *FIX*).Dialog.confirm({
                     title: 'Overwrite Library Entries',
                     message: `Syncing will overwrite ${diffCount} existing library entr${diffCount === 1 ? 'y' : 'ies'}. Continue?`,
                     confirmLabel: 'Overwrite',
@@ -390,7 +390,7 @@ class WorldSync {
     // Merge the world payload over the matched library entry, but never let an
     // empty world value erase data the library already has. Non-empty world
     // values still win (the world is authoritative for fields it actually has).
-    _mergeEntry(libEntry: Record<string, any>, worldPayload: Record<string, any>) {
+    _mergeEntry(libEntry: Record<string, *FIX*>, worldPayload: Record<string, *FIX*>) {
         const out = { ...libEntry };
         for (const [key, value] of Object.entries(worldPayload)) {
             if (this._isEmpty(value) && !this._isEmpty(out[key])) continue;
@@ -400,7 +400,7 @@ class WorldSync {
     }
 
     /**
-     * Push one entity's world payload to the library, overwriting any existing
+     * Push one entity's world payload to the library, overwriting *FIX* existing
      * entry. No DiffModal — this is the "just do it" bulk path.
      */
     async _silentSave(e: SyncEntity) {
@@ -559,10 +559,10 @@ class WorldSync {
 }
 
 const worldSync = new WorldSync();
-(window as any).worldSync = worldSync;
-(window as any).WorldSync = WorldSync;
-if (typeof (window as any).VW === 'object' && (window as any).VW) {
-    (window as any).VW.worldSync = worldSync;
+(window as *FIX*).worldSync = worldSync;
+(window as *FIX*).WorldSync = WorldSync;
+if (typeof (window as *FIX*).VW === 'object' && (window as *FIX*).VW) {
+    (window as *FIX*).VW.worldSync = worldSync;
 }
 
 // NOTE: these declarations sit AFTER the first value statement on purpose. A
@@ -585,7 +585,7 @@ interface SyncEntity {
     type: string;
     nodeId?: string;
     name?: string;
-    payload: Record<string, any>;
+    payload: Record<string, *FIX*>;
     match: LibraryMatch | null;
     status: string;
     syncFailed?: boolean;
@@ -607,14 +607,14 @@ interface SyncGroup {
 }
 
 interface ItemLib {
-    _buildWorldItemPayload(nodeId: string): { payload: Record<string, any>; nested: string[] } | null;
+    _buildWorldItemPayload(nodeId: string): { payload: Record<string, *FIX*>; nested: string[] } | null;
     _extractTriggersFromNode(nodeId: string): unknown;
     saveWorldItem(nodeId?: string): unknown;
 }
 
 interface LibraryBrowser {
-    _buildAreaPayload(name: string): Record<string, any> | null;
-    _buildCharacterPayload(name: string): Record<string, any> | null;
+    _buildAreaPayload(name: string): Record<string, *FIX*> | null;
+    _buildCharacterPayload(name: string): Record<string, *FIX*> | null;
     saveAreaByName(name?: string): unknown;
     saveCharacterByName(name?: string): unknown;
 }

@@ -24,7 +24,7 @@ type InspectorAppEvents = {
     emit(event: string, payload?: unknown): void;
 };
 /** globals.d.ts has no Window entry for InspectorAreaView (area-view.js). */
-type InspectorAreaViewGlobal = { InspectorAreaView: any };
+type InspectorAreaViewGlobal = { InspectorAreaView: *FIX* };
 /** globals.d.ts has no Window entry for InspectorAgentView (agent-view.js). */
 type InspectorAgentViewGlobal = {
     InspectorAgentView: { _switchAgentTab(tabName: string): void };
@@ -53,7 +53,7 @@ const inspectorGraphApi = ApiClient as unknown as {
 };
 
 /** Read late, not captured at load: area-view.js is a separate script tag. */
-const inspectorAreaView = (): any => (window as unknown as InspectorAreaViewGlobal).InspectorAreaView;
+const inspectorAreaView = (): *FIX* => (window as unknown as InspectorAreaViewGlobal).InspectorAreaView;
 
 class Inspector {
     // `declare` fields are type-only: they emit no code, so converting this class
@@ -395,7 +395,7 @@ class Inspector {
             const jm = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
             if (jm) cleaned = jm[1].trim();
             else { const fb = cleaned.indexOf('{'), lb = cleaned.lastIndexOf('}'); if (fb !== -1 && lb > fb) cleaned = cleaned.substring(fb, lb + 1); }
-            const parsed: any = JSON.parse(cleaned);
+            const parsed: *FIX* = JSON.parse(cleaned);
 
             const personalityText = parsed.personality || parsed.description || 'A mysterious character.';
             const ta = document.getElementById('inspector-personality') as HTMLTextAreaElement | null;
@@ -509,11 +509,11 @@ class Inspector {
         if (typeof TriggerEditor === 'undefined') return;
         TriggerEditor.show({
             ...this._triggerEditorOptions(nodeId),
-            onSave: async (data: any) => {
+            onSave: async (data: *FIX*) => {
                 const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
                 const triggerData = { ...data, id: triggerId };
-                const currentTriggers = Array.isArray((graphNode.properties as any)?.triggers)
-                    ? [...(graphNode.properties as any).triggers]
+                const currentTriggers = Array.isArray((graphNode.properties as *FIX*)?.triggers)
+                    ? [...(graphNode.properties as *FIX*).triggers]
                     : [];
                 currentTriggers.push(triggerData);
                 await ApiClient.updateNode(nodeId, {
@@ -546,7 +546,7 @@ class Inspector {
         if (!graphNode) { console.warn('[_editTriggerFromNode] source node not found:', nodeId); return; }
         if (typeof TriggerEditor === 'undefined') { console.warn('[_editTriggerFromNode] TriggerEditor not loaded'); return; }
 
-        let triggerEdge: any;
+        let triggerEdge: *FIX*;
         try { triggerEdge = JSON.parse(triggerEdgeJson); } catch (e) { console.warn('[_editTriggerFromNode] bad edge JSON:', triggerEdgeJson); return; }
         const triggerNode = worldState.getNode(triggerEdge.target);
         if (triggerNode && triggerNode.type !== 'logic_trigger') {
@@ -556,8 +556,8 @@ class Inspector {
         if (!triggerNode) {
             // A property-array entry has no logic_trigger node; only a legacy
             // edge with no target node is worth a warning.
-            const stored = Array.isArray((graphNode.properties as any)?.triggers)
-                && (graphNode.properties as any).triggers.some((t: any) => t && t.id === triggerEdge.target);
+            const stored = Array.isArray((graphNode.properties as *FIX*)?.triggers)
+                && (graphNode.properties as *FIX*).triggers.some((t: *FIX*) => t && t.id === triggerEdge.target);
             if (!stored) {
                 console.warn('[_editTriggerFromNode] trigger node missing, using edge properties:', triggerEdge.target);
             }
@@ -565,8 +565,8 @@ class Inspector {
 
         // Prefer the trigger node's properties; fall back to the edge copy.
         const nodeProps = triggerNode?.properties && Object.keys(triggerNode.properties).length ? triggerNode.properties : null;
-        const props: any = nodeProps || triggerEdge.properties || {};
-        const triggerData: any = { ...props };
+        const props: *FIX* = nodeProps || triggerEdge.properties || {};
+        const triggerData: *FIX* = { ...props };
         if (!triggerData.effects) {
             triggerData.effects = [{ type: 'message', params: {} }];
         }
@@ -577,7 +577,7 @@ class Inspector {
         TriggerEditor.show({
             ...this._triggerEditorOptions(nodeId),
             initialData: triggerData,
-            onSave: async (data: any) => {
+            onSave: async (data: *FIX*) => {
                 // Keep the fields the form has no widget for (id, once, fired,
                 // cooldown): the stored definition is the merge base.
                 const updatedProps = { ...props, ...data };
@@ -586,10 +586,10 @@ class Inspector {
                 // Keep node + edge in sync: the runtime reads edge properties first.
                 try {
                     let targetId = triggerEdge ? triggerEdge.target : (triggerNode ? triggerNode.id : null);
-                    const currentTriggers = Array.isArray((graphNode.properties as any)?.triggers)
-                        ? [...(graphNode.properties as any).triggers]
+                    const currentTriggers = Array.isArray((graphNode.properties as *FIX*)?.triggers)
+                        ? [...(graphNode.properties as *FIX*).triggers]
                         : [];
-                    const trigIdx = currentTriggers.findIndex((t: any) => t && (t.id === targetId || t.id === triggerEdge?.target));
+                    const trigIdx = currentTriggers.findIndex((t: *FIX*) => t && (t.id === targetId || t.id === triggerEdge?.target));
                     if (trigIdx >= 0) {
                         currentTriggers[trigIdx] = { ...updatedProps, id: targetId || currentTriggers[trigIdx].id };
                         await ApiClient.updateNode(nodeId, {

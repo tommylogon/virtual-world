@@ -106,10 +106,10 @@ const NodeBadgesModule = {
         badges.push(entry);
     },
 
-    _normalizeTags(props: Record<string, any> | null | undefined): string[] {
+    _normalizeTags(props: Record<string, *FIX*> | null | undefined): string[] {
         let tags = props?.tags || [];
         if (typeof tags === 'string') tags = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
-        return Array.isArray(tags) ? tags.map((t: any) => String(t).toLowerCase()) : [];
+        return Array.isArray(tags) ? tags.map((t: *FIX*) => String(t).toLowerCase()) : [];
     },
 
     _triggerCount(nodeId: string | undefined): number {
@@ -263,7 +263,7 @@ interface GraphNodeData {
     id?: string;
     name?: string;
     type?: string;
-    properties?: Record<string, any>;
+    properties?: Record<string, *FIX*>;
     [key: string]: unknown;
 }
 

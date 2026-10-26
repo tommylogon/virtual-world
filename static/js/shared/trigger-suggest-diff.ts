@@ -48,7 +48,7 @@ const TriggerSuggestDiffModule = (() => {
      * Does an existing trigger already cover a suggested one?
      * Same trigger_type AND the suggestion's effect intents are all present in
      * the existing effects (amounts/messages may differ — that's an author's
-     * choice to keep). Message-only suggestions are covered by anything, since
+     * choice to keep). Message-only suggestions are covered by *FIX*thing, since
      * the engine plays existing messages just fine.
      */
     function covered(existing: TriggerSpec | null | undefined, suggested: TriggerSpec | null | undefined): boolean {
@@ -56,7 +56,7 @@ const TriggerSuggestDiffModule = (() => {
         const sugKeys = (suggested.effects || []).map(effectKey);
         const exKeys = new Set<string>((existing.effects || []).map(effectKey));
         if (sugKeys.length === 0) return false;
-        // A message suggestion is "covered" if we already have anything real.
+        // A message suggestion is "covered" if we already have *FIX*thing real.
         if (sugKeys.length === 1 && sugKeys[0] === 'message') return exKeys.size > 0;
         return sugKeys.every((k: string) => exKeys.has(k));
     }
@@ -156,13 +156,13 @@ const TriggerSuggestDiffModule = (() => {
 
         const head = document.createElement('div');
         head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;';
-        head.innerHTML = `<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(row.type)}</div>${badge(row.status)}`;
+        head.*FIX*= `<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(row.type)}</div>${badge(row.status)}`;
         card.appendChild(head);
 
         if (row.status === 'keep') {
             const line = document.createElement('div');
             line.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:6px;';
-            line.innerHTML = `An existing <b>${escapeHtml(row.type)}</b> trigger already does this — it will be <b style="color:${GREEN};">kept as-is</b>.`;
+            line.*FIX*= `An existing <b>${escapeHtml(row.type)}</b> trigger already does this — it will be <b style="color:${GREEN};">kept as-is</b>.`;
             card.appendChild(line);
         } else {
             if (row.existing && row.status === 'conflict') {
@@ -179,7 +179,7 @@ const TriggerSuggestDiffModule = (() => {
     function blockHtml(label: string, trigger: TriggerSpec, color: string, bg: string): HTMLElement {
         const el = document.createElement('div');
         el.style.cssText = `margin-top:8px;border:1px solid var(--border-light);border-radius:6px;padding:7px 10px;background:${bg};`;
-        el.innerHTML = `<div style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${color};margin-bottom:2px;">${escapeHtml(label)}</div>${effectsHtml(trigger)}${renderMetaLines(trigger)}`;
+        el.*FIX*= `<div style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${color};margin-bottom:2px;">${escapeHtml(label)}</div>${effectsHtml(trigger)}${renderMetaLines(trigger)}`;
         return el;
     }
 
@@ -276,7 +276,7 @@ const TriggerSuggestDiffModule = (() => {
         // Header
         const header = document.createElement('div');
         header.style.cssText = 'padding:14px 16px 10px;border-bottom:1px solid var(--border-light);flex-shrink:0;';
-        header.innerHTML = `
+        header.*FIX*= `
             <div style="font-size:14px;font-weight:700;">${escapeHtml(opts.title || 'Review suggested triggers')}</div>
             ${opts.subtitle ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(opts.subtitle)}</div>` : ''}
             ${summaryHtml(rows)}
@@ -287,7 +287,7 @@ const TriggerSuggestDiffModule = (() => {
         const body = document.createElement('div');
         body.style.cssText = 'padding:12px 16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;';
         if (!rows.length) {
-            body.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Everything planned is already covered — nothing to change.</div>';
+            body.*FIX*= '<div style="font-size:12px;color:var(--text-muted);">Everything planned is already covered — nothing to change.</div>';
         } else {
             rows.forEach((row: TriggerSuggestDiffDiffRow, i: number) => body.appendChild(buildRow(row, i)));
         }

@@ -31,10 +31,10 @@ interface Rect { x: number; y: number; w: number; h: number; }
  * placements, area_placements, unplaced_areas, children, names) or a vocabulary
  * blob. Those shapes are owned by `routes/world_grid_ops.py`, not by this
  * view-model, and every read here is already null-guarded, so the payload
- * arguments stay `any` rather than freezing a contract this file does not own.
+ * arguments stay `*FIX*` rather than freezing a contract this file does not own.
  */
-type GridPayload = any;
-type Vocabulary = any;
+type GridPayload = *FIX*;
+type Vocabulary = *FIX*;
 
 (function () {
     'use strict';
@@ -100,7 +100,7 @@ type Vocabulary = any;
     }
 
     // Keys are the real ids in `data/worldpainter/biomes.json` / `features`, so a
-    // painted cell reads at a glance; anything else gets a deterministic hash
+    // painted cell reads at a glance; *FIX*thing else gets a deterministic hash
     // colour, so an unknown value is still stable (never blank).
     const BIOME_COLORS: Record<string, string> = {
         sparse_forest: '#6f9b52', dense_forest: '#2f6b34', pine_forest: '#2b5a4b',
@@ -349,12 +349,12 @@ type Vocabulary = any;
         return points;
     }
 
-    function tileHeight(payload: any, x: number, y: number, vocab?: any): number {
+    function tileHeight(payload: *FIX*, x: number, y: number, vocab?: *FIX*): number {
         const key = cellKey(x, y);
         const bId = (payload?.layers?.biome || {})[key];
         if (!bId) return 0;
         if (vocab?.biomes) {
-            const b = vocab.biomes.find((v: any) => v.id === bId);
+            const b = vocab.biomes.find((v: *FIX*) => v.id === bId);
             if (b && typeof b.height === 'number') return b.height;
         }
         const bStr = String(bId).toLowerCase();
@@ -367,12 +367,12 @@ type Vocabulary = any;
         return 0;
     }
 
-    function tileObscurity(payload: any, x: number, y: number, vocab?: any): number {
+    function tileObscurity(payload: *FIX*, x: number, y: number, vocab?: *FIX*): number {
         const key = cellKey(x, y);
         const bId = (payload?.layers?.biome || {})[key];
         if (!bId) return 0;
         if (vocab?.biomes) {
-            const b = vocab.biomes.find((v: any) => v.id === bId);
+            const b = vocab.biomes.find((v: *FIX*) => v.id === bId);
             if (b && typeof b.obscurity === 'number') return Math.max(0, Math.min(1, b.obscurity));
         }
         const bStr = String(bId).toLowerCase();
@@ -384,7 +384,7 @@ type Vocabulary = any;
         return 0;
     }
 
-    function tileFloor(payload: any, x: number, y: number): number {
+    function tileFloor(payload: *FIX*, x: number, y: number): number {
         const v = (payload?.layers?.floor || {})[cellKey(x, y)];
         const n = Number(v);
         return Number.isFinite(n) ? n : 0;
@@ -468,10 +468,10 @@ type Vocabulary = any;
     function castSightRay(
         origin: Cell & { z?: number },
         target: Cell & { z?: number },
-        payload: any,
+        payload: *FIX*,
         eyeHeight = 0.5,
         maxRange = 60,
-        vocab?: any
+        vocab?: *FIX*
     ): SightRayResult {
         const x0 = Math.trunc(origin.x);
         const y0 = Math.trunc(origin.y);
@@ -542,12 +542,12 @@ type Vocabulary = any;
 
     function computeVisibleCells(
         origin: Cell & { z?: number },
-        payload: any,
+        payload: *FIX*,
         maxRange = 60,
         facing?: string | null,
         arcDegrees = 360,
         peripheralRange = 3,
-        vocab?: any
+        vocab?: *FIX*
     ): Set<string> {
         const x0 = Math.trunc(origin.x);
         const y0 = Math.trunc(origin.y);
@@ -643,7 +643,7 @@ type Vocabulary = any;
      * Turn a cell count into the game-time figures the world is authored in:
      * 1 cell = 1 turn = 1 minute, 60 turns/hour (240 cells => "4 h 00 m").
      */
-    function routeStats(cellCount: number, minutesPerCell?: number | null): any {
+    function routeStats(cellCount: number, minutesPerCell?: number | null): *FIX* {
         const per = minutesPerCell == null ? 1 : minutesPerCell;
         const turns = Math.round((Number(cellCount) || 0) * per);
         const hours = Math.floor(turns / 60);
@@ -654,12 +654,12 @@ type Vocabulary = any;
         return { cells: cellCount, turns, minutes: turns, hours: hours + mins / 60, label };
     }
 
-    function cellValue(payload: GridPayload, layer: string, x: number, y: number): any {
+    function cellValue(payload: GridPayload, layer: string, x: number, y: number): *FIX* {
         const layers = (payload && payload.layers) || {};
         return (layers[layer] || {})[cellKey(x, y)];
     }
 
-    function featureAt(payload: GridPayload, x: number, y: number): any {
+    function featureAt(payload: GridPayload, x: number, y: number): *FIX* {
         const feature = (payload && payload.feature) || {};
         return feature[cellKey(x, y)] || null;
     }
@@ -670,7 +670,7 @@ type Vocabulary = any;
      * A name is metadata *about* a cell, not paint on it, so it lives in its own
      * `names` map beside `layers` — there is no name vocabulary, and the eraser
      * should not wipe a name. A named cell may be unpainted, so this never implies
-     * anything about `painted`.
+     * *FIX*thing about `painted`.
      */
     function cellName(payload: GridPayload, x: number, y: number): string | null {
         const names = (payload && payload.names) || {};
@@ -679,23 +679,23 @@ type Vocabulary = any;
         return text || null;
     }
 
-    function placementFor(payload: GridPayload, childId: string): any {
+    function placementFor(payload: GridPayload, childId: string): *FIX* {
         const list = (payload && payload.placements) || [];
-        return list.find((p: any) => p.id === childId) || null;
+        return list.find((p: *FIX*) => p.id === childId) || null;
     }
 
     /**
      * Full render model: rows of cells (y-major) carrying paint + feature, so the
      * editor only maps colours to styles. Off-grid when the scope has no grid.
      */
-    function buildRows(payload: GridPayload): any[][] {
+    function buildRows(payload: GridPayload): *FIX*[][] {
         const grid = (payload && payload.grid) || null;
         if (!grid || !grid.w || !grid.h) return [];
-        const rows: any[][] = [];
+        const rows: *FIX*[][] = [];
         for (let y = 0; y < grid.h; y += 1) {
-            const row: any[] = [];
+            const row: *FIX*[] = [];
             for (let x = 0; x < grid.w; x += 1) {
-                const cell: Record<string, any> = { x, y, key: cellKey(x, y), feature: featureAt(payload, x, y) };
+                const cell: Record<string, *FIX*> = { x, y, key: cellKey(x, y), feature: featureAt(payload, x, y) };
                 PAINT_LAYERS.forEach((layer) => {
                     const value = cellValue(payload, layer, x, y);
                     if (value != null && value !== '') {
@@ -711,9 +711,9 @@ type Vocabulary = any;
     }
 
     /** Feature placements as a Map-like lookup for selection/badges. */
-    function featureMap(payload: GridPayload): Record<string, any> {
-        const out: Record<string, any> = {};
-        ((payload && payload.placements) || []).forEach((p: any) => {
+    function featureMap(payload: GridPayload): Record<string, *FIX*> {
+        const out: Record<string, *FIX*> = {};
+        ((payload && payload.placements) || []).forEach((p: *FIX*) => {
             out[cellKey(p.x, p.y)] = p;
         });
         return out;
@@ -725,9 +725,9 @@ type Vocabulary = any;
      */
     function pruneGrid(payload: GridPayload, w: number, h: number): { paintKept: number; placementsKept: number } {
         const inBounds = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h;
-        const layers: Record<string, Record<string, any>> = {};
+        const layers: Record<string, Record<string, *FIX*>> = {};
         Object.keys((payload && payload.layers) || {}).forEach((layer) => {
-            const kept: Record<string, any> = {};
+            const kept: Record<string, *FIX*> = {};
             Object.keys(payload.layers[layer]).forEach((key) => {
                 const pos = parseCellKey(key);
                 if (pos && inBounds(pos.x, pos.y)) kept[key] = payload.layers[layer][key];
@@ -735,7 +735,7 @@ type Vocabulary = any;
             if (Object.keys(kept).length) layers[layer] = kept;
         });
         const placements = ((payload && payload.placements) || [])
-            .filter((p: any) => inBounds(p.x, p.y));
+            .filter((p: *FIX*) => inBounds(p.x, p.y));
         return {
             paintKept: Object.keys(layers).reduce((n, l) => n + Object.keys(layers[l]).length, 0),
             placementsKept: placements.length,
@@ -743,7 +743,7 @@ type Vocabulary = any;
     }
 
     /**
-     * How many areas + ways a painted grid would compile to, so the author sees
+     * How m*FIX* areas + ways a painted grid would compile to, so the author sees
      * the node cost *before* minting it (a 5,000-cell paint is 5,000 areas plus
      * their passages, which is what makes the graph view choke).
      *
@@ -757,7 +757,7 @@ type Vocabulary = any;
      * main one becomes one extra "link" way (an island joined to the nearest
      * cell).
      */
-    function estimateCompile(payload: GridPayload, regionMerge?: boolean): any {
+    function estimateCompile(payload: GridPayload, regionMerge?: boolean): *FIX* {
         const layers = (payload && payload.layers) || {};
         const biome = layers.biome || {};
         const road = layers.road || {};
@@ -869,8 +869,8 @@ type Vocabulary = any;
         return { areas: rid, ways, total: rid + ways, isolated, links };
     }
 
-    function childrenAvailable(payload: GridPayload): any[] {
-        return ((payload && payload.children) || []).filter((c: any) => !c.placed);
+    function childrenAvailable(payload: GridPayload): *FIX*[] {
+        return ((payload && payload.children) || []).filter((c: *FIX*) => !c.placed);
     }
 
     // ── placed areas (task-528) ────────────────────────────────────────────
@@ -881,23 +881,23 @@ type Vocabulary = any;
     // compiler skips the cell so Generate cannot mint a second area on top.
 
     /** `{cellKey: area}` for every placed area, mirroring `featureMap`. */
-    function areaMap(payload: GridPayload): Record<string, any> {
-        const out: Record<string, any> = {};
-        ((payload && payload.area_placements) || []).forEach((a: any) => {
+    function areaMap(payload: GridPayload): Record<string, *FIX*> {
+        const out: Record<string, *FIX*> = {};
+        ((payload && payload.area_placements) || []).forEach((a: *FIX*) => {
             out[cellKey(a.x, a.y)] = a;
         });
         return out;
     }
 
     /** The area placed on a cell, or null. */
-    function areaAt(payload: GridPayload, x: number, y: number): any {
+    function areaAt(payload: GridPayload, x: number, y: number): *FIX* {
         return areaMap(payload)[cellKey(x, y)] || null;
     }
 
     /** Where an area is placed on this grid, or null. */
-    function areaPlacementFor(payload: GridPayload, areaId: string): any {
+    function areaPlacementFor(payload: GridPayload, areaId: string): *FIX* {
         return ((payload && payload.area_placements) || [])
-            .find((a: any) => a.id === areaId) || null;
+            .find((a: *FIX*) => a.id === areaId) || null;
     }
 
     /**
@@ -906,7 +906,7 @@ type Vocabulary = any;
      * the ones that belong to another scope. The editor renders the groups
      * (see :func:`areaGroups`); this is the flat view of the same list.
      */
-    function placeableAreas(payload: GridPayload, selectedId?: string): any[] {
+    function placeableAreas(payload: GridPayload, selectedId?: string): *FIX*[] {
         const groups = areaGroups(payload, selectedId);
         return groups.reduce((all, g) => all.concat(g.areas), []);
     }
@@ -927,15 +927,15 @@ type Vocabulary = any;
      *    its own heading with that scope's name, because picking one is a
      *    membership change (task-539) and should not read as a placement.
      */
-    function areaGroups(payload: GridPayload, selectedId?: string): any[] {
+    function areaGroups(payload: GridPayload, selectedId?: string): *FIX*[] {
         const scopeId = (payload && payload.scope && payload.scope.id) || null;
         const placed = areaMap(payload);
-        const byId: Record<string, any> = {};
+        const byId: Record<string, *FIX*> = {};
         Object.keys(placed).forEach((k) => { byId[placed[k].id] = placed[k]; });
         const candidates = ((payload && payload.unplaced_areas) || []);
-        const mine: any[] = [];
-        const elsewhere: any[] = [];
-        candidates.forEach((a: any) => {
+        const mine: *FIX*[] = [];
+        const elsewhere: *FIX*[] = [];
+        candidates.forEach((a: *FIX*) => {
             // The server already leaves placed areas out of `unplaced_areas`, but
             // an area on this grid belongs in the `placed` group only — never
             // listed twice.
@@ -945,9 +945,9 @@ type Vocabulary = any;
             else elsewhere.push(entry);
         });
         const onGrid = (payload && payload.area_placements) || [];
-        const groups: { key: string; label: string; areas: any[] }[] = [
+        const groups: { key: string; label: string; areas: *FIX*[] }[] = [
             { key: 'placed', label: `On this grid (${onGrid.length})`, areas: onGrid.map(
-                (a: any) => ({ id: a.id, name: a.name, x: a.x, y: a.y, scope_id: scopeId,
+                (a: *FIX*) => ({ id: a.id, name: a.name, x: a.x, y: a.y, scope_id: scopeId,
                            placedHere: { x: a.x, y: a.y } })) },
             { key: 'mine', label: `This scope, not placed (${mine.length})`, areas: mine },
             { key: 'elsewhere', label: 'Elsewhere in the world', areas: elsewhere },
@@ -956,7 +956,7 @@ type Vocabulary = any;
             // Never drop the selection out of the picker: the author has to be able
             // to move the area they already picked.
             const here = byId[selectedId];
-            const known = candidates.find((a: any) => a.id === selectedId);
+            const known = candidates.find((a: *FIX*) => a.id === selectedId);
             if (!here) {
                 const group = !known || !known.scope_id || known.scope_id === scopeId
                     ? groups[1] : groups[2];
@@ -981,7 +981,7 @@ type Vocabulary = any;
      * `empty` is true when nothing is there at all, which is the case the hover
      * readout needs to say "nothing here" instead of printing three empty fields.
      */
-    function cellInfo(payload: GridPayload, x: number, y: number, vocab?: Vocabulary): any {
+    function cellInfo(payload: GridPayload, x: number, y: number, vocab?: Vocabulary): *FIX* {
         const biome = cellValue(payload, 'biome', x, y) || null;
         const road = cellValue(payload, 'road', x, y) || null;
         const floor = floorNumber(cellValue(payload, 'floor', x, y));
@@ -989,7 +989,7 @@ type Vocabulary = any;
         // `feature` is the derived `{cellKey: child_scope_id}` view; the readable
         // card (name, kind, state) comes from the scope's own `placements` list.
         const childId = featureAt(payload, x, y);
-        const card = (payload && payload.placements || []).find((c: any) => c.id === childId);
+        const card = (payload && payload.placements || []).find((c: *FIX*) => c.id === childId);
         const child = childId ? { id: childId, name: card ? card.name : childId,
                                   kind: card ? card.kind : null } : null;
         const name = cellName(payload, x, y);
@@ -1005,7 +1005,7 @@ type Vocabulary = any;
             // stays a pure function of its arguments and unit-testable.
             kind: cellKind(vocab, biome),
             // A building is entered with `in`, not walked onto (task-563). Null
-            // for anything that is not a building, and for a road painted over a
+            // for *FIX*thing that is not a building, and for a road painted over a
             // building — the compiler does not treat that cell as one either.
             enter: cellEnter(vocab, road ? null : biome, child),
             area: area ? { id: area.id, name: area.name, x: area.x, y: area.y } : null,
@@ -1027,10 +1027,10 @@ type Vocabulary = any;
      * the editor says "— map edge" rather than pretending the world ends in a
      * wall. Each entry is `{dir, x, y, biome, road, kind, name}`.
      */
-    function cellNeighbours(payload: GridPayload, x: number, y: number, vocab?: Vocabulary): Record<string, any> {
+    function cellNeighbours(payload: GridPayload, x: number, y: number, vocab?: Vocabulary): Record<string, *FIX*> {
         const grid = (payload && payload.grid) || {};
         const dirs: [string, number, number][] = [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]];
-        const out: Record<string, any> = {};
+        const out: Record<string, *FIX*> = {};
         dirs.forEach(([dir, dx, dy]) => {
             const nx = x + dx;
             const ny = y + dy;
@@ -1080,8 +1080,8 @@ type Vocabulary = any;
             const c = parseCellKey(k);
             if (c) put(c.x, c.y);
         });
-        (payload.area_placements || []).forEach((a: any) => put(a.x, a.y));
-        (payload.placements || []).forEach((a: any) => put(a.x, a.y));
+        (payload.area_placements || []).forEach((a: *FIX*) => put(a.x, a.y));
+        (payload.placements || []).forEach((a: *FIX*) => put(a.x, a.y));
         if (!Number.isFinite(minX)) return null;
         return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
     }
@@ -1112,8 +1112,8 @@ type Vocabulary = any;
     /** How a painted cell is to movement, or null when it is a place (task-562). */
     function cellKind(vocab: Vocabulary, biomeId?: string | null): string | null {
         if (!biomeId) return null;
-        const biome = ((vocab && vocab.biomes) || []).find((b: any) => b.id === biomeId);
-        const tags = ((biome && biome.tags) || []).map((t: any) => String(t).toLowerCase());
+        const biome = ((vocab && vocab.biomes) || []).find((b: *FIX*) => b.id === biomeId);
+        const tags = ((biome && biome.tags) || []).map((t: *FIX*) => String(t).toLowerCase());
         if (!tags.includes('not_a_place')) return null;
         for (const tag of tags) {
             if (tag.indexOf('cell_kind:') === 0) return tag.split(':')[1];
@@ -1124,7 +1124,7 @@ type Vocabulary = any;
     /**
      * How a building cell is entered, or '' when it is not a building (task-563).
      *
-     * A building is a place you go *into*: `in` from any side that has a way. With
+     * A building is a place you go *into*: `in` from *FIX* side that has a way. With
      * a child scope on the cell, `in` leads to that interior; without one the door
      * is shut and the world answers with a refusal drawn from the building's
      * category. The vocabulary carries that sentence (`biomes[].refusal`, built by
@@ -1132,10 +1132,10 @@ type Vocabulary = any;
      * the author reads here is the line the world gives — one implementation
      * rather than two, which is the only way a preview stays true.
      */
-    function cellEnter(vocab: Vocabulary, biomeId?: string | null, child?: any): string {
+    function cellEnter(vocab: Vocabulary, biomeId?: string | null, child?: *FIX*): string {
         if (!biomeId) return '';
-        const biome = ((vocab && vocab.biomes) || []).find((b: any) => b.id === biomeId);
-        const tags = ((biome && biome.tags) || []).map((t: any) => String(t).toLowerCase());
+        const biome = ((vocab && vocab.biomes) || []).find((b: *FIX*) => b.id === biomeId);
+        const tags = ((biome && biome.tags) || []).map((t: *FIX*) => String(t).toLowerCase());
         if (!tags.includes('building')) return '';
         if (child) return `in → ${child.name || child.id}`;
         return biome && biome.refusal ? `in → ${biome.refusal}` : 'in';
@@ -1213,7 +1213,7 @@ type Vocabulary = any;
 
     /**
      * The `px / cell` range a control should offer: the smallest cell the clamps
-     * permit through the largest that still changes anything.
+     * permit through the largest that still changes *FIX*thing.
      *
      * Both ends come from the same limits :func:`gridForCellSize` enforces, so a
      * slider cannot be dragged to a value whose grid is then silently clamped
@@ -1255,10 +1255,10 @@ type Vocabulary = any;
                 if (cell && outside(cell.x, cell.y)) out.push({ x: cell.x, y: cell.y, kind: 'paint' });
             });
         });
-        ((payload.area_placements) || []).forEach((a: any) => {
+        ((payload.area_placements) || []).forEach((a: *FIX*) => {
             if (outside(a.x, a.y)) out.push({ x: a.x, y: a.y, kind: 'area' });
         });
-        ((payload.placements) || []).forEach((a: any) => {
+        ((payload.placements) || []).forEach((a: *FIX*) => {
             if (outside(a.x, a.y)) out.push({ x: a.x, y: a.y, kind: 'feature' });
         });
         return out;
@@ -1599,7 +1599,7 @@ type Vocabulary = any;
     ];
     const COMPASS_8_BEARINGS = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
 
-    function isWaterCell(payload: any, x: number, y: number, vocab?: any): boolean {
+    function isWaterCell(payload: *FIX*, x: number, y: number, vocab?: *FIX*): boolean {
         const bId = cellValue(payload, 'biome', x, y);
         if (!bId) return false;
         const bStr = String(bId).toLowerCase();
@@ -1609,11 +1609,11 @@ type Vocabulary = any;
             return true;
         }
         if (vocab && Array.isArray(vocab.biomes)) {
-            const b = vocab.biomes.find((v: any) => v.id === bId);
+            const b = vocab.biomes.find((v: *FIX*) => v.id === bId);
             if (b) {
                 if (b.terrain === 'water') return true;
                 if (b.surface === 'shallow_water' || b.surface === 'deep_water') return true;
-                const tags = (b.tags || []).map((t: any) => String(t).toLowerCase());
+                const tags = (b.tags || []).map((t: *FIX*) => String(t).toLowerCase());
                 if (tags.some((t: string) => ['water', 'river', 'stream', 'lake', 'ocean', 'rapids', 'waterfall'].includes(t))) {
                     return true;
                 }
@@ -1629,13 +1629,13 @@ type Vocabulary = any;
         return 20;
     }
 
-    function deriveWaterCurrent(payload: any, x: number, y: number, vocab?: any): any {
+    function deriveWaterCurrent(payload: *FIX*, x: number, y: number, vocab?: *FIX*): *FIX* {
         if (!isWaterCell(payload, x, y, vocab)) return null;
 
         const layers = payload?.layers || {};
         const currentLayer = layers.current || {};
         const key = cellKey(x, y);
-        let manual: any = null;
+        let manual: *FIX* = null;
         if (key in currentLayer) {
             const val = currentLayer[key];
             if (val && typeof val === 'object') manual = val;
@@ -1645,7 +1645,7 @@ type Vocabulary = any;
         const bId = cellValue(payload, 'biome', x, y);
         let bHazard: string | null = null;
         if (vocab && Array.isArray(vocab.biomes)) {
-            const b = vocab.biomes.find((v: any) => v.id === bId);
+            const b = vocab.biomes.find((v: *FIX*) => v.id === bId);
             if (b && b.hazard_id) bHazard = String(b.hazard_id);
         }
 

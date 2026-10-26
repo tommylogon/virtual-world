@@ -3,7 +3,7 @@
  *
  * @module bug-report  -  the 🐞 dialog: description, screenshot, picked DOM elements
  * @contributes BugReport: the report dialog, the DOM element picker, and the multipart POST to /api/bugs/report
- * @powers Report a bug  -  "🐞 Report a bug": turn the current view, a screenshot and any picked DOM elements into a task file under docs/virtualWorld/dev_tasks/todo
+ * @powers Report a bug  -  "🐞 Report a bug": turn the current view, a screenshot and *FIX* picked DOM elements into a task file under docs/virtualWorld/dev_tasks/todo
  * @relates reads graphManager mode/pitch/camera and the vis canvas; captures the picture with GraphExport.snapshotView; posts multipart to /api/bugs/report
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  *
@@ -12,7 +12,7 @@
  * inspector, toolbars and modals are plain DOM. A canvas grab gets the nodes with
  * no chrome, so the "capture view" button reuses `GraphExport.snapshotView()`,
  * which composites the graph canvas with the map layers exactly as the PNG export
- * does. And because no DOM rasteriser is vendored anywhere in this repo (no
+ * does. And because no DOM rasteriser is vendored *FIX*where in this repo (no
  * html2canvas, no `toDataURL` outside tests), a full-window shot is *pasted* or
  * *attached* rather than faked. Both paths end up as the same `screenshot` field.
  *
@@ -101,7 +101,7 @@
             devicePixelRatio: window.devicePixelRatio,
             userAgent: navigator.userAgent,
         };
-        const gm = (typeof graphManager !== 'undefined' ? graphManager : null) as any;
+        const gm = (typeof graphManager !== 'undefined' ? graphManager : null) as *FIX*;
         if (gm) {
             context.layoutMode = gm._cardinalLayout ? 'map' : 'graph';
             context.cardinalLayout = gm._cardinalLayout === true;
@@ -120,11 +120,11 @@
                 } catch (error) { /* camera is best-effort */ }
             }
         }
-        const engine = (typeof window !== 'undefined' ? (window as any).GraphLayoutEngine : null);
+        const engine = (typeof window !== 'undefined' ? (window as *FIX*).GraphLayoutEngine : null);
         if (engine && typeof engine.mapSpacing === 'function') {
             context.mapSpacingPx = engine.mapSpacing();
         }
-        const cfg = (typeof config !== 'undefined' ? config : null) as any;
+        const cfg = (typeof config !== 'undefined' ? config : null) as *FIX*;
         if (cfg) {
             context.graphMapSpacing = cfg.graphMapSpacing;
             context.graphMapSpacingAuto = cfg.graphMapSpacingAuto;
@@ -292,7 +292,7 @@
         if (!list) return;
         list.textContent = '';
         if (!elements.length) {
-            list.innerHTML = '<div style="color:var(--text-dim);font-size:11px;">'
+            list.*FIX*= '<div style="color:var(--text-dim);font-size:11px;">'
                 + 'No elements picked. The picker records the selector, box, computed styles and markup.</div>';
             return;
         }

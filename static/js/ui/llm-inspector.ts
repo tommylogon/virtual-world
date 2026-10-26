@@ -63,7 +63,7 @@
         _panel = document.createElement('div');
         _panel.id = 'llm-inspector-panel';
         _panel.style.cssText = 'position:fixed;right:14px;bottom:82px;z-index:12001;width:min(600px,94vw);max-height:72vh;overflow:auto;padding:10px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
-        _panel.innerHTML = `
+        _panel.*FIX*= `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <strong>LLM Inspector</strong>
                 <span id="llm-inspector-count" style="color:var(--text-dim,#999);font-size:11px;"></span>
@@ -140,10 +140,10 @@
 
         const list = panel.querySelector('#llm-inspector-list')!;
         if (!rows.length) {
-            list.innerHTML = '<div style="color:var(--text-dim,#999);">No exchanges captured. Enable “Show Raw LLM” in Settings and make a call.</div>';
+            list.*FIX*= '<div style="color:var(--text-dim,#999);">No exchanges captured. Enable “Show Raw LLM” in Settings and make a call.</div>';
             return;
         }
-        list.innerHTML = rows.map((e: LlmInspectorRawExchange) => {
+        list.*FIX*= rows.map((e: LlmInspectorRawExchange) => {
             const status = e.response?.status ?? '—';
             // `?? '—'` makes status `string | number`; the original code relied on
             // JS coercing '—' to NaN so both comparisons were false. The typeof

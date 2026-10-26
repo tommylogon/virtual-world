@@ -47,8 +47,8 @@ const agentConfig = config as unknown as AgentEngineConfig;
 
 /** globals.d.ts narrows ApiClient to the calls converted code made; these are more. */
 const agentApi = ApiClient as unknown as {
-    action(command: string, charName: string, opts?: { enforceSlots?: boolean }): Promise<any>;
-    emote(charName: string, emote: string): Promise<any>;
+    action(command: string, charName: string, opts?: { enforceSlots?: boolean }): Promise<*FIX*>;
+    emote(charName: string, emote: string): Promise<*FIX*>;
     setActivePlayer(charName: string): Promise<unknown>;
     resetWorld(): Promise<unknown>;
 };
@@ -82,9 +82,9 @@ class AgentEngine {
     declare initiativeRolls: Record<string, unknown>;
     declare _lastActionTime: number;
     /** ContextWindowManager instance - an unconverted module's internals. */
-    declare contextMgr: any;
+    declare contextMgr: *FIX*;
     /** RateLimiter instance - an unconverted module's internals. */
-    declare _rateLimiter: any;
+    declare _rateLimiter: *FIX*;
     declare _stepping: boolean;
     declare _cancelRequested: boolean;
     declare _abortController: AbortController | null;
@@ -105,7 +105,7 @@ class AgentEngine {
      * assigns it, so `config.manualMode` still throws exactly as it did before
      * this file was typed. Left alone deliberately - see the report.
      */
-    declare _showManualPrompt: (messages: AgentEngineMessage[], stepName: string) => Promise<any>;
+    declare _showManualPrompt: (messages: AgentEngineMessage[], stepName: string) => Promise<*FIX*>;
 
     constructor() {
         this.characterHistories = {};
@@ -170,7 +170,7 @@ class AgentEngine {
      * character has not been startled by yet. The result is cached for the
      * turn so a character's speech and emote share one startle.
      */
-    _detectStartle(charName: string, player: any): boolean {
+    _detectStartle(charName: string, player: *FIX*): boolean {
         if (!charName) return false;
         if (this._startleCacheTurn !== this.turnNumber) {
             this._startleCache = {};
@@ -179,7 +179,7 @@ class AgentEngine {
         if (charName in this._startleCache) return this._startleCache[charName];
         if (!this._startleSeen[charName]) this._startleSeen[charName] = new Set<string>();
         const seen = this._startleSeen[charName];
-        const hearing: any[] = player?.recent_hearing || [];
+        const hearing: *FIX*[] = player?.recent_hearing || [];
         const live = new Set<string>();
         let startled = false;
         for (const h of hearing) {
@@ -265,7 +265,7 @@ class AgentEngine {
         if (!charName) return false;
         const freshState = worldState.data;
         if (!freshState?.players?.[charName]?.simple_npc) return false;
-        const npcEvents: any[] = (freshState?.turn_events || []).filter((evt: any) => evt.actor === charName);
+        const npcEvents: *FIX*[] = (freshState?.turn_events || []).filter((evt: *FIX*) => evt.actor === charName);
         if (npcEvents.length > 0) {
             for (const evt of npcEvents.slice(-5)) {
                 events.log(`👾 ${evt.actor} ${evt.action}: ${evt.description}`, 'system-msg');
@@ -280,7 +280,7 @@ class AgentEngine {
         return NOOP_VERBS.includes((action || '').split(' ')[0].toLowerCase());
     }
 
-    async _speakLine(charName: string, player: any, speech: string, volume = 'say', target: string | null = null): Promise<void> {
+    async _speakLine(charName: string, player: *FIX*, speech: string, volume = 'say', target: string | null = null): Promise<void> {
         const spokenVolume = volume || 'say';
         events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target });
         events.trackAction(charName, null, speech, null, '');
@@ -330,7 +330,7 @@ class AgentEngine {
         }
     }
 
-    _storeReactionMemory(charName: string, memory: any, feltEmotion: any = null, actionSucceeded: boolean = true, actionResult: string = ''): void {
+    _storeReactionMemory(charName: string, memory: *FIX*, feltEmotion: *FIX* = null, actionSucceeded: boolean = true, actionResult: string = ''): void {
         if (!memory?.text) return;
         // Fix #7: reject memories that claim success for a failed action.
         if (!actionSucceeded) {
@@ -345,7 +345,7 @@ class AgentEngine {
         const tick = worldState.runtimeData?.time_ticks ?? worldState.data?.time_ticks ?? 0;
         const normalized = memory.text.trim().toLowerCase();
         const player = worldState.runtimePlayer(charName);
-        const duplicate = (player?.memories || []).some((existing: any) => {
+        const duplicate = (player?.memories || []).some((existing: *FIX*) => {
             const sameText = (existing.text || '').trim().toLowerCase() === normalized;
             const sameTick = Math.abs((existing.tick || 0) - tick) <= 1;
             return sameText && sameTick;
@@ -358,7 +358,7 @@ class AgentEngine {
      * Fire-and-forget spike of the character's affect map from an LLM-declared
      * feeling (task-96). Silent no-op when absent/malformed or backend misses.
      */
-    _applyFeltEmotion(charName: string, emotion: any): Promise<unknown> | null {
+    _applyFeltEmotion(charName: string, emotion: *FIX*): Promise<unknown> | null {
         if (!emotion?.label || !worldState.players?.[charName]) return null;
         // task-350: when the feeling is TOWARD a specific person, pass `toward`
         // so the backend records it as an experience (felt_toward) and so
@@ -430,7 +430,7 @@ class AgentEngine {
                 this.stop();
                 return;
             }
-            let reply: any = await HumanTurnComposer.request(charName, { first: true });
+            let reply: *FIX* = await HumanTurnComposer.request(charName, { first: true });
 
             if (config.running && config.turnBased && this.turnQueue.length === 0) {
                 this.stop(); return;
@@ -515,7 +515,7 @@ class AgentEngine {
      * Execute one human reply (speech → action → emote) through the agent
      * pipeline. Returns the action's result text (for the react phase).
      */
-    async _executeHumanReply(charName: string, player: any, reply: any): Promise<{ text: string; success: boolean }> {
+    async _executeHumanReply(charName: string, player: *FIX*, reply: *FIX*): Promise<{ text: string; success: boolean }> {
         // bug-33: a human turn has no agent phase marker to open the card, so
         // open it here before speech/emote rows are emitted - otherwise they
         // land in the bare stream above the next `act` phase marker.
@@ -548,7 +548,7 @@ class AgentEngine {
                     const output = data?.output || '';
                     success = data?.success !== false;
                     if (data?.system_messages) {
-                        data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
+                        data.system_messages.forEach((systemMessage: *FIX*) => events.log(systemMessage, 'system-msg'));
                     }
                     if (output && !output.includes('says:')) {
                         if (output.includes('ValueError')) events.log(output, 'error-msg');
@@ -688,7 +688,7 @@ class AgentEngine {
             // single active-player view, so using it here showed every other
             // agent the active player's room (bug-565: kyrie was told "library"
             // while her own examine resolved against "foyer").
-            const currentArea = state.areas[(player as any)?.current_area || state.current_area] || null;
+            const currentArea = state.areas[(player as *FIX*)?.current_area || state.current_area] || null;
             const lastResult = agentConfig.lastActionResult[charName] || '';
 
             if (window.AgentState.isBusy(charName, lastResult, player)) {
@@ -796,13 +796,13 @@ class AgentEngine {
                         // Re-read the world: the previous action moved/spent slots and
                         // may have revealed items, so rebuild the room context. Vitals,
                         // emotion and memory stay at their turn-start values.
-                        // Fix 7: wait for any in-flight fetch to complete (coalesce)
+                        // Fix 7: wait for *FIX* in-flight fetch to complete (coalesce)
                         if (worldState._inflight) await worldState._inflight;
                         await worldState.fetch();
                         const loopState = worldState.data || state;
                         const loopPlayer = loopState?.players?.[charName] || player;
                         promptPlayer = loopPlayer;
-                        const loopArea = loopState?.areas?.[(loopPlayer as any)?.current_area || loopState.current_area] || currentArea;
+                        const loopArea = loopState?.areas?.[(loopPlayer as *FIX*)?.current_area || loopState.current_area] || currentArea;
                         const loopRoomParts = PromptBuilder.buildRoomContextParts(loopState, charName, loopPlayer, loopArea);
                         observeParts = Object.assign({}, loopRoomParts, { plan: PromptBuilder.buildPlanContext(charName) });
                         if (this._checkCancel()) return;
@@ -925,7 +925,7 @@ class AgentEngine {
                         }
                         // bug-517: when narration is off, skipped, or fails, preserve the current raw system messages
                         if (!narratedText && sysMsgs.length) {
-                            sysMsgs.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
+                            sysMsgs.forEach((systemMessage: *FIX*) => events.log(systemMessage, 'system-msg'));
                         }
                         agentConfig.lastActionResult[charName] = outputText;
                         // task-340: results are first-class rows - outcome-tinted,
@@ -977,17 +977,17 @@ class AgentEngine {
                     if (isUnconscious) {
                         agentConfig.lastActionResult[charName] = actionResult;
                     } else if (!isNowResting) {
-                        // Fix 7: coalesce with any in-flight fetch
+                        // Fix 7: coalesce with *FIX* in-flight fetch
                         if (worldState._inflight) await worldState._inflight;
                         await worldState.fetch();
                         const freshState = worldState.data;
                         const freshPlayer = freshState?.players?.[charName] || player;
-                        const freshRoom = freshState?.areas?.[(freshPlayer as any)?.current_area || freshState.current_area] || currentArea;
+                        const freshRoom = freshState?.areas?.[(freshPlayer as *FIX*)?.current_area || freshState.current_area] || currentArea;
                         events.logPhase(charName, 'react', 'reacting');
                         VW?.ui?.setStatus("Reacting...", "info");
                         const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
                         const tickNum = worldState.data?.time_ticks ?? 0;
-                        const areaName = freshRoom?.name || (freshPlayer as any)?.current_area || freshState?.current_area || '';
+                        const areaName = freshRoom?.name || (freshPlayer as *FIX*)?.current_area || freshState?.current_area || '';
                         // task-185: currentArea is the turn-start (pre-action) room -
                         // if it differs from the fresh room the character MOVED this
                         // action, and "surroundings are unchanged" was lying while
@@ -1062,7 +1062,7 @@ class AgentEngine {
                         turnDone = true;
                     } else {
                         // Exit when the remaining budget can pay for nothing at all.
-                        // Any positive slot still buys at least a look, so the next
+                        // *FIX* positive slot still buys at least a look, so the next
                         // prompt (which already hides what is unaffordable) is the
                         // real gate; this is only the "budget is empty" stop.
                         const slotsNow = (worldState.data?.players?.[charName]?.turn_slots) as Record<string, number> | undefined;
@@ -1131,14 +1131,14 @@ class AgentEngine {
                         const data = await agentApi.action(finalAction, charName, { enforceSlots: true });
                         const output = data?.output || data?.error || '';
                         if (data?.system_messages) {
-                            data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
+                            data.system_messages.forEach((systemMessage: *FIX*) => events.log(systemMessage, 'system-msg'));
                         }
                         agentConfig.lastActionResult[charName] = output;
                         if (output && !output.includes('says:')) events.log(output, output.includes('ValueError') ? 'error-msg' : 'system-msg');
                         events.trackAction(charName, '', null, finalAction, output);
                         const area = worldState.players?.[charName]?.current_area;
                         if (area) agentConfig.lastRoom[charName] = area;
-                        // Fix 7: coalesce with any in-flight fetch
+                        // Fix 7: coalesce with *FIX* in-flight fetch
                         if (worldState._inflight) await worldState._inflight;
                         await worldState.fetch();
 
@@ -1147,7 +1147,7 @@ class AgentEngine {
                         }
                     } catch (err) {
                         events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
-                        // Fix 7: coalesce with any in-flight fetch
+                        // Fix 7: coalesce with *FIX* in-flight fetch
                         if (worldState._inflight) await worldState._inflight;
                         await worldState.fetch();
                     }
@@ -1288,7 +1288,7 @@ class AgentEngine {
         for (const name of names) {
             if (alive(name) && this._simDeadlines[name] === undefined) {
                 this._simDeadlines[name] = now + window.VWSimultaneous.jitteredCooldownMs(
-                    (config as any).getTalkativeness(name)
+                    (config as *FIX*).getTalkativeness(name)
                 );
             }
         }
@@ -1301,7 +1301,7 @@ class AgentEngine {
         if (charName === null) return false;
 
         this._simDeadlines[charName] = now + window.VWSimultaneous.jitteredCooldownMs(
-            (config as any).getTalkativeness(charName)
+            (config as *FIX*).getTalkativeness(charName)
         );
         const prevControlling = config.controllingPlayer;
         config.controllingPlayer = charName;
@@ -1321,7 +1321,7 @@ class AgentEngine {
     resetSimCharacterDeadline(charName: string): void {
         if (!charName || !config.running || !config.simultaneousMode || !worldState.data?.players?.[charName]) return;
         this._simDeadlines[charName] = Date.now() + window.VWSimultaneous.jitteredCooldownMs(
-            (config as any).getTalkativeness(charName)
+            (config as *FIX*).getTalkativeness(charName)
         );
     }
 
@@ -1556,7 +1556,7 @@ class AgentEngine {
      * @param {string} memoryNL - Memory context (parity with turn flow; unused here)
      * @returns {Promise<Object|null>} Retry outcome or null
      */
-    async _autoRetryInvalidAction(charName: string, player: any, history: AgentEngineHistory, failedAction: string, failedResult: string, memoryNL: string): Promise<{ finalAction: string; actionResult: string; actionSucceeded: boolean } | null> {
+    async _autoRetryInvalidAction(charName: string, player: *FIX*, history: AgentEngineHistory, failedAction: string, failedResult: string, memoryNL: string): Promise<{ finalAction: string; actionResult: string; actionSucceeded: boolean } | null> {
         const attempted = String(failedAction || '').trim() || '(invalid)';
         if (!failedResult || /while unconscious/i.test(failedResult)) return null;
         events.log(`↩️ ${charName}: auto-retry after failed action "${attempted}"`, 'system-msg');
@@ -1618,12 +1618,12 @@ class AgentEngine {
      * immediate decision to continue with an allowed verb (go/approach/
      * release/wait). Returns the combined result text.
      */
-    async _runChainFollowUp(charName: string, player: any, resultText: string, history: AgentEngineHistory, sourceVerb: string, allowedVerbs: string[]): Promise<string> {
+    async _runChainFollowUp(charName: string, player: *FIX*, resultText: string, history: AgentEngineHistory, sourceVerb: string, allowedVerbs: string[]): Promise<string> {
         await worldState.fetch();
         const freshState = worldState.data;
         if (!freshState) return resultText;
         const freshPlayer = freshState?.players?.[charName] || player;
-        const currentArea = freshState.areas?.[(freshPlayer as any)?.current_area || freshState.current_area] || null;
+        const currentArea = freshState.areas?.[(freshPlayer as *FIX*)?.current_area || freshState.current_area] || null;
         const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
 
         events.logPhase(charName, 'decide', `${sourceVerb} follow-up`);
@@ -1679,7 +1679,7 @@ class AgentEngine {
      * JSON (N1). The repair may have silently dropped fields (e.g. the emote);
      * re-asking once usually yields a complete reply. Never retries twice.
      */
-    async _retryOnceOnParseError(charName: string, history: AgentEngineHistory, stepName: string, parser: (raw: string) => any, parsed: any): Promise<any> {
+    async _retryOnceOnParseError(charName: string, history: AgentEngineHistory, stepName: string, parser: (raw: string) => *FIX*, parsed: *FIX*): Promise<*FIX*> {
         if (!parsed?.parseError || !history?.length) return parsed;
         // The message names the actual failure: a repaired/truncated reply and
         // a schema-invalid payload are different problems and want different
@@ -1709,7 +1709,7 @@ class AgentEngine {
     }
 
     /** Thin wrapper: build message array and delegate to _callLLMMessages. */
-    async _callLLM(prompt: string, history: AgentEngineHistory, stepName: string, actorName?: string): Promise<any> {
+    async _callLLM(prompt: string, history: AgentEngineHistory, stepName: string, actorName?: string): Promise<*FIX*> {
         return this._callLLMMessages([...history, { role: 'user', content: prompt }], stepName, actorName);
     }
 
@@ -1731,9 +1731,9 @@ class AgentEngine {
     // to guess the actor from "whose turn is it", which filed a prompt
     // written for one character under another one's name - the trace lied
     // about who was being asked what. The caller knows, so the caller says.
-    async _callLLMMessages(messages: AgentEngineMessage[], stepName: string, actorName?: string): Promise<any> {
+    async _callLLMMessages(messages: AgentEngineMessage[], stepName: string, actorName?: string): Promise<*FIX*> {
         // Pause is a turn-boundary gate: let the in-flight request finish, then
-        // hold any later LLM phase here until the user resumes the run.
+        // hold *FIX* later LLM phase here until the user resumes the run.
         while (config.running && this._paused) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -1759,7 +1759,7 @@ class AgentEngine {
         this._abortController = new AbortController();
         const streamId = `${stepName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         events.startStreaming(streamId, stepName);
-        const onChunk = (c: any) => events.appendStream(streamId, c);
+        const onChunk = (c: *FIX*) => events.appendStream(streamId, c);
         // Correlation id: the request chip and its response chip carry the
         // same one, so a reader can pair them up without guessing from
         // ordering.

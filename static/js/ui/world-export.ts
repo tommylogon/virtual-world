@@ -118,7 +118,7 @@
                 text += '  🎒 Inventory: ' + inv.join(', ') + '\n';
             }
             if (player.behaviors && player.behaviors.length) {
-                text += '  🔄 Behaviors: ' + player.behaviors.map(function(b: any) { return b.name || b.type || b; }).join(', ') + '\n';
+                text += '  🔄 Behaviors: ' + player.behaviors.map(function(b: *FIX*) { return b.name || b.type || b; }).join(', ') + '\n';
             }
         }
 
@@ -186,7 +186,7 @@
         }
 
         // ── Doors ──
-        var doorNodes: Array<[string, any]> = [];
+        var doorNodes: Array<[string, *FIX*]> = [];
         for (var nodeId in world.graph?.nodes || {}) {
             if (world.graph.nodes.hasOwnProperty(nodeId) && world.graph.nodes[nodeId].type === 'way') {
                 doorNodes.push([nodeId, world.graph.nodes[nodeId]]);
@@ -209,7 +209,7 @@
         for (var doorIdx = 0; doorIdx < doorNodes.length; doorIdx++) {
             printedDoorIds[doorNodes[doorIdx][0]] = true;
         }
-        var otherNodes: Array<[string, any]> = [];
+        var otherNodes: Array<[string, *FIX*]> = [];
         for (var nodeKey in world.graph?.nodes || {}) {
             if (!world.graph.nodes.hasOwnProperty(nodeKey)) continue;
             var node = world.graph.nodes[nodeKey];

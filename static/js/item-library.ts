@@ -24,9 +24,9 @@ const TriggerTypesNs = (window as unknown as {
 const ItemLibraryApi = ApiClient as unknown as {
     getLibraryItems(): Promise<Record<string, LibraryItem>>;
     getLibraryType(type: string): Promise<Record<string, LibraryItem>>;
-    saveLibraryItem(payload: Record<string, any>): Promise<{ error?: string }>;
+    saveLibraryItem(payload: Record<string, *FIX*>): Promise<{ error?: string }>;
     deleteLibraryItem(id: string): Promise<{ error?: string }>;
-    updateNode(nodeId: string, payload: Record<string, any>): Promise<{ error?: string }>;
+    updateNode(nodeId: string, payload: Record<string, *FIX*>): Promise<{ error?: string }>;
 };
 
 // Collaborator modules that `types/globals.d.ts` does not declare. They are
@@ -68,8 +68,8 @@ const TagMultiselectCtorGlobal = (window as unknown as {
 /** The editor-callback payload shape shared by `TriggerEditor` and `TriggerGraph`. */
 interface TriggerFormData {
     trigger_type: string | string[];
-    effects: Array<Record<string, any>>;
-    conditions: Array<Record<string, any>>;
+    effects: Array<Record<string, *FIX*>>;
+    conditions: Array<Record<string, *FIX*>>;
     target_name?: string;
     target_state?: string;
     success_message?: string;
@@ -79,9 +79,9 @@ interface TriggerFormData {
 
 /** Shape returned by `TriggerSuggestDiff.merge()` / handed to `onApply`. */
 interface SuggestDiffResult {
-    add: Array<Record<string, any>>;
-    replace: Array<Record<string, any>>;
-    keep: Array<Record<string, any>>;
+    add: Array<Record<string, *FIX*>>;
+    replace: Array<Record<string, *FIX*>>;
+    keep: Array<Record<string, *FIX*>>;
 }
 
 interface ItemLibraryTagMultiselectInstance {
@@ -336,7 +336,7 @@ class ItemLibrary {
                 const target = byId('lib-item-doc-preview');
                 if (!target) return;
                 const f: DocPreview = DocPanel ? DocPanel.format(rows)
-                    : { empty: !(rows && (rows as unknown[]).length), title: ((rows as Array<Record<string, any>>)?.[0]?.title) || '', url: null };
+                    : { empty: !(rows && (rows as unknown[]).length), title: ((rows as Array<Record<string, *FIX*>>)?.[0]?.title) || '', url: null };
                 const line = document.createElement('div');
                 line.textContent = f.empty ? 'No documentation yet.' : f.title;
                 line.className = 'section-hint';
@@ -476,14 +476,14 @@ class ItemLibrary {
         );
 
         // Trigger list
-        const triggers: Array<Record<string, any>> = (item.triggers || []) as Array<Record<string, any>>;
+        const triggers: Array<Record<string, *FIX*>> = (item.triggers || []) as Array<Record<string, *FIX*>>;
         const triggerCount = triggers.length;
         const hasTriggers = triggerCount > 0;
-        const triggerHtml = triggers.length > 0 ? triggers.map((t: Record<string, any>, idx: number) => {
-            const effects: Array<Record<string, any>> = t.effects || [];
+        const triggerHtml = triggers.length > 0 ? triggers.map((t: Record<string, *FIX*>, idx: number) => {
+            const effects: Array<Record<string, *FIX*>> = t.effects || [];
             const conditions = t.conditions || [];
             const condHtml = TriggerEditor._renderConditionSummary(conditions).join(' ');
-            const effectNames = effects.map((e: Record<string, any>) => e.type).join(', ');
+            const effectNames = effects.map((e: Record<string, *FIX*>) => e.type).join(', ');
             const ttRaw = t.trigger_type;
             const ttLabel = Array.isArray(ttRaw) ? ttRaw.join(', ') : (ttRaw || '');
             const firstParams = effects[0]?.params || {};
@@ -689,7 +689,7 @@ class ItemLibrary {
         const commonDirs = ['north','south','east','west','northeast','northwest','southeast','southwest','up','down'];
         for (const d of commonDirs) targetOpts.push({ value: d, label: `🚪 ${d}` });
         if (worldState?.graph?.nodes) {
-            for (const [id, rawNode] of Object.entries(worldState.graph.nodes as Record<string, Record<string, any>>)) {
+            for (const [id, rawNode] of Object.entries(worldState.graph.nodes as Record<string, Record<string, *FIX*>>)) {
                 const node = rawNode;
                 const lbl = node.name || id;
                 if (node.type === 'way' && !targetOpts.find((o: { value: string }) => o.value === lbl)) {
@@ -698,10 +698,10 @@ class ItemLibrary {
             }
         }
         if (worldState?.areas) {
-            for (const rawArea of Object.values(worldState.areas as Record<string, Record<string, any>>)) {
+            for (const rawArea of Object.values(worldState.areas as Record<string, Record<string, *FIX*>>)) {
                 const area = rawArea;
                 if (area.exits) {
-                    for (const [direction, rawExit] of Object.entries(area.exits as Record<string, Record<string, any>>)) {
+                    for (const [direction, rawExit] of Object.entries(area.exits as Record<string, Record<string, *FIX*>>)) {
                         const exit = rawExit;
                         if (!targetOpts.find((o: { value: string }) => o.value === direction)) {
                             const targetName = exit.target || '';
@@ -713,7 +713,7 @@ class ItemLibrary {
                     }
                 }
                 if (area.items) {
-                    for (const item of area.items as Array<Record<string, any>>) {
+                    for (const item of area.items as Array<Record<string, *FIX*>>) {
                         const itemName = item.name || item.id || item;
                         if (!targetOpts.find((o: { value: string }) => o.value === itemName)) {
                             targetOpts.push({ value: itemName, label: `📦 ${itemName}` });
@@ -739,7 +739,7 @@ class ItemLibrary {
             if (!itemOpts.has(name)) itemOpts.set(name, { value: id, label: `📦 ${name} (library)` });
         }
         if (worldState?.graph?.nodes) {
-            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, Record<string, any>>)) {
+            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, Record<string, *FIX*>>)) {
                 if (node.type === 'item') {
                     const name = node.name || id;
                     if (!itemOpts.has(name)) itemOpts.set(name, { value: name, label: `📦 ${name} (world)` });
@@ -771,7 +771,7 @@ class ItemLibrary {
         const Suggester = (window as unknown as {
             ItemLibraryTriggerSuggester?: {
                 plan(fields: Record<string, unknown>): string[];
-                generate(fields: Record<string, unknown>): Array<Record<string, any>>;
+                generate(fields: Record<string, unknown>): Array<Record<string, *FIX*>>;
             };
         }).ItemLibraryTriggerSuggester;
         if (typeof Suggester === 'undefined') {
@@ -780,14 +780,14 @@ class ItemLibrary {
         }
         const SuggestDiff = (window as unknown as {
             TriggerSuggestDiff?: {
-                diff(existing: unknown, planTypes: string[], triggers: unknown[]): Array<Record<string, any>>;
+                diff(existing: unknown, planTypes: string[], triggers: unknown[]): Array<Record<string, *FIX*>>;
                 show(opts: Record<string, unknown>): void;
                 merge(existing: unknown, result: SuggestDiffResult): unknown[];
             };
         }).TriggerSuggestDiff;
         const label = byId('lib-item-name').value?.trim() || 'item';
         const usesRaw = parseInt(byId('lib-item-uses').value || '-1');
-        const fields: Record<string, any> = {
+        const fields: Record<string, *FIX*> = {
             name: label,
             description: byId('lib-item-desc').value || '',
             actions: (byId('lib-item-actions').value || '').split(',').map((s: string) => s.trim()).filter(Boolean),
@@ -795,7 +795,7 @@ class ItemLibrary {
             uses: Number.isNaN(usesRaw) ? -1 : usesRaw,
         };
 
-        const existing: Array<Record<string, any>> = parseJsonSafely(field.value || '[]') || [];
+        const existing: Array<Record<string, *FIX*>> = parseJsonSafely(field.value || '[]') || [];
         const planTypes = Suggester.plan(fields);
         const triggers = Suggester.generate(fields);
 
@@ -838,7 +838,7 @@ class ItemLibrary {
             itemDatalistHtml: this._buildItemDatalistHtml(),
             onSave: (data: TriggerFormData) => {
                 // Collect triggers from hidden field
-                const currentTriggers: Array<Record<string, any>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
+                const currentTriggers: Array<Record<string, *FIX*>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
                 const newTrigger = {
                     trigger_type: Array.isArray(data.trigger_type) ? data.trigger_type : [data.trigger_type],
                     effects: data.effects,
@@ -857,13 +857,13 @@ class ItemLibrary {
     }
 
     _editTrigger(idx: number) {
-        const currentTriggers: Array<Record<string, any>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
+        const currentTriggers: Array<Record<string, *FIX*>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
         const existing = currentTriggers[idx];
         if (!existing) return;
         // Rebuild an effects array with params (legacy single-effect format
         // {effect_type, effect_params} → {type, params} for the editor).
         const effects = Array.isArray(existing.effects) && existing.effects.length
-            ? (existing.effects as Array<Record<string, any>>).map((e: Record<string, any>) => ({ type: e.type || existing.effect_type || 'message', params: e.params || existing.effect_params || {} }))
+            ? (existing.effects as Array<Record<string, *FIX*>>).map((e: Record<string, *FIX*>) => ({ type: e.type || existing.effect_type || 'message', params: e.params || existing.effect_params || {} }))
             : [{ type: existing.effect_type || 'message', params: existing.effect_params || {} }];
         TriggerEditor.show({
             mode: 'multi',
@@ -899,12 +899,12 @@ class ItemLibrary {
     }
 
     _openGraphEditor() {
-        const currentTriggers: Array<Record<string, any>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
+        const currentTriggers: Array<Record<string, *FIX*>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
         // Every trigger in the library entry, one root block each.
         const graph = TriggerGraph.triggersToGraph(currentTriggers);
 
-        const persistFormData = (data: Partial<TriggerFormData> & Record<string, any>) => {
-            const triggers: Array<Record<string, any>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
+        const persistFormData = (data: Partial<TriggerFormData> & Record<string, *FIX*>) => {
+            const triggers: Array<Record<string, *FIX*>> = parseJsonSafely(byId('lib-item-triggers')?.value || '[]') || [];
             const compiled = {
                 trigger_type: data.trigger_type,
                 effects: data.effects,
@@ -955,13 +955,13 @@ class ItemLibrary {
 
     _removeTrigger(idx: number) {
         const triggersField = byId('lib-item-triggers');
-        const triggers: Array<Record<string, any>> = JSON.parse(triggersField.value || '[]');
+        const triggers: Array<Record<string, *FIX*>> = JSON.parse(triggersField.value || '[]');
         triggers.splice(idx, 1);
         triggersField.value = JSON.stringify(triggers);
         this._refreshEditorWithTriggers();
     }
 
-    _buildEffectDetail(effects: Array<Record<string, any>>) {
+    _buildEffectDetail(effects: Array<Record<string, *FIX*>>) {
         const first = effects?.[0] || {};
         const type = first.type || 'unknown';
         const params = first.params || {};
@@ -1009,8 +1009,8 @@ class ItemLibrary {
             window.Lit.render(itemLibraryHtmlTag`
                 <div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">No triggers defined.</div>`, listEl);
         } else {
-            window.Lit.render(itemLibraryHtmlTag`${(triggers as Array<Record<string, any>>).map((t: Record<string, any>, idx: number) => {
-                const effects: Array<Record<string, any>> = t.effects || [];
+            window.Lit.render(itemLibraryHtmlTag`${(triggers as Array<Record<string, *FIX*>>).map((t: Record<string, *FIX*>, idx: number) => {
+                const effects: Array<Record<string, *FIX*>> = t.effects || [];
                 const conditions = t.conditions || {};
                 const condHtml = (TriggerEditor._renderConditionSummary(conditions) || []).join(' ');
                 const effectDetail = this._buildEffectDetail(effects);
@@ -1187,7 +1187,7 @@ class ItemLibrary {
         const triggers = this._extractTriggersFromNode(nodeId);
 
         const built = this._buildWorldItemPayload(nodeId);
-        const worldPayload: Record<string, any> = built ? built.payload : {
+        const worldPayload: Record<string, *FIX*> = built ? built.payload : {
             name,
             description: props.description || '',
             actions,
@@ -1222,7 +1222,7 @@ class ItemLibrary {
         };
 
         // Check for existing library entry
-        let libEntry: Record<string, any> = {};
+        let libEntry: Record<string, *FIX*> = {};
         try {
             const libData = await ItemLibraryApi.getLibraryType('items');
             if (libData[itemId]) libEntry = libData[itemId];
@@ -1232,7 +1232,7 @@ class ItemLibrary {
 
         if (!hasExisting) {
             // No conflict — save directly (still respect locked_fields)
-            const payload: Record<string, any> = { id: itemId };
+            const payload: Record<string, *FIX*> = { id: itemId };
             for (const [key, val] of Object.entries(worldPayload)) {
                 payload[key] = locked.includes(key) && libEntry[key] !== undefined ? libEntry[key] : val;
             }
@@ -1268,7 +1268,7 @@ class ItemLibrary {
         if (!result) return;
 
         if (result.action === 'update') {
-            const merged: Record<string, any> = { ...libEntry, id: itemId };
+            const merged: Record<string, *FIX*> = { ...libEntry, id: itemId };
             for (const key of result.sections as string[]) {
                 if (locked.includes(key) && libEntry[key] !== undefined) {
                     merged[key] = libEntry[key];
@@ -1281,7 +1281,7 @@ class ItemLibrary {
             await rebindTemplate(itemId);
             events.log(`Updated "${name}" in library.`, 'system-msg');
         } else if (result.action === 'duplicate') {
-            const dupePayload: Record<string, any> = { id: result.id, name: result.name, ...(worldPayload as Record<string, any>) };
+            const dupePayload: Record<string, *FIX*> = { id: result.id, name: result.name, ...(worldPayload as Record<string, *FIX*>) };
             const res = await ItemLibraryApi.saveLibraryItem(dupePayload);
             if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
             await rebindTemplate(result.id);
@@ -1306,7 +1306,7 @@ class ItemLibrary {
         }
 
         let added = 0, updated = 0, skipped = 0, errors = 0;
-        for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes as Record<string, Record<string, any>>)) {
+        for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes as Record<string, Record<string, *FIX*>>)) {
             const node = rawNode;
             if (node.type !== 'item') continue;
             const name = node.name || 'Unnamed';
@@ -1320,9 +1320,9 @@ class ItemLibrary {
             const triggers = this._extractTriggersFromNode(nodeId);
 
             const childBuilt = this._buildWorldItemPayload(nodeId);
-            const worldItem: Record<string, any> = childBuilt ? {
+            const worldItem: Record<string, *FIX*> = childBuilt ? {
                 id, name,
-                ...(childBuilt.payload as Record<string, any>)
+                ...(childBuilt.payload as Record<string, *FIX*>)
             } : {
                 id, name,
                 description: p.description || '',

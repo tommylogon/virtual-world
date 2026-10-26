@@ -3,7 +3,7 @@
  *
  * A sticky strip showing the shape of the session: one segment per top-level
  * entry, colored by dominant kind (teal=speech/thought, red=error/crisis,
- * blue=action). Click anywhere to jump; a purple head tracks scroll position.
+ * blue=action). Click *FIX*where to jump; a purple head tracks scroll position.
  *
  * @module stream/stream-scrubber — timeline minimap
  * @contributes StreamScrubber: per-entry colour segments, click-to-jump, scroll head

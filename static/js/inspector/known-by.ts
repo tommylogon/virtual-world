@@ -308,7 +308,7 @@ interface KnownByWindowSurface { KnownBySection: unknown }
                 clearStale.className = 'btn btn-sm';
                 clearStale.style.cssText = 'font-size:10px;';
                 clearStale.textContent = '✕ Clear';
-                clearStale.title = 'Remove refs that no longer point at anything';
+                clearStale.title = 'Remove refs that no longer point at *FIX*thing';
                 clearStale.onclick = () => {
                     for (const r of stale) state.known.delete(String(r));
                     commit().then(updateCounts);
@@ -368,7 +368,7 @@ interface KnownByWindowSurface { KnownBySection: unknown }
             const chip = document.createElement('span');
             chip.style.cssText = 'font-size:10px;color:var(--text-dim);background:var(--bg-input);border:1px solid var(--border);border-radius:999px;padding:1px 8px;';
             chip.textContent = ent ? (ent.hidden ? '\u{1F512} ' + ent.label : ent.label) : ref;
-            chip.title = ent ? 'Known from the start' : 'stale ref — no longer points at anything';
+            chip.title = ent ? 'Known from the start' : 'stale ref — no longer points at *FIX*thing';
             const x = document.createElement('button');
             x.textContent = '\u2715';
             x.style.cssText = 'margin-left:5px;border:none;background:none;color:var(--text-dim);cursor:pointer;font-size:10px;';

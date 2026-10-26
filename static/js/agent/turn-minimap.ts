@@ -52,7 +52,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
     function legend(): HTMLElement {
         const foot = el('div', 'tmn-foot');
-        foot.innerHTML = '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
+        foot.*FIX*= '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
             + '<span><span class="tmn-sw" style="background:#2d5584"></span>in sight</span>'
             + '<span><span class="tmn-sw" style="background:#1e293b"></span>charted</span>'
             + '<span><span class="tmn-sw" style="background:#1f4a7d"></span>you are here</span>'
@@ -90,7 +90,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
             .tmn-grid { position:relative; overflow:hidden; background:#0a0e13;
                                     border:1px solid #333a45; border-radius:5px; }
             /* Scrollbars are hidden by default: a minimap scales to fit, so
-               anything scrolling is a map too large to shrink - and then the
+               *FIX*thing scrolling is a map too large to shrink - and then the
                bar is worth seeing rather than a decorative stripe. */
             .tmn-grid::-webkit-scrollbar { width:0; height:0; }
             .tmn-grid { scrollbar-width:none; }
@@ -186,7 +186,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
     function showTip(html: string, ev: MouseEvent): void {
         const tip = tipEl();
-        tip.innerHTML = html;
+        tip.*FIX*= html;
         const walk = tip.querySelector('.tmn-walk');
         if (walk) {
             walk.addEventListener('click', function (e: Event) {
@@ -594,7 +594,7 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
         if (!areas.length) {
             wrap.appendChild(el('div', 'tmn-empty',
-                'No map yet - this character has not been anywhere.'));
+                'No map yet - this character has not been *FIX*where.'));
             host.insertBefore(wrap, host.firstChild);
             return;
         }

@@ -2,7 +2,7 @@
  * GraphManager — graph-view facade: the single `graphManager` singleton the rest of
  * the app talks to. The heavy lifting lives in static/js/graph/* (GraphNetwork,
  * GraphEventHandlers, GraphContextMenu, GraphProjection, GraphFocus, GraphOverlays,
- * GraphLayoutEngine). Many methods here are thin, deprecated delegates kept so
+ * GraphLayoutEngine). M*FIX* methods here are thin, deprecated delegates kept so
  * existing callers and HTML onclick handlers keep working.
  *
  * @module graph-manager — graph view facade + shared graph state
@@ -25,8 +25,8 @@ type GraphManagerNodeData = {
     id?: string;
     name?: string;
     type?: string;
-    properties?: Record<string, any>;
-    [key: string]: any;
+    properties?: Record<string, *FIX*>;
+    [key: string]: *FIX*;
 };
 
 // An edge in worldState.graph.edges / graphManager._graphEdgesArr. source and
@@ -35,8 +35,8 @@ type GraphManagerEdgeData = {
     source: string;
     target: string;
     type?: string;
-    properties?: Record<string, any>;
-    [key: string]: any;
+    properties?: Record<string, *FIX*>;
+    [key: string]: *FIX*;
 };
 
 // One entry of /api/world/scopes after ScopeOptions.flattenScopes flattens the
@@ -47,16 +47,16 @@ type GraphManagerScopeSummary = {
     depth?: number;
     parent_id?: string | null;
     map_offset?: { x?: number; y?: number } | null;
-    [key: string]: any;
+    [key: string]: *FIX*;
 };
 
 // graphManager._contextTarget is either a node target (context menu on a node)
 // or an edge target (context menu on an edge), so every field is optional.
 type GraphManagerContextTarget = {
-    nodeData?: any;
+    nodeData?: *FIX*;
     nodeId?: string;
     nodeType?: string;
-    edgeData?: any;
+    edgeData?: *FIX*;
     isEdge?: boolean;
 } | null;
 
@@ -87,7 +87,7 @@ type GraphManagerNodeOps = {
 
 // graph/edge-types.ts publishes on window (line 92) as well as binding the bare
 // name. Read through `window` so a missing module is undefined rather than a
-// ReferenceError, and so the ambient `EdgeTypes: any` can be narrowed here.
+// ReferenceError, and so the ambient `EdgeTypes: *FIX*` can be narrowed here.
 type GraphManagerEdgeTypes = {
     validForSource(nodeType: string | undefined): string[];
     validTargets(edgeType: string): string[];
@@ -124,7 +124,7 @@ function _floorOptionLabel(floor: number) {
 // Named `GraphManagerImpl` because types/globals.d.ts declares a hand-written
 // global `interface GraphManager` for the un-converted .js. An interface and a
 // class of the same name MERGE, and a merged duplicate member must have an
-// identical type — the interface says `any` for most of these fields, so a
+// identical type — the interface says `*FIX*` for most of these fields, so a
 // merged `nodes: Map<...>` would be TS2717. Renaming keeps the two independent;
 // the interface should be deleted once this conversion lands.
 class GraphManagerImpl {
@@ -135,7 +135,7 @@ class GraphManagerImpl {
     // HEAD never had). Other modules READ these off the singleton, so a field
     // missing here is a field no reader can see.
     /** vis Network handle. vis-network is vendored and ships no types. */
-    declare network: any;
+    declare network: *FIX*;
     declare nodes: Map<string, GraphManagerNodeData>;
     declare _contextTarget: GraphManagerContextTarget;
     declare _lastSig: string;          // hash to skip redundant reloads
@@ -145,7 +145,7 @@ class GraphManagerImpl {
     declare _scopeRestoreAttempted: boolean; // task-749: restore the saved scope once per load
     declare _scopeOffsets: Record<string, { x?: number; y?: number } | null>; // task-523
     declare _physicsEnabled: boolean;
-    declare _legendEl: any;
+    declare _legendEl: *FIX*;
     declare _searchQuery: string;
     declare _viewMode: string;
     declare _cardinalLayout: boolean;
@@ -154,13 +154,13 @@ class GraphManagerImpl {
     declare _edgeLabelSize: number;
     declare _showNodeLabels: boolean;
     declare _nodeLabelsShown: boolean | null;   // last applied decision (avoid churn)
-    declare _labelCache: any;        // decorated labels saved while hidden
+    declare _labelCache: *FIX*;        // decorated labels saved while hidden
     declare _mapSpacingAuto: boolean;
     declare _showItems: boolean;
     declare _showOnlyInhabitedAreas: boolean;
     declare _revealedAreaIds: Set<string>;
     declare _pendingConnection: { fromNodeId: string; edgeType: string; fromName: string } | null;
-    declare _revealedItemIds: Map<string, any>;
+    declare _revealedItemIds: Map<string, *FIX*>;
     declare _bulkSelection: Set<string>;
     declare _bulkBar: HTMLElement | null;
     declare _floorFilter: string;
@@ -171,21 +171,21 @@ class GraphManagerImpl {
     // Set by the bulk-bar lifecycle, the scope-filter load, graph/focus.ts's
     // search box, and graph/network-manager.ts (the graph renderer). Declared
     // here so every one of those readers and writers type-checks against the
-    // real class rather than dropping to `any`.
+    // real class rather than dropping to `*FIX*`.
     declare _bulkScopesFilled: boolean;
     declare _scopeSummaries: GraphManagerScopeSummary[];
     declare _graphNodesObj: Record<string, GraphManagerNodeData>;
     declare _graphEdgesArr: GraphManagerEdgeData[];
     declare _searchKeepInPlace: boolean | undefined;
-    declare _baseNodeStyles: any;
-    declare _baseEdgeStyles: any;
-    declare _edgeTooltipHtml: any;
+    declare _baseNodeStyles: *FIX*;
+    declare _baseEdgeStyles: *FIX*;
+    declare _edgeTooltipHtml: *FIX*;
     declare _legendVisible: boolean | undefined;
     declare _overlayMode: string | undefined;
     declare _showTriggers: boolean | undefined;
-    declare _tagFilter: any;
-    declare _tagLibrary: any;
-    declare _tagPanelEl: any;
+    declare _tagFilter: *FIX*;
+    declare _tagLibrary: *FIX*;
+    declare _tagPanelEl: *FIX*;
     declare _tagPanelVisible: boolean | undefined;
 
     constructor() {
@@ -289,7 +289,7 @@ class GraphManagerImpl {
     _watchScopeChanges() {
         if (!window.appEvents) return;
         const WHOLE_WORLD = /^\/(api\/(undo|redo|reset|load)|api\/load-game\/)/;
-        appEvents.on('world:changed', (ev: any) => {
+        appEvents.on('world:changed', (ev: *FIX*) => {
             const path = String((ev && ev.path) || '');
             const renamesScope = path.startsWith('/api/world/scopes')   // created
                 || /\/rename$/.test(path)                              // renamed
@@ -326,7 +326,7 @@ class GraphManagerImpl {
             const bar = document.createElement('div');
             bar.id = 'bulk-action-bar';
             bar.style.cssText = 'position:absolute;left:12px;bottom:12px;z-index:50;display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.5);';
-            bar.innerHTML =
+            bar.*FIX*=
                 '<span id="bulk-count" style="color:var(--text-muted);"></span>' +
                 '<select id="bulk-scope" title="Move every selected area into one scope. ' +
                 'Membership only — a scope is not a painted cell. One undo step for the whole selection." ' +
@@ -368,7 +368,7 @@ class GraphManagerImpl {
         try {
             const data = await _gmApi.getWorldScopes(true);
             const scopes = (data && data.scopes) || [];
-            sel.innerHTML = '<option value="">🗺️ Scope…</option>';
+            sel.*FIX*= '<option value="">🗺️ Scope…</option>';
             scopes.forEach((s) => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
@@ -379,7 +379,7 @@ class GraphManagerImpl {
             });
         } catch (e) {
             this._bulkScopesFilled = false;   // let a later selection retry
-            sel.innerHTML = '<option value="">scopes unavailable</option>';
+            sel.*FIX*= '<option value="">scopes unavailable</option>';
         }
     }
 
@@ -541,7 +541,7 @@ class GraphManagerImpl {
                 if (scope.map_offset) this._scopeOffsets[scope.id] = scope.map_offset;
             }
             if (!sel) return;
-            sel.innerHTML = '';
+            sel.*FIX*= '';
             const wholeWorld = document.createElement('option');
             wholeWorld.value = '';
             wholeWorld.textContent = '🌍 Whole world';
@@ -785,15 +785,15 @@ class GraphManagerImpl {
         }
     }
 
-    _buildTooltip(nodeData: any) { return GraphNetwork.buildTooltip(nodeData); }
+    _buildTooltip(nodeData: *FIX*) { return GraphNetwork.buildTooltip(nodeData); }
 
-    _onClick(params: any) { return GraphEventHandlers.onClick(params); }
+    _onClick(params: *FIX*) { return GraphEventHandlers.onClick(params); }
 
-    _onContext(params: any) { return GraphEventHandlers.onContext(params); }
+    _onContext(params: *FIX*) { return GraphEventHandlers.onContext(params); }
 
     // --- Context Menu ---
 
-    _showContextMenu(event: MouseEvent, nodeData: any, nodeId: string) {
+    _showContextMenu(event: MouseEvent, nodeData: *FIX*, nodeId: string) {
         this._contextTarget = { nodeData, nodeId, nodeType: nodeData?.type };
         const name = nodeData?.name || nodeId;
         const menu = document.getElementById('context-menu');
@@ -882,7 +882,7 @@ class GraphManagerImpl {
                     // Extract raw type from worldState.graph.edges, not the display label
                     let rawType = t.edgeData.type || 'connection';
                     if (worldState.graph && worldState.graph.edges && (!rawType || rawType === 'connection')) {
-                        const matched = worldState.graph.edges.find((e: any) =>
+                        const matched = worldState.graph.edges.find((e: *FIX*) =>
                             e.source === t.edgeData.from && e.target === t.edgeData.to
                         );
                         if (matched) rawType = matched.type || 'connection';
@@ -1098,7 +1098,7 @@ class GraphManagerImpl {
 
     async _saveEdgeProperty(fromId: string, toId: string, key: string, rawValue: string) {
         const _gmApi = ApiClient as unknown as GraphManagerApi;
-        let value: any = rawValue;
+        let value: *FIX* = rawValue;
         try { value = JSON.parse(rawValue); } catch (e) { /* keep string */ }
         const res = await _gmApi.updateEdge(fromId, toId, { old_type: 'connection', properties: { [key]: value } });
         if (res.status === 'success') {
@@ -1125,7 +1125,7 @@ class GraphManagerImpl {
         if (!key || !key.trim()) return;
         const rawValue = prompt('Property value (JSON or plain text):', '');
         if (rawValue === null) return;
-        let value: any = rawValue;
+        let value: *FIX* = rawValue;
         try { value = JSON.parse(rawValue); } catch (e) { /* keep string */ }
         const res = await _gmApi.updateEdge(fromId, toId, { old_type: rawType, properties: { [key.trim()]: value } });
         if (res.status === 'success') {
@@ -1136,11 +1136,11 @@ class GraphManagerImpl {
         }
     }
 
-    _onAddNode(data: any, callback: any) { return GraphEventHandlers.onAddNode(data, callback); }
+    _onAddNode(data: *FIX*, callback: *FIX*) { return GraphEventHandlers.onAddNode(data, callback); }
 
-    _onAddEdge(data: any, callback: any) { return GraphEventHandlers.onAddEdge(data, callback); }
+    _onAddEdge(data: *FIX*, callback: *FIX*) { return GraphEventHandlers.onAddEdge(data, callback); }
 
-    _showEdgeContextMenu(event: MouseEvent, edgeData: any) {
+    _showEdgeContextMenu(event: MouseEvent, edgeData: *FIX*) {
         this._contextTarget = { edgeData, isEdge: true };
         const menu = document.getElementById('context-menu');
         if (!menu) return;
@@ -1155,7 +1155,7 @@ class GraphManagerImpl {
         setTimeout(() => document.addEventListener('click', () => menu.style.display = 'none', { once: true }), 0);
     }
 
-    _showEdgeInspector(edge: any) {
+    _showEdgeInspector(edge: *FIX*) {
         // EdgeInspector (lit) is the owner of the inspector panel. This fallback
         // only exists if edge-inspector.js failed to load; it renders a static
         // template through InspectorPanel so lit's part tracking stays intact.
@@ -1196,7 +1196,7 @@ class GraphManagerImpl {
         const cfg = _gmEdgeTypes.getConfig(newType);
         // Carry the existing edge's properties so a type change doesn't drop
         // direction/cardinal/description data on the way.
-        const worldEdge = worldState.graph?.edges?.find((e: any) =>
+        const worldEdge = worldState.graph?.edges?.find((e: *FIX*) =>
             e.source === source && e.target === target && e.type === oldType
         );
         const properties = worldEdge?.properties || {};
@@ -1226,7 +1226,7 @@ class GraphManagerImpl {
         const short = document.getElementById(id + '-d');
         const full = document.getElementById(id + '-df');
         // `!` is erased at emit. The null check is deliberately AFTER this line
-        // in HEAD, so the ordering (and any throw it produces) is preserved.
+        // in HEAD, so the ordering (and *FIX* throw it produces) is preserved.
         const more = short!.parentElement!.querySelector('.vtree-more');
         if (!short || !full) return;
         if (short.style.display === 'none') {
@@ -1361,17 +1361,17 @@ class GraphManagerImpl {
 
         const props = (node.properties || {}) as Record<string, unknown>;
         const round = (v: unknown) => (typeof v === 'number' ? Math.round(v * 10) / 10 : null);
-        const body: any = this.network?.body?.nodes?.[id];
+        const body: *FIX* = this.network?.body?.nodes?.[id];
         const hasCanvas = !!body && Number.isFinite(body.x) && Number.isFinite(body.y);
         const canvas = hasCanvas ? { x: body.x as number, y: body.y as number } : null;
 
-        const LE = (window as unknown as { GraphLayoutEngine?: any }).GraphLayoutEngine;
-        const rel = (window as unknown as { GraphRelativeLayout?: any }).GraphRelativeLayout;
+        const LE = (window as unknown as { GraphLayoutEngine?: *FIX* }).GraphLayoutEngine;
+        const rel = (window as unknown as { GraphRelativeLayout?: *FIX* }).GraphRelativeLayout;
         const frame = LE && LE.paintedFrame ? LE.paintedFrame(nodes) : null;
 
         const parentId = options ? options.spatialParentOf(id, nodes, edges) : null;
         const parentNode = parentId ? nodes[parentId] : null;
-        const parentBody: any = parentId ? this.network?.body?.nodes?.[parentId] : null;
+        const parentBody: *FIX* = parentId ? this.network?.body?.nodes?.[parentId] : null;
         const offsetFromHolder = (canvas && parentBody && Number.isFinite(parentBody.x) && Number.isFinite(parentBody.y))
             ? { dx: round(canvas.x - parentBody.x), dy: round(canvas.y - parentBody.y) }
             : null;

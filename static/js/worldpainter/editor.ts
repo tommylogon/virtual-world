@@ -342,12 +342,12 @@
         refDrag: WpRefDrag | null;
         gridEdit: boolean;
         gridDrag: WpGridDrag | null;
-        /** Detaches the document-level grid-drag listeners, if any are attached. */
+        /** Detaches the document-level grid-drag listeners, if *FIX* are attached. */
         gridDragRelease: (() => void) | null;
         /**
          * A cell-size candidate being previewed by dragging the cell (0,0) corner
          * handle (task-597): the grid it would set, drawn on the canvas before
-         * anything is committed. Null unless a cell-size drag is in progress.
+         * *FIX*thing is committed. Null unless a cell-size drag is in progress.
          */
         cellSizePreview: { w: number; h: number; pxPerCell: number } | null;
         /** The HUD's size readout, relabelled once the reference size is known. */
@@ -424,7 +424,7 @@
 // children -- a scope nested two deep (`goblin_camp` > `test`) is absent from it
 // entirely, so it cannot be chosen for painting. `?flat=1` returns every scope
 // with its `depth` and `parent_id`, which is the complete list.
-// `SCOPES_URL` is what any scope *picker* should use; `BASE` stays for the
+// `SCOPES_URL` is what *FIX* scope *picker* should use; `BASE` stays for the
 // per-scope grid payloads that expect the nested shape.
 const SCOPES_URL = '/api/world/scopes?flat=1';
     const CELL = 22;           // base px per cell at scale 1
@@ -629,14 +629,14 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     /**
      * One POST/GET against the backend.
      *
-     * `any` on the way out on purpose: the answer is whatever JSON the route
+     * `*FIX*` on the way out on purpose: the answer is whatever JSON the route
      * answered with, and the callers either store it as the next payload or read
      * two or three fields off it. `unknown` would push a cast to every one of
      * them for no gain.
      */
-    async function _req(url: string, options?: RequestInit): Promise<any> {
+    async function _req(url: string, options?: RequestInit): Promise<*FIX*> {
         const resp = await fetch(url, options);
-        let data: any = null;
+        let data: *FIX* = null;
         try { data = await resp.json(); } catch (e) { data = null; }
         if (!resp.ok) throw new Error((data && data.error) || `${resp.status} ${resp.statusText}`);
         return data;
@@ -1195,7 +1195,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             // space press was consumed by the browser as "open the focused
             // dropdown" — the keydown was swallowed by the `typing` guard below,
             // so the pan handler never saw it. All controls blur on change (see
-            // `_valueControl`/`_layerSelect`), but the guard has to hold anyway:
+            // `_valueControl`/`_layerSelect`), but the guard has to hold *FIX*way:
             // a control focused by Tab must not silently disable panning.
             if (isSelect && e.code === 'Space') {
                 e.preventDefault();
@@ -1387,7 +1387,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 && state.scrollBox.scrollHeight > state.scrollBox.clientHeight) {
             state.scrollTop = state.scrollBox.scrollTop;
         }
-        // Only ever called from open(), which assigns state.body before anything
+        // Only ever called from open(), which assigns state.body before *FIX*thing
         // renders; the assertion states that rather than re-testing it.
         const panel = state.body!;
         panel.textContent = '';
@@ -1507,7 +1507,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         ['route', '🧭 Route', 'R', 'Click waypoints, then ✓ Paint route - paints the '
             + 'current layer along the line (1 cell = 1 turn).'],
         ['vision', '👁 Vision', 'L', 'Debug 2.5D line of sight (LoS) raycasting. '
-            + 'Click an origin cell, then click any target cell to cast a sightline ray. '
+            + 'Click an origin cell, then click *FIX* target cell to cast a sightline ray. '
             + 'Inspect elevation clearance, obscurity, and directional facing.'],
         ['feature', '🏠 Feature', 'F', 'Place a sub-zone (child scope) at a cell - not a '
             + 'road. Roads/bridges are painted on the road layer.'],
@@ -1516,7 +1516,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             + 'it belongs. Generate will not put a second area on that cell.'],
         ['inspect', '🔍 Inspect', 'I', 'Read a cell without changing it: what is painted '
             + 'on it, and which area or child scope sits there. Right-click does the '
-            + 'same on any tool.'],
+            + 'same on *FIX* tool.'],
     ];
 
     function _recomputeVisionField(p: WpPayload): void {
@@ -1549,7 +1549,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             btn.setAttribute('data-tool', id);
             if (active) btn.setAttribute('aria-pressed', 'true');
             // Hooked into the HelpCenter per tool (task-521). The rail was eight
-            // buttons with hover strings and no coach card behind any of them.
+            // buttons with hover strings and no coach card behind *FIX* of them.
             _help(btn, 'wp-tool-' + id);
             rail.appendChild(btn);
         });
@@ -2288,7 +2288,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
         const build = (): void => {
             const filtered = GM().filterPalette(sections, state.paletteQuery) as WpPaletteSection[];
-            // The rail is hidden while searching, because a match can land in any
+            // The rail is hidden while searching, because a match can land in *FIX*
             // category; the grid then shows every hit instead.
             rail.textContent = '';
             if (!state.paletteQuery && filtered.length) {
@@ -2467,12 +2467,12 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         none.value = '';
         sel.appendChild(none);
         const groups = GM().areaGroups(p, state.selectedArea);
-        groups.forEach((g: any) => {
+        groups.forEach((g: *FIX*) => {
             const og = _el('optgroup');
             og.label = g.key === 'elsewhere'
                 ? `${g.label} — picking one moves it here`
                 : g.label;
-            g.areas.forEach((a: any) => {
+            g.areas.forEach((a: *FIX*) => {
                 const where = a.placedHere ? ` (${a.placedHere.x},${a.placedHere.y})` : '';
                 const opt = _el('option', null, a.name + where);
                 opt.value = a.id;
@@ -2497,7 +2497,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // a name. The list is how you see what is where: name + cell, and picking
         // one lets you move it.
         const placedHere = (p.area_placements || []).filter(
-            (a) => !groups.some((g: any) => g.areas.some((x: any) => x.id === a.id)));
+            (a) => !groups.some((g: *FIX*) => g.areas.some((x: *FIX*) => x.id === a.id)));
         if (placedHere.length) {
             const list = _el('div', 'display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:2px;');
             placedHere.forEach((a) => {
@@ -3388,7 +3388,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      *
      * `getRelativePointerPosition()` would go stale the moment the pointer left
      * the canvas, which is the whole point of listening on the document. A drag
-     * is relative anyway, so start position plus scaled screen delta is both
+     * is relative *FIX*way, so start position plus scaled screen delta is both
      * correct outside the canvas and immune to the stale reading.
      */
     function _gridPointerCell(clientX: number, clientY: number): { x: number; y: number } | null {
@@ -3408,7 +3408,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (drag.kind === 'move') {
             // Repositioning the *scope* on the graph map (task-523), not the
             // canvas: the grid stays put; map_offset moves every node of the
-            // scope by this many cells.
+            // scope by this m*FIX* cells.
             state.gridDrag!.offset = {
                 x: drag.offset.x + (cx - drag.start.x),
                 y: drag.offset.y + (cy - drag.start.y),
@@ -3581,14 +3581,14 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             ctx.restore();
         }
         // The cells a shrink would strand (task-597), drawn on the candidate
-        // extent so the author sees *which* cells go and not only how many. They
+        // extent so the author sees *which* cells go and not only how m*FIX*. They
         // sit outside the new frame by definition, and the confirm dialog that
         // will remove them names the same count `strandedCells` produced.
         if (preview) {
             ctx.fillStyle = 'rgba(247,119,119,0.30)';
             ctx.strokeStyle = '#f77';
             ctx.lineWidth = 1 / scale;
-            GM().strandedCells(p, preview.w, preview.h).forEach((c: any) => {
+            GM().strandedCells(p, preview.w, preview.h).forEach((c: *FIX*) => {
                 ctx.fillRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
                 ctx.strokeRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
             });
@@ -4039,7 +4039,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             const cell = _cellAtPointer(p);
             if (cell) _gridClick(p, cell);
         });
-        // Right-click is "what is this?" on any tool, so a cell is never a dead
+        // Right-click is "what is this?" on *FIX* tool, so a cell is never a dead
         // end you have to switch tools to inspect.
         stage.on('contextmenu', (e) => {
             e.evt.preventDefault();
@@ -4102,7 +4102,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * has to end up empty or the move is a smear, and a smear of a road leaves the
      * map with two of them. So it is one batch - clear every source cell on every
      * layer it has, then write each value at its new home - which means one undo
-     * step, one request, and a rejection of the whole thing if any cell would land
+     * step, one request, and a rejection of the whole thing if *FIX* cell would land
      * off the grid. Clamping is what the task asks for and it is also the honest
      * behaviour: a cell shifted past the edge is dropped from the move, not
      * silently wrapped to the other side.
@@ -4227,7 +4227,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     //
     // Placing an area or painting a cell used to leave no way to find out what
     // had ended up there: the marker is ~5px on a big map and carries no name.
-    // Hover reads the cell from the payload, and a click (or right-click on any
+    // Hover reads the cell from the payload, and a click (or right-click on *FIX*
     // tool) opens a panel with the same facts plus the actions that apply to
     // exactly that cell.
 
@@ -4467,7 +4467,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     async function clearCell(p: WpPayload, x: number, y: number): Promise<void> {
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, {
-                edits: GM().PAINT_LAYERS.map((layer: any) => ({ layer, x, y, value: null })),
+                edits: GM().PAINT_LAYERS.map((layer: *FIX*) => ({ layer, x, y, value: null })),
             });
             _status(`Cleared the paint on (${x},${y}).`);
             _notify(true);
@@ -4609,7 +4609,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 _recomputeVisionField(p);
                 _redrawDecor();
                 render();
-                _status(`Vision origin set to (${x}, ${y}, floor ${state.visionOrigin.floor}). Click any target cell to cast ray, or click origin again to clear.`);
+                _status(`Vision origin set to (${x}, ${y}, floor ${state.visionOrigin.floor}). Click *FIX* target cell to cast ray, or click origin again to clear.`);
                 return;
             }
             if (state.visionOrigin.x === x && state.visionOrigin.y === y) {
@@ -4995,7 +4995,7 @@ _notify(true);
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'mode'));
         const modeSel = _el('select', 'padding:3px;border-radius:5px;');
         modeSel.setAttribute('data-role', 'wp-grid-mode');
-        GM().MODES.forEach((m: any) => {
+        GM().MODES.forEach((m: *FIX*) => {
             const opt = _el('option', null, m);
             opt.value = m;
             if (m === (p.mode || 'world')) opt.selected = true;
@@ -5009,7 +5009,7 @@ _notify(true);
             const w = parseInt(wIn.value, 10), h = parseInt(hIn.value, 10);
             if (!w || !h || w < 1 || h < 1) { warn.textContent = 'w and h must be ≥ 1'; return; }
             const pr = GM().pruneGrid(p, w, h);
-            const lost = GM().PAINT_LAYERS.reduce((n: number, l: any) =>
+            const lost = GM().PAINT_LAYERS.reduce((n: number, l: *FIX*) =>
                 n + Object.keys((p.layers || {})[l] || {}).length, 0) - pr.paintKept;
             const lostP = (p.placements || []).length - pr.placementsKept;
             warn.textContent = (lost > 0 || lostP > 0)
@@ -5061,9 +5061,9 @@ _notify(true);
 
         const grid = p.grid || { w: 10, h: 10 };
         const metresPerStorey = (state.vocab && state.vocab.metres_per_storey) || 3;
-        const scopeAny = p.scope as any;
-        const climbThreshold = (scopeAny && scopeAny.climb && scopeAny.climb.max_storey_step) != null
-            ? Number(scopeAny.climb.max_storey_step) : 3;
+        const scope*FIX* = p.scope as *FIX*;
+        const climbThreshold = (scope*FIX* && scope*FIX*.climb && scope*FIX*.climb.max_storey_step) != null
+            ? Number(scope*FIX*.climb.max_storey_step) : 3;
 
         const info = _el('div', 'font-size:11px;color:var(--text-muted,#999);',
             `Grid size: ${grid.w}×${grid.h} · 1 storey step = ${metresPerStorey}m · Climb threshold: >${climbThreshold} storeys (${climbThreshold * metresPerStorey}m)`);
@@ -5137,7 +5137,7 @@ _notify(true);
             parsedFloorEdits = edits;
 
             const climbCliffs = GM().climbGatedSteps(grid, floorMap, climbThreshold);
-            previewBox.innerHTML = `Metres: <b>${minM}m</b> to <b>${maxM}m</b><br>`
+            previewBox.*FIX*= `Metres: <b>${minM}m</b> to <b>${maxM}m</b><br>`
                 + `Storeys: <b>${minStorey === Infinity ? 0 : minStorey}</b> to <b>${maxStorey === -Infinity ? 0 : maxStorey}</b><br>`
                 + `Climb-gated steps (> ${climbThreshold} storeys): <b>${climbCliffs}</b> cell pairs`;
         };

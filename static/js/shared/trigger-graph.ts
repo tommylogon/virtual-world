@@ -34,9 +34,9 @@ window.TriggerGraph = (() => {
      * property further down (each helper is defined, then published), so this is
      * a `Record`, not a closed shape — and each member's signature spans the
      * three compilers, the blueprint file browser and the Lit toolbar, so the
-     * value type stays `any` rather than pretending to a contract here.
+     * value type stays `*FIX*` rather than pretending to a contract here.
      */
-    const TG: Record<string, any> = {};
+    const TG: Record<string, *FIX*> = {};
 
     // Declared inside the IIFE on purpose: a top-level interface in a classic
     // script is global, and these shapes are private to this module.
@@ -51,10 +51,10 @@ window.TriggerGraph = (() => {
     /**
      * A node's authored props bag. Which fields exist depends on the node type
      * AND on the chosen trigger/condition/effect type, so there is no single
-     * shape to name — the editor reads it, it never validates it. `any` on
+     * shape to name — the editor reads it, it never validates it. `*FIX*` on
      * purpose; `unknown` would just push an error to each of ~400 reads.
      */
-    type TriggerGraphProps = any;
+    type TriggerGraphProps = *FIX*;
 
     /** One entry of the socket + field registry (NODE_DEFS). */
     interface TriggerGraphNodeDef {
@@ -71,8 +71,8 @@ window.TriggerGraph = (() => {
     /** The editor's working graph: nodes/wires keyed by generated id, plus the
      *  counters that keep minted ids clear of whatever was loaded. */
     interface TriggerGraphState {
-        nodes: Record<string, any>;
-        wires: Record<string, any>;
+        nodes: Record<string, *FIX*>;
+        wires: Record<string, *FIX*>;
         nodeIdCounter: number;
         wireIdCounter: number;
     }
@@ -110,7 +110,7 @@ window.TriggerGraph = (() => {
         item: { list: 'tg-items', placeholder: 'library id' },
         slot: { placeholder: 'hand, head, torso...' },
         direction: { placeholder: 'north, south, up, down...' },
-        where: { placeholder: 'mouth, hands, anywhere' },
+        where: { placeholder: 'mouth, hands, *FIX*where' },
         intensity: { placeholder: 'gentle, rough, normal, hard' },
         area: { list: 'tg-areas', placeholder: 'blank = current area' },
         room: { list: 'tg-areas' },
@@ -130,7 +130,7 @@ window.TriggerGraph = (() => {
     function _renderCatalogFields(
         actionType: string,
         spec: { params: string[] },
-        p: Record<string, any>
+        p: Record<string, *FIX*>
     ): string {
         const params = (spec && spec.params) || [];
         if (!params.length) return '';
@@ -142,7 +142,7 @@ window.TriggerGraph = (() => {
             const ph = hint.placeholder ? ` placeholder="${hint.placeholder}"` : '';
             if (hint.type === 'number') {
                 return `<div class="tg-field-row"><label>${key.replace(/_/g, ' ')}</label>` +
-                    `<input class="tg-field" data-key="${key}" type="number" step="any" value="${val.replace(/"/g, '&quot;')}"${ph} onchange="TriggerGraph._onFieldChange(this)"></div>`;
+                    `<input class="tg-field" data-key="${key}" type="number" step="*FIX*" value="${val.replace(/"/g, '&quot;')}"${ph} onchange="TriggerGraph._onFieldChange(this)"></div>`;
             }
             const long = ['text', 'instructions', 'fallback_message'].includes(key);
             if (long) {
@@ -154,7 +154,7 @@ window.TriggerGraph = (() => {
         }).join('');
         // The engine may read params the catalog does not list (it is generated
         // from dispatch branches, and some read keys inside nested helpers).
-        // Carry any such extra prop through visibly rather than dropping it.
+        // Carry *FIX* such extra prop through visibly rather than dropping it.
         const known = new Set(params.concat(['action_type']));
         const extras = Object.keys(p).filter((k) => !known.has(k) && p[k] !== undefined && p[k] !== '' && p[k] !== null);
         const extraRows = extras.map((key: string) => {
@@ -439,7 +439,7 @@ window.TriggerGraph = (() => {
                             ${['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].map(v =>
                                 `<label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
                                     <span style="flex:1;">${v}</span>
-                                    <input type="number" step="any" class="tg-periodic-${v}" value="${p.periodic?.[v] !== undefined ? p.periodic[v] : 0}" style="width:48px;font-size:10px;" onchange="TriggerGraph._onFieldChange(this)">
+                                    <input type="number" step="*FIX*" class="tg-periodic-${v}" value="${p.periodic?.[v] !== undefined ? p.periodic[v] : 0}" style="width:48px;font-size:10px;" onchange="TriggerGraph._onFieldChange(this)">
                                 </label>`
                             ).join('')}
                         </div>
@@ -566,7 +566,7 @@ window.TriggerGraph = (() => {
                 </div>
                 <div class="tg-eff-mem" style="display:${['surface_memory','suppress_memory','unblock_memory'].includes(et)?'':'none'}">
                     ${et!=='suppress_memory' ? `<div class="tg-field-row"><label>Tags (comma-sep)</label><input class="tg-field" data-key="tags" value="${p.tags||''}" placeholder="guard, key..." onchange="TriggerGraph._onFieldChange(this)"></div>` : ''}
-                    ${et==='surface_memory' ? `<div class="tg-field-row"><label>Salience boost</label><input class="tg-field" data-key="salience_boost" type="number" value="${p.salience_boost ?? ''}" step="any" placeholder="e.g. 2" onchange="TriggerGraph._onFieldChange(this)"></div>` : ''}
+                    ${et==='surface_memory' ? `<div class="tg-field-row"><label>Salience boost</label><input class="tg-field" data-key="salience_boost" type="number" value="${p.salience_boost ?? ''}" step="*FIX*" placeholder="e.g. 2" onchange="TriggerGraph._onFieldChange(this)"></div>` : ''}
                     ${et==='suppress_memory' ? `<div class="tg-field-row"><label>Keywords (comma-sep)</label><input class="tg-field" data-key="keywords" value="${p.keywords||''}" placeholder="rat, cellar..." onchange="TriggerGraph._onFieldChange(this)"></div>
                     <div class="tg-field-row"><label>Duration (ticks)</label><input class="tg-field" data-key="duration" type="number" value="${p.duration ?? ''}" placeholder="blank = forever" onchange="TriggerGraph._onFieldChange(this)"></div>` : ''}
                 </div>`;
@@ -598,12 +598,12 @@ window.TriggerGraph = (() => {
             fields: (p) => {
                 const at = p.action_type || 'message';
                 const catalog = _behaviorActionTypes();
-                const spec = catalog.find((a: any) => a.value === at);
+                const spec = catalog.find((a: *FIX*) => a.value === at);
                 // Types with hand-tuned blocks below keep them; everything else
                 // gets generated fields for the params the ENGINE reads. Before
                 // task-388 Phase 3 the dropdown offered 11 types and
                 // _buildActionFromNode re-emitted 10, so opening a behavior with
-                // any other action and saving silently dropped all its params
+                // *FIX* other action and saving silently dropped all its params
                 // (defect #17). Unknown types are kept in the list and shown as
                 // such rather than silently relabelled "message".
                 const bespoke = ['message','speak','set_npc_state','damage','heal','set_environment','spawn_item','spawn_character','teleport','go','llm_respond'];
@@ -612,7 +612,7 @@ window.TriggerGraph = (() => {
                     : '';
                 return `
                 <div class="tg-field-row"><label>Type</label>
-                    <select class="tg-field" data-key="action_type" onchange="TriggerGraph._onFieldChange(this);TriggerGraph._rerenderNode('${'NODEID'}')">${catalog.map((a: any) => {
+                    <select class="tg-field" data-key="action_type" onchange="TriggerGraph._onFieldChange(this);TriggerGraph._rerenderNode('${'NODEID'}')">${catalog.map((a: *FIX*) => {
                         const sel = a.value === at ? 'selected' : '';
                         // Only flag a type the ENGINE does not dispatch. Every
                         // catalog entry is legitimate, so this fires only when a
@@ -691,7 +691,7 @@ window.TriggerGraph = (() => {
     // ─── State ───
     let _state: TriggerGraphState = { nodes: {}, wires: {}, nodeIdCounter: 0, wireIdCounter: 0 };
     let _mode = 'trigger';
-    let _onSave: ((graph: any) => void) | null = null;
+    let _onSave: ((graph: *FIX*) => void) | null = null;
     // Last blueprint name saved or loaded, so saving again defaults to it instead
     // of re-typing (a loaded blueprint used to forget its own name entirely).
     let _blueprintName = '';
@@ -705,7 +705,7 @@ window.TriggerGraph = (() => {
     let _sourceNodeId = '';
     // The caller's options bag (initialName / success_message / fail_message …),
     // spread straight into TriggerEditor.show — caller-defined, so untyped.
-    let _editorBridge: any = null;
+    let _editorBridge: *FIX* = null;
 
     // ─── Viewport (pan / zoom) ───
     // All interaction math happens in WORLD coordinates. The only place screen
@@ -731,7 +731,7 @@ window.TriggerGraph = (() => {
         }
     }
 
-    function _conditionToGraphProps(cond: any) {
+    function _conditionToGraphProps(cond: *FIX*) {
         if (!cond || !cond.type) return { condition_type: 'skill_check', skill: 'Athletics', dc: 10 };
         const t = cond.type;
         // Props are filled in key by key below, so the literal cannot declare
@@ -759,22 +759,22 @@ window.TriggerGraph = (() => {
      *  A logical node ({operator:'and'|'or'|'not'}) contributes its children;
      *  a group is not itself a condition. Used to lay out the node chain and to
      *  detect whether an imported group has since been edited. */
-    function _flattenConditions(tree: any): any[] {
+    function _flattenConditions(tree: *FIX*): *FIX*[] {
         if (!tree) return [];
-        if (Array.isArray(tree)) return tree.flatMap((c: any) => _flattenConditions(c));
+        if (Array.isArray(tree)) return tree.flatMap((c: *FIX*) => _flattenConditions(c));
         if (typeof tree !== 'object') return [];
-        if (tree.operator) return (tree.conditions || []).flatMap((c: any) => _flattenConditions(c));
+        if (tree.operator) return (tree.conditions || []).flatMap((c: *FIX*) => _flattenConditions(c));
         return [tree];
     }
 
     /** True when a tree is just a flat AND of leaf conditions (or a bare leaf
      *  list) — the shape the linear node chain can draw and re-emit exactly. */
-    function _treeIsFlat(tree: any): boolean {
-        if (Array.isArray(tree)) return tree.every((c: any) => _treeIsFlat(c));
+    function _treeIsFlat(tree: *FIX*): boolean {
+        if (Array.isArray(tree)) return tree.every((c: *FIX*) => _treeIsFlat(c));
         if (!tree || typeof tree !== 'object') return true;
         if (tree.operator) {
             if (tree.operator !== 'and') return false;
-            return (tree.conditions || []).every((c: any) => _treeIsFlat(c));
+            return (tree.conditions || []).every((c: *FIX*) => _treeIsFlat(c));
         }
         return true;
     }
@@ -788,7 +788,7 @@ window.TriggerGraph = (() => {
      *  ``fired``, ``cooldown``, ``success_message``), so a graph round trip
      *  cannot silently reset engine state.
      */
-    TG.triggerToGraph = function(triggerDef: any, opts?: { idPrefix?: string; xOffset?: number; yOffset?: number }) {
+    TG.triggerToGraph = function(triggerDef: *FIX*, opts?: { idPrefix?: string; xOffset?: number; yOffset?: number }) {
         const t = triggerDef || {};
         const prefix = (opts && opts.idPrefix) || '';
         const x0 = (opts && opts.xOffset) || 0;
@@ -816,7 +816,7 @@ window.TriggerGraph = (() => {
 
         // ── Conditions: leaves and AND/OR/NOT groups (task-502) ──
         // A flat AND (or a bare leaf list) draws as the familiar linear chain.
-        // Anything grouped draws a real `group` node with its children chained
+        // *FIX*thing grouped draws a real `group` node with its children chained
         // off the group's `child` socket, so an imported OR/NOT tree is editable
         // in the graph and compiles back to the same tree — no side-channel.
         const rawConditions = t.conditions;
@@ -834,13 +834,13 @@ window.TriggerGraph = (() => {
         // Emit one entry (leaf or group) wired from *from*; returns the
         // continuation socket for the next sibling. Group children chain off the
         // group's `child` socket, so they never bleed into the outer chain.
-        const layoutEntry = (entry: any, from: TriggerGraphEndpoint, x: number, y: number): TriggerGraphEndpoint => {
+        const layoutEntry = (entry: *FIX*, from: TriggerGraphEndpoint, x: number, y: number): TriggerGraphEndpoint => {
             if (entry && typeof entry === 'object' && !Array.isArray(entry) && entry.operator) {
                 const gnode = nodeId();
                 nodes.push({ id: gnode, type: 'group', x, y, props: { operator: entry.operator } });
                 wires.push({ id: wireId(), from, to: [gnode, 'input'] });
                 let childFrom: TriggerGraphEndpoint = [gnode, 'child'];
-                (entry.conditions || []).forEach((c: any, i: number) => {
+                (entry.conditions || []).forEach((c: *FIX*, i: number) => {
                     childFrom = layoutEntry(c, childFrom, x + 240, y + 40 + i * 120);
                 });
                 return [gnode, 'output_yes'];
@@ -855,7 +855,7 @@ window.TriggerGraph = (() => {
         let attachFrom: TriggerGraphEndpoint = [tnode, 'output'];
         let lastCond: string | null = null;
 
-        topEntries.forEach((c: any, i: number) => {
+        topEntries.forEach((c: *FIX*, i: number) => {
             attachFrom = layoutEntry(c, attachFrom, x0 + 50, y0 + 180 + i * 120);
             lastCond = attachFrom[0];
         });
@@ -896,22 +896,22 @@ window.TriggerGraph = (() => {
      *  trip (``compileToTriggers``) can match an edited block back to the entry
      *  it came from.
      */
-    TG.triggersToGraph = function(triggerDefs: any[]) {
+    TG.triggersToGraph = function(triggerDefs: *FIX*[]) {
         const defs = Array.isArray(triggerDefs) ? triggerDefs : [];
-        const nodes: any[] = [];
-        const wires: any[] = [];
+        const nodes: *FIX*[] = [];
+        const wires: *FIX*[] = [];
         let y = 0;
         defs.forEach((def, i) => {
             const block = TG.triggerToGraph(def, { idPrefix: `t${i}_`, yOffset: y });
             nodes.push(...block.nodes);
             wires.push(...block.wires);
-            const lowest = block.nodes.reduce((m: number, n: any) => Math.max(m, n.y), y);
+            const lowest = block.nodes.reduce((m: number, n: *FIX*) => Math.max(m, n.y), y);
             y = lowest + 240;
         });
         return { nodes, wires };
     };
 
-    TG.engineToFormData = function(compiled: any) {
+    TG.engineToFormData = function(compiled: *FIX*) {
         if (!compiled) {
             return {
                 effects: [{ type: 'message', params: {} }],
@@ -937,14 +937,14 @@ window.TriggerGraph = (() => {
         return root ? _compileRoot(root, graph) : null;
     }
 
-    function _renderTestResultHtml(res: any, triggerType: any) {
-        const rows = (res.conditions || []).map((c: any) =>
+    function _renderTestResultHtml(res: *FIX*, triggerType: *FIX*) {
+        const rows = (res.conditions || []).map((c: *FIX*) =>
             triggerGraphTag`<div style="display:flex;gap:6px;align-items:center;">
                 <span style="color:${c.passed ? 'var(--green)' : 'var(--red)'};font-weight:600;">${c.passed ? '✓' : '✕'}</span>
                 <span>${String(c.condition || '(none)')}</span>
             </div>`
         );
-        const outputs = (res.outputs || []).map((o: any) =>
+        const outputs = (res.outputs || []).map((o: *FIX*) =>
             triggerGraphTag`<div style="padding-left:8px;color:var(--text-secondary);">${String(o)}</div>`
         );
         return triggerGraphTag`
@@ -956,11 +956,11 @@ window.TriggerGraph = (() => {
             ${outputs.length ? outputs : triggerGraphTag`<div style="color:var(--text-muted);">(no effects)</div>`}`;
     }
 
-    function _renderValidateResultHtml(issues: any[]) {
+    function _renderValidateResultHtml(issues: *FIX*[]) {
         if (!issues.length) {
             return triggerGraphTag`<div style="color:var(--green);">✓ No validation issues.</div>`;
         }
-        return issues.map((issue: any) => {
+        return issues.map((issue: *FIX*) => {
             const color = issue.severity === 'error' ? 'var(--red)'
                 : issue.severity === 'warning' ? 'var(--yellow)' : 'var(--text-muted)';
             return triggerGraphTag`<div style="color:${color};margin-bottom:2px;">[${issue.severity}] ${String(issue.message || '')}</div>`;
@@ -983,7 +983,7 @@ window.TriggerGraph = (() => {
             : compiled.trigger_type;
         // item_id is only added when the editor was opened from a node, so the
         // payload is built up field by field rather than in one literal.
-        const payload: Record<string, any> = {
+        const payload: Record<string, *FIX*> = {
             trigger: compiled,
             dry_run: true,
             context: {},
@@ -1004,7 +1004,7 @@ window.TriggerGraph = (() => {
     }
     TG._onTestClick = _onTestClick;
 
-    async function _validateCompiled(compiled: any) {
+    async function _validateCompiled(compiled: *FIX*) {
         const payload = {
             trigger: compiled,
             source_node_id: _sourceNodeId || _contextItemId || '',
@@ -1062,7 +1062,7 @@ window.TriggerGraph = (() => {
             ...bridge,
             initialData: formData,
             onOpenGraph: true,
-            onSave: (data: any) => {
+            onSave: (data: *FIX*) => {
                 if (bridge.onSave) bridge.onSave({ ...base, ...data });
             },
         });
@@ -1071,7 +1071,7 @@ window.TriggerGraph = (() => {
 
     // ─── Public API ───
 
-    TG.show = function(options: any) {
+    TG.show = function(options: *FIX*) {
         _mode = options.mode === 'behavior' ? 'behavior' : 'trigger';
         _state = { nodes: {}, wires: {}, nodeIdCounter: 0, wireIdCounter: 0 };
         _selectedNode = null; _dragWire = null; _dragNode = null;
@@ -1112,7 +1112,7 @@ window.TriggerGraph = (() => {
     // `el` is `this` from an inline onchange handler, so it is whichever form
     // control the field rendered — select, input or textarea — and the code
     // branches on which by feature-detecting (multiple/selectedOptions/type).
-    TG._onFieldChange = function(el: any) {
+    TG._onFieldChange = function(el: *FIX*) {
         const nodeDiv = el.closest('.tg-node');
         if (!nodeDiv) return;
         const nodeId = nodeDiv.dataset.nodeId;
@@ -1133,7 +1133,7 @@ window.TriggerGraph = (() => {
         }
         if (el.multiple && el.selectedOptions) {
             // Multi-selects (e.g. trigger types) store an array.
-            node.props[el.dataset.key] = Array.from(el.selectedOptions).map((o: any) => o.value);
+            node.props[el.dataset.key] = Array.from(el.selectedOptions).map((o: *FIX*) => o.value);
             return;
         }
         if (el.type === 'checkbox') {
@@ -1143,7 +1143,7 @@ window.TriggerGraph = (() => {
         node.props[el.dataset.key] = el.type === 'number' ? parseFloat(el.value) || 0 : el.value;
     };
 
-    TG._onTriggerTypeChange = function(select: any) {
+    TG._onTriggerTypeChange = function(select: *FIX*) {
         const nodeDiv = select.closest('.tg-node');
         if (!nodeDiv) return;
         const nodeId = nodeDiv.dataset.nodeId;
@@ -1246,7 +1246,7 @@ window.TriggerGraph = (() => {
         const fillDl = (id: string, values: (string | string[])[]) => {
             let dl = document.getElementById(id);
             if (!dl) { dl = document.createElement('datalist'); dl.id = id; document.body.appendChild(dl); }
-            dl.innerHTML = '';
+            dl.*FIX*= '';
             (values || []).forEach(v => {
                 const o = document.createElement('option');
                 if (Array.isArray(v)) { o.value = v[0]; o.label = v[1]; o.textContent = v[1]; }
@@ -1260,8 +1260,8 @@ window.TriggerGraph = (() => {
         fillDl('tg-condition-list', ['awake','dead','unconscious','paralysed','stunned','grappled','restrained','prone','busy',
              'exhausted','sick','poisoned','blind','deaf','mute','frightened','charmed']);
         fillDl('tg-areas', Object.keys(worldState?.areas || {}));
-        fillDl('tg-items', Object.entries(worldState?.graph?.nodes || {}).filter(([, n]: [string, any]) => n.type === 'item').map(([id]: [string, any]) => id));
-        fillDl('tg-ways', Object.entries(worldState?.graph?.nodes || {}).filter(([, n]: [string, any]) => n.type === 'way').map(([id, n]: [string, any]) => [id, n.name || id]));
+        fillDl('tg-items', Object.entries(worldState?.graph?.nodes || {}).filter(([, n]: [string, *FIX*]) => n.type === 'item').map(([id]: [string, *FIX*]) => id));
+        fillDl('tg-ways', Object.entries(worldState?.graph?.nodes || {}).filter(([, n]: [string, *FIX*]) => n.type === 'way').map(([id, n]: [string, *FIX*]) => [id, n.name || id]));
         fillDl('tg-node-states', ['on','off','open','closed','locked','unlocked','lit','unlit','broken','pristine','activated','deactivated','hidden','visible']);
         fillDl('tg-npc-states', ['idle','curious','alert','angry','hostile','hunting','fleeing','hiding','sleeping','eating','working','following','talking','waiting','patrolling']);
         fillDl('tg-vitals', ['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature']);
@@ -1320,14 +1320,14 @@ window.TriggerGraph = (() => {
 
     // ─── State summary sidebar (behavior mode) ───
 
-    function _collectBehaviorStates(): Record<string, { trigger: string; to: any[]; priority: number }> {
-        const states: Record<string, { trigger: string; to: any[]; priority: number }> = {};
+    function _collectBehaviorStates(): Record<string, { trigger: string; to: *FIX*[]; priority: number }> {
+        const states: Record<string, { trigger: string; to: *FIX*[]; priority: number }> = {};
         const graph = _serializeGraph();
-        for (const bnode of graph.nodes.filter((n: any) => n.type === 'behavior')) {
-            const bw = (graph.wires || []).find((w: any) => w.from[0] === bnode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
+        for (const bnode of graph.nodes.filter((n: *FIX*) => n.type === 'behavior')) {
+            const bw = (graph.wires || []).find((w: *FIX*) => w.from[0] === bnode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
             if (!bw) continue;
             const traced = _traceBehavior(bw.to[0], graph.wires, graph.nodes);
-            const entry: { transitions: any[]; priority: number } = { transitions: [], priority: graph.nodes.length }; // filled below
+            const entry: { transitions: *FIX*[]; priority: number } = { transitions: [], priority: graph.nodes.length }; // filled below
             for (const act of traced.actions) {
                 if (act.type === 'set_npc_state') {
                     entry.transitions.push(act.state || 'idle');
@@ -1352,7 +1352,7 @@ window.TriggerGraph = (() => {
             return;
         }
         const toSet = new Set();
-        entries.forEach((e: { to: any[] }) => e.to.forEach((s: string) => toSet.add(s)));
+        entries.forEach((e: { to: *FIX*[] }) => e.to.forEach((s: string) => toSet.add(s)));
         window.Lit.render(triggerGraphTag`
             <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">🎭 States discovered</div>
             ${Array.from(toSet).sort().map(s =>
@@ -1537,7 +1537,7 @@ window.TriggerGraph = (() => {
     /** Grow a value textarea to fit its content, so a long message or persona
      *  prompt is readable without an inner scrollbar (task-755). `height:auto`
      *  first, otherwise scrollHeight only ever reports the current fixed height. */
-    function _autoGrow(el: any) {
+    function _autoGrow(el: *FIX*) {
         if (!el || el.tagName !== 'TEXTAREA') return;
         el.style.height = 'auto';
         el.style.height = `${el.scrollHeight + 2}px`;
@@ -1577,7 +1577,7 @@ window.TriggerGraph = (() => {
         }
     }
 
-    function _renderNode(node: any) {
+    function _renderNode(node: *FIX*) {
         const def = NODE_DEFS[node.type];
         if (!def) return;
         const world = _worldEl();
@@ -1780,8 +1780,8 @@ window.TriggerGraph = (() => {
         if (fromId === toId) return true;
         const adj: Record<string, string[]> = {};
         for (const w of Object.values(_state.wires)) {
-            const f = (w as any).from[0];
-            (adj[f] = adj[f] || []).push((w as any).to[0]);
+            const f = (w as *FIX*).from[0];
+            (adj[f] = adj[f] || []).push((w as *FIX*).to[0]);
         }
         // Is toId already upstream of fromId? Then from->to closes a loop.
         const stack = [toId];
@@ -1797,7 +1797,7 @@ window.TriggerGraph = (() => {
     }
 
     function _hasWire(fromId: string, fromSock: string, toId: string, toSock: string): boolean {
-        return Object.values(_state.wires).some((w: any) =>
+        return Object.values(_state.wires).some((w: *FIX*) =>
             w.from[0] === fromId && w.from[1] === fromSock && w.to[0] === toId && w.to[1] === toSock);
     }
 
@@ -1806,7 +1806,7 @@ window.TriggerGraph = (() => {
     }
 
     // Socket position in WORLD coordinates — the SVG draws in world space, so
-    // wires stay glued to sockets at any pan/zoom with no re-math on view changes.
+    // wires stay glued to sockets at *FIX* pan/zoom with no re-math on view changes.
     function _getSocketWorldPos(nodeId: string, socketId: string) {
         const el = _getSocketEl(nodeId, socketId);
         const canvas = _canvasEl();
@@ -1819,7 +1819,7 @@ window.TriggerGraph = (() => {
         };
     }
 
-    function _drawWire(svg: HTMLElement, wire: any) {
+    function _drawWire(svg: HTMLElement, wire: *FIX*) {
         const fromPos = _getSocketWorldPos(wire.from[0], wire.from[1]);
         const toPos = _getSocketWorldPos(wire.to[0], wire.to[1]);
         if (!fromPos || !toPos) return;
@@ -1876,7 +1876,7 @@ window.TriggerGraph = (() => {
         }
         const colors = new Set<string>();
         for (const nd of Object.values(_state.nodes)) {
-            const type = (nd as any).type;
+            const type = (nd as *FIX*).type;
             for (const s of NODE_DEFS[type]?.sockets || []) {
                 if (s.color) colors.add(s.color);
             }
@@ -1942,14 +1942,14 @@ window.TriggerGraph = (() => {
         if (!n) return;
         _dragNode = { nodeId, sx: n.x, sy: n.y, mx: e.clientX, my: e.clientY };
         const el = e.currentTarget as HTMLElement | null;
-        if (el) (el.style as any).zIndex = _nextZ++;
+        if (el) (el.style as *FIX*).zIndex = _nextZ++;
         e.preventDefault();
         _beginGesture();
     }
 
     function _onCanvasMouseDown(e: MouseEvent) {
         _hideContextMenu();
-        // Middle-mouse or space+drag pans from anywhere on the canvas.
+        // Middle-mouse or space+drag pans from *FIX*where on the canvas.
         if (e.button === 1 || _spacePan) {
             e.preventDefault();
             _startPan(e);
@@ -1984,7 +1984,7 @@ window.TriggerGraph = (() => {
         if (_dragNode) {
             const n = _state.nodes[_dragNode.nodeId];
             if (n) {
-                // Screen delta → world delta, so the node tracks the cursor 1:1 at any zoom.
+                // Screen delta → world delta, so the node tracks the cursor 1:1 at *FIX* zoom.
                 n.x = _dragNode.sx + (e.clientX - _dragNode.mx) / _vp.k;
                 n.y = _dragNode.sy + (e.clientY - _dragNode.my) / _vp.k;
                 const el = document.querySelector(`.tg-node[data-node-id="${_dragNode.nodeId}"]`) as HTMLElement | null;
@@ -2069,7 +2069,7 @@ window.TriggerGraph = (() => {
         e.preventDefault();
         if ((e.target as HTMLElement).id !== 'tg-canvas' && (e.target as HTMLElement).id !== 'tg-world' && (e.target as HTMLElement).id !== 'tg-svg') return;
         if (!_canvasEl()) return;
-        // Store WORLD coords so nodes spawn exactly where the user clicked, at any zoom.
+        // Store WORLD coords so nodes spawn exactly where the user clicked, at *FIX* zoom.
         _contextWorldPos = _screenToWorld(e.clientX, e.clientY);
 
         _hideContextMenu();
@@ -2123,7 +2123,7 @@ window.TriggerGraph = (() => {
         const edgeColor = (t: string) => t === 'trigger' || t === 'behavior' ? '#e3b341' : t === 'condition' ? '#f85149' : t === 'group' ? '#d29922' : t === 'state' ? '#bc8cff' : '#58a6ff';
         window.Lit.render(triggerGraphTag`
             ${filtered.length > 0 ? filtered.map(i => triggerGraphTag`
-                <div class="tg-cm-item" data-type=${i.type} style="padding:6px 8px;border-radius:4px;cursor:pointer;display:flex;flex-direction:column;gap:1px;border-left:3px solid ${edgeColor(i.type)};" @mouseover=${(e: any) => e.currentTarget.style.background='var(--bg-hover,#2a2a3e)'} @mouseout=${(e: any) => e.currentTarget.style.background='transparent'} @mousedown=${(e: any) => { e.stopPropagation(); TG._addNode(i.type, _contextWorldPos.x, _contextWorldPos.y); TG._hideContextMenu(); }}>
+                <div class="tg-cm-item" data-type=${i.type} style="padding:6px 8px;border-radius:4px;cursor:pointer;display:flex;flex-direction:column;gap:1px;border-left:3px solid ${edgeColor(i.type)};" @mouseover=${(e: *FIX*) => e.currentTarget.style.background='var(--bg-hover,#2a2a3e)'} @mouseout=${(e: *FIX*) => e.currentTarget.style.background='transparent'} @mousedown=${(e: *FIX*) => { e.stopPropagation(); TG._addNode(i.type, _contextWorldPos.x, _contextWorldPos.y); TG._hideContextMenu(); }}>
                     <span style="font-size:12px;font-weight:500;">${i.label}</span>
                     <span style="font-size:9px;color:var(--text-muted);">${i.desc}</span>
                 </div>
@@ -2170,21 +2170,21 @@ window.TriggerGraph = (() => {
             alert('Add a trigger node before applying.');
             return;
         }
-        const refused = compiled.find((c: any) => TG.compileError(c));
+        const refused = compiled.find((c: *FIX*) => TG.compileError(c));
         if (refused && TG.reportCompileError(refused)) return;
         try {
             const issues = await _validateCompiled(compiled[0]);
-            const errors = issues.filter((i: any) => i.severity === 'error');
+            const errors = issues.filter((i: *FIX*) => i.severity === 'error');
             const panel = document.getElementById('tg-test-panel');
             if (panel) {
                 panel.style.display = 'block';
                 window.Lit.render(triggerGraphTag`${_renderValidateResultHtml(issues)}`, panel);
             }
-            if (errors.length && !confirm(`Found ${errors.length} validation error(s). Apply anyway?`)) {
+            if (errors.length && !confirm(`Found ${errors.length} validation error(s). Apply *FIX*way?`)) {
                 return;
             }
         } catch (e) {
-            if (!confirm(`Validation check failed (${(e as Error).message}). Apply anyway?`)) return;
+            if (!confirm(`Validation check failed (${(e as Error).message}). Apply *FIX*way?`)) return;
         }
         if (_onSave) _onSave(g);
         _close();
@@ -2292,7 +2292,7 @@ window.TriggerGraph = (() => {
     }
     TG._exportBlueprint = _exportBlueprint;
 
-    function _applyBlueprint(bp: any) {
+    function _applyBlueprint(bp: *FIX*) {
         if (!bp.graph) throw new Error('Invalid blueprint');
         if (typeof bp.name === 'string' && bp.name) _blueprintName = bp.name;
         _state = { nodes: {}, wires: {}, nodeIdCounter: 0, wireIdCounter: 0 };
@@ -2314,7 +2314,7 @@ window.TriggerGraph = (() => {
     // Picking load a blueprint's graph into the editor; "Attach" compiles it and
     // materialises ordinary logic_trigger nodes + triggers edges on the node the
     // editor was opened from.
-    let _bpLibrary: Record<string, any> = {};
+    let _bpLibrary: Record<string, *FIX*> = {};
 
     function _closeBlueprintModal() {
         const m = document.getElementById('tg-blueprint-modal');
@@ -2325,7 +2325,7 @@ window.TriggerGraph = (() => {
         const listEl = document.getElementById('tg-bp-list');
         if (!listEl) return;
         const f = String(filter || '').toLowerCase();
-        const entries = Object.entries(_bpLibrary).filter(([id, bp]: [string, any]) => {
+        const entries = Object.entries(_bpLibrary).filter(([id, bp]: [string, *FIX*]) => {
             if (!f) return true;
             return id.toLowerCase().includes(f)
                 || String(bp?.name || '').toLowerCase().includes(f)
@@ -2336,7 +2336,7 @@ window.TriggerGraph = (() => {
             return;
         }
         const target = _sourceNodeId || _contextItemId;
-        const rows = entries.map(([id, bp]: [string, any]) => {
+        const rows = entries.map(([id, bp]: [string, *FIX*]) => {
             const n = bp?.name || id;
             const d = bp?.description || '';
             const count = Array.isArray(bp?.graph?.nodes) ? bp.graph.nodes.length : 0;
@@ -2347,7 +2347,7 @@ window.TriggerGraph = (() => {
                     <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d || id}</div>
                     <div style="font-size:9px;color:var(--text-dim);">${count} node${count === 1 ? '' : 's'}</div>
                 </div>
-                ${target ? triggerGraphTag`<button class="btn btn-sm" style="font-size:10px;flex-shrink:0;" @click=${(e: any) => { e.stopPropagation(); TG._attachBlueprint(id); }} title="Compile and attach to ${target}">↳ Attach</button>` : ''}
+                ${target ? triggerGraphTag`<button class="btn btn-sm" style="font-size:10px;flex-shrink:0;" @click=${(e: *FIX*) => { e.stopPropagation(); TG._attachBlueprint(id); }} title="Compile and attach to ${target}">↳ Attach</button>` : ''}
             </div>`;
         });
         window.Lit.render(triggerGraphTag`${rows}`, listEl);
@@ -2368,7 +2368,7 @@ window.TriggerGraph = (() => {
                 window.Lit.render(triggerGraphTag`
                     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px;width:420px;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.5);">
                         <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:#e3b341;">📂 Load Blueprint</div>
-                        <input id="tg-bp-search" type="text" placeholder="🔍 Search blueprints..." style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);font-size:11px;margin-bottom:8px;" @input=${(e: any) => TG._filterBlueprints(e.currentTarget.value)}>
+                        <input id="tg-bp-search" type="text" placeholder="🔍 Search blueprints..." style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);font-size:11px;margin-bottom:8px;" @input=${(e: *FIX*) => TG._filterBlueprints(e.currentTarget.value)}>
                         <div id="tg-bp-list" style="flex:1;overflow-y:auto;min-height:120px;max-height:50vh;"></div>
                         <div style="margin-top:8px;display:flex;gap:6px;">
                             <button class="btn btn-sm" @click=${() => TG._importBlueprintFile()} style="font-size:10px;">⬆️ Import file…</button>
@@ -2381,7 +2381,7 @@ window.TriggerGraph = (() => {
                 _renderBlueprintList('');
                 setTimeout(() => document.getElementById('tg-bp-search')?.focus(), 30);
             })
-            .catch((err: any) => alert('Could not load blueprints: ' + err.message));
+            .catch((err: *FIX*) => alert('Could not load blueprints: ' + err.message));
     }
     TG._loadBlueprint = _loadBlueprint;
     TG._closeBlueprint = _closeBlueprintModal;
@@ -2446,13 +2446,13 @@ window.TriggerGraph = (() => {
 
     // ─── Engine compilation (behaviors) ───
 
-    function _buildActionFromNode(node: any) {
+    function _buildActionFromNode(node: *FIX*) {
         const p = node.props || {};
         if (node.type === 'state') {
             return { type: 'set_npc_state', state: p.state || 'idle' };
         }
         const at = p.action_type || 'message';
-        const a: any = { type: at };
+        const a: *FIX* = { type: at };
         // Keys the bespoke branch below actually consumed. Only these are
         // excluded from the carry-through — a fixed exclusion list would drop
         // `target`/`text` for every NON-bespoke action type (kiss, open, ...),
@@ -2531,15 +2531,15 @@ window.TriggerGraph = (() => {
      *  with no warning. The engine's behavior model is a flat action list
      *  (`for action in actions:` in engine/triggers/behaviors.py), so fan-out is
      *  natively supported — dropping it was an editor bug, not a model limit. */
-    function _outWires(wires: any[], nodeId: string, ...sockets: string[]): any[] {
+    function _outWires(wires: *FIX*[], nodeId: string, ...sockets: string[]): *FIX*[] {
         return wires.filter((w) => w.from[0] === nodeId && sockets.includes(w.from[1]));
     }
 
     /** Trace behavior node graph into conditions + flat actions.
      *  ``problems`` accumulates refusals (task-503): the behavior model has no
-     *  else, so a NO branch carrying anything is unrepresentable and must not be
+     *  else, so a NO branch carrying *FIX*thing is unrepresentable and must not be
      *  dropped silently. */
-    function _traceBehavior(nodeId: string, wires: any[], nodes: any[], problems?: string[], seen?: Set<string>): { conditions: any[]; actions: any[] } {
+    function _traceBehavior(nodeId: string, wires: *FIX*[], nodes: *FIX*[], problems?: string[], seen?: Set<string>): { conditions: *FIX*[]; actions: *FIX*[] } {
         if (!problems) problems = [];
         // Cycle guard: a hand-drawn loop would otherwise recurse until the stack
         // blows. Creation now rejects cycles, but a blueprint or an older save can
@@ -2600,25 +2600,25 @@ window.TriggerGraph = (() => {
 
     /** Compile a behavior-mode graph into the engine behavior array (task-501
      *  task-503: with a refusal reason when a NO branch would be dropped). */
-    TG.compileToBehaviorsWithIssues = function(graph: any) {
+    TG.compileToBehaviorsWithIssues = function(graph: *FIX*) {
         if (!graph?.nodes) return { behaviors: [], compile_error: '' };
         const problems: string[] = [];
-        let behaviorNodes: any[] = graph.nodes.filter((n: any) => n.type === 'behavior');
+        let behaviorNodes: *FIX*[] = graph.nodes.filter((n: *FIX*) => n.type === 'behavior');
         // Priority comes from vertical position: top = highest priority (matches the
         // drag-to-reorder behavior). Two nodes with identical y keep their order.
-        behaviorNodes = behaviorNodes.sort((a: any, b: any) => (a.y ?? 0) - (b.y ?? 0));
+        behaviorNodes = behaviorNodes.sort((a: *FIX*, b: *FIX*) => (a.y ?? 0) - (b.y ?? 0));
         const count = behaviorNodes.length;
-        const behaviors = behaviorNodes.map((bnode: any, rank: number) => {
+        const behaviors = behaviorNodes.map((bnode: *FIX*, rank: number) => {
             // task-388 defect #9: follow EVERY wire off the behavior node, not
             // just the first. A behavior wired to two chains is a legitimate
             // fan-out and the engine's flat action list runs both.
             const outs = _outWires(graph.wires || [], bnode.id, 'output', 'right');
-            let traced: { conditions: any[]; actions: any[] } = { conditions: [], actions: [] };
+            let traced: { conditions: *FIX*[]; actions: *FIX*[] } = { conditions: [], actions: [] };
             if (outs.length) {
-                const branches = outs.map((w: any) => _traceBehavior(w.to[0], graph.wires, graph.nodes, problems, new Set([bnode.id])));
+                const branches = outs.map((w: *FIX*) => _traceBehavior(w.to[0], graph.wires, graph.nodes, problems, new Set([bnode.id])));
                 traced = {
-                    conditions: branches.flatMap((b: any) => b.conditions),
-                    actions: branches.flatMap((b: any) => b.actions)
+                    conditions: branches.flatMap((b: *FIX*) => b.conditions),
+                    actions: branches.flatMap((b: *FIX*) => b.actions)
                 };
             }
             const conditions = traced.conditions.length > 0
@@ -2634,12 +2634,12 @@ window.TriggerGraph = (() => {
             return behavior;
         });
         // Stable order: highest priority first (mirrors engine sort in npc_behaviors.py)
-        behaviors.sort((a: any, b: any) => b.priority - a.priority);
+        behaviors.sort((a: *FIX*, b: *FIX*) => b.priority - a.priority);
         return { behaviors, compile_error: problems.join(' ') };
     };
 
     /** Compile a behavior-mode graph into the engine behavior array. */
-    TG.compileToBehaviors = function(graph: any) {
+    TG.compileToBehaviors = function(graph: *FIX*) {
         return TG.compileToBehaviorsWithIssues(graph).behaviors;
     };
 
@@ -2648,19 +2648,19 @@ window.TriggerGraph = (() => {
      * [behavior] → [conditions column] → [actions column] — with per-block
      * heights so chains never overlap the next behavior. compileToBehaviors
      * derives priority from Y (ties keep load order), so the grid preserves it. */
-    TG.behaviorsToGraph = function(behaviors: any) {
+    TG.behaviorsToGraph = function(behaviors: *FIX*) {
         const list = Array.isArray(behaviors) ? behaviors : [];
-        const sorted = [...list].sort((a: any, b: any) => (b.priority ?? 1) - (a.priority ?? 1));
-        const nodes: any[] = [];
-        const wires: any[] = [];
+        const sorted = [...list].sort((a: *FIX*, b: *FIX*) => (b.priority ?? 1) - (a.priority ?? 1));
+        const nodes: *FIX*[] = [];
+        const wires: *FIX*[] = [];
         // Minted graph ids (n0, n1, ...) for freshly drawn nodes.
         let nextNodeSeq = 0;
         const COLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(sorted.length))));
         // CHAIN_DY 150 clears the tallest nodes (action cards with 2-row textareas).
         const CELL_W = 920, BASE_H = 70, CHAIN_DY = 150, ROW_GAP = 50;
         let rowY = 40, rowH = 0, col = 0;
-        sorted.forEach((b: any) => {
-            let conditions: any = b.conditions || {};
+        sorted.forEach((b: *FIX*) => {
+            let conditions: *FIX* = b.conditions || {};
             if (conditions && typeof conditions === 'object' && !Array.isArray(conditions) && (conditions.operator || (conditions.type && conditions.type !== 'none'))) {
                 conditions = conditions.conditions && conditions.conditions.length ? conditions.conditions : (conditions.type ? [conditions] : []);
             }
@@ -2681,13 +2681,13 @@ window.TriggerGraph = (() => {
                 props: { trigger: b.trigger || 'on_tick', priority: b.priority ?? 1, interval: b.interval ?? 1 }
             });
             let from: string[] = [bnode, 'output'];
-            conditions.forEach((c: any, ci: number) => {
+            conditions.forEach((c: *FIX*, ci: number) => {
                 const cnode = `n${nextNodeSeq++}`;
                 nodes.push({ id: cnode, type: 'condition', x: bx + 300, y: by + BASE_H + ci * CHAIN_DY, props: _conditionToGraphProps(c) });
                 wires.push({ id: `w${wires.length}`, from, to: [cnode, 'input'] });
                 from = [cnode, 'output_yes'];
             });
-            actions.forEach((act: any, ai: number) => {
+            actions.forEach((act: *FIX*, ai: number) => {
                 const anode = `n${nextNodeSeq++}`;
                 const isState = act.type === 'set_npc_state';
                 nodes.push({
@@ -2707,8 +2707,8 @@ window.TriggerGraph = (() => {
 
     // ─── Engine compilation (triggers) ───
 
-    function _buildConditionFromNode(node: any) {
-        const cond: any = { type: node.props.condition_type || 'skill_check' };
+    function _buildConditionFromNode(node: *FIX*) {
+        const cond: *FIX* = { type: node.props.condition_type || 'skill_check' };
         const p = node.props;
         if (cond.type === 'skill_check') {
             cond.skill = p.skill || 'Athletics';
@@ -2773,8 +2773,8 @@ window.TriggerGraph = (() => {
     // this a graph save reset `once`/`fired` and dropped the success message.
     const TRIGGER_STATE_KEYS = ['id', 'name', 'once', 'fired', 'cooldown', 'success_message', 'target_name', 'target_state'];
 
-    function _carriedTriggerState(props: any) {
-        const out: any = {};
+    function _carriedTriggerState(props: *FIX*) {
+        const out: *FIX* = {};
         for (const key of TRIGGER_STATE_KEYS) {
             const value = props[key];
             if (value !== undefined && value !== null && value !== '') out[key] = value;
@@ -2783,13 +2783,13 @@ window.TriggerGraph = (() => {
     }
 
     /** Compile one trigger root (and everything wired to it) into a definition. */
-    function _compileRoot(triggerNode: any, graph: any) {
+    function _compileRoot(triggerNode: *FIX*, graph: *FIX*) {
         const props = triggerNode.props || {};
         const tt = props.trigger_type || 'on_use';
         const carried = _carriedTriggerState(props);
-        const tw = (graph.wires || []).find((w: any) => w.from[0] === triggerNode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
+        const tw = (graph.wires || []).find((w: *FIX*) => w.from[0] === triggerNode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
         if (!tw) {
-            const empty: any = { ...carried, trigger_type: tt, effects: [{ type: 'message', params: { message: '' } }], conditions: {} };
+            const empty: *FIX* = { ...carried, trigger_type: tt, effects: [{ type: 'message', params: { message: '' } }], conditions: {} };
             empty.target_name = props.target_tag || '';
             empty.target_state = props.target_state || '';
             return empty;
@@ -2808,7 +2808,7 @@ window.TriggerGraph = (() => {
             condTree = { operator: 'and', conditions: traced.conditions };
         }
 
-        const result: any = {
+        const result: *FIX* = {
             ...carried,
             trigger_type: tt,
             effects: traced.effects.length ? traced.effects : [{ type: 'message', params: { message: '' } }],
@@ -2829,15 +2829,15 @@ window.TriggerGraph = (() => {
      *  the definition it came from. The caller matches by id: known id updates
      *  that entry, a new root appends.
      */
-    TG.compileToTriggers = function(graph: any) {
+    TG.compileToTriggers = function(graph: *FIX*) {
         if (!graph?.nodes) return [];
         return graph.nodes
-            .filter((n: any) => n.type === 'trigger')
-            .map((n: any) => _compileRoot(n, graph));
+            .filter((n: *FIX*) => n.type === 'trigger')
+            .map((n: *FIX*) => _compileRoot(n, graph));
     };
 
     /** The first trigger root's definition, for single-trigger callers. */
-    TG.compileToEngine = function(graph: any) {
+    TG.compileToEngine = function(graph: *FIX*) {
         const all = TG.compileToTriggers(graph);
         return all.length ? all[0] : null;
     };
@@ -2853,7 +2853,7 @@ window.TriggerGraph = (() => {
         'target_tag', 'target_state', 'success_message', 'fail_message', 'once',
         'fired', 'cooldown'];
 
-    function _looksLikeTrigger(value: any): boolean {
+    function _looksLikeTrigger(value: *FIX*): boolean {
         return !!value && typeof value === 'object' && !Array.isArray(value)
             && TRIGGER_FIELDS.some((key) => key in value);
     }
@@ -2866,7 +2866,7 @@ window.TriggerGraph = (() => {
      *  key and are returned untouched. `scalar` permits unwrapping a wrapped
      *  string, which is only correct for a field value.
      */
-    function _unwrapSingleKey(value: any, scalar?: boolean): any {
+    function _unwrapSingleKey(value: *FIX*, scalar?: boolean): *FIX* {
         for (let i = 0; i < 8; i++) {
             if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
             const keys = Object.keys(value);
@@ -2879,10 +2879,10 @@ window.TriggerGraph = (() => {
     }
 
     /** Normalise one stored entry into a definition dict, or null when unusable. */
-    TG.normalizeTriggerEntry = function(entry: any) {
+    TG.normalizeTriggerEntry = function(entry: *FIX*) {
         const unwrapped = _unwrapSingleKey(entry);
         if (!unwrapped || typeof unwrapped !== 'object' || Array.isArray(unwrapped)) return null;
-        const out: any = { ...unwrapped };
+        const out: *FIX* = { ...unwrapped };
         for (const key of ['trigger_type', 'effects', 'conditions', 'condition']) {
             if (out[key] && typeof out[key] === 'object' && !Array.isArray(out[key])) {
                 out[key] = _unwrapSingleKey(out[key], true);
@@ -2892,8 +2892,8 @@ window.TriggerGraph = (() => {
         if (effects && typeof effects === 'object' && !Array.isArray(effects)) effects = [effects];
         if (Array.isArray(effects)) {
             const fixed = effects
-                .map((effect: any) => _unwrapSingleKey(effect))
-                .filter((effect: any) => effect && typeof effect === 'object' && !Array.isArray(effect) && effect.type);
+                .map((effect: *FIX*) => _unwrapSingleKey(effect))
+                .filter((effect: *FIX*) => effect && typeof effect === 'object' && !Array.isArray(effect) && effect.type);
             if (fixed.length) out.effects = fixed;
             else delete out.effects;
         }
@@ -2902,20 +2902,20 @@ window.TriggerGraph = (() => {
     };
 
     /** Normalise `properties['triggers']` (list, wrapper, or wrapper of a list). */
-    TG.normalizeTriggerList = function(value: any) {
+    TG.normalizeTriggerList = function(value: *FIX*) {
         if (value === undefined || value === null) return [];
         const unwrapped = _unwrapSingleKey(value);
         const raw = Array.isArray(unwrapped) ? unwrapped : (Array.isArray(value) ? value : [unwrapped]);
         return raw
-            .map((entry: any) => TG.normalizeTriggerEntry(entry))
-            .filter((entry: any) => !!entry);
+            .map((entry: *FIX*) => TG.normalizeTriggerEntry(entry))
+            .filter((entry: *FIX*) => !!entry);
     };
 
-    function _nodeById(nodes: any, id: any): any {
+    function _nodeById(nodes: *FIX*, id: *FIX*): *FIX* {
         if (!nodes || id === undefined || id === null) return null;
         const wanted = String(id).toLowerCase();
         if (Array.isArray(nodes)) {
-            return nodes.find((n: any) => n && String(n.id).toLowerCase() === wanted) || null;
+            return nodes.find((n: *FIX*) => n && String(n.id).toLowerCase() === wanted) || null;
         }
         if (nodes[id]) return nodes[id];
         for (const key of Object.keys(nodes)) {
@@ -2927,7 +2927,7 @@ window.TriggerGraph = (() => {
     /** Merge a property entry (or an edge copy and its target node) into one
      *  definition. Edge wins per field where both exist, matching engine
      *  precedence; the id is the edge target, or the entry's own id. */
-    TG.triggerDefFromEdge = function(edge: any, nodes: any) {
+    TG.triggerDefFromEdge = function(edge: *FIX*, nodes: *FIX*) {
         const target = edge && edge.target;
         const node = _nodeById(nodes, target);
         const nodeProps = (node && node.properties) || {};
@@ -2957,7 +2957,7 @@ window.TriggerGraph = (() => {
         } else if (!conditions || typeof conditions !== 'object') {
             conditions = {};
         }
-        const def: any = {
+        const def: *FIX* = {
             trigger_type: pick('trigger_type') || 'on_examine',
             effects,
             conditions,
@@ -2977,7 +2977,7 @@ window.TriggerGraph = (() => {
     };
 
     /** One stored property entry as a definition. */
-    TG.triggerDefFromProperty = function(entry: any) {
+    TG.triggerDefFromProperty = function(entry: *FIX*) {
         const normalized = TG.normalizeTriggerEntry(entry);
         if (!normalized) return null;
         return TG.triggerDefFromEdge(
@@ -2988,8 +2988,8 @@ window.TriggerGraph = (() => {
 
     /** Every definition on *sourceId*: the property array first, then legacy
      *  edges deduped by id. This is the one graph→array path (task-636). */
-    TG.triggersFromGraphEdges = function(edges: any, nodes: any, sourceId?: string) {
-        const out: any[] = [];
+    TG.triggersFromGraphEdges = function(edges: *FIX*, nodes: *FIX*, sourceId?: string) {
+        const out: *FIX*[] = [];
         const seen = new Set<string>();
         const lower = sourceId == null || sourceId === '' ? null : String(sourceId).toLowerCase();
 
@@ -3019,12 +3019,12 @@ window.TriggerGraph = (() => {
     };
 
     /** The refusal reason for a compiled trigger, or '' when it compiled clean. */
-    TG.compileError = function(compiled: any) {
+    TG.compileError = function(compiled: *FIX*) {
         return compiled && compiled.compile_error ? compiled.compile_error : '';
     };
 
     /** Surface a refused compile to the user. Returns true when it was refused. */
-    TG.reportCompileError = function(compiled: any) {
+    TG.reportCompileError = function(compiled: *FIX*) {
         const msg = TG.compileError(compiled);
         if (!msg) return false;
         if (typeof toastInfo === 'function') toastInfo(msg);
@@ -3035,8 +3035,8 @@ window.TriggerGraph = (() => {
     /** Mirror the form editor's _collectData: convert a graph node's flat props
      * into engine-effect params (save gates → on_success/on_fail arrays, target_by
      * normalization, boolean coercions, empty strings dropped, JSON textareas parsed). */
-    function _normalizeEffectParams(type: string, params: any) {
-        const p: any = { ...params };
+    function _normalizeEffectParams(type: string, params: *FIX*) {
+        const p: *FIX* = { ...params };
         delete p.effect_type;
 
         // Advanced JSON textareas (apply_condition symptoms/extras, save branches).
@@ -3060,7 +3060,7 @@ window.TriggerGraph = (() => {
                 if (t === 'none') return [];
                 if (t === 'message') return p[side + '_msg'] ? [{ type: 'message', params: { message: p[side + '_msg'] } }] : [];
                 if (t === 'apply_condition') {
-                    const bp: any = { condition: p[side + '_cond'] || '', target: 'self' };
+                    const bp: *FIX* = { condition: p[side + '_cond'] || '', target: 'self' };
                     if (p[side + '_dur'] !== undefined && p[side + '_dur'] !== '') bp.duration = parseInt(p[side + '_dur']) || 0;
                     if (p[side + '_src']) bp.source = p[side + '_src'];
                     if (p[side + '_src_type']) bp.source_type = p[side + '_src_type'];
@@ -3069,7 +3069,7 @@ window.TriggerGraph = (() => {
                 if (t === 'damage') return [{ type: 'damage', params: { amount: parseInt(p[side + '_dmg']) || 5, target: 'self' } }];
                 return [];
             };
-            const out: any = { dc: parseInt(p.save_dc) || 12, on_success: branch('succ'), on_fail: branch('fail') };
+            const out: *FIX* = { dc: parseInt(p.save_dc) || 12, on_success: branch('succ'), on_fail: branch('fail') };
             if (p.save_mode === 'skill') out.skill = p.save_skill || 'Athletics';
             else out.stat = p.save_stat || 'WIS';
             // An imported graph that already carries full save params (and no flat
@@ -3109,16 +3109,16 @@ window.TriggerGraph = (() => {
     /** Trace a group node's children into an engine logical tree. Children are
      *  the chain hanging off the group's `child` socket; each contributes either
      *  a leaf condition or a nested group. `seen` guards against wire cycles. */
-    function _traceGroupCondition(nodeId: string, wires: any[], nodes: any[], seen?: Set<string>): any {
+    function _traceGroupCondition(nodeId: string, wires: *FIX*[], nodes: *FIX*[], seen?: Set<string>): *FIX* {
         if (!seen) seen = new Set();
-        const node = nodes.find((n: any) => n.id === nodeId);
+        const node = nodes.find((n: *FIX*) => n.id === nodeId);
         const op = (node && node.props && node.props.operator) || 'and';
-        const children: any[] = [];
-        const cw = wires.find((w: any) => w.from[0] === nodeId && w.from[1] === 'child');
+        const children: *FIX*[] = [];
+        const cw = wires.find((w: *FIX*) => w.from[0] === nodeId && w.from[1] === 'child');
         let cur = cw ? cw.to[0] : null;
         while (cur && !seen.has(cur)) {
             seen.add(cur);
-            const cn = nodes.find((n: any) => n.id === cur);
+            const cn = nodes.find((n: *FIX*) => n.id === cur);
             if (!cn) break;
             if (cn.type === 'group') children.push(_traceGroupCondition(cur, wires, nodes, seen));
             else if (cn.type === 'condition') children.push(_buildConditionFromNode(cn));
@@ -3129,8 +3129,8 @@ window.TriggerGraph = (() => {
         return { operator: op, conditions: children };
     }
 
-    function _traceGraph(nodeId: string, wires: any[], nodes: any[], seen?: Set<string>): { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } {
-        const empty: { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } = { effects: [], conditions: [], fail_message: '', problems: [] };
+    function _traceGraph(nodeId: string, wires: *FIX*[], nodes: *FIX*[], seen?: Set<string>): { effects: *FIX*[]; conditions: *FIX*[]; fail_message: string; problems: string[] } {
+        const empty: { effects: *FIX*[]; conditions: *FIX*[]; fail_message: string; problems: string[] } = { effects: [], conditions: [], fail_message: '', problems: [] };
         // Cycle guard: creation rejects cycles, but a hand-edited or imported
         // blueprint can still contain one, and this tracer is recursive.
         if (!seen) seen = new Set<string>();
@@ -3138,7 +3138,7 @@ window.TriggerGraph = (() => {
             return { ...empty, problems: ['Cycle detected in the graph; the loop was not followed.'] };
         }
         seen.add(nodeId);
-        const node = nodes.find((n: any) => n.id === nodeId);
+        const node = nodes.find((n: *FIX*) => n.id === nodeId);
         if (!node) return empty;
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
@@ -3194,7 +3194,7 @@ window.TriggerGraph = (() => {
             if (noOuts.length) {
                 for (const w of noOuts) {
                     const ne = _traceGraph(w.to[0], wires, nodes, new Set(seen));
-                    const msgs = ne.effects.filter((e: any) => e.type === 'message');
+                    const msgs = ne.effects.filter((e: *FIX*) => e.type === 'message');
                     if (ne.conditions.length) {
                         problems.push(`Group "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
                     }

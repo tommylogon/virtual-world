@@ -19,15 +19,15 @@
         static participantSignature = '';
 
         static getTalkativeness(name: string): number {
-            const config = (window as any).config;
+            const config = (window as *FIX*).config;
             if (config?.getTalkativeness) return config.getTalkativeness(name);
-            return (window as any).VWSimultaneous?.TALKATIVENESS_DEFAULT_SECONDS || 25;
+            return (window as *FIX*).VWSimultaneous?.TALKATIVENESS_DEFAULT_SECONDS || 25;
         }
 
         static setTalkativeness(name: string, value: number | string, persist = false, shouldResetTimer = true): number {
-            const mode = (window as any).VWSimultaneous;
+            const mode = (window as *FIX*).VWSimultaneous;
             const pace = mode?.normalizeTalkativeness(value) || 25;
-            const config = (window as any).config;
+            const config = (window as *FIX*).config;
             if (config) config.talkativenessByCharacter[name] = pace;
             if (persist && config?.setTalkativeness) void config.setTalkativeness(name, pace);
             if (shouldResetTimer) this.resetTimer(name);
@@ -35,7 +35,7 @@
         }
 
         static randomizeTalkativeness(name: string, persist = true, shouldResetTimer = true): number {
-            const mode = (window as any).VWSimultaneous;
+            const mode = (window as *FIX*).VWSimultaneous;
             const min = mode?.TALKATIVENESS_MIN_SECONDS || 5;
             const max = mode?.TALKATIVENESS_MAX_SECONDS || 120;
             const pace = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -44,7 +44,7 @@
 
         static start() {
             this.isRunning = true;
-            if (!(window as any).CommonsState.isPaused) this.scheduleAll(true);
+            if (!(window as *FIX*).CommonsState.isPaused) this.scheduleAll(true);
         }
 
         static stop() {
@@ -83,7 +83,7 @@
             delete this.timers[charName];
             delete this.deadlines[charName];
 
-            const state = (window as any).CommonsState;
+            const state = (window as *FIX*).CommonsState;
             const participant = state.participants?.[charName];
             const pState = String(participant?.state || '').toLowerCase();
             const isUnconsciousOrSleeping = pState === 'sleeping' || pState === 'unconscious' || pState === 'dead';
@@ -95,8 +95,8 @@
 
             const savedRemaining = this.remainingMs[charName];
             const pace = this.getTalkativeness(charName);
-            const baseCooldown = (window as any).VWSimultaneous?.jitteredCooldownMs
-                ? (window as any).VWSimultaneous.jitteredCooldownMs(pace)
+            const baseCooldown = (window as *FIX*).VWSimultaneous?.jitteredCooldownMs
+                ? (window as *FIX*).VWSimultaneous.jitteredCooldownMs(pace)
                 : (pace * 1000);
             let delayMs = Number.isFinite(savedRemaining)
                 ? Math.max(0, savedRemaining)
@@ -109,18 +109,18 @@
             this.timers[charName] = setTimeout(async () => {
                 delete this.timers[charName];
                 delete this.deadlines[charName];
-                let turnOutcome: any = false;
+                let turnOutcome: *FIX* = false;
                 try {
                     turnOutcome = await this.actCharacter(charName);
                 } finally {
-                    if (this.isRunning && !(window as any).CommonsState.isPaused) {
+                    if (this.isRunning && !(window as *FIX*).CommonsState.isPaused) {
                         this.handlePostTurnCadence(charName, turnOutcome);
                     }
                 }
             }, delayMs);
         }
 
-        static handlePostTurnCadence(charName: string, turnOutcome: any) {
+        static handlePostTurnCadence(charName: string, turnOutcome: *FIX*) {
             const didPost = Boolean(turnOutcome?.didPost ?? turnOutcome);
             const playerContext = turnOutcome?.player || null;
             if (!didPost) {
@@ -164,9 +164,9 @@
             this.resetTimer(charName, floorYield);
         }
         static scheduleAll(initialStartup: boolean = false) {
-            const state = (window as any).CommonsState;
+            const state = (window as *FIX*).CommonsState;
             const participants = state?.participants || {};
-            const config = (window as any).config;
+            const config = (window as *FIX*).config;
             for (const name of Object.keys(participants)) {
                 if (name === 'User') continue;
                 const participant = participants[name];
@@ -181,7 +181,7 @@
                 // On cold start, stagger the countdown across the pace range so characters do not all fire at T=25s
                 if (initialStartup && !Number.isFinite(this.remainingMs[name])) {
                     const pace = this.getTalkativeness(name);
-                    const baseCooldown = (window as any).VWSimultaneous?.jitteredCooldownMs(pace) || (pace * 1000);
+                    const baseCooldown = (window as *FIX*).VWSimultaneous?.jitteredCooldownMs(pace) || (pace * 1000);
                     const staggeredDelay = Math.max(2000, Math.round(baseCooldown * (0.15 + Math.random() * 0.70)));
                     this.remainingMs[name] = staggeredDelay;
                 }
@@ -190,12 +190,12 @@
             }
         }
 
-        static onMessageReceived(message: any) {
-            if (!message || !this.isRunning || (window as any).CommonsState?.isPaused) return;
+        static onMessageReceived(message: *FIX*) {
+            if (!message || !this.isRunning || (window as *FIX*).CommonsState?.isPaused) return;
             const author = String(message.author || '');
             const channelId = String(message.channel_id || '');
-            const state = (window as any).CommonsState;
-            const channel = (state?.channels || []).find((c: any) => c.id === channelId);
+            const state = (window as *FIX*).CommonsState;
+            const channel = (state?.channels || []).find((c: *FIX*) => c.id === channelId);
             if (!channel) return;
             const members: string[] = channel.kind === 'public'
                 ? Object.keys(state.participants || {})
@@ -226,7 +226,7 @@
         }
 
         static reconcileParticipants() {
-            const state = (window as any).CommonsState;
+            const state = (window as *FIX*).CommonsState;
             const participants = state.participants || {};
             const signature = Object.keys(participants).sort().map(name => {
                 const participant = participants[name];
@@ -242,7 +242,7 @@
         }
 
         static async stepOne(charName?: string) {
-            const state = (window as any).CommonsState;
+            const state = (window as *FIX*).CommonsState;
             const participants = state.participants || {};
             const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].control_mode === 'llm' && participants[n].active && !participants[n].blocked);
             const manuallySelected = charName && available.includes(charName);
@@ -253,8 +253,8 @@
             await this.actCharacter(chosen, true);
         }
 
-        static communicationTools(theme: string): any[] {
-            const tools: any[] = [
+        static communicationTools(theme: string): *FIX*[] {
+            const tools: *FIX*[] = [
                 { type: 'function', function: { name: 'read_chat', description: 'Read messages from a channel you belong to. Use this before responding to messages you have not seen.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, mode: { type: 'string', enum: ['all', 'latest', 'range'] }, n: { type: 'integer', minimum: 1, maximum: 20 }, from_id: { type: 'integer' }, to_id: { type: 'integer' } }, required: ['channel_id'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'send_chat', description: 'Send a message to a channel you belong to. Replying is optional.', parameters: { type: 'object', properties: { channel_id: { type: 'string' }, text: { type: 'string' } }, required: ['channel_id', 'text'], additionalProperties: false } } },
                 { type: 'function', function: { name: 'start_dm', description: 'Start or find a direct conversation and send its first message.', parameters: { type: 'object', properties: { recipient: { type: 'string' }, text: { type: 'string' } }, required: ['recipient', 'text'], additionalProperties: false } } },
@@ -267,10 +267,10 @@
         }
 
         static async executeCommunicationTool(
-            charName: string, call: any, channels: any[], knownCharacters: string[], theme: string, api: any, signal: AbortSignal
-        ): Promise<{ result: any; summary: string; readMessages: any[] }> {
+            charName: string, call: *FIX*, channels: *FIX*[], knownCharacters: string[], theme: string, api: *FIX*, signal: AbortSignal
+        ): Promise<{ result: *FIX*; summary: string; readMessages: *FIX*[] }> {
             const name = String(call?.function?.name || '');
-            let args: any;
+            let args: *FIX*;
             try {
                 args = typeof call?.function?.arguments === 'string' ? JSON.parse(call.function.arguments) : call?.function?.arguments;
             } catch (_) {
@@ -288,7 +288,7 @@
                     const read = await api.readMessages(charName, channel.id, mode, n, args.from_id, args.to_id, signal);
                     const messages = Array.isArray(read?.messages) ? read.messages : [];
                     return {
-                        result: { ok: true, channel: channel.name, messages: messages.slice(-20).map((message: any) => ({ id: message.id, author: message.author, text: String(message.text || '').slice(0, 1000) })) },
+                        result: { ok: true, channel: channel.name, messages: messages.slice(-20).map((message: *FIX*) => ({ id: message.id, author: message.author, text: String(message.text || '').slice(0, 1000) })) },
                         summary: `read ${messages.length} message${messages.length === 1 ? '' : 's'} in #${channel.name || 'chat'}`,
                         readMessages: messages,
                     };
@@ -300,7 +300,7 @@
                     if (channel.kind !== 'public' && Array.isArray(channel.members) && !channel.members.includes(charName)) throw new Error('This character is not a member of that channel.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
                     const postRecord = posted?.message || posted;
-                    if (postRecord) (window as any).CommonsState?.receiveMessage?.(postRecord);
+                    if (postRecord) (window as *FIX*).CommonsState?.receiveMessage?.(postRecord);
                     return { result: { ok: true, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `sent a message to #${channel.name || 'chat'}`, readMessages: [] };
                 }
                 if (name === 'start_dm') {
@@ -312,7 +312,7 @@
                     if (!channel?.id) throw new Error('The direct conversation could not be created.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
                     const postRecord = posted?.message || posted;
-                    if (postRecord) (window as any).CommonsState?.receiveMessage?.(postRecord);
+                    if (postRecord) (window as *FIX*).CommonsState?.receiveMessage?.(postRecord);
                     return { result: { ok: true, channel_id: channel.id, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `started a direct conversation with ${recipient}`, readMessages: [] };
                 }
                 if (name === 'start_group') {
@@ -326,7 +326,7 @@
                     if (!channel?.id) throw new Error('The group conversation could not be created.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
                     const postRecord = posted?.message || posted;
-                    if (postRecord) (window as any).CommonsState?.receiveMessage?.(postRecord);
+                    if (postRecord) (window as *FIX*).CommonsState?.receiveMessage?.(postRecord);
                     return { result: { ok: true, channel_id: channel.id, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `started group #${groupName}`, readMessages: [] };
                 }
                 if (name === 'remember') {
@@ -337,14 +337,14 @@
                     return { result: { ok: true }, summary: 'saved a conversation memory', readMessages: [] };
                 }
                 throw new Error(`Unknown communication tool: ${name || '(empty)'}`);
-            } catch (error: any) {
+            } catch (error: *FIX*) {
                 if (signal.aborted) throw error;
                 return { result: { ok: false, error: String(error?.message || error) }, summary: '', readMessages: [] };
             }
         }
 
         static async actCharacter(charName: string, isManualStep: boolean = false) {
-            const state = (window as any).CommonsState;
+            const state = (window as *FIX*).CommonsState;
             if (!isManualStep && state.isPaused) return;
             const participant = state.participants?.[charName];
             if (!participant || participant.control_mode !== 'llm' || !participant.active || participant.blocked) return;
@@ -353,10 +353,10 @@
             const controller = new AbortController();
             this.controllers[charName] = controller;
             state.actingCharacter = charName;
-            (window as any).CommonsState?.emit?.();
+            (window as *FIX*).CommonsState?.emit?.();
             const signal = controller.signal;
-            const api = (window as any).CommonsApi;
-            const llm = (window as any).llmClient;
+            const api = (window as *FIX*).CommonsApi;
+            const llm = (window as *FIX*).llmClient;
 
             try {
                 const [player, memories, phone] = await Promise.all([
@@ -367,7 +367,7 @@
                 if ((!isManualStep && state.isPaused) || signal.aborted) return;
 
                 const memoryText = (memories.memories || [])
-                    .map((memory: any) => String(memory.text || '').trim())
+                    .map((memory: *FIX*) => String(memory.text || '').trim())
                     .filter(Boolean)
                     .slice(0, 5)
                     .map((line: string) => `- ${line}`)
@@ -377,13 +377,13 @@
                 const knownCharacters = Array.isArray(phone.known_characters)
                     ? phone.known_characters.filter((name: string) => typeof name === 'string' && name !== charName && name !== 'User')
                     : [];
-                const promptBuilder = (window as any).PromptBuilder;
+                const promptBuilder = (window as *FIX*).PromptBuilder;
                 if (typeof promptBuilder?.buildCommunicationPrompt !== 'function') throw new Error('Shared character prompt module is unavailable');
                 const userPrompt = promptBuilder.buildCommunicationPrompt(
                     player, memoryText, channels, knownCharacters, theme
                 );
                 if (!llm || typeof llm.chatWithTools !== 'function') throw new Error('LLM tool-calling client is not available');
-                const messages: any[] = [
+                const messages: *FIX*[] = [
                     {
                         role: 'system',
                         content: theme === 'town_board'
@@ -394,7 +394,7 @@
                 ];
                 const tools = this.communicationTools(theme);
                 const summaries: string[] = [];
-                const readMessages: any[] = [];
+                const readMessages: *FIX*[] = [];
                 let inner = '';
                 let didPost = false;
                 const maxToolRounds = 6;
@@ -409,7 +409,7 @@
                     if (!calls.length) break;
                     messages.push({ role: 'assistant', content: reply.content || '', tool_calls: calls });
                     for (let index = 0; index < calls.length; index++) {
-                        let outcome: any;
+                        let outcome: *FIX*;
                         if (index > 0) {
                             outcome = { result: { ok: false, error: 'Only the first tool call was run. Review its result before choosing another action.' }, summary: '', readMessages: [] };
                         } else {
@@ -430,7 +430,7 @@
                 }
                 const memoriesToStore: string[] = [];
                 if (readMessages.length) {
-                    const summary = readMessages.slice(-4).map((message: any) =>
+                    const summary = readMessages.slice(-4).map((message: *FIX*) =>
                         `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ').slice(0, 180)}`
                     ).join('; ');
                     memoriesToStore.push(`I read the conversation: ${summary}.`);
@@ -460,10 +460,10 @@
                     delete this.controllers[charName];
                     if (state.actingCharacter === charName) state.actingCharacter = null;
                 }
-                (window as any).CommonsState?.emit?.();
+                (window as *FIX*).CommonsState?.emit?.();
             }
         }
     }
 
-    (window as any).CommonsAgent = CommonsAgent;
+    (window as *FIX*).CommonsAgent = CommonsAgent;
 })();

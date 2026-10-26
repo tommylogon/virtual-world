@@ -23,7 +23,7 @@ window.GraphTooltips = {
      * @param {Object} nodeData - The node data object
      * @returns {string} Tooltip text
      */
-    buildTooltip(nodeData: any) {
+    buildTooltip(nodeData: *FIX*) {
         // vis-network UMD doesn't support HTML in tooltips — use plain text
         let tip = nodeData.name || nodeData.id;
         const player = worldState.players?.[nodeData.name];
@@ -36,7 +36,7 @@ window.GraphTooltips = {
             const area = worldState.areas?.[nodeData.name];
             if (area) {
                 const items = area.items?.length || 0;
-                const playersHere = Object.entries(worldState.players || {}).filter(([, playerData]: any) => playerData.current_area === nodeData.name).map(([playerName]: any) => playerName);
+                const playersHere = Object.entries(worldState.players || {}).filter(([, playerData]: *FIX*) => playerData.current_area === nodeData.name).map(([playerName]: *FIX*) => playerName);
                 tip += `\n📦 ${items} items\n🧍 ${playersHere.join(', ') || 'no one here'}`;
             }
             const areaEnvLines = GraphTooltips._envLines(nodeData, 'text');
@@ -78,12 +78,12 @@ window.GraphTooltips = {
         return tip;
     },
 
-    _escHtml(s: any) {
+    _escHtml(s: *FIX*) {
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     },
 
     /** Qualitative label for a light value (numeric 0-100 or env enum string). */
-    _lightLabel(light: any) {
+    _lightLabel(light: *FIX*) {
         if (light === undefined || light === null || light === '') return null;
         if (typeof light === 'number') {
             if (light <= 20) return 'Pitch Black';
@@ -102,7 +102,7 @@ window.GraphTooltips = {
      * live `worldState.areas[name]` record (which may also expose
      * `ambient_light` computed by the engine).
      */
-    _envInfo(nodeData: any) {
+    _envInfo(nodeData: *FIX*) {
         const props = nodeData.properties || {};
         const nodeEnv = props.environment || {};
         const area = worldState.areas?.[nodeData.name];
@@ -115,15 +115,15 @@ window.GraphTooltips = {
         const smell = env.smell;
         const humidity = env.humidity;
         return {
-            hasAny: temp !== undefined || light !== undefined || !!air || !!noise || !!smell || humidity !== undefined,
+            has*FIX*: temp !== undefined || light !== undefined || !!air || !!noise || !!smell || humidity !== undefined,
             temp, light, air, noise, smell, humidity,
         };
     },
 
     /** Render environment lines for an area (shared by text + HTML builders). */
-    _envLines(nodeData: any, mode: string) {
+    _envLines(nodeData: *FIX*, mode: string) {
         const info = GraphTooltips._envInfo(nodeData);
-        if (!info.hasAny) return [];
+        if (!info.has*FIX*) return [];
         const isHtml = mode === 'html';
         const esc = GraphTooltips._escHtml;
         const lines = [];
@@ -147,7 +147,7 @@ window.GraphTooltips = {
         return lines;
     },
 
-    buildTooltipHtml(nodeData: any) {
+    buildTooltipHtml(nodeData: *FIX*) {
         const props = nodeData.properties || {};
         const esc = GraphTooltips._escHtml;
         let html = '<div style="font-size:11px;min-width:180px;">';
@@ -158,7 +158,7 @@ window.GraphTooltips = {
             const area = worldState.areas?.[nodeData.name];
             if (area) {
                 const items = area.items?.length || 0;
-                const playersHere = Object.entries(worldState.players || {}).filter(([, pd]: any) => pd.current_area === nodeData.name).map(([pn]: any) => pn);
+                const playersHere = Object.entries(worldState.players || {}).filter(([, pd]: *FIX*) => pd.current_area === nodeData.name).map(([pn]: *FIX*) => pn);
                 html += '<div style="margin:2px 0;">📦 Items: ' + items + '</div>';
                 html += '<div style="margin:2px 0;">🧍 Here: ' + (playersHere.join(', ') || 'none') + '</div>';
             }
@@ -201,7 +201,7 @@ window.GraphTooltips = {
             const effects = props.effects || [];
             if (effects.length > 0) {
                 html += '<div style="margin:2px 0;color:var(--text-muted);">Effects:</div>';
-                effects.slice(0, 3).forEach((eff: any, i: number) => {
+                effects.slice(0, 3).forEach((eff: *FIX*, i: number) => {
                     const effType = esc(eff.type || '?');
                     const msg = (eff.params?.message || eff.params?.success_message || '');
                     html += '<div style="margin:1px 0 1px 8px;font-size:10px;">• ' + effType + (msg ? ': ' + esc(msg.substring(0, 60)) + (msg.length > 60 ? '...' : '') : '') + '</div>';
@@ -223,9 +223,9 @@ window.GraphTooltips = {
     },
 
     /** Find a raw graph edge between two node ids (case-insensitive). */
-    findGraphEdge(fromId: any, toId: any) {
+    findGraphEdge(fromId: *FIX*, toId: *FIX*) {
         const edgesArr = graphManager._graphEdgesArr || worldState.graph?.edges || [];
-        return edgesArr.find((e: any) =>
+        return edgesArr.find((e: *FIX*) =>
             String(e.source).toLowerCase() === String(fromId).toLowerCase()
             && String(e.target).toLowerCase() === String(toId).toLowerCase()
         ) || null;
@@ -236,7 +236,7 @@ window.GraphTooltips = {
         if (!graphManager.network || graphManager._edgeHoverBound) return;
         graphManager._edgeHoverBound = true;
 
-        graphManager.network.on('hoverEdge', (params: any) => {
+        graphManager.network.on('hoverEdge', (params: *FIX*) => {
             if (typeof tippy === 'undefined') return;
             const visEdge = graphManager.network.body?.data?.edges?.get(params.edge);
             if (!visEdge) return;
@@ -301,7 +301,7 @@ window.GraphTooltips = {
         if (graphManager._nodeHoverBound) return;
         graphManager._nodeHoverBound = true;
 
-        graphManager.network.on('hoverNode', (params: any) => {
+        graphManager.network.on('hoverNode', (params: *FIX*) => {
             GraphTooltips._hideNodeHoverTippy();
             const nodeData = (typeof worldState.getNode === 'function' && worldState.getNode(params.node))
                 || graphManager.nodes.get(params.node);
@@ -341,7 +341,7 @@ window.GraphTooltips = {
         graphManager.network.on('zoom', hide);
     },
 
-    /** Destroy the active node hover tooltip, if any. */
+    /** Destroy the active node hover tooltip, if *FIX*. */
     _hideNodeHoverTippy() {
         if (graphManager._nodeHoverTippy) {
             graphManager._nodeHoverTippy.destroy();

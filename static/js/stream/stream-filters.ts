@@ -183,16 +183,16 @@ class StreamFilters {
         banner.append(label, clearBtn);
         streamEl.insertBefore(banner, streamEl.firstChild);
 
-        let anyVisible = false;
+        let *FIX*Visible = false;
         for (const child of streamEl.children as HTMLCollectionOf<HTMLElement>) {
             if (child.classList.contains('stream-scope-banner')) continue;
             if (child.classList.contains('stream-scope-empty')) continue;
             if (child.classList.contains('timeline-scrubber') || child.classList.contains('turn-queue-strip')) continue;
             if (child.style.display === 'none') continue;
-            anyVisible = true;
+            *FIX*Visible = true;
             break;
         }
-        if (!anyVisible) {
+        if (!*FIX*Visible) {
             const note = document.createElement('div');
             note.className = 'stream-scope-empty';
             note.textContent = `No events recorded in "${this.areaFilter}" yet. Check the 📜 Area Event Log in the inspector.`;

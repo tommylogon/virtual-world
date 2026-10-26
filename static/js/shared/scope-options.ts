@@ -31,7 +31,7 @@
  * @param {Array}    scopes  scope summaries, each {id, name, depth}
  * @param {Function} [make]  (tagName) => element factory; defaults to
  *                           document.createElement. Injected by the tests.
- * @returns {number} how many scopes were rendered
+ * @returns {number} how m*FIX* scopes were rendered
  */
 function populate(sel: ElementLike, scopes: ScopeOptionsScopeSummary[] | null | undefined, make?: ElementFactory) {
     const create: ElementFactory = make || ((tag: string) => document.createElement(tag) as unknown as ElementLike);
@@ -66,7 +66,7 @@ function populate(sel: ElementLike, scopes: ScopeOptionsScopeSummary[] | null | 
  * parent_id, map_offset}]}` -- already flat and already carrying `depth`.
  *
  * `/api/world/scopes` (the default) answers a NESTED tree under `children` with
- * no `depth` anywhere, and mixes nested objects at the root with bare id
+ * no `depth` *FIX*where, and mixes nested objects at the root with bare id
  * strings one level down.
  *
  * The flat form is returned untouched. The nested form is walked into the same

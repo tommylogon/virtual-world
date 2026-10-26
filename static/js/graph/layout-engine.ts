@@ -26,7 +26,7 @@
      * @param {Object} nodesObj
      * @returns {'grid'|'cardinal'|null}
      */
-    applyCardinalLayout(nodesObj: Record<string, any>) {
+    applyCardinalLayout(nodesObj: Record<string, *FIX*>) {
         if (!graphManager.network) return null;
         const nodesDS = graphManager.network.body.data.nodes;
         if (!nodesDS) return null;
@@ -37,12 +37,12 @@
             return 'grid';
         }
 
-        const rooms: Record<string, any> = worldState.areas || {};
+        const rooms: Record<string, *FIX*> = worldState.areas || {};
         const roomNames = Object.keys(rooms).sort();
         if (roomNames.length === 0) return null;
 
         const nameToId: Record<string, string> = {};
-        for (const [nodeId, nodeData] of Object.entries<any>(nodesObj)) {
+        for (const [nodeId, nodeData] of Object.entries<*FIX*>(nodesObj)) {
             if (nodeData.type === 'area' && nodeData.name) nameToId[nodeData.name] = nodeId;
         }
 
@@ -55,11 +55,11 @@
         const dirOffsets: Record<string, { x: number; y: number }> = { north:{x:0,y:-1}, south:{x:0,y:1}, east:{x:1,y:0}, west:{x:-1,y:0}, up:{x:0,y:-2}, down:{x:0,y:2}, northeast:{x:1,y:-1}, northwest:{x:-1,y:-1}, southeast:{x:1,y:1}, southwest:{x:-1,y:1} };
 
         // Build adjacency from exits
-        const adj: Record<string, Record<string, any>> = {};
+        const adj: Record<string, Record<string, *FIX*>> = {};
         roomNames.forEach((areaName: string) => { adj[areaName] = {}; });
         roomNames.forEach((areaName: string) => {
-            const exits: Record<string, any> = rooms[areaName].exits || {};
-            Object.entries(exits).forEach(([direction, exitData]: [string, any]) => {
+            const exits: Record<string, *FIX*> = rooms[areaName].exits || {};
+            Object.entries(exits).forEach(([direction, exitData]: [string, *FIX*]) => {
                 const target = typeof exitData === 'object' ? (exitData.target || exitData.targetAreaName || exitData.targetAreaId) : exitData;
                 if (target && rooms[target]) {
                     const rawCardinal = exitData && exitData.cardinal ? exitData.cardinal : direction;
@@ -118,7 +118,7 @@
         });
 
         // Build node updates with anchor positions as targets
-        const areaUpdates: any[] = [];
+        const areaUpdates: *FIX*[] = [];
         keys.forEach((areaName: string) => {
             const nodeId = nameToId[areaName];
             if (!nodeId || !nodesDS.get(nodeId)) return;
@@ -147,14 +147,14 @@
         });
 
         // Way nodes: midpoint between connected rooms
-        const wayUpdates: any[] = [];
+        const wayUpdates: *FIX*[] = [];
         const edges = worldState.graph?.edges || [];
-        for (const [wayId, wayNode] of Object.entries<any>(nodesObj)) {
+        for (const [wayId, wayNode] of Object.entries<*FIX*>(nodesObj)) {
             if (wayNode.type !== 'way') continue;
             if (!nodesDS.get(wayId)) continue;
 
-            const connectedRooms: any[] = [];
-            edges.filter((e: any) => e.type === 'connection').forEach((edge: any) => {
+            const connectedRooms: *FIX*[] = [];
+            edges.filter((e: *FIX*) => e.type === 'connection').forEach((edge: *FIX*) => {
                 if (edge.source === wayId || edge.target === wayId) {
                     const otherId = edge.source === wayId ? edge.target : edge.source;
                     const otherNode = nodesObj[otherId];
@@ -190,7 +190,7 @@
         const gmEdges = (typeof graphManager !== 'undefined' && graphManager)
             ? (graphManager as unknown as { _graphEdgesArr?: unknown[] })._graphEdgesArr
             : null;
-        const graphEdges = ((gmEdges && gmEdges.length ? gmEdges : worldState.graph?.edges) || []) as any[];
+        const graphEdges = ((gmEdges && gmEdges.length ? gmEdges : worldState.graph?.edges) || []) as *FIX*[];
         const areaToItems: Record<string, string[]> = {};
         const areaToChars: Record<string, string[]> = {};
         for (const edge of graphEdges) {
@@ -207,7 +207,7 @@
             }
         }
 
-        const looseUpdates: any[] = [];
+        const looseUpdates: *FIX*[] = [];
         for (const [areaId, itemIds] of Object.entries<string[]>(areaToItems)) {
             const anchor = anchors[areaId];
             if (!anchor) continue;
@@ -256,7 +256,7 @@
             const props = (nodesObj[id] || {}).properties || {};
             return props.central_gravity_enabled === false;
         };
-        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter((u: any) => u && !frozen(u.id)));
+        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter((u: *FIX*) => u && !frozen(u.id)));
 
         // Enable hybrid physics through the centralized physics policy (task-765)
         // - Strong repulsion between area nodes (prevent overlap)
@@ -408,7 +408,7 @@
      * These were absolute pixels tuned at the 40px default, so on a 260px map an
      * item landed practically on top of its room. As cell multiples they look
      * identical at the default and scale everywhere else — the same geometry the
-     * WorldPainter draws, so "beside the room" means one thing at any pitch.
+     * WorldPainter draws, so "beside the room" means one thing at *FIX* pitch.
      */
     mapBesideOffsets() {
         const pitch = window.GraphLayoutEngine.mapSpacing();
@@ -426,8 +426,8 @@
      * @param {Object} nodesObj
      * @returns {boolean}
      */
-    hasPaintedGrid(nodesObj: Record<string, any> | null | undefined) {
-        for (const node of Object.values<any>(nodesObj || {})) {
+    hasPaintedGrid(nodesObj: Record<string, *FIX*> | null | undefined) {
+        for (const node of Object.values<*FIX*>(nodesObj || {})) {
             if (node && node.type === 'area' && node.properties && node.properties.cell) {
                 return true;
             }
@@ -454,7 +454,7 @@
      * @param {{w:number,h:number}} [viewSize] - ignored; kept for call compatibility
      * @returns {number|null}
      */
-    autoMapSpacing(nodesObj: Record<string, any>, viewSize?: { w: number; h: number }) {
+    autoMapSpacing(nodesObj: Record<string, *FIX*>, viewSize?: { w: number; h: number }) {
         if (!window.GraphLayoutEngine.hasPaintedGrid(nodesObj)) return null;
         const LE = window.GraphLayoutEngine;
         return Math.max(LE.markEnvelopePitch(), LE.AUTO_MAP_PITCH);
@@ -462,12 +462,12 @@
 
     /**
      * The map canvas size in px. No longer feeds the pitch (task-748) - kept for
-     * diagnostics and any other viewer that wants the live pane size.
+     * diagnostics and *FIX* other viewer that wants the live pane size.
      * @returns {{w:number,h:number}}
      */
     viewportSize() {
-        const net = (typeof graphManager !== 'undefined' && graphManager && (graphManager as { network?: any }).network)
-            ? (graphManager as { network?: any }).network : null;
+        const net = (typeof graphManager !== 'undefined' && graphManager && (graphManager as { network?: *FIX* }).network)
+            ? (graphManager as { network?: *FIX* }).network : null;
         const el = (net && net.body && net.body.container)
             ? net.body.container
             : (typeof document !== 'undefined' ? document.getElementById('graph-container') : null);
@@ -485,7 +485,7 @@
      * @param {number} [pitch] - px per cell; defaults to mapSpacing()
      * @returns {{x:number,y:number}|null}
      */
-    gridPosition(cell: any, pitch?: number) {
+    gridPosition(cell: *FIX*, pitch?: number) {
         const p = cell || {};
         const s = typeof pitch === 'number' ? pitch : window.GraphLayoutEngine.mapSpacing();
         if (typeof p.x !== 'number' || typeof p.y !== 'number') return null;
@@ -503,21 +503,21 @@
      * @param {Object} nodesObj - id → graph node
      * @returns {{minX:number,minY:number,maxX:number,maxY:number}|null}
      */
-    paintedFrame(nodesObj: Record<string, any>) {
+    paintedFrame(nodesObj: Record<string, *FIX*>) {
         const LE = window.GraphLayoutEngine;
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, any = false;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, *FIX* = false;
         for (const id of Object.keys(nodesObj || {})) {
             const props = (nodesObj[id] || {}).properties || {};
             if (!LE.hasPaintedCoords(props)) continue;
             const p = LE.gridPosition(props.cell);
             if (!p) continue;
-            any = true;
+            *FIX* = true;
             if (p.x < minX) minX = p.x;
             if (p.y < minY) minY = p.y;
             if (p.x > maxX) maxX = p.x;
             if (p.y > maxY) maxY = p.y;
         }
-        return any ? { minX, minY, maxX, maxY } : null;
+        return *FIX* ? { minX, minY, maxX, maxY } : null;
     },
 
     /**
@@ -535,7 +535,7 @@
      * @param {{minX:number,minY:number,maxX:number,maxY:number}|null} [frame]
      * @returns {{x:number,y:number}|null}
      */
-    seedFor(nodeData: any, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null) {
+    seedFor(nodeData: *FIX*, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null) {
         const LE = window.GraphLayoutEngine;
         const props = (nodeData && nodeData.properties) || {};
         if (LE.hasPaintedCoords(props)) {
@@ -568,7 +568,7 @@
      * @param {Object} node
      * @returns {string|null}
      */
-    nodeScopeId(node: any) {
+    nodeScopeId(node: *FIX*) {
         return (window as unknown as {
             ScopeOptions: { nodeScopeId(node: unknown): string | null };
         }).ScopeOptions.nodeScopeId(node);
@@ -585,7 +585,7 @@
      * @param {number} [spacing] - px per cell; defaults to mapSpacing()
      * @returns {{x:number,y:number}}
      */
-    offsetPxFor(node: any, offsets?: Record<string, { x: number; y: number }> | null, spacing?: number) {
+    offsetPxFor(node: *FIX*, offsets?: Record<string, { x: number; y: number }> | null, spacing?: number) {
         const table: Record<string, { x: number; y: number }> = offsets || ((typeof graphManager !== 'undefined' && graphManager)
             ? graphManager._scopeOffsets : null) || {};
         const scopeId = window.GraphLayoutEngine.nodeScopeId(node);
@@ -604,7 +604,7 @@
      * @param {number} [pitch] - px per cell
      * @returns {{x:number,y:number}|null}
      */
-    scopedGridPosition(properties: any, node: any, offsets?: Record<string, { x: number; y: number }> | null, pitch?: number) {
+    scopedGridPosition(properties: *FIX*, node: *FIX*, offsets?: Record<string, { x: number; y: number }> | null, pitch?: number) {
         const base = window.GraphLayoutEngine.gridPosition((properties || {}).cell, pitch);
         if (!base) return null;
         const off = window.GraphLayoutEngine.offsetPxFor(node, offsets, pitch);
@@ -621,7 +621,7 @@
      * @param {Object} node
      * @returns {boolean}
      */
-    isFrozen(node: any) {
+    isFrozen(node: *FIX*) {
         if (typeof window.GraphRelativeLayout !== 'undefined' && window.GraphRelativeLayout
                 && typeof window.GraphRelativeLayout.isStatic === 'function') {
             return window.GraphRelativeLayout.isStatic(node);
@@ -645,7 +645,7 @@
      * segment midpoint, a half-cell from each: the "20px to the way,
      * 20px to the next area" geometry the pitch is built around. Three
      * or more (a junction): the centroid, the balanced point between
-     * all of them. Pure, so the placement is unit-tested at any pitch.
+     * all of them. Pure, so the placement is unit-tested at *FIX* pitch.
      * @param {Array<{x:number,y:number}>} anchors - the way's areas' map positions
      * @param {number} pitch - px per cell (mapSpacing)
      * @returns {{x:number,y:number}|null} null when there is nothing to place by
@@ -692,8 +692,8 @@
      * @param {Object} [offsets]
      * @returns {Array<Object>} vis DataSet node updates
      */
-    _gridUpdates(nodesObj: Record<string, any>, nodesDS: any, offsets?: Record<string, { x: number; y: number }> | null) {
-        const updates: any[] = [];
+    _gridUpdates(nodesObj: Record<string, *FIX*>, nodesDS: *FIX*, offsets?: Record<string, { x: number; y: number }> | null) {
+        const updates: *FIX*[] = [];
         const placed = new Set<string>();
         const anchors: Record<string, { x: number; y: number }> = {};
         // Where each placed node ended up, so a loose node can be placed beside
@@ -708,7 +708,7 @@
         const gmEdges = (typeof graphManager !== 'undefined' && graphManager)
             ? (graphManager as unknown as { _graphEdgesArr?: unknown[] })._graphEdgesArr
             : null;
-        const edges = ((gmEdges && gmEdges.length ? gmEdges : (worldState.graph && worldState.graph.edges)) || []) as any[];
+        const edges = ((gmEdges && gmEdges.length ? gmEdges : (worldState.graph && worldState.graph.edges)) || []) as *FIX*[];
         // way id -> the areas it joins, so a coordinate-less way can be placed
         // from its rooms rather than from a stale saved position.
         const wayAreas: Record<string, string[]> = {};
@@ -751,7 +751,7 @@
             }
         }
 
-        for (const [id, node] of Object.entries<any>(nodesObj)) {
+        for (const [id, node] of Object.entries<*FIX*>(nodesObj)) {
             if (!nodesDS.get(id)) continue;
             const props = (node || {}).properties || {};
             // Painted coords are the compiler's ENGINE units, so they are scaled
@@ -773,14 +773,14 @@
                 // from its rooms and strung every connection edge across empty
                 // space (task-618). Such a way is placed from its rooms in the
                 // pass below. A way with no painted room (a hand-placed way among
-                // hand-placed rooms) keeps its canvas position, like any dragged
+                // hand-placed rooms) keeps its canvas position, like *FIX* dragged
                 // node (task-530).
                 const rooms = wayAreas[id] || [];
                 const belongsToMap = node.type === 'way' && rooms.some(isPaintedArea);
                 // An item/character held in a painted area is part of the map too:
                 // its saved canvas `x`/`y` is a different frame, so it is placed
                 // beside its room (the pass below) rather than from the copy.
-                // A loose node held by *anything* (room, character, way, item)
+                // A loose node held by **FIX*thing* (room, character, way, item)
                 // is placed beside that holder by the pass below, never from its
                 // own stale canvas `x`/`y`.
                 const looseHeld = (node.type === 'item' || node.type === 'character' || node.type === 'logic_trigger')
@@ -807,7 +807,7 @@
             // solver frame disagree — and strung the connection edges across
             // empty space (task-618). A way with no cell is either placed from
             // its rooms (pass below) or, if it has no painted rooms, left to the
-            // solver like any other node (task-530).
+            // solver like *FIX* other node (task-530).
             const pinnedToGrid = isArea || (isWay && window.GraphLayoutEngine.hasPaintedCoords(props));
             updates.push({
                 id,
@@ -820,7 +820,7 @@
                 physics: !pinnedToGrid && !frozen,
                 fixed: pinnedToGrid ? { x: true, y: true } : { x: false, y: false },
             });
-            (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.(
+            (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.(
                 'gridUpdates.' + (window.GraphLayoutEngine.hasPaintedCoords(props) ? 'paintedCell' : 'savedXY'),
                 id, p.x, p.y, node.type);
             placed.add(id);
@@ -838,7 +838,7 @@
             const pos = window.GraphLayoutEngine.wayMapPosition(rooms, window.GraphLayoutEngine.mapSpacing());
             if (!pos) continue;
             updates.push({ id: wayId, x: pos.x, y: pos.y, physics: false, fixed: { x: true, y: true } });
-            (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.(
+            (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.(
                 'gridUpdates.wayBetweenRooms', wayId, pos.x, pos.y);
             placed.add(wayId);
             placedPos[wayId] = pos;
@@ -867,7 +867,7 @@
                         const by = hp.y + (isChar ? beside.charY : beside.itemY)
                             + Math.floor(idx / beside.perRow) * beside.step;
                         updates.push({ id, x: bx, y: by, physics: true, fixed: { x: false, y: false } });
-                        (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.(
+                        (window as unknown as { GraphNetwork?: { _posTrace?(...a: *FIX*[]): void } }).GraphNetwork?._posTrace?.(
                             'gridUpdates.beside', id, bx, by, 'held in ' + holderId);
                         placed.add(id);
                         placedPos[id] = { x: bx, y: by };
@@ -889,7 +889,7 @@
      * position, so a painted node is placed from it whether or not an `x`/`y`
      * copy exists.
      */
-    hasPaintedCoords(properties: any) {
+    hasPaintedCoords(properties: *FIX*) {
         const cell = (properties || {}).cell;
         return !!cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y));
     },
@@ -902,7 +902,7 @@
      * @param {Object} nodesDS - vis DataSet
      * @param {Object} [offsets] - `{scopeId: {x,y}}` cells; defaults to graphManager
      */
-    _applyGridLayout(nodesObj: Record<string, any>, nodesDS: any, offsets?: Record<string, { x: number; y: number }> | null) {
+    _applyGridLayout(nodesObj: Record<string, *FIX*>, nodesDS: *FIX*, offsets?: Record<string, { x: number; y: number }> | null) {
         // A node the author froze ("Physics enabled" off in the inspector) is
         // normally left exactly where it is — that is the point of the flag. A
         // node with *painted* coordinates is the exception: its cell **is** its
@@ -910,7 +910,7 @@
         // exempting it left the area at whatever pitch it was last saved at while
         // the art re-fitted to the current one — the map and its areas ended up on
         // two different grids (bug-52). The scenario builders default every area
-        // to physics-off, so this hit any imported world rather than a choice.
+        // to physics-off, so this hit *FIX* imported world rather than a choice.
         // The exemption still stands for a node with no painted coords.
         const frozen = (id: string) => {
             const props = ((nodesObj[id] || {}).properties) || {};
@@ -918,7 +918,7 @@
                 && !window.GraphLayoutEngine.hasPaintedCoords(props);
         };
         const updates = window.GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
-            .filter((u: any) => u && !frozen(u.id));
+            .filter((u: *FIX*) => u && !frozen(u.id));
         nodesDS.update(updates);
         window.GraphPhysics.pause();
         // The solver is off for this placement pass only. The user's preference
@@ -932,7 +932,7 @@
         );
         setTimeout(() => {
             graphManager.network.redraw();
-            const fitOpts: any = { animation: false };
+            const fitOpts: *FIX* = { animation: false };
             if (paintedIds.length) fitOpts.nodes = paintedIds;
             graphManager.network.fit(fitOpts);
         }, 60);
@@ -946,12 +946,12 @@
      * @param {Object} [offsets] - defaults to graphManager._scopeOffsets
      * @returns {number}
      */
-    refreshGridLayout(nodesObj?: Record<string, any> | null, offsets?: Record<string, { x: number; y: number }> | null) {
+    refreshGridLayout(nodesObj?: Record<string, *FIX*> | null, offsets?: Record<string, { x: number; y: number }> | null) {
         if (!graphManager.network) return 0;
         const nodesDS = graphManager.network.body && graphManager.network.body.data
             && graphManager.network.body.data.nodes;
         if (!nodesDS) return 0;
-        const src: Record<string, any> = nodesObj || graphManager._graphNodesObj || {};
+        const src: Record<string, *FIX*> = nodesObj || graphManager._graphNodesObj || {};
         const updates = window.GraphLayoutEngine._gridUpdates(src, nodesDS, offsets);
         if (!updates.length) return 0;
         nodesDS.update(updates);
@@ -966,9 +966,9 @@
  * `window members` block in types/globals.d.ts does not list
  * GraphLayoutEngine — the generator ran while this file was already renamed to
  * .ts — so without this the self-references below would not type-check.
- * `any` matches what main's block uses, so a future hand-added entry with the
+ * `*FIX*` matches what main's block uses, so a future hand-added entry with the
  * same type still merges cleanly.
  */
 interface Window {
-    GraphLayoutEngine: any;
+    GraphLayoutEngine: *FIX*;
 }

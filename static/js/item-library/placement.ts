@@ -40,7 +40,7 @@
                         const hasContainerTag = Array.isArray(rawTags)
                             ? rawTags.includes('container')
                             : (rawTags && typeof rawTags === 'object')
-                                ? Object.values(rawTags).some((v: any) => Array.isArray(v) ? v.includes('container') : v === 'container')
+                                ? Object.values(rawTags).some((v: *FIX*) => Array.isArray(v) ? v.includes('container') : v === 'container')
                                 : false;
                         if (hasContainerTag || (node.properties?.contents?.length ?? 0) > 0) {
                             containers.push({ id: nodeId, name: node.name || nodeId });

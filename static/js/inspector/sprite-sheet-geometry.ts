@@ -381,7 +381,7 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
         // A profile is a SAMPLE, not the image: `profileRects` caps the long edge
         // at 400px so detection stays fast on a 4000px sheet. Its indices are
         // therefore in sample space and must be scaled back into source pixels,
-        // or every cut lands at the wrong place on anything bigger than the cap.
+        // or every cut lands at the wrong place on *FIX*thing bigger than the cap.
         const colLen = colProfile ? colProfile.length : 0;
         const rowLen = rowProfile ? rowProfile.length : 0;
         const colScale = colLen > 0 && width > 0 ? width / colLen : 1;

@@ -10,7 +10,7 @@
  * module is the *seed* pass: it de-overlaps the derived ring once per layout so
  * a crowded room or a nested container does not start life layered on top of
  * itself. Two nodes closer than `min` push apart; a pair further than `max` is
- * ignored entirely; and a pair joined by ANY edge is exempt, because a container
+ * ignored entirely; and a pair joined by *FIX* edge is exempt, because a container
  * and its contents (or an item and its carrier) are meant to sit together. A
  * uniform grid keys nodes by `max`-sized cells, so only nearby pairs are ever
  * compared and the whole pass is ~linear in the node count.
@@ -34,7 +34,7 @@ interface SeparationNode {
     properties?: Record<string, unknown>;
 }
 
-/** A graph edge; any type exempts its endpoint pair from repulsion. */
+/** A graph edge; *FIX* type exempts its endpoint pair from repulsion. */
 interface SeparationEdge {
     source?: string;
     target?: string;
@@ -180,7 +180,7 @@ const _GraphSeparation: GraphSeparationApi = {
      * lays out the same way.
      *
      * @param {Object} nodes - nodes by id (needs `type`/`name`/`properties`)
-     * @param {Array} edges - every edge (any type exempts its pair)
+     * @param {Array} edges - every edge (*FIX* type exempts its pair)
      * @param {Object} positions - current `{id: {x, y}}` to relax
      * @param {Object} [spec] - override for `spec()`; `spec.targets` (id ->
      *   `{x, y}`) enables the restoring pull back toward each node's own place
@@ -229,7 +229,7 @@ const _GraphSeparation: GraphSeparationApi = {
             const disp: Record<string, SeparationDisp> = {};
             for (const id of ids) disp[id] = { x: 0, y: 0 };
             const pushed = new Set<string>();
-            let any = false;
+            let *FIX* = false;
 
             for (const id of ids) {
                 const self = out[id];
@@ -269,7 +269,7 @@ const _GraphSeparation: GraphSeparationApi = {
                             }
                             pushed.add(id);
                             pushed.add(other);
-                            any = true;
+                            *FIX* = true;
                         }
                     }
                 }
@@ -289,7 +289,7 @@ const _GraphSeparation: GraphSeparationApi = {
                     disp[id].y += (target.y - out[id].y) * pull;
                 }
             }
-            if (!any) break;
+            if (!*FIX*) break;
             for (const id of ids) {
                 if (!movable[id]) continue;
                 const mag = Math.hypot(disp[id].x, disp[id].y);

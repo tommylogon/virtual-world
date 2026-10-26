@@ -18,14 +18,14 @@ interface StreamSandboxSnapshot {
     fragment: DocumentFragment;
     card: HTMLDivElement | null;
     cardActor: string | null;
-    areaEventLog: Record<string, any[]>;
-    characterState: Record<string, any>;
+    areaEventLog: Record<string, *FIX*[]>;
+    characterState: Record<string, *FIX*>;
     knownActors: Set<string>;
     lineSeq: number;
     tickCounter: number;
     lastGap: { minutes: number; day: number } | null;
-    rawResponses: any[];
-    rawStreak: any;
+    rawResponses: *FIX*[];
+    rawStreak: *FIX*;
     scrollTop: number;
 }
 
@@ -140,9 +140,9 @@ interface SandboxBus {
     _cards: { current: HTMLDivElement | null; actor: string | null; close(): void };
     _filters: { updateAgentFilterDropdown(): void };
     _scrubber?: { scheduleRebuild(): void } | null;
-    _rawllm: { _rawResponses: any[]; _streak?: any };
-    _areaEventLog: Record<string, any[]>;
-    _characterState: Record<string, any>;
+    _rawllm: { _rawResponses: *FIX*[]; _streak?: *FIX* };
+    _areaEventLog: Record<string, *FIX*[]>;
+    _characterState: Record<string, *FIX*>;
     _knownActors: Set<string>;
     _lineSeq: number;
     _tickCounter: number;

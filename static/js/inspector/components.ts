@@ -205,11 +205,11 @@ const InspectorComponents = (() => {
      * @param {object} opts - { onBack?: () => void, onCrumbClick?: (index: number) => void }
      */
     function BreadcrumbComponent(opts: { onBack?: () => void; onCrumbClick?: (index: number) => void }): unknown {
-        const inspector = (window as unknown as { inspector?: any }).inspector;
+        const inspector = (window as unknown as { inspector?: *FIX* }).inspector;
         const history = inspector?._history || [];
         if (!history.length) return window.Lit.nothing;
         const { onBack, onCrumbClick } = opts;
-        const trail = history.map((crumb: any, i: number) => {
+        const trail = history.map((crumb: *FIX*, i: number) => {
             const last = i === history.length - 1;
             const sep = i > 0 ? htmlTag`<span class="inspector-crumb-sep">›</span>` : '';
             const body = last

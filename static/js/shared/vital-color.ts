@@ -7,7 +7,7 @@
  * drives (Hunger/Thirst/Bladder) invert — high value = red. Temperature
  * uses its comfort-band thresholds; Mana is static purple.
  *
- * Load AFTER world-state.js, BEFORE any consumer.
+ * Load AFTER world-state.js, BEFORE *FIX* consumer.
  *
  * @module shared/vital-color — polarity-aware vital bar colours
  * @contributes VitalColor: colour + percent for a vital (drives invert, Temperature band, Mana purple)

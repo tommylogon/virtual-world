@@ -9,9 +9,9 @@
  * @docs none
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-// `any` because window.Lit.html is declared as returning `unknown`; the templates
+// `*FIX*` because window.Lit.html is declared as returning `unknown`; the templates
 // are interpolated straight back into render() calls, never inspected.
-const uiControllerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
+const uiControllerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): *FIX* => window.Lit.html(strings, ...values);
 
 // Module state lives on the instance; the declarations are `declare` so they add
 // nothing to the emitted classic script (a bare field would emit `AGENT_COLORS;`).
@@ -57,7 +57,7 @@ class UIController {
 
     // --- Agent List ---
 
-    renderAgentList(state: any) {
+    renderAgentList(state: *FIX*) {
         const listEl = document.getElementById('agent-list');
         if (!listEl) return;
         const players = state.players || {};
@@ -70,7 +70,7 @@ class UIController {
         if (rerollBtn) rerollBtn.style.display = (orderActive && config.turnOrder === 'initiative') ? 'inline-block' : 'none';
 
         let names = Object.keys(players);
-        let orderInfo: Record<string, any> = {};
+        let orderInfo: Record<string, *FIX*> = {};
         if (orderActive) {
             names = agent.turnQueue.filter((n: string) => players[n]);
             for (let i = 0; i < agent.turnQueue.length; i++) {
@@ -115,11 +115,11 @@ class UIController {
             // .controlBadge), which is also what the graph badges, the inspector
             // header and the event-stream filter chips read.
             //
-            // This used to draw a SECOND glyph before the name — 🧍 for anything
+            // This used to draw a SECOND glyph before the name — 🧍 for *FIX*thing
             // non-simple-NPC, 🐱 for a simple one — so every row carried two
             // controller signals that could disagree ("🧍 elena vance" beside an
             // LLM badge, "🐱 ghost" beside an NPC badge), and neither 🧍 nor 🐱 is
-            // a control-mode word anywhere else. There is now exactly one glyph,
+            // a control-mode word *FIX*where else. There is now exactly one glyph,
             // in the badge's place, and clicking it still cycles the mode through
             // the backend (human → LLM → NPC), which task-340 built.
             const es = (window as unknown as UIWin).events;
@@ -140,7 +140,7 @@ class UIController {
                 const soakLabels: Record<string, string> = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
                 const left = Math.round(soak.remaining_minutes || 0);
                 const verb = soakLabels[soak.intent] || soak.intent;
-                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e: any) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
+                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e: *FIX*) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
             }
             if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
 
@@ -148,7 +148,7 @@ class UIController {
                 <div class="agent-dot ${statusClass}" style="background:${color}"></div>
                 ${orderChips}
                 <span class="agent-ctrl" title="${badge.title} — click to change controller"
-                      @click=${(e: any) => {
+                      @click=${(e: *FIX*) => {
                           e.stopPropagation();
                           if ((window as unknown as UIWin).events?.cycleControlMode) {
                               (window as unknown as UIWin).events!.cycleControlMode(name);
@@ -156,7 +156,7 @@ class UIController {
                       }}>${badge.emoji}</span>
                 <span class="agent-name">${name}</span>
                 ${p.current_area
-                    ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e: any) => { e.stopPropagation(); if ((window as unknown as UIWin).graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
+                    ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e: *FIX*) => { e.stopPropagation(); if ((window as unknown as UIWin).graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
                     : uiControllerHtmlTag`<span class="agent-location">?</span>`}
                 <div class="agent-need-bar"><div class="agent-need-fill" style="width:${lowestVital}%; background:${vitalColor}"></div></div>
                 ${soakText || statusText}
@@ -186,7 +186,7 @@ class UIController {
 
     // --- Agent Overview ---
 
-    renderSelectedAgentOverview(state: any) {
+    renderSelectedAgentOverview(state: *FIX*) {
         const section = document.getElementById('agent-overview-section');
         if (!section) return;
         const name = state.active_player;
@@ -231,11 +231,11 @@ class UIController {
 
     // --- Alerts ---
 
-    renderAlerts(state: any) {
+    renderAlerts(state: *FIX*) {
         const alertEl = document.getElementById('alert-list');
         if (!alertEl) return;
         const alerts: { type: string; name: string; text: string }[] = [];
-        for (const [name, p] of Object.entries(state.players || {}) as [string, any][]) {
+        for (const [name, p] of Object.entries(state.players || {}) as [string, *FIX*][]) {
             const vitals = p.vitals || {};
             const maxHp = vitals.Max_HP || 100;
             const hpCriticalThreshold = Math.max(1, Math.floor(maxHp * 0.2));
@@ -262,7 +262,7 @@ class UIController {
 
     // --- Turn Info ---
 
-    renderTurnInfo(state: any) {
+    renderTurnInfo(state: *FIX*) {
         const turnEl = document.getElementById('turn-display');
         const stepEl = document.getElementById('step-display');
         const activeEl = document.getElementById('active-char-display');
@@ -286,13 +286,13 @@ class UIController {
     /**
      * @deprecated Folded into renderAgentList (agents + initiative unified per task-250).
      */
-    _renderInitiative(state: any) {
+    _renderInitiative(state: *FIX*) {
         // Initiative order now renders inline in the merged agent list.
     }
 
     // --- Full Render ---
 
-    renderAll(state: any) {
+    renderAll(state: *FIX*) {
         this.renderAgentList(state);
         this.renderSelectedAgentOverview(state);
         this.renderAlerts(state);
@@ -343,7 +343,7 @@ class UIController {
         worldState.setRuntimeFocusForCharacter(name);
         // Open the inspector from the state we ALREADY hold. This used to await
         // `setActivePlayer` and then a full `worldState.fetch()` before showing
-        // anything, so on a large world (kraktooth: 2763 nodes, ~14 MB
+        // *FIX*thing, so on a large world (kraktooth: 2763 nodes, ~14 MB
         // /api/state) the panel appeared seconds after the click.
         VW?.inspector?.showAgent(name);
         config.controllingPlayer = name;

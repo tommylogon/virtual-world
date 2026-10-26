@@ -231,7 +231,7 @@
     const changedCount = rows.filter((r) => r.status === 'changed').length;
     const addedCount = rows.filter((r) => r.status === 'added').length;
     const removedCount = rows.filter((r) => r.status === 'removed').length;
-    const changedAny = changedCount + addedCount + removedCount > 0;
+    const changed*FIX* = changedCount + addedCount + removedCount > 0;
     const isApplyable = (st: string) => toWorld ? (st === 'changed' || st === 'removed') : (st === 'changed' || st === 'added');
     const defaultChecked = rows.some((r) => isApplyable(r.status) && r.status !== 'same');
 
@@ -251,17 +251,17 @@
       rowHtml += '</div>';
     });
 
-    const open = changedAny ? '' : 'hidden';
+    const open = changed*FIX* ? '' : 'hidden';
 
     return '<div class="diff-section pe" data-key="' + esc(key) + '" '
-      + (changedAny ? 'style="background:rgba(136,255,136,0.05);"' : '') + '>'
+      + (changed*FIX* ? 'style="background:rgba(136,255,136,0.05);"' : '') + '>'
       + '<div class="pe-head" style="display:flex;align-items:center;gap:6px;cursor:pointer;">'
       + '<input type="checkbox" class="diff-section-toggle" data-key="' + esc(key) + '" ' + (defaultChecked ? 'checked' : '') + ' '
         + (ro ? 'disabled' : 'style="margin:0;"') + ' title="Apply the whole category">'
       + '<span class="pe-chevron" style="color:var(--text-muted);font-size:10px;transform:rotate(90deg);">▶</span>'
       + '<span style="font-weight:600;color:var(--text);">' + esc(label) + '</span>'
       + '<span style="margin-left:auto;font-size:10px;color:var(--text-muted);">'
-      + (changedAny
+      + (changed*FIX*
           ? changedCount + ' chg · ' + addedCount + ' add · ' + removedCount + ' rem'
           : rows.length + ' entries unchanged')
       + '</span>'
@@ -554,7 +554,7 @@ interface DiffOptions {
     name?: string;
     /** Compare only; suppress the update/duplicate buttons. */
     readOnly?: boolean;
-    /** 'to-world' applies the library onto the world; anything else saves world→lib. */
+    /** 'to-world' applies the library onto the world; *FIX*thing else saves world→lib. */
     direction?: string;
 }
 

@@ -42,7 +42,7 @@
      * Nest a flat scope list into a tree.
      *
      * Prefers `parent_id`, because that is the manifest's own statement about the
-     * hierarchy and survives a list that arrives in any order. A scope whose parent
+     * hierarchy and survives a list that arrives in *FIX* order. A scope whose parent
      * is not in the list (or names itself, or sits in a parent cycle) is attached
      * to the root rather than dropped — an author who created a child before its
      * parent should still see the child.
@@ -199,7 +199,7 @@
      * Pure fold: groups areas under the scope that holds them (task-592).
      *
      * Scopes are preserved in the order passed. Areas are attached to their
-     * matching scope by `world_scope_id` (or `scope_id`). Any areas that belong
+     * matching scope by `world_scope_id` (or `scope_id`). *FIX* areas that belong
      * to no known scope are collected under a plainly-labelled fallback row so
      * hand-authored or unscoped areas are never silently dropped.
      */
@@ -301,7 +301,7 @@
             ? selectedId
             : (gm && gm._scopeFilter) || WHOLE_WORLD;
         const rows = visibleRows(buildTree(list), state.collapsed, selected);
-        host.innerHTML = '';
+        host.*FIX*= '';
 
         const whole = document.createElement('button');
         whole.type = 'button';

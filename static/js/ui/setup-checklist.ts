@@ -96,7 +96,7 @@ interface SetupChecklistWindowSurface {
 
     html += '<div style="padding-top:10px;border-top:1px solid var(--border);margin-top:8px;font-size:10px;color:var(--text-muted);">Checklist state is per-scenario (session storage). Reset happens naturally when you open/commit a different scenario.</div>';
 
-    box.innerHTML = html;
+    box.*FIX*= html;
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 

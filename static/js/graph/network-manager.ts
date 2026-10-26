@@ -26,7 +26,7 @@
  * member surface, which would be a second thing to keep in sync with the literal
  * below. Per-member contracts belong in static/js/types/globals.d.ts.
  */
-type NetworkApi = { [key: string]: any };
+type NetworkApi = { [key: string]: *FIX* };
 
 /**
  * `GraphLayoutEngine` is declared in globals.d.ts with the surface its *other*
@@ -34,8 +34,8 @@ type NetworkApi = { [key: string]: any };
  * through a local intersection rather than by editing the shared declaration.
  */
 type LayoutEngineExtra = typeof GraphLayoutEngine & {
-    applyCardinalLayout(...args: any[]): any;
-    autoMapSpacing(nodes: any, viewSize?: { w: number; h: number }): number | null;
+    applyCardinalLayout(...args: *FIX*[]): *FIX*;
+    autoMapSpacing(nodes: *FIX*, viewSize?: { w: number; h: number }): number | null;
 };
 
 /** Published by graph/edge-types.js (also window.EdgeTypes); not in globals.d.ts. */
@@ -43,12 +43,12 @@ type LayoutEngineExtra = typeof GraphLayoutEngine & {
 /** Feature-detected collaborators; published by graph/relative-layout.js and friends. */
 type RelLayoutWin = {
     GraphRelativeLayout?: {
-        attach(network: any): void;
+        attach(network: *FIX*): void;
         reseed(): void;
         apply(): void;
         resolveSeparation?(): number;
-        levelEdge(source: any, target: any, nodesObj: any, edgesArr: any): any;
-        connectionLevelEdge(source: any, target: any, nodesObj: any): any;
+        levelEdge(source: *FIX*, target: *FIX*, nodesObj: *FIX*, edgesArr: *FIX*): *FIX*;
+        connectionLevelEdge(source: *FIX*, target: *FIX*, nodesObj: *FIX*): *FIX*;
     };
     // Present-but-possibly-absent is correct for the *modules* here (separate
     // script tags, and graph-relative-layout is optional). The METHOD is not
@@ -56,7 +56,7 @@ type RelLayoutWin = {
     // let commit 6fd774b8 delete it and leave this call site a silent no-op.
     GraphBackground?: { reconcileAllForGapChange(): void };
     GraphToolbar?: { syncAll(): void };
-    NLEditorGhosts?: { clear(): void; [key: string]: any };
+    NLEditorGhosts?: { clear(): void; [key: string]: *FIX* };
     CharacterArt?: {
         avatarFor(props: unknown, emotionKey: string): string;
         emotionKeyForName(name: string): string;
@@ -65,7 +65,7 @@ type RelLayoutWin = {
 
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
-const networkManagerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
+const networkManagerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): *FIX* => window.Lit.html(strings, ...values);
 
 // (The ordered load trace, the method-wrapper cost tracer, the Long Task
 // observer and the load report were removed. Position debugging now lives in
@@ -238,10 +238,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
         container.appendChild(graphManager._tagPanelEl);
         GraphNetwork.ensureTagLibrary();
 
-        graphManager.network.on("click", (params: any) => GraphEventHandlers.onClick(params));
-        graphManager.network.on("doubleClick", (params: any) => GraphEventHandlers.onDoubleClick(params));
+        graphManager.network.on("click", (params: *FIX*) => GraphEventHandlers.onClick(params));
+        graphManager.network.on("doubleClick", (params: *FIX*) => GraphEventHandlers.onDoubleClick(params));
         GraphNetwork._syncLayoutButton && GraphNetwork._syncLayoutButton();
-        graphManager.network.on("oncontext", (params: any) => GraphEventHandlers.onContext(params));
+        graphManager.network.on("oncontext", (params: *FIX*) => GraphEventHandlers.onContext(params));
         GraphNetwork._bindEdgeHoverTooltips();
 
         // Label LOD: re-decide which names to draw when the zoom settles.
@@ -285,7 +285,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      *    their cells — so a pull toward the canvas origin fights the art. With it
      *    off, a room's contents are held by their own `in` edge spring.
      *  - **levels**: 0. vis's hierarchical layout owns positions and forces
-     *    physics off, so this is never read; it is set anyway so that switching
+     *    physics off, so this is never read; it is set *FIX*way so that switching
      *    back does not inherit a number chosen for a layout that was not running.
      *
      * @param {string} [layout] - 'graph'|'map'|'levels'; defaults to the live one
@@ -300,7 +300,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // task-771: A painted scope has pinned areas across a multi-thousand px canvas;
         // applying central gravity in graph mode pulls unpinned content nodes towards (0,0),
         // collapsing children away from their pinned parents.
-        if (gm && (gm._paintedGridLayout || (gm._graphNodesObj && typeof (window as any).GraphLayoutEngine?.hasPaintedGrid === 'function' && (window as any).GraphLayoutEngine.hasPaintedGrid(gm._graphNodesObj)))) {
+        if (gm && (gm._paintedGridLayout || (gm._graphNodesObj && typeof (window as *FIX*).GraphLayoutEngine?.hasPaintedGrid === 'function' && (window as *FIX*).GraphLayoutEngine.hasPaintedGrid(gm._graphNodesObj)))) {
             return 0;
         }
         // Per solver, because the two formulations are not on the same scale
@@ -325,7 +325,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Above this many nodes the force solver is suppressed (task-768). The graph
+     * Above this m*FIX* nodes the force solver is suppressed (task-768). The graph
      * layer must serve a 10-area adventure and a whole-world graph, not one tuned
      * size; past the limit physics is the wrong tool and positions must come from
      * saved layout or the painted grid instead.
@@ -372,7 +372,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             ? cfg.graphSpringLength : Math.round(fallback * mapK));
         // Cell-relative mark sizes for a painted map (the map view and Levels keep
         // their original pixel sizes).
-        const marks = (GraphNetwork as any)._markSizes();
+        const marks = (GraphNetwork as *FIX*)._markSizes();
         // centralGravity follows the layout (see centralGravityFor): ON in the free
         // graph layout, 0 for Map and Levels. The map-mode numbers below are the
         // balance measured with it off — with no central pull, repulsion is the
@@ -436,8 +436,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 },
             manipulation: {
                 enabled: true, initiallyActive: false,
-                addNode: (data: any, callback: any) => GraphEventHandlers.onAddNode(data, callback),
-                addEdge: (data: any, callback: any) => GraphEventHandlers.onAddEdge(data, callback)
+                addNode: (data: *FIX*, callback: *FIX*) => GraphEventHandlers.onAddNode(data, callback),
+                addEdge: (data: *FIX*, callback: *FIX*) => GraphEventHandlers.onAddEdge(data, callback)
             },
             groups: {
             // NOTE: `shape` is deliberately NOT set on groups. vis-network's
@@ -482,7 +482,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     _markSizes() {
         const sizeScale = GraphNetwork.nodeSizeScale();
         const inMap = !!graphManager && graphManager._cardinalLayout === true;
-        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        const LE: *FIX* = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
         if (inMap && LE && LE.markSize && LE.markFontPx && LE.markCardPad) {
             const font = LE.markFontPx();
             const pad = LE.markCardPad() * sizeScale;
@@ -520,7 +520,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Adopt the mark-envelope pitch (task-748), unless the user has taken the
      * pitch into their own hands (task-526).
      *
-     * Runs at the top of every graph load, *before* anything reads the pitch: the
+     * Runs at the top of every graph load, *before* *FIX*thing reads the pitch: the
      * lattice and the background art are both derived from it, so a pitch settled
      * afterwards would leave them disagreeing. Returns true when the pitch moved,
      * so the caller can re-fit the art (which is positioned in px).
@@ -529,13 +529,13 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * user who deliberately sits at 40px/cell must keep 40px/cell on every load,
      * and a scope switch must not silently re-derive it out from under them.
      */
-    applyAutoMapSpacing(nodesObj: any): boolean {
+    applyAutoMapSpacing(nodesObj: *FIX*): boolean {
         if (!graphManager || graphManager._cardinalLayout !== true) return false;
         if (graphManager._mapSpacingAuto === false) return false;
         if (typeof config === 'undefined' || !config) return false;
         let next: number;
         try {
-            next = (GraphLayoutEngine as unknown as { autoMapSpacing(nodes: any): number }).autoMapSpacing(nodesObj);
+            next = (GraphLayoutEngine as unknown as { autoMapSpacing(nodes: *FIX*): number }).autoMapSpacing(nodesObj);
         } catch (err) {
             return false;
         }
@@ -596,9 +596,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * use Contents length), so a changed Contents length reaches the solver only
      * when the dataset is rebuilt. The live edge options carry the drawn length,
      * so update them directly; the dataset is refetched from the server on the
-     * next rebuild anyway.
+     * next rebuild *FIX*way.
      *
-     * @returns {number} how many edges were restamped
+     * @returns {number} how m*FIX* edges were restamped
      */
     refreshEdgeLengths(): number {
         const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
@@ -623,7 +623,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // The solver state is the policy's to decide (GraphPhysics.shouldRun),
         // reached through GraphPhysics.apply() below. This used to write
         // `_physicsEnabled = !levelsOn` here, which stomped a user's saved
-        // "physics off" the moment any graph setting changed (task-765).
+        // "physics off" the moment *FIX* graph setting changed (task-765).
         graphManager.network.setOptions(GraphNetwork.buildOptions());
         GraphPhysics.apply();
         if (!rebuild) {
@@ -686,7 +686,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Deliberately excludes prose (description/personality) that the graph does
      * not draw, so editing it never costs a node update.
      */
-    _nodeProjection(id: string, nodeData: any): string {
+    _nodeProjection(id: string, nodeData: *FIX*): string {
         const avatar = (window as unknown as RelLayoutWin).CharacterArt
             ? (window as unknown as RelLayoutWin).CharacterArt!.avatarFor(nodeData.properties, (window as unknown as RelLayoutWin).CharacterArt!.emotionKeyForName(nodeData.name))
             : (nodeData.properties?.image || '');
@@ -707,27 +707,27 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * source for the projection's cell term and for the "did this node's place
      * actually change?" test in syncGraphData.
      */
-    _cellSig(node: any): string {
+    _cellSig(node: *FIX*): string {
         const cell = node && node.properties && node.properties.cell;
         return (cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y)))
             ? `${cell.x},${cell.y}` : '';
     },
 
     /** The edge-set signature: identity of every edge, order-independent. */
-    _edgeSig(edgesArr: any[]): string {
+    _edgeSig(edgesArr: *FIX*[]): string {
         return (edgesArr || [])
-            .map((edgeObj: any) => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
+            .map((edgeObj: *FIX*) => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
             .sort()
             .join('|');
     },
 
     /**
-     * Edge changes that can alter a scoped graph: any relation between loaded
+     * Edge changes that can alter a scoped graph: *FIX* relation between loaded
      * nodes, plus physical membership edges aimed at a loaded node. Connection
      * edges incident to a loaded area are included because they can add or
      * remove a way whose two endpoints belong to the scope.
      */
-    _scopedEdgeSig(edgesArr: any[], worldNodes: Record<string, any>, scopedNodes: Record<string, any>): string {
+    _scopedEdgeSig(edgesArr: *FIX*[], worldNodes: Record<string, *FIX*>, scopedNodes: Record<string, *FIX*>): string {
         const loadedIds = new Set(Object.keys(scopedNodes || {}));
         const spatialTypes = new Set(['in', 'on', 'under', 'behind', 'beside', 'at']);
         const holdingTypes = new Set(['carrying', 'equipped']);
@@ -770,7 +770,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             let nodesObj, edgesArr;
             if (scopeId) {
                 try {
-                    const sub = await (ApiClient as unknown as { getScopeSubgraph(id: string, withAreas: boolean): Promise<any> }).getScopeSubgraph(scopeId, true);
+                    const sub = await (ApiClient as unknown as { getScopeSubgraph(id: string, withAreas: boolean): Promise<*FIX*> }).getScopeSubgraph(scopeId, true);
                     nodesObj = sub.nodes || {};
                     edgesArr = sub.edges || [];
                 } catch (err) {
@@ -781,12 +781,12 @@ function _firstSentence(text: unknown, maxLines: number): string {
                     (graphManager as unknown as { _persistScopeFilter?: () => void })._persistScopeFilter?.();
                     const sel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
                     if (sel) sel.value = '';
-                    nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();
-                    edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<any> }).getGraphEdges();
+                    nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<*FIX*> }).getGraphNodes();
+                    edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<*FIX*> }).getGraphEdges();
                 }
             } else {
-                nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();
-                edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<any> }).getGraphEdges();
+                nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<*FIX*> }).getGraphNodes();
+                edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<*FIX*> }).getGraphEdges();
             }
 
             // Skip reload if graph structure hasn't changed (avoids jitter on
@@ -797,7 +797,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             const projMap: Record<string, string> = {};
             const nodeSig = Object.entries(nodesObj)
                 .sort(([a], [b]) => a.localeCompare(b))
-                .map(([id, nodeData]: [string, any]) => {
+                .map(([id, nodeData]: [string, *FIX*]) => {
                     const projection = GraphNetwork._nodeProjection(id, nodeData);
                     projMap[id] = projection;
                     return projection;
@@ -845,7 +845,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 : null;
             graphManager._edgeTooltipHtml = {};
 
-            // Decide the map pitch before anything reads it: node sizes, the
+            // Decide the map pitch before *FIX*thing reads it: node sizes, the
             // lattice and the background art are all derived from it, so a pitch
             // settled afterwards would leave them disagreeing (task-526).
             try { this.applyAutoMapSpacing(nodesObj); } catch (err) { /* keep the current pitch */ }
@@ -863,8 +863,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // in this node set. buildNodeConfig uses it to reject a saved x/y that
             // belongs to another frame, which is what stranded items/triggers/
             // characters 20 000 px from their areas and stretched their edges.
-            const seedFrame = (GraphLayoutEngine as any)?.paintedFrame
-                ? (GraphLayoutEngine as any).paintedFrame(nodesObj)
+            const seedFrame = (GraphLayoutEngine as *FIX*)?.paintedFrame
+                ? (GraphLayoutEngine as *FIX*).paintedFrame(nodesObj)
                 : null;
             for (const id in nodesObj) {
                 const nodeData = nodesObj[id];
@@ -927,13 +927,13 @@ function _firstSentence(text: unknown, maxLines: number): string {
                     const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
                     if (renderedConnectionPairs.has(pairKey)) continue;
                     renderedConnectionPairs.add(pairKey);
-                    const otherEdges = edgesArr.filter((e: any) =>
+                    const otherEdges = edgesArr.filter((e: *FIX*) =>
                         e.type === 'connection' &&
                         ((e.source === edgeObj.target && e.target === edgeObj.source) ||
                          (e.source === edgeObj.source && e.target === edgeObj.target))
                     );
                     if (otherEdges.length > 1) {
-                        const dirs = otherEdges.map((e: any) => e.properties?.direction).filter(Boolean);
+                        const dirs = otherEdges.map((e: *FIX*) => e.properties?.direction).filter(Boolean);
                         edgeLabel = (graphManager._showEdgeLabels ? '↔ ' : '') + dirs.join(' ↔ ');
                     }
                 }
@@ -1038,7 +1038,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // and loose nodes there moved a way the user had just positioned.
             // Not in hierarchical mode either: that layout owns every position.
             // The "way directions" overlay deliberately does NOT count as map
-            // mode any more — it only labels ways (task-530), so picking it must
+            // mode *FIX* more — it only labels ways (task-530), so picking it must
             // never rearrange the canvas behind the user's back.
             const mapMode = graphManager._cardinalLayout === true;
             // `worldState.areas` is a legacy per-area map that a generated
@@ -1079,7 +1079,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // SKIPPED when the painted grid already placed them. `_gridUpdates`
         // places every cell-less node in a painted scope — held children beside
         // their area (the `beside` pass), the rest from their own coords — so
-        // running the ring seed afterwards does not add anything and actively
+        // running the ring seed afterwards does not add *FIX*thing and actively
         // HURTS: it re-derives each child from its parent's position as the
         // solver/DataSet last held it, which is a frame behind the grid move, so
         // it yanks items/characters/ways thousands of px off the map. Physics on
@@ -1152,7 +1152,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 try { (window as unknown as RelLayoutWin).NLEditorGhosts!.refresh(); } catch (err) { /* ignore */ }
             }
 
-            // Snapshot the structural styles BEFORE any overlay recolours them,
+            // Snapshot the structural styles BEFORE *FIX* overlay recolours them,
             // so switching overlays can reset in place (task-642). Without this
             // a trigger overlay's dim-everything (opacity 0.2, grey) stayed under
             // the next overlay and made heat/sound/light read alike.
@@ -1175,7 +1175,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * inspector edit that changed only node PROPERTIES — a character's
      * `current_state`, an emotion/avatar, a pinned flag, a cell, a name — must
      * not pay a world fetch, a `setData()`, a re-relayout and a camera refit.
-     * Those property changes are the ones that fire many times a minute, and
+     * Those property changes are the ones that fire m*FIX* times a minute, and
      * they are what this exists to keep cheap.
      *
      * A change to the node OR edge SET (a node/edge added or removed, a way
@@ -1228,11 +1228,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const nodesDS = body && body.data && body.data.nodes;
         if (!nodesDS) return;
 
-        const frame = (GraphLayoutEngine as any)?.paintedFrame
-            ? (GraphLayoutEngine as any).paintedFrame(next.nodes)
+        const frame = (GraphLayoutEngine as *FIX*)?.paintedFrame
+            ? (GraphLayoutEngine as *FIX*).paintedFrame(next.nodes)
             : null;
 
-        const updates: any[] = [];
+        const updates: *FIX*[] = [];
         const nextProj: Record<string, string> = {};
         for (const id in loaded) {
             const nextNode = next.nodes[id];
@@ -1279,7 +1279,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         } else {
             gm._graphNodesObj = next.nodes;
         }
-        // Any later structural change must not be masked by a stale reload hash.
+        // *FIX* later structural change must not be masked by a stale reload hash.
         gm._lastSig = '';
         if (!updates.length) return;
 
@@ -1333,7 +1333,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // A tiny non-map graph always shows its names.
         const total = Object.keys(graphManager._graphNodesObj || {}).length;
         if (!graphManager._cardinalLayout && total <= 400) return true;
-        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        const LE: *FIX* = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
         const pitch = LE && LE.mapSpacing ? LE.mapSpacing() : 40;
         let zoom = 1;
         try { zoom = graphManager.network.getScale(); } catch (err) { /* ignore */ }
@@ -1389,7 +1389,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @returns {string} Tooltip text
      */
     /** @deprecated Use GraphTooltips.buildTooltip */
-    buildTooltip(nodeData: any): string {
+    buildTooltip(nodeData: *FIX*): string {
         return GraphTooltips.buildTooltip(nodeData);
     },
 
@@ -1399,7 +1399,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /** @deprecated Use GraphTooltips.buildTooltipHtml */
-    buildTooltipHtml(nodeData: any): string {
+    buildTooltipHtml(nodeData: *FIX*): string {
         return GraphTooltips.buildTooltipHtml(nodeData);
     },
 
@@ -1409,7 +1409,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /** @deprecated Use GraphTooltips.findGraphEdge */
-    _findGraphEdge(fromId: string, toId: string): any {
+    _findGraphEdge(fromId: string, toId: string): *FIX* {
         return GraphTooltips.findGraphEdge(fromId, toId);
     },
 
@@ -1539,7 +1539,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * level of the same decision cannot disagree. Kept as a delegate for existing
      * callers.
      */
-    isNodePinned(nodeData: any): boolean {
+    isNodePinned(nodeData: *FIX*): boolean {
         return GraphPhysics.nodePinned(nodeData);
     },
 
@@ -1551,8 +1551,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @param {Object} nodeData - raw node data from the graph
      * @returns {Object} vis.js node configuration
      */
-    buildNodeConfig(nodeData: any, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null): any {
-        const nodeConfig: Record<string, any> = {
+    buildNodeConfig(nodeData: *FIX*, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null): *FIX* {
+        const nodeConfig: Record<string, *FIX*> = {
             id: nodeData.id,
             label: typeof NodeBadges !== 'undefined'
                 ? NodeBadges.formatLabel(nodeData, GraphNetwork._tagMetaFor(nodeData))
@@ -1576,7 +1576,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // that swapped cards for dots, `mapCompact`/`mapDotSize`, is gone). Only
         // the Map layout caps; the graph view keeps natural card width.
         const inMap = !!graphManager && graphManager._cardinalLayout === true;
-        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        const LE: *FIX* = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
         if (inMap && LE && LE.markCardMax && nodeData.type === 'area') {
             nodeConfig.widthConstraint = { maximum: LE.markCardMax() * GraphNetwork.nodeSizeScale() };
         }
@@ -1639,7 +1639,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // carries the full details. Character nodes show their CURRENT-emotion
         // profile via CharacterArt (falling back to neutral/profile_image/image);
         // other node types fall through to their plain `image`. Nodes without
-        // any art keep their normal group shape/color.
+        // *FIX* art keep their normal group shape/color.
         const nodeAvatar = (window as unknown as RelLayoutWin).CharacterArt
             ? (window as unknown as RelLayoutWin).CharacterArt!.avatarFor(nodeData.properties, (window as unknown as RelLayoutWin).CharacterArt!.emotionKeyForName(nodeData.name))
             : (nodeData.properties?.image || '');
@@ -1714,7 +1714,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Removes any temporarily revealed item nodes from the network.
+     * Removes *FIX* temporarily revealed item nodes from the network.
      */
     hideRevealedItems() {
         if (!graphManager._revealedItemIds || graphManager._revealedItemIds.size === 0) return;
@@ -1731,7 +1731,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @param {string} [body] - rows; omit for the default structural rows
      * @returns {string} legend HTML
      */
-    legendChrome(title: string, body: string): any {
+    legendChrome(title: string, body: string): *FIX* {
         const rows = body === undefined ? GraphNetwork.buildLegendRows() : body;
         return `<div class="graph-legend-inner">
             <div class="graph-legend-head">
@@ -1788,9 +1788,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
         }
         fetch('/api/tags/search')
             .then(r => r.json())
-            .then((tags: any[]) => {
-                const byId: Record<string, any> = {};
-                (tags || []).forEach((t: any) => { byId[t.id] = t; });
+            .then((tags: *FIX*[]) => {
+                const byId: Record<string, *FIX*> = {};
+                (tags || []).forEach((t: *FIX*) => { byId[t.id] = t; });
                 graphManager._tagLibrary = byId;
                 GraphNetwork._applyNodeLabelDecorations();
                 if (graphManager._tagPanelVisible) GraphNetwork.renderTagPanel();
@@ -1802,7 +1802,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Return {icon, color} for a node's tags, preferring library entries and
      * falling back to a deterministic hash color for unknown tags.
      */
-    _tagMetaFor(nodeData: any): any[] {
+    _tagMetaFor(nodeData: *FIX*): *FIX*[] {
         const props = nodeData.properties || {};
         let tags = props.tags || [];
         if (typeof tags === 'string') tags = tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -1832,7 +1832,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // and every label actually changed (the first pass changed nothing, so it
         // measured 61ms). Collect the changed rows and update the set once.
         const updates: Array<{ id: string; label: string; decoratedLabel: boolean }> = [];
-        nodes.forEach((node: any) => {
+        nodes.forEach((node: *FIX*) => {
             const nodeData = graphManager.nodes.get(node.id);
             if (!nodeData) return;
             const label = NodeBadges.formatLabel(nodeData, GraphNetwork._tagMetaFor(nodeData));
@@ -1863,9 +1863,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
     renderTagPanel() {
         if (!graphManager._tagPanelEl) return;
         const counts: Record<string, number> = {};
-        const metaById: Record<string, any> = {};
-        graphManager.nodes.forEach((nodeData: any) => {
-            GraphNetwork._tagMetaFor(nodeData).forEach((m: any) => {
+        const metaById: Record<string, *FIX*> = {};
+        graphManager.nodes.forEach((nodeData: *FIX*) => {
+            GraphNetwork._tagMetaFor(nodeData).forEach((m: *FIX*) => {
                 if (!metaById[m.tag]) metaById[m.tag] = m;
                 counts[m.tag] = (counts[m.tag] || 0) + 1;
             });
@@ -1908,11 +1908,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // `nodes.update()` redraws the whole graph each call, so filtering by a
         // tag used to cost one full redraw per node (task-perf).
         const updates: Array<{ id: string; opacity: number }> = [];
-        nodes.forEach((node: any) => {
+        nodes.forEach((node: *FIX*) => {
             const nodeData = graphManager.nodes.get(node.id);
             let match = !filter;
             if (nodeData && filter) {
-                match = GraphNetwork._tagMetaFor(nodeData).some((m: any) => m.tag === filter);
+                match = GraphNetwork._tagMetaFor(nodeData).some((m: *FIX*) => m.tag === filter);
             }
             const opacity = match ? 1.0 : 0.15;
             if (node.opacity !== opacity) updates.push({ id: node.id, opacity });
@@ -2091,7 +2091,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             rows = `
                 <div style="font-size:9px;color:var(--text-muted);">Ways labeled with their direction</div>
                 <div style="font-size:9px;color:var(--text-muted);">N S E W NE NW SE SW U D</div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay — it does not rearrange anything</div>`;
+                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay — it does not rearrange *FIX*thing</div>`;
         }
         if (!title) return;
         window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(GraphNetwork.legendChrome(title, rows))}`, graphManager._legendEl);
@@ -2103,7 +2103,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Snapshot every rendered node/edge's structural style.
      *
      * Taken once per data load, after label decorations + LOD have settled but
-     * before the active overlay recolours anything, so `resetOverlayStyles()`
+     * before the active overlay recolours *FIX*thing, so `resetOverlayStyles()`
      * can undo an overlay without a full `loadGraphData()` rebuild (which would
      * refit the camera and re-run layout) — the reason switching overlays used
      * to stack colours (task-642).
@@ -2112,15 +2112,15 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const data = graphManager.network && graphManager.network.body
             && graphManager.network.body.data;
         if (!data) return;
-        const nodeStyles: Record<string, any> = {};
+        const nodeStyles: Record<string, *FIX*> = {};
         if (data.nodes) {
-            data.nodes.forEach((node: any) => {
+            data.nodes.forEach((node: *FIX*) => {
                 nodeStyles[node.id] = { color: node.color, label: node.label, opacity: 1 };
             });
         }
-        const edgeStyles: Record<string, any> = {};
+        const edgeStyles: Record<string, *FIX*> = {};
         if (data.edges) {
-            data.edges.forEach((edge: any) => {
+            data.edges.forEach((edge: *FIX*) => {
                 edgeStyles[edge.id] = {
                     color: edge.color, dashes: edge.dashes, width: edge.width,
                     label: edge.label, opacity: 1,
@@ -2138,8 +2138,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
         if (!data) return;
         const baseNodes = graphManager._baseNodeStyles;
         if (baseNodes && data.nodes) {
-            const updates: any[] = [];
-            data.nodes.forEach((node: any) => {
+            const updates: *FIX*[] = [];
+            data.nodes.forEach((node: *FIX*) => {
                 const s = baseNodes[node.id];
                 if (s) updates.push({ id: node.id, color: s.color, label: s.label, opacity: 1 });
             });
@@ -2147,8 +2147,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
         }
         const baseEdges = graphManager._baseEdgeStyles;
         if (baseEdges && data.edges) {
-            const updates: any[] = [];
-            data.edges.forEach((edge: any) => {
+            const updates: *FIX*[] = [];
+            data.edges.forEach((edge: *FIX*) => {
                 const s = baseEdges[edge.id];
                 if (s) updates.push({
                     id: edge.id, color: s.color, dashes: s.dashes,

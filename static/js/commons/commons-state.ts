@@ -10,9 +10,9 @@
     'use strict';
 
     class CommonsState {
-        static messages: any[] = [];
-        static channels: any[] = [];
-        static participants: Record<string, any> = {};
+        static messages: *FIX*[] = [];
+        static channels: *FIX*[] = [];
+        static participants: Record<string, *FIX*> = {};
         static listeners: Function[] = [];
         // Opening/inspecting the phone is read-only. Character turns start
         // only after the user explicitly resumes the conversation.
@@ -29,11 +29,11 @@
             inner: string;
             action: string;
             summary: string;
-            detail?: any;
+            detail?: *FIX*;
             timestamp: number;
         }>> = {};
         static selectedDrawerCharacter: string | null = null;
-        static characterContextCache: Record<string, any> = {};
+        static characterContextCache: Record<string, *FIX*> = {};
 
         static get isPaused(): boolean {
             return this.manualPaused || this.visibilityPaused;
@@ -51,21 +51,21 @@
 
         static async sync() {
             try {
-                const data = await (window as any).CommonsApi.getState(this.perspective);
+                const data = await (window as *FIX*).CommonsApi.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
-                (window as any).CommonsAgent?.reconcileParticipants?.();
+                (window as *FIX*).CommonsAgent?.reconcileParticipants?.();
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
-                if (!this.channels.some((channel: any) => channel.id === this.selectedChannelId)) {
+                if (!this.channels.some((channel: *FIX*) => channel.id === this.selectedChannelId)) {
                     this.selectedChannelId = this.channels[0]?.id || '';
                     this.messages = [];
                 }
                 if (this.selectedChannelId) {
                     const sinceId = this.messages.length
-                        ? Math.max(...this.messages.map((message: any) => Number(message.id) || 0))
+                        ? Math.max(...this.messages.map((message: *FIX*) => Number(message.id) || 0))
                         : undefined;
-                    const result = await (window as any).CommonsApi.getMessages(
+                    const result = await (window as *FIX*).CommonsApi.getMessages(
                         this.perspective, this.selectedChannelId, sinceId
                     );
                     if (sinceId) this.messages = [...this.messages, ...(result.messages || [])];
@@ -85,20 +85,20 @@
         }
 
         static async selectTheme(theme: string) {
-            await (window as any).CommonsApi.setTheme(theme);
+            await (window as *FIX*).CommonsApi.setTheme(theme);
             await this.sync();
         }
 
         static async selectChannel(channelId: string, explicitRead = true) {
-            if (!this.channels.some((channel: any) => channel.id === channelId)) return;
+            if (!this.channels.some((channel: *FIX*) => channel.id === channelId)) return;
             this.selectedChannelId = channelId;
             this.messages = [];
             if (explicitRead) {
-                await (window as any).CommonsApi.readMessages(this.perspective, channelId, 'all');
-                const history = await (window as any).CommonsApi.getMessages(this.perspective, channelId);
+                await (window as *FIX*).CommonsApi.readMessages(this.perspective, channelId, 'all');
+                const history = await (window as *FIX*).CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = history.messages || [];
             } else {
-                const result = await (window as any).CommonsApi.getMessages(this.perspective, channelId);
+                const result = await (window as *FIX*).CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = result.messages || [];
             }
             await this.sync();
@@ -109,15 +109,15 @@
             else this.manualPaused = paused;
 
             if (this.isPaused) {
-                (window as any).CommonsAgent.pause();
+                (window as *FIX*).CommonsAgent.pause();
             } else {
-                (window as any).CommonsAgent.resume();
+                (window as *FIX*).CommonsAgent.resume();
             }
 
             if (this.visibilityPaused) this.stopLiveUpdates();
             else this.startLiveUpdates();
 
-            (window as any).CommonsUI?.renderPauseState();
+            (window as *FIX*).CommonsUI?.renderPauseState();
             this.emit();
         }
 
@@ -144,16 +144,16 @@
             this.liveEvents = null;
         }
 
-        static receiveMessage(message: any) {
+        static receiveMessage(message: *FIX*) {
             if (!message) return;
-            (window as any).CommonsAgent?.onMessageReceived?.(message);
+            (window as *FIX*).CommonsAgent?.onMessageReceived?.(message);
             if (message.channel_id !== this.selectedChannelId) return;
-            if (this.messages.some((existing: any) => existing.id === message.id)) return;
+            if (this.messages.some((existing: *FIX*) => existing.id === message.id)) return;
             this.messages.push(message);
             this.emit();
         }
 
-        static recordTurn(charName: string, turn: { inner: string; action: string; summary: string; detail?: any }) {
+        static recordTurn(charName: string, turn: { inner: string; action: string; summary: string; detail?: *FIX* }) {
             if (!this.characterTurns[charName]) this.characterTurns[charName] = [];
             const record = { ...turn, timestamp: Date.now() };
             this.characterTurns[charName].unshift(record);
@@ -174,5 +174,5 @@
         }
     }
 
-    (window as any).CommonsState = CommonsState;
+    (window as *FIX*).CommonsState = CommonsState;
 })();

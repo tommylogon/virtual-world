@@ -471,7 +471,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
 // IIFE, not a top-level const: the overlay object references itself
 // (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
 // `const overlays` would be a global lexical binding colliding at parse
-// time with any other script declaring that name. Scoping it to the arrow
+// time with *FIX* other script declaring that name. Scoping it to the arrow
 // function keeps every self-reference working; the property is assigned once.
 // Named overlays rather than GraphOverlays: globals.d.ts already declares a
 // bare `declare const GraphOverlays`, and a same-named local is a redeclaration.

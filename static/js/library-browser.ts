@@ -1510,7 +1510,7 @@ class LibraryBrowser {
 
 
 
-        const payload: Record<string, any> = { id };
+        const payload: Record<string, *FIX*> = { id };
 
         for (const f of config.fields) {
 
@@ -1620,7 +1620,7 @@ class LibraryBrowser {
 
             // untouched fields (and fields outside the editor) are preserved.
 
-            const merged: Record<string, any> = { ...libEntry, id };
+            const merged: Record<string, *FIX*> = { ...libEntry, id };
 
             for (const key of result.sections) {
 
@@ -1948,7 +1948,7 @@ class LibraryBrowser {
 
         // Delegate to the canonical inspector builder so save/export/library
 
-        // all produce the same shape (no data loss on any path).
+        // all produce the same shape (no data loss on *FIX* path).
 
         const agentView = (window as unknown as {
 
@@ -2044,9 +2044,9 @@ class LibraryBrowser {
 
      */
 
-    _applyLibrarySelection(base: Record<string, any> | null, incoming: Record<string, any>, result: DiffModalResult) {
+    _applyLibrarySelection(base: Record<string, *FIX*> | null, incoming: Record<string, *FIX*>, result: DiffModalResult) {
 
-        const merged: Record<string, any> = { ...(base || {}), id: incoming.id || incoming.name || (base && base.id) };
+        const merged: Record<string, *FIX*> = { ...(base || {}), id: incoming.id || incoming.name || (base && base.id) };
 
         (result.sections || []).forEach((key: string) => {
 
@@ -2112,9 +2112,9 @@ class LibraryBrowser {
 
 
 
-    async _saveCharacterWithDiffModal(charName: string, charCard: Record<string, any>) {
+    async _saveCharacterWithDiffModal(charName: string, charCard: Record<string, *FIX*>) {
 
-        let libEntry: Record<string, any> | null = null;
+        let libEntry: Record<string, *FIX*> | null = null;
 
         try {
 
@@ -2392,7 +2392,7 @@ class LibraryBrowser {
 
         const items: Record<string, unknown>[] = [];
 
-        for (const edge of graphEdges as Array<Record<string, any>>) {
+        for (const edge of graphEdges as Array<Record<string, *FIX*>>) {
 
             if (edge.target !== areaNodeId && edge.target !== areaName) continue;
 
@@ -2428,7 +2428,7 @@ class LibraryBrowser {
 
         const exits: Record<string, unknown>[] = [];
 
-        const rawExits: Record<string, any> = areaData.exits || {};
+        const rawExits: Record<string, *FIX*> = areaData.exits || {};
 
         for (const [dir, exitData] of Object.entries(rawExits)) {
 
@@ -2460,7 +2460,7 @@ class LibraryBrowser {
 
         const triggers: Record<string, unknown>[] = [];
 
-        for (const edge of graphEdges as Array<Record<string, any>>) {
+        for (const edge of graphEdges as Array<Record<string, *FIX*>>) {
 
             if (edge.source !== areaNodeId) continue;
 
@@ -2474,7 +2474,7 @@ class LibraryBrowser {
 
                 : (edgeProps.effect_type ? [{ type: edgeProps.effect_type, params: edgeProps.effect_params || {} }] : []);
 
-            let conditions: any = edgeProps.conditions || {};
+            let conditions: *FIX* = edgeProps.conditions || {};
 
             if (Array.isArray(conditions) || !conditions.operator) {
 
@@ -2582,11 +2582,11 @@ class LibraryBrowser {
 
 
 
-    async _saveAreaWithDiffModal(areaName: string, areaPayload: Record<string, any>) {
+    async _saveAreaWithDiffModal(areaName: string, areaPayload: Record<string, *FIX*>) {
 
         const areaId = areaName.toLowerCase().replace(/[^a-z0-9_]+/g, '_');
 
-        let libEntry: Record<string, any> | null = null;
+        let libEntry: Record<string, *FIX*> | null = null;
 
         try {
 
@@ -2652,7 +2652,7 @@ class LibraryBrowser {
 
         if (result.action === 'update') {
 
-            const merged: Record<string, any> = { ...libEntry, id: areaId };
+            const merged: Record<string, *FIX*> = { ...libEntry, id: areaId };
 
             for (const key of result.sections) {
 
@@ -2668,7 +2668,7 @@ class LibraryBrowser {
 
         } else if (result.action === 'duplicate') {
 
-            const dupePayload: Record<string, any> = { id: result.id, name: result.name, ...areaPayload };
+            const dupePayload: Record<string, *FIX*> = { id: result.id, name: result.name, ...areaPayload };
 
             const res = await LibraryApi.saveLibraryType('areas', dupePayload);
 
@@ -2766,7 +2766,7 @@ class LibraryBrowser {
 
             if (result.action === 'update') {
 
-                const merged: Record<string, any> = { ...libEntry, id: areaId };
+                const merged: Record<string, *FIX*> = { ...libEntry, id: areaId };
 
                 for (const key of result.sections) {
 
@@ -2782,7 +2782,7 @@ class LibraryBrowser {
 
             } else if (result.action === 'duplicate') {
 
-                const dupePayload: Record<string, any> = { id: result.id, name: result.name, ...areaPayload };
+                const dupePayload: Record<string, *FIX*> = { id: result.id, name: result.name, ...areaPayload };
 
                 const res = await LibraryApi.saveLibraryType('areas', dupePayload);
 

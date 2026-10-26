@@ -9,10 +9,10 @@
 (function () {
     'use strict';
 
-    async function request(url: string, options?: RequestInit): Promise<any> {
+    async function request(url: string, options?: RequestInit): Promise<*FIX*> {
         const resp = await fetch(url, options);
         const contentType = resp.headers.get('content-type') || '';
-        let body: any = null;
+        let body: *FIX* = null;
         if (contentType.includes('application/json')) {
             body = await resp.json().catch(() => null);
         } else {

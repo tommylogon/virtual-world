@@ -36,21 +36,21 @@
         'emote', 'memory', 'emotion_toward', 'learned_names',
     ];
 
-    let panel: any = null;
-    let toggleBtn: any = null;
-    let runs: any[] = []; // {id, ts, charName, model, prompt, output, metrics, format, hallucinations}
+    let panel: *FIX* = null;
+    let toggleBtn: *FIX* = null;
+    let runs: *FIX*[] = []; // {id, ts, charName, model, prompt, output, metrics, format, hallucinations}
 
     // ------------------------------------------------------------------ UI build
 
-    function $ (sel: any, root: any = document) { return root.querySelector(sel); }
-    function $$ (sel: any, root: any = document) { return [...root.querySelectorAll(sel)]; }
-    function el (tag: any, cls?: any, html?: any) {
+    function $ (sel: *FIX*, root: *FIX* = document) { return root.querySelector(sel); }
+    function $$ (sel: *FIX*, root: *FIX* = document) { return [...root.querySelectorAll(sel)]; }
+    function el (tag: *FIX*, cls?: *FIX*, html?: *FIX*) {
         const e = document.createElement(tag);
         if (cls) e.className = cls;
-        if (html !== undefined) e.innerHTML = html;
+        if (html !== undefined) e.*FIX*= html;
         return e;
     }
-    function esc (s: any) { return String(s ?? '').replace(/[&<>"']/g, (c: string) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || '')); }
+    function esc (s: *FIX*) { return String(s ?? '').replace(/[&<>"']/g, (c: string) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || '')); }
 
     function ensureStyles () {
         if ($('#llm-bench-styles')) return;
@@ -117,7 +117,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
     function buildPanel () {
         if (panel) return panel;
         panel = el('div', 'llm-bench-panel hidden');
-        panel.innerHTML = `
+        panel.*FIX*= `
 <div id="llm-bench-header">
     <span>LLM Bench</span>
     <button id="llm-bench-close" title="Close">×</button>
@@ -165,10 +165,10 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         $('#llmb-export').onclick = exportRuns;
         $('#llmb-clear').onclick = clearRuns;
         $('#llmb-add-model').onclick = addCustomModel;
-        $('#llmb-custom-model').onkeypress = (e: any) => { if (e.key === 'Enter') addCustomModel(); };
+        $('#llmb-custom-model').onkeypress = (e: *FIX*) => { if (e.key === 'Enter') addCustomModel(); };
         // The import input is built by buildPanel (it is not in the DOM at module
         // load time), so its handler is wired here with the rest of the panel.
-        $('#llmb-import').onchange = async (e: any) => {
+        $('#llmb-import').onchange = async (e: *FIX*) => {
             if (!e.target.files.length) return;
             await importRuns(e.target.files[0]);
             e.target.value = '';
@@ -201,9 +201,9 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
     async function loadRuns () {
         try { runs = await storage.getAllAsArray(STORE) || []; }
         catch (e) { runs = []; }
-        runs.sort((a: any, b: any) => (b.ts || 0) - (a.ts || 0));
+        runs.sort((a: *FIX*, b: *FIX*) => (b.ts || 0) - (a.ts || 0));
     }
-    async function saveRun (run: any) {
+    async function saveRun (run: *FIX*) {
         try { await storage.set(STORE, run.id, run); } catch (e) { console.warn('bench: failed to persist run', e); }
         runs.unshift(run);
         if (runs.length > 200) { runs = runs.slice(0, 200); try { await storage.clear(STORE); } catch (e) {}; for (const r of runs) { try { await storage.set(STORE, r.id, r); } catch (e) {} } }
@@ -213,12 +213,12 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         try { await storage.clear(STORE); } catch (e) {}
         renderRuns();
         $('#llmb-drill').classList.add('hidden');
-        $('#llmb-drill').innerHTML = '';
+        $('#llmb-drill').*FIX*= '';
     }
 
     // ------------------------------------------------------------------ model list
 
-    let abortCtrl: any = null;
+    let abortCtrl: *FIX* = null;
 
     async function fetchModels () {
         const base = (typeof config !== 'undefined' && config.apiBase) ? String(config.apiBase) : '';
@@ -228,27 +228,27 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             if (!resp.ok) return [];
             const data = await resp.json();
             const arr = data && Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
-            return arr.map((m: any) => (m && m.id) ? String(m.id) : null).filter(Boolean);
+            return arr.map((m: *FIX*) => (m && m.id) ? String(m.id) : null).filter(Boolean);
         } catch (e) { return []; }
     }
 
     async function refreshModelList () {
         const container = $('#llmb-models');
         if (!container) return;
-        container.innerHTML = '';
+        container.*FIX*= '';
         const models = await fetchModels();
         const def = (typeof config !== 'undefined' && config.model) ? String(config.model) : '';
         const selected = new Set(JSON.parse(localStorage.getItem('llmb_selected_models') || '[]'));
         const shown = new Set();
-        const add = (id: any, prechecked: any) => {
+        const add = (id: *FIX*, prechecked: *FIX*) => {
             if (!id || shown.has(id)) return;
             shown.add(id);
             const checked = prechecked || selected.has(id) || (!selected.size && id === def);
             const wrap = el('label');
-            wrap.innerHTML = `<input type="checkbox" value="${esc(id)}" ${checked ? 'checked' : ''}> <span class="llmb-chip model ${checked ? 'active' : ''}">${esc(id)}</span>`;
+            wrap.*FIX*= `<input type="checkbox" value="${esc(id)}" ${checked ? 'checked' : ''}> <span class="llmb-chip model ${checked ? 'active' : ''}">${esc(id)}</span>`;
             container.appendChild(wrap);
         };
-        models.forEach((m: any) => add(m, true));
+        models.forEach((m: *FIX*) => add(m, true));
         add(def, false);
         // keep previously selected even if not returned by /models
         selected.forEach(id => add(id, true));
@@ -265,7 +265,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (!id) return;
         const sel = $('#llmb-models');
         const wrap = el('label');
-        wrap.innerHTML = `<input type="checkbox" value="${esc(id)}" checked> <span class="llmb-chip model active">${esc(id)}</span>`;
+        wrap.*FIX*= `<input type="checkbox" value="${esc(id)}" checked> <span class="llmb-chip model active">${esc(id)}</span>`;
         sel.appendChild(wrap);
         input.value = '';
     }
@@ -276,7 +276,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         const sel = $('#llmb-char-select');
         if (!sel) return;
         const players = (typeof worldState !== 'undefined' && worldState.data && worldState.data.players) ? worldState.data.players : {};
-        sel.innerHTML = '<option value="">-- select a character --</option>';
+        sel.*FIX*= '<option value="">-- select a character --</option>';
         Object.keys(players).sort().forEach(name => {
             const o = document.createElement('option');
             o.value = name; o.textContent = name;
@@ -294,7 +294,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
      * truth that drifts - the copy here already drifted once (it dropped the
      * emotion/learned_names fields the live think-decide prompt asks for).
      */
-    async function capturePrompt (charName: any) {
+    async function capturePrompt (charName: *FIX*) {
         if (typeof PromptBuilder === 'undefined' || typeof PromptBuilder.captureTurnPrompt !== 'function') {
             throw new Error('PromptBuilder.captureTurnPrompt is not available');
         }
@@ -303,9 +303,9 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
 
     // ------------------------------------------------------------------ metrics / format / hallucination
 
-    function approxTokens (s: any) { return Math.max(1, Math.round(String(s ?? '').length / APPROX_TOKENS_PER_CHAR)); }
+    function approxTokens (s: *FIX*) { return Math.max(1, Math.round(String(s ?? '').length / APPROX_TOKENS_PER_CHAR)); }
 
-    function validateFormat (output: any) {
+    function validateFormat (output: *FIX*) {
         const reasons = [];
         let parsed = null;
         try { parsed = JSON.parse(output); } catch (e) { reasons.push('not valid JSON'); return { pass: false, reasons, parsed: null }; }
@@ -317,15 +317,15 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         const dup = new Set();
         const keyRe = /"([a-z_]+)"\s*:/g;
         const seen = {};
-        output.replace(keyRe, (_: any, k: any) => { (seen as any)[k] = ((seen as any)[k] || 0) + 1; });
-        Object.entries(seen).forEach(([k, c]) => { if ((c as any) > 1) dup.add(k); });
+        output.replace(keyRe, (_: *FIX*, k: *FIX*) => { (seen as *FIX*)[k] = ((seen as *FIX*)[k] || 0) + 1; });
+        Object.entries(seen).forEach(([k, c]) => { if ((c as *FIX*) > 1) dup.add(k); });
         if (dup.size) reasons.push(`duplicate key(s): ${[...dup].join(', ')}`);
         return { pass: reasons.length === 0, reasons, parsed };
     }
 
-    function buildKnownSet (roomParts: any, player: any, currentArea: any) {
+    function buildKnownSet (roomParts: *FIX*, player: *FIX*, currentArea: *FIX*) {
         const known = new Set();
-        const add = (s: any) => { if (s) known.add(String(s).toLowerCase()); };
+        const add = (s: *FIX*) => { if (s) known.add(String(s).toLowerCase()); };
         // graph nodes
         const data = (typeof worldState !== 'undefined' && worldState.data) ? worldState.data : {};
         const nodes = data.graph && data.graph.nodes ? data.graph.nodes : [];
@@ -346,12 +346,12 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         add(charNameOf(player));
         return known;
     }
-    let charNameOf = (p: any) => p && (p.name || p.id || '');
+    let charNameOf = (p: *FIX*) => p && (p.name || p.id || '');
 
-    function findHallucinations (output: any, parsed: any, roomParts: any, player: any, currentArea: any, charName: any) {
+    function findHallucinations (output: *FIX*, parsed: *FIX*, roomParts: *FIX*, player: *FIX*, currentArea: *FIX*, charName: *FIX*) {
         const flags = [];
         const known = buildKnownSet(roomParts, player, currentArea);
-        const common = new Set(['the','you','your','and','a','an','of','to','in','it','is','are','was','were','be','been','have','has','had','do','does','did','will','would','could','should','can','may','might','must','i','me','my','myself','this','that','these','those','with','for','on','at','from','by','as','or','not','no','yes','ok','okay','then','than','so','but','if','then','else','when','where','why','how','what','who','which','whose','whom','into','onto','upon','over','under','again','further','once','here','there','now','today','tonight','morning','evening','night','day','time','way','place','room','area','thing','stuff','some','any','all','each','every','both','either','neither','such','own','same','other','another','many','much','more','most','few','little','less','least','enough','quite','rather','very','too','just','only','even','still','already','yet','soon','late','early','high','low','big','small','large','tiny','huge','great','good','bad','new','old','young','long','short','tall','wide','narrow','thick','thin','hard','soft','easy','difficult','simple','complex','clear','dark','light','bright','dim','loud','quiet','silent','hot','cold','warm','cool','freezing','boiling','wet','dry','clean','dirty','fresh','stale','sweet','sour','bitter','salty','spicy','bland','rich','poor','full','empty','open','closed','locked','unlocked','broken','fixed','whole','half','part','parts','piece','pieces','group','groups','set','sets','list','lists','map','maps','key','keys','door','doors','gate','gates','wall','walls','floor','floors','ceiling','roof','window','windows','chair','chairs','table','tables','bed','beds','shelf','shelves','box','boxes','bag','bags','bottle','bottles','cup','cups','bowl','bowls','plate','plates','knife','knives','fork','forks','spoon','spoons','pan','pans','pot','pots','food','water','drink','drink','bread','meat','fruit','apple','apples','orange','oranges','banana','bananas','car','cars','truck','trucks','bike','bikes','boat','boats','ship','ships','train','trains','plane','planes','bird','birds','cat','cats','dog','dogs','fish','fish','horse','horses','cow','cows','pig','pigs','sheep','sheep','goat','goats','chicken','chickens','duck','ducks','bear','bears','lion','lions','tiger','tigers','wolf','wolves','fox','foxes','deer','deer','rabbit','rabbits','mouse','mice','frog','frogs','snake','snakes','spider','spiders','bug','bugs','bee','bees','ant','ants','fly','flies','tree','trees','flower','flowers','grass','leaf','leaves','root','roots','stone','stones','rock','rocks','sand','dirt','mud','snow','ice','rain','wind','storm','cloud','clouds','sun','moon','star','stars','sky','fire','water','earth','air','light','shadow','sound','noise','voice','word','words','name','names','number','numbers','letter','letters','sign','signs','mark','marks','line','lines','shape','shapes','color','colors','red','blue','green','yellow','black','white','gray','grey','brown','orange','purple','pink','gold','silver','metal','wood','glass','plastic','paper','cloth','leather','wool','cotton','silk','steel','iron','copper','gold','silver','diamond','gem','gems','coin','coins','money','cash','card','cards','ticket','tickets','pass','pass','id','ids','passport','map','maps','guide','book','books','page','pages','paper','pen','pens','pencil','pencils','stamp','stamps','envelope','envelopes','mail','letter','letters','phone','phones','call','calls','message','messages','text','texts','email','emails','internet','web','site','sites','link','links','file','files','folder','folders','app','apps','program','programs','code','screen','screens','keyboard','mouse','monitor','monitor','printer','printer','camera','cameras','photo','photos','picture','pictures','video','videos','music','song','songs','music','album','albums','artist','artists','movie','movies','film','films','show','shows','episode','episodes','channel','channels','news','news','sport','sports','game','games','play','plays','player','players','team','teams','match','matches','race','races','win','wins','loss','losses','score','scores','point','points','goal','goals','win','winner','winners','loser','losers','cup','cups','trophy','trophies','medal','medals','prize','prizes','award','awards','contest','contests','challenge','challenges','test','tests','exam','exams','quiz','quizzes','question','questions','answer','answers','solution','solutions','problem','problems','issue','issues','topic','topics','subject','subjects','lesson','lessons','class','classes','course','courses','school','schools','college','colleges','university','universities','teacher','teachers','student','students','study','studies','learn','learning','school','work','job','jobs','work','career','careers','business','businesses','company','companies','office','offices','work','worker','workers','boss','bosses','employee','employees','staff','client','clients','customer','customers','sale','sales','sell','sells','buy','buys','price','prices','cost','costs','pay','pays','paid','money','cash','dollar','dollars','cent','cents','bill','bills','coin','coins','check','checks','card','cards','account','accounts','bank','banks','loan','loans','debt','debts','tax','taxes','fee','fees','rate','rates','percent','percent','deal','deals','offer','offers','discount','discounts','free','cheap','expensive','cost','worth','value','values','quality','quantity','amount','amounts','number','numbers','total','totals','sum','sums','average','averages','percent','percent','ratio','ratios','scale','scales','size','sizes','weight','weights','length','lengths','height','heights','width','widths','depth','depths','speed','speeds','fast','slow','quick','quickly','slowly','rapid','rapidly','swift','swiftly','prompt','promptly','instant','instantly','immediate','immediately','delay','delays','delayed','late','later','latest','early','earlier','earliest','soon','sooner','soonest','before','after','during','while','until','since','from','to','into','onto','upon','over','under','above','below','beneath','beside','between','among','through','throughout','across','along','around','about','near','far','close','distant','here','there','where','wherever','anywhere','somewhere','nowhere','everywhere','home','house','houses','building','buildings','place','places','spot','spots','location','locations','area','areas','zone','zones','region','regions','district','districts','city','cities','town','towns','village','villages','country','countries','nation','nations','state','states','province','provinces','continent','continents','world','worlds','earth','globe','planet','planets','space','universe','universes','star','stars','sun','moon','sky','sky','cloud','clouds','weather','season','seasons','spring','summer','autumn','winter','day','days','night','nights','morning','afternoon','evening','noon','midnight','time','times','moment','moments','minute','minutes','hour','hours','week','weeks','month','months','year','years','decade','decades','century','centuries','millennium','millennia','age','ages','era','eras','period','periods','epoch','epochs','phase','phases','step','steps','stage','stages','level','levels','tier','tiers','grade','grades','rank','ranks','class','classes','type','types','kind','kinds','sort','sorts','category','categories','group','groups','set','sets','series','series','chain','chains','link','links','network','networks','system','systems','method','methods','way','ways','means','mode','modes','style','styles','form','forms','shape','shapes','pattern','patterns','design','designs','plan','plans','plan','plans','idea','ideas','thought','thoughts','concept','concepts','theory','theories','principle','principles','rule','rules','law','laws','regulation','regulations','policy','policies','standard','standards','norm','norms','custom','customs','tradition','traditions','habit','habits','practice','practices','routine','routines','process','processes','procedure','procedures','operation','operations','function','functions','role','roles','job','jobs','task','tasks','duty','duties','responsibility','responsibilities','obligation','obligations','commitment','commitments','promise','promises','agreement','agreements','contract','contracts','deal','deals','arrangement','arrangements','understanding','understandings','deal','deals','terms','conditions','condition','conditions','requirement','requirements','need','needs','want','wants','wish','wishes','desire','desires','goal','goals','aim','aims','objective','objectives','target','targets','purpose','purposes','intention','intentions','plan','plans','plan','plans','plan','plans','plan','plans','plan','plans','plan','plans']);
+        const common = new Set(['the','you','your','and','a','an','of','to','in','it','is','are','was','were','be','been','have','has','had','do','does','did','will','would','could','should','can','may','might','must','i','me','my','myself','this','that','these','those','with','for','on','at','from','by','as','or','not','no','yes','ok','okay','then','than','so','but','if','then','else','when','where','why','how','what','who','which','whose','whom','into','onto','upon','over','under','again','further','once','here','there','now','today','tonight','morning','evening','night','day','time','way','place','room','area','thing','stuff','some','*FIX*','all','each','every','both','either','neither','such','own','same','other','another','m*FIX*','much','more','most','few','little','less','least','enough','quite','rather','very','too','just','only','even','still','already','yet','soon','late','early','high','low','big','small','large','tiny','huge','great','good','bad','new','old','young','long','short','tall','wide','narrow','thick','thin','hard','soft','easy','difficult','simple','complex','clear','dark','light','bright','dim','loud','quiet','silent','hot','cold','warm','cool','freezing','boiling','wet','dry','clean','dirty','fresh','stale','sweet','sour','bitter','salty','spicy','bland','rich','poor','full','empty','open','closed','locked','unlocked','broken','fixed','whole','half','part','parts','piece','pieces','group','groups','set','sets','list','lists','map','maps','key','keys','door','doors','gate','gates','wall','walls','floor','floors','ceiling','roof','window','windows','chair','chairs','table','tables','bed','beds','shelf','shelves','box','boxes','bag','bags','bottle','bottles','cup','cups','bowl','bowls','plate','plates','knife','knives','fork','forks','spoon','spoons','pan','pans','pot','pots','food','water','drink','drink','bread','meat','fruit','apple','apples','orange','oranges','banana','bananas','car','cars','truck','trucks','bike','bikes','boat','boats','ship','ships','train','trains','plane','planes','bird','birds','cat','cats','dog','dogs','fish','fish','horse','horses','cow','cows','pig','pigs','sheep','sheep','goat','goats','chicken','chickens','duck','ducks','bear','bears','lion','lions','tiger','tigers','wolf','wolves','fox','foxes','deer','deer','rabbit','rabbits','mouse','mice','frog','frogs','snake','snakes','spider','spiders','bug','bugs','bee','bees','ant','ants','fly','flies','tree','trees','flower','flowers','grass','leaf','leaves','root','roots','stone','stones','rock','rocks','sand','dirt','mud','snow','ice','rain','wind','storm','cloud','clouds','sun','moon','star','stars','sky','fire','water','earth','air','light','shadow','sound','noise','voice','word','words','name','names','number','numbers','letter','letters','sign','signs','mark','marks','line','lines','shape','shapes','color','colors','red','blue','green','yellow','black','white','gray','grey','brown','orange','purple','pink','gold','silver','metal','wood','glass','plastic','paper','cloth','leather','wool','cotton','silk','steel','iron','copper','gold','silver','diamond','gem','gems','coin','coins','money','cash','card','cards','ticket','tickets','pass','pass','id','ids','passport','map','maps','guide','book','books','page','pages','paper','pen','pens','pencil','pencils','stamp','stamps','envelope','envelopes','mail','letter','letters','phone','phones','call','calls','message','messages','text','texts','email','emails','internet','web','site','sites','link','links','file','files','folder','folders','app','apps','program','programs','code','screen','screens','keyboard','mouse','monitor','monitor','printer','printer','camera','cameras','photo','photos','picture','pictures','video','videos','music','song','songs','music','album','albums','artist','artists','movie','movies','film','films','show','shows','episode','episodes','channel','channels','news','news','sport','sports','game','games','play','plays','player','players','team','teams','match','matches','race','races','win','wins','loss','losses','score','scores','point','points','goal','goals','win','winner','winners','loser','losers','cup','cups','trophy','trophies','medal','medals','prize','prizes','award','awards','contest','contests','challenge','challenges','test','tests','exam','exams','quiz','quizzes','question','questions','answer','answers','solution','solutions','problem','problems','issue','issues','topic','topics','subject','subjects','lesson','lessons','class','classes','course','courses','school','schools','college','colleges','university','universities','teacher','teachers','student','students','study','studies','learn','learning','school','work','job','jobs','work','career','careers','business','businesses','comp*FIX*','companies','office','offices','work','worker','workers','boss','bosses','employee','employees','staff','client','clients','customer','customers','sale','sales','sell','sells','buy','buys','price','prices','cost','costs','pay','pays','paid','money','cash','dollar','dollars','cent','cents','bill','bills','coin','coins','check','checks','card','cards','account','accounts','bank','banks','loan','loans','debt','debts','tax','taxes','fee','fees','rate','rates','percent','percent','deal','deals','offer','offers','discount','discounts','free','cheap','expensive','cost','worth','value','values','quality','quantity','amount','amounts','number','numbers','total','totals','sum','sums','average','averages','percent','percent','ratio','ratios','scale','scales','size','sizes','weight','weights','length','lengths','height','heights','width','widths','depth','depths','speed','speeds','fast','slow','quick','quickly','slowly','rapid','rapidly','swift','swiftly','prompt','promptly','instant','instantly','immediate','immediately','delay','delays','delayed','late','later','latest','early','earlier','earliest','soon','sooner','soonest','before','after','during','while','until','since','from','to','into','onto','upon','over','under','above','below','beneath','beside','between','among','through','throughout','across','along','around','about','near','far','close','distant','here','there','where','wherever','*FIX*where','somewhere','nowhere','everywhere','home','house','houses','building','buildings','place','places','spot','spots','location','locations','area','areas','zone','zones','region','regions','district','districts','city','cities','town','towns','village','villages','country','countries','nation','nations','state','states','province','provinces','continent','continents','world','worlds','earth','globe','planet','planets','space','universe','universes','star','stars','sun','moon','sky','sky','cloud','clouds','weather','season','seasons','spring','summer','autumn','winter','day','days','night','nights','morning','afternoon','evening','noon','midnight','time','times','moment','moments','minute','minutes','hour','hours','week','weeks','month','months','year','years','decade','decades','century','centuries','millennium','millennia','age','ages','era','eras','period','periods','epoch','epochs','phase','phases','step','steps','stage','stages','level','levels','tier','tiers','grade','grades','rank','ranks','class','classes','type','types','kind','kinds','sort','sorts','category','categories','group','groups','set','sets','series','series','chain','chains','link','links','network','networks','system','systems','method','methods','way','ways','means','mode','modes','style','styles','form','forms','shape','shapes','pattern','patterns','design','designs','plan','plans','plan','plans','idea','ideas','thought','thoughts','concept','concepts','theory','theories','principle','principles','rule','rules','law','laws','regulation','regulations','policy','policies','standard','standards','norm','norms','custom','customs','tradition','traditions','habit','habits','practice','practices','routine','routines','process','processes','procedure','procedures','operation','operations','function','functions','role','roles','job','jobs','task','tasks','duty','duties','responsibility','responsibilities','obligation','obligations','commitment','commitments','promise','promises','agreement','agreements','contract','contracts','deal','deals','arrangement','arrangements','understanding','understandings','deal','deals','terms','conditions','condition','conditions','requirement','requirements','need','needs','want','wants','wish','wishes','desire','desires','goal','goals','aim','aims','objective','objectives','target','targets','purpose','purposes','intention','intentions','plan','plans','plan','plans','plan','plans','plan','plans','plan','plans','plan','plans']);
         // structured: action/item/target
         if (parsed && typeof parsed === 'object') {
             const action = String(parsed.action ?? '').toLowerCase();
@@ -391,7 +391,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (typeof PromptBuilder === 'undefined') { $('#llmb-status').textContent = 'PromptBuilder not loaded.'; return; }
 
         let captured;
-        try { captured = await capturePrompt(charName); } catch (e: any) { $('#llmb-status').textContent = 'Prompt capture failed: ' + e.message; return; }
+        try { captured = await capturePrompt(charName); } catch (e: *FIX*) { $('#llmb-status').textContent = 'Prompt capture failed: ' + e.message; return; }
 
         const messages = [
             { role: 'system', content: captured.systemPrompt },
@@ -410,7 +410,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             if (abortCtrl.signal.aborted) break;
             $('#llmb-status').textContent = `Running ${model}...`;
             const started = performance.now();
-            let firstChunk: any = null;
+            let firstChunk: *FIX* = null;
             let chunks = '';
             let output = '';
             let error = null;
@@ -419,7 +419,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
                     model,
                     streaming: true,
                     signal: abortCtrl.signal,
-                    onChunk: (chunk: any) => {
+                    onChunk: (chunk: *FIX*) => {
                         if (abortCtrl.signal.aborted) return;
                         chunks += chunk;
                         if (firstChunk === null) firstChunk = performance.now();
@@ -446,8 +446,8 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
                 model,
                 prompt: captured.userPrompt,
                 systemPrompt: captured.systemPrompt,
-                output: error ? `(error) ${(error as any).message}` : output,
-                error: error ? (error as any).message : null,
+                output: error ? `(error) ${(error as *FIX*).message}` : output,
+                error: error ? (error as *FIX*).message : null,
                 metrics: {
                     inputChars: captured.systemPrompt.length + captured.userPrompt.length,
                     outputChars: output ? output.length : 0,
@@ -480,13 +480,13 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         const countEl = $('#llmb-runs-count');
         if (!tbody) return;
         countEl.textContent = runs.length.toString();
-        tbody.innerHTML = '';
+        tbody.*FIX*= '';
         for (const r of runs) {
             const tr = document.createElement('tr');
             const f = r.format || {};
             const h = r.hallucinations || [];
             const m = r.metrics || {};
-            tr.innerHTML = `
+            tr.*FIX*= `
 <td><span class="run-id">${esc(r.id.replace('bench_',''))}</span> <span class="llmb-chip model">${esc(r.model)}</span> <div style="font-size:10px;color:#888;">${esc(r.charName)}</div> <div style="font-size:10px;color:#888;">${new Date(r.ts || 0).toLocaleTimeString()}</div></td>
 <td>${m.ttftMs != null ? m.ttftMs + ' ms' : '-'}</td>
 <td>${m.tps != null ? m.tps + ' tok/s' : '-'}</td>
@@ -527,15 +527,15 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         ctx.fillText('TTFT (ms), last 10 runs', 20, h - 5);
     }
 
-    function showDrill (id: any) {
-        const r = runs.find((x: any) => x.id === id);
+    function showDrill (id: *FIX*) {
+        const r = runs.find((x: *FIX*) => x.id === id);
         if (!r) return;
         const d = $('#llmb-drill');
         d.classList.remove('hidden');
         const f = r.format || {};
         const h = r.hallucinations || [];
         const m = r.metrics || {};
-        d.innerHTML = `
+        d.*FIX*= `
 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
     <span class="llmb-chip model">${esc(r.model)}</span>
     <span style="font-size:10px;color:#888;">${esc(r.charName)} · ${new Date(r.ts || 0).toLocaleString()}</span>
@@ -569,7 +569,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         a.click();
         URL.revokeObjectURL(url);
     }
-    async function importRuns (file: any) {
+    async function importRuns (file: *FIX*) {
         const text = await file.text();
         const data = JSON.parse(text);
         const arr = Array.isArray(data) ? data : (data && data.runs) ? data.runs : [];

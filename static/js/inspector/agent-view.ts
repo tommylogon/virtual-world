@@ -19,13 +19,13 @@
  * globals.d.ts. Declared locally (or cast locally) so this file does not reach
  * into the shared ambient declaration that other lanes are editing.
  */
-type AVWin = { [key: string]: any };
+type AVWin = { [key: string]: *FIX* };
 
 (window as unknown as AVWin).InspectorAgentView = (() => {
-    const AV: Record<string, any> = (window as unknown as AVWin).InspectorView ? new (window as unknown as AVWin).InspectorView() : {};
+    const AV: Record<string, *FIX*> = (window as unknown as AVWin).InspectorView ? new (window as unknown as AVWin).InspectorView() : {};
     AV._lastTemplate = null;
 
-    const htmlTag = (strings: TemplateStringsArray, ...values: any[]) => window.Lit.html(strings, ...values);
+    const htmlTag = (strings: TemplateStringsArray, ...values: *FIX*[]) => window.Lit.html(strings, ...values);
     // Lazy tag for pickers/overlays; aliases htmlTag for backward compatibility.
     const agentViewTag = htmlTag;
 
@@ -73,7 +73,7 @@ type AVWin = { [key: string]: any };
         if (window.VW?.inspector) {
             window.VW.inspector._currentView = { type: 'agent', name: agentName };
         }
-        if ((window as unknown as AVWin).appEvents) (appEvents as Record<string, any>).emit('inspector:view', { type: 'agent', name: agentName });
+        if ((window as unknown as AVWin).appEvents) (appEvents as Record<string, *FIX*>).emit('inspector:view', { type: 'agent', name: agentName });
 
         const player = worldState.players[agentName];
         if (!player) return;
@@ -83,8 +83,8 @@ type AVWin = { [key: string]: any };
         const charState = events.getCharacterState(agentName);
         const isAuto = events.isAutonomous(agentName);
         const escName = agentName.replace(/'/g, "\\'");
-        const characterNode = Object.entries(worldState.graph?.nodes || {} as Record<string, any>)
-            .find(([, node]: [string, any]) => node.type === 'character' && node.name === agentName);
+        const characterNode = Object.entries(worldState.graph?.nodes || {} as Record<string, *FIX*>)
+            .find(([, node]: [string, *FIX*]) => node.type === 'character' && node.name === agentName);
 
         const agentNodeId = characterNode ? characterNode[0] : (player?.node_id || `player_${agentName.replace(/\s+/g, '_')}`);
         const headerTmpl = InspectorComponents.InspectorNodeHeader({
@@ -137,7 +137,7 @@ type AVWin = { [key: string]: any };
         if (avWin.KnownBySection) {
             const slot = document.getElementById('known-by-slot');
             if (slot) {
-                slot.innerHTML = '';
+                slot.*FIX*= '';
                 slot.appendChild(avWin.KnownBySection.build('character', player.name, player.name));
             }
         }
@@ -158,7 +158,7 @@ type AVWin = { [key: string]: any };
                 appliesTo: 'characters',
                 allowNew: true,
                 placeholder: 'Search or create tags...',
-                onChange: (newTags: any[]) => {
+                onChange: (newTags: *FIX*[]) => {
                     ApiClient.updateCharacter(agentName, { tags: newTags }).then(() => worldState.fetch());
                 }
             });
@@ -201,7 +201,7 @@ type AVWin = { [key: string]: any };
      * @param {object} props - Node properties
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    AV._deferredGravityControl = function(nodeId: string, props: Record<string, any> = {}) {
+    AV._deferredGravityControl = function(nodeId: string, props: Record<string, *FIX*> = {}) {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
         const containerId = `agent-gravity-${cleanId}`;
         _deferRender(() => {
@@ -220,7 +220,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|string} aliases - Current aliases
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    AV._deferredAliasesSection = function(nodeId: string, aliases: any = []) {
+    AV._deferredAliasesSection = function(nodeId: string, aliases: *FIX* = []) {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
         const containerId = `agent-aliases-${cleanId}`;
         _deferRender(() => {
@@ -240,14 +240,14 @@ type AVWin = { [key: string]: any };
             // update and this dropdown is rebuilt each time.
             let traits = (window as unknown as AVWin)._traitLibrary;
             if (!traits || Date.now() - ((window as unknown as AVWin)._traitLibraryAt || 0) > 60000) {
-                traits = await (ApiClient as Record<string, any>).getLibraryType('traits');
+                traits = await (ApiClient as Record<string, *FIX*>).getLibraryType('traits');
                 (window as unknown as AVWin)._traitLibrary = traits;
                 (window as unknown as AVWin)._traitLibraryAt = Date.now();
             }
             const current = worldState.players?.[escName === escName.replace(/'/g, "\\'") ? escName.replace(/\\'/g, "'") : escName]?.traits || {};
             // Preserve placeholder
             window.Lit.render(agentViewTag`<option value="">➕ Add trait...</option>`, sel);
-            for (const [id, def] of Object.entries(traits as Record<string, any>)) {
+            for (const [id, def] of Object.entries(traits as Record<string, *FIX*>)) {
                 if (current[id] !== undefined) continue;
                 const name = def.name || id;
                 const cat = def.category || '';
@@ -271,7 +271,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] pair or null
      * @returns {string} HTML
      */
-    AV._renderAgentHeader = function(agentName: string, player: any, color: string, characterNode: [string, any] | null) {
+    AV._renderAgentHeader = function(agentName: string, player: *FIX*, color: string, characterNode: [string, *FIX*] | null) {
         const tick = worldState.tick;
         const nodeId = characterNode ? characterNode[0] : '';
         const escapedNodeId = nodeId.replace(/'/g, "\\'");
@@ -306,7 +306,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {unknown} lit-html TemplateResult
      */
-    AV._renderStatusRow = function(agentName: string, player: any, _color: string, _isAuto: boolean, escName: string): unknown {
+    AV._renderStatusRow = function(agentName: string, player: *FIX*, _color: string, _isAuto: boolean, escName: string): unknown {
         const currentArea = player.current_area || '';
         const listId = 'player-room-list-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
         const areaNames = Object.keys(worldState.areas || {}).sort((a, b) => a.localeCompare(b));
@@ -329,8 +329,8 @@ type AVWin = { [key: string]: any };
             .filter(([, instances]) => Array.isArray(instances) && instances.length > 0)
             .map(([cid, instances]) => {
                 const badgeColor = condColors[cid] || '#888';
-                const label = `${cid}${(instances as any[]).length > 1 ? ' ×' + (instances as any[]).length : ''}`;
-                const cards = (instances as any[]).map(inst => {
+                const label = `${cid}${(instances as *FIX*[]).length > 1 ? ' ×' + (instances as *FIX*[]).length : ''}`;
+                const cards = (instances as *FIX*[]).map(inst => {
                     const bits: unknown[] = [];
                     if (inst.source) bits.push(htmlTag`<span>why: <b>${inst.source}</b></span>`);
                     bits.push(inst.duration ? htmlTag`<span>left: <b>${inst.duration}t</b></span>` : htmlTag`<span><b>permanent</b></span>`);
@@ -359,7 +359,7 @@ type AVWin = { [key: string]: any };
             human: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Human'), bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },
             llm:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'LLM'),   bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },
             npc:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'),   bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
-        } as Record<string, any>)[mode];
+        } as Record<string, *FIX*>)[mode];
         const inputId = 'player-room-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
         return htmlTag`<div style="display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span>📍</span>
@@ -398,21 +398,21 @@ type AVWin = { [key: string]: any };
 
         const areas = worldState.areas || {};
         let match = Object.keys(areas).find(a => a.toLowerCase() === val.toLowerCase());
-        let destNode: any = null;
+        let destNode: *FIX* = null;
         if (worldState.graph?.nodes) {
             destNode = Object.values(worldState.graph.nodes).find(
-                (n: any) => n.type === 'area' && (n.name?.toLowerCase() === val.toLowerCase() || n.id?.toLowerCase() === val.toLowerCase())
+                (n: *FIX*) => n.type === 'area' && (n.name?.toLowerCase() === val.toLowerCase() || n.id?.toLowerCase() === val.toLowerCase())
             );
             if (destNode && !match) match = destNode.name || destNode.id;
         }
 
         if (match) {
             inputEl.value = match;
-            const destAreaNode = destNode || Object.values(worldState.graph?.nodes || {}).find((n: any) => n.type === 'area' && n.name === match);
+            const destAreaNode = destNode || Object.values(worldState.graph?.nodes || {}).find((n: *FIX*) => n.type === 'area' && n.name === match);
             const destScope = destAreaNode?.properties?.world_scope_id;
 
             ApiClient.updateCharacter(charName, { current_area: match }).then(async () => {
-                const gm = (window as any).graphManager;
+                const gm = (window as *FIX*).graphManager;
                 if (destScope && gm && gm._scopeFilter && gm._scopeFilter !== destScope && typeof gm.setScopeFilter === 'function') {
                     gm.setScopeFilter(destScope);
                 }
@@ -440,7 +440,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {unknown} lit-html TemplateResult
      */
-    AV._renderEmotionSelector = function(_agentName: string, player: any, escName: string): unknown {
+    AV._renderEmotionSelector = function(_agentName: string, player: *FIX*, escName: string): unknown {
         const emotion = player.emotion || { current: 'neutral', intensity: 0 };
         const emotionOptions = Object.keys(EMOTION_ICONS).map(emotionName =>
             htmlTag`<option value="${emotionName}" ?selected=${emotion.current === emotionName}>${EMOTION_ICONS[emotionName]} ${emotionName}</option>`
@@ -471,7 +471,7 @@ type AVWin = { [key: string]: any };
      * @param {object} player - Player data
      * @returns {string} HTML
      */
-    AV._renderVitals = function(player: any, agentName: string) {
+    AV._renderVitals = function(player: *FIX*, agentName: string) {
         const vitals = player.vitals || {};
         const escAgent = (agentName || '').replace(/'/g, "\\'");
         const openModal = (vn: string) => `openVitalModal('${escAgent}','${vn}')`;
@@ -524,7 +524,7 @@ type AVWin = { [key: string]: any };
     }).join('');
     const sizeTip = 'Size: which of the six tiers this character is.'
         + '\n\n'
-        + 'Way max_size gates compare against it, so a tight tunnel blocks anything bigger.'
+        + 'Way max_size gates compare against it, so a tight tunnel blocks *FIX*thing bigger.'
         + '\n'
         + 'Per-area occupancy sums it, so a titanic creature needs a big area.'
         + '\n\n'
@@ -592,7 +592,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    AV._renderStatsBlocks = function(player: any, escName: string) {
+    AV._renderStatsBlocks = function(player: *FIX*, escName: string) {
         let html = '';
 
         // Stats grid
@@ -669,7 +669,7 @@ type AVWin = { [key: string]: any };
         if (!sel || !sel.value) return;
         const traitId = sel.value;
         const isParametric = (window as unknown as AVWin)._traitLibrary?.[traitId]?.params;
-        let value: any = true;
+        let value: *FIX* = true;
         if (isParametric) {
             const input = prompt(`Enter value for "${traitId}" trait:`, isParametric.default || '');
             if (input === null) return;
@@ -707,7 +707,7 @@ type AVWin = { [key: string]: any };
     AV._openConditionEditor = async function(charName: string) {
         if (!AV._conditionCatalog) {
             try {
-                const res = await (ApiClient as Record<string, any>).conditionsCatalog();
+                const res = await (ApiClient as Record<string, *FIX*>).conditionsCatalog();
                 AV._conditionCatalog = (res && res.conditions) || [];
             } catch (err) {
                 AV._conditionCatalog = [];
@@ -719,17 +719,17 @@ type AVWin = { [key: string]: any };
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        const grouped = (defs: any[]) => {
-            const groups: Record<string, any[]> = { blocking: [], other: [] };
-            (defs || []).forEach((c: any) => (c.blocks_actions ? groups.blocking : groups.other).push(c));
-            const opt = (label: string, list: any[]) => list.length
-                ? `<optgroup label="${label}">${list.map((c: any) => `<option value="${esc(c.value)}">${esc(c.label)}</option>`).join('')}</optgroup>`
+        const grouped = (defs: *FIX*[]) => {
+            const groups: Record<string, *FIX*[]> = { blocking: [], other: [] };
+            (defs || []).forEach((c: *FIX*) => (c.blocks_actions ? groups.blocking : groups.other).push(c));
+            const opt = (label: string, list: *FIX*[]) => list.length
+                ? `<optgroup label="${label}">${list.map((c: *FIX*) => `<option value="${esc(c.value)}">${esc(c.label)}</option>`).join('')}</optgroup>`
                 : '';
             return opt('🔒 Blocking', groups.blocking) + opt('✨ Other', groups.other);
         };
 
-        const defMap: Record<string, any> = {};
-        (catalog || []).forEach((c: any) => { defMap[c.value] = c; });
+        const defMap: Record<string, *FIX*> = {};
+        (catalog || []).forEach((c: *FIX*) => { defMap[c.value] = c; });
 
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
@@ -808,7 +808,7 @@ type AVWin = { [key: string]: any };
                 overrides = parseJson(overlay.querySelector('#ce-overrides') as HTMLInputElement, 'overrides');
             } catch (err) { return; }
 
-            const payload: Record<string, any> = { condition };
+            const payload: Record<string, *FIX*> = { condition };
             if (duration !== null) payload.duration = duration;
             if (level !== null) payload.level = level;
             if (source) payload.source = source;
@@ -846,7 +846,7 @@ type AVWin = { [key: string]: any };
      * @param {Object} payload - { condition, duration?, source?, level?, periodic?, ends_on?, overrides? }
      * @param {Object} [def] - Catalog entry for logging the label
      */
-    AV._applyCondition = async function(charName: string, payload: Record<string, any>, def?: any) {
+    AV._applyCondition = async function(charName: string, payload: Record<string, *FIX*>, def?: *FIX*) {
         try {
             await ApiClient.updateCharacter(charName, { add_condition: payload });
             const label = (def && def.label) || payload.condition;
@@ -875,10 +875,10 @@ type AVWin = { [key: string]: any };
      * neutral, so moving it lifts or lowers the matching decision weight the soak
      * reads (engine/disposition). Distinct from the prose personality above.
      */
-    AV._dialRowHtml = function(escName: string, traitId: string, value: any) {
+    AV._dialRowHtml = function(escName: string, traitId: string, value: *FIX*) {
         const inputStyle = 'font-size:11px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
         const v = (value === null || value === undefined || value === '') ? '0.5' : String(value);
-        const escAttr = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const escAttr = (s: *FIX*) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         return `<div class="dial-row" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
             <input class="dial-trait" value="${escAttr(traitId)}" placeholder="trait id (e.g. cowardly)" style="${inputStyle}flex:1;" onblur="InspectorAgentView._saveDials('${escName}')">
             <input class="dial-value" type="number" min="0" max="1" step="0.05" value="${escAttr(v)}" style="${inputStyle}width:70px;" onblur="InspectorAgentView._saveDials('${escName}')">
@@ -886,7 +886,7 @@ type AVWin = { [key: string]: any };
         </div>`;
     };
 
-    AV._renderDialsSection = function(player: any, escName: string) {
+    AV._renderDialsSection = function(player: *FIX*, escName: string) {
         const dials = (player.personality_dials && typeof player.personality_dials === 'object') ? player.personality_dials : {};
         const entries = Object.entries(dials);
         const listId = 'dial-list-' + escName.replace(/\s+/g, '_');
@@ -909,7 +909,7 @@ type AVWin = { [key: string]: any };
         const list = AV._dialList(charName);
         const out: Record<string, number> = {};
         if (!list) return out;
-        list.querySelectorAll('.dial-row').forEach((row: any) => {
+        list.querySelectorAll('.dial-row').forEach((row: *FIX*) => {
             const trait = (row.querySelector('.dial-trait')?.value || '').trim().toLowerCase();
             if (!trait) return;
             const num = Number(row.querySelector('.dial-value')?.value);
@@ -941,7 +941,7 @@ type AVWin = { [key: string]: any };
         AV._saveDials(charName);
     };
 
-    AV._renderBioTab = function(agentName: string, player: any, charState: any, area: any, escName: string, isAuto: boolean, color: string) {
+    AV._renderBioTab = function(agentName: string, player: *FIX*, charState: *FIX*, area: *FIX*, escName: string, isAuto: boolean, color: string) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         const firstImpression = AV._computeFirstImpression(player);
         let html = `<div data-tab="Bio" style="${showTab('Bio')}">`;
@@ -1007,7 +1007,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] for the character, if found
      * @returns {string} HTML
      */
-    AV._renderImagesTab = function(agentName: string, player: any, characterNode: [string, any] | null) {
+    AV._renderImagesTab = function(agentName: string, player: *FIX*, characterNode: [string, *FIX*] | null) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Images" style="${showTab('Images')}">`;
         if (characterNode) {
@@ -1035,7 +1035,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    AV._renderInventoryTab = function(agentName: string, player: any, escName: string) {
+    AV._renderInventoryTab = function(agentName: string, player: *FIX*, escName: string) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Inventory" style="${showTab('Inventory')}">`;
 
@@ -1049,7 +1049,7 @@ type AVWin = { [key: string]: any };
         const equipped = player.equipped || {};
         const equippedItems = new Set();
         for (const stack of Object.values(equipped)) {
-            for (const item of stack as any[]) {
+            for (const item of stack as *FIX*[]) {
                 if (item && !String(item).startsWith('__')) equippedItems.add(item);
             }
         }
@@ -1102,7 +1102,7 @@ type AVWin = { [key: string]: any };
                 containerCandidates.push(itemNode);
         }
         for (const stack of Object.values(equipped)) {
-            for (const itemId of stack as any[]) {
+            for (const itemId of stack as *FIX*[]) {
                 if (!itemId || String(itemId).startsWith('__')) continue;
                 const itemNode = worldState.getNodeByIdentifier(itemId);
                 if (!itemNode) continue;
@@ -1115,13 +1115,13 @@ type AVWin = { [key: string]: any };
         const edges = worldState.graph?.edges || [];
         for (const containerNode of containerCandidates) {
             const contents = edges
-                .filter((edge: any) => edge.type === 'in' && edge.target === containerNode.id)
-                .map((edge: any) => ({ id: edge.source, node: worldState.getNode(edge.source) }))
-                .filter((entry: any) => entry.node);
+                .filter((edge: *FIX*) => edge.type === 'in' && edge.target === containerNode.id)
+                .map((edge: *FIX*) => ({ id: edge.source, node: worldState.getNode(edge.source) }))
+                .filter((entry: *FIX*) => entry.node);
             if (contents.length === 0) continue;
             html += `<div class="inspector-section" style="margin-top:4px;"><h3>📦 ${containerNode.name} <span class="section-hint">(${contents.length} item${contents.length !== 1 ? 's' : ''})</span></h3>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;">`;
-            contents.forEach(({ id: contentId, node: contentNode }: any) => {
+            contents.forEach(({ id: contentId, node: contentNode }: *FIX*) => {
                 const safeContentId = contentId.replace(/'/g, "\\'");
                 const contentName = contentNode.name;
                 html += `<div style="background:var(--bg-inset);border-radius:4px;padding:4px 6px;text-align:center;cursor:pointer;border:1px solid var(--border);position:relative;" onclick="VW.inspector.showNode('${safeContentId}')" data-tippy-content="${contentNode?.properties?.description || contentName}">
@@ -1140,8 +1140,8 @@ type AVWin = { [key: string]: any };
 
         // Known Abilities section
         const playerNodeId = `player_${escName}`;
-        const knownAbilityEdges = (worldState.graph?.edges || []).filter((e: any) => e.type === 'known' && e.target === playerNodeId);
-        const knownAbilities = knownAbilityEdges.map((e: any) => worldState.getNode(e.source)).filter(Boolean);
+        const knownAbilityEdges = (worldState.graph?.edges || []).filter((e: *FIX*) => e.type === 'known' && e.target === playerNodeId);
+        const knownAbilities = knownAbilityEdges.map((e: *FIX*) => worldState.getNode(e.source)).filter(Boolean);
         html += `<div class="inspector-section" style="margin-top:8px;"><h3>🧠 Known Abilities <span class="section-hint">(${knownAbilities.length})</span></h3>`;
         if (knownAbilities.length === 0) {
             html += `<div style="font-size:11px;color:var(--text-muted);padding:8px;">No abilities known yet.</div>`;
@@ -1174,7 +1174,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] pair or null
      * @returns {string} HTML
      */
-    AV._renderAdvancedTab = function(agentName: string, player: any, charState: any, escName: string, isAuto: boolean, characterNode: [string, any] | null) {
+    AV._renderAdvancedTab = function(agentName: string, player: *FIX*, charState: *FIX*, escName: string, isAuto: boolean, characterNode: [string, *FIX*] | null) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
 
@@ -1193,10 +1193,10 @@ type AVWin = { [key: string]: any };
                     <button class="btn btn-sm" onclick="InspectorBehaviors.openGraphEditor('${escName}')" style="font-size:10px;" title="Open all behaviors in the graph editor">🧩 Graph</button>
                 </h3>
                 <div style="max-height:300px;overflow-y:auto;">`;
-            player.behaviors.forEach((behavior: any, behaviorIndex: number) => {
+            player.behaviors.forEach((behavior: *FIX*, behaviorIndex: number) => {
                 const trigger = behavior.trigger || '?';
                 const conditionText = behavior.conditions ? JSON.stringify(behavior.conditions) : 'none';
-                const actionText = behavior.actions ? behavior.actions.map((action: any) => action.type).join(', ') : 'none';
+                const actionText = behavior.actions ? behavior.actions.map((action: *FIX*) => action.type).join(', ') : 'none';
                 html += `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:4px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
                         <strong>${esc(trigger)}</strong>
@@ -1481,7 +1481,7 @@ ${isNewPack
      * player.description must stay THIRD person: strangers see it (examine,
      * labels) and the agent prompt converts it to second person for the owner
      * via secondPersonDesc. Catches the stored repro slips ("you is",
-     * "body is who") plus any first/second-person leak - small models emit
+     * "body is who") plus *FIX* first/second-person leak - small models emit
      * both and the text becomes permanent, load-bearing prompt content.
      * @param {string} text - Generated description
      * @returns {string[]} Detected issues (empty array = clean)
@@ -1508,7 +1508,7 @@ ${isNewPack
             const repair = await llmClient.chat([
                 { role: 'user', content:
                     'Fix this character appearance description.\n'
-                    + 'Keep every content detail exactly as it is; correct only grammar and rewrite any '
+                    + 'Keep every content detail exactly as it is; correct only grammar and rewrite *FIX* '
                     + 'first-person or second-person wording ("I/my/me/you/your") into consistent THIRD person '
                     + '(she/he/they + her/his/their). Subject-verb agreement must be exact.\n'
                     + 'Output ONLY the corrected description - no commentary.\n\n'
@@ -1535,9 +1535,9 @@ ${isNewPack
         const equipped = player.equipped || {};
 
         const equipLines: string[] = [];
-        for (const [slotName, items] of Object.entries(equipped as Record<string, any[]>)) {
+        for (const [slotName, items] of Object.entries(equipped as Record<string, *FIX*[]>)) {
             if (items && items.length > 0) {
-                const realItems = items.filter((item: any) => item && !String(item).startsWith('__'));
+                const realItems = items.filter((item: *FIX*) => item && !String(item).startsWith('__'));
                 if (realItems.length === 0) continue;
                 const resolved = realItems.map(id => {
                     const node = worldState.getNodeByIdentifier(id);
@@ -1591,9 +1591,9 @@ ${isNewPack
 
         // Fallback: merge base_description + equipment client-side
         const slots: string[] = [];
-        for (const [slotName, items] of Object.entries(equipped as Record<string, any[]>)) {
+        for (const [slotName, items] of Object.entries(equipped as Record<string, *FIX*[]>)) {
             if (items && items.length > 0) {
-                const realItems = items.filter((item: any) => item && !String(item).startsWith('__'));
+                const realItems = items.filter((item: *FIX*) => item && !String(item).startsWith('__'));
                 if (realItems.length > 0) slots.push(`${slotName}: ${realItems.join(' > ')}`);
             }
         }
@@ -1614,7 +1614,7 @@ ${isNewPack
      * @param {object} player - Player data object
      * @returns {string} First impression text
      */
-    AV._computeFirstImpression = function(player: any): string {
+    AV._computeFirstImpression = function(player: *FIX*): string {
         if (!player) return '';
         const tagMap: Record<string, string> = {
             female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',
@@ -1655,9 +1655,9 @@ ${isNewPack
      * @param {object} player - Player data object
      * @returns {Array} Recipe graph nodes (type === 'recipe')
      */
-    AV._knownRecipeNames = function(charName: string, player: any): any[] {
+    AV._knownRecipeNames = function(charName: string, player: *FIX*): *FIX*[] {
         const state = worldState.data || {};
-        const nodes = (state.graph?.nodes || {}) as Record<string, any>;
+        const nodes = (state.graph?.nodes || {}) as Record<string, *FIX*>;
         const carriedNames = new Set();
         const graph = worldState.data?.graph || {};
         const pid = 'player_' + charName.replace(/\s+/g, '_');
@@ -1668,7 +1668,7 @@ ${isNewPack
             }
         }
         const known = (player.crafting_known || []).map(String);
-        const out: any[] = [];
+        const out: *FIX*[] = [];
         for (const node of Object.values(nodes)) {
             if (node.type !== 'recipe') continue;
             const props = node.properties || {};
@@ -1706,8 +1706,8 @@ ${isNewPack
      * @param {Array} picked - Raw ids from the model
      * @returns {Array} Ids that exist in the pool, de-duplicated, order kept
      */
-    AV._validateAutoDressPicks = function(pool: any[], picked: any[]): string[] {
-        const valid = new Set((Array.isArray(pool) ? pool : []).map((c: any) => String(c?.lib_id ?? '')));
+    AV._validateAutoDressPicks = function(pool: *FIX*[], picked: *FIX*[]): string[] {
+        const valid = new Set((Array.isArray(pool) ? pool : []).map((c: *FIX*) => String(c?.lib_id ?? '')));
         const out: string[] = [];
         const seen = new Set<string>();
         for (const raw of (Array.isArray(picked) ? picked : [])) {
@@ -1770,8 +1770,8 @@ ${isNewPack
     AV._autoDress = async function(charName: string) {
         let libraryIds: string[] | null = null;
         let note = '';
-        let pool: any[] = [];
-        let context: any = null;
+        let pool: *FIX*[] = [];
+        let context: *FIX* = null;
         try {
             const candResp = await fetch('/api/auto_dress/candidates', {
                 method: 'POST',
@@ -1783,7 +1783,7 @@ ${isNewPack
             context = { personality: cand?.personality || '', description: cand?.base_description || '' };
 
             if (pool.length > 0 && AIGenerator.isConfigured()) {
-                const listing = pool.map((c: any) =>
+                const listing = pool.map((c: *FIX*) =>
                     `- ${c.lib_id}  (${c.name}; tags: ${c.tags.join(', ') || 'none'}; slots: ${c.slots.join(', ')})`
                 ).join('\n');
                 const prompt = `You are choosing what a specific character would actually wear.
@@ -1799,7 +1799,7 @@ Rules:
 - Only use ids from the list above. Never invent one.
 - 2 to 6 items. Fewer is better than padding.
 - Include worn clothing, footwear, and headwear. Add a tool or weapon only if this person would carry it.
-- Skip anything that would look absurd on this person.
+- Skip *FIX*thing that would look absurd on this person.
 
 Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
 
@@ -1826,18 +1826,18 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         }
 
         try {
-            // Nothing chosen yet and no reason to propose anything: just run the
+            // Nothing chosen yet and no reason to propose *FIX*thing: just run the
             // deterministic path. Everything else goes to the modal first, so a
-            // person sees the context the model read before anything is worn.
+            // person sees the context the model read before *FIX*thing is worn.
             if (libraryIds) {
                 const player = worldState.players?.[charName];
-                const byId = new Map<string, any>(pool.map((c: any) => [c.lib_id, c]));
+                const byId = new Map<string, *FIX*>(pool.map((c: *FIX*) => [c.lib_id, c]));
                 const chosen = libraryIds.map(id => byId.get(id)).filter(Boolean);
-                const worn: Record<string, any[]> = {};
+                const worn: Record<string, *FIX*[]> = {};
                 for (const [slot, stack] of Object.entries(player?.equipped || {})) {
                     const names = (Array.isArray(stack) ? stack : [])
-                        .filter((i: any) => i && !String(i).startsWith('__'))
-                        .map((i: any) => worldState.getNodeByIdentifier(i)?.name || i);
+                        .filter((i: *FIX*) => i && !String(i).startsWith('__'))
+                        .map((i: *FIX*) => worldState.getNodeByIdentifier(i)?.name || i);
                     if (names.length) worn[slot] = names;
                 }
                 const approved = await (window as unknown as AVWin).AutoDressModal.show({
@@ -1854,7 +1854,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
                 libraryIds = approved;
             }
 
-            const body: Record<string, any> = { character: charName };
+            const body: Record<string, *FIX*> = { character: charName };
             if (libraryIds) body.library_ids = libraryIds;
             const resp = await fetch('/api/auto_dress', {
                 method: 'POST',
@@ -1884,13 +1884,13 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * Existing entries keep their position and their spelling; only genuinely
      * new ids are appended, matched case-insensitively because the engine's
      * tag matcher (`engine/fear.py::_normalise`, the interest equivalent)
-     * lowercases anyway. Pure so the mechanism is unit-testable.
+     * lowercases *FIX*way. Pure so the mechanism is unit-testable.
      *
      * @param {Array} existing - Tags currently on the character
      * @param {Array} picked - Tags the LLM chose, already validated
      * @returns {Array} Existing tags plus the new ones, no duplicates
      */
-    AV._mergeGeneratedTags = function(existing: any[], picked: any[]): string[] {
+    AV._mergeGeneratedTags = function(existing: *FIX*[], picked: *FIX*[]): string[] {
         const merged: string[] = [];
         const seen = new Set<string>();
         for (const tag of [...(Array.isArray(existing) ? existing : []), ...(Array.isArray(picked) ? picked : [])]) {
@@ -1909,7 +1909,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * A tag the vocabulary already knows is returned UNCHANGED. That matters:
      * the real data contains ids outside [a-z0-9_-] - `faction:goblin`,
      * `held_by:goblin`, `taco bell` - and an earlier version rewrote them to
-     * `faction-goblin`, offering the model ids that cannot match anything while
+     * `faction-goblin`, offering the model ids that cannot match *FIX*thing while
      * claiming they were in use. Reshaping is only safe for ids we invented.
      * @param {*} tag - Raw tag from the model
      * @param {Set<string>} [known] - Ids that already exist; passed through as-is
@@ -1962,10 +1962,10 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {object} vocab - {live, library, known} id collections
      * @returns {Array<{id: string, status: 'live'|'library'|'new', via: string}>}
      */
-    AV._resolveConcept = function(concept: string, vocab: { live: Set<string>; library: Set<string>; known: Set<string> }): any[] {
+    AV._resolveConcept = function(concept: string, vocab: { live: Set<string>; library: Set<string>; known: Set<string> }): *FIX*[] {
         const words = String(concept ?? '').trim().toLowerCase().split(/[\s/]+/).filter(Boolean);
         if (!words.length) return [];
-        const found: any[] = [];
+        const found: *FIX*[] = [];
         // A candidate only ever becomes a tag if it is a REAL id, directly or
         // through its singular. Unmatched words are not tags: letting them be
         // would turn "worn iron tools" into `worn`, `iron` and `tools` as well.
@@ -1981,13 +1981,13 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
             }
             return null;
         };
-        const add = (hit: any) => {
+        const add = (hit: *FIX*) => {
             if (hit && !found.some(f => f.id === hit.id)) found.push({ ...hit, via: concept });
         };
         add(push(words.join('-')));
         for (const word of words) add(push(word));
         if (found.length) return found;
-        // Nothing real anywhere: keep the head noun so the idea is not lost, and
+        // Nothing real *FIX*where: keep the head noun so the idea is not lost, and
         // let the caller report it as carrying nothing.
         const head = AV._normalizeGeneratedTag(words[words.length - 1], vocab.known);
         return head ? [{ id: head, status: 'new', via: concept }] : [];
@@ -2003,7 +2003,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * operation, so the vocabulary belongs on this side of the boundary.
      *
      *   live     - what a tag is matched against for the field being generated
-     *              (items for interests, anything present for fears)
+     *              (items for interests, *FIX*thing present for fears)
      *   library  - the curated tag registry: a real id, but nothing carries it
      *   known    - union of the above; ids passed through normalization intact
      *
@@ -2022,11 +2022,11 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         };
         // Everything present right now: character tags, trait keys (a fear
         // source is usually a person), and every node's own tags.
-        for (const p of Object.values((worldState.players || {}) as Record<string, any>)) {
+        for (const p of Object.values((worldState.players || {}) as Record<string, *FIX*>)) {
             for (const t of (p.tags || [])) add(live, t);
             for (const key of Object.keys(p.traits || {})) add(live, key);
         }
-        for (const n of Object.values((worldState.data?.graph?.nodes || {}) as Record<string, any>)) {
+        for (const n of Object.values((worldState.data?.graph?.nodes || {}) as Record<string, *FIX*>)) {
             for (const t of (n.properties?.tags || [])) add(live, t);
         }
         try {
@@ -2135,10 +2135,10 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             // Ground each concept. One concept can name several real things
             // ("a goblin chief"), and the strongest match wins if the same id
             // arrives twice.
-            const resolved: any[] = [];
+            const resolved: *FIX*[] = [];
             for (const concept of concepts) {
                 for (const hit of AV._resolveConcept(concept, vocab)) {
-                    const seen = resolved.find((r: any) => r.id === hit.id);
+                    const seen = resolved.find((r: *FIX*) => r.id === hit.id);
                     if (seen) { if (hit.status === 'live') seen.status = 'live'; continue; }
                     resolved.push(hit);
                 }
@@ -2306,9 +2306,9 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             state: player.state || 'awake',
             conditions: player.conditions || {},
             equipped: (() => {
-                const eq: Record<string, any[]> = {};
+                const eq: Record<string, *FIX*[]> = {};
                 for (const [slot, stack] of Object.entries(player.equipped || {})) {
-                    eq[slot] = (Array.isArray(stack) ? stack : []).map((id: any) => {
+                    eq[slot] = (Array.isArray(stack) ? stack : []).map((id: *FIX*) => {
                         const n = worldState.getNode(id);
                         return { name: n?.name || id, node_id: id, library_id: n?.properties?.library_id || null, properties: n?.properties || {} };
                     });
@@ -2342,12 +2342,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
 
         let libEntry = null;
         try {
-            const libData = await (ApiClient as Record<string, any>).getLibraryType('characters');
+            const libData = await (ApiClient as Record<string, *FIX*>).getLibraryType('characters');
             libEntry = libData[charName] || null;
         } catch (e) { /* ignore */ }
 
         if (!libEntry) {
-            const res = await (ApiClient as Record<string, any>).saveLibraryType('characters', { id: charName, ...charCard });
+            const res = await (ApiClient as Record<string, *FIX*>).saveLibraryType('characters', { id: charName, ...charCard });
             if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
             events.log(`Character "${charName}" saved to library.`, 'system-msg');
             return;
@@ -2386,12 +2386,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             for (const key of result.sections) {
                 merged[key] = charCard[key];
             }
-            const res = await (ApiClient as Record<string, any>).saveLibraryType('characters', merged);
+            const res = await (ApiClient as Record<string, *FIX*>).saveLibraryType('characters', merged);
             if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
             events.log(`Character "${charName}" updated in library.`, 'system-msg');
         } else if (result.action === 'duplicate') {
             const dupePayload = { id: result.id, name: result.name, ...charCard };
-            const res = await (ApiClient as Record<string, any>).saveLibraryType('characters', dupePayload);
+            const res = await (ApiClient as Record<string, *FIX*>).saveLibraryType('characters', dupePayload);
             if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
             events.log(`Character "${result.name}" saved as duplicate to library.`, 'system-msg');
         }
@@ -2416,7 +2416,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                 const text = await file.text();
                 const data = JSON.parse(text);
                 if (!data.name) { events.log('Invalid character file: missing name.', 'error-msg'); return; }
-                const res = await (ApiClient as Record<string, any>).importPlayer(data);
+                const res = await (ApiClient as Record<string, *FIX*>).importPlayer(data);
                 if (res.error) { events.log(`Import failed: ${res.error}`, 'error-msg'); return; }
                 events.log(`Character "${data.name}" imported!`, 'system-msg');
                 await worldState.fetch();
@@ -2434,7 +2434,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      */
     AV._killCharacter = async function(charName: string) {
         if (!confirm(`Kill "${charName}"? This will set HP to 0 and state to dead.`)) return;
-        const res = await (ApiClient as Record<string, any>).killCharacter(charName);
+        const res = await (ApiClient as Record<string, *FIX*>).killCharacter(charName);
         if (res.error) { events.log(`Kill failed: ${res.error}`, 'error-msg'); return; }
         events.log(`"${charName}" has been killed.`, 'system-msg');
         await worldState.fetch();
@@ -2447,12 +2447,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      */
     AV._removeCharacter = async function(charName: string) {
         if (!confirm(`Permanently remove "${charName}" from the world? This cannot be undone.`)) return;
-        const res = await (ApiClient as Record<string, any>).deleteCharacter(charName);
+        const res = await (ApiClient as Record<string, *FIX*>).deleteCharacter(charName);
         if (res.error) {
             // Not a registered player (e.g. a bare character node) - fall back
             // to deleting the graph node itself so the node can always be removed.
             const nodeId = `player_${charName.replace(/\s+/g, '_')}`;
-            const fallback = await (ApiClient as Record<string, any>).deleteNode(nodeId);
+            const fallback = await (ApiClient as Record<string, *FIX*>).deleteNode(nodeId);
             if (fallback.error) {
                 events.log(`Remove failed: ${res.error}`, 'error-msg');
                 return;
@@ -2497,7 +2497,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         const phase = entry.phase || 'unknown';
         const phaseIcon = phaseIcons[phase] || '•';
 
-        const detailRows: any[] = [];
+        const detailRows: *FIX*[] = [];
         detailRows.push(agentViewTag`<div class="timeline-detail-row">
             <span class="timeline-detail-label">Phase</span>
             <span class="timeline-detail-value">${phaseIcon} ${phase} (${events.tickToTime(entry.tick || 0)})</span>
@@ -2573,26 +2573,26 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         const currentArea = worldState.players[charName]?.current_area || '';
 
-        const graphNodes = Object.entries((worldState.graph?.nodes || {}) as Record<string, any>)
-            .filter(([id, node]: [string, any]) => node.type === 'item')
+        const graphNodes = Object.entries((worldState.graph?.nodes || {}) as Record<string, *FIX*>)
+            .filter(([id, node]: [string, *FIX*]) => node.type === 'item')
             .filter(([id]) => !heldIds.has(id));
 
-        const libraryData = await (ApiClient as Record<string, any>).getLibraryItems().catch(() => ({}));
+        const libraryData = await (ApiClient as Record<string, *FIX*>).getLibraryItems().catch(() => ({}));
         // A library entry is "already here" when a world node records it as its
         // source (`properties.library_id`), which is identity by id rather than
         // by display name.
         const placedLibraryIds = new Set();
-        for (const node of Object.values((worldState.graph?.nodes || {}) as Record<string, any>)) {
+        for (const node of Object.values((worldState.graph?.nodes || {}) as Record<string, *FIX*>)) {
             if (node?.type !== 'item') continue;
             const libId = node.properties?.library_id;
             if (libId) placedLibraryIds.add(String(libId));
         }
-        const libraryNodes = Object.entries(libraryData as Record<string, any>)
+        const libraryNodes = Object.entries(libraryData as Record<string, *FIX*>)
             .filter(([id]) => !placedLibraryIds.has(String(id)));
 
-        function getItemTags(source: string, item: any, node: any) {
+        function getItemTags(source: string, item: *FIX*, node: *FIX*) {
             const raw = source === 'graph' ? node?.properties?.tags : item?.tags || item?.properties?.tags;
-            if (Array.isArray(raw)) return raw.map((t: any) => String(t).toLowerCase()).join(',');
+            if (Array.isArray(raw)) return raw.map((t: *FIX*) => String(t).toLowerCase()).join(',');
             if (typeof raw === 'string') return raw.toLowerCase();
             return '';
         }
@@ -2603,10 +2603,10 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             const badge = isLib ? agentViewTag`<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">(library)</span>` : '';
             return agentViewTag`<div data-name=${lower} data-tags=${tagsStr} style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
                 <span style="font-size:11px;">📦 ${name}${badge}</span>
-                <button class="btn btn-sm btn-blue" @click=${(e: any) => {
+                <button class="btn btn-sm btn-blue" @click=${(e: *FIX*) => {
                     e.currentTarget.closest('.modal-overlay').remove();
                     if (isLib) {
-                        (ApiClient as Record<string, any>).placeItemFromLibrary({ type: 'character', id: playerNodeId }, id).then(() => worldState.fetch());
+                        (ApiClient as Record<string, *FIX*>).placeItemFromLibrary({ type: 'character', id: playerNodeId }, id).then(() => worldState.fetch());
                     } else {
                         fetch(`/api/graph/item/${id}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: currentArea }) })
                             .then(r => r.json())
@@ -2617,8 +2617,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         }
 
         const allNodes = [
-            ...graphNodes.map(([id, node]: [string, any]) => renderItem(id, node.name, 'graph', getItemTags('graph', null, node))),
-            ...libraryNodes.map(([id, item]: [string, any]) => renderItem(id, item.name || id, 'library', getItemTags('library', item, null)))
+            ...graphNodes.map(([id, node]: [string, *FIX*]) => renderItem(id, node.name, 'graph', getItemTags('graph', null, node))),
+            ...libraryNodes.map(([id, item]: [string, *FIX*]) => renderItem(id, item.name || id, 'library', getItemTags('library', item, null)))
         ];
 
         const picker = document.createElement('div');
@@ -2626,14 +2626,14 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
         window.Lit.render(agentViewTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:350px;max-height:80vh;overflow-y:auto;">
             <h3 style="margin:0 0 12px 0;">Add Item to Inventory</h3>
-            <input type="text" id="add-item-filter" placeholder="Search items or tags..." style="width:100%;font-size:11px;padding:4px;margin-bottom:8px;" @input=${(e: any) => {
+            <input type="text" id="add-item-filter" placeholder="Search items or tags..." style="width:100%;font-size:11px;padding:4px;margin-bottom:8px;" @input=${(e: *FIX*) => {
                 const t = e.target.value.toLowerCase();
-                e.target.nextElementSibling.querySelectorAll('[data-name]').forEach((el: any) => el.style.display = (el.getAttribute('data-name').includes(t) || (el.getAttribute('data-tags') || '').includes(t)) ? 'flex' : 'none');
+                e.target.nextElementSibling.querySelectorAll('[data-name]').forEach((el: *FIX*) => el.style.display = (el.getAttribute('data-name').includes(t) || (el.getAttribute('data-tags') || '').includes(t)) ? 'flex' : 'none');
             }}>
             <div style="max-height:50vh;overflow-y:auto;">
                 ${allNodes}
             </div>
-            <button class="btn btn-sm" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
+            <button class="btn btn-sm" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
         </div>`, picker);
         document.body.appendChild(picker);
         setTimeout(() => document.getElementById('add-item-filter')?.focus(), 100);
@@ -2656,8 +2656,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         // Library entries are not world nodes yet, so the id that matters is the
         // provenance link a placed node records (`properties.library_id`, the key
         // world-sync matches on first).
-        const placedLibraryIds = new Set<any>();
-        for (const node of Object.values((worldState.graph?.nodes || {}) as Record<string, any>)) {
+        const placedLibraryIds = new Set<*FIX*>();
+        for (const node of Object.values((worldState.graph?.nodes || {}) as Record<string, *FIX*>)) {
             if (node?.type !== 'item') continue;
             const libId = node.properties?.library_id;
             if (libId) placedLibraryIds.add(String(libId));
@@ -2665,25 +2665,25 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         const INTRINSIC = new Set(['spell', 'ability', 'innate', 'intrinsic', 'power']);
 
-        const graphNodes = Object.entries((worldState.graph?.nodes || {}) as Record<string, any>)
-            .filter(([id, node]: [string, any]) => {
+        const graphNodes = Object.entries((worldState.graph?.nodes || {}) as Record<string, *FIX*>)
+            .filter(([id, node]: [string, *FIX*]) => {
                 if (node.type !== 'item') return false;
                 if (heldIds.has(id)) return false;
                 const tags = (node.properties?.tags || []);
-                const tagSet = Array.isArray(tags) ? tags.map((t: any) => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
+                const tagSet = Array.isArray(tags) ? tags.map((t: *FIX*) => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
                 return [...tagSet].some((t: string) => INTRINSIC.has(t));
             })
-            .map(([id, node]: [string, any]) => ({ id, name: node.name, tags: node.properties?.tags || [] }));
+            .map(([id, node]: [string, *FIX*]) => ({ id, name: node.name, tags: node.properties?.tags || [] }));
 
-        const libraryData = (ApiClient as Record<string, any>).libraryCache?.items || {};
-        const libraryNodes = Object.entries(libraryData as Record<string, any>)
-            .filter(([id, item]: [string, any]) => {
+        const libraryData = (ApiClient as Record<string, *FIX*>).libraryCache?.items || {};
+        const libraryNodes = Object.entries(libraryData as Record<string, *FIX*>)
+            .filter(([id, item]: [string, *FIX*]) => {
                 if (placedLibraryIds.has(String(id))) return false;
                 const tags = item.tags || item.properties?.tags || [];
-                const tagSet = Array.isArray(tags) ? tags.map((t: any) => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
+                const tagSet = Array.isArray(tags) ? tags.map((t: *FIX*) => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
                 return [...tagSet].some((t: string) => INTRINSIC.has(t));
             })
-            .map(([id, item]: [string, any]) => ({ id, name: item.name || id, tags: item.tags || item.properties?.tags || [] }));
+            .map(([id, item]: [string, *FIX*]) => ({ id, name: item.name || id, tags: item.tags || item.properties?.tags || [] }));
 
         function renderItem(id: string, name: string, source: string, tagsStr: string) {
             const lower = name.toLowerCase();
@@ -2691,7 +2691,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             const badge = isLib ? agentViewTag`<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">(library)</span>` : '';
             return agentViewTag`<div data-name=${lower} data-tags=${tagsStr} data-node-id=${id} style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
                 <span style="font-size:11px;">✨ ${name}${badge}</span>
-                <button class="btn btn-sm btn-blue" @click=${(e: any) => {
+                <button class="btn btn-sm btn-blue" @click=${(e: *FIX*) => {
                     e.currentTarget.closest('.modal-overlay').remove();
                     if (isLib) {
                         // Library abilities live outside the world graph. Place the
@@ -2699,8 +2699,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                         // an EDGE_CARRYING edge), then swap the carry edge for a
                         // known-only edge so the ability is "known" without being
                         // physically carried.
-                        (ApiClient as Record<string, any>).placeItemFromLibrary({ type: 'character', id: playerNodeId }, id)
-                            .then(async (placed: any) => {
+                        (ApiClient as Record<string, *FIX*>).placeItemFromLibrary({ type: 'character', id: playerNodeId }, id)
+                            .then(async (placed: *FIX*) => {
                                 const newId = placed?.node_id;
                                 if (!newId) return;
                                 await fetch('/api/graph/edge', {
@@ -2728,8 +2728,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         }
 
         const allNodes = [
-            ...graphNodes.map(({ id, name, tags }: any) => renderItem(id, name, 'graph', Array.isArray(tags) ? tags.join(',') : String(tags))),
-            ...libraryNodes.map(({ id, name, tags }: any) => renderItem(id, name, 'library', Array.isArray(tags) ? tags.join(',') : String(tags)))
+            ...graphNodes.map(({ id, name, tags }: *FIX*) => renderItem(id, name, 'graph', Array.isArray(tags) ? tags.join(',') : String(tags))),
+            ...libraryNodes.map(({ id, name, tags }: *FIX*) => renderItem(id, name, 'library', Array.isArray(tags) ? tags.join(',') : String(tags)))
         ];
 
         const picker = document.createElement('div');
@@ -2737,14 +2737,14 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
         window.Lit.render(agentViewTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:350px;max-height:80vh;overflow-y:auto;">
             <h3 style="margin:0 0 12px 0;">Add Known Ability</h3>
-            <input type="text" id="add-known-filter" placeholder="Search abilities or tags..." style="width:100%;font-size:11px;padding:4px;margin-bottom:8px;" @input=${(e: any) => {
+            <input type="text" id="add-known-filter" placeholder="Search abilities or tags..." style="width:100%;font-size:11px;padding:4px;margin-bottom:8px;" @input=${(e: *FIX*) => {
                 const t = e.target.value.toLowerCase();
-                e.target.nextElementSibling.querySelectorAll('[data-name]').forEach((el: any) => el.style.display = (el.getAttribute('data-name').includes(t) || (el.getAttribute('data-tags') || '').includes(t)) ? 'flex' : 'none');
+                e.target.nextElementSibling.querySelectorAll('[data-name]').forEach((el: *FIX*) => el.style.display = (el.getAttribute('data-name').includes(t) || (el.getAttribute('data-tags') || '').includes(t)) ? 'flex' : 'none');
             }}>
             <div style="max-height:50vh;overflow-y:auto;">
                 ${allNodes}
             </div>
-            <button class="btn btn-sm" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
+            <button class="btn btn-sm" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
         </div>`, picker);
         document.body.appendChild(picker);
         setTimeout(() => document.getElementById('add-known-filter')?.focus(), 100);
@@ -2757,16 +2757,16 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         // distinct containers that happen to share one ("Bag"), and
         // `getNodeByIdentifier(name)` then resolved to whichever came first - so
         // "put in Bag" could target the wrong one.
-        const candidates: Array<{ id: any; name: any }> = [];
-        const seen = new Set<any>();
-        const addCandidate = (nodeId: any) => {
+        const candidates: Array<{ id: *FIX*; name: *FIX* }> = [];
+        const seen = new Set<*FIX*>();
+        const addCandidate = (nodeId: *FIX*) => {
             if (!nodeId || String(nodeId).startsWith('__')) return;
             if (seen.has(nodeId)) return;
             const node = worldState.getNode(nodeId) || worldState.getNodeByIdentifier(nodeId);
             if (!node || node.type !== 'item') return;
             const tags = node.properties?.tags || [];
             const list = Array.isArray(tags) ? tags : String(tags).toLowerCase().split(',');
-            if (!list.some((tag: any) => String(tag).toLowerCase() === 'container')) return;
+            if (!list.some((tag: *FIX*) => String(tag).toLowerCase() === 'container')) return;
             seen.add(nodeId);
             candidates.push({ id: nodeId, name: node.name });
         };
@@ -2778,9 +2778,9 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         const containers = candidates;
 
         const items = containers.length
-            ? containers.map((c: any) => agentViewTag`<div data-name="${c.name.toLowerCase()}" data-node-id="${c.id}" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
+            ? containers.map((c: *FIX*) => agentViewTag`<div data-name="${c.name.toLowerCase()}" data-node-id="${c.id}" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
                 <span style="font-size:11px;">📦 ${c.name}</span>
-                <button class="btn btn-sm btn-blue" @click=${(e: any) => { e.currentTarget.closest('.modal-overlay').remove(); runAction(`put ${itemName} in ${c.name}`, charName); }}>Put in</button>
+                <button class="btn btn-sm btn-blue" @click=${(e: *FIX*) => { e.currentTarget.closest('.modal-overlay').remove(); runAction(`put ${itemName} in ${c.name}`, charName); }}>Put in</button>
             </div>`)
             : [agentViewTag`<div style="font-size:11px;color:var(--text-muted);padding:8px;">No containers in inventory.</div>`];
 
@@ -2793,7 +2793,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             <div style="max-height:50vh;overflow-y:auto;">
                 ${items}
             </div>
-            <button class="btn btn-sm" @click=${(e: any) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
+            <button class="btn btn-sm" @click=${(e: *FIX*) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
         </div>`, picker);
         document.body.appendChild(picker);
     };
@@ -2804,7 +2804,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     if ((window as unknown as AVWin).InspectorTemplateSync) {
         (window as unknown as AVWin).InspectorTemplateSync.register('character', {
             title: 'Refresh Character from Library',
-            buildWorldPayload(nodeId: string, node: any) {
+            buildWorldPayload(nodeId: string, node: *FIX*) {
                 const name = (node && node.name) || '';
                 const player = worldState.players[name];
                 if (!player) return null;

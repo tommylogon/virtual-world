@@ -21,7 +21,7 @@ window.NLEditorTools = (() => {
         id?: string;
         name?: string;
         type?: string;
-        properties?: Record<string, any>;
+        properties?: Record<string, *FIX*>;
         staged?: boolean;
         short_desc?: string;
         tags?: string[];
@@ -32,21 +32,21 @@ window.NLEditorTools = (() => {
         id: string;
         type: string;
         summary: string;
-        payload?: Record<string, any>;
+        payload?: Record<string, *FIX*>;
     };
 
     /** The staging-buffer surface this module reads and writes. Every member
      *  below is a real method on nl-editor/staging.js's buffer. */
     type StagingBuffer = {
         mintId(kind: string, name: string): string;
-        addOp(type: string, payload: any, summary: string): StagedOp;
+        addOp(type: string, payload: *FIX*, summary: string): StagedOp;
         removeOp(opId: string): boolean;
         clear(): void;
         getOps(): StagedOp[];
         getStagedCreations(): Record<string, GraphNodeView>;
         getStagedDeletions(): Set<string>;
-        getStagedUpdates(): Record<string, any>;
-        getStagedEdges(): any[];
+        getStagedUpdates(): Record<string, *FIX*>;
+        getStagedEdges(): *FIX*[];
     };
 
     /** One entry from a library registry, in the {id, ...entry} shape the
@@ -58,7 +58,7 @@ window.NLEditorTools = (() => {
         tags?: string[];
         description?: string;
         personality?: string;
-        effects?: Record<string, any>;
+        effects?: Record<string, *FIX*>;
     };
 
     /** The bulk selector accepted by matchNodes and update_matching_nodes. */
@@ -79,8 +79,8 @@ window.NLEditorTools = (() => {
      *  ambient declaration of ApiClient carries only the graph-background
      *  surface, so the generic getter is asserted once here rather than at
      *  every call site. */
-    const apiGet = (path: string): Promise<any> =>
-        (ApiClient as unknown as { get(p: string): Promise<any> }).get(path);
+    const apiGet = (path: string): Promise<*FIX*> =>
+        (ApiClient as unknown as { get(p: string): Promise<*FIX*> }).get(path);
 
     /** OverlayGraphView merges live world graph with uncommitted staged operations. */
     class OverlayGraphView {
@@ -94,19 +94,19 @@ window.NLEditorTools = (() => {
          *  The character node is the authoring record; fields not yet mirrored
          *  onto it (traits, tags, stats, vitals, ...) are read from the live
          *  player so the agent can see the whole character. Node props win. */
-        _characterFields(node: GraphNodeView | null | undefined): Record<string, any> | null {
+        _characterFields(node: GraphNodeView | null | undefined): Record<string, *FIX*> | null {
             if (!node || node.type !== 'character' || !node.name) return null;
             try {
                 const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || null;
                 return (players && players[node.name]) || null;
-            } catch (e: any) { return null; }
+            } catch (e: *FIX*) { return null; }
         }
 
         /** Node view with live character fields filled in where the node lacks them. */
         _enrich(node: GraphNodeView): GraphNodeView {
             const p = this._characterFields(node);
             if (!p) return node;
-            const props: Record<string, any> = { ...(node.properties || {}) };
+            const props: Record<string, *FIX*> = { ...(node.properties || {}) };
             for (const f of ['description', 'base_description', 'personality', 'stats', 'skills',
                              'vitals', 'traits', 'tags', 'interest_tags', 'decay_rates',
                              'simple_npc', 'autonomy', 'npc_behavior', 'npc_action_interval',
@@ -140,7 +140,7 @@ window.NLEditorTools = (() => {
             // Display names are not storage keys (AGENTS.md): resolve a name to
             // its node at the read boundary, so `get_node {"node_id":"Thrazz"}`
             // resolves instead of failing on the raw name.
-            let liveNode: any = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(normId) : null;
+            let liveNode: *FIX* = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(normId) : null;
             if (!liveNode && typeof worldState !== 'undefined' && typeof worldState?.getNodeByIdentifier === 'function') {
                 liveNode = worldState.getNodeByIdentifier(nodeId) || null;
             }
@@ -284,7 +284,7 @@ window.NLEditorTools = (() => {
          * task-752: the selected node's area plus its immediate neighbour areas.
          * Areas connect area -> way -> area via EDGE_CONNECTION, so a neighbour is
          * the other area reachable through a way node that touches the selection's
-         * area. Best-effort: any failure falls back to an empty set (counts only).
+         * area. Best-effort: *FIX* failure falls back to an empty set (counts only).
          */
         _selectedAreaIds(): Set<string> {
             const ids = new Set<string>();
@@ -319,8 +319,8 @@ window.NLEditorTools = (() => {
 
         /** Characters (id, name, current area), resolved from the live roster. */
         roster() {
-            const players: Record<string, any> = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
-            const out: Array<{ key: string; id: string; name: any; area: any }> = [];
+            const players: Record<string, *FIX*> = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
+            const out: Array<{ key: string; id: string; name: *FIX*; area: *FIX* }> = [];
             for (const [key, player] of Object.entries(players)) {
                 const name = player?.name || key;
                 let id = player?.node_id || null;
@@ -401,7 +401,7 @@ window.NLEditorTools = (() => {
         _isInArea(normId: string, areaId: string) {
             const key = String(normId).toLowerCase();
             const target = String(areaId).toLowerCase();
-            const liveEdges: Array<Record<string, any>> = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
+            const liveEdges: Array<Record<string, *FIX*>> = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
             for (const edge of liveEdges) {
                 if (String(edge.type) !== 'in') continue;
                 if (String(edge.source).toLowerCase() === key && String(edge.target).toLowerCase() === target) return true;
@@ -417,8 +417,8 @@ window.NLEditorTools = (() => {
         }
 
         /** The effective property map of a patch (nested `properties` + flat keys). */
-        _patchProps(patch: Record<string, any> | null | undefined) {
-            const props: Record<string, any> = { ...((patch || {}).properties || {}) };
+        _patchProps(patch: Record<string, *FIX*> | null | undefined) {
+            const props: Record<string, *FIX*> = { ...((patch || {}).properties || {}) };
             for (const [key, value] of Object.entries(patch || {})) {
                 if (key === 'properties' || key === 'name' || key === 'id' || key === 'type') continue;
                 props[key] = value;
@@ -427,8 +427,8 @@ window.NLEditorTools = (() => {
         }
 
         /** One-level dict merge, mirroring the server's `_merge_dict_props`. */
-        _mergeProps(base: Record<string, any> | null | undefined, patch: Record<string, any> | null | undefined) {
-            const out: Record<string, any> = { ...(base || {}) };
+        _mergeProps(base: Record<string, *FIX*> | null | undefined, patch: Record<string, *FIX*> | null | undefined) {
+            const out: Record<string, *FIX*> = { ...(base || {}) };
             for (const [key, value] of Object.entries(patch || {})) {
                 const current = out[key];
                 out[key] = (value && typeof value === 'object' && !Array.isArray(value) &&
@@ -440,9 +440,9 @@ window.NLEditorTools = (() => {
         }
 
         /** Merged patch from staged bulk ops that listed *nodeId* as affected. */
-        _bulkPatchFor(nodeId: string): Record<string, any> | null {
+        _bulkPatchFor(nodeId: string): Record<string, *FIX*> | null {
             const key = String(nodeId).toLowerCase();
-            let patch: Record<string, any> | null = null;
+            let patch: Record<string, *FIX*> | null = null;
             for (const op of this.staging.getOps()) {
                 if (op.type !== 'update_matching_nodes') continue;
                 const payload = op.payload || {};
@@ -492,14 +492,14 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'list_nodes',
-                description: 'List/count nodes by kind, tag, area or name  -  the roster read. Use for "who is in area X", "how many goblins", "all items tagged lantern", and to preview a bulk selector before update_matching_nodes. Paged.',
+                description: 'List/count nodes by kind, tag, area or name  -  the roster read. Use for "who is in area X", "how m*FIX* goblins", "all items tagged lantern", and to preview a bulk selector before update_matching_nodes. Paged.',
                 parameters: {
                     type: 'object',
                     properties: {
                         kind: { type: 'string', enum: ['area', 'item', 'way', 'character', 'logic_trigger'], description: 'Optional node type filter' },
                         tags: { type: 'array', items: { type: 'string' }, description: 'Required tags (all of them)' },
                         tag: { type: 'string', description: 'Single required tag shorthand' },
-                        require_all_tags: { type: 'boolean', description: 'Default true; false matches any tag' },
+                        require_all_tags: { type: 'boolean', description: 'Default true; false matches *FIX* tag' },
                         area: { type: 'string', description: 'Area id or name; matches nodes with an `in` edge to it' },
                         name_contains: { type: 'string', description: 'Case-insensitive substring of name or id' },
                         page: { type: 'number', description: '1-based page (default 1)' },
@@ -950,7 +950,7 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'update_matching_nodes',
-                description: 'Stage ONE patch applied to every node matching a selector  -  use for bulk intents ("give all goblins darkvision"). The affected entities are resolved immediately and listed for review before Apply; dict-valued fields (traits, stats, environment) merge key-by-key. Prefer this over many update_node calls.',
+                description: 'Stage ONE patch applied to every node matching a selector  -  use for bulk intents ("give all goblins darkvision"). The affected entities are resolved immediately and listed for review before Apply; dict-valued fields (traits, stats, environment) merge key-by-key. Prefer this over m*FIX* update_node calls.',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -1090,9 +1090,9 @@ window.NLEditorTools = (() => {
         return parts.join(',');
     }
 
-    function inferMechanics(kind: string, name: string, props: Record<string, any>): Record<string, any> {
+    function inferMechanics(kind: string, name: string, props: Record<string, *FIX*>): Record<string, *FIX*> {
         if (kind !== 'item') return props;
-        const p: Record<string, any> = Object.assign({}, props);
+        const p: Record<string, *FIX*> = Object.assign({}, props);
         p.tags = Array.isArray(p.tags) ? [...p.tags] : [];
         const hasTag = (t: string) => (p.tags as string[]).includes(t);
         const nameL = String(name || '').toLowerCase();
@@ -1218,7 +1218,7 @@ window.NLEditorTools = (() => {
         },
         warehouse: {
             label: 'Warehouse', area: { environment: { smell: 'dust and timber', air: 'dry' } },
-            npc: { name: 'Warehouse Foreman', description: 'A foreman checking a cargo manifest.', personality: 'Pragmatic, suspicious of anything unlisted.' },
+            npc: { name: 'Warehouse Foreman', description: 'A foreman checking a cargo manifest.', personality: 'Pragmatic, suspicious of *FIX*thing unlisted.' },
             items: [
                 ['crate', { tags: ['container'], weight: 15 }],
                 ['barrel', { tags: ['container'], weight: 20 }],
@@ -1267,11 +1267,11 @@ window.NLEditorTools = (() => {
     };
 
     function buildThemePack(themeKey: string, itemCount?: number | string) {
-        const pack = (THEME_PACKS as Record<string, any>)[themeKey] || (THEME_PACKS as Record<string, any>)[themeKey.replace(/s$/, '')] || null;
+        const pack = (THEME_PACKS as Record<string, *FIX*>)[themeKey] || (THEME_PACKS as Record<string, *FIX*>)[themeKey.replace(/s$/, '')] || null;
         if (!pack) return null;
         const count = Math.max(2, Math.min(12, parseInt(itemCount as string, 10) || (pack.items.length || 6)));
         return Object.assign({}, pack, {
-            items: pack.items.slice(0, count).map(([name, props]: [string, Record<string, any>]) => ({ kind: 'item', name, properties: props || {} }))
+            items: pack.items.slice(0, count).map(([name, props]: [string, Record<string, *FIX*>]) => ({ kind: 'item', name, properties: props || {} }))
         });
     }
 
@@ -1287,14 +1287,14 @@ window.NLEditorTools = (() => {
             this.overlay = new OverlayGraphView(stagingBuffer);
         }
 
-        /** The node currently selected in the graph/inspector, if any. */
-        _selectedNode(): any {
+        /** The node currently selected in the graph/inspector, if *FIX*. */
+        _selectedNode(): *FIX* {
             try {
                 const view = (typeof VW !== 'undefined' && VW?.inspector) ? VW.inspector._currentView : null;
                 if (view && view.type === 'node' && view.id && typeof worldState?.getNode === 'function') {
                     return worldState.getNode(view.id) || null;
                 }
-            } catch (e: any) { /* ignore */ }
+            } catch (e: *FIX*) { /* ignore */ }
             return null;
         }
 
@@ -1314,22 +1314,22 @@ window.NLEditorTools = (() => {
          * entry's `id` field may or may not match its key. Older call paths
          * returned {items: [...]} or a bare array; we accept all three.
          */
-        _registryToEntries(res: any): LibraryEntry[] {
+        _registryToEntries(res: *FIX*): LibraryEntry[] {
             if (!res) return [];
             if (Array.isArray(res)) {
-                return res.map((e: any) => ({ id: e?.id, ...e }));
+                return res.map((e: *FIX*) => ({ id: e?.id, ...e }));
             }
             if (res.items && Array.isArray(res.items)) {
-                return res.items.map((e: any) => ({ id: e?.id, ...e }));
+                return res.items.map((e: *FIX*) => ({ id: e?.id, ...e }));
             }
             if (res.areas && Array.isArray(res.areas)) {
-                return res.areas.map((e: any) => ({ id: e?.id, ...e }));
+                return res.areas.map((e: *FIX*) => ({ id: e?.id, ...e }));
             }
             if (res.characters && Array.isArray(res.characters)) {
-                return res.characters.map((e: any) => ({ id: e?.id, ...e }));
+                return res.characters.map((e: *FIX*) => ({ id: e?.id, ...e }));
             }
             if (typeof res === 'object') {
-                return Object.entries(res).map(([key, entry]: [string, any]) => ({
+                return Object.entries(res).map(([key, entry]: [string, *FIX*]) => ({
                     id: entry?.id || key,
                     ...entry
                 }));
@@ -1345,7 +1345,7 @@ window.NLEditorTools = (() => {
             return entries.find(e => String(e.id) === sid || e.key === sid) || null;
         }
 
-        async execute(toolName: string, args: Record<string, any> = {}, context: Record<string, any> = {}): Promise<any> {
+        async execute(toolName: string, args: Record<string, *FIX*> = {}, context: Record<string, *FIX*> = {}): Promise<*FIX*> {
             try {
                 switch (toolName) {
                     case 'search_graph_nodes': {
@@ -1404,7 +1404,7 @@ window.NLEditorTools = (() => {
                                 description: (it.description || '').slice(0, 80)
                             }));
                             return { count: compact.length, items: compact };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, items: [], error: e.message };
                         }
                     }
@@ -1415,7 +1415,7 @@ window.NLEditorTools = (() => {
                             const item = this._findLibraryEntry(items, args.item_id);
                             if (!item) return { error: `Library item '${args.item_id}' not found.` };
                             return item;
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { error: e.message };
                         }
                     }
@@ -1423,7 +1423,7 @@ window.NLEditorTools = (() => {
                         try {
                             const res = await apiGet('/api/tags/search?q=' + encodeURIComponent(args.query || ''));
                             return { count: (res || []).length, tags: (res || []).slice(0, 15) };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, tags: [], error: e.message };
                         }
                     }
@@ -1444,11 +1444,11 @@ window.NLEditorTools = (() => {
                         };
                     }
                     case 'get_behaviours': {
-                        const players: Record<string, any> = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
+                        const players: Record<string, *FIX*> = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
                         const key = String(args.character || '');
-                        let entry: any = players[key]
+                        let entry: *FIX* = players[key]
                             || Object.keys(players).map(k => players[k])
-                                .find((p: any) => String(p?.name || '') === key);
+                                .find((p: *FIX*) => String(p?.name || '') === key);
                         if (!entry) return { error: `No character '${args.character}'.` };
                         const beh = Array.isArray(entry.behaviors) ? entry.behaviors : [];
                         return { character: entry.name || key, count: beh.length, behaviors: beh };
@@ -1481,7 +1481,7 @@ window.NLEditorTools = (() => {
                                 effects: t.effects || {}
                             }));
                             return { count: compact.length, traits: compact };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, traits: [], error: e.message };
                         }
                     }
@@ -1492,17 +1492,17 @@ window.NLEditorTools = (() => {
                             const qs = params.toString();
                             const res = await apiGet('/api/triggers/validate' + (qs ? ('?' + qs) : ''));
                             let issues = Array.isArray(res?.issues) ? res.issues : [];
-                            if (args.severity) issues = issues.filter((i: any) => i.severity === args.severity);
-                            if (args.code) issues = issues.filter((i: any) => i.code === args.code);
+                            if (args.severity) issues = issues.filter((i: *FIX*) => i.severity === args.severity);
+                            if (args.code) issues = issues.filter((i: *FIX*) => i.code === args.code);
                             const limit = Number.isFinite(args.limit) ? Math.max(1, Math.min(500, args.limit)) : 50;
                             const by_severity: Record<string, number> = { error: 0, warning: 0, info: 0 };
                             for (const i of issues) if (i && i.severity in by_severity) by_severity[i.severity]++;
-                            const compact = issues.slice(0, limit).map((i: any) => ({
+                            const compact = issues.slice(0, limit).map((i: *FIX*) => ({
                                 code: i.code, severity: i.severity, message: i.message,
                                 node_id: i.source_node_id || null
                             }));
                             return { count: issues.length, shown: compact.length, by_severity, issues: compact };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, issues: [], error: e.message };
                         }
                     }
@@ -1547,7 +1547,7 @@ window.NLEditorTools = (() => {
                                 description: (a.description || '')
                             }));
                             return { count: compact.length, areas: compact };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, areas: [], error: e.message };
                         }
                     }
@@ -1558,7 +1558,7 @@ window.NLEditorTools = (() => {
                             const area = this._findLibraryEntry(areas, args.area_id);
                             if (!area) return { error: `Library area '${args.area_id}' not found.` };
                             return area;
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { error: e.message };
                         }
                     }
@@ -1584,7 +1584,7 @@ window.NLEditorTools = (() => {
                                 description: (c.personality || '').slice(0, 80)
                             }));
                             return { count: compact.length, characters: compact };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { count: 0, characters: [], error: e.message };
                         }
                     }
@@ -1595,7 +1595,7 @@ window.NLEditorTools = (() => {
                             const char = this._findLibraryEntry(chars, args.char_id);
                             if (!char) return { error: `Library character '${args.char_id}' not found.` };
                             return char;
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { error: e.message };
                         }
                     }
@@ -1603,9 +1603,9 @@ window.NLEditorTools = (() => {
                         try {
                             const res = await apiGet('/api/library/entities');
                             const parts = [];
-                            for (const [t, info] of Object.entries(res || {}) as Array<[string, any]>) parts.push(`${t}: ${info?.count ?? '?'}`);
+                            for (const [t, info] of Object.entries(res || {}) as Array<[string, *FIX*]>) parts.push(`${t}: ${info?.count ?? '?'}`);
                             return { summary: `Library registries  -  ${parts.join(', ')}.` };
-                        } catch (e: any) {
+                        } catch (e: *FIX*) {
                             return { summary: 'Library summary unavailable.', error: e.message };
                         }
                     }
@@ -1879,7 +1879,7 @@ window.NLEditorTools = (() => {
                     default:
                         return { error: `Unknown tool: ${toolName}` };
                 }
-            } catch (err: any) {
+            } catch (err: *FIX*) {
                 return { error: `Tool execution failed: ${err.message}` };
             }
         }

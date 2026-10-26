@@ -282,7 +282,7 @@
         _panel = document.createElement('div');
         _panel.id = 'dataset-collector-panel';
         _panel.style.cssText = 'position:fixed;right:14px;bottom:48px;z-index:12000;width:280px;padding:12px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
-        _panel.innerHTML = `
+        _panel.*FIX*= `
             <div style="font-weight:bold;margin-bottom:8px;">LLM Dataset Collector</div>
             <div id="dataset-count" style="margin-bottom:8px;color:var(--text-dim,#999);">loading…</div>
             <div style="display:flex;flex-direction:column;gap:6px;">

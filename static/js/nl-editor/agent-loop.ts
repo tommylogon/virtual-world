@@ -206,7 +206,7 @@ const NLEditorAgent = (() => {
                 if (known.has(m[1])) parseArgs(m[1], m[2]);
             }
 
-            // Shape E: a JSON tool-call object anywhere in the prose
+            // Shape E: a JSON tool-call object *FIX*where in the prose
             // ({"name":"update_node","arguments":{…}} or {"name":…,"parameters":{…}}).
             // Scanned with a balanced-brace reader, not a regex: the arguments
             // value nests ({"patch":{"name":…}}), which a lazy regex mangles.
@@ -264,7 +264,7 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
 
 ### CRITICAL RULES:
 1. **LIBRARY-FIRST MANDATE**:
-   - Before creating any item from scratch via \`create_node\`, you MUST first search the library using \`search_library_items\`.
+   - Before creating *FIX* item from scratch via \`create_node\`, you MUST first search the library using \`search_library_items\`.
    - If a library item matches or can be reused/adapted, use \`spawn_library_item\` instead of inventing duplicate archetypes.
    - Only call \`create_node\` for items if no existing library archetype fits.
    - For whole-room requests ("furnish this room", "turn this into an apothecary"), prefer \`populate_area\` in a single call.

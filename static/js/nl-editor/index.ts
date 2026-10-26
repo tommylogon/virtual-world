@@ -12,14 +12,14 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
-(window as unknown as { NLEditor: any }).NLEditor = (() => {
+(window as unknown as { NLEditor: *FIX* }).NLEditor = (() => {
     'use strict';
 
     class NaturalLanguageEditor {
-        staging: any;
-        router: any;
-        agent: any;
-        ui: any;
+        staging: *FIX*;
+        router: *FIX*;
+        agent: *FIX*;
+        ui: *FIX*;
         initialized: boolean;
 
         constructor() {
@@ -41,7 +41,7 @@
             });
 
             // Wire agent events to UI
-            this.agent.onUpdate((event: string, data: any) => {
+            this.agent.onUpdate((event: string, data: *FIX*) => {
                 switch (event) {
                     case 'turn:start':
                         this.ui.hideClarification();
@@ -97,7 +97,7 @@
                         this.ui.setActivity('error');
                         break;
                     case 'session:reset':
-                        if (this.ui.chatList) this.ui.chatList.innerHTML = '';
+                        if (this.ui.chatList) this.ui.chatList.*FIX*= '';
                         this.ui.hideClarification();
                         this.ui.setStatus('Ready', false);
                         this.ui.setActivity('idle');
@@ -111,8 +111,8 @@
 
             // Listen for scenario change / restart from worldState
             if (typeof worldState !== 'undefined' && worldState?.on) {
-                let lastScenario: any = null;
-                worldState.on('update', (state: any) => {
+                let lastScenario: *FIX* = null;
+                worldState.on('update', (state: *FIX*) => {
                     const currentScenario = state?._scenario_source || state?.scenario || null;
                     if (lastScenario !== null && currentScenario !== lastScenario) {
                         this.reset();
@@ -146,7 +146,7 @@
                 // Map server validation format (optype -> type) and fall back to
                 // string errors so the user sees the failure in chat, not just
                 // the browser network tab.
-                const mappedIssues = (res.validation || []).map((v: any) => ({
+                const mappedIssues = (res.validation || []).map((v: *FIX*) => ({
                     index: v.index ?? v.op_index ?? 0,
                     type: v.type || v.optype || '',
                     message: v.message || v.error || String(v),
@@ -184,7 +184,7 @@
                 this.agent.afterApply(res.appliedCount, this.staging.getOps().length);
             }
             if (res.invalid) {
-                const mappedIssues = (res.validation || []).map((v: any) => ({
+                const mappedIssues = (res.validation || []).map((v: *FIX*) => ({
                     index: v.index ?? v.op_index ?? 0,
                     type: v.type || v.optype || '',
                     message: v.message || v.error || String(v),

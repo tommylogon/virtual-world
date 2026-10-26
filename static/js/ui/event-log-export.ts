@@ -487,7 +487,7 @@
         const scoped = applyScope(rows, opts);
         if (!scoped.some((r) => r.turn != null)) return { error: 'No turns in range ' + fromTurn + '–' + toTurn + '.' };
         const meta: RenderMeta = {
-            scenario: scenarioNameIn, exportedAt: ts, worldTick: (window as unknown as { worldState?: any }).worldState?.tick || 0,
+            scenario: scenarioNameIn, exportedAt: ts, worldTick: (window as unknown as { worldState?: *FIX* }).worldState?.tick || 0,
             unit: 'turn', from: fromTurn, to: toTurn, filters: activeFilters(false),
             line: 'turns ' + fromTurn + '–' + toTurn
         };
@@ -596,7 +596,7 @@
             return {
                 scenario: scenarioName(),
                 exportedAt: nowStamp(),
-                worldTick: (window as unknown as { worldState?: any }).worldState?.tick || 0,
+                worldTick: (window as unknown as { worldState?: *FIX* }).worldState?.tick || 0,
                 unit: opts.unit,
                 from: from,
                 to: to,
@@ -649,7 +649,7 @@
             if (destSel.value === 'clipboard') {
                 if (text.length > 2000000) {
                     const ok = window.confirm('This export is ' + Math.round(text.length / 1048576 * 10) / 10 +
-                        ' MB. Some browsers refuse a clipboard write that large. Copy anyway?');
+                        ' MB. Some browsers refuse a clipboard write that large. Copy *FIX*way?');
                     if (!ok) return;
                 }
                 await writeClipboard(text);

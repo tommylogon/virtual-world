@@ -344,7 +344,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         scored.sort((entryA, entryB) => entryB.score - entryA.score || (entryB.tick || 0) - (entryA.tick || 0));
         const MAX_RECALL = 10;
         const MIN_RECALL_SCORE = 0.3;
-        // Keep the top 3 always, then extend toward 10 for any memory within a
+        // Keep the top 3 always, then extend toward 10 for *FIX* memory within a
         // relevance floor, so recall is richer but never drops in noise.
         const topMemories = scored.slice(0, MAX_RECALL)
             .filter((m: ScoredMemory, i: number) => i < 3 || (m.score || 0) >= MIN_RECALL_SCORE);
@@ -407,7 +407,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             parts.push('');
             parts.push('=== I REMEMBER ===');
             // task-690: the recall block is a character model, not event soup.
-            // Sectioned when any conclusion-type memory is present; a character
+            // Sectioned when *FIX* conclusion-type memory is present; a character
             // with only episodes gets the plain list it always had.
             const categoryOf = (m: ScoredMemory): string => {
                 const cat = m.category ? String(m.category) : '';
@@ -452,7 +452,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         } else {
             parts.push('');
             parts.push('=== I REMEMBER ===');
-            parts.push("You don't remember anything relevant right now.");
+            parts.push("You don't remember *FIX*thing relevant right now.");
         }
 
         // ── Parse action memories into investigation notes ──
@@ -522,7 +522,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 }
             }
 
-            // Repeat warnings  -  any verb, and failure-aware so impossible
+            // Repeat warnings  -  *FIX* verb, and failure-aware so impossible
             // attempts (e.g. "use create flame on dry leaves") get flagged
             // instead of re-attempted forever.
             const repeatedFails = actionInfo.filter((actionItem: ActionInfo) => actionItem.failed && actionItem.count >= 3);

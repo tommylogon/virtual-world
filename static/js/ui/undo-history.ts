@@ -6,7 +6,7 @@
  * restores the world back to that point via multi-step undo.
  *
  * @module ui/undo-history — visible undo history dropdown
- * @contributes UndoHistory: list labeled snapshots (newest first) and restore to any point
+ * @contributes UndoHistory: list labeled snapshots (newest first) and restore to *FIX* point
  * @powers Recent edits / undo — seeing and jumping through the edit history (task-371)
  * @relates reads the undo stack; opened from the 📜 button in the graph toolbar
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md

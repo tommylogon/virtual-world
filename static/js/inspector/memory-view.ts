@@ -11,7 +11,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 window.InspectorMemory = (() => {
-    const M = ((window as any).InspectorView ? new (window as any).InspectorView() : {}) as MemoryViewApi;
+    const M = ((window as *FIX*).InspectorView ? new (window as *FIX*).InspectorView() : {}) as MemoryViewApi;
 
     // Rich memory-emotion vocabulary, grouped for the picker. Multiple emotions
     // may be attached to one memory (stored as memory_emotions: [{label,intensity}]).
@@ -168,7 +168,7 @@ window.InspectorMemory = (() => {
         const objMatch = s.match(/\{[\s\S]*\}/);
         if (!objMatch) return null;
         s = objMatch[0].replace(/,\s*([}\]])/g, '$1');
-        let parsed: any;
+        let parsed: *FIX*;
         try {
             parsed = JSON.parse(s);
         } catch (_e) {
@@ -185,8 +185,8 @@ window.InspectorMemory = (() => {
             ? memBlock.memory_emotions
             : (Array.isArray(memBlock.emotions) ? memBlock.emotions : (Array.isArray(parsed.emotions) ? parsed.emotions : []));
         const emotions: MemoryViewEmotion[] = rawEmos
-            .filter((e: any) => e && e.label)
-            .map((e: any) => ({
+            .filter((e: *FIX*) => e && e.label)
+            .map((e: *FIX*) => ({
                 label: String(e.label).trim().toLowerCase(),
                 intensity: Math.max(1, Math.min(10, parseInt(String(e.intensity ?? 5), 10) || 5))
             }));
@@ -195,8 +195,8 @@ window.InspectorMemory = (() => {
             ? memBlock.relationship_deltas
             : (Array.isArray(parsed.relationship_deltas) ? parsed.relationship_deltas : []);
         const relationship_deltas: MemoryViewRelationshipDelta[] = rawDeltas
-            .filter((d: any) => d && d.who && typeof d.data === 'object')
-            .map((d: any) => {
+            .filter((d: *FIX*) => d && d.who && typeof d.data === 'object')
+            .map((d: *FIX*) => {
                 const cleanData: Record<string, number> = {};
                 for (const [k, v] of Object.entries(d.data || {})) {
                     const num = parseFloat(String(v));
@@ -212,10 +212,10 @@ window.InspectorMemory = (() => {
             });
 
         const tags = Array.isArray(memBlock.tags)
-            ? memBlock.tags.filter(Boolean).map((t: any) => String(t).trim().toLowerCase())
+            ? memBlock.tags.filter(Boolean).map((t: *FIX*) => String(t).trim().toLowerCase())
             : [];
         const entities = Array.isArray(memBlock.entities)
-            ? memBlock.entities.filter(Boolean).map((e: any) => String(e).trim())
+            ? memBlock.entities.filter(Boolean).map((e: *FIX*) => String(e).trim())
             : [];
         const imp = parseInt(String(memBlock.importance ?? parsed.importance ?? 5), 10);
         const importance = !isNaN(imp) ? Math.max(1, Math.min(10, imp)) : 5;
@@ -232,14 +232,14 @@ window.InspectorMemory = (() => {
         const cp = parsed.counterpart_memory || memBlock.counterpart_memory;
         if (cp && typeof cp === 'object' && cp.who && cp.text) {
             const cpEmos = (Array.isArray(cp.memory_emotions) ? cp.memory_emotions : (Array.isArray(cp.emotions) ? cp.emotions : []))
-                .filter((e: any) => e && e.label)
-                .map((e: any) => ({
+                .filter((e: *FIX*) => e && e.label)
+                .map((e: *FIX*) => ({
                     label: String(e.label).trim().toLowerCase(),
                     intensity: Math.max(1, Math.min(10, parseInt(String(e.intensity ?? 5), 10) || 5))
                 }));
             const cpDeltas = (Array.isArray(cp.relationship_deltas) ? cp.relationship_deltas : [])
-                .filter((d: any) => d && d.who && typeof d.data === 'object')
-                .map((d: any) => ({
+                .filter((d: *FIX*) => d && d.who && typeof d.data === 'object')
+                .map((d: *FIX*) => ({
                     who: String(d.who).trim(),
                     why: String(d.why || '').trim(),
                     data: d.data as Record<string, number>
@@ -277,7 +277,7 @@ window.InspectorMemory = (() => {
         };
     };
 
-    M._parseSeedJson = function (raw: string): any {
+    M._parseSeedJson = function (raw: string): *FIX* {
         return M.parseWeaverResponse(raw);
     };
 
@@ -320,7 +320,7 @@ window.InspectorMemory = (() => {
      * Fetch the character's grounding & preview bundle from
      * `POST /api/players/<name>/memories/context`.
      */
-    M.fetchMemoryContext = async function (charName: string, query = '', candidate: any = null): Promise<any> {
+    M.fetchMemoryContext = async function (charName: string, query = '', candidate: *FIX* = null): Promise<*FIX*> {
         try {
             const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/context`, {
                 method: 'POST',
@@ -339,7 +339,7 @@ window.InspectorMemory = (() => {
         if (!player) return;
         M._closeMemoryEditor();
         const memories = player.memories || [];
-        const existing = entryId ? memories.find((m: any) => m.id === entryId) : null;
+        const existing = entryId ? memories.find((m: *FIX*) => m.id === entryId) : null;
         const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => window.Lit.html(strings, ...values);
         const nothing = window.Lit.nothing;
         const esc = InspectorHelpers.esc;
@@ -352,10 +352,10 @@ window.InspectorMemory = (() => {
         const typeOpts = types.map(t => htmlTag`<option value=${t} ?selected=${defaultType === t}>${t}</option>`);
 
         const categories = ['episodic', 'semantic', 'procedural', 'social', 'belief'];
-        const deriveCat = (m: any): string => {
+        const deriveCat = (m: *FIX*): string => {
             if (m?.category) return String(m.category);
             if (String(m?.type || '') === 'reflection') return 'belief';
-            const memTags = Array.isArray(m?.tags) ? m.tags.map((t: any) => String(t).toLowerCase()) : [];
+            const memTags = Array.isArray(m?.tags) ? m.tags.map((t: *FIX*) => String(t).toLowerCase()) : [];
             if (memTags.some((t: string) => t.startsWith('rel:'))) return 'social';
             return 'episodic';
         };
@@ -536,12 +536,12 @@ window.InspectorMemory = (() => {
                         <label>Contradicts (memories this one conflicts with)</label>
                         <div id="mem-editor-contradicts" style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px;"></div>
                     </div>
-                    ${memories.filter((m: any) => m.id && m.id !== existing?.id).length
+                    ${memories.filter((m: *FIX*) => m.id && m.id !== existing?.id).length
                         ? htmlTag`<div class="memedit-field">
                             <label>Link a conflicting memory</label>
                             <select id="mem-editor-contra-add">
                                 <option value="">- choose a memory -</option>
-                                ${memories.filter((m: any) => m.id && m.id !== existing?.id).slice(0, 200).map((m: any) => htmlTag`<option value=${m.id}>${String(m.id)} - ${String(m.text || '').slice(0, 60)}</option>`)}
+                                ${memories.filter((m: *FIX*) => m.id && m.id !== existing?.id).slice(0, 200).map((m: *FIX*) => htmlTag`<option value=${m.id}>${String(m.id)} - ${String(m.text || '').slice(0, 60)}</option>`)}
                             </select>
                             <div class="memedit-hint">marking only - the engine never resolves a contradiction for the character</div>
                           </div>`
@@ -593,7 +593,7 @@ window.InspectorMemory = (() => {
         const initialDeltas: MemoryViewRelationshipDelta[] = [];
         if (existing) {
             if (Array.isArray(existing.relationship_deltas) && existing.relationship_deltas.length) {
-                existing.relationship_deltas.forEach((d: any) => {
+                existing.relationship_deltas.forEach((d: *FIX*) => {
                     if (d && d.who) initialDeltas.push({ who: d.who, why: d.why || '', data: { ...(d.data || {}) } });
                 });
             } else if (existing.emotions && existing.emotions.who) {
@@ -649,11 +649,11 @@ window.InspectorMemory = (() => {
             const current = (existing?.contradicts || []).filter((id: string) => !contraRemoved().has(id));
             const all = current.concat(contraAdded());
             if (!all.length) {
-                contraEl.innerHTML = '<span style="font-size:10px;color:var(--text-muted);">no conflicts marked</span>';
+                contraEl.*FIX*= '<span style="font-size:10px;color:var(--text-muted);">no conflicts marked</span>';
                 return;
             }
-            contraEl.innerHTML = all.map((id: string) => {
-                const target = memories.find((m: any) => m.id === id);
+            contraEl.*FIX*= all.map((id: string) => {
+                const target = memories.find((m: *FIX*) => m.id === id);
                 const label = target ? String(target.text || '').slice(0, 40) : String(id);
                 return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#e05555;border:1px solid #6e2c2c;border-radius:8px;padding:1px 6px;" title="${esc(label)}">⚡ ${esc(id)} ${esc(label)}<button type="button" data-contra-id="${esc(id)}" style="background:none;border:none;color:#e05555;cursor:pointer;font-size:10px;padding:0;">×</button></span>`;
             }).join('');
@@ -693,7 +693,7 @@ window.InspectorMemory = (() => {
         const ageDecayCb = container.querySelector('#mem-editor-age-decay') as HTMLInputElement | null;
         const getBirthBounds = () => {
             const b = M._gen?.contextBundle;
-            const bTick = b?.birth_tick !== undefined ? b.birth_tick : (player as any)?.birth_tick;
+            const bTick = b?.birth_tick !== undefined ? b.birth_tick : (player as *FIX*)?.birth_tick;
             return {
                 birthTick: (bTick !== null && bTick !== undefined && Number.isFinite(Number(bTick))) ? Math.round(Number(bTick)) : null,
                 birthday: b?.birthday || null,
@@ -720,7 +720,7 @@ window.InspectorMemory = (() => {
             }
         };
         const applyRelativeExpr = (expr: string) => {
-            const mpt = M._gen?.contextBundle?.time_per_tick_minutes || (window as any).config?.minutes_per_tick || 1;
+            const mpt = M._gen?.contextBundle?.time_per_tick_minutes || (window as *FIX*).config?.minutes_per_tick || 1;
             const { birthTick } = getBirthBounds();
             const parsed = M.parseRelativeTime(expr, currentTick, mpt, birthTick);
             if (!parsed) return;
@@ -847,7 +847,7 @@ window.InspectorMemory = (() => {
         const others = Object.keys(worldState.players || {}).filter(p => p !== charName);
 
         function render(): void {
-            container.innerHTML = '';
+            container.*FIX*= '';
             if (!M._relDeltas || M._relDeltas.length === 0) {
                 const empty = document.createElement('div');
                 empty.style.cssText = 'font-size:10px;color:var(--text-muted);padding:4px 0;';
@@ -974,11 +974,11 @@ window.InspectorMemory = (() => {
                 const contras = Array.isArray(bundle.contradictions_preview) ? bundle.contradictions_preview : [];
                 if (contras.length > 0) {
                     contraBox.style.display = 'block';
-                    contraBox.innerHTML = `<b>⚡ Contradiction detected (${contras.length}):</b> saving will link this memory as conflicting with `
-                        + contras.map((c: any) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || '').slice(0, 65))}"</code>`).join(', ');
+                    contraBox.*FIX*= `<b>⚡ Contradiction detected (${contras.length}):</b> saving will link this memory as conflicting with `
+                        + contras.map((c: *FIX*) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || '').slice(0, 65))}"</code>`).join(', ');
                 } else {
                     contraBox.style.display = 'none';
-                    contraBox.innerHTML = '';
+                    contraBox.*FIX*= '';
                 }
             }
 
@@ -987,7 +987,7 @@ window.InspectorMemory = (() => {
             if (relPrevBox) {
                 const previews = Array.isArray(bundle.relationship_preview) ? bundle.relationship_preview : [];
                 if (previews.length > 0) {
-                    relPrevBox.innerHTML = previews.map((p: any) => {
+                    relPrevBox.*FIX*= previews.map((p: *FIX*) => {
                         const b = p.before || {};
                         const a = p.after || {};
                         const shifts: string[] = [];
@@ -1009,7 +1009,7 @@ window.InspectorMemory = (() => {
                         </div>`;
                     }).join('');
                 } else {
-                    relPrevBox.innerHTML = '';
+                    relPrevBox.*FIX*= '';
                 }
             }
         }, 220);
@@ -1034,7 +1034,7 @@ window.InspectorMemory = (() => {
         }
         opts.sort((a, b) => a.name.localeCompare(b.name));
 
-        container.innerHTML = '';
+        container.*FIX*= '';
         container.classList.add('memedit-entitybox');
         const input = document.createElement('input');
         input.className = 'memedit-search';
@@ -1051,7 +1051,7 @@ window.InspectorMemory = (() => {
         }
         function ops(): MemoryViewEntityOption[] { return opts.filter(o => !input.value || o.name.toLowerCase().includes(input.value.toLowerCase())); }
         function render() {
-            list.innerHTML = '';
+            list.*FIX*= '';
             const matches = ops();
             if (matches.length === 0) { list.textContent = 'No matches.'; return; }
             matches.forEach(o => {
@@ -1091,7 +1091,7 @@ window.InspectorMemory = (() => {
      */
     M._embedForEntry = function (charName: string, entryId: string, text: string): Promise<boolean> {
         if (!entryId || !window.EmbeddingClient?.configured()) return Promise.resolve(false);
-        return EmbeddingClient.embed(text).then((vector: any) => {
+        return EmbeddingClient.embed(text).then((vector: *FIX*) => {
             if (!vector) return false;
             return fetch('/api/memory/embeddings', {
                 method: 'POST',
@@ -1128,7 +1128,7 @@ window.InspectorMemory = (() => {
         const tick = prestart > 0 ? -prestart : (!isNaN(tickInput) ? tickInput : (VW?.state?.tick ?? 0));
 
         const bBundle = M._gen?.contextBundle;
-        const birthTickRaw = bBundle?.birth_tick !== undefined ? bBundle.birth_tick : (worldState.players?.[charName] as any)?.birth_tick;
+        const birthTickRaw = bBundle?.birth_tick !== undefined ? bBundle.birth_tick : (worldState.players?.[charName] as *FIX*)?.birth_tick;
         const birthTick = (birthTickRaw !== null && birthTickRaw !== undefined && Number.isFinite(Number(birthTickRaw)))
             ? Math.round(Number(birthTickRaw))
             : null;
@@ -1167,7 +1167,7 @@ window.InspectorMemory = (() => {
             : [];
 
         const existingContra = entryId
-            ? ((worldState.players?.[charName]?.memories || []).find((m: any) => m.id === entryId)?.contradicts || [])
+            ? ((worldState.players?.[charName]?.memories || []).find((m: *FIX*) => m.id === entryId)?.contradicts || [])
             : [];
         const removedSet = M._contraRemoved || new Set<string>();
         const addedList = M._contraAdded || [];
@@ -1213,7 +1213,7 @@ window.InspectorMemory = (() => {
         const cpText = ((document.getElementById('mem-editor-counterpart-text') as HTMLTextAreaElement | null)?.value || '').trim();
         const cpDraft = M._gen?.counterpartDraft;
 
-        const done = async (data: any) => {
+        const done = async (data: *FIX*) => {
             if (data && data.error) {
                 const statusEl = document.getElementById('mem-gen-status');
                 if (statusEl) {
@@ -1288,7 +1288,7 @@ window.InspectorMemory = (() => {
      * Build the grounded identity block (persona record + appearance + mood +
      * recalled memories + relationship profiles) used to frame the character's voice.
      */
-    M._identityBlock = function (charName: string, contextBundle?: any): string {
+    M._identityBlock = function (charName: string, contextBundle?: *FIX*): string {
         const player = worldState.players?.[charName] || {};
         const bundle = contextBundle || M._gen?.contextBundle || null;
         const ps = bundle?.persona_summary || {};
@@ -1323,7 +1323,7 @@ window.InspectorMemory = (() => {
         const recalled = Array.isArray(bundle?.recalled_memories) ? bundle.recalled_memories : [];
         if (recalled.length) {
             lines.push('Existing memories you already hold (stay consistent with these unless told otherwise):');
-            recalled.slice(0, 6).forEach((m: any) => {
+            recalled.slice(0, 6).forEach((m: *FIX*) => {
                 lines.push(`- [tick ${m.tick ?? 0}] ${String(m.text || '').trim()}`);
             });
         }
@@ -1331,7 +1331,7 @@ window.InspectorMemory = (() => {
         const people = Array.isArray(bundle?.people_profiles) ? bundle.people_profiles : [];
         if (people.length) {
             lines.push('People you know and how you currently feel about them:');
-            people.slice(0, 8).forEach((p: any) => {
+            people.slice(0, 8).forEach((p: *FIX*) => {
                 const prof = p.profile || {};
                 lines.push(`- ${p.name} (${prof.role || 'stranger'}): trust ${prof.trust ?? 0}, fear ${prof.fear ?? 0}, attraction ${prof.attraction ?? 0}, respect ${prof.respect ?? 0}`);
             });
@@ -1345,7 +1345,7 @@ window.InspectorMemory = (() => {
         charName: string,
         theme: string,
         mode: 'opinion' | 'event' | 'social' = 'event',
-        contextBundle?: any
+        contextBundle?: *FIX*
     ): string {
         const vocab = [...new Set(EMOTION_GROUPS.flatMap(g => g.items).filter(l => l !== 'neutral'))];
         const vocabStr = vocab.join(', ');
@@ -1361,7 +1361,7 @@ window.InspectorMemory = (() => {
             ? `Mode: OPINION / REACTION. The user is asking what ${charName} thought or felt about a movie, book, topic, place, or experience. React conversationally in "character_reply", and record the lasting first-person opinion or memory in "memory.text" (category "belief" or "episodic").`
             : mode === 'social'
             ? `Mode: ABOUT A PERSON. The user is describing or asking about an interpersonal moment involving another character (known characters: ${knownChars || 'none'}). React in "character_reply", write ${charName}'s first-person memory in "memory.text" (category "social"), populate "relationship_deltas" for each person involved, and if the other character was present, include "counterpart_memory" from their first-person perspective.`
-            : `Mode: BACKDATED EVENT. The user is authoring or refining a past experience for ${charName} (known areas: ${knownAreas || 'any'}). React in "character_reply", write ${charName}'s vivid first-person memory in "memory.text" (category "episodic"), estimate "tick_offset_minutes" (negative for the past, e.g. -1440 for 1 day ago) if a relative time is implied, and include "derived_expectation" if this event taught ${charName} a lasting habit or caution.`;
+            : `Mode: BACKDATED EVENT. The user is authoring or refining a past experience for ${charName} (known areas: ${knownAreas || '*FIX*'}). React in "character_reply", write ${charName}'s vivid first-person memory in "memory.text" (category "episodic"), estimate "tick_offset_minutes" (negative for the past, e.g. -1440 for 1 day ago) if a relative time is implied, and include "derived_expectation" if this event taught ${charName} a lasting habit or caution.`;
 
         return `${modeGuidance}\n`
             + `Prompt / direction: ${theme}\n`
@@ -1394,8 +1394,8 @@ window.InspectorMemory = (() => {
         charName: string,
         mode: 'opinion' | 'event' | 'social',
         history: Array<{ role: string; content: string }>,
-        draftState?: any,
-        contextBundle?: any
+        draftState?: *FIX*,
+        contextBundle?: *FIX*
     ): Array<{ role: string; content: string }> {
         const messages: Array<{ role: string; content: string }> = [
             { role: 'system', content: M._identityBlock(charName, contextBundle) }
@@ -1594,11 +1594,11 @@ window.InspectorMemory = (() => {
 
     /**
      * Build a multi-emotion picker bound to M._emoSelected (array of
-     * {label,intensity}). Supports many emotions per memory.
+     * {label,intensity}). Supports m*FIX* emotions per memory.
      */
     M._attachEmotionSelector = function (container: HTMLElement, initial: MemoryViewEmotion[]): void {
         M._emoSelected = (Array.isArray(initial) ? initial : []).filter(e => e && e.label);
-        container.innerHTML = '';
+        container.*FIX*= '';
         container.classList.add('memedit-entitybox');
 
         const bar = document.createElement('div');
@@ -1646,7 +1646,7 @@ window.InspectorMemory = (() => {
         chips.style.cssText = 'padding:6px;display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;';
 
         function render(): void {
-            chips.innerHTML = '';
+            chips.*FIX*= '';
             if (M._emoSelected!.length === 0) {
                 const none = document.createElement('div');
                 none.textContent = 'No emotions selected. Pick and add.';
@@ -1815,13 +1815,13 @@ interface MemoryViewApi {
     parseRelativeTime(input: string, currentTick?: number, minutesPerTick?: number, birthTick?: number | null): MemoryViewRelativeTime | null;
     stripEditorialLeakage(memText: string, characterReply?: string): string;
     parseWeaverResponse(raw: string): MemoryViewWeaverDraft | null;
-    fetchMemoryContext(charName: string, query?: string, candidate?: any): Promise<any>;
+    fetchMemoryContext(charName: string, query?: string, candidate?: *FIX*): Promise<*FIX*>;
     buildWeaverMessages(
         charName: string,
         mode: 'opinion' | 'event' | 'social',
         history: Array<{ role: string; content: string }>,
-        draftState?: any,
-        contextBundle?: any
+        draftState?: *FIX*,
+        contextBundle?: *FIX*
     ): Array<{ role: string; content: string }>;
     // internal
     _attachEntitySelector(container: HTMLElement): void;
@@ -1829,9 +1829,9 @@ interface MemoryViewApi {
     _refreshLivePreview(charName: string): void;
     _closeMemoryEditor(): void;
     _embedForEntry(charName: string, entryId: string, text: string): Promise<boolean>;
-    _identityBlock(charName: string, contextBundle?: any): string;
-    _buildSeedPrompt(charName: string, theme: string, mode?: 'opinion' | 'event' | 'social', contextBundle?: any): string;
-    _parseSeedJson(raw: string): any;
+    _identityBlock(charName: string, contextBundle?: *FIX*): string;
+    _buildSeedPrompt(charName: string, theme: string, mode?: 'opinion' | 'event' | 'social', contextBundle?: *FIX*): string;
+    _parseSeedJson(raw: string): *FIX*;
     _runMemoryGeneration(): Promise<void>;
     _saveGeneratedMemory(): void;
     _attachEmotionSelector(container: HTMLElement, initial: MemoryViewEmotion[]): void;
@@ -1850,7 +1850,7 @@ interface MemoryViewApi {
         charName: string;
         mode?: 'opinion' | 'event' | 'social';
         history?: Array<{ role: string; content: string }>;
-        contextBundle?: any;
+        contextBundle?: *FIX*;
         counterpartDraft?: MemoryViewCounterpartDraft | null;
     };
 }
