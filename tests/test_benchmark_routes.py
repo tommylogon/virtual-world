@@ -151,5 +151,31 @@ def test_benchmark_chat_retry_after(client, monkeypatch):
     data = json.loads(resp.data)
     assert data['choices'][0]['message']['content'] == 'Success after retry'
 
+def test_api_action_validate_missing_target(client):
+    resp = client.post('/api/action/validate', json={'action': 'examine'})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert data['valid'] is False
+    assert data['category'] == 'missing_target'
 
+
+def test_api_action_validate_room_and_wait(client):
+    resp1 = client.post('/api/action/validate', json={'action': 'examine room'})
+    assert resp1.status_code == 200
+    data1 = json.loads(resp1.data)
+    assert data1['valid'] is True
+    assert data1['category'] == 'area'
+
+    resp2 = client.post('/api/action/validate', json={'action': 'wait'})
+    assert resp2.status_code == 200
+    data2 = json.loads(resp2.data)
+    assert data2['valid'] is True
+
+
+def test_api_action_validate_not_found(client):
+    resp = client.post('/api/action/validate', json={'action': 'examine non_existent_widget_123'})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert data['valid'] is False
+    assert data['category'] == 'not_found'
 

@@ -69,6 +69,7 @@ window.BenchmarkApp = (() => {
         els.temperatureInput = document.getElementById('bench-temperature');
         els.maxTokensInput = document.getElementById('bench-max-tokens');
         els.contextLengthInput = document.getElementById('bench-context-length');
+        els.reasoningEffortSelect = document.getElementById('bench-reasoning-effort');
         els.runBtn = document.getElementById('bench-run-btn');
         els.cancelBtn = document.getElementById('bench-cancel-btn');
         els.statusBadge = document.getElementById('bench-status-badge');
@@ -1048,7 +1049,8 @@ window.BenchmarkApp = (() => {
                     api_key: els.apiKeyInput.value.trim(),
                     model: model,
                     temperature: parseFloat(els.temperatureInput.value) || 0.7,
-                    max_tokens: parseInt(els.maxTokensInput.value, 10) || 512,
+                    max_tokens: parseInt(els.maxTokensInput.value, 10) || 1512,
+                    reasoning_effort: els.reasoningEffortSelect?.value || 'default',
                     messages: [
                         { role: 'system', content: state.currentPrompt.system },
                         { role: 'user', content: state.currentPrompt.user },
@@ -1151,7 +1153,7 @@ window.BenchmarkApp = (() => {
             }
 
             const outputToEval = contentText.trim() || reasoningText.trim();
-            evaluateModelOutput(model, outputToEval, {
+            await evaluateModelOutput(model, outputToEval, {
                 ttft: firstTokenTime ? (firstTokenTime - startTime) / 1000 : null,
                 total: totalSec,
                 tps: parseFloat(tps),
@@ -1170,7 +1172,7 @@ window.BenchmarkApp = (() => {
         }
     }
 
-    function evaluateModelOutput(model, text, metrics, reasoning = '') {
+    async function evaluateModelOutput(model, text, metrics, reasoning = '') {
         const id = sanitizeId(model);
         const proseEl = document.getElementById(`prose-${id}`);
         const actionEl = document.getElementById(`action-${id}`);
@@ -1204,11 +1206,11 @@ window.BenchmarkApp = (() => {
                 }
             }
             const failMsg = (reasoning && (!text || text === reasoning))
-                ? '❌ Hit token limit while reasoning (increase Max Tokens)'
-                : '❌ Invalid JSON response';
+                ? 'Hit token limit while reasoning (increase Max Tokens)'
+                : 'Invalid JSON response';
             let failProse = '';
             if (proseEl) failProse = proseEl.textContent || '';
-            if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">${failMsg}</span>`;
+            if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">❌ ${failMsg}</span>`;
             state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: failMsg }], output: text, reasoning: reasoning || '', prose: failProse };
             archiveCurrentRoll(model);
             return;
@@ -1220,169 +1222,66 @@ window.BenchmarkApp = (() => {
         const prose = `${monologue}${speech}${emote}`.trim() || 'No monologue or dialogue provided.';
         if (proseEl) proseEl.textContent = prose;
 
-        // Ground truth verification against simulated or current room
-        const player = state.worldData.players?.[state.selectedChar] || {};
-        const roomName = state.selectedArea || player.current_area || player.area || 'Unknown';
-        const room = state.worldData.areas?.[roomName] || {};
-
-        // Valid Exits and Ways: query viewerExits using simulated state if possible
-        const simState = {
-            ...state.worldData,
-            players: {
-                ...state.worldData.players,
-                [state.selectedChar]: {
-                    ...player,
-                    current_area: roomName,
-                    area: roomName,
-                }
-            }
-        };
-
-        const promptExits = (window.PromptBuilder && typeof window.PromptBuilder.viewerExits === 'function')
-            ? window.PromptBuilder.viewerExits(simState, state.selectedChar, room)
-            : (room.exits || {});
-
-        const exitCandidates = new Set();
-        Object.entries(promptExits || {}).forEach(([key, ex]) => {
-            exitCandidates.add(key.toLowerCase().trim());
-            if (ex) {
-                if (ex.direction) exitCandidates.add(String(ex.direction).toLowerCase().trim());
-                if (ex.to_area) exitCandidates.add(String(ex.to_area).toLowerCase().trim());
-                if (ex.target_area) exitCandidates.add(String(ex.target_area).toLowerCase().trim());
-                if (ex.name) exitCandidates.add(String(ex.name).toLowerCase().trim());
-                if (ex.way_name) exitCandidates.add(String(ex.way_name).toLowerCase().trim());
-                if (ex.label) exitCandidates.add(String(ex.label).toLowerCase().trim());
-            }
-        });
-        const COMPASS = {
-            n: 'north', s: 'south', e: 'east', w: 'west',
-            ne: 'northeast', nw: 'northwest', se: 'southeast', sw: 'southwest',
-            u: 'up', d: 'down', out: 'outside', 'in': 'inside'
-        };
-
-        // Valid Items in room and character inventory
-        const areaItems = (window.worldState && typeof window.worldState.getItemsInArea === 'function')
-            ? window.worldState.getItemsInArea(roomName)
-            : (room.items || []).map(i => (typeof i === 'string' ? { name: i } : i));
-        const carriedItems = (window.worldState && typeof window.worldState.getInventory === 'function')
-            ? window.worldState.getInventory(state.selectedChar)
-            : (player.inventory || []);
-
-        const validItemNames = areaItems.map(i => String(i.name || i)).concat(carriedItems.map(String));
-
-        // Valid Characters in room (excluding self)
-        const validPeople = [];
-        Object.entries(state.worldData.players || {}).forEach(([pName, pData]) => {
-            if (pName === state.selectedChar) return;
-            const pArea = pData.current_area || pData.area;
-            if (pArea === roomName) {
-                validPeople.push(pName);
-            }
-        });
-        (room.occupants || []).concat(room.characters || []).forEach(occ => {
-            if (occ !== state.selectedChar && !validPeople.includes(occ)) {
-                validPeople.push(occ);
-            }
-        });
-
-        function matchExit(target) {
-            if (!target) return false;
-            const t = String(target).toLowerCase().trim();
-            if (exitCandidates.has(t)) return true;
-            if (COMPASS[t] && exitCandidates.has(COMPASS[t])) return true;
-            for (const cand of exitCandidates) {
-                if (fuzzyMatch(cand, t)) return true;
-            }
-            return false;
-        }
-
-        function matchItem(target) {
-            if (!target) return false;
-            return validItemNames.some(i => fuzzyMatch(i, target));
-        }
-
-        function matchPerson(target) {
-            if (!target) return false;
-            return validPeople.some(p => fuzzyMatch(p, target));
-        }
-
         flags.push({ pass: true, text: 'Valid JSON output' });
 
-        // Collect all actions (supports both single action and multi-action array)
+        // Collect all actions (supports single action or multi-action array)
         const actionsList = [];
         if (Array.isArray(parsed.actions)) {
             parsed.actions.forEach(a => {
-                actionsList.push({ verb: a.action || a.verb || 'wait', target: a.target || a.item || '', item: a.item });
+                actionsList.push({ action: a.action || a.verb || 'wait', target: a.target || a.item || '', item: a.item });
             });
         } else if (parsed.action) {
-            actionsList.push({ verb: parsed.action, target: parsed.target || parsed.item || '', item: parsed.item });
+            actionsList.push({ action: parsed.action, target: parsed.target || parsed.item || '', item: parsed.item });
         }
 
         if (actionsList.length === 0) {
-            actionsList.push({ verb: 'wait', target: '' });
+            actionsList.push({ action: 'wait', target: '' });
         }
 
         if (actionEl) {
             actionEl.innerHTML = actionsList.map(a => `
                 <div class="bench-action-chip">
-                    <span class="bench-action-chip-verb">${escapeHtml(a.verb)}</span>
+                    <span class="bench-action-chip-verb">${escapeHtml(a.action)}</span>
                     ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
                 </div>
             `).join('');
         }
 
-        actionsList.forEach(a => {
-            const verb = String(a.verb || '').toLowerCase();
-            const target = String(a.target || '').trim();
-            const item = String(a.item || '').trim();
-
-            if (['go', 'approach', 'dash', 'move', 'walk', 'head'].includes(verb) && target) {
-                const matchesExit = matchExit(target);
-                if (!matchesExit) {
-                    const exitList = Array.from(exitCandidates).filter(x => x.length > 2).slice(0, 6).join(', ') || 'none';
-                    flags.push({ pass: false, text: `Target exit '${target}' not in room exits (${exitList})` });
-                } else {
-                    flags.push({ pass: true, text: `Exit '${target}' recognized` });
-                }
+        // Ground-truth validation using real engine validator (POST /api/action/validate)
+        for (const a of actionsList) {
+            let cmdStr = '';
+            if (window.ActionNormalizer && typeof window.ActionNormalizer.normalizeStructuredAction === 'function') {
+                cmdStr = window.ActionNormalizer.normalizeStructuredAction(a);
+            } else {
+                const v = String(a.action || 'wait').trim();
+                const t = String(a.target || a.item || '').trim();
+                cmdStr = t ? `${v} ${t}` : v;
             }
 
-            if (item && item.toLowerCase() !== target.toLowerCase()) {
-                const matchesItem = matchItem(item);
-                if (!matchesItem) {
-                    flags.push({ pass: false, text: `Item '${item}' not in room or inventory` });
-                } else {
-                    flags.push({ pass: true, text: `Item '${item}' verified in room/inventory` });
-                }
-            }
-
-            if (target && !['go', 'approach', 'dash', 'move', 'walk', 'head', 'wait'].includes(verb)) {
-                const isItemVerb = ['take', 'get', 'drop', 'examine', 'inspect', 'look at', 'read', 'use', 'drink', 'eat', 'equip', 'unequip', 'open', 'close', 'wear'].includes(verb);
-                const isSocialVerb = ['talk', 'speak', 'say', 'attack', 'whisper', 'ask', 'tell', 'kiss', 'hug'].includes(verb);
-
-                if (isItemVerb) {
-                    if (matchItem(target)) {
-                        flags.push({ pass: true, text: `Item '${target}' verified in room/inventory` });
+            try {
+                const valResp = await fetch('/api/action/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: cmdStr,
+                        character: state.selectedChar,
+                        area: state.selectedArea,
+                    })
+                });
+                if (valResp.ok) {
+                    const valData = await valResp.json();
+                    if (valData.valid) {
+                        flags.push({ pass: true, text: valData.detail || `Action '${cmdStr}' verified by engine` });
                     } else {
-                        flags.push({ pass: false, text: `Item '${target}' not in room or inventory` });
-                    }
-                } else if (isSocialVerb) {
-                    if (matchPerson(target)) {
-                        flags.push({ pass: true, text: `Target character '${target}' verified in room` });
-                    } else {
-                        flags.push({ pass: false, text: `Character '${target}' not found in room (${validPeople.join(', ') || 'no one else'})` });
+                        flags.push({ pass: false, text: valData.detail || `Action '${cmdStr}' rejected: ${valData.category || 'invalid'}` });
                     }
                 } else {
-                    const matchesPerson = matchPerson(target);
-                    const matchesItem = matchItem(target);
-                    const matchesExit = matchExit(target);
-                    if (!matchesPerson && !matchesItem && !matchesExit && !['room', 'around', 'area'].includes(target.toLowerCase())) {
-                        flags.push({ pass: false, text: `Target '${target}' not found in room context` });
-                    } else {
-                        flags.push({ pass: true, text: `Target '${target}' recognized` });
-                    }
+                    flags.push({ pass: false, text: `Engine validation error for '${cmdStr}'` });
                 }
+            } catch (vErr) {
+                flags.push({ pass: false, text: `Could not reach engine validator for '${cmdStr}'` });
             }
-        });
+        }
 
         if (flagsEl) {
             flagsEl.innerHTML = flags.map(f => `
@@ -1398,7 +1297,7 @@ window.BenchmarkApp = (() => {
             parsed,
             flags,
             prose,
-            actions_summary: actionsList,
+            actions_summary: actionsList.map(a => ({ verb: a.action, target: a.target, item: a.item })),
             output: text,
             reasoning: reasoning || '',
         };
@@ -1437,6 +1336,7 @@ window.BenchmarkApp = (() => {
                 api_base: els.apiBaseInput?.value?.trim() || '',
                 temperature: parseFloat(els.temperatureInput?.value) || 0.7,
                 max_tokens: parseInt(els.maxTokensInput?.value, 10) || 1512,
+                reasoning_effort: els.reasoningEffortSelect?.value || 'default',
                 context_length: parseInt(els.contextLengthInput?.value, 10) || null
             },
             summary: {

@@ -243,6 +243,17 @@ def register_benchmark_routes(app):
             'max_tokens': max_tokens,
             'stream': stream,
         }
+        reasoning_effort = data.get('reasoning_effort')
+        if reasoning_effort and reasoning_effort != 'default':
+            if reasoning_effort == 'none':
+                req_payload['extra_body'] = {'thinking': {'type': 'disabled'}}
+                req_payload['reasoning'] = {'exclude': True}
+                req_payload['enable_thinking'] = False
+            else:
+                req_payload['reasoning_effort'] = reasoning_effort
+                req_payload['extra_body'] = {'thinking': {'type': 'enabled'}}
+                req_payload['reasoning'] = {'effort': reasoning_effort}
+
         if stream:
             req_payload['stream_options'] = {'include_usage': True}
 

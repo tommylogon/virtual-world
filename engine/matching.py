@@ -493,6 +493,14 @@ class NameMatching:
             if name.lower() == input_lower:
                 return name
 
+        # Leading articles (the, a, an) - strip for subsequent tiers (task-907)
+        cleaned_input = re.sub(r'^(?:the|a|an)\s+', '', input_lower)
+        if cleaned_input != input_lower:
+            for name in item_names:
+                if name.lower() == cleaned_input:
+                    self._fuzzy_match_note = f"matched '{input_str}' as item '{name}' (exact match minus article)"
+                    return name
+
         # Guard: no substring/fuzzy matching for pathological single-char inputs
         if len(input_lower) < 2:
             return None
@@ -501,13 +509,21 @@ class NameMatching:
         #    or name appearing as a whole word inside the input. Raw substring
         #    is NOT used ("stove" must not match "stovepipe").
         direct_matches = []
-        for name in item_names:
-            nl = name.lower()
-            if re.search(r'(?<!\w)' + re.escape(input_lower) + r'(?!\w)', nl):
-                direct_matches.append(name)
-                continue
-            if re.search(r'(?<!\w)' + re.escape(nl) + r'(?!\w)', input_lower):
-                direct_matches.append(name)
+        targets = [input_lower]
+        if cleaned_input != input_lower:
+            targets.append(cleaned_input)
+        for target in targets:
+            for name in item_names:
+                nl = name.lower()
+                if re.search(r'(?<!\w)' + re.escape(target) + r'(?!\w)', nl):
+                    if name not in direct_matches:
+                        direct_matches.append(name)
+                    continue
+                if re.search(r'(?<!\w)' + re.escape(nl) + r'(?!\w)', target):
+                    if name not in direct_matches:
+                        direct_matches.append(name)
+            if direct_matches:
+                break
         if len(direct_matches) == 1:
             self._fuzzy_match_note = f"matched '{input_str}' as item '{direct_matches[0]}' (substring match)"
             return direct_matches[0]
@@ -566,6 +582,8 @@ class NameMatching:
 
         # 3. Fuzzy difflib match - score each item name against the input (tight cutoff)
         scored = difflib.get_close_matches(input_lower, [n.lower() for n in item_names], n=1, cutoff=0.7)
+        if not scored and cleaned_input != input_lower:
+            scored = difflib.get_close_matches(cleaned_input, [n.lower() for n in item_names], n=1, cutoff=0.7)
         if scored:
             for name in item_names:
                 if name.lower() == scored[0]:

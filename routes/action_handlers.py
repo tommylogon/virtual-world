@@ -279,6 +279,188 @@ def handle_autocomplete(app):
     return jsonify({"options": options, "verb": verb, "prefix": prefix})
 
 
+def validate_action_command(world, char_name, cmd):
+    """Dry-run validation of a command string against live world invariants without mutating state."""
+    if not cmd or not cmd.strip():
+        return {"valid": False, "category": "empty", "detail": "No action specified."}
+
+    cmd = cmd.strip().lower()
+    alias_map = [
+        ("read ", "examine "),
+        ("inspect ", "examine "),
+        ("check ", "examine "),
+        ("light ", "use "),
+        ("ignite ", "use "),
+        ("snatch ", "take "),
+        ("collect ", "take "),
+        ("hit ", "attack "),
+        ("strike ", "attack "),
+        ("punch ", "attack "),
+        ("yell ", "shout "),
+        ("walk ", "go "),
+        ("move ", "go "),
+        ("head ", "go "),
+        ("step ", "go "),
+    ]
+    for alias_prefix, canonical_prefix in alias_map:
+        if cmd.startswith(alias_prefix):
+            cmd = canonical_prefix + cmd[len(alias_prefix):].strip()
+            break
+    if cmd.startswith("pick up "):
+        cmd = "take " + cmd[8:].strip()
+    elif cmd.startswith("pick "):
+        cmd = "take " + cmd[5:].strip()
+
+    tokens, _ = tokenize_command_detailed(cmd)
+    if not tokens:
+        return {"valid": False, "category": "empty", "detail": "Empty command."}
+
+    verb = tokens[0].lower()
+    target_str = ' '.join(tokens[1:]).strip() if len(tokens) > 1 else ""
+    target_lower = target_str.lower()
+    target_cleaned = re.sub(r'^(?:the|a|an)\s+', '', target_lower)
+
+    # 1. Identify player current area
+    player_obj = world.players.get(char_name) if hasattr(world, 'players') else None
+    area_name = player_obj.current_area if player_obj else (world.current_area.name if world.current_area else None)
+    area_id = world._area_node_id(area_name) if hasattr(world, '_area_node_id') and area_name else world._get_current_area_id()
+    current_area_node = world.graph.get_node(area_id) if area_id else None
+
+    # Exits in current area
+    matcher = getattr(getattr(world, "movement", None), "name_matcher", None)
+    exits = matcher._collect_exits(area_id) if (matcher and area_id) else []
+
+    # Compass directions
+    compass_dirs = {
+        "north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest",
+        "up", "down", "in", "out", "outside", "inside",
+        "n", "s", "e", "w", "ne", "nw", "se", "sw", "u", "d"
+    }
+
+    # 2. Check if whole command is an exit/way or compass direction
+    if not target_str and (cmd in compass_dirs or any(cmd in (str(h).lower(), str(t).lower()) for _, _, h, t in exits)):
+        return {"valid": True, "category": "exit", "resolved_target": cmd, "detail": f"Exit/direction '{cmd}'"}
+
+    # 3. Check bare verbs that strictly require a target
+    if not target_str and verb in _VERBS_NEEDING_TARGET:
+        return {"valid": False, "category": "missing_target", "detail": f"Action '{verb}' requires a target."}
+
+    # 4. Examine resolution: character -> area -> item -> exit/way
+    if verb == "examine":
+        # Character check (self or others in room)
+        if target_lower in ("self", "me", "myself") or target_lower == char_name.lower():
+            return {"valid": True, "category": "character", "resolved_target": char_name, "detail": f"Self ({char_name})"}
+
+        resolved_char, _ = world._match_character_name(target_str)
+        if resolved_char:
+            target_p = world.players.get(resolved_char)
+            if target_p and (target_p.current_area == area_name or area_name is None):
+                return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' in room"}
+
+        # Area check (current area name, aliases, 'room', 'here')
+        area_phrases = {"room", "area", "here", "surroundings", "the room", "the area", "current room", "current area"}
+        if current_area_node and (
+            target_lower in area_phrases
+            or target_lower in str(current_area_node.name).lower()
+            or target_lower in str(current_area_node.id).lower()
+            or target_cleaned == str(current_area_node.name).lower()
+            or (area_name and target_lower in area_name.lower())
+        ):
+            return {"valid": True, "category": "area", "resolved_target": current_area_node.name, "detail": f"Area '{current_area_node.name}'"}
+
+        # Item check (in room, containers, or inventory)
+        matched_item = world._match_item_name(target_str)
+        if matched_item:
+            return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified in room/inventory"}
+
+        # Exit/way check
+        for _edge, way_node, handle, target_area in exits:
+            way_names = [str(handle).lower(), str(target_area).lower()]
+            if way_node:
+                way_names.extend([str(getattr(way_node, 'name', '')).lower(), str(getattr(way_node, 'id', '')).lower()])
+            if any(target_lower in wn or target_cleaned in wn or wn in target_lower for wn in way_names if wn):
+                return {"valid": True, "category": "exit", "resolved_target": str(handle), "detail": f"Exit/way '{handle}' verified"}
+
+        return {"valid": False, "category": "not_found", "detail": f"Target '{target_str}' not found in room context, inventory, or exits."}
+
+    # 5. Movement resolution
+    if verb in ("go", "approach", "dash", "crawl", "climb", "jump"):
+        if target_lower in compass_dirs:
+            return {"valid": True, "category": "exit", "resolved_target": target_lower, "detail": f"Direction '{target_lower}'"}
+
+        for _edge, way_node, handle, target_area in exits:
+            way_names = [str(handle).lower(), str(target_area).lower()]
+            if way_node:
+                way_names.extend([str(getattr(way_node, 'name', '')).lower(), str(getattr(way_node, 'id', '')).lower()])
+            if any(target_lower in wn or target_cleaned in wn or wn in target_lower for wn in way_names if wn):
+                return {"valid": True, "category": "exit", "resolved_target": str(handle), "detail": f"Exit '{handle}' verified"}
+
+        # Approach item or character in room
+        matched_item = world._match_item_name(target_str)
+        if matched_item:
+            return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' in room"}
+
+        resolved_char, _ = world._match_character_name(target_str)
+        if resolved_char:
+            return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' in room"}
+
+        return {"valid": False, "category": "not_found", "detail": f"Destination or target '{target_str}' not found in room exits or objects."}
+
+    # 6. Item actions
+    if verb in ("take", "get", "grab", "drop", "put", "place", "give", "steal", "use", "use_on", "eat", "drink", "wear", "equip", "unequip", "open", "close"):
+        matched_item = world._match_item_name(target_str)
+        if matched_item:
+            return {"valid": True, "category": "item", "resolved_target": matched_item, "detail": f"Item '{matched_item}' verified"}
+        if verb in ("open", "close"):
+            for _edge, way_node, handle, target_area in exits:
+                way_names = [str(handle).lower(), str(target_area).lower()]
+                if way_node:
+                    way_names.extend([str(getattr(way_node, 'name', '')).lower(), str(getattr(way_node, 'id', '')).lower()])
+                if any(target_lower in wn or target_cleaned in wn for wn in way_names if wn):
+                    return {"valid": True, "category": "exit", "resolved_target": str(handle), "detail": f"Door/way '{handle}' verified"}
+        return {"valid": False, "category": "not_found", "detail": f"Item '{target_str}' not found in room or inventory."}
+
+    # 7. Social / Conversation actions
+    if verb in ("speak", "say", "whisper", "shout", "scream", "sing"):
+        return {"valid": True, "category": "speech", "detail": "Spoken line verified."}
+
+    if verb in ("attack", "kill", "hit", "talk", "hug", "kiss", "caress", "lead", "wake"):
+        resolved_char, _ = world._match_character_name(target_str)
+        if resolved_char:
+            return {"valid": True, "category": "character", "resolved_target": resolved_char, "detail": f"Character '{resolved_char}' verified"}
+        return {"valid": False, "category": "not_found", "detail": f"Character '{target_str}' not found in room."}
+
+    # 8. Self-contained actions
+    if verb in ("wait", "look", "inventory", "inv", "i", "stats", "status", "listen", "stand", "rest", "sit", "lie", "fumble", "search", "meditate", "recall", "stop", "dress", "undress"):
+        return {"valid": True, "category": "self", "detail": f"Action '{verb}' recognized."}
+
+    return {"valid": True, "category": "action", "detail": f"Action '{cmd}' recognized."}
+
+
+def handle_validate_action(app):
+    data = request.get_json() or {}
+    cmd = data.get('action') or data.get('command') or ''
+    if not cmd.strip():
+        return jsonify({"valid": False, "category": "empty", "detail": "No action specified."}), 400
+
+    world = app.world
+    char_name = data.get('character') or data.get('player') or world.player_manager.active_player
+    simulated_area = data.get('area')
+
+    prev_area = None
+    player_obj = world.players.get(char_name) if hasattr(world, 'players') else None
+    if simulated_area and player_obj and player_obj.current_area != simulated_area:
+        prev_area = player_obj.current_area
+        player_obj.current_area = simulated_area
+
+    try:
+        result = validate_action_command(world, char_name, cmd)
+        return jsonify(result), 200
+    finally:
+        if prev_area and player_obj:
+            player_obj.current_area = prev_area
+
+
 def handle_take_action(app):
     data = request.get_json()
     if not data or 'command' not in data:
@@ -401,7 +583,26 @@ def handle_take_action(app):
         elif cmd.startswith("go "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[3:].strip()
-            _move_and_describe(lambda: world.move_to_area(direction))
+            _hm = re.match(r'^([a-z]+)\s+(\d+)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes)$', direction, re.I)
+            from engine import timeskip as _ts
+            if _hm and _hm.group(1).lower() in _ts.HEADING_WORDS:
+                _hdg = _hm.group(1).lower()
+                _num = int(_hm.group(2))
+                _unit = _hm.group(3).lower()
+                _mins = _num * 60 if _unit.startswith('h') else _num
+                _prev = world.current_area.name if world.current_area else None
+                _res = _ts.advance(world, _mins, intent='travel', heading=_hdg)
+                if not _res.ok:
+                    add_output(_res.reason or 'You cannot travel that way right now.')
+                else:
+                    for _line in (_res.lines or []):
+                        add_output(_line)
+                    if _res.interrupted and _res.interrupt and _res.interrupt.get('detail'):
+                        add_output(_res.interrupt['detail'])
+                    if world.current_area and _prev != world.current_area.name:
+                        add_output(world.get_area_description())
+            else:
+                _move_and_describe(lambda: world.move_to_area(direction))
 
         elif cmd.startswith("approach "):
             was_movement = True
@@ -1046,7 +1247,8 @@ def handle_take_action(app):
                     f"Mental map: you are in {curr}. You have visited {len(visited)} areas{extra} "
                     f"and surveyed {total_cells} grid cells across your travels."
                 )
-            elif arg.startswith("path ") or arg.startswith("path to ") or arg.startswith("to "):
+            else:
+                is_path_query = arg.startswith(("path ", "path to ", "to "))
                 target = arg
                 for prefix in ("path to ", "path ", "to "):
                     if target.startswith(prefix):
@@ -1057,24 +1259,12 @@ def handle_take_action(app):
                 # authored known/known_areas, not only what they walked.
                 from engine.spatial_memory import SpatialMemory, known_route_areas
                 known = known_route_areas(player, world.graph)
-                sm = SpatialMemory(world.graph)
-                route = sm.find_route(curr, target, known)
+                route = SpatialMemory(world.graph).find_route(curr, target, known)
                 if route:
                     steps = [f"go {step['direction']} to {step['to']}" for step in route]
                     add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")
-                else:
+                elif is_path_query:
                     add_output(f"You do not recall a known path from {curr} to {target}.")
-            else:
-                target = arg
-                curr = world.current_area.name if world.current_area else ""
-                # task-467: same known union as `recall path to X`.
-                from engine.spatial_memory import SpatialMemory, known_route_areas
-                known = known_route_areas(player, world.graph)
-                sm = SpatialMemory(world.graph)
-                route = sm.find_route(curr, target, known)
-                if route:
-                    steps = [f"go {step['direction']} to {step['to']}" for step in route]
-                    add_output(f"Route to {target} ({len(steps)} hops): " + ", then ".join(steps) + ".")
                 else:
                     add_output(f"You do not recall having charted or visited '{target}'.")
 

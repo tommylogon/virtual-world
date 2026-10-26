@@ -12,6 +12,7 @@ from .action_handlers import (
     handle_get_state,
     handle_autocomplete,
     handle_take_action,
+    handle_validate_action,
     handle_process_emote,
     handle_llm_respond_post,
     handle_apply_turn_decay,
@@ -36,6 +37,10 @@ def register_action_routes(app):
     @app.route('/api/autocomplete', methods=['POST'])
     def autocomplete():
         return handle_autocomplete(app)
+
+    @app.route('/api/action/validate', methods=['POST'])
+    def validate_action():
+        return handle_validate_action(app)
 
     @app.route('/api/action', methods=['POST'])
     def take_action():
