@@ -1,8 +1,8 @@
 "use strict";
 /**
- * DiffModal — Reusable conflict-resolution modal for world↔library sync.
+ * DiffModal - Reusable conflict-resolution modal for world↔library sync.
  *
- * @module shared/diff-modal — world↔library conflict resolution
+ * @module shared/diff-modal - world↔library conflict resolution
  * @contributes DiffModal.show(current, incoming, sections, options) → update / duplicate / cancel, with per-entry selection
  * @powers choosing exactly which library sections (or individual entries) overwrite a world node
  * @relates used by template-sync and the item-library refresh flows
@@ -26,8 +26,8 @@
  *   //        | { action: 'update',    sections: [...], entries: {...} }
  *   //        | { action: 'duplicate', name, id, sections: [...], entries: {...} }
  *
- *   `sections`  — whole-section keys to apply.
- *   `entries`   — { key: [entryKey, ...] } per-entry selection for
+ *   `sections`  - whole-section keys to apply.
+ *   `entries`   - { key: [entryKey, ...] } per-entry selection for
  *                 perEntry sections that are only partially selected.
  *
  * Sections format:
@@ -313,8 +313,8 @@ window.DiffModal = (() => {
             overlay.className = 'modal-overlay';
             const toWorld = options.direction === 'to-world';
             const clobberTip = toWorld
-                ? 'This field is empty in the library but has data in the world — applying would erase it.'
-                : 'This field has data in the library but is empty in the world — applying would erase it.';
+                ? 'This field is empty in the library but has data in the world - applying would erase it.'
+                : 'This field has data in the library but is empty in the world - applying would erase it.';
             const modal = document.createElement('div');
             modal.className = 'modal-window';
             const diffs = sections.map((s) => {
@@ -332,7 +332,7 @@ window.DiffModal = (() => {
                 + '</div>';
             if (!hasDiffs) {
                 html += '<p style="padding:12px 0;color:var(--text-muted);font-size:13px;">'
-                    + 'No changes detected — the library entry is already up to date.'
+                    + 'No changes detected - the library entry is already up to date.'
                     + '</p>'
                     + '<div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--border);">'
                     + '<button class="btn btn-sm" id="diff-modal-close">OK</button>'

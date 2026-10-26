@@ -568,8 +568,20 @@
             }
             const isActing = Boolean(window.CommonsAgent?.controllers?.[charName]);
             if (presenceEl) {
-                presenceEl.textContent = isActing ? 'Thinking right now...' : 'In conversation';
-                presenceEl.className = `commons-drawer-presence ${isActing ? 'thinking' : 'active'}`;
+                const statusText = isActing ? 'Thinking right now...' : 'In conversation';
+                if (window.Lit?.html && window.UiPrimitives?.StatusBadge) {
+                    const badge = window.UiPrimitives.StatusBadge({
+                        label: statusText,
+                        color: isActing ? '#3b82f6' : '#22c55e',
+                        icon: isActing ? '💭' : '🟢',
+                        active: true
+                    });
+                    window.Lit.render(badge, presenceEl);
+                }
+                else {
+                    presenceEl.textContent = statusText;
+                    presenceEl.className = `commons-drawer-presence ${isActing ? 'thinking' : 'active'}`;
+                }
             }
             // Fetch or get context
             let context = state.characterContextCache?.[charName];
@@ -585,7 +597,16 @@
             }
             if (traitsEl) {
                 const traitKeys = Object.keys(context?.traits || {}).filter(k => context.traits[k]);
-                traitsEl.innerHTML = traitKeys.map((t) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
+                if (window.Lit?.html && window.UiPrimitives?.StatusBadge) {
+                    const badges = traitKeys.map((t) => window.UiPrimitives.StatusBadge({
+                        label: t,
+                        color: 'var(--bg-inset, #242a33)'
+                    }));
+                    window.Lit.render(window.Lit.html `${badges}`, traitsEl);
+                }
+                else {
+                    traitsEl.innerHTML = traitKeys.map((t) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
+                }
             }
             // Render turn history and monologue
             const turns = state.characterTurns?.[charName] || [];
