@@ -8,7 +8,7 @@ tags: [system/ui]
 ## What you can do
 
 Tune the engine without editing code. Settings covers three different things in
-three different places: the **engine's numeric constants** (light, heat, sound —
+three different places: the **engine's numeric constants** (light, heat, sound  - 
 see [[UI & Settings/Engine Config|Engine Config]]), the **browser-side
 preferences** (API keys, model, graph layout), and the **scenario and app
 saves**. Change one and it persists; change the engine constants and they apply
@@ -96,7 +96,7 @@ When enabled (`auto_generate_descriptions: true`, default), equipping/unequippin
 
 - **UI**: Checkbox in the Settings panel (Agent Behavior group)
 - **API**: `GET/POST /api/settings/auto_generate_descriptions`
-- **Effect**: When off, no description is regenerated on equip/unequip — both the backend fallback rebuild (in `engine/equipment.py`) and the frontend LLM call (in `runAction`) are skipped. The manual "🤖 Generate from Equipment" button in the inspector always works regardless of this setting.
+- **Effect**: When off, no description is regenerated on equip/unequip  -  both the backend fallback rebuild (in `engine/equipment.py`) and the frontend LLM call (in `runAction`) are skipped. The manual "🤖 Generate from Equipment" button in the inspector always works regardless of this setting.
 
 ### Turn-Based Mode
 
@@ -105,7 +105,7 @@ When enabled, the agent engine cycles through all characters in turn order inste
 - `turn_order`: `sequential` (alphabetical), `random`, or `initiative` (d20 + DEX)
 - **Reactive mode**: When on, agents use 3-phase think→act→react. When off, a single LLM call produces thought+speech+action+emote.
 
-**Location note (task-250)**: the Turn-Based Mode toggle and Order dropdown live in the **left-panel Agents pane** (🎮 Turn Order group under the agent list), merged with the former initiative tab — not in the settings modal.
+**Location note (task-250)**: the Turn-Based Mode toggle and Order dropdown live in the **left-panel Agents pane** (🎮 Turn Order group under the agent list), merged with the former initiative tab  -  not in the settings modal.
 
 ### Manual Mode
 
@@ -113,7 +113,7 @@ When enabled, the LLMClient returns a hardcoded manual response instead of makin
 
 ## Engine Config (task-304)
 
-The settings modal also has a **⚙️ Engine Config** tab — a server-side tuning menu for the
+The settings modal also has a **⚙️ Engine Config** tab  -  a server-side tuning menu for the
 engine's numeric constants (sound propagation, heat propagation rate, light spill). Unlike the
 client-side settings above (IndexedDB), it persists to `data/engine_config.json` and applies
 live without restarting the server.
@@ -121,7 +121,7 @@ live without restarting the server.
 - Backend: `engine/runtime_config.py` (`DEFAULTS` + overrides + `config.get()`), read at call
   time by `engine/sound.py`, `engine/environment_propagation.py`, `engine/lighting.py`.
 - Routes: `GET/POST /api/settings/engine_config`, `POST /api/settings/engine_config/reset`.
-- UI: `static/js/ui/engine-config-view.js` — lit-html, schema-driven; new keys appear
+- UI: `static/js/ui/engine-config-view.js`  -  lit-html, schema-driven; new keys appear
   automatically when registered in `DEFAULTS` + `SCHEMA`.
 
 See [[Engine Config]] for the full key table, the "add a new tunable" recipe, and how
@@ -137,7 +137,7 @@ The Settings panel (`static/js/ui/settings-view.js`) provides tabbed configurati
 - Model selector (dropdown + custom text input for local models)
 - Temperature slider (0-2, displays current value)
 - Max tokens (number input)
-- Test Connection button — sends `Say "ok"` via LLM and reports success/failure
+- Test Connection button  -  sends `Say "ok"` via LLM and reports success/failure
 
 ### Simulation Tab
 - Reactive mode toggle (also: Ghost mode, Manual mode, RPM/TPM limits, Show Logs, Streaming)
@@ -149,7 +149,7 @@ The Settings panel (`static/js/ui/settings-view.js`) provides tabbed configurati
 
 ### Profiles
 The settings system supports **named profiles** for storing different LLM provider configurations. The default profile is **LM Studio (Local)** (`http://localhost:1234/v1`, model `glm-4-9b-0414`); built-in profiles include:
-- LM Studio (Local) — the default (local, model `glm-4-9b-0414`)
+- LM Studio (Local)  -  the default (local, model `glm-4-9b-0414`)
 - OpenAI (GPT-4.1-mini)
 - OpenAI (GPT-4o)
 - DeepSeek
@@ -157,19 +157,19 @@ The settings system supports **named profiles** for storing different LLM provid
 - Groq
 
 ### Embedding Tab
-- Provider: **Local (sentence-transformers)** — built-in model loaded on demand, no API key needed
-- Provider: **API (LLM Provider)** — uses your LLM provider's `/embeddings` endpoint
+- Provider: **Local (sentence-transformers)**  -  built-in model loaded on demand, no API key needed
+- Provider: **API (LLM Provider)**  -  uses your LLM provider's `/embeddings` endpoint
 - Embedding Model (API mode): text input for model name (e.g. `text-embedding-3-small`, `text-embedding-qwen3-embedding-0.6b`)
 
-The embedding source is persisted in IndexedDB and can be changed per session without restarting the server. the client storage layer respects the provider setting — API mode skips the server-side call entirely.
+The embedding source is persisted in IndexedDB and can be changed per session without restarting the server. the client storage layer respects the provider setting  -  API mode skips the server-side call entirely.
 
 Profiles are managed via:
-- `config.getProfiles()` — list all profiles
-- `config.applyProfile(name)` — load a profile's settings
-- `config.saveProfile(name, data)` — save to a profile
-- `config.saveProfileFromCurrent()` — update current profile
-- `config.saveProfileAsNew()` — create new profile from current settings
-- `config.deleteProfile_()` — remove a profile
+- `config.getProfiles()`  -  list all profiles
+- `config.applyProfile(name)`  -  load a profile's settings
+- `config.saveProfile(name, data)`  -  save to a profile
+- `config.saveProfileFromCurrent()`  -  update current profile
+- `config.saveProfileAsNew()`  -  create new profile from current settings
+- `config.deleteProfile_()`  -  remove a profile
 
 Profile data includes: `apiKey`, `apiBase`, `model`, `streaming`, `showLogs`, `turnBased`, `turnOrder`.
 
@@ -193,8 +193,8 @@ Profiles are stored separately from global config in IndexedDB's `profiles` stor
 ### World State Persistence
 
 Game state (areas, players, items, etc.) is persisted via:
-- **Save Game**: `_save_game()` in `routes/helpers.py:133` — full runtime snapshot to `saves/<name>_<timestamp>.json`
-- **Save Scenario**: `_save_scenario()` in `routes/helpers.py:108` — strips play artifacts, saves authorial content to `data/scenarios/<name>.json`
+- **Save Game**: `_save_game()` in `routes/helpers.py:133`  -  full runtime snapshot to `saves/<name>_<timestamp>.json`
+- **Save Scenario**: `_save_scenario()` in `routes/helpers.py:108`  -  strips play artifacts, saves authorial content to `data/scenarios/<name>.json`
 - **Library**: Individual entity files in `data/library/<type>/<id>.json`
 
 ## Related tasks
@@ -220,12 +220,12 @@ Game state (areas, players, items, etc.) is persisted via:
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[save-load|Save / load]] (#58), [[settings|Settings]] (#59)
+**Features**  -  [[save-load|Save / load]] (#58), [[settings|Settings]] (#59)
 
-**Dev tasks** — [[dev_tasks/todo/ui/task-455-save-load-dialog-ux-in-modal-rename-and-confirms-autosave-row-actions|task]]
+**Dev tasks**  -  [[task-455-save-load-dialog-ux-in-modal-rename-and-confirms-autosave-row-actions|task]]
 
-**Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[Inspector Panels]], [[NL Editor]], [[Recent Edits & Undo]]
+**Neighbouring notes**  -  [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[Inspector Panels]], [[NL Editor]], [[Recent Edits & Undo]]
 
 <!-- connected:end -->

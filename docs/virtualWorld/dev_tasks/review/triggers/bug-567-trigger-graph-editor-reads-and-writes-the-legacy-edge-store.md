@@ -11,10 +11,6 @@ wiki: "[[Triggers]]"
 **Filed:** 2026-10-22
 **Related:** bug-566
 
-<!-- deps:start -->
-**Related:** [[bug-566-load-crashes-when-properties-triggers-is-an-object]]
-<!-- deps:end -->
-
 ## What
 
 Every trigger surface in the editor still reads and writes the retired representation. `_getNodeTriggerData` calls `triggersFromGraphEdges`, which filters `edge.type === 'triggers'` only, so a node whose rules live in `properties.triggers` shows zero (measured: a node with two property triggers and no edges returns 0). The Graph editor then opens a blank default `on_use` and saves by creating a `logic_trigger` node plus a `triggers` edge, never touching the property array. Suggest/Apply does the same (`_applyTriggerDiff`, `createTriggerOnNode`). The item library reads the same edge-only path when it builds a world-to-library payload. And `compileToEngine` returns only `{trigger_type, effects, conditions, fail_message}`, so a graph save drops `id`, `once`, `fired`, `cooldown` and `success_message` (probe: those five keys absent from the compiled result).

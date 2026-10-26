@@ -3,6 +3,12 @@
  * Warn an open editor tab when its served frontend files change on disk.
  * The page embeds the fingerprint at render time; the endpoint returns the
  * current fingerprint without caching.
+ *
+ * @module ui/source-version - warn editor tabs when served files change on disk
+ * @contributes polls /api/client-version and shows a reload notice when changed
+ * @powers source-refresh-notice banner in the editor
+ * @relates templates/index.html
+ * @docs none
  */
 (() => {
     const loadedVersion = document.body?.dataset.clientVersion;

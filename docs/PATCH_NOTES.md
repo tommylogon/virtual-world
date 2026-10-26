@@ -3,8 +3,10 @@
 Authoring and release notes for VirtualWorld live in four places, deliberately:
 
 - **[`CHANGELOG.md`](CHANGELOG.md)** - the canonical, version-by-version history. Start here.
-- **[`docs/virtualWorld/Patch Notes 2026-10-22.md`](docs/virtualWorld/Patch%20Notes%202026-10-22.md)**
+- **[`docs/virtualWorld/Patch Notes 2026-10-26.md`](docs/virtualWorld/Patch%20Notes%202026-10-26.md)**
   - the current shareable release note, written for someone who does not know the codebase.
+- **[`docs/virtualWorld/Patch Notes 2026-10-22.md`](docs/virtualWorld/Patch%20Notes%202026-10-22.md)**
+  - covering Play Mode sandboxing, raycast sightlines, worn gear, and aliases.
 - **[`docs/virtualWorld/Patch Notes 2026-10-15.md`](docs/virtualWorld/Patch%20Notes%202026-10-15.md)**
   - the previous release note, covering The Commons.
 - **[`docs/virtualWorld/Patch Notes 2026-08-22 to 2026-09-22.md`](docs/virtualWorld/Patch%20Notes%202026-08-22%20to%202026-09-22.md)**

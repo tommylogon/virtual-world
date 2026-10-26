@@ -7,6 +7,7 @@ Reads the real graph directly - no extraction, no junk.
 from collections import deque
 from typing import Dict, List, Optional, Set
 
+from engine.fog import only_known, resolve_known_area
 from graph import EDGE_CONNECTION, WorldGraph
 
 
@@ -31,22 +32,9 @@ def known_route_areas(player, graph) -> Set[str]:
         except TypeError:
             names.update(visited() or ())
 
-    nodes = getattr(graph, "nodes", {}) or {}
-    by_name: Dict[str, object] = {}
-    for node in nodes.values():
-        if getattr(node, "type", None) == "area" and getattr(node, "name", None):
-            by_name.setdefault(str(node.name), node)
-
-    getter = getattr(graph, "get_node", None)
-    for entry in getattr(player, "known", []) or []:
-        text = str(entry or "").strip()
-        if not text:
-            continue
-        node = getter(text) if callable(getter) else None
-        if node is None:
-            node = by_name.get(text)
-        if (node is not None and getattr(node, "type", None) == "area"
-                and getattr(node, "name", None)):
+    for entry in only_known(player, getattr(player, "known", []) or []):
+        node = resolve_known_area(graph, entry)
+        if node is not None and getattr(node, "name", None):
             names.add(str(node.name))
     return names
 
@@ -66,7 +54,7 @@ class SpatialMemory:
         """Return a formatted ``=== KNOWN ROUTES FROM HERE ===`` block.
 
         Only areas in *known_areas* appear in the results.  Routes are
-        built by traversing real graph edges (area → way → area).
+        built by traversing real graph edges (area -> way -> area).
         """
         current_id = self._area_id(current_area)
         if not current_id or current_id not in self.graph.nodes:
@@ -110,7 +98,7 @@ class SpatialMemory:
 
         lines = ["", "=== KNOWN ROUTES FROM HERE ==="]
         for r in routes[:4]:
-            steps = " → ".join(r["path"])
+            steps = " \u2192 ".join(r["path"])
             lines.append(f"{r['area']}: {steps}")
         return "\n".join(lines)
 
@@ -168,9 +156,12 @@ class SpatialMemory:
     # ── helpers ──────────────────────────────────────────────────────────
 
     def _area_id(self, area_name: str) -> Optional[str]:
-        """Convert area name to graph node ID."""
+        """Convert area name or id to graph node ID."""
         if not area_name:
             return None
+        resolved = resolve_known_area(self.graph, area_name)
+        if resolved is not None and getattr(resolved, "id", None):
+            return str(resolved.id)
         return f"area_{area_name.lower().replace(' ', '_')}"
 
     def _id_to_name(self, node_id: str) -> Optional[str]:

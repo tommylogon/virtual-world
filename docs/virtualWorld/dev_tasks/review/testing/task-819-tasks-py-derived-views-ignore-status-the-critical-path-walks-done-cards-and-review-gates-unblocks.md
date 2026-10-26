@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: testing
 priority: low
 wiki: "[[Developer Tooling]]"
@@ -27,13 +27,13 @@ Decide the `review` semantics explicitly, then apply in `tools/tasks.py`. Filter
 
 1. Run `python tools/tasks.py roadmap` and `python tools/tasks.py graph` before and after.
    - expected: the critical path contains no done/cancelled card; a chain whose tail is terminal no longer appears.
-   - observed: TODO
+   - observed: critical path excludes done/cancelled cards; path is task-9 -> task-400 -> task-401 -> task-402; verified in test_longest_path_excludes_terminal_cards_when_cards_provided.
 
 ## Acceptance
 
-- The printed critical path contains no `done`/`cancelled` card.
-- The intended status of `review` for scheduling is decided and either applied or documented.
-- `python tools/tasks.py validate` still passes; `roadmap-computed.md` regenerates correctly.
+- [x] The printed critical path contains no `done`/`cancelled` card.
+- [x] The intended status of `review` for scheduling is decided and documented in tasks.py.
+- [x] `python tools/tasks.py validate` still passes; `roadmap-computed.md` regenerates correctly.
 
 ## Files
 

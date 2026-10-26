@@ -144,6 +144,7 @@ function buildConvertPrompt(sourceText, schema) {
                 '- invent freely for appearance, manner, preferences and the character\'s own history; do NOT invent named other people, nor memories the material does not imply - a memory is a record of what happened, not description.',
                 '- biography/secrets: keep them brief and consistent with the material; never invent an event that contradicts it.',
                 '- for identity fields where the schema description includes values (pronouns, gender, sexuality), pick from those; do not invent your own category outside the list.',
+                '- "identity.birthday" MUST be formatted as "dd.mm.yyyy" (e.g. "14.03.1998").',
             ].join('\n'),
         },
         {

@@ -13,7 +13,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 window.InspectorBehaviors = (() => {
-    const B: any = {};
+    const B: any = (window as any).InspectorView ? new (window as any).InspectorView() : {};
 
     // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
     // runs, so window.Lit only exists when a view actually renders.

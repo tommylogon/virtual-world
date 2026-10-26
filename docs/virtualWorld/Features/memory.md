@@ -8,15 +8,23 @@ tags: [status/wired, surface/in-game, system/memory]
 
 # Memory
 
-**What you can do:** What a character remembers, and recall by need
+**What you can do:** What a character remembers, recall by need, and natural-language memory weaving & backdating in the Mind dashboard
 
 ## How it works
 
-- [[Memory System]]
+- [[Memory System]] - unified `Player.memories[]` store, REST API, and emotional residue
+- [[Memory Dynamics]] - activation, confidence, reinforcement, decay, reflection 2.0, contradiction detection, and the **🧠 Mind** dashboard
+- [[Memory Weaver]] - user guide and how-to for natural-language opinion asking, relative-time backdating, interpersonal relationship deltas, live previews, and underlying record / lived-log evidence inspection
 
 ## Where it lives
 
-_Not recorded yet — add the code paths when you next touch this feature._
+- `player.py` (`Player.memories[]`)
+- `engine/memory_dynamics.py`
+- `engine/derive.py`
+- `routes/memories.py`
+- `static/js/inspector/mind-view.ts`
+- `static/js/inspector/memory-view.ts`
+- `static/js/agent/memory-manager.ts`
 
 ## Connected
 
@@ -24,6 +32,5 @@ _Not recorded yet — add the code paths when you next touch this feature._
 - Sibling features: [[look-around]], [[examine]], [[move]], [[open-close]], [[take-drop-give]], [[use-use-on]]
 - All features: [[Features Overview]]
 
-> [!note] Status — `wired`
-> Recorded from [[Feature Map|the Feature Map]] on 2026-10-05. This page is an entry point; the
-> deep documentation is linked under **How it works**.
+> [!note] Status - `wired`
+> Recorded from [[Feature Map|the Feature Map]] on 2026-10-05 and updated with the Memory Mind dashboard and Memory Weaver (`task-730`, `task-785`).

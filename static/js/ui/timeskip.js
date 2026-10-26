@@ -1,8 +1,8 @@
 "use strict";
 /**
- * timeskip — the wait/mingle/search/explore/travel dialog (task-464).
+ * timeskip -  the wait/mingle/search/explore/travel dialog (task-464).
  *
- * @module ui/timeskip — intent + duration dialog over POST /api/world/timeskip
+ * @module ui/timeskip -  intent + duration dialog over POST /api/world/timeskip
  * @contributes Timeskip.openDialog/closeDialog/run/advanceWorld + a best-effort summary render
  * @powers the "⏩ Wait / Timeskip…" menu item and the Ctrl+K "Advance World" command
  * @relates posts via ApiClient and refreshes window.worldState afterwards
@@ -80,6 +80,29 @@ window.Timeskip = (() => {
             tags: _text('timeskip-tags'),
         });
     }
+    function _isDeadNoGhost() {
+        try {
+            const ghostMode = Boolean((window.worldState && window.worldState.data && window.worldState.data.ghost_mode) ||
+                (window.config && window.config.ghostMode));
+            if (ghostMode)
+                return false;
+            if (window.worldState && window.worldState.data) {
+                const data = window.worldState.data;
+                const who = data.active_player;
+                if (!who)
+                    return false;
+                const players = data.players || {};
+                const player = players[who];
+                if (player && player.state === 'dead')
+                    return true;
+                const deadList = data.dead_players;
+                if (Array.isArray(deadList) && deadList.includes(who))
+                    return true;
+            }
+        }
+        catch (e) { /* ignore */ }
+        return false;
+    }
     function _activeCharacter() {
         try {
             if (window.worldState && worldState.data) {
@@ -105,12 +128,12 @@ window.Timeskip = (() => {
         if (go)
             go.textContent = on ? '⏩ Advance world' : '⏩ Skip';
         if (on) {
-            _setStatus('No active character — this advances the world with everyone in soak mode.');
+            _setStatus('No active character -  this advances the world with everyone in soak mode.');
         }
     }
     /**
      * Open the dialog. An optional prefill seeds the form so another surface can
-     * start a specific order — the turn mini-map's "Walk here" opens it as
+     * start a specific order -  the turn mini-map's "Walk here" opens it as
      * `intent: "travel"` to a known area, and the engine takes the span from the
      * route. Prefill is ignored in world mode (no active character).
      */
@@ -126,6 +149,16 @@ window.Timeskip = (() => {
         }
         const worldMode = !_activeCharacter();
         _setWorldMode(worldMode);
+        const go = _el('timeskip-go');
+        if (!worldMode && _isDeadNoGhost()) {
+            _setStatus('You are dead. You cannot act. Ghost mode is off.');
+            if (go)
+                go.disabled = true;
+        }
+        else {
+            if (go)
+                go.disabled = false;
+        }
         if (prefill && !worldMode) {
             if (prefill.intent) {
                 const radio = document.querySelector(`input[name="timeskip-intent"][value="${prefill.intent}"]`);
@@ -162,6 +195,12 @@ window.Timeskip = (() => {
     function _soakLines(order) {
         const who = _activeCharacter() || 'The character';
         const span = _round(order.declared_minutes);
+        if (order.ended || order.reason || order.interrupted) {
+            const why = order.reason || order.ended_reason || 'something demands attention';
+            return [
+                `Soak order for ${who} ended: ${why}`,
+            ];
+        }
         const lines = [`Soak order for ${who}: ${span} min of ${order.intent || 'idle'}`];
         const where = [order.target, order.heading].filter(Boolean).join(' · ');
         if (where)
@@ -169,7 +208,7 @@ window.Timeskip = (() => {
         if (order.watch_tags && order.watch_tags.length) {
             lines.push(`Watching for: ${order.watch_tags.join(', ')}`);
         }
-        lines.push('It runs on their turn, so the clock advances then — not now.');
+        lines.push('It runs on their turn, so the clock advances then - not now.');
         lines.push('Control comes back early if something demands their attention.');
         return lines;
     }
@@ -177,10 +216,15 @@ window.Timeskip = (() => {
     function _summarize(data) {
         const lines = [];
         if (data.mode === 'world') {
-            lines.push('No active character — the world advances.');
+            lines.push('No active character - the world advances.');
         }
-        if (data.mode === 'soak') {
-            lines.push(..._soakLines(data.order || {}));
+        else if (data.mode === 'soak') {
+            const order = { ...(data.order || {}) };
+            if (data.ended || data.reason || data.interrupted) {
+                order.ended = true;
+                order.reason = data.reason || order.reason;
+            }
+            lines.push(..._soakLines(order));
         }
         else {
             lines.push(`Elapsed: ${data.elapsed_minutes} min (${data.ticks} ticks) → ${data.clock_after || ''}`);
@@ -210,10 +254,14 @@ window.Timeskip = (() => {
         box.style.display = 'block';
     }
     async function run() {
+        const worldMode = !_activeCharacter();
+        if (!worldMode && _isDeadNoGhost()) {
+            _setStatus('You are dead. You cannot act. Ghost mode is off.');
+            return;
+        }
         const button = _el('timeskip-go');
         if (button)
             button.disabled = true;
-        const worldMode = !_activeCharacter();
         const planned = _payload();
         const body = worldMode
             ? ((planned.minutes !== undefined || planned.until !== undefined)
@@ -310,6 +358,6 @@ window.Timeskip = (() => {
         run,
         advanceWorld,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
-        _internals: { presetMinutes, buildPayload: _buildPayload, summarize: _summarize },
+        _internals: { presetMinutes, buildPayload: _buildPayload, summarize: _summarize, isDeadNoGhost: _isDeadNoGhost },
     };
 })();

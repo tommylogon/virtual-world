@@ -299,18 +299,23 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     who = player if player is not None else _resolve_active(gs)
     if who is None:
         return TimeskipResult(False, intent, requested, reason="No active character.")
-    if getattr(who, "state", None) == "dead":
+    if getattr(who, "state", None) == "dead" and not getattr(gs, "ghost_mode", False):
         return TimeskipResult(False, intent, requested,
                               reason="The dead do not wait.")
 
+    belief_info = None
     if intent == "travel" and target:
-        hops = route_hops(gs, getattr(who, "current_area", None), target)
-        if hops is None:
-            return TimeskipResult(False, intent, requested,
-                                  reason=f"No route to '{target}'.")
-        if hops == 0:
-            return TimeskipResult(False, intent, requested,
-                                  reason="You are already there.")
+        belief_info = resolve_belief_destination(gs, who, target)
+        if not heading and belief_info.get("heading") and not belief_info.get("known"):
+            heading = belief_info["heading"]
+        if not heading:
+            hops = route_hops(gs, getattr(who, "current_area", None), target)
+            if hops is None:
+                return TimeskipResult(False, intent, requested,
+                                      reason=f"No route to '{target}'.")
+            if hops == 0:
+                return TimeskipResult(False, intent, requested,
+                                      reason="You are already there.")
 
     if _ACTIVE:
         return TimeskipResult(False, intent, requested,
@@ -413,6 +418,8 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     if (intent == "search" and target and not result.interrupted
             and _areas_holding(gs, target)):
         result.lines.append(f"You have not found the {target} yet.")
+    if intent == "travel" and target and (heading or (belief_info and belief_info.get("belief"))):
+        _record_belief_arrival(gs, who, target, belief_info)
     _write_memory(gs, who, result, intent, target)
     return result
 
@@ -537,6 +544,11 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
             here = getattr(player, "current_area", None)
             if str(here).strip().lower() == str(target).strip().lower():
                 return PolicyStep()          # arrived: the route check said 0 hops
+            if heading:
+                moved, why, detail = _move_heading(gs, player, heading)
+                if not moved:
+                    return PolicyStep(blocked=why or "travel", detail=detail)
+                return PolicyStep()
             if not sim.step_toward_area(player, target, "timeskip"):
                 return PolicyStep(blocked="travel",
                                   detail=f"You cannot reach {target} from here.")
@@ -552,6 +564,92 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
 def _not_found_detail(target):
     """The sentence for a search whose target is nowhere in the graph."""
     return f"There is no {target} to be found."
+
+
+def resolve_belief_destination(gs, player, target) -> dict:
+    """Resolve *target* from the character's own knowledge and beliefs (task-467).
+
+    Checks the character's known areas first (`AgentMind.knows_area` and
+    `known_route_areas`). When the place is not yet known, inspects the
+    character's memories for a belief about *target* and extracts any heading
+    word it carries. Allowed to return a destination that does not exist in
+    world truth, because a belief may be wrong.
+    """
+    import re as _re
+    from engine.agent_memory import AgentMind
+    from engine.spatial_memory import known_route_areas
+
+    want = str(target or "").strip()
+    want_lower = want.lower()
+    graph = getattr(gs, "graph", None)
+    mind = AgentMind(player, graph=graph, game_state=gs)
+    known_names = {n.lower() for n in known_route_areas(player, graph)} if graph else set()
+    is_known = mind.knows_area(want) or want_lower in known_names
+
+    matched_belief = None
+    believed_heading = None
+    memories = getattr(player, "memories", None) or []
+    # Prefer explicit belief-category memories, then any memory naming the target.
+    ordered = sorted(
+        [m for m in memories if isinstance(m, dict)],
+        key=lambda m: 0 if (m.get("category") == "belief" or m.get("type") == "belief" or "belief" in (m.get("tags") or [])) else 1,
+    )
+    for mem in ordered:
+        text = str(mem.get("text") or "")
+        text_lower = text.lower()
+        tags_lower = {str(t).lower() for t in (mem.get("tags") or [])}
+        if want_lower not in tags_lower and not _re.search(r"(?<!\w)" + _re.escape(want_lower) + r"(?!\w)", text_lower):
+            continue
+        matched_belief = mem
+        if mem.get("upgraded_to_known"):
+            is_known = True
+        for word in _re.findall(r"[a-z]+", text_lower):
+            if word in HEADING_WORDS:
+                believed_heading = HEADING_WORDS[word]
+                break
+        break
+
+    return {
+        "target": want,
+        "known": is_known,
+        "heading": believed_heading,
+        "belief": matched_belief,
+    }
+
+
+def _record_belief_arrival(gs, player, target, belief_info=None) -> str:
+    """Validate a believed destination on arrival and record found / found-not-there (task-467)."""
+    from engine.agent_memory import AgentMind
+    from engine.memory_dynamics import BELIEF
+
+    reached = str(getattr(player, "current_area", "") or "").strip()
+    want = str(target or "").strip()
+    found = bool(reached and want and reached.lower() == want.lower())
+    outcome = "found" if found else "found-not-there"
+    tick = int(getattr(gs, "time_ticks", 0) or 0)
+    mind = AgentMind(player, graph=getattr(gs, "graph", None), game_state=gs)
+    if found:
+        text = f"Belief confirmed ({outcome}): {want} is here at {reached}."
+    else:
+        where = reached or "nowhere"
+        text = f"Belief unconfirmed ({outcome}): looked for {want} and reached {where}, but {want} was not there."
+    rec = mind.remember(
+        text,
+        tick=tick,
+        importance=6,
+        tags=["belief", outcome, want.lower()],
+        source="belief_travel",
+        location=reached,
+        memory_type=BELIEF,
+    )
+    if isinstance(rec, dict):
+        rec["outcome"] = outcome
+        rec["believed_target"] = want
+    src = (belief_info or {}).get("belief")
+    if isinstance(src, dict):
+        src["validated"] = outcome
+        src["confidence"] = 1.0 if found else 0.1
+    return outcome
 
 
 def _areas_holding(gs, name):
@@ -587,6 +685,11 @@ def _explore_step(gs, player):
     if not area:
         return False, "explore", "There is nowhere to go from here."
     try:
+        from engine.fog import materialize_frontier
+        materialize_frontier(gs, player, area)
+    except Exception:
+        pass
+    try:
         exits = gs.build_exits_for_area(area, include_hidden=True) or {}
     except Exception:
         return False, "explore", "There is nowhere to go from here."
@@ -617,6 +720,14 @@ def _move_heading(gs, player, heading):
     except Exception:
         return False, "travel", f"You cannot leave {area}."
     matches = [lbl for lbl in sorted(exits.keys()) if want in str(lbl).lower()]
+    if not matches:
+        try:
+            from engine.fog import materialize_frontier
+            if materialize_frontier(gs, player, area, heading=want):
+                exits = gs.build_exits_for_area(area, include_hidden=True) or {}
+                matches = [lbl for lbl in sorted(exits.keys()) if want in str(lbl).lower()]
+        except Exception:
+            pass
     if not matches:
         where = {"north": "north", "south": "south", "east": "east", "west": "west",
                  "up": "above", "down": "below"}.get(want, want)

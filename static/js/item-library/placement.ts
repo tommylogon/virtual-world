@@ -36,8 +36,13 @@
                 for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes as Record<string, unknown>)) {
                     const node = rawNode as PlacementGraphNodeLike;
                     if (node.type === 'item') {
-                        const tags = node.properties?.tags || [];
-                        if (tags.includes('container') || (node.properties?.contents?.length ?? 0) > 0) {
+                        const rawTags = node.properties?.tags;
+                        const hasContainerTag = Array.isArray(rawTags)
+                            ? rawTags.includes('container')
+                            : (rawTags && typeof rawTags === 'object')
+                                ? Object.values(rawTags).some((v: any) => Array.isArray(v) ? v.includes('container') : v === 'container')
+                                : false;
+                        if (hasContainerTag || (node.properties?.contents?.length ?? 0) > 0) {
                             containers.push({ id: nodeId, name: node.name || nodeId });
                         }
                     } else if (node.type === 'character') {

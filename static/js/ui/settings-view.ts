@@ -1,5 +1,5 @@
 /**
- * settings-view.js — Settings/profile UI module
+ * settings-view.js  -  Settings/profile UI module
  * Extracted from main.js. Provides SettingsView singleton.
  *
  * Dependencies:
@@ -10,7 +10,7 @@
  *   - Global: toastInfo, toastError (from ui-helpers.js)
  *   - DOM elements: #api-base-input, #api-key-input, #agent-model-select, #agent-model, etc.
  *
- * @module ui/settings-view — the Settings / profile UI
+ * @module ui/settings-view  -  the Settings / profile UI
  * @contributes SettingsView: populate/save the settings form, profile switch/save/delete, connection test
  * @powers the ⚙️ Settings modal (extracted from main.js)
  * @relates writes through config; calls VW.ui.populateModelSelect; toasts from ui-helpers.js
@@ -159,7 +159,7 @@ const SettingsView = (() => {
             } catch (e) { /* silently ignore */ }
         })();
 
-        // Model input — custom searchable list handles visibility
+        // Model input  -  custom searchable list handles visibility
         var modelInput = document.getElementById('agent-model') as HTMLInputElement | null;
         if (modelInput && config.model) {
             modelInput.value = config.model;
@@ -226,13 +226,84 @@ const SettingsView = (() => {
         (config.saveFromForm as () => void)();
     }
 
+    /**
+     * Toggle spectator mode on/off (task-456).
+     * When enabled, the world state is polled every 1.5s for live updates.
+     */
+    function toggleSpectator() {
+        var checkbox = document.getElementById('spectator-mode') as HTMLInputElement | null;
+        var ws = (window as any).worldState;
+        if (!ws) return;
+        if (checkbox?.checked) {
+            ws.startPolling();
+        } else {
+            ws.stopPolling();
+        }
+    }
+
+    /**
+     * Update the time-per-tick setting on the backend (task-456).
+     * @param {number} minutes - Game minutes per agent step
+     */
+    async function updateTimePerTick(minutes: number) {
+        var ev = (window as any).events;
+        try {
+            var resp = await fetch('/api/settings/time_per_tick', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ time_per_tick_minutes: minutes })
+            });
+            var data = await resp.json();
+            if (data.status === 'success') {
+                if (ev?.log) ev.log('Time per tick set to ' + data.time_per_tick_minutes + ' min', 'system-msg');
+                (window as any).worldState?.fetch();
+            }
+        } catch (err) {
+            if (ev?.log) ev.log('Failed to update time per tick: ' + (err instanceof Error ? err.message : String(err)), 'error-msg');
+        }
+    }
+
+    /**
+     * Update the scenario clock start time on the backend (task-456).
+     * @param {string} value - "HH:MM" 24h time string
+     */
+    async function updateClockStart(value: string) {
+        var ev = (window as any).events;
+        var m = /^(\d{1,2}):(\d{2})$/.exec(value || '');
+        if (!m) {
+            if (ev?.log) ev.log('Invalid clock start time: ' + value, 'error-msg');
+            return;
+        }
+        var hour = parseInt(m[1], 10);
+        var minute = parseInt(m[2], 10);
+        try {
+            var resp = await fetch('/api/settings/clock_start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clock_start_hour: hour, clock_start_minute: minute })
+            });
+            var data = await resp.json();
+            if (data.status === 'success') {
+                if (ev?.log) ev.log('Clock start set to ' + String(data.clock_start_hour).padStart(2, '0') + ':' + String(data.clock_start_minute).padStart(2, '0'), 'system-msg');
+                (window as any).worldState?.fetch();
+            } else {
+                if (ev?.log) ev.log(data.error || 'Failed to update clock start', 'error-msg');
+            }
+        } catch (err) {
+            if (ev?.log) ev.log('Failed to update clock start: ' + (err instanceof Error ? err.message : String(err)), 'error-msg');
+        }
+    }
+
     return {
         populateForm: populateForm,
         switchTab: switchTab,
         testConnection: testConnection,
         updateModelDropdown: updateModelDropdown,
         updateModelSelectVisibility: updateModelSelectVisibility,
-        saveConfigToServer: saveConfigToServer
+        saveConfigToServer: saveConfigToServer,
+        toggleSpectator: toggleSpectator,
+        updateTimePerTick: updateTimePerTick,
+        updateClockStart: updateClockStart
     };
 })();
 

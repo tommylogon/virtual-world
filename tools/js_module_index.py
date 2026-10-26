@@ -223,7 +223,8 @@ def write_index(entries):
         rel = str(path).replace("\\", "/")
 
         def cell(key):
-            return (meta.get(key) or "").replace("|", "\\|")
+            val = (meta.get(key) or '').replace('|', '\\|')
+            return val.replace('\u2014', '-').replace('\u2013', '-')
 
         module_value = cell("module")
         # Split the name from the purpose. The em-dash and en-dash are the
@@ -238,8 +239,10 @@ def write_index(entries):
                 break
         else:
             name, purpose = module_value, ""
+        clean_name = name.strip().replace('\u2014', '-').replace('\u2013', '-')
+        clean_purpose = purpose.strip().replace('\u2014', '-').replace('\u2013', '-')
         lines.append(
-            f"| `{name.strip()}` | {language(path)} | {purpose.strip()} | `{rel}` | "
+            f"| `{clean_name}` | {language(path)} | {clean_purpose} | `{rel}` | "
             f"{cell('contributes')} | {cell('powers')} | {cell('docs')} |"
         )
 
@@ -250,7 +253,8 @@ def write_index(entries):
     lines.append("")
 
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
-    INDEX_PATH.write_text("\n".join(lines), encoding="utf-8")
+    content = '\n'.join(lines).replace('\u2014', '-').replace('\u2013', '-')
+    INDEX_PATH.write_text(content + '\n', encoding='utf-8')
     print(f"{INDEX_PATH}: {len(covered)} documented, {len(gaps)} awaiting.")
 
 

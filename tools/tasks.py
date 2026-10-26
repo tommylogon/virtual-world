@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Dev-task helper: allocate ids, scaffold, move between status folders, check.
 
-Git and the task files stay the single source of truth — this tool only
+Git and the task files stay the single source of truth - this tool only
 allocates the next id, writes a template, moves files with ``git mv`` and
 updates the ``status:`` frontmatter when present, and validates that ids,
 filenames and the folder each file lives in agree.
@@ -75,7 +75,7 @@ TERMINAL_STATUSES = {"done", "cancelled"}
 ID_RE = re.compile(r"^(?P<kind>task|bug)-(?P<num>\d+)-(?P<slug>[^/]+)\.md$")
 REF_RE = re.compile(r"\b(task|bug)-(\d+)\b", re.IGNORECASE)
 
-# "# task-568: Town cells" -> "Town cells". Also matches "Bug 22 — ...".
+# "# task-568: Town cells" -> "Town cells". Also matches "Bug 22 - ...".
 TITLE_ID_PREFIX_RE = re.compile(
     r"^\s*(?:task|bug)\s*-?\s*\d+\s*[:\u2014\u2013-]\s*", re.IGNORECASE)
 
@@ -496,7 +496,7 @@ class Entry:
 
 
 def clean_title(raw: str) -> str:
-    """Drop a leading ``task-123:``/``Bug 12 —`` prefix and tidy whitespace."""
+    """Drop a leading ``task-123:``/``Bug 12 -`` prefix and tidy whitespace."""
     return re.sub(r"\s+", " ", TITLE_ID_PREFIX_RE.sub("", raw)).strip()
 
 
@@ -567,7 +567,7 @@ def parse_frontmatter(text: str) -> Tuple[Dict, str]:
     """Return ``(data, error)``.
 
     ``error`` is non-empty only when a frontmatter block is present but
-    unparseable — the data is still returned as best-effort so the file stays
+    unparseable - the data is still returned as best-effort so the file stays
     usable, but ``validate`` reports the error rather than hiding it.
     """
     block = _split_frontmatter(text)
@@ -1221,7 +1221,7 @@ def cmd_new(args) -> int:
     # carry a real changelog of the work that touched it. Without this the
     # task <-> feature edge is optional and the wiki has no history.
     if not (getattr(args, "wiki", "") or str(payload.get("wiki") or "").strip()):
-        print("error: --wiki is required — name the note this card concerns, "
+        print("error: --wiki is required - name the note this card concerns, "
               'e.g. "[[Feature Map]]" or "[[World Building/Movement|Movement]]".',
               file=sys.stderr)
         return 1
@@ -1543,7 +1543,7 @@ def cmd_roadmap(args) -> int:
     counts = _tally([e for e in entries if e.status not in TERMINAL_STATUSES])
     now, nxt, later = _roadmap_buckets(entries)
     cards, succ, pred = _dep_graph(entries)
-    critical = _longest_path(sorted(cards), succ, pred) if cards else []
+    critical = _longest_path(sorted(cards), succ, pred, cards=cards) if cards else []
     review = [e for e in entries if e.status == "review"]
 
     lines = ["# Roadmap", "",
@@ -1554,7 +1554,7 @@ def cmd_roadmap(args) -> int:
              f"  ·  **{len(review)} in review** (verification queue)", ""]
 
     def section(title: str, blurb: str, picked: List[Entry]) -> None:
-        lines.extend([f"## {title} — {len(picked)}", "", blurb, ""])
+        lines.extend([f"## {title} - {len(picked)}", "", blurb, ""])
         if not picked:
             lines.extend(["_nothing_", ""])
             return
@@ -1663,8 +1663,19 @@ def _find_cycles(nodes, succ) -> List[List[str]]:
     return cycles
 
 
-def _longest_path(nodes, succ, pred) -> List[str]:
-    """Longest chain of nodes in the DAG (by node count). ``[]`` if cyclic."""
+def _longest_path(nodes, succ, pred, cards: Optional[Dict[str, Entry]] = None) -> List[str]:
+    """Longest chain of nodes in the DAG (by node count). ``[]`` if cyclic or no chain.
+
+    When ``cards`` is supplied, terminal cards ({'done', 'cancelled'}) are
+    excluded from the traversal so the critical path describes remaining open work
+    rather than completed historical chains (task-819).
+    """
+    if cards is not None:
+        nodes = [n for n in nodes if cards.get(n) and cards[n].status not in TERMINAL_STATUSES]
+        succ = {n: [s for s in succ.get(n, []) if cards.get(s) and cards[s].status not in TERMINAL_STATUSES] for n in nodes}
+        pred = {n: [p for p in pred.get(n, []) if cards.get(p) and cards[p].status not in TERMINAL_STATUSES] for n in nodes}
+    if not nodes:
+        return []
     indeg = {n: len(pred[n]) for n in nodes}
     dist = {n: 1 for n in nodes}
     prev: Dict[str, Optional[str]] = {n: None for n in nodes}
@@ -1673,7 +1684,7 @@ def _longest_path(nodes, succ, pred) -> List[str]:
     while q:
         n = q.popleft()
         seen += 1
-        for m in sorted(succ[n]):
+        for m in sorted(succ.get(n, [])):
             if dist[n] + 1 > dist[m]:
                 dist[m] = dist[n] + 1
                 prev[m] = n
@@ -1683,6 +1694,8 @@ def _longest_path(nodes, succ, pred) -> List[str]:
     if seen != len(nodes):
         return []
     end = max(nodes, key=lambda n: dist[n])
+    if dist[end] <= 1:
+        return []
     path = []
     node: Optional[str] = end
     while node is not None:
@@ -1692,7 +1705,12 @@ def _longest_path(nodes, succ, pred) -> List[str]:
 
 
 def _unblocks(card_id: str, cards, succ) -> int:
-    """Open cards that become startable once ``card_id`` is terminal."""
+    """Open cards that become startable once ``card_id`` is terminal.
+
+    Scheduling note (task-819): TERMINAL_STATUSES remains {'done', 'cancelled'}.
+    Cards in 'review' stay non-terminal for scheduling; work must not start on
+    unverified implementations before they land in master.
+    """
     return sum(1 for s in succ[card_id] if cards[s].status not in TERMINAL_STATUSES)
 
 
@@ -1703,7 +1721,7 @@ def cmd_graph(args) -> int:
     nodes = sorted(cards)
     edges = sorted((a, b) for a in succ for b in succ[a])
     cycles = _find_cycles(nodes, succ)
-    path = _longest_path(nodes, succ, pred)
+    path = _longest_path(nodes, succ, pred, cards=cards)
     if getattr(args, "json", False):
         print(json.dumps({
             "nodes": len(nodes), "edges": len(edges),
@@ -1728,6 +1746,10 @@ def cmd_next(args) -> int:
 
     Ordered by how many open cards the card unblocks, then priority, then
     horizon, then id. Read-only; this is "what can I pick up next".
+
+    Scheduling note (task-819): Predecessors must be in TERMINAL_STATUSES
+    ({'done', 'cancelled'}). Cards in 'review' stay non-terminal to prevent
+    building on unverified work before it lands in master.
     """
     entries = [e for e in iter_entries(args.root) if e.kind]
     cards, succ, pred = _dep_graph(entries)
@@ -2051,7 +2073,7 @@ def cmd_validate(args) -> int:
     ]
     if open_no_wiki:
         warnings.append(
-            f"{len(open_no_wiki)} open card(s) carry no `wiki:` — policy: a new "
+            f"{len(open_no_wiki)} open card(s) carry no `wiki:` - policy: a new "
             'card must name the note it concerns (e.g. "[[Feature Map]]")')
 
     # Browser acceptance is required for all non-cancelled, non-superseded task
@@ -2156,7 +2178,7 @@ def _norm(status: str) -> str:
 
 
 HELP_TEXT = """\
-Virtual World dev-task helper — allocate ids, scaffold, move, list, validate.
+Virtual World dev-task helper - allocate ids, scaffold, move, list, validate.
 
 Task and bug files live under docs/virtualWorld/dev_tasks/<status>/<area>/.
 The FOLDER is authoritative for status; the `status:` frontmatter is

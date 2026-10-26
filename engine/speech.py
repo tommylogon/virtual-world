@@ -10,7 +10,7 @@ NarrationSystem.broadcast_speech is a thin delegate to this module.
 """
 import re
 import time
-from typing import Optional
+from typing import Optional, Set
 
 from graph import EDGE_IN
 
@@ -199,7 +199,8 @@ class SpeechBroadcaster:
     # ──────────────────── Spoken-place learning (task-467) ───────────────
 
     def _teach_places_from_speech(self, speaker_name: str, speech_text: str,
-                                  target_area: str) -> None:
+                                  target_area: str,
+                                  audience: Optional[Set[str]] = None) -> None:
         """A direction spoken aloud teaches the place it names (task-467).
 
         Hearsay is the same operation as a map: a named place enters the
@@ -230,6 +231,8 @@ class SpeechBroadcaster:
                 continue
             for listener_name in present:
                 if listener_name == speaker_name:
+                    continue
+                if audience is not None and listener_name not in audience:
                     continue
                 listener = self.player_manager.players.get(listener_name)
                 if listener is None:
@@ -385,6 +388,10 @@ class SpeechBroadcaster:
                 speaker_name, speech_text, target_area, event.get("tick", 0) or 0
             )
             self._teach_places_from_speech(speaker_name, speech_text, target_area)
+        elif whisper_audience:
+            self._teach_places_from_speech(
+                speaker_name, speech_text, target_area, audience=whisper_audience
+            )
 
         # Propagate sound to adjacent areas (never for a directed whisper)
         if self.graph and not is_directed_whisper:

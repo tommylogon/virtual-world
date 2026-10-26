@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-525, task-776, task-651
 
-<!-- deps:start -->
-**Related:** [[task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors]], [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]], [[task-651-painter-grid-payload-omits-the-floor-and-climate-layers-when-they-are-empty]]
-<!-- deps:end -->
-
 ## What
 
 Let an author import a greyscale image onto a scope's floor layer and export the floor layer back out as a greyscale PNG, so regional elevation is a one-step operation instead of one cell at a time.

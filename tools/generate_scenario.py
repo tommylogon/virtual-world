@@ -209,7 +209,6 @@ def emit_way(nodes, edges, a_id, b_id, a_name, b_name, exit_hint, used_ids):
     desc = (exit_hint or {}).get("description") or f"A passage between {a_name} and {b_name}."
     props = {
         "description": desc,
-        "pass_message": f"You pass from {a_name} toward {b_name}.",
         "area_from": a_id,
         "area_to": b_id,
         "current_state": (exit_hint or {}).get("state", "open"),

@@ -238,7 +238,7 @@ def test_examine_way_marks_discovery(monkeypatch):
 
 def test_hidden_ways_stay_out_of_scene(world):
     """bug: scene_snapshot leaked hidden (undiscovered) ways to the human
-    turn panel — look filters them, the panel must too."""
+    turn panel  -  look filters them, the panel must too."""
     connect_way(world.graph, "area_kitchen", "way_sewer", "Sewer Passage",
                 "down", "area_hall", props={"current_state": "hidden"})
 
@@ -272,7 +272,7 @@ def test_slasher_sees_hidden_ways_in_scene(world):
 
 def test_requires_none_is_not_a_gate(world):
     """Legacy data stores requires:'none' for walk-through ways; movement.py
-    special-cases it, so the panel payload must normalize it to '' — a
+    special-cases it, so the panel payload must normalize it to ''  -  a
     truthy 'requires none' disabled Go and hid Open in the way menu."""
     connect_way(world.graph, "area_kitchen", "way_mens2", "Men's Restroom Door",
                 "west", "area_hall", props={"requires": "none"})
@@ -284,7 +284,7 @@ def test_requires_none_is_not_a_gate(world):
 
 
 def test_noncanonical_area_id_resolves_by_name(world):
-    """bug-26: hand-authored ids strip punctuation — "Taco Bell Men's
+    """bug-26: hand-authored ids strip punctuation  -  "Taco Bell Men's
     Restroom" lives at area_tacobell_mens_room, so the canonical id
     construction missed it and the panel rendered nobody/nothing/no ways
     out. The name-based fallback must win."""
@@ -319,3 +319,17 @@ def test_you_strip_carries_character_name(world):
 
     assert scene["you"]["name"] == "jake halloway"
     assert "HP" in scene["you"]["vitals"]
+
+
+def test_scene_ways_and_you_carry_way_ids(world):
+    """bug-561: ways carry way_id (and id) and you carries at_way_id."""
+    jake = world.player_manager.players["jake halloway"]
+    jake.at_way_id = "way_arch"
+
+    scene = build_scene(world, "jake halloway")
+
+    assert len(scene["ways"]) > 0
+    for way in scene["ways"]:
+        assert "way_id" in way
+        assert way["way_id"] == way["id"]
+    assert scene["you"].get("at_way_id") == "way_arch"

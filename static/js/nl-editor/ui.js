@@ -461,6 +461,7 @@ window.NLEditorUI = (() => {
                     lines = window.NLEditorDiff.summaryLines(op, {
                         nodes: (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {},
                         creations: this.controller.staging.getStagedCreations(),
+                        players: (typeof worldState !== 'undefined' && worldState?.players) || {},
                     });
                 }
                 catch (e) {

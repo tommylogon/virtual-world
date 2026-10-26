@@ -3,17 +3,17 @@ type: doc
 tags: [system/library]
 ---
 
-# Unified Library — Redesign Proposal ("Library 2.0")
+# Unified Library - Redesign Proposal ("Library 2.0")
 
-> Status: **Design proposal** — 2026-08-17. Audited against current code.
-> Implementation progress (see task-291): **Phase 1 done** — one `/api/library/*` API (registry
+> Status: **Design proposal** - 2026-08-17. Audited against current code.
+> Implementation progress (see task-291): **Phase 1 done** - one `/api/library/*` API (registry
 > routes folded/deleted, MCP migrated, `rename`/`place`/`refresh-to-world` live), and **conditions +
 > traits are now data-driven** (`data/library/conditions/*.json`, `data/library/traits/*.json` load at
 > import; hardcoded dicts are fallback; full suite green + live smoke pass).
-> Companion task docs: task-287 (blind sensory — touchpoint for the condition editor),
+> Companion task docs: task-287 (blind sensory - touchpoint for the condition editor),
 > task-288 (condition editor modal + `/api/conditions`), task-266 (condition catalog),
 > task-291 (this consolidation).
-> See also the stale `Library System Overview.md` — **it disagrees with the code in several places** (Section 1.4).
+> See also the stale `Library System Overview.md` - **it disagrees with the code in several places** (Section 1.4).
 
 ---
 
@@ -21,10 +21,10 @@ tags: [system/library]
 
 One library, one paradigm. Today there are **three frontend tiers**, **two backend API families**,
 **four save paths**, and a handful of **ghost types** that write files nothing ever reads. The worst
-consequence is silent data loss — the ways incident (`task_18_vent_shaft_1.json` truncated to 6 of its
+consequence is silent data loss - the ways incident (`task_18_vent_shaft_1.json` truncated to 6 of its
 16 fields, filename not renamed) was not an edge case, it's the normal behavior of the generic editor.
 
-The goal: every entity type gets the same three powers —
+The goal: every entity type gets the same three powers -
 
 1. **Full-schema editing** (saving never truncates),
 2. **World ↔ library sync** through the DiffModal (update/duplicate per section),
@@ -35,7 +35,7 @@ removed.
 
 ---
 
-## 1. Audit — what is actually broken
+## 1. Audit - what is actually broken
 
 ### 1.1 Two parallel backend APIs
 
@@ -47,18 +47,18 @@ Two route modules serve the *same* entity types with *different* contracts:
 | Characters CRUD | GET/POST `/api/registry/characters` | GET/POST/DELETE `/api/library/characters` |
 | Traits CRUD | GET/POST `/api/registry/traits` | GET/POST/DELETE `/api/library/traits` |
 | Character import | POST `/api/registry/characters/import` (`items_registry.py:313`) | POST `/api/library/import/character/<id>` (`library_routes.py:93`) |
-| Build/place item | POST `/api/build/item-from-library` (`items_registry.py:57`) | — (frontend calls the registry one) |
+| Build/place item | POST `/api/build/item-from-library` (`items_registry.py:57`) | - (frontend calls the registry one) |
 | Refresh world from lib | POST `/api/items/<id>/refresh-from-library` (`items_registry.py:178`) | POST `/api/ways/<id>/refresh-from-library` (`library_routes.py:290`) |
-| Way/area/tag/condition/behaviour/trigger CRUD | — | generic `/api/library/<type>` |
+| Way/area/tag/condition/behaviour/trigger CRUD | - | generic `/api/library/<type>` |
 
 **Problems:**
 - **Character import is implemented twice** with drifting behavior (`items_registry.py:313` vs
-  `library_routes.py:93` — the library one additionally imports inventory & re-links equipment).
+  `library_routes.py:93` - the library one additionally imports inventory & re-links equipment).
 - **Payload contract differs:** `/api/registry/items` accepts `{id, data}` *or* flat; the generic
   `/api/library/<type>` POST accepts `{id, data}` *or* flat-with-`id`. Two parsers to keep in sync.
 - Items GET/POST/DELETE exist on both; a bug fixed in one silently diverges from the other.
 
-### 1.2 Three frontend tiers — the same "save" behaves totally differently per tab
+### 1.2 Three frontend tiers - the same "save" behaves totally differently per tab
 
 `static/js/library-browser.js` + `static/js/item-library.js` implement three different paradigms:
 
@@ -69,67 +69,67 @@ Two route modules serve the *same* entity types with *different* contracts:
 | **C** | **ways**, traits, conditions, behaviours, tags | Generic 6-field config editor (`_getEditorConfigs()`, `library-browser.js:176-248`) | ❌ none | ❌ | ❌ | ❌ (readonly ID) |
 
 **Tier C is the broken tier.** `saveEntry()` (`library-browser.js:340`) rebuilds the payload from only
-the config's declared fields and **overwrites the whole entry** — so ways lose `pass_message`,
+the config's declared fields and **overwrites the whole entry** - so ways lose `pass_message`,
 `requires`, `max_size`, `needs_open`, `one_way`, `prevent_close`, `edge_length`, `parameters`,
 `triggers`. Traits/conditions/behaviours/tags truncate the same way. The ID input is `readonly` for
-existing entries (`library-browser.js:297`), so a rename is *impossible* from the UI — the filename
+existing entries (`library-browser.js:297`), so a rename is *impossible* from the UI - the filename
 can never follow the name.
 
 > This is exactly the reported bug: a way saved from the library tab dropped 10 fields and kept the
-> old filename. Confirmed root cause — not a mystery, the normal path.
+> old filename. Confirmed root cause - not a mystery, the normal path.
 
 ### 1.3 Ghost types & dead code
 
-**Verified 2026-08-17, re-verified 2026-09-29** — not all "ghosts" are ghosts; three things that looked dead are actually
+**Verified 2026-08-17, re-verified 2026-09-29** - not all "ghosts" are ghosts; three things that looked dead are actually
 alive in unexpected places. The 2026-09-29 pass changed two rows: the **behaviours** recommendation is superseded by
 **task-590**, and a **structures** row is added that the original pass did not look for.
 
 | Item | Where | Reality |
 |---|---|---|
 | **Conditions tab** | `library-browser.js` + `lib-pane-conditions` (index.html:502) | **Landed (task-462):** the engine loads `data/library/conditions/*.json` at import and the library API (`load_registry('conditions.json')` → the same directory) edits those files; a write calls `reload_condition_library()` so edits apply without a restart. The hardcoded catalog in `engine/player_conditions.py` is only the merge fallback, and `seed_condition_library()` backfills every entry (38 files). Ordering/perception-skip/mature gating are per-condition JSON fields (`order`, `perception_skip`, `mature`). The tab's legacy `duration/severity/effects` editor is still the open gap. |
-| **Traits — the divergence trap** | `data/library/traits/` (52 files) vs `engine/traits.py` `TRAIT_DEFINITIONS` (hardcoded) | The **engine only reads `TRAIT_DEFINITIONS`** (effects-based). The library files (`{id, name, description, category, params}` — a *different* schema) are read **only by UI pickers** (`agent-view.js:118` trait selector, `trigger-editor.js:212`). So the Traits tab can create traits the engine **silently ignores**, and the pickers can offer traits that don't exist in the engine. Two sources, diverged. **Decision (§4): unify — load `data/library/traits/*.json` into the engine at startup; one source feeds engine + pickers + tab.** |
-| **Behaviours tab** | `lib-pane-behaviours` (index.html:529) | **CHANGED 2026-09-29 — "remove the tab/type" is withdrawn, see task-590.** The original reasoning ("behaviours are per-character data, `player.behaviors[]`, no blueprint registry exists") was factually right about the engine and wrong about the conclusion: *no registry* is the defect, not an argument for deletion. The tab is fully built (`index.html:568`, pane `:697-714` — search, `newEntry('behaviours')`, `saveEntry('behaviours')`) and its saves really do land in `data/library/behaviours/`, because `save_registry` maps the *name* to a *directory* (`routes/helpers.py:201-206`). Meanwhile `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the shipped UI has a **live authoring path whose output the engine ignores** — exactly the trap the row above records for traits, whose chosen fix was unify, not remove. **Fix:** load `data/library/behaviours/*.json` into the engine the way traits were loaded, and let a character reference an entry. Deleting a working editor would remove the authoring surface and leave the engine just as unable to consume a reusable behaviour. |
-| **Triggers — NOT dead** | `data/library/triggers/` (7 files) + `REGISTRY_TYPES` | Used as a **blueprint store by the trigger graph editor**: `trigger-graph.js` saves (`_saveBlueprint`), loads (`_loadBlueprint`), and picks (`_pickBlueprint`) blueprints via `/api/library/triggers`. **Keep the type + files; there's just no browser tab** (authored inline, stored as blueprints). Re-verified 2026-09-29: 9 files now, still the same use. |
+| **Traits - the divergence trap** | `data/library/traits/` (52 files) vs `engine/traits.py` `TRAIT_DEFINITIONS` (hardcoded) | The **engine only reads `TRAIT_DEFINITIONS`** (effects-based). The library files (`{id, name, description, category, params}` - a *different* schema) are read **only by UI pickers** (`agent-view.js:118` trait selector, `trigger-editor.js:212`). So the Traits tab can create traits the engine **silently ignores**, and the pickers can offer traits that don't exist in the engine. Two sources, diverged. **Decision (§4): unify - load `data/library/traits/*.json` into the engine at startup; one source feeds engine + pickers + tab.** |
+| **Behaviours tab** | `lib-pane-behaviours` (index.html:529) | **CHANGED 2026-09-29 - "remove the tab/type" is withdrawn, see task-590.** The original reasoning ("behaviours are per-character data, `player.behaviors[]`, no blueprint registry exists") was factually right about the engine and wrong about the conclusion: *no registry* is the defect, not an argument for deletion. The tab is fully built (`index.html:568`, pane `:697-714` - search, `newEntry('behaviours')`, `saveEntry('behaviours')`) and its saves really do land in `data/library/behaviours/`, because `save_registry` maps the *name* to a *directory* (`routes/helpers.py:201-206`). Meanwhile `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the shipped UI has a **live authoring path whose output the engine ignores** - exactly the trap the row above records for traits, whose chosen fix was unify, not remove. **Fix:** load `data/library/behaviours/*.json` into the engine the way traits were loaded, and let a character reference an entry. Deleting a working editor would remove the authoring surface and leave the engine just as unable to consume a reusable behaviour. |
+| **Triggers - NOT dead** | `data/library/triggers/` (7 files) + `REGISTRY_TYPES` | Used as a **blueprint store by the trigger graph editor**: `trigger-graph.js` saves (`_saveBlueprint`), loads (`_loadBlueprint`), and picks (`_pickBlueprint`) blueprints via `/api/library/triggers`. **Keep the type + files; there's just no browser tab** (authored inline, stored as blueprints). Re-verified 2026-09-29: 9 files now, still the same use. |
 | **`rooms` dir** | `data/library/rooms/` (3 files) | Legacy alias of `areas`. Only referenced by `tools/migrate_legacy_triggers.py`. **Delete.** Re-verified 2026-09-29, still true: the copies are stale (`rooms/world_template.json` is 64 nodes / 2 players and still carries the dropped `item_registry` + `narration_mode` keys, against the root file's 239 / 3; `rooms/fighting_pit.json` is the pre-rename ancestor of `data/scenarios/combat_pit.json`). **Blocker to note when doing it:** `tools/migrate_legacy_triggers.py:224` lists `library/rooms/mansion.json` as an input, so that tool's help text and any workflow that uses it need updating first. Owned by **task-291** Phase 3. |
-| **Structures — new row** | `engine/structures.py`, `routes/structures.py` | **Reachable by curl only.** A structure is a portable, internally-wired subgraph — "areas + ways + items + residents" (`structures.py:6`) — with `collect_structure` (`:153`, fixpoint through area/surface/container), `materialize_structure` (`:309`, remapping every reference via `_remap_refs`/`_unique_id`/`_deterministic_suffix`) and `summarize_structure` (`:291`). Five routes ship, including `save` and `materialize`. The library has eight panes and structures is not one of them; a repo-wide grep of `static/` and `templates/` for "structure" returns only `ACTION STRUCTURE` prompt prose. `data/library/structures/` is empty, so no structure has ever been captured. Storage needs no decision — `STRUCTURES_REGISTRY = "structures.json"` already means the per-entry directory. **Not a dead type, an unreachable one:** see **task-591**. |
+| **Structures - new row** | `engine/structures.py`, `routes/structures.py` | **Reachable by curl only.** A structure is a portable, internally-wired subgraph - "areas + ways + items + residents" (`structures.py:6`) - with `collect_structure` (`:153`, fixpoint through area/surface/container), `materialize_structure` (`:309`, remapping every reference via `_remap_refs`/`_unique_id`/`_deterministic_suffix`) and `summarize_structure` (`:291`). Five routes ship, including `save` and `materialize`. The library has eight panes and structures is not one of them; a repo-wide grep of `static/` and `templates/` for "structure" returns only `ACTION STRUCTURE` prompt prose. `data/library/structures/` is empty, so no structure has ever been captured. Storage needs no decision - `STRUCTURES_REGISTRY = "structures.json"` already means the per-entry directory. **Not a dead type, an unreachable one:** see **task-591**. |
 | **IndexedDB `item_library` store** | `storage.js` (`getLibraryItem`, `setLibraryItem`, `getAllLibraryItems`, `deleteLibraryItem`, store creation) | Browser-side legacy item library. **Nothing calls it.** Dead code + dead data in user DBs. |
-| **Inline save path** | `main.js:132` | Auto-saves a **reduced** item payload on some flow (`name, description, actions, uses, weight, current_state, equip_slots, tags`) — a fourth save path that truncates by design. Should be consolidated into the item editor's builder. |
+| **Inline save path** | `main.js:132` | Auto-saves a **reduced** item payload on some flow (`name, description, actions, uses, weight, current_state, equip_slots, tags`) - a fourth save path that truncates by design. Should be consolidated into the item editor's builder. |
 
 ### 1.4 The overview doc disagrees with the code
 
 `docs/virtualWorld/Library System/Library System Overview.md` is stale:
 
-- **Says** `save_registry` deletes stale files ("full sync, not an append") — **the code never deletes**
+- **Says** `save_registry` deletes stale files ("full sync, not an append") - **the code never deletes**
   (`routes/helpers.py:148-163`, with an explicit "Never deletes files" comment). Renames therefore leave
   orphaned `<old_id>.json` files forever.
-- Lists `REGISTRY_TYPES` as 6 types — it's **9** today (`tags`, `triggers` added).
-- Describes areas as "full world snapshots (embedded players/areas/graph)" — current `_buildAreaPayload`
+- Lists `REGISTRY_TYPES` as 6 types - it's **9** today (`tags`, `triggers` added).
+- Describes areas as "full world snapshots (embedded players/areas/graph)" - current `_buildAreaPayload`
   produces a **flat template** (items/exits/triggers).
-- Says imports are "independent copies, **no live link**" — but items/ways get a `library_id` property and
+- Says imports are "independent copies, **no live link**" - but items/ways get a `library_id` property and
   there is a whole **refresh-from-library** path (bidirectional sync).
 - Item example shows removed legacy fields (`effect_target`, `effect_stat`, `effect_amount`).
 - Omits ways, tags, DiffModal, refresh-from-library, build-item-from-library, the condition catalog.
 
 ### 1.5 Bugs (confirmed, in priority order)
 
-1. **Tier-C `saveEntry` truncates entries on save** — data loss (the ways incident). `library-browser.js:340`.
-2. **Existing-entry IDs are readonly** — renames impossible; filename can't follow name. `library-browser.js:297`.
-3. **`save_registry` never GCs** — renaming/duplicating leaves orphan `<old_id>.json` files. `helpers.py:148`.
-4. **DiffModal duplicate naming uses native `prompt()`** (`diff-modal.js:126`) — violates the project rule
+1. **Tier-C `saveEntry` truncates entries on save** - data loss (the ways incident). `library-browser.js:340`.
+2. **Existing-entry IDs are readonly** - renames impossible; filename can't follow name. `library-browser.js:297`.
+3. **`save_registry` never GCs** - renaming/duplicating leaves orphan `<old_id>.json` files. `helpers.py:148`.
+4. **DiffModal duplicate naming uses native `prompt()`** (`diff-modal.js:126`) - violates the project rule
    that destructive/input flows use **custom modals** (see the delete-confirmation decision & the
    task-288 modal). Also no validation on the new id.
-5. **Tag validation is only wired on graph node updates** (`routes/graph.py:64`), not on library saves —
+5. **Tag validation is only wired on graph node updates** (`routes/graph.py:64`), not on library saves -
    library entries can silently store tags that don't exist in the tag library.
-6. **Two character imports** — drift risk. `items_registry.py:313` vs `library_routes.py:93`.
+6. **Two character imports** - drift risk. `items_registry.py:313` vs `library_routes.py:93`.
 
 ### 1.6 What's genuinely good (keep these)
 
-- **DiffModal** — per-section update/duplicate/cancel is the right pattern; it just needs a custom modal for naming.
-- **Item editor** — richest editor in the app; the template every other tab should grow toward.
-- **World→library sync with skip-unchanged** (`_itemsDiffer`, `syncAllWorld*`) — fast, conflict-aware.
-- **Per-file JSON storage** — git-friendly diffs per entry; keep it.
-- **`library_id` + locked_fields** — the refresh/lock machinery on items/ways is exactly the right sync primitive; generalize it.
-- **`/api/conditions` catalog + modal (task-288)** — the model for how "catalog-driven data" should be edited.
+- **DiffModal** - per-section update/duplicate/cancel is the right pattern; it just needs a custom modal for naming.
+- **Item editor** - richest editor in the app; the template every other tab should grow toward.
+- **World→library sync with skip-unchanged** (`_itemsDiffer`, `syncAllWorld*`) - fast, conflict-aware.
+- **Per-file JSON storage** - git-friendly diffs per entry; keep it.
+- **`library_id` + locked_fields** - the refresh/lock machinery on items/ways is exactly the right sync primitive; generalize it.
+- **`/api/conditions` catalog + modal (task-288)** - the model for how "catalog-driven data" should be edited.
 
 ---
 
@@ -168,19 +168,19 @@ Replace Tier C's hardcoded field arrays with a **schema-driven editor** (field s
 `GET /api/library/schema`, same shape per type). Every tab gets the full stack:
 
 1. **List + search** (+ per-type badges like the items tab's tag/trigger/contents chips).
-2. **Full-schema editor** — every field the type supports; *no* field is silently dropped on save
+2. **Full-schema editor** - every field the type supports; *no* field is silently dropped on save
    (save = send the whole schema payload, backend merges, never wipes).
-3. **Editable ID** — rename action (with id-from-name suggestion, like items' `_autoIdFromName`),
+3. **Editable ID** - rename action (with id-from-name suggestion, like items' `_autoIdFromName`),
    routed through the backend rename endpoint so the file is renamed and the old one GC'd.
-4. **Save from World** — per-type world→library payload builder (characters/areas/items already exist;
-   **ways needs one** — extract `way-view.js:_saveToLibrary`'s payload builder so the tab and the
+4. **Save from World** - per-type world→library payload builder (characters/areas/items already exist;
+   **ways needs one** - extract `way-view.js:_saveToLibrary`'s payload builder so the tab and the
    inspector share it).
-5. **Sync All from World** — per-type, DiffModal per changed entry, skip unchanged.
-6. **Import to World / Place** — every type gets it (items place, chars/areas import, ways → connect
+5. **Sync All from World** - per-type, DiffModal per changed entry, skip unchanged.
+6. **Import to World / Place** - every type gets it (items place, chars/areas import, ways → connect
    between two areas).
-7. **Delete & rename & duplicate via custom modals** — no native `confirm`/`prompt`.
+7. **Delete & rename & duplicate via custom modals** - no native `confirm`/`prompt`.
 
-The **items tab keeps its rich editor** (AI gen, contents, triggers, equip) — it's Tier A; the goal is
+The **items tab keeps its rich editor** (AI gen, contents, triggers, equip) - it's Tier A; the goal is
 to raise the others *up to it*, not flatten it down.
 
 ### 2.3 Per-type schema coverage (the "never truncate" contract)
@@ -192,10 +192,10 @@ to raise the others *up to it*, not flatten it down.
 | **areas** | name, description, tags, environment, items, exits, triggers |
 | **ways** | name, description, current_state, pass_message, edge_length, needs_open, auto_close, see_through, one_way, requires, max_size, prevent_close, jump_dc, climb_dc, tags, parameters, triggers |
 | **tags** | name, description, category, color, icon, applies_to, examples |
-| **traits** | the **engine** `TRAIT_DEFINITIONS` schema (`id, name, description, category, effects, grants_conditions, conflicts, behavior_prompt`, + `params` for parameterized traits) — this becomes the single source after unification; the current 52-file library format (params-only) is migrated |
+| **traits** | the **engine** `TRAIT_DEFINITIONS` schema (`id, name, description, category, effects, grants_conditions, conflicts, behavior_prompt`, + `params` for parameterized traits) - this becomes the single source after unification; the current 52-file library format (params-only) is migrated |
 | **conditions** | the `CONDITION_DEFINITIONS` catalog fields (name, description, gates, auto_fail_checks, mods, speed_mult, periodic, ends_on, known, symptoms, stack, default_duration, excludes) once data-driven |
 | **behaviours** | reusable records `{trigger, interval, conditions, actions, priority}` in `data/library/behaviours/`; a character attaches them with `behavior_refs` (task-590) |
-| **triggers** | blueprint store for the trigger graph editor (`{name, description, graph}`) — keep, no browser tab |
+| **triggers** | blueprint store for the trigger graph editor (`{name, description, graph}`) - keep, no browser tab |
 
 Backend-side, each type gets an optional **validate/coerce** hook (unknown keys warned, required keys
 checked) so typos surface instead of silently persisting.
@@ -216,14 +216,14 @@ checked) so typos surface instead of silently persisting.
 - **Orphan sweep:** optional "prune orphans" (files on disk not returned by the index) exposed as a
   maintenance action, since existing repos already contain orphans.
 - **`validate_tags_on_save` on library saves**, not just graph updates.
-- **Custom modals everywhere** (rename, duplicate naming, delete) — matches the project rule.
+- **Custom modals everywhere** (rename, duplicate naming, delete) - matches the project rule.
 
 ### 2.6 Migration & docs
 
 - Delete `data/library/rooms/` (after `tools/migrate_legacy_triggers.py` stops naming it as an input); **do not drop the behaviours
-  tab/type — that recommendation is withdrawn 2026-09-29, see task-590**; keep **triggers** (blueprint store) and
+  tab/type - that recommendation is withdrawn 2026-09-29, see task-590**; keep **triggers** (blueprint store) and
   the **conditions**/**traits** tabs (now backed by the data-driven catalogs). Remove the IndexedDB
-  `item_library` store; retire `main.js:132`'s inline save. **Structures are not in scope here** — the engine and API
+  `item_library` store; retire `main.js:132`'s inline save. **Structures are not in scope here** - the engine and API
   are done and the missing piece is a UI affordance, tracked by task-591.
 - **Conditions → data-driven:** move `CONDITION_DEFINITIONS` out of `player.py` into
   `data/library/conditions/*.json` (one file per condition), loaded at startup with the catalog as
@@ -240,12 +240,12 @@ checked) so typos surface instead of silently persisting.
 
 ## 3. Phased plan (small, verifiable steps)
 
-**Phase 0 — stop the bleeding (1 session)**
+**Phase 0 - stop the bleeding (1 session)**
 - Restore the truncated `task_18_vent_shaft_1.json` (done).
 - Ways tab: full field set + editable ID + save via DiffModal (the fix already scoped earlier).
 - Add `jump_dc`/`climb_dc` to the way schema (they exist in the inspector but were missing from the payload).
 
-**Phase 1 — backend consolidation**
+**Phase 1 - backend consolidation**
 - Fold `items_registry.py` into `library_routes.py`; delete `/api/registry/*` + `/api/build/item-from-library`;
   migrate JS callers.
 - Add `/rename` (write + GC), `/refresh-to-world` (unify item/way), `/schema`, single character import.
@@ -254,18 +254,18 @@ checked) so typos surface instead of silently persisting.
   at startup (merged over `CONDITION_DEFINITIONS` / `TRAIT_DEFINITIONS`), migrate the 52 trait files to the
   engine schema, seed `data/library/conditions/` from the catalog.
 
-**Phase 2 — frontend unification**
+**Phase 2 - frontend unification**
 - Schema-driven editor for Tier C tabs (full fields, editable ID, rename). Conditions/traits tabs now edit
   the real data-driven catalogs.
 - Extract shared world→library builders (ways from `way-view.js:_saveToLibrary`; traits from the trait editor).
 - Custom modals for duplicate naming / rename / delete (reuse task-288 modal styling).
 - Save-from-World + Sync-All + Import for every tab.
 
-**Phase 3 — cleanup & docs**
-- Remove the `rooms` dir, the IndexedDB store, the `main.js:132` path. **Do not remove the behaviours tab/type** — task-590 wired it into the engine.
+**Phase 3 - cleanup & docs**
+- Remove the `rooms` dir, the IndexedDB store, the `main.js:132` path. **Do not remove the behaviours tab/type** - task-590 wired it into the engine.
 - Orphan sweep action. Rewrite `Library System Overview.md` + add the sub-docs.
 
-**Phase 4 — polish (optional, fun)**
+**Phase 4 - polish (optional, fun)**
 - Library-wide search + favorites/last-used; bulk export/import of a whole library dir (zip/json);
   AI "polish" for ways/areas like items' ✨ Improve; "place way between two areas" wizard from the tab.
 
@@ -273,18 +273,18 @@ checked) so typos surface instead of silently persisting.
 
 ## 4. Open decisions (user's call)
 
-1. **Conditions & traits — keep, and make them the single source of truth.** Verified: the engine
+1. **Conditions & traits - keep, and make them the single source of truth.** Verified: the engine
    ignores both library dirs today (`CONDITION_DEFINITIONS` / `TRAIT_DEFINITIONS` are hardcoded in
    Python). The plan is to move them to `data/library/conditions/` + `data/library/traits/` (loaded at
    startup) so the tabs, the pickers, and the engine all read one source. **Decided: do it.** (User:
    "I'd still like to see conditions and traits.")
-2. **Behaviours — unify, not remove** (verified: the tab writes real files, the engine ignored them; task-590). **Decided: the engine loads `data/library/behaviours/*.json` and a character references entries via `behavior_refs`; keep the tab/type.**
-3. **Triggers — keep as blueprint store** (verified: `trigger-graph.js` save/load/pick). **Decided: keep
+2. **Behaviours - unify, not remove** (verified: the tab writes real files, the engine ignored them; task-590). **Decided: the engine loads `data/library/behaviours/*.json` and a character references entries via `behavior_refs`; keep the tab/type.**
+3. **Triggers - keep as blueprint store** (verified: `trigger-graph.js` save/load/pick). **Decided: keep
    type + files, no browser tab.**
-4. **Rename propagation** — when a library entry is renamed, should placed nodes' `library_id` be
+4. **Rename propagation** - when a library entry is renamed, should placed nodes' `library_id` be
    rewritten (recommended: yes, same session) or left stale for the refresh flow to catch?
-5. **Area format** — keep flat templates (current) or restore full snapshot format (old Overview docs)?
-6. **Ways "Save from World" scope** — the tab gets the full world→library save with DiffModal
+5. **Area format** - keep flat templates (current) or restore full snapshot format (old Overview docs)?
+6. **Ways "Save from World" scope** - the tab gets the full world→library save with DiffModal
    (recommended), reusing `way-view.js`'s payload builder.
 
 ---
@@ -300,10 +300,10 @@ checked) so typos surface instead of silently persisting.
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Dev tasks** — [[dev_tasks/todo/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites|bug]], [[dev_tasks/todo/ui/task-732-sync-world-to-library-collapse-item-instances-into-templates-and-default-to-a-meaningful-review-queue|task]]
+**Dev tasks** - [[bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites|bug]], [[dev_tasks/todo/ui/task-732-sync-world-to-library-collapse-item-instances-into-templates-and-default-to-a-meaningful-review-queue|task]]
 
-**Neighbouring notes** — [[Domain & Role Tags]], [[Library System Overview]], [[Tags System]], [[diff-modal]]
+**Neighbouring notes** - [[Domain & Role Tags]], [[Library System Overview]], [[Tags System]], [[diff-modal]]
 
 <!-- connected:end -->

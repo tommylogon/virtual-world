@@ -216,13 +216,15 @@ html.commons-doc body {
 
 .commons-topbar,
 .commons-main,
-.commons-input-row {
+.commons-input-row,
+.commons-inner-drawer {
     background: #161b22;
     border-color: #30363d;
 }
 
 .commons-sidebar,
-.commons-details {
+.commons-details,
+.commons-drawer-header {
     background: #11161d;
     border-color: #30363d;
 }
@@ -233,7 +235,8 @@ html.commons-doc body {
 .commons-channel-name,
 .participant-name,
 .commons-conversation-header h1,
-.commons-feed-empty h3 {
+.commons-feed-empty h3,
+.commons-drawer-name {
     color: #e6edf3;
 }
 
@@ -249,7 +252,10 @@ html.commons-doc body {
 .commons-panel-header,
 .commons-member-chip,
 .commons-member-edit-title,
-.commons-field-label {
+.commons-field-label,
+.commons-drawer-presence,
+.commons-drawer-personality,
+.commons-decision-summary {
     color: #a1aab5;
 }
 
@@ -478,7 +484,7 @@ html.commons-doc body {
     opacity: 0.85;
 }
 
-/* task-888: Inner World Drawer */
+/* task-888: Inner World Drawer (dark theme applied via task-893) */
 .commons-drawer-scrim {
     position: fixed;
     inset: 0;
@@ -497,8 +503,10 @@ html.commons-doc body {
     bottom: 0;
     width: 390px;
     max-width: 90vw;
-    background: #ffffff;
-    box-shadow: -6px 0 28px rgba(0, 0, 0, 0.15);
+    background: #161b22;
+    color: #e6edf3;
+    border-left: 1px solid #30363d;
+    box-shadow: -6px 0 28px rgba(0, 0, 0, 0.45);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -515,8 +523,8 @@ html.commons-doc body {
 
 .commons-drawer-header {
     padding: 18px 20px 14px;
-    background: #fbfaf9;
-    border-bottom: 1px solid #ebe8e4;
+    background: #11161d;
+    border-bottom: 1px solid #30363d;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -545,18 +553,18 @@ html.commons-doc body {
     margin: 0;
     font-size: 16px;
     font-weight: 750;
-    color: #2b2833;
+    color: #e6edf3;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .commons-drawer-presence {
     font-size: 11px;
-    color: #77737d;
+    color: #a1aab5;
     margin-top: 2px;
 }
 .commons-drawer-presence.thinking {
-    color: #705cdd;
+    color: #a78bfa;
     font-weight: 600;
 }
 .commons-drawer-close {
@@ -568,7 +576,7 @@ html.commons-doc body {
 .commons-drawer-personality {
     margin: 0;
     font-size: 11.5px;
-    color: #55515e;
+    color: #a1aab5;
     line-height: 1.45;
 }
 .commons-drawer-traits {
@@ -579,8 +587,9 @@ html.commons-doc body {
 .commons-trait-badge {
     padding: 2px 7px;
     border-radius: 5px;
-    background: #eeebff;
-    color: #5b48cb;
+    background: #232238;
+    color: #c4b5fd;
+    border: 1px solid #3b3659;
     font-size: 10px;
     font-weight: 600;
 }
@@ -592,6 +601,8 @@ html.commons-doc body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    background: #161b22;
+    color: #e6edf3;
 }
 .commons-drawer-section {
     display: flex;
@@ -601,32 +612,32 @@ html.commons-doc body {
 .commons-drawer-section-title {
     font-size: 10px;
     font-weight: 750;
-    color: #938f9c;
+    color: #8b949e;
     letter-spacing: 0.8px;
     text-transform: uppercase;
 }
 .commons-inner-quote {
     margin: 0;
     padding: 12px 14px;
-    background: #fbf9fe;
-    border-left: 3px solid #705cdd;
+    background: #1c2128;
+    border-left: 3px solid #8b5cf6;
     border-radius: 0 8px 8px 0;
     font-size: 12.5px;
-    color: #383442;
+    color: #e6edf3;
     font-style: italic;
     line-height: 1.5;
 }
 .commons-inner-time {
     font-size: 10px;
-    color: #9e9aa7;
+    color: #8b949e;
     margin-top: 4px;
     text-align: right;
 }
 .commons-decision-card {
     padding: 10px 12px;
-    border: 1px solid #ebe8e4;
+    border: 1px solid #30363d;
     border-radius: 8px;
-    background: #fdfdfc;
+    background: #1c2128;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -642,38 +653,39 @@ html.commons-doc body {
     padding: 2px 6px;
     border-radius: 4px;
     text-transform: uppercase;
-    background: #eef2ff;
-    color: #4338ca;
+    background: #282e44;
+    color: #93c5fd;
 }
 .commons-decision-action.small {
     font-size: 9px;
     padding: 1px 5px;
 }
-.commons-decision-action.send_chat { background: #e0f2fe; color: #0369a1; }
-.commons-decision-action.read_chat { background: #fef3c7; color: #b45309; }
-.commons-decision-action.think { background: #f3f4f6; color: #4b5563; }
-.commons-decision-action.start_dm { background: #fdf4ff; color: #a21caf; }
-.commons-decision-action.start_group { background: #ecfdf5; color: #047857; }
+.commons-decision-action.send_chat { background: #0f2d4a; color: #7dd3fc; }
+.commons-decision-action.read_chat { background: #382806; color: #fde047; }
+.commons-decision-action.think { background: #252d38; color: #d1d5db; }
+.commons-decision-action.start_dm { background: #3b1747; color: #f0abfc; }
+.commons-decision-action.start_group { background: #06402b; color: #6ee7b7; }
 .commons-decision-summary {
     font-size: 11px;
-    color: #635f6d;
+    color: #a1aab5;
 }
 .commons-decision-text {
     font-size: 11.5px;
-    color: #3e3b47;
+    color: #e6edf3;
     padding: 6px 8px;
-    background: #f7f6f5;
+    background: #11161d;
+    border: 1px solid #30363d;
     border-radius: 6px;
 }
 .commons-drawer-empty-state {
     font-size: 11.5px;
-    color: #8c8896;
+    color: #8b949e;
     font-style: italic;
     padding: 8px 0;
 }
 .commons-history-row {
     padding: 8px 10px;
-    border-bottom: 1px solid #f0eeeb;
+    border-bottom: 1px solid #30363d;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -685,11 +697,11 @@ html.commons-doc body {
 }
 .commons-history-header time {
     font-size: 10px;
-    color: #9995a0;
+    color: #8b949e;
 }
 .commons-history-thought {
     font-size: 11px;
-    color: #55515e;
+    color: #c9d1d9;
     font-style: italic;
     line-height: 1.4;
 }

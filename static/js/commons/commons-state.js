@@ -140,7 +140,10 @@
             this.liveEvents = null;
         }
         static receiveMessage(message) {
-            if (!message || message.channel_id !== this.selectedChannelId)
+            if (!message)
+                return;
+            window.CommonsAgent?.onMessageReceived?.(message);
+            if (message.channel_id !== this.selectedChannelId)
                 return;
             if (this.messages.some((existing) => existing.id === message.id))
                 return;

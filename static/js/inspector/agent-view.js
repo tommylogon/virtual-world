@@ -15,11 +15,12 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorAgentView = (() => {
-    const AV = {};
+    const AV = window.InspectorView ? new window.InspectorView() : {};
+    AV._lastTemplate = null;
     // Lazy tag for the PICKERS/OVERLAYS only (trait option, condition editor,
     // timeline detail, add-item/container pickers). The main agent template and
     // its deferred gravity/alias helpers stay as STRINGS via unsafeHTML (the
-    // documented HEAD design) — never mix this tag into those string builds.
+    // documented HEAD design) - never mix this tag into those string builds.
     const agentViewTag = (strings, ...values) => window.Lit.html(strings, ...values);
     // ─── Internal state ───
     let _activeTab = 'Bio';
@@ -30,6 +31,7 @@ window.InspectorAgentView = (() => {
     const _deferRender = (renderFn) => {
         _deferredRenders.push(renderFn);
     };
+    AV._deferRender = _deferRender;
     const _runDeferredRenders = () => {
         const pending = _deferredRenders;
         _deferredRenders = [];
@@ -2828,7 +2830,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         document.body.appendChild(picker);
     };
     // Register the template-sync pattern for characters. The diff only covers
-    // author-editable fields — never runtime state (vitals, current_area,
+    // author-editable fields - never runtime state (vitals, current_area,
     // memories, relationships, emotion, inventory, conditions, equipped).
     if (window.InspectorTemplateSync) {
         window.InspectorTemplateSync.register('character', {

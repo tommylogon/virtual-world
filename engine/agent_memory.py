@@ -94,24 +94,29 @@ class AgentMind:
     # ── writing ─────────────────────────────────────────────────────────
     def remember(self, text: str, tick: int = 0, importance: int = 5,
                  tags: Optional[List[str]] = None, source: str = "mind",
-                 location: str = "", entity_ids: Optional[List[str]] = None):
+                 location: str = "", entity_ids: Optional[List[str]] = None,
+                 memory_type: str = "observation"):
         return self.player.add_memory(
-            text, tick, importance=importance, tags=tags, source=source,
-            entity_ids=entity_ids, location=location,
+            text, tick, importance=importance, memory_type=memory_type,
+            tags=tags, source=source, entity_ids=entity_ids, location=location,
         )
 
     def know_area(self, name: str) -> bool:
         """Mark an area as known. Returns True when it was newly learned."""
         if not name:
             return False
-        known = self.player.known
-        if any(str(k).lower() == str(name).lower() for k in known):
+        if self.knows_area(name):
             return False
-        known.append(str(name))
-        return True
+        from engine.fog import Known
+        return bool(Known(self.player).reveal(str(name)))
 
     def knows_area(self, name: str) -> bool:
-        return any(str(k).lower() == str(name).lower() for k in self.player.known)
+        if not name:
+            return False
+        from engine.fog import Known
+        return Known(self.player).has(name) or any(
+            str(k).lower() == str(name).lower() for k in (self.player.known or [])
+        )
 
     def knows_way(self, way_id: str, aspect: str = None) -> None:
         """Record a known way (optionally a discovered aspect of it).

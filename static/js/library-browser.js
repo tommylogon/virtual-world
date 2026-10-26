@@ -1,18 +1,32 @@
 "use strict";
 /**
+
  * LibraryBrowser — Unified library browser for all entity types
+
  *
+
  * Provides tabbed browsing of Items, Characters, Rooms, Traits,
+
  * Conditions, and Behaviours with list + editor for each type.
+
  *
+
  * Items tab delegates to the existing ItemLibrary class.
+
  * Other tabs use inline editors defined here.
+
  *
+
  * @module library-browser — the unified library browser
+
  * @contributes LibraryBrowser: tabbed Items/Characters/Rooms/Traits/Conditions/Behaviours browsing + editors, and the Vocabulary tab for compiler vocabularies (task-589)
+
  * @powers the 📚 Library modal (the Items tab delegates to ItemLibrary)
+
  * @relates uses api + storage; inline editors for the non-item tabs
+
  * @docs docs/virtualWorld/Library System/Library System Overview.md
+
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
@@ -33,11 +47,17 @@ function wordBoundary(text, token) {
 const LibraryApi = ApiClient;
 const DiffModalTyped = DiffModal;
 /**
+
  * The item-library singleton, resolved lazily. `itemLib` is a top-level
+
  * `const` in item-library.js — a global *lexical* binding, not a window
+
  * property — and the copy to `VW.itemLib` in main.js runs after this file
+
  * loads, so a load-time snapshot (`window.itemLib`) was always undefined and
+
  * every open() died on it with "itemLibRef is undefined".
+
  */
 function itemLibRef() {
     const w = window;
@@ -374,22 +394,34 @@ class LibraryBrowser {
             // inventory checkmarks per ingredient (✓ in library).
             const extra = type === 'recipes' ? this._recipeRowExtra(entry) : '';
             return libraryBrowserHtmlTag `
+
                 <div class=${itemClass} @click=${() => VW.libraryBrowser.selectEntry(type, id)} style=${itemStyle}>
+
                     <span style="font-size:14px;margin-right:4px;">${icon}</span>
+
                     <div style="flex:1;min-width:0;">
+
                         <div class="agent-name" style="font-size:12px;font-weight:600;">${name}</div>
+
                         <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}</div>
+
                         ${extra}
+
                     </div>
+
                 </div>`;
         });
         window.Lit.render(libraryBrowserHtmlTag `${rows}`, listEl);
     }
     // ── New Entry ────────────────────────────────────────────────────
     /**
+
      * Task-842: one-line outcome ladder + ingredient checkmarks for a
+
      * recipe row. Checkmarks read the loaded items registry (✓ known
+
      * id, ✗ missing) — browse-time signal only; the gate is authoritative.
+
      */
     _recipeRowExtra(entry) {
         const items = (this.data && this.data.items) || {};
@@ -416,6 +448,7 @@ class LibraryBrowser {
         const ladder = `★${tierItem('crit_success')} → ✓${tierItem('success')} → ✗${tierItem('fail')} → ✗✗${tierItem('crit_fail')}`;
         const meta = `${skill.skill ? `${skill.skill} ${skill.dc ?? 10}` : ''}${entry.duration_min ? ` · ${entry.duration_min}m` : ''}`;
         return libraryBrowserHtmlTag `<div style="font-size:9.5px;color:var(--text-muted);margin-top:2px;">${ladder}${meta ? ` · ${meta}` : ''}</div>
+
             <div style="font-size:9.5px;margin-top:1px;">${ing}</div>`;
     }
     newEntry(type) {
@@ -633,14 +666,23 @@ class LibraryBrowser {
             ? libraryBrowserHtmlTag `<button class="btn btn-sm btn-ghost" @click=${() => VW.libraryBrowser.deleteEntry(type)} style="font-size:11px;color:var(--red);">🗑️</button>`
             : window.Lit.nothing;
         window.Lit.render(libraryBrowserHtmlTag `
+
             <div class="inspector-section" style="padding:10px 16px;">
+
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+
                     <h3 style="margin:0;font-size:13px;font-weight:700;">${icon} ${heading}</h3>
+
                     ${deleteButton}
+
                 </div>
+
                 <div class="field"><label style="font-size:10px;">ID (filename)</label><input type="text" id="lib-ed-id" .value=${isNew ? '' : id} placeholder="unique_id" style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px;">
+
                 <div style="font-size:9px;color:var(--text-muted);">Use lowercase, no spaces. E.g. "brave_knight". Editing the ID of an existing entry renames it.</div></div>
+
                 ${fieldsHtml}
+
             </div>`, editor);
         this._initTagMultiselect(type, data);
     }
@@ -674,9 +716,13 @@ class LibraryBrowser {
         const icons = { characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾', pursuit_templates: '🧭' };
         const labels = { characters: 'character', areas: 'area', ways: 'way', traits: 'trait', conditions: 'condition', behaviours: 'behaviour', tags: 'tag', recipes: 'recipe', pursuit_templates: 'pursuit template' };
         window.Lit.render(libraryBrowserHtmlTag `
+
             <div class="inspector-empty" style="min-height:200px;">
+
                 <div class="inspector-empty-icon">${icons[type] || '📄'}</div>
+
                 <p>Select or create a ${labels[type] || type}</p>
+
             </div>`, editor);
     }
     // ── Save Entry ───────────────────────────────────────────────────
@@ -867,16 +913,81 @@ class LibraryBrowser {
         const entry = this.data.ways[id];
         if (!entry)
             return;
-        // Pick the two areas the way connects; directions default to 'out' unless
-        // the library way is already connected to existing rooms in this world.
-        const fromName = prompt(`Import way "${entry.name || id}".\nConnect FROM area name:`, '');
-        if (!fromName || fromName === null)
+        // Pick the two areas the way connects via the target picker (bug-538).
+        // The picker lists areas by their displayed names in a searchable dialog.
+        const picker = window.ItemLibraryPlacement;
+        let fromName = null;
+        let toName = null;
+        if (picker?.pickTarget) {
+            const fromTarget = await picker.pickTarget(`Import way "${entry.name || id}" - Connect FROM area:`, { tabs: ['area'] });
+            if (!fromTarget)
+                return;
+            fromName = fromTarget.name || fromTarget.id || null;
+            if (!fromName)
+                return;
+            const toTarget = await picker.pickTarget(`Import way "${entry.name || id}" - Connect TO area:`, { tabs: ['area'] });
+            if (!toTarget)
+                return;
+            toName = toTarget.name || toTarget.id || null;
+            if (!toName)
+                return;
+        }
+        else if (VW?.dialog?.prompt) {
+            const fromRes = await VW.dialog.prompt({
+                title: `Import way "${entry.name || id}"`,
+                message: 'Connect FROM area name:',
+            });
+            if (!fromRes || !fromRes.value)
+                return;
+            fromName = fromRes.value.trim();
+            const toRes = await VW.dialog.prompt({
+                title: `Import way "${entry.name || id}"`,
+                message: 'Connect TO area name:',
+            });
+            if (!toRes || !toRes.value)
+                return;
+            toName = toRes.value.trim();
+        }
+        else {
+            fromName = prompt(`Import way "${entry.name || id}".\nConnect FROM area name:`, '');
+            if (!fromName)
+                return;
+            toName = prompt(`Connect TO area name:`, '');
+            if (!toName)
+                return;
+        }
+        if (!fromName || !toName)
             return;
-        const toName = prompt(`Connect TO area name:`, '');
-        if (!toName || toName === null)
-            return;
-        const dirFrom = prompt(`Direction FROM ${fromName} (e.g. east):`, 'out') || 'out';
-        const dirTo = prompt(`Direction FROM ${toName} (e.g. west):`, 'out') || 'out';
+        let dirFrom = 'out';
+        let dirTo = 'out';
+        if (VW?.dialog?.prompt) {
+            const dirFromRes = await VW.dialog.prompt({
+                title: 'Way direction',
+                message: `Direction FROM ${fromName} (e.g. east):`,
+                defaultValue: 'out',
+            });
+            if (dirFromRes === null)
+                return;
+            dirFrom = (dirFromRes.value && dirFromRes.value.trim()) || 'out';
+            const dirToRes = await VW.dialog.prompt({
+                title: 'Way direction',
+                message: `Direction FROM ${toName} (e.g. west):`,
+                defaultValue: 'out',
+            });
+            if (dirToRes === null)
+                return;
+            dirTo = (dirToRes.value && dirToRes.value.trim()) || 'out';
+        }
+        else {
+            const df = prompt(`Direction FROM ${fromName} (e.g. east):`, 'out');
+            if (df === null)
+                return;
+            dirFrom = df.trim() || 'out';
+            const dt = prompt(`Direction FROM ${toName} (e.g. west):`, 'out');
+            if (dt === null)
+                return;
+            dirTo = dt.trim() || 'out';
+        }
         const res = await LibraryApi.importWayFromLibrary(id, { area_from: fromName, area_to: toName, dir_from: dirFrom, dir_to: dirTo });
         if (res.error) {
             toastError('Error: ' + res.error);
@@ -929,10 +1040,15 @@ class LibraryBrowser {
         };
     }
     /**
+
      * Merge a DiffModal result onto an existing library entry. Whole-section
+
      * selections replace the field outright; per-entry selections (result.entries)
+
      * carry over only the chosen memories/items/relationships/etc. onto the
+
      * existing value, preserving everything else.
+
      */
     _applyLibrarySelection(base, incoming, result) {
         const merged = { ...(base || {}), id: incoming.id || incoming.name || (base && base.id) };
@@ -1214,8 +1330,11 @@ class LibraryBrowser {
         await this._saveAreaWithDiffModal(areaName, payload);
     }
     /**
+
      * Save a specific world area by name to the areas library (no prompt).
+
      * @param {string} areaName - Area name as shown in the graph/inspector.
+
      */
     async saveAreaByName(areaName) {
         if (!areaName)
@@ -1359,3 +1478,5 @@ class LibraryBrowser {
 }
 // Singleton
 const libraryBrowser = new LibraryBrowser();
+window.LibraryBrowser = LibraryBrowser;
+window.libraryBrowser = libraryBrowser;

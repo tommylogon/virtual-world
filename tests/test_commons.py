@@ -385,3 +385,15 @@ def test_commons_messages_and_read_cursors_use_standard_autosave(monkeypatch):
     assert read.status_code == 200
     assert saved_worlds == [flask_app.world, flask_app.world]
     assert flask_app.world.commons.participants["User"]["last_read_message_ids"]["public"] == 1
+
+
+def test_commons_inner_drawer_css_dark_theme():
+    """task-893: The inner world drawer uses the dark theme palette and no white panel."""
+    import re
+    css_path = Path(__file__).resolve().parent.parent / "static" / "css" / "commons.css"
+    css = css_path.read_text(encoding="utf-8")
+    assert ".commons-inner-drawer" in css
+    # Ensure white panel background is gone
+    assert not re.search(r"\.commons-inner-drawer\s*\{[^}]*background:\s*#ffffff", css)
+    # Ensure dark block includes .commons-inner-drawer
+    assert re.search(r"\.commons-topbar,[^}]*\.commons-inner-drawer\s*\{", css)

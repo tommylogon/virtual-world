@@ -972,4 +972,30 @@ def test_menu_undo_restores_a_card_it_cancelled_a_move_for(tmp_path, monkeypatch
     assert restored.exists()
     assert restored.read_text(encoding="utf-8").count("status: todo") == 1
 
+def test_longest_path_excludes_terminal_cards_when_cards_provided():
+    class FakeEntry:
+        def __init__(self, card_id, status):
+            self.id = card_id
+            self.status = status
+
+    cards = {
+        'task-1': FakeEntry('task-1', 'done'),
+        'task-2': FakeEntry('task-2', 'review'),
+        'task-3': FakeEntry('task-3', 'todo'),
+        'task-4': FakeEntry('task-4', 'cancelled'),
+    }
+    succ = {
+        'task-1': ['task-2'],
+        'task-2': ['task-3'],
+        'task-3': ['task-4'],
+        'task-4': [],
+    }
+    pred = {
+        'task-1': [],
+        'task-2': ['task-1'],
+        'task-3': ['task-2'],
+        'task-4': ['task-3'],
+    }
+    path = tasks._longest_path(list(cards.keys()), succ, pred, cards=cards)
+    assert path == ['task-2', 'task-3']
 

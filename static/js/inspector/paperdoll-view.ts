@@ -11,7 +11,7 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 (window as unknown as { InspectorPaperdoll: unknown }).InspectorPaperdoll = (() => {
-    const P: PaperdollApi = {};
+    const P: PaperdollApi = (window as any).InspectorView ? new (window as any).InspectorView() : {};
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     // Used only for the small popups/modals/pickers that render into standalone

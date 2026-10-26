@@ -1,7 +1,7 @@
 """Aging and lifecycle (task-735): birth ticks, stages, old-age death.
 
 The clock is sim ticks (world.time_ticks), not wall time.
-Pregnancy and birth ride a follow-up card — this file covers the
+Pregnancy and birth ride a follow-up card - this file covers the
 clock, the stages, and death.
 """
 
@@ -167,3 +167,27 @@ def test_clock_advance_ages_the_cast():
     world.tick_manager.advance_clock(6 * _year_ticks(world))
     assert player.life_stage == "adult"
     assert lc.age_years(player, world, node) == 18
+
+
+def test_birthday_dd_mm_yyyy_resolves_birth_tick_and_recalculates_on_force():
+    world = _world()
+    _character(world)
+    node = _node(world)
+    from engine import character_appearance as ca
+    ca.set_record(node, {"identity": {"birthday": "14.03.1998", "age": 28}})
+    player = world.player_manager.get_player("Arix")
+    bt = lc.ensure_birth_tick(player, world, node)
+    assert bt is not None
+    assert bt < 0
+    st = lc.status(player, world, node)
+    assert st["birthday"] == "14.03.1998"
+    assert st["birth_tick"] == bt
+    # On Jan 1 (day 1, month 1), a March 14 birthday is ~0.2 years away from turning 28
+    assert 27.5 <= st["age"] <= 28.0
+
+    # Updating age/birthday and calling ensure_birth_tick(..., force=True) moves birth_tick
+    ca.set_record(node, {"identity": {"birthday": "01.01.1990", "age": 36}})
+    bt_updated = lc.ensure_birth_tick(player, world, node, force=True)
+    assert bt_updated < bt
+    assert lc.age_years(player, world, node) == 36
+

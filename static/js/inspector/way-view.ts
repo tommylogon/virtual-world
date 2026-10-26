@@ -11,7 +11,8 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorWayView = (() => {
-    const wayView: any = {};
+    const Base = (window as unknown as { InspectorView?: new () => unknown }).InspectorView;
+    const wayView: any = Base ? new Base() : {};
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);

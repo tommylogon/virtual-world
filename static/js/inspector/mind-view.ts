@@ -64,6 +64,7 @@ interface PersonaState {
     hints: Record<string, string>;
     /** Identity pick-list vocabulary served by GET /record (engine owns it). */
     suggestions?: Record<string, string[]>;
+    lifecycle?: any;
     stale: boolean;
     dirty: boolean;
     preview: any;
@@ -163,9 +164,9 @@ const InspectorMindView = (() => {
         }).join('');
         const marks = [0, 0.25, 0.5, 0.75, 1].map(p =>
             `<text x="${(PAD + p * (W - 2 * PAD)).toFixed(0)}" y="${H - 6}" fill="#6e7681" font-size="8" text-anchor="middle" font-family="monospace">${esc(Math.round(min + p * span))}</text>`).join('');
-        return `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;">
+        return `<svg id="mind-timeline-svg" data-min="${min}" data-span="${span}" data-pad="${PAD}" data-w="${W}" width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;cursor:crosshair;">
             <line x1="${PAD}" y1="${H / 2}" x2="${W - PAD}" y2="${H / 2}" stroke="#30363d" stroke-width="2"/>${marks}${dots}</svg>
-            <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">position = tick · size = importance · red ring = contradicted · click a dot to select</div>`;
+            <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">position = tick · size = importance · red ring = contradicted · click a dot to select · double-click timeline to weave/backdate at that tick</div>`;
     }
 
     function _badge(label: string, color: string, title?: string): string {
@@ -210,6 +211,81 @@ const InspectorMindView = (() => {
             <span style="width:62px;color:var(--text-dim);">${esc(label)}</span>
             <div style="flex:1;height:7px;background:var(--bg-input);border-radius:3px;overflow:hidden;position:relative;${center ? '' : ''}">${center ? '<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border);"></div>' : ''}${fill}</div>
             <span style="width:34px;text-align:right;font-family:monospace;font-size:10px;color:var(--text-dim);">${esc(Math.round(value * 100) / 100)}</span></div>`;
+    }
+
+    /**
+     * task-785: Render the underlying memory record fields and matching
+     * lived_log evidence entries so the user can inspect the raw record and
+     * the simulation trace that produced it.
+     */
+    function _recordAndEvidenceHtml(m: any, charName?: string): string {
+        if (!m) return '';
+        const cname = charName || (_state ? _state.charName : '');
+        const p: any = cname ? worldState.players?.[cname] : null;
+        const livedLog: any[] = Array.isArray(p?.lived_log) ? p.lived_log : [];
+        const mTick = Number(m.tick ?? 0);
+        const mLoc = String(m.location || '').trim().toLowerCase();
+        const mTags = (Array.isArray(m.tags) ? m.tags : []).map((t: any) => String(t).toLowerCase());
+        const mRelTags = mTags.filter((t: string) => t.startsWith('rel:'));
+
+        const matchedLog = livedLog.filter((entry: any) => {
+            if (!entry || typeof entry !== 'object') return false;
+            const eTick = Number(entry.tick ?? NaN);
+            if (!isNaN(eTick) && eTick === mTick) return true;
+            if (!isNaN(eTick) && Math.abs(eTick - mTick) <= 2) {
+                const eArea = String(entry.area || '').trim().toLowerCase();
+                if (mLoc && eArea && mLoc === eArea) return true;
+                const eTags = (Array.isArray(entry.tags) ? entry.tags : []).map((t: any) => String(t).toLowerCase());
+                if (mRelTags.length && mRelTags.some((rt: string) => eTags.includes(rt))) return true;
+            }
+            return false;
+        }).slice(-8);
+
+        const timeFormatted = (typeof events !== 'undefined' && events && typeof events.tickToTime === 'function')
+            ? String(events.tickToTime(mTick) || '')
+            : '';
+        const entityIds = (Array.isArray(m.entity_ids) ? m.entity_ids : []).map((e: any) => String(e));
+        const tags = (Array.isArray(m.tags) ? m.tags : []).map((t: any) => String(t));
+
+        const kvRow = (k: string, v: string): string =>
+            `<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:1.5px 0;border-bottom:1px dotted var(--border-light);">
+                <span style="color:var(--text-muted);">${esc(k)}</span>
+                <span style="font-family:monospace;color:var(--text-dim);text-align:right;word-break:break-all;">${v}</span>
+            </div>`;
+
+        const recordRows: string[] = [
+            kvRow('id', esc(m.id || '-')),
+            kvRow('tick', `${esc(mTick)}${timeFormatted ? ` (${esc(timeFormatted)})` : ''}`),
+            kvRow('source / type', `${esc(m.source || 'auto')} / ${esc(m.type || 'observation')}`),
+            kvRow('category', esc(_catOf(m))),
+        ];
+        if (m.kind) recordRows.push(kvRow('kind', esc(m.kind)));
+        if (m.location) recordRows.push(kvRow('location', esc(m.location)));
+        if (m.visits != null) recordRows.push(kvRow('visits', esc(m.visits)));
+        if (entityIds.length) recordRows.push(kvRow('entity_ids', esc(entityIds.join(', '))));
+        if (tags.length) recordRows.push(kvRow('tags', esc(tags.join(', '))));
+
+        const evidenceBody = matchedLog.length
+            ? matchedLog.map((entry: any) => {
+                const metaParts: string[] = [];
+                if (entry.why) metaParts.push(`why: ${entry.why}`);
+                if (entry.area) metaParts.push(`at ${entry.area}`);
+                if (entry.with) metaParts.push(`with ${entry.with}`);
+                return `<div class="mind-lived-evidence-row" style="font-size:10px;padding:3px 0;border-bottom:1px solid var(--border-light);line-height:1.35;">
+                    <div><span style="font-family:monospace;color:var(--text-muted);">[t${esc(entry.tick ?? 0)}]</span> <b style="color:#58a6ff;">${esc(entry.kind || 'event')}</b> - ${esc(entry.what || '')}</div>
+                    ${metaParts.length ? `<div style="font-size:9px;color:var(--text-muted);">${esc(metaParts.join(' · '))}</div>` : ''}
+                </div>`;
+            }).join('')
+            : `<div class="mind-lived-evidence-empty" style="font-size:10px;color:var(--text-muted);">No lived-log entries linked to this memory.</div>`;
+
+        return `<details class="mind-underlying-record" open style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:6px 10px;margin-bottom:8px;">
+            <summary style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;">Underlying record &amp; lived-log evidence (${matchedLog.length})</summary>
+            <div style="margin-top:6px;">
+                ${recordRows.join('')}
+                <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:6px 0 3px;">Lived-log trace</div>
+                ${evidenceBody}
+            </div>
+        </details>`;
     }
 
     function _detailHtml(m: any | null, all: any[]): string {
@@ -276,6 +352,7 @@ const InspectorMindView = (() => {
                 ${contraRows}${derivedRows}${sibRows}
             </div>` : ''}
             ${relTags.length ? `<div style="font-size:10px;color:var(--f788ba, #f778ba);margin-bottom:8px;">${relTags.map((t: any) => _badge(String(t), '#f778ba')).join(' ')}</div>` : ''}
+            ${_recordAndEvidenceHtml(m)}
             <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Feelings - edit</div>
                 <div id="mind-mem-emotions"></div>
@@ -889,13 +966,15 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
-    /** The memory editor toolbar (add / generate / clear all / clear expired). */
+    /** The memory editor toolbar (weave modes / manual add / clear expired / clear all). */
     function _memoryToolbarHtml(): string {
         if (!_state) return '';
         const e = _state.escName;
         return `<div style="display:flex;gap:4px;flex-wrap:wrap;margin:8px 0;">
-            <button class="btn btn-sm btn-blue" onclick="InspectorMemory.addMemory('${e}')" style="font-size:10px;">+ Add Memory</button>
-            <button class="btn btn-sm btn-green" onclick="InspectorMemory.generateMemory('${e}')" title="Write a first-person seed memory via the LLM" style="font-size:10px;">✨ Gen Memory</button>
+            <button class="btn btn-sm btn-green" onclick="InspectorMemory.openWeaver('${e}',{mode:'opinion'})" title="Ask ${e} what they thought of a movie, topic, or experience" style="font-size:10px;">💬 Ask Opinion</button>
+            <button class="btn btn-sm btn-green" onclick="InspectorMemory.openWeaver('${e}',{mode:'event'})" title="Weave and backdate a past event in ${e}'s voice" style="font-size:10px;">🕰️ Backdate Event</button>
+            <button class="btn btn-sm btn-green" onclick="InspectorMemory.openWeaver('${e}',{mode:'social'})" title="Weave an interpersonal memory about another character" style="font-size:10px;">🤝 About Person</button>
+            <button class="btn btn-sm btn-blue" onclick="InspectorMemory.addMemory('${e}')" style="font-size:10px;">+ Add / Edit</button>
             <button class="btn btn-sm" onclick="InspectorMemory.clearExpired('${e}')" style="font-size:10px;" title="Drop expired suppressions">🧹 Clear Expired</button>
             <button class="btn btn-sm btn-red" onclick="if(confirm('Clear all memories?')){ApiClient.clearPlayerMemories('${e}').then(()=>worldState.fetch())}" style="font-size:10px;">🗑 Clear All</button>
         </div>`;
@@ -1034,9 +1113,11 @@ const InspectorMindView = (() => {
             const profile = p.profile as unknown as Record<string, number | string | boolean | undefined>;
             const rows = DIMS.map(([dim, color]) =>
                 _bar(dim, Number(profile[dim] || 0), 100, color, true)).join('');
+            const escWho = p.name.replace(/'/g, "\\'");
             return `<div class="mind-person" data-person="${esc(p.name)}" style="background:var(--bg-card);border:1px solid ${selected ? '#1f6feb' : 'var(--border)'};border-radius:6px;padding:8px 10px;margin-bottom:7px;cursor:pointer;">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
                     <b style="font-size:11.5px;">${esc(p.name)}</b>
+                    <button type="button" class="btn btn-sm" style="font-size:9px;padding:1px 6px;" onclick="event.stopPropagation();window.InspectorMemory&&window.InspectorMemory.openWeaver('${_state!.escName}',{mode:'social',targetPerson:'${escWho}'})" title="Weave a memory about ${esc(p.name)}">🤝 Weave Memory</button>
                     <span style="font-size:9px;color:var(--text-muted);margin-left:auto;">${esc(p.profile.role || 'stranger')} · ${p.memory_count} mem${p.memory_count === 1 ? '' : 's'}${p.profile.has_signal ? '' : ' · no signal yet'}</span>
                 </div>
                 ${rows}
@@ -1212,7 +1293,10 @@ const InspectorMindView = (() => {
             const opts = section === 'identity' && !numeric
                 ? (_state?.persona?.suggestions?.[field] || []) : [];
             const listId = opts.length ? `pf-dl-${section}-${field}` : '';
-            const listAttrs = listId ? ` list="${esc(listId)}" autocomplete="off" placeholder="type or pick"` : '';
+            const isBirthday = path === 'identity.birthday';
+            const listAttrs = listId
+                ? ` list="${esc(listId)}" autocomplete="off" placeholder="type or pick"`
+                : (isBirthday ? ` placeholder="dd.mm.yyyy (e.g. 14.03.1998)" pattern="\\d{2}\\.\\d{2}\\.\\d{4}"` : '');
             const datalist = listId
                 ? `<datalist id="${esc(listId)}">${opts.map((o) => `<option value="${esc(o)}"></option>`).join('')}</datalist>`
                 : '';
@@ -1575,8 +1659,8 @@ const InspectorMindView = (() => {
         const ident = (rec.identity || {}) as Record<string, unknown>;
         const picks: Array<[string, unknown]> = [
             ['pronouns', ident.pronouns], ['age', ident.age],
-            ['gender', ident.gender], ['species', ident.species],
-            ['occupation', ident.occupation],
+            ['birthday', ident.birthday], ['gender', ident.gender],
+            ['species', ident.species], ['occupation', ident.occupation],
         ];
         const chips = picks
             .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
@@ -1740,6 +1824,7 @@ const InspectorMindView = (() => {
                     status: 'ok', record: data.record || {},
                     schema: data.schema || null, hints: data.hints || {},
                     suggestions: data.suggestions || {},
+                    lifecycle: data.lifecycle || null,
                     stale: !!data.prose_stale, dirty: false, preview: null, msg: '',
                     openSections: keepOpen, bodyNav: keepNav, dollFacing: keepFacing,
                 };
@@ -2245,6 +2330,30 @@ const InspectorMindView = (() => {
             el.addEventListener('click', () => { if (_state) { _state.selectedId = el.dataset.id || ''; _render(); } }));
         _container.querySelectorAll<HTMLElement>('.mind-dot').forEach(el =>
             el.addEventListener('click', () => { if (_state) { _state.selectedId = el.dataset.id || ''; _render(); } }));
+        const tlSvg = _container.querySelector('#mind-timeline-svg') as SVGSVGElement | null;
+        if (tlSvg) {
+            tlSvg.addEventListener('dblclick', (ev: MouseEvent) => {
+                if (!_state) return;
+                const rect = tlSvg.getBoundingClientRect();
+                if (!rect || rect.width <= 0) return;
+                const min = parseFloat(tlSvg.dataset.min || '0') || 0;
+                const span = parseFloat(tlSvg.dataset.span || '1') || 1;
+                const pad = parseFloat(tlSvg.dataset.pad || '18') || 18;
+                const w = parseFloat(tlSvg.dataset.w || '760') || 760;
+                const svgX = ((ev.clientX - rect.left) / rect.width) * w;
+                const ratio = Math.max(0, Math.min(1, (svgX - pad) / (w - 2 * pad)));
+                let clickedTick = Math.round(min + ratio * span);
+                const rawBirth = _state.persona?.lifecycle?.birth_tick ?? (worldState.players?.[_state.charName] as any)?.birth_tick;
+                if (rawBirth !== null && rawBirth !== undefined && Number.isFinite(Number(rawBirth))) {
+                    const birthTick = Math.round(Number(rawBirth));
+                    if (clickedTick < birthTick) clickedTick = birthTick;
+                }
+                const IM: any = (window as any).InspectorMemory;
+                if (IM && typeof IM.openWeaverAtTick === 'function') {
+                    IM.openWeaverAtTick(_state.charName, clickedTick, 'event');
+                }
+            });
+        }
         _container.querySelectorAll<HTMLElement>('.mind-conn').forEach(el =>
             el.addEventListener('click', () => { if (_state) { _state.selectedId = el.dataset.id || ''; _render(); } }));
         _container.querySelectorAll<HTMLElement>('.mind-person').forEach(el =>
@@ -2302,7 +2411,8 @@ const InspectorMindView = (() => {
             });
     }
 
-    const M = {
+    const base = (window as any).InspectorView ? new (window as any).InspectorView() : {};
+    const M = Object.assign(base, {
         /**
          * Open the Memory Mind for a character. A snapshot of the live
          * worldState memories; 🔄 re-reads.
@@ -2345,7 +2455,9 @@ const InspectorMindView = (() => {
         _allMarks,
         _PERSONA_TEXTAREAS,
         _PERSONA_TONES,
-    };
+        _recordAndEvidenceHtml,
+        _detailHtml,
+    });
 
     return M;
 })();

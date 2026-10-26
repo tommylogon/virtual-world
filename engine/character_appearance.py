@@ -9,7 +9,7 @@ Storage: ONE block on the character graph node
 ``properties["persona"]`` with four sections nested underneath::
 
     identity     pronouns, age, gender, species, occupation, sexuality, mbti,
-                 alignment, birthday, media, potential_storylines
+                 alignment, birthday, potential_storylines
     appearance   overview, height_cm, weight_kg, build, hair{}, eyes{},
                  skin{}, face{}, body{+modifications[]}, voice{}, scent,
                  style{}
@@ -17,7 +17,7 @@ Storage: ONE block on the character graph node
                  turn_offs, traumas, boundaries, traits, aspirations,
                  quirks, habits, speech_pattern{}, experience
     narrative    biography{}, secrets{}, example_dialogues[],
-                 role_in_town, arc
+                 role_in_town, arc, media[]
 
 
 Growth (task-829): every field is mutable at runtime via
@@ -71,7 +71,6 @@ IDENTITY_FIELDS: Dict[str, Any] = {
     "mbti": ("text", None),
     "alignment": ("text", None),
     "birthday": ("text", None),
-    "media": ("proselist", None),
     "potential_storylines": ("proselist", None),
 }
 
@@ -112,6 +111,7 @@ NARRATIVE_FIELDS: Dict[str, Any] = {
     "example_dialogues": ("proselist", None),
     "role_in_town": ("text", None),
     "arc": ("text", None),
+    "media": ("proselist", None),
 }
 
 #: Personality fields, all lists of **ids** or prose. The mechanic each
@@ -127,10 +127,10 @@ PERSONALITY_FIELDS: Dict[str, str] = {
     "turn_offs": "affect_for_stimulus -> disgust and negative arousal",
     "traumas": "fear_tags + frightened condition; backstory wounds",
     "boundaries": "consent gate for intimacy prompts",
-    "traits": "prose personality traits (brave, shy, …)",
-    "aspirations": "goals/plans projection",
-    "quirks": "prompt voice colour",
-    "habits": "prompt voice + background behaviour",
+    "traits": "personality trait tags (slugs)",
+    "aspirations": "goals/plans projection tags (slugs)",
+    "quirks": "prompt voice colour tags (slugs)",
+    "habits": "background behaviour tags (slugs)",
     "speech_pattern": "prompt voice (style/dialect/catchphrases)",
     "experience": "intimacy prompt context (WorldGraph experience)",
 }
@@ -138,11 +138,10 @@ PERSONALITY_FIELDS: Dict[str, str] = {
 #: Which personality fields hold ids (slug discipline) vs free prose.
 ID_LIST_FIELDS = frozenset({
     "likes", "dislikes", "fears", "interests", "kinks", "turn_ons",
-    "turn_offs", "traumas", "boundaries",
+    "turn_offs", "traumas", "boundaries", "traits", "aspirations",
+    "quirks", "habits",
 })
-PROSE_LIST_FIELDS = frozenset({
-    "traits", "aspirations", "quirks", "habits",
-})
+PROSE_LIST_FIELDS = frozenset()
 
 #: Group subfields that hold lists of short strings (kit, features,
 #: garments) rather than a single value. A bare string wraps to one item,
@@ -230,6 +229,52 @@ def _clean_short_list(raw: Any, dotted: str) -> List[str]:
     return out
 
 
+#: Canonical dd.mm.yyyy birthday format (also accepts d.m.yyyy, dd/mm/yyyy,
+#: dd-mm-yyyy, or ISO yyyy-mm-dd on input and normalizes to dd.mm.yyyy).
+BIRTHDAY_CANONICAL_RE = re.compile(r"^\d{2}\.\d{2}\.\d{4}$")
+_BIRTHDAY_DMY_RE = re.compile(r"^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$")
+_BIRTHDAY_ISO_RE = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})$")
+
+
+def parse_birthday(raw: Any) -> Optional[tuple]:
+    """Parse a birthday string into ``(day, month, year)`` ints, or ``None``.
+
+    Accepts ``dd.mm.yyyy`` (canonical), ``d.m.yyyy``, ``dd/mm/yyyy``,
+    ``dd-mm-yyyy``, or ISO ``yyyy-mm-dd``. Validates ``1 <= day <= 31``,
+    ``1 <= month <= 12``, ``1 <= year <= 9999``.
+    """
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    m = _BIRTHDAY_DMY_RE.match(s)
+    if m:
+        day, month, year = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    else:
+        m_iso = _BIRTHDAY_ISO_RE.match(s)
+        if not m_iso:
+            return None
+        year, month, day = int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3))
+    if not (1 <= day <= 31 and 1 <= month <= 12 and 1 <= year <= 9999):
+        return None
+    return (day, month, year)
+
+
+def normalize_birthday(raw: Any) -> str:
+    """Validate and normalize *raw* into ``dd.mm.yyyy`` format.
+
+    Raises :class:`StructuredError` when *raw* is not a valid date.
+    """
+    parsed = parse_birthday(raw)
+    if parsed is None:
+        raise StructuredError(
+            f"identity.birthday must be in dd.mm.yyyy format (e.g. 14.03.1998), got {raw!r}"
+        )
+    day, month, year = parsed
+    return f"{day:02d}.{month:02d}.{year:04d}"
+
+
 def _clean_identity(raw: Any) -> Dict[str, Any]:
     if raw is None:
         return {}
@@ -252,6 +297,9 @@ def _clean_identity(raw: Any) -> Dict[str, Any]:
                 raise StructuredError(
                     f"identity.age of {age:g} is not plausible")
             out[field] = age
+            continue
+        if field == "birthday":
+            out[field] = normalize_birthday(value)
             continue
         out[field] = str(value).strip()
     return out
@@ -593,9 +641,9 @@ CONSUMER_HINTS: Dict[str, str] = {
     "identity.sexuality": "prompt voice + intimacy context",
     "identity.mbti": "prompt voice (personality type)",
     "identity.alignment": "disposition reader + prompts",
-    "identity.birthday": "calendar semantics vs age field",
-    "identity.media": "agent prompt context",
+    "identity.birthday": "birth date (dd.mm.yyyy) - lifecycle birth_tick & earliest memory gate",
     "identity.potential_storylines": "storyline authoring (currently unwired; see task-849)",
+    "narrative.media": "agent memory / knowledge lorebook context (books, movies, games, music)",
     "appearance.overview": "compiled prose",
     "appearance.height_cm": "compiled prose (ft/in)",
     "appearance.weight_kg": "compiled prose",
@@ -983,6 +1031,12 @@ def schema_for_llm() -> Dict[str, Any]:
         if field == "age":
             identity_block[field] = {"type": "number",
                                      "description": "age in years; integer"}
+        elif field == "birthday":
+            identity_block[field] = {
+                "type": "string",
+                "pattern": BIRTHDAY_CANONICAL_RE.pattern,
+                "description": "birth date in dd.mm.yyyy format (e.g. 14.03.1998)",
+            }
         elif field == "occupation":
             # No declared vocabulary: any string is fine.
             identity_block[field] = {"type": "string",

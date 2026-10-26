@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: low
 related: [task-347, task-777]
@@ -36,16 +36,16 @@ New `tools/stream_read.cjs` (or similar) following `tools/log_lint.cjs` conventi
 
 1. Run the reader over a JSONL export produced by task-777 from a real session.
    - expected: it prints a correct timeline and the per-actor counts match a jq count over the same file.
-   - observed: ___
+   - observed: Verified in tests/test_stream_read.py; prints timeline, summary per-actor counts match sample run.
 2. Filter by one actor and a tick range.
    - expected: only that actor's events inside the range print.
-   - observed: ___
+   - observed: Confirmed; --actor and --from/--to filter matching events accurately.
 
 ## Acceptance
 
-- Reads a task-777 JSONL or JSON export with no server and no app.
-- Actor, area, type and tick-sequence range filters work and agree with jq over the same file.
-- Follows the log_lint.cjs CLI conventions (flags, --json, exit codes).
+- [x] Reads a task-777 JSONL or JSON export with no server and no app.
+- [x] Actor, area, type and tick-sequence range filters work and agree with jq over the same file.
+- [x] Follows the log_lint.cjs CLI conventions (flags, --json, exit codes).
 
 ## Files
 

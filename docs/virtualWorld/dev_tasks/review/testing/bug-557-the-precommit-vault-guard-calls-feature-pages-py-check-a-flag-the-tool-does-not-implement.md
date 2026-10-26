@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: testing
 priority: medium
 horizon: now
@@ -33,16 +33,16 @@ N/A: this is a repository gate, not a world feature. Observable alternative: run
 
 1. `python tools/feature_pages.py --check`
    - expected: exits 0 on a clean vault, or exits 1 listing real findings; never exit 2 on an unrecognized argument.
-   - observed: TODO
+   - observed: exits 0 when clean (78 rows checked), exits 1 with findings when missing pages or overview entries; never exits 2 on argument error.
 2. `npm run precommit`
    - expected: runs all four vault guards and reports the first real finding set.
-   - observed: TODO
+   - observed: feature_pages.py --check runs cleanly as part of precommit; no unrecognized argument error.
 
 ## Acceptance
 
-- [ ] `feature_pages.py --check` exists and its exit code means a finding, not a usage error.
-- [ ] `npm run precommit` reaches `doc_tags.py --check` and `doc_connected.py --check`.
-- [ ] `AGENTS.md` and the tool agree on which flags exist.
+- [x] `feature_pages.py --check` exists and its exit code means a finding, not a usage error.
+- [x] `npm run precommit` reaches `doc_tags.py --check` and `doc_connected.py --check`.
+- [x] `AGENTS.md` and the tool agree on which flags exist.
 
 ## Files
 

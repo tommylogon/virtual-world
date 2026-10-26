@@ -592,3 +592,69 @@ html.bench-doc, html.bench-doc body { height: auto; overflow: visible; }
     color: #7ee787;
 }
 
+/* Dual Range Slider for Model Size */
+.bench-range-slider-wrap {
+    position: relative;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+}
+.bench-range-slider-track {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    background: var(--b-border, #30363d);
+    border-radius: 3px;
+    pointer-events: none;
+}
+.bench-range-slider-highlight {
+    position: absolute;
+    height: 100%;
+    left: 0;
+    right: 0;
+    background: var(--b-accent, #58a6ff);
+    border-radius: 3px;
+}
+.bench-range-slider-wrap input[type="range"] {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+}
+.bench-range-slider-wrap input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--b-accent, #58a6ff);
+    border: 2px solid var(--b-bg-card, #161b22);
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    transition: transform 0.1s ease, background 0.1s ease;
+}
+.bench-range-slider-wrap input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: #79c0ff;
+}
+.bench-range-slider-wrap input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--b-accent, #58a6ff);
+    border: 2px solid var(--b-bg-card, #161b22);
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+

@@ -11,7 +11,7 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorPaperdoll = (() => {
-    const P = {};
+    const P = window.InspectorView ? new window.InspectorView() : {};
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     // Used only for the small popups/modals/pickers that render into standalone
     // containers (not the shared inspector panel string template).

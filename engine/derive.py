@@ -100,25 +100,42 @@ def expand_emotion_data(data: dict):
 
 
 def fold_emotions_into_profile(profile: dict, memory: dict, other_name: str) -> bool:
-    """Fold a memory's structured `emotions:{who,data}` into the profile.
+    """Fold a memory's structured `emotions:{who,data}` or `relationship_deltas` into the profile.
 
     Mirrors `_memory_for`'s tag path but reads the structured block directly,
     so a memory stored with `emotions` (not only rel:/dim: tags) still moves the
     mechanically relevant dimensions. Returns True when it contributed.
     """
     mem = memory or {}
-    emo = mem.get("emotions") or {}
-    who = str(emo.get("who") or "").strip().lower()
-    about = (who == other_name.lower()) or any(
-        str(t).lower().startswith("rel:") and str(t)[4:].lower() == other_name.lower()
-        for t in (mem.get("tags") or [])
-    )
-    if not about:
-        return False
     weight = float(mem.get("importance", 5))
     salience = int(mem.get("salience_override", 0) or 0)
     if salience:
         weight *= 1.0 + salience / 3.0
+
+    deltas_list = mem.get("relationship_deltas")
+    if isinstance(deltas_list, list) and deltas_list:
+        found = False
+        target = other_name.lower()
+        for block in deltas_list:
+            if not isinstance(block, dict):
+                continue
+            who = str(block.get("who") or "").strip().lower()
+            if who != target:
+                continue
+            for dim, delta in expand_emotion_data(block.get("data")):
+                if dim in profile:
+                    profile[dim] += delta * weight
+                    found = True
+        return found
+
+    emo = mem.get("emotions") or {}
+    who = str(emo.get("who") or "").strip().lower()
+    about = (who == other_name.lower()) or (not who and any(
+        str(t).lower().startswith("rel:") and str(t)[4:].lower() == other_name.lower()
+        for t in (mem.get("tags") or [])
+    ))
+    if not about:
+        return False
     found = False
     for dim, delta in expand_emotion_data(emo.get("data")):
         if dim in profile:

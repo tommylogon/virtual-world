@@ -252,7 +252,7 @@ def build_scenario_from_components(
                     continue
                 props = {
                     "description": entry.get("description", ""),
-                    "pass_message": entry.get("pass_message", f"You pass through {way_name}."),
+                    "pass_message": entry.get("pass_message", ""),  # task-435: no minted template
                     "visible_in_direction": entry.get("visible_in_direction", ""),
                     "hidden": entry.get("hidden", False),
                     "tags": entry.get("tags", []),

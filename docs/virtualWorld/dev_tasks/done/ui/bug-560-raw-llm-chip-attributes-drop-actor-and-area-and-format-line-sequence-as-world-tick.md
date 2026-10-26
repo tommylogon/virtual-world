@@ -13,6 +13,10 @@ wiki: "[[Features/event-stream]]"
 **Area:** ui / stream  
 **Priority:** Medium  
 
+<!-- deps:start -->
+**Related:** [[task-777-event-stream-export-json-jsonl-formats-and-one-consolidated-export-modal-tick-sequence-range-actor-area-scope-filter-honesty]], [[task-779-persist-the-event-stream-as-structured-records-not-html-strings]]
+<!-- deps:end -->
+
 ## What
 
 Raw LLM request chips created in `StreamRawLLM.logRequest` (`static/js/stream/stream-raw-llm.ts`) hardcode `actorLabel` to `'LLM'` and `areaName` to `''`. When filtering the Event Stream by an active character or area, all raw prompt chips disappear. In addition, `_nextLineLabel()` formats the chip header with `seq` (the stream line number) as `[Tick <seq>]`, displaying e.g. `[Tick 12]` when `world_tick` is actually 1. Finally, JSON log export duplicates the send icon as `📤 📤`.

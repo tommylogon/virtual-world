@@ -209,9 +209,9 @@
         "human_company"
       ],
       "quirks": [
-        "jingles when she walks",
-        "licks her long pink tongue over her fangs when thinking",
-        "counts coins under her breath"
+        "jingles_when_walking",
+        "licks_fangs_when_thinking",
+        "counts_coins_under_breath"
       ],
       "speech_pattern": {
         "catchphrases": [

@@ -217,6 +217,19 @@ def test_timeskip_declares_an_order_when_another_human_is_attended():
     assert hero.soak_order is not None
 
 
+def test_timeskip_shared_world_reports_immediate_promotion_with_reason():
+    app, hero, client = _client()
+    _spawn(app.world, "Borin", hero.current_area, human=True)
+    hero.vitals["Bladder"] = 100
+    resp = client.post("/api/world/timeskip", json={"intent": "explore", "minutes": 120})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["mode"] == "soak"
+    assert data["ended"] is True
+    assert "critical" in data["reason"].lower()
+    assert hero.soak_order is None
+
+
 def test_timeskip_still_fast_forwards_when_the_human_is_alone():
     app, hero, client = _client()
     resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 3})

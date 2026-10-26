@@ -11,10 +11,6 @@ wiki: "[[Triggers]]"
 **Filed:** 2026-10-22
 **Related:** bug-567
 
-<!-- deps:start -->
-**Related:** [[bug-567-trigger-graph-editor-reads-and-writes-the-legacy-edge-store]]
-<!-- deps:end -->
-
 ## What
 
 `materialize_trigger` writes each definition to three places: the owner's `properties.triggers` array, a `logic_trigger` node, and a `triggers` edge (engine/triggers/materialize.py lines 134 to 151). Its module docstring argues for the node plus edge because "the rest of the engine reads the edge first", and claims "No parallel trigger format is introduced", without mentioning the property array it also writes. The module therefore re-creates the representation task-886 removed on every materialisation, which is why task-895 cannot retire it.

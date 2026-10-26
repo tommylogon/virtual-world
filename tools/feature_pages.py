@@ -1,16 +1,12 @@
-"""feature_pages.py — the coverage report for the Feature Ledger.
+"""feature_pages.py - the coverage report and gate for the Feature Ledger.
 
 The Feature Ledger is the denominator: the features a person can do, use or
 interact with. A row that points at nothing is a coverage gap, and this tool
 prints exactly which rows those are.
 
-It is a **report, not a gate**. It used to scaffold a page per row and fail when
-one was missing; that produced 77 stub pages that looked like documentation and
-carried one link — the "coverage lie". The pages are now hand-written to the
-feature / mechanic / system standard (see `AGENTS.md`), and this tool's only job
-is to say which rows have a deep doc and which do not.
-
-    python tools/feature_pages.py --report   # row -> deep-doc coverage
+    python tools/feature_pages.py --report     # row -> deep-doc coverage
+    python tools/feature_pages.py --check      # verify all rows have valid pages
+    python tools/feature_pages.py --scaffold   # create missing feature pages
 
 The Ledger row stays the source of truth for the label, the "what you can do"
 sentence and the status; the deep doc is what "documented" means there.
@@ -24,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 
-from feature_index import parse_features  # noqa: E402  — one parser for one map
-from doc_links import target_key  # noqa: E402  — one wikilink resolver
+from feature_index import parse_features  # noqa: E402 - one parser for one map
+from doc_links import target_key  # noqa: E402 - one wikilink resolver
 
 VAULT = ROOT / "docs" / "virtualWorld"
 FEATURES_DIR = VAULT / "Features"
@@ -45,14 +41,14 @@ def slug(label: str) -> str:
 
     ``Take / drop / give`` -> ``take-drop-give``. Slugs are the page basenames,
     so they must be unique across the vault or Obsidian cannot resolve a bare
-    ``[[slug]]`` — `--check` enforces that.
+    ``[[slug]]`` - `--check` enforces that.
     """
     cleaned = re.sub(r"[*_`]", "", label)
     return _SLUG_RE.sub("-", cleaned.lower()).strip("-")
 
 
 def status_word(status: str) -> str:
-    """The status token of a Status cell (``**unwired** — because…`` -> ``unwired``)."""
+    """The status token of a Status cell (``**unwired** - because...`` -> ``unwired``)."""
     cleaned = re.sub(r"[*_`]", "", str(status or "")).strip().lower()
     for word in STATUS_WORDS:
         if cleaned.startswith(word):
@@ -99,7 +95,7 @@ def render_page(feature: dict, siblings: list[dict], today: str) -> str:
     status = status_word(feature["status"])
     deep = docs_links(feature["docs"])
     deep_lines = "\n".join(f"- [[{t}]]" for t in deep) or \
-        "- _No deep note linked from the row yet — this page is the only one._"
+        "- _No deep note linked from the row yet - this page is the only one._"
     sibling_links = ", ".join(f"[[{slug(s['label'])}]]" for s in siblings) or "none yet"
     return f"""---
 type: feature
@@ -117,7 +113,7 @@ section: {section_key(feature['section'])}
 
 ## Where it lives
 
-_Not recorded yet — add the code paths when you next touch this feature._
+_Not recorded yet - add the code paths when you next touch this feature._
 
 ## Connected
 
@@ -125,13 +121,13 @@ _Not recorded yet — add the code paths when you next touch this feature._
 - Sibling features: {sibling_links}
 - All features: [[Features Overview]]
 
-> [!note] Status — `{status}`
+> [!note] Status - `{status}`
 > Recorded from [[Feature Map|the Feature Map]] on {today}. This page is an entry point; the
 > deep documentation is linked under **How it works**.
 """
 
 
-def scaffold(today: str = "2026-10-05") -> int:
+def scaffold(today: str = "2026-10-24") -> int:
     """Create the pages that do not exist. Never touches an existing page."""
     features = parse_features()
     FEATURES_DIR.mkdir(parents=True, exist_ok=True)
@@ -147,7 +143,7 @@ def scaffold(today: str = "2026-10-05") -> int:
     return created
 
 
-def audit() -> tuple[list[str], list[str], int]:
+def audit() -> tuple[list[str], list[dict], int]:
     """Return (problems, rows, page_count). A problem is one line, human-readable."""
     features = parse_features()
     problems: list[str] = []
@@ -203,21 +199,49 @@ def report() -> None:
         target = page_path(feature["label"])
         exists = target.exists()
         missing += 0 if exists else 1
-        deep = ", ".join(docs_links(feature["docs"])) or "—"
+        deep = ", ".join(docs_links(feature["docs"])) or "-"
         print(f"{feature['n']:>4}  {status_word(feature['status']):<9} "
               f"{section_key(feature['section']):<10} "
               f"{('Features/' + target.name) if exists else 'MISSING':<34} {deep}")
     print("-" * 96)
-    print(f"{len(features)} rows · {len(features) - missing} with a page · {missing} missing")
+    print(f"{len(features)} rows - {len(features) - missing} with a page - {missing} missing")
+
+
+def check() -> int:
+    problems, features, _count = audit()
+    if problems:
+        for p in problems:
+            sys.stderr.write(f"  - {p}\n")
+        sys.stderr.write(
+            f"feature_pages: {len(problems)} problem(s) found across {len(features)} rows "
+            f"(run --scaffold to generate missing pages)\n"
+        )
+        return 1
+    print(f"feature_pages: {len(features)} rows checked, all pages present and valid")
+    return 0
 
 
 def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true",
+                        help="verify every feature has a valid page and Overview entry")
     parser.add_argument("--report", action="store_true",
                         help="print the row -> deep-doc table (report only)")
+    parser.add_argument("--scaffold", action="store_true",
+                        help="create pages for features that do not have one")
     args = parser.parse_args()
+
+    if args.check:
+        return check()
+    if args.scaffold:
+        created = scaffold()
+        print(f"scaffolded {created} feature page(s)")
+        return 0
+    if args.report:
+        report()
+        return 0
 
     report()
     return 0

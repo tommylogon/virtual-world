@@ -1484,6 +1484,7 @@ class Player:
             "active_pursuit": getattr(self, "active_pursuit", None),
             "plan": getattr(self, "plan", None),
             "completed_pursuits": list(getattr(self, "completed_pursuits", []) or []),
+            "schedule": [dict(s) for s in (getattr(self, "schedule", []) or [])],
             "goals": [dict(g) for g in (getattr(self, "goals", []) or [])],
             "goal_log": [dict(e) for e in (getattr(self, "goal_log", []) or [])],
             "obligations": [dict(o) for o in (getattr(self, "obligations", []) or [])],

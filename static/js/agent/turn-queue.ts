@@ -186,6 +186,9 @@ window.TurnQueue = (() => {
      * Also updates config.controllingPlayer to the next character.
      */
     async function advance() {
+        try {
+            (window as unknown as { soundManager?: { playTurn: () => void } }).soundManager?.playTurn();
+        } catch { /* best-effort sound */ }
         const agent = _getAgent();
         if (!agent.turnQueue || agent.turnQueue.length === 0) return;
         const len = agent.turnQueue.length;

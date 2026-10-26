@@ -130,3 +130,38 @@ def test_it_is_idempotent():
     assert first["count"] >= 2
     assert second["count"] == 0
     assert graph.get_node("way_authored").properties["pass_message"] == "The old oak door groans open."
+
+
+def test_offline_generators_do_not_mint_cleanable_templates():
+    """Generators emit empty/no pass_message, never minted templates (task-435)."""
+    from tools.build_scenario import normalize_way
+    from tools.generate_scenario import emit_way
+    from tools.fix_scenario_authoring import fix_ways
+
+    # 1. build_scenario.normalize_way
+    way1 = {"id": "way_path", "name": "Forest Path", "properties": {"area_from": "a1", "area_to": "a2"}}
+    res1 = normalize_way(way1, {"a1", "a2"})
+    assert not res1["properties"].get("pass_message")
+
+    # 2. generate_scenario.emit_way
+    nodes = {}
+    edges = []
+    emit_way(nodes, edges, "a1", "a2", "Camp Entrance", "Chieftain Pit", {}, set())
+    way_node = next(n for n in nodes.values() if n.get("type") == "way")
+    assert "pass_message" not in way_node["properties"]
+
+    # 3. fix_scenario_authoring.fix_ways
+    nodes_fix = {"way_gate": {"type": "way", "name": "Bone Gate", "properties": {}}}
+    fix_ways(nodes_fix, [], [])
+    assert not nodes_fix["way_gate"]["properties"].get("pass_message")
+
+    # 4. Verify clear_way_fix_fields on a generated way removes 0 fields
+    client, app = _client()
+    graph = app.world.graph
+    graph.add_node(Node(id="area_a", type="area", name="Area A", properties={"description": "A"}))
+    graph.add_node(Node(id="area_b", type="area", name="Area B", properties={"description": "B"}))
+    graph.add_node(Node(id="way_gen", type="way", name="Generated Way", properties=way_node["properties"]))
+    graph.add_edge(Edge(source="area_a", target="way_gen", type=EDGE_CONNECTION, properties={"direction": "north"}))
+    
+    result = _run_clear(client, ["way_gen"])
+    assert result["count"] == 0

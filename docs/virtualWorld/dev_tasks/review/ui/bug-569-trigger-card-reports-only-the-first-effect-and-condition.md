@@ -11,10 +11,6 @@ wiki: "[[Triggers]]"
 **Filed:** 2026-10-22
 **Related:** bug-567
 
-<!-- deps:start -->
-**Related:** [[bug-567-trigger-graph-editor-reads-and-writes-the-legacy-edge-store]]
-<!-- deps:end -->
-
 ## What
 
 The trigger card in the inspector renders only the first effect and the first condition. `buildTriggersHtml` computes `firstEff = effectsList[0]`, prints it as `Effect: ...`, then reads `conditionsList[0]` for the condition line. A trigger with three effects reads as if it had one, and an AND of two conditions reads as if it had one. Measured on HEAD mansion.json: 12 trigger definitions have more than one effect (9 in the live world). The card is the only view that lists every trigger on a node, so it is the surface that must not under-report.

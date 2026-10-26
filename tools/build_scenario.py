@@ -90,8 +90,6 @@ def normalize_way(way: dict, area_ids: set) -> dict:
         way["id"] = ensure_way_id(way.get("name") or way["id"])
     props = way.setdefault("properties", {})
     props.setdefault("description", "")
-    if not props.get("pass_message"):
-        props["pass_message"] = f"You pass through {way['name']}."
     props.setdefault("area_from", "")
     props.setdefault("area_to", "")
     props.setdefault("current_state", "open")

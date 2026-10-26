@@ -136,7 +136,7 @@ class WorldSync {
         this._generatedAreaNames = new Set<string>();
         for (const node of Object.values(nodes) as Array<any>) {
             if (node && node.type === 'area' && node.properties
-                && node.properties.cell != null && node.name) {
+                && (node.properties.cell != null || node.properties.generated != null || node.properties.source === 'worldpainter') && node.name) {
                 this._generatedAreaNames.add(node.name);
             }
         }
@@ -325,7 +325,10 @@ class WorldSync {
      * failures stay marked.
      */
     async syncAll() {
-        const inTab = (t: string) => this.filter === 'all' || t === this.filter;
+        const inTab = (t: string) => {
+            if (this.filter === 'all') return true;
+            return t.replace(/s$/, '') === this.filter.replace(/s$/, '');
+        };
         const groups = this.groups.filter(g => inTab(g.type));
         const pending = groups.filter(g => (g.status === 'new' || g.status === 'diff') && !g.generated);
         const skipped = groups.filter(g => (g.status === 'new' || g.status === 'diff') && g.generated).length;
@@ -334,6 +337,18 @@ class WorldSync {
                 ? `Nothing to sync here (${skipped} generated entit${skipped === 1 ? 'y' : 'ies'} skipped).`
                 : 'Everything is already in sync with the library.');
             return;
+        }
+        const diffCount = pending.filter(g => g.status === 'diff').length;
+        if (diffCount > 0) {
+            const confirmed = typeof (window as any).Dialog?.confirm === 'function'
+                ? await (window as any).Dialog.confirm({
+                    title: 'Overwrite Library Entries',
+                    message: `Syncing will overwrite ${diffCount} existing library entr${diffCount === 1 ? 'y' : 'ies'}. Continue?`,
+                    confirmLabel: 'Overwrite',
+                    danger: true,
+                })
+                : true;
+            if (!confirmed) return;
         }
         let updated = 0, failed = 0;
         for (const g of pending) {
@@ -544,6 +559,11 @@ class WorldSync {
 }
 
 const worldSync = new WorldSync();
+(window as any).worldSync = worldSync;
+(window as any).WorldSync = WorldSync;
+if (typeof (window as any).VW === 'object' && (window as any).VW) {
+    (window as any).VW.worldSync = worldSync;
+}
 
 // NOTE: these declarations sit AFTER the first value statement on purpose. A
 // leading `interface`/`type` makes TypeScript drop the file's leading JSDoc

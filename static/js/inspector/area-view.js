@@ -12,7 +12,8 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorAreaView = (() => {
-    const RV = {};
+    const Base = window.InspectorView;
+    const RV = (Base ? new Base() : {});
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
     /**

@@ -533,6 +533,32 @@ def handle_player_speak(app, name):
                     "text": text, "area": target_area.name})
 
 
+def apply_mind_patch(player, data: dict) -> dict:
+    """Apply character-private mind and behaviour fields (task-738/808/813).
+
+    Shared by ``PATCH /api/players/<name>`` and the NL-editor ``update_player``
+    batch op so schedule, goal, obligation, and behaviour writes go through one
+    normaliser path.
+    """
+    applied = {}
+    if "behaviors" in data and isinstance(data["behaviors"], list):
+        player.behaviors = list(data["behaviors"])
+        applied["behaviors"] = len(data["behaviors"])
+    if "schedule" in data and (isinstance(data["schedule"], list) or data["schedule"] is None):
+        from engine.schedule import normalize as _normalize_schedule
+        player.schedule = _normalize_schedule(data["schedule"])
+        applied["schedule"] = len(data["schedule"] or [])
+    if "goals" in data and (isinstance(data["goals"], list) or data["goals"] is None):
+        from engine.goals import normalize as _normalize_goals
+        player.goals = _normalize_goals(data["goals"])
+        applied["goals"] = len(data["goals"] or [])
+    if "obligations" in data and (isinstance(data["obligations"], list) or data["obligations"] is None):
+        from engine.goals import normalize_obligations as _normalize_obligations
+        player.obligations = _normalize_obligations(data["obligations"])
+        applied["obligations"] = len(data["obligations"] or [])
+    return applied
+
+
 def handle_update_player(app, name):
     name = name.strip()
     if not name or name not in app.world.players:
@@ -659,23 +685,7 @@ def handle_update_player(app, name):
     # weapon selection and damage reduction read the edges.
     if "equipped" in data:
         app.world.equipment.set_equipped_payload(player, data["equipped"])
-    if "behaviors" in data:
-        player.behaviors = data["behaviors"]
-    # task-738: schedule is character-private data, authored in the editor.
-    if "schedule" in data:
-        from engine.schedule import normalize as _normalize_schedule
-        player.schedule = _normalize_schedule(data["schedule"])
-    # task-808: goals are character-private data, authored in the editor. They
-    # live on the character record, not a node; normalise so a hand-edited form
-    # cannot put a malformed goal into the character's mind.
-    if "goals" in data:
-        from engine.goals import normalize as _normalize_goals
-        player.goals = _normalize_goals(data["goals"])
-    # task-813: obligations are character-private too; an offer is authored or
-    # arrives from the world, and the character answers it at runtime.
-    if "obligations" in data:
-        from engine.goals import normalize_obligations as _normalize_obligations
-        player.obligations = _normalize_obligations(data["obligations"])
+    apply_mind_patch(player, data)
     if "npc_state" in data:
         player.npc_state = data["npc_state"]
     if "npc_behavior" in data:
@@ -922,6 +932,15 @@ def handle_set_character_record(app, name):
         stored = ca.set_record(node, data.get("record"))
     except ca.StructuredError as e:
         return jsonify({"error": str(e)}), 400
+
+    player = app.world.players[name]
+    try:
+        from engine import lifecycle as _lifecycle
+        ident_stored = (stored or {}).get("identity") or {}
+        if "age" in ident_stored or "birthday" in ident_stored:
+            _lifecycle.ensure_birth_tick(player, app.world, node, force=True)
+    except Exception:
+        pass
 
     body = {"record": stored, "structured": bool(stored)}
     if data.get("compile"):
@@ -1768,6 +1787,11 @@ def handle_get_player_map(app, name):
             player.charted_cells[curr_scope] = raw_charted
         charted_cells = [{"x": c[0], "y": c[1]} for c in sorted(raw_charted)]
 
+    from engine.fog import fog_view
+    all_area_ids = [
+        n.id for n in (getattr(graph, "nodes", {}) or {}).values()
+        if getattr(n, "type", None) == "area" and getattr(n, "id", None)
+    ]
     return jsonify({
         "player": name,
         "current_area": current_area,
@@ -1778,6 +1802,7 @@ def handle_get_player_map(app, name):
         "charted_cells": charted_cells,
         "visible_scope_id": curr_scope,
         "scopes": scopes,
+        "fog": fog_view(player, all_area_ids),
     })
 
 

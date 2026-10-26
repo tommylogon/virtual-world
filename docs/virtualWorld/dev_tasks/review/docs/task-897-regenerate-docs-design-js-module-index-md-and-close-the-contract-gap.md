@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: docs
 priority: medium
 wiki: "[[Developer Tooling]]"
@@ -40,20 +40,20 @@ This section defines intended access and live acceptance. It is not a claim that
 
 1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
    - expected: TODO
-   - observed: TODO
+   - observed: python tools/js_module_index.py --write produced an em-dash-free file (count 0); includes prompt-builder/capture.js; documented modules updated to 228.
 2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
    - expected: TODO
-   - observed: TODO
+   - observed: checked against js_module_index.py --check.
 3. Run the targeted regression test for the mechanism.
    - expected: TODO
-   - observed: TODO
+   - observed: python tools/js_module_index.py --check reports Contract check OK (180 known-uncovered, 0 known-bad-@docs, no new).
 
 ## Acceptance
 
 - [ ] `python tools/js_module_index.py --write` produces an em-dash-free file (count of U+2014 is 0).
-- [ ] The generated file includes static/js/agent/prompt-builder/capture.js and every other module added since the last generation.
+- [x] The generated file includes static/js/agent/prompt-builder/capture.js and every other module added since the last generation.
 - [ ] `python tools/js_module_index.py --check` reports no new gaps and no new bad @docs targets.
-- [ ] No em-dash characters are introduced anywhere by this change.
+- [x] No em-dash characters are introduced anywhere by this change.
 
 ## Files
 

@@ -11,10 +11,6 @@ wiki: "[[Gameplay/Turn Queue & Human Turns]]"
 **Filed:** 2026-10-19
 **Related:** task-333, task-352, task-610
 
-<!-- deps:start -->
-**Related:** [[task-333-human-turn-panel-scene-first]], [[task-352-action-economy]], [[task-610-human-turn-modal-exposes-3-of-23-backend-character-to-character-actions]]
-<!-- deps:end -->
-
 ## What
 
 In the human turn composer, a typed line whose first word is not in the 58-entry VERBS list is sent as speech. Show the player that before they commit, instead of letting 'walk over to the counter' be said aloud by the character.

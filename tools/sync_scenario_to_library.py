@@ -146,7 +146,7 @@ def sync_ways(scenario: dict, library_dir: Path):
         entry = {
             "name": node.get("name", node_id),
             "description": props.get("description", ""),
-            "pass_message": props.get("pass_message", f"You pass through {node.get('name', node_id)}."),
+            "pass_message": props.get("pass_message", ""),  # task-435: no minted template
             "visible_in_direction": props.get("visible_in_direction", ""),
             "hidden": props.get("hidden", False),
             "tags": props.get("tags", []),

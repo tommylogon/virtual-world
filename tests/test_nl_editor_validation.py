@@ -165,3 +165,28 @@ def test_library_delete_removes_entry(tmp_path):
     ]})
     assert missing.status_code == 207
     assert 'not found' in missing.get_json()['errors'][0]['error']
+
+def test_update_node_validates_persona_slugs():
+    from engine.nl_editor_validation import validate_ops
+    # Valid slug in traits
+    ops = [{
+        'type': 'update_node',
+        'payload': {
+            'node_id': 'char_1',
+            'patch': {'persona': {'personality': {'traits': ['brave', 'night_owl']}}},
+        },
+    }]
+    issues = validate_ops(ops, nodes={'char_1': {'type': 'character'}})
+    assert not any(i['severity'] == 'error' for i in issues)
+
+    # Display name rejected with error
+    bad_ops = [{
+        'type': 'update_node',
+        'payload': {
+            'node_id': 'char_1',
+            'patch': {'persona': {'personality': {'traits': ['Not An Id']}}},
+        },
+    }]
+    bad_issues = validate_ops(bad_ops, nodes={'char_1': {'type': 'character'}})
+    assert any(i['severity'] == 'error' and 'must hold ids' in i['message'] for i in bad_issues)
+

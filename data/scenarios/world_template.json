@@ -398,10 +398,39 @@
           "type": "observation"
         }
       ],
-      "schedule": [],
-      "goals": [],
+      "schedule": [
+        {
+          "start": 420,
+          "activity": "patrol",
+          "area": "Blizzard Forest Clearing",
+          "fallback": "wait"
+        },
+        {
+          "start": 1140,
+          "activity": "rest",
+          "area": "Campfire",
+          "fallback": "wait"
+        }
+      ],
+      "goals": [
+        {
+          "id": "reach_warm_shelter",
+          "what": "Find shelter from the blizzard before nightfall",
+          "status": "active",
+          "motivation": "Survive the freezing wind",
+          "intention": "Scout the clearing edges for a passable refuge"
+        }
+      ],
       "goal_log": [],
-      "obligations": [],
+      "obligations": [
+        {
+          "id": "keep_watch_log",
+          "charge": "Check the Frozen Thicket perimeter before dusk",
+          "status": "offered",
+          "from": "Lyrie",
+          "due": 1080
+        }
+      ],
       "mosiac": {
         "character": "Kaelen Voss",
         "tick": 0,

@@ -75,9 +75,7 @@ def fix_ways(nodes: dict, edges: list, changes: List[str]) -> None:
         if not str(props.get("description") or "").strip():
             props["description"] = f"A {_noun_for(way)} through the camp."
             changes.append(f"way {way_id}: added description")
-        if not str(props.get("pass_message") or "").strip():
-            props["pass_message"] = f"You pass through the {_noun_for(way)}."
-            changes.append(f"way {way_id}: added pass_message")
+        # task-435: leave pass_message empty for engine fallback
 
         sides = [e for e in edges
                  if e.get("type") == "connection" and e.get("target") == way_id]

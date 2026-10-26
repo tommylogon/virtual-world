@@ -105,7 +105,92 @@ window.NLEditorDiff = (() => {
         if (type === 'library_delete') {
             return { kind: 'library-delete', id: payload.id, registry: payload.registry_type, changes: [] };
         }
+        if (type === 'update_player') {
+            const charId = payload.character || payload.character_id || payload.name;
+            return {
+                kind: 'update-player',
+                id: charId,
+                changes: playerDiff(charId, payload.patch, context.players || {}, nodes),
+            };
+        }
+        if (type === 'spawn_library_item') {
+            return { kind: 'spawn', id: payload.library_id, target: payload.parent_id, changes: [] };
+        }
+        if (type === 'attach') {
+            return { kind: 'attach', from: payload.from_id, to: payload.to_id, relation: payload.relation || 'in', changes: [] };
+        }
+        if (type === 'detach') {
+            return { kind: 'detach', from: payload.from_id, to: payload.to_id, relation: payload.relation || 'in', changes: [] };
+        }
+        if (type === 'connect_areas') {
+            return { kind: 'connect', from: payload.area_a_id, to: payload.area_b_id, way: payload.way_name || payload.way_id, changes: [] };
+        }
+        if (type === 'create_trigger') {
+            const trig = isObj(payload.trigger) ? payload.trigger : {};
+            return { kind: 'trigger', id: payload.owner_id, label: trig.trigger_type || 'trigger', changes: [] };
+        }
+        if (type === 'rename_character') {
+            return { kind: 'rename', id: payload.character || payload.character_id, label: payload.new_name || payload.name, changes: [] };
+        }
         return { kind: 'other', changes: [] };
+    }
+    /** Resolve a player record from context.players by name or player_<name> node id. */
+    function resolvePlayerRecord(charId, players, nodes) {
+        if (!isObj(players))
+            return {};
+        const rawKey = String(charId || '').trim();
+        if (!rawKey)
+            return {};
+        if (isObj(players[rawKey]))
+            return players[rawKey];
+        const lower = rawKey.toLowerCase();
+        const stripped = lower.startsWith('player_') ? lower.slice(7).replace(/_/g, ' ') : lower;
+        for (const [k, v] of Object.entries(players)) {
+            if (!isObj(v))
+                continue;
+            const kLow = k.toLowerCase();
+            const vName = String(v.name || '').toLowerCase();
+            if (kLow === lower || kLow === stripped || vName === lower || vName === stripped) {
+                return v;
+            }
+        }
+        const node = (nodes || {})[lower];
+        if (isObj(node) && typeof node.name === 'string' && isObj(players[node.name])) {
+            return players[node.name];
+        }
+        return {};
+    }
+    /** Field-level diff for an update_player patch (schedule, goals, obligations, memories, relationship, emotion). */
+    function playerDiff(charId, patch, players, nodes) {
+        if (!isObj(patch))
+            return [];
+        const before = resolvePlayerRecord(charId, players, nodes);
+        const changes = [];
+        for (const [key, value] of Object.entries(patch)) {
+            if (key === 'relationship' && isObj(value)) {
+                const target = String(value.target || '?');
+                const rels = isObj(before.relationships) ? before.relationships : {};
+                const prevRel = isObj(rels[target]) ? rels[target] : undefined;
+                changes.push({ key: `relationship.${target}`, before: prevRel?.closeness, after: value.closeness });
+            }
+            else if (key === 'remove_relationship') {
+                const target = String(value || '?');
+                const rels = isObj(before.relationships) ? before.relationships : {};
+                changes.push({ key: `relationship.${target}`, before: rels[target] ?? 'linked', after: undefined });
+            }
+            else if (key === 'emotion' && isObj(value)) {
+                const dim = String(value.name || '?');
+                const emos = isObj(before.emotions) ? before.emotions : {};
+                changes.push({ key: `emotion.${dim}`, before: emos[dim], after: `+${value.delta ?? 0}` });
+            }
+            else {
+                const prev = before[key];
+                if (!same(prev, value)) {
+                    changes.push({ key, before: prev, after: value });
+                }
+            }
+        }
+        return changes;
     }
     function formatValue(value) {
         if (value === undefined)
@@ -134,6 +219,18 @@ window.NLEditorDiff = (() => {
             return [`library ${diff.registry || '?'}: upsert ${diff.id || '?'}`];
         if (diff.kind === 'library-delete')
             return [`library ${diff.registry || '?'}: delete ${diff.id || '?'}`];
+        if (diff.kind === 'spawn')
+            return [`+ spawn ${diff.id || 'item'} into ${diff.target || 'area'}`];
+        if (diff.kind === 'attach')
+            return [`+ attach ${diff.from || '?'} -> ${diff.to || '?'} (${diff.relation || 'in'})`];
+        if (diff.kind === 'detach')
+            return [`− detach ${diff.from || '?'} from ${diff.to || '?'} (${diff.relation || 'in'})`];
+        if (diff.kind === 'connect')
+            return [`+ connect ${diff.from || '?'} <-> ${diff.to || '?'} via ${diff.way || 'way'}`];
+        if (diff.kind === 'trigger')
+            return [`+ trigger (${diff.label || '?'}) on ${diff.id || 'node'}`];
+        if (diff.kind === 'rename')
+            return [`rename ${diff.id || 'character'} -> ${diff.label || '?'}`];
         let changes;
         if (diff.kind === 'bulk') {
             changes = [];
@@ -150,5 +247,5 @@ window.NLEditorDiff = (() => {
             return changes;
         return [...changes.slice(0, limit), `+${changes.length - limit} more`];
     }
-    return { opDiff, diffPairs, nodeDiff, patchProps, baseProps, formatChanges, formatValue, summaryLines };
+    return { opDiff, diffPairs, nodeDiff, playerDiff, patchProps, baseProps, formatChanges, formatValue, summaryLines };
 })();

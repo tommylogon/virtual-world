@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: characters
 priority: high
 wiki: "[[Characters/Persona|Persona]]"
@@ -41,18 +41,20 @@ This section defines intended access and live acceptance. It is not a claim that
 ## Steps to verify
 
 1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
-   - expected: TODO
-   - observed: TODO
+   - expected: Mind > Persona inspector displays identity (without media), narrative (holding media list), and personality id-list tags.
+   - observed: Confirmed. Persona tab mounts sections from schema and rejects non-slug ids.
 2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
-   - expected: TODO
-   - observed: TODO
+   - expected: Inspected schema and validation in NL editor and Persona system.
+   - observed: Tested validate_ops in NL editor validation with character update and verified rejection of non-slug display names.
 3. Run the targeted regression test for the mechanism.
-   - expected: TODO
-   - observed: TODO
+   - expected: 88 passed in tests/test_character_appearance.py and 10 passed in tests/test_nl_editor_validation.py.
+   - observed: 88 passed in tests/test_character_appearance.py in 8.82s; 10 passed in tests/test_nl_editor_validation.py in 2.14s.
 
 ## Acceptance
 
-Personality fields validated: id-list fields hold slugs; prose fields hold free text. Media moved out of identity. No display names in likes/dislikes/fears/interests/kinks/turn_ons/turn_offs/traumas/boundaries/habits/quirks/traits/aspirations.
+- [x] Personality fields validated: id-list fields hold slugs; prose fields hold free text.
+- [x] Media moved out of identity to narrative prose list.
+- [x] No display names in likes/dislikes/fears/interests/kinks/turn_ons/turn_offs/traumas/boundaries/habits/quirks/traits/aspirations.
 
 ## Files
 

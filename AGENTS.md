@@ -722,6 +722,10 @@ Notes on the gates:
   and an id with no inventory entry resolves to nothing. `--report` groups
   findings; `--update-baseline` accepts debt.
 
+- **way_property_index.py**: --check guards declaration and consumer list drift.
+  Page currency is verified by python -m pytest tests/test_way_property_index.py
+  (--write regenerates docs/virtualWorld/World Building/Way Properties.md).
+
 ### TypeScript front-end rules
 
 - **Never hand-edit a `.js` under `static/js/` that has a sibling `.ts`.** Edit

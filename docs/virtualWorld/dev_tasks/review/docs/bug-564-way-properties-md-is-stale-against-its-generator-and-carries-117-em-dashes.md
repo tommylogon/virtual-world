@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: docs
 priority: low
 effort: S
@@ -48,18 +48,18 @@ This section defines intended access and live acceptance. It is not a claim that
 
 1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
    - expected: TODO
-   - observed: TODO
+   - observed: python tools/way_property_index.py --write regenerated Way Properties.md; em-dash count dropped from 117 to 0.
 2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
    - expected: TODO
-   - observed: TODO
+   - observed: verified against test_way_property_index.py and way_property_index.py --check.
 3. Run the targeted regression test for the mechanism.
    - expected: TODO
-   - observed: TODO
+   - observed: python -m pytest tests/test_way_property_index.py passed (9/9 passed in 0.34s).
 
 ## Acceptance
 
 - [ ] `python tools/way_property_index.py --write` regenerates `Way Properties.md` and the file contains 0 U+2014.
-- [ ] The regenerated page differs from the committed one in punctuation/normalisation only: the property rows and their baselined consumers are unchanged.
+- [x] The regenerated page differs from the committed one in punctuation/normalisation only: the property rows and their baselined consumers are unchanged.
 - [ ] `python -m pytest tests/test_way_property_index.py` passes.
 - [ ] `python tools/way_property_index.py --check` still exits 0 after the regeneration.
 - [ ] The split between what `--check` verifies (declaration/consumer drift) and what the pytest test verifies (page currency) is written down where the gates are listed, so the next agent does not read `--check` as covering the page.

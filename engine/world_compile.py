@@ -877,6 +877,7 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "world_scope_id": parent_id,
         "child_scope_id": child_id,
         "generated": provenance(parent_id, recipe_id, seed, tick)["generated"],
+        "source": "worldpainter",
     }
     if entry_phrase:
         # The seam is a *move*, not a direction, and the description has to be able
@@ -1047,6 +1048,7 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
         "y": cell[1] * CELL_CANVAS_UNITS,
         "cell": {"x": cell[0], "y": cell[1]},
         "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
+        "source": "worldpainter",
     }
     if refuse:
         props["refusal_message"] = building_refusal(biome_id)
@@ -2161,6 +2163,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             # the marker is a flag, not a cell index.
             "cell": {"x": (cell[0] + nb[0]) / 2, "y": (cell[1] + nb[1]) / 2},
             "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
+            "source": "worldpainter",
         }
         # A pass message that says what the edge *is* (task-562), because that is
         # the difference the author painted and the character should feel it.
@@ -2787,6 +2790,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         "cell": {"x": border_x, "y": border_y},
                         "tags": way_tags,
                         "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
+                        "source": "worldpainter",
                     }
                     if kind == "stairs":
                         seam_props["handle"] = "stairs"

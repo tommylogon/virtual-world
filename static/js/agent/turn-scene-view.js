@@ -1,12 +1,12 @@
 "use strict";
 /**
- * turn-scene-view.js — scene-first view for the human turn panel
+ * turn-scene-view.js  -  scene-first view for the human turn panel
  * (task-333 Phase 1)
  *
  * Fetches GET /api/scene/<char> and renders clickable chips for the area,
- * people, things and ways out. Hover = free look (a preview card — no turn
+ * people, things and ways out. Hover = free look (a preview card  -  no turn
  * cost); click = a context menu whose entries FILL THE DRAFT via onDraft()
- * — nothing is ever submitted from here (compose-then-commit).
+ *  -  nothing is ever submitted from here (compose-then-commit).
  *
  * Way menus follow the v2.7 mockup rules: labels stay clean, and hidden
  * aspects (locked / needs force) appear only through the backend's per-player
@@ -15,9 +15,9 @@
  *
  * Load AFTER api.js, BEFORE human-turn-composer.js.
  *
- * @module agent/turn-scene-view — scene-first chips for the turn panel
+ * @module agent/turn-scene-view  -  scene-first chips for the turn panel
  * @contributes TurnSceneView: GET /api/scene/<char> → clickable area/people/things/ways chips + draft-filling menus
- * @powers The human turn — seeing and choosing what's around you without spending the turn (hover = free look)
+ * @powers The human turn  -  seeing and choosing what's around you without spending the turn (hover = free look)
  * @relates feeds human-turn-composer via onDraft; shares the context-menu helper with turn-you-strip
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
@@ -53,7 +53,7 @@ window.TurnSceneView = (() => {
             .tsv-chip.tsv-person { color:#eec9ff; border-color:#3d2b52; }
             .tsv-chip.tsv-person:hover { border-color:#a86ee0; background:#241a33; }
             /* Current-emotion profile thumbnail; click opens the big portrait.
-               Sized to be recognisable at a glance — 18px read as an
+               Sized to be recognisable at a glance  -  18px read as an
                indistinct smudge next to the name. */
             .tsv-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover;
                           border:1px solid #3d2b52; cursor:zoom-in; flex:none; }
@@ -141,33 +141,37 @@ window.TurnSceneView = (() => {
         return 'blinding';
     }
     // ── menu builders ────────────────────────────────────────────────
-    function buildItemMenu(entry, dark = false) {
+    function buildItemMenu(entry, dark = false, slotsOverride) {
+        const s = slotsOverride !== undefined ? slotsOverride : slotsOf();
         // Backend contract: TriggerSystem._get_available_actions entries
         // ({action,label,enabled,reason}) already encode state gates.
         const actions = Array.isArray(entry.available_actions) ? entry.available_actions : [];
         const menus = [];
         // In the dark the chip reads "something", so the menu must not hand
-        // over the real name in its header — that made the masking theatre.
+        // over the real name in its header  -  that made the masking theatre.
         // The draft still carries the real name so the verb resolves.
         if (dark) {
-            menus.push({
+            menus.push(applyBudgetGate({
                 label: 'Feel around the shape',
                 run: () => draftParts({ action: 'examine', item: entry.name }),
-            });
+            }, 'examine', s));
         }
         else {
-            menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
+            menus.push(applyBudgetGate({
+                label: `Examine ${entry.name}`,
+                run: () => draftParts({ action: 'examine', item: entry.name }),
+            }, 'examine', s));
         }
         for (const a of actions) {
             if (a.action === 'examine')
                 continue;
-            menus.push({
+            menus.push(applyBudgetGate({
                 label: a.label || a.action,
                 enabled: a.enabled !== false,
                 reason: a.reason || '',
                 run: () => draftParts({ action: a.action === 'toggle' ? 'toggle' : a.action, item: entry.name }),
                 danger: a.action === 'drop',
-            });
+            }, a.action === 'toggle' ? 'toggle' : a.action, s));
         }
         return menus;
     }
@@ -184,25 +188,57 @@ window.TurnSceneView = (() => {
         const p = ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player];
         return !!p && Number(p.burst_pending || 0) > 0;
     }
-    /** The controlled character's remaining action slots, or undefined. */
+    /** The controlled character's remaining action slots, or null if unpublished. */
     function slotsOf() {
         const ws = window.worldState;
         const d = ws && (ws.runtimeData || ws.data);
         const p = d && d.players && d.active_player
             ? (ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player]) : undefined;
-        return p ? p.turn_slots : undefined;
+        const s = p ? p.turn_slots : null;
+        if (!s || typeof s !== 'object' || !Object.keys(s).length)
+            return null;
+        return s;
+    }
+    /**
+     * Check if an action's tier can be paid by the remaining turn slots (bug-562).
+     * An unpublished budget (null or empty slots) disables nothing (bug-544).
+     */
+    function gateByBudget(verb, slots) {
+        if (!slots || !Object.keys(slots).length)
+            return { enabled: true };
+        const at = window.ActionTiers;
+        if (!at || typeof at.tierOf !== 'function' || typeof at.canPay !== 'function')
+            return { enabled: true };
+        const tier = at.tierOf(verb);
+        if (tier === 'free')
+            return { enabled: true };
+        if (!at.canPay(slots, tier)) {
+            return { enabled: false, reason: `no ${tier} action left` };
+        }
+        return { enabled: true };
+    }
+    function applyBudgetGate(button, verb, slots) {
+        if (button.enabled === false)
+            return button;
+        const gate = gateByBudget(verb, slots);
+        if (!gate.enabled) {
+            button.enabled = false;
+            button.reason = gate.reason;
+        }
+        return button;
     }
     /**
      * A dash needs both its major (the hop) and a minor (the finish). With no
      * published budget, never hide (older saves) - the server is the enforcer.
      */
-    function canInitiateDash() {
-        const s = slotsOf();
-        if (!s)
+    function canInitiateDash(slots) {
+        const s = slots !== undefined ? slots : slotsOf();
+        if (!s || !Object.keys(s).length)
             return true;
         return (s.major || 0) > 0 && (s.minor || 0) > 0;
     }
-    function buildWayMenu(way, conditions, atWayId, dark = false) {
+    function buildWayMenu(way, conditions, atWayId, dark = false, slotsOverride) {
+        const s = slotsOverride !== undefined ? slotsOverride : slotsOf();
         const grappled = (conditions || []).some((c) => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
         const closed = way.state !== 'open';
@@ -214,20 +250,21 @@ window.TurnSceneView = (() => {
         if (burstPending()) {
             const finish = [];
             if (!requires && !grappled && !['locked', 'blocked'].includes(way.state)) {
-                finish.push({ label: `Finish dash ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
+                finish.push(applyBudgetGate({ label: `Finish dash ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) }, 'go', s));
             }
             else {
                 finish.push({ label: `Finish dash ${destText}`, enabled: false, reason: requires ? `requires ${requires}` : (grappled ? 'something holds you back' : way.state) });
             }
-            finish.push({ label: 'Stop here (wait)', run: () => draftParts({ action: 'wait' }) });
+            finish.push(applyBudgetGate({ label: 'Stop here (wait)', run: () => draftParts({ action: 'wait' }) }, 'wait', s));
             return finish;
         }
-        const menus = [{
+        const menus = [applyBudgetGate({
                 label: dark ? 'Feel along the opening' : `Examine ${way.name}`,
                 run: () => draftParts({ action: 'examine', item: way.name }),
-            }];
-        if (atWayId !== way.way_id) {
-            menus.push({ label: `Approach ${dirText || shownName}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
+            }, 'examine', s)];
+        const targetWayId = way.way_id || way.id;
+        if (atWayId !== targetWayId) {
+            menus.push(applyBudgetGate({ label: `Approach ${dirText || shownName}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) }, 'approach', s));
         }
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
@@ -243,13 +280,13 @@ window.TurnSceneView = (() => {
             menus.push({ label: `Go ${dirText}`, enabled: false, reason: 'blocked' });
         }
         else {
-            menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
+            menus.push(applyBudgetGate({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) }, 'go', s));
         }
-        // task-784: a dash is the burst's first hop — offered exactly when Go is,
+        // task-784: a dash is the burst's first hop  -  offered exactly when Go is,
         // and disabled when the minor to finish with is not there (the server
         // refuses a dash without it, so the menu never offers one that cannot end).
         if (!requires && !grappled && !['locked', 'blocked'].includes(way.state)) {
-            if (canInitiateDash()) {
+            if (canInitiateDash(s)) {
                 menus.push({ label: `Dash ${destText}`, run: () => draftParts({ action: 'dash', item: way.direction || way.name }) });
             }
             else {
@@ -257,23 +294,24 @@ window.TurnSceneView = (() => {
             }
         }
         if (!requires && closed && !['locked', 'blocked'].includes(way.state)) {
-            menus.push({ label: `Open ${shownName}`, run: () => draftParts({ action: 'open', item: way.name }) });
+            menus.push(applyBudgetGate({ label: `Open ${shownName}`, run: () => draftParts({ action: 'open', item: way.name }) }, 'open', s));
         }
         // An open passage (a compiled outdoor way, an authored `prevent_close`) has
         // no door to swing: movement._open_passage_block refuses `close`, so
         // offering Close is a verb that can only fail.
         if (!closed && !requires && !way.prevent_close) {
-            menus.push({ label: `Close ${shownName}`, run: () => draftParts({ action: 'close', item: way.name }) });
+            menus.push(applyBudgetGate({ label: `Close ${shownName}`, run: () => draftParts({ action: 'close', item: way.name }) }, 'close', s));
         }
         return menus;
     }
     // task-610: the backend dispatches ~23 character-to-character verbs but
     // the person menu exposed only Talk / Examine / Attack. This mirrors the
-    // full person-directed set. The menu is an affordance only — every entry
+    // full person-directed set. The menu is an affordance only  -  every entry
     // drafts text the server validates, exactly like the way menu. Entries
     // whose argument the menu cannot know (a steal target's inventory, a
     // name alias) are deliberately not offered; see task-610 notes.
-    function buildPersonMenu(person, scene) {
+    function buildPersonMenu(person, scene, slotsOverride) {
+        const s = slotsOverride !== undefined ? slotsOverride : slotsOf();
         const you = ((scene && scene.you) || {});
         const conditions = (you.conditions || []).map((c) => String(c).toLowerCase());
         const grappled = conditions.some((c) => c.includes('grappl'));
@@ -287,20 +325,20 @@ window.TurnSceneView = (() => {
             || (window.config?.matureContent));
         const who = person.display_name;
         // Speaking to someone is two different things, so the menu offers both:
-        //   · Whisper to them — directed. Only they hear it, plus anyone standing
+        //   · Whisper to them  -  directed. Only they hear it, plus anyone standing
         //     close enough to be "at" you who is a friend or better (the engine's
         //     whisper audience, engine/speech.py). Use it for a secret.
-        //   · Say it aloud — undirected. Everyone in the area hears it, exactly
+        //   · Say it aloud  -  undirected. Everyone in the area hears it, exactly
         //     as if you had simply spoken. This is the "the whole room can hear"
         //     option, and it is NOT addressed to this person in any way.
         const menus = [
-            { label: `Whisper to ${who}`, talk: true, volume: 'whisper', target: who },
-            { label: `Say aloud (everyone hears)`, talk: true, volume: 'say' },
+            applyBudgetGate({ label: `Whisper to ${who}`, talk: true, volume: 'whisper', target: who }, 'whisper', s),
+            applyBudgetGate({ label: `Say aloud (everyone hears)`, talk: true, volume: 'say' }, 'say', s),
         ];
         // Examine resolves real names, aliases, AND descriptive labels
-        // (matching.py _match_character_name tiers) — the masked stranger
+        // (matching.py _match_character_name tiers)  -  the masked stranger
         // label drafts fine and resolves server-side.
-        menus.push({
+        menus.push(applyBudgetGate({
             label: `Examine ${who}`,
             run: () => {
                 // "Big overlay on examine": examining a character shows their
@@ -311,64 +349,64 @@ window.TurnSceneView = (() => {
                     artView.open({ name: person.display_name, nodeId: person.id });
                 return draftParts({ action: 'examine', target: person.display_name });
             },
-        });
-        menus.push({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) });
-        menus.push({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) });
-        menus.push({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) });
-        // Wake is only legal against someone with an activity — the engine
+        }, 'examine', s));
+        menus.push(applyBudgetGate({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) }, 'attack', s));
+        menus.push(applyBudgetGate({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) }, 'grab', s));
+        menus.push(applyBudgetGate({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) }, 'lead', s));
+        // Wake is only legal against someone with an activity  -  the engine
         // raises "isn't sleeping or busy" otherwise (Activities.wake). Offering
         // it on a standing, idle person is a verb that can only fail.
         if (person.activity) {
-            menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+            menus.push(applyBudgetGate({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) }, 'wake', s));
         }
         if (grappled)
-            menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
+            menus.push(applyBudgetGate({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) }, 'escape', s));
         // Release only means something for someone you actually hold, which
         // is what `you.holding` (the authoritative `grappled` edge) reports.
         if (holding.includes(person.name || who) || holding.includes(who)) {
-            menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+            menus.push(applyBudgetGate({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) }, 'release', s));
         }
         // Give: choose from what you are actually carrying. applyDraft joins
         // action/item/target with spaces, so the connector lives in the action
         // phrase ("give Dagger to" + "Tester"), not a separate field.
         if (carrying.length) {
-            menus.push({
+            menus.push(applyBudgetGate({
                 label: `Give… (${carrying.length})`,
                 sub: {
                     title: `Give what to ${who}?`,
-                    buttons: carrying.slice(0, 20).map((item) => ({
+                    buttons: carrying.slice(0, 20).map((item) => applyBudgetGate({
                         label: item.name,
                         run: () => draftParts({ action: `give ${item.name} to`, target: who }),
-                    })),
+                    }, 'give', s)),
                 },
-            });
+            }, 'give', s));
         }
         // Teach: choose from the abilities you know.
         if (abilities.length) {
-            menus.push({
+            menus.push(applyBudgetGate({
                 label: `Teach… (${abilities.length})`,
                 sub: {
                     title: `Teach what to ${who}?`,
-                    buttons: abilities.slice(0, 20).map((ability) => ({
+                    buttons: abilities.slice(0, 20).map((ability) => applyBudgetGate({
                         label: ability,
                         run: () => draftParts({ action: `teach skill:${ability} to`, target: who }),
-                    })),
+                    }, 'teach', s)),
                 },
-            });
+            }, 'teach', s));
         }
         // Intimacy verbs are only valid in mature worlds (task-211); offer the
         // submenu behind the same toggle the engine gates on.
         if (mature) {
-            menus.push({
+            menus.push(applyBudgetGate({
                 label: 'Intimacy…',
                 sub: {
                     title: `Intimacy with ${who}`,
-                    buttons: ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle'].map((verb) => ({
+                    buttons: ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle'].map((verb) => applyBudgetGate({
                         label: verb[0].toUpperCase() + verb.slice(1),
                         run: () => draftParts({ action: verb, target: who }),
-                    })),
+                    }, verb, s)),
                 },
-            });
+            }, 'kiss', s));
         }
         return menus;
     }
@@ -398,7 +436,7 @@ window.TurnSceneView = (() => {
             else if (obj.see_through && obj.to)
                 body += `\n\nthrough it: the ${obj.to}, faintly.`;
             if (obj.needs_force_known)
-                body += '\n\nclearly stuck — opening it will take muscle.';
+                body += '\n\nclearly stuck  -  opening it will take muscle.';
             if (obj.known_locked)
                 body += '\n\nlocked.';
             const reqText = requiresGate(obj);
@@ -425,7 +463,7 @@ window.TurnSceneView = (() => {
             }
             return { title: obj.display_name, body, foot };
         }
-        // scene item (or carried/worn item from the You strip — desc + slot)
+        // scene item (or carried/worn item from the You strip  -  desc + slot)
         const stateBit = ['open'].includes(obj.state) ? ' · open' : '';
         const slotBit = obj.slot ? ` · ${obj.slot} slot` : '';
         return {
@@ -472,7 +510,7 @@ window.TurnSceneView = (() => {
                 btn.classList.add('tsv-back');
             btn.appendChild(document.createTextNode(b.label));
             if (b.reason)
-                btn.appendChild(el('span', 'why', '— ' + b.reason));
+                btn.appendChild(el('span', 'why', ' -  ' + b.reason));
             btn.disabled = b.enabled === false;
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -547,7 +585,7 @@ window.TurnSceneView = (() => {
             return cached.scene;
         }
         // NOTE: ApiClient is a top-level class (global binding, not a
-        // window property) — reference it bare, like the rest of the app.
+        // window property)  -  reference it bare, like the rest of the app.
         const scene = await ApiClient.getScene(charName);
         _sceneCache[charName] = { scene, tick: currentTick, area: currentArea };
         return scene;
@@ -569,7 +607,7 @@ window.TurnSceneView = (() => {
             { label: 'Examine the room', run: () => draftParts({ action: 'examine', item: 'room' }) },
             { label: 'Look around', run: () => draftParts({ action: 'look' }) },
             { label: 'Listen', run: () => draftParts({ action: 'listen' }) },
-            // Focus the speech row without changing the volume — the "just let me
+            // Focus the speech row without changing the volume  -  the "just let me
             // say something" affordance, kept distinct from the explicit volumes.
             { label: 'Speak…', talkFocus: true },
             { label: 'Say it to the room', talk: true, volume: 'say' },
@@ -586,7 +624,7 @@ window.TurnSceneView = (() => {
             areaRow.appendChild(el('span', 'tsv-light tsv-light-' + lightBand(lightPct), `${LIGHT_LABEL[lightBand(lightPct)]} · ${Math.round(lightPct)}%`));
         }
         host.appendChild(areaRow);
-        const desc = el('p', 'tsv-desc', dark ? 'shapes in the gloom — details are lost.' : (scene.area.desc || ''));
+        const desc = el('p', 'tsv-desc', dark ? 'shapes in the gloom  -  details are lost.' : (scene.area.desc || ''));
         if (desc.textContent)
             host.appendChild(desc);
         const zone = (label) => {
@@ -680,5 +718,5 @@ window.TurnSceneView = (() => {
     function menu(x, y, title, buttons, onDraft) {
         openMenu(x, y, title, buttons, onDraft, null);
     }
-    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu, invalidateCache };
+    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu, invalidateCache, buildWayMenu, buildItemMenu, buildPersonMenu };
 })();

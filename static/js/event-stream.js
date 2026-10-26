@@ -723,6 +723,39 @@ class EventBus {
         this._scrubber.scheduleRebuild();
         storage.saveEventLog([]);
     }
+    async clearStream() {
+        let confirmed = false;
+        const dialogApi = window.Dialog || window.VW?.dialog;
+        if (typeof dialogApi?.confirm === 'function') {
+            confirmed = await dialogApi.confirm({
+                title: 'Clear Event Stream',
+                message: 'Wipe every row from the visible stream and the persisted log? This cannot be undone.',
+                danger: true
+            });
+        }
+        else if (typeof window.confirm === 'function') {
+            confirmed = window.confirm('Wipe every row from the visible stream and the persisted log? This cannot be undone.');
+        }
+        else {
+            confirmed = true;
+        }
+        if (!confirmed)
+            return;
+        this.clearAll();
+        this._filters.clearAreaFilter();
+        const agentSelect = document.getElementById('stream-agent-filter');
+        if (agentSelect)
+            agentSelect.value = '';
+        this._filters.updateAgentFilterDropdown();
+        const searchEl = document.getElementById('stream-search');
+        if (searchEl)
+            searchEl.value = '';
+        const searchCountEl = document.getElementById('stream-search-count');
+        if (searchCountEl)
+            searchCountEl.textContent = '';
+        this._filters.applyFilters();
+        this._scrubber.scheduleRebuild();
+    }
     clearAreaEvents() {
         this._areaEventLog = {};
     }

@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-776, task-876, task-877, task-879
 
-<!-- deps:start -->
-**Related:** [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]], [[task-876-worldpainter-one-grid-control-instead-of-the-grid-dialog-button-plus-the-grid-adjust-toggle]], [[task-877-worldpainter-import-and-export-a-greyscale-heightmap-for-the-floor-layer]], [[task-879-worldpainter-alt-click-samples-the-layer-value-under-the-cursor-into-the-brush]]
-<!-- deps:end -->
-
 ## What
 
 Split the monolithic `static/js/worldpainter/editor.ts` (currently 4,387 lines) into coherent, decoupled modules under `static/js/worldpainter/`:

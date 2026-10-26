@@ -22,35 +22,33 @@
 type AVWin = { [key: string]: any };
 
 (window as unknown as AVWin).InspectorAgentView = (() => {
-    class InspectorAgentView extends InspectorView {
-        /** Currently active tab name. */
-        _activeTab = 'Bio';
-        /** Deferred renders: lit TemplateResults that get rendered into placeholder containers after panel render. */
-        _deferredRenders: Array<() => void> = [];
+    const AV: Record<string, any> = (window as unknown as AVWin).InspectorView ? new (window as unknown as AVWin).InspectorView() : {};
+    AV._lastTemplate = null;
 
-        /** Last rendered template (for render() contract). */
-        _lastTemplate: unknown = null;
+    // Lazy tag for the PICKERS/OVERLAYS only (trait option, condition editor,
+    // timeline detail, add-item/container pickers). The main agent template and
+    // its deferred gravity/alias helpers stay as STRINGS via unsafeHTML (the
+    // documented HEAD design) - never mix this tag into those string builds.
+    const agentViewTag = (strings: TemplateStringsArray, ...values: any[]) => window.Lit.html(strings, ...values);
 
-        // Lazy tag for the PICKERS/OVERLAYS only (trait option, condition editor,
-        // timeline detail, add-item/container pickers). The main agent template and
-        // its deferred gravity/alias helpers stay as STRINGS via unsafeHTML (the
-        // documented HEAD design) — never mix this tag into those string builds.
-        agentViewTag = (strings: TemplateStringsArray, ...values: any[]) => window.Lit.html(strings, ...values);
+    // ─── Internal state ───
+    let _activeTab = 'Bio';
 
-        // ─── Internal state ───
-        // Deferred renders: agent-view builds one big HTML string, so helpers that
-        // return lit TemplateResults (graphGravityControl, renderAliasesSection)
-        // get rendered into placeholder containers AFTER the panel render runs.
-        _deferRender = (renderFn: () => void) => {
-            this._deferredRenders.push(renderFn);
-        };
-        _runDeferredRenders = () => {
-            const pending = this._deferredRenders;
-            this._deferredRenders = [];
-            pending.forEach(renderFn => {
-                try { renderFn(); } catch (error) { console.error('[agent-view] deferred render failed:', error); }
-            });
-        };
+    // Deferred renders: agent-view builds one big HTML string, so helpers that
+    // return lit TemplateResults (graphGravityControl, renderAliasesSection)
+    // get rendered into placeholder containers AFTER the panel render runs.
+    let _deferredRenders: Array<() => void> = [];
+    const _deferRender = (renderFn: () => void) => {
+        _deferredRenders.push(renderFn);
+    };
+    AV._deferRender = _deferRender;
+    const _runDeferredRenders = () => {
+        const pending = _deferredRenders;
+        _deferredRenders = [];
+        pending.forEach(renderFn => {
+            try { renderFn(); } catch (error) { console.error('[agent-view] deferred render failed:', error); }
+        });
+    };
 
     // ─── Constants ───
     const EMOTION_ICONS: Record<string, string> = { happy: '😊', sad: '😢', angry: '😠', afraid: '😨', surprised: '😲', disgusted: '🤢', neutral: '😐' };
@@ -69,8 +67,7 @@ type AVWin = { [key: string]: any };
      * Render the full agent inspector panel
      * @param {string} agentName - Character name
      */
-    showAgent(agentName: string) {
-        super.show(agentName);
+    AV.showAgent = function(agentName: string) {
         const panel = document.getElementById('inspector-panel');
         if (!panel || !worldState.data) return;
 
@@ -91,33 +88,33 @@ type AVWin = { [key: string]: any };
         const characterNode = Object.entries(worldState.graph?.nodes || {} as Record<string, any>)
             .find(([, node]: [string, any]) => node.type === 'character' && node.name === agentName);
 
-        let html = this._renderAgentHeader(agentName, player, color, characterNode);
-        html += this._renderStatusRow(agentName, player, color, isAuto, escName);
-        html += this._renderEmotionSelector(agentName, player, escName);
-        html += this._renderVitals(player, agentName);
+        let html = AV._renderAgentHeader(agentName, player, color, characterNode);
+        html += AV._renderStatusRow(agentName, player, color, isAuto, escName);
+        html += AV._renderEmotionSelector(agentName, player, escName);
+        html += AV._renderVitals(player, agentName);
 
         // Tab navigation
-        html += this._renderTabNav(escName);
+        html += AV._renderTabNav(escName);
 
         // Inventory tab (paperdoll on top, inventory below)
-        html += this._renderInventoryTab(agentName, player, escName);
+        html += AV._renderInventoryTab(agentName, player, escName);
 
         // Bio tab (personality, appearance, stats/skills/traits, relationships, memories)
-        html += this._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
+        html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
 
         // Images tab (Expression Pack + sheet splitter) — task-512: art lives on
         // its own tab so the overview stays about who the character is.
-        html += this._renderImagesTab(agentName, player, characterNode);
+        html += AV._renderImagesTab(agentName, player, characterNode);
 
         // Advanced tab (behaviors, timeline, save/export)
-        html += this._renderAdvancedTab(agentName, player, charState, escName, isAuto, characterNode);
+        html += AV._renderAdvancedTab(agentName, player, charState, escName, isAuto, characterNode);
 
-        // Store the template for the render() contract, then render through
-        // InspectorPanel (single panel owner) inside an unsafeHTML marker so
-        // lit never tries to diff against string content and its part tracking
-        // stays intact across re-renders.
-        this._lastTemplate = htmlTag`${window.Lit.unsafeHTML(html)}`;
-        (window as unknown as AVWin).InspectorPanel.render(this._lastTemplate);
+        // The whole agent view is one big string template with inline onclick
+        // handlers. Render it through InspectorPanel (single panel owner) inside
+        // an unsafeHTML marker so lit never tries to diff against string content
+        // and its part tracking stays intact across re-renders.
+        const htmlTag = (strings: TemplateStringsArray, ...values: any[]) => window.Lit.html(strings, ...values);
+        (window as unknown as AVWin).InspectorPanel.render(htmlTag`${window.Lit.unsafeHTML(html)}`);
 
         // Known-by authoring: who knows THIS character (the Knowledge modal
         // for what they know lives in the Advanced tab). Render into a slot
@@ -133,7 +130,7 @@ type AVWin = { [key: string]: any };
 
         // Render lit-helper TemplateResults (gravity control, aliases) that
         // couldn't be embedded in the string into their placeholder containers.
-        this._runDeferredRenders();
+        _runDeferredRenders();
 
         if (avWin.InspectorTemplateSync && characterNode && characterNode[0]) {
             avWin.InspectorTemplateSync.populateSelector('character', characterNode[0]);
@@ -173,10 +170,10 @@ type AVWin = { [key: string]: any };
         reinitChoices(panel);
 
         // Relationship slider events
-        this._bindRelationshipSliders(panel, agentName);
+        AV._bindRelationshipSliders(panel, agentName);
 
         // Populate trait dropdown from library
-        this._populateTraitDropdown(escName);
+        AV._populateTraitDropdown(escName);
     };
 
     /**
@@ -190,7 +187,7 @@ type AVWin = { [key: string]: any };
      * @param {object} props - Node properties
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    _deferredGravityControl = function(nodeId: string, props: Record<string, any> = {}) {
+    AV._deferredGravityControl = function(nodeId: string, props: Record<string, any> = {}) {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
         const containerId = `agent-gravity-${cleanId}`;
         _deferRender(() => {
@@ -209,7 +206,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|string} aliases - Current aliases
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    _deferredAliasesSection = function(nodeId: string, aliases: any = []) {
+    AV._deferredAliasesSection = function(nodeId: string, aliases: any = []) {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
         const containerId = `agent-aliases-${cleanId}`;
         _deferRender(() => {
@@ -221,7 +218,7 @@ type AVWin = { [key: string]: any };
         return `<div id="${containerId}"></div>`;
     };
 
-    _populateTraitDropdown = async function(escName: string) {
+    AV._populateTraitDropdown = async function(escName: string) {
         const sel = document.getElementById(`trait-add-select-${escName}`);
         if (!sel) return;
         try {
@@ -260,7 +257,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] pair or null
      * @returns {string} HTML
      */
-    _renderAgentHeader = function(agentName: string, player: any, color: string, characterNode: [string, any] | null) {
+    AV._renderAgentHeader = function(agentName: string, player: any, color: string, characterNode: [string, any] | null) {
         const tick = worldState.tick;
         const nodeId = characterNode ? characterNode[0] : '';
         const escapedNodeId = nodeId.replace(/'/g, "\\'");
@@ -295,7 +292,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    _renderStatusRow = function(agentName: string, player: any, color: string, isAuto: boolean, escName: string) {
+    AV._renderStatusRow = function(agentName: string, player: any, color: string, isAuto: boolean, escName: string) {
         const currentArea = player.current_area || '';
         const escCurrentArea = currentArea.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const listId = 'player-room-list-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -377,7 +374,7 @@ type AVWin = { [key: string]: any };
      * @param {string} charName - Character name
      * @param {HTMLInputElement} inputEl - The input element
      */
-    _commitPlayerRoom = function(charName: string, inputEl: HTMLInputElement) {
+    AV._commitPlayerRoom = function(charName: string, inputEl: HTMLInputElement) {
         if (!inputEl) return;
         const val = (inputEl.value || '').trim();
         const player = worldState.players?.[charName];
@@ -419,7 +416,7 @@ type AVWin = { [key: string]: any };
             inputEl.value = oldRoom;
         }
     };
-    _changePlayerRoom = this._commitPlayerRoom;
+    AV._changePlayerRoom = AV._commitPlayerRoom;
 
     /**
      * Render the emotion selector row
@@ -428,7 +425,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    _renderEmotionSelector = function(agentName: string, player: any, escName: string) {
+    AV._renderEmotionSelector = function(agentName: string, player: any, escName: string) {
         const emotion = player.emotion || { current: 'neutral', intensity: 0 };
         const emotionOptions = Object.keys(EMOTION_ICONS).map(emotionName =>
             `<option value="${emotionName}" ${emotion.current === emotionName ? 'selected' : ''}>${EMOTION_ICONS[emotionName]} ${emotionName}</option>`
@@ -450,7 +447,7 @@ type AVWin = { [key: string]: any };
      * Polarity-aware vital bar color — shared implementation
      * (static/js/shared/vital-color.js, task-337/342).
      */
-    vitalBarColor(vitalName: string, value: number) {
+    function vitalBarColor(vitalName: string, value: number) {
         return (window as unknown as AVWin).VitalColor.bar({ [vitalName]: value }, vitalName);
     }
 
@@ -459,7 +456,7 @@ type AVWin = { [key: string]: any };
      * @param {object} player - Player data
      * @returns {string} HTML
      */
-    _renderVitals = function(player: any, agentName: string) {
+    AV._renderVitals = function(player: any, agentName: string) {
         const vitals = player.vitals || {};
         const escAgent = (agentName || '').replace(/'/g, "\\'");
         const openModal = (vn: string) => `openVitalModal('${escAgent}','${vn}')`;
@@ -547,7 +544,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name (unused but kept for consistency)
      * @returns {string} HTML
      */
-    _renderTabNav = function() {
+    AV._renderTabNav = function() {
         return `<div class="inspector-tabs" style="display:flex;border-bottom:2px solid var(--border);background:var(--bg-card);padding:0 8px;gap:2px;">
             ${TABS.map(tabName => `<div class="inspector-tab" data-tab-btn="${tabName}" onclick="InspectorAgentView._switchAgentTab('${tabName}')" style="padding:6px 12px;font-size:11px;cursor:pointer;border-bottom:2px solid ${_activeTab === tabName ? 'var(--accent)' : 'transparent'};color:${_activeTab === tabName ? 'var(--accent)' : 'var(--text-dim)'};font-weight:${_activeTab === tabName ? '600' : '400'};">${tabName}</div>`).join('')}
         </div>`;
@@ -557,7 +554,7 @@ type AVWin = { [key: string]: any };
      * Switch active tab and re-render
      * @param {string} tabName - Tab name to switch to
      */
-    _switchAgentTab = function(tabName: string) {
+    AV._switchAgentTab = function(tabName: string) {
         _activeTab = tabName;
         document.querySelectorAll<HTMLElement>('.inspector-tab').forEach(el => {
             const on = el.dataset.tabBtn === tabName;
@@ -580,7 +577,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    _renderStatsBlocks = function(player: any, escName: string) {
+    AV._renderStatsBlocks = function(player: any, escName: string) {
         let html = '';
 
         // Stats grid
@@ -652,7 +649,7 @@ type AVWin = { [key: string]: any };
         return html;
     };
 
-    _addTrait = async function(charName: string) {
+    AV._addTrait = async function(charName: string) {
         const sel = document.getElementById(`trait-add-select-${charName}`) as HTMLSelectElement | null;
         if (!sel || !sel.value) return;
         const traitId = sel.value;
@@ -675,7 +672,7 @@ type AVWin = { [key: string]: any };
      * @param {string} charName - Character name
      * @param {string} conditionId - Condition id to clear (e.g. "grappled")
      */
-    _removeCondition = async function(charName: string, conditionId: string) {
+    AV._removeCondition = async function(charName: string, conditionId: string) {
         await ApiClient.updateCharacter(charName, { remove_condition: conditionId });
         worldState.fetch();
         if (VW?.inspector) VW.inspector._reRender();
@@ -683,7 +680,7 @@ type AVWin = { [key: string]: any };
     };
 
     // Cached status-condition catalog (from /api/conditions).
-    _conditionCatalog = null;
+    AV._conditionCatalog = null;
 
     /**
      * Open the condition editor modal for a character, mirroring the trigger
@@ -692,16 +689,16 @@ type AVWin = { [key: string]: any };
      * optional advanced periodic/override settings.
      * @param {string} charName - Character name
      */
-    _openConditionEditor = async function(charName: string) {
-        if (!this._conditionCatalog) {
+    AV._openConditionEditor = async function(charName: string) {
+        if (!AV._conditionCatalog) {
             try {
                 const res = await (ApiClient as Record<string, any>).conditionsCatalog();
-                this._conditionCatalog = (res && res.conditions) || [];
+                AV._conditionCatalog = (res && res.conditions) || [];
             } catch (err) {
-                this._conditionCatalog = [];
+                AV._conditionCatalog = [];
             }
         }
-        const catalog = this._conditionCatalog;
+        const catalog = AV._conditionCatalog;
 
         const esc = (s: unknown) => String(s == null ? '' : s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -804,7 +801,7 @@ type AVWin = { [key: string]: any };
             if (periodic) payload.periodic = periodic;
             if (overrides) payload.overrides = overrides;
             overlay.remove();
-            this._applyCondition(charName, payload, def);
+            AV._applyCondition(charName, payload, def);
         };
 
         overlay.querySelector<HTMLElement>('#ce-condition')!.addEventListener('change', function (this: HTMLInputElement) {
@@ -834,7 +831,7 @@ type AVWin = { [key: string]: any };
      * @param {Object} payload - { condition, duration?, source?, level?, periodic?, ends_on?, overrides? }
      * @param {Object} [def] - Catalog entry for logging the label
      */
-    _applyCondition = async function(charName: string, payload: Record<string, any>, def?: any) {
+    AV._applyCondition = async function(charName: string, payload: Record<string, any>, def?: any) {
         try {
             await ApiClient.updateCharacter(charName, { add_condition: payload });
             const label = (def && def.label) || payload.condition;
@@ -863,7 +860,7 @@ type AVWin = { [key: string]: any };
      * neutral, so moving it lifts or lowers the matching decision weight the soak
      * reads (engine/disposition). Distinct from the prose personality above.
      */
-    _dialRowHtml = function(escName: string, traitId: string, value: any) {
+    AV._dialRowHtml = function(escName: string, traitId: string, value: any) {
         const inputStyle = 'font-size:11px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
         const v = (value === null || value === undefined || value === '') ? '0.5' : String(value);
         const escAttr = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -874,12 +871,12 @@ type AVWin = { [key: string]: any };
         </div>`;
     };
 
-    _renderDialsSection = function(player: any, escName: string) {
+    AV._renderDialsSection = function(player: any, escName: string) {
         const dials = (player.personality_dials && typeof player.personality_dials === 'object') ? player.personality_dials : {};
         const entries = Object.entries(dials);
         const listId = 'dial-list-' + escName.replace(/\s+/g, '_');
         const body = entries.length
-            ? entries.map(([k, v]) => this._dialRowHtml(escName, k, v)).join('')
+            ? entries.map(([k, v]) => AV._dialRowHtml(escName, k, v)).join('')
             : '<div class="dial-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no dials</div>';
         return `<div class="inspector-section">
             <h3>🎚 Personality dials</h3>
@@ -889,12 +886,12 @@ type AVWin = { [key: string]: any };
         </div>`;
     };
 
-    _dialList = function(charName: string) {
+    AV._dialList = function(charName: string) {
         return document.getElementById('dial-list-' + charName.replace(/\s+/g, '_'));
     };
 
-    _collectDials = function(charName: string) {
-        const list = this._dialList(charName);
+    AV._collectDials = function(charName: string) {
+        const list = AV._dialList(charName);
         const out: Record<string, number> = {};
         if (!list) return out;
         list.querySelectorAll('.dial-row').forEach((row: any) => {
@@ -906,36 +903,36 @@ type AVWin = { [key: string]: any };
         return out;
     };
 
-    _saveDials = async function(charName: string) {
-        const personality_dials = this._collectDials(charName);
+    AV._saveDials = async function(charName: string) {
+        const personality_dials = AV._collectDials(charName);
         await ApiClient.updateCharacter(charName, { personality_dials });
         await worldState.fetch();
     };
 
-    _addDial = function(charName: string) {
-        const list = this._dialList(charName);
+    AV._addDial = function(charName: string) {
+        const list = AV._dialList(charName);
         if (!list) return;
         const empty = list.querySelector('.dial-empty');
         if (empty) empty.remove();
-        list.insertAdjacentHTML('beforeend', this._dialRowHtml(charName, '', '0.5'));
+        list.insertAdjacentHTML('beforeend', AV._dialRowHtml(charName, '', '0.5'));
         const rows = list.querySelectorAll('.dial-row');
         const last = rows[rows.length - 1] as HTMLElement | undefined;
         (last?.querySelector('input') as HTMLElement | null)?.focus();
     };
 
-    _deleteDial = function(charName: string, el: HTMLElement) {
+    AV._deleteDial = function(charName: string, el: HTMLElement) {
         const row = el.closest('.dial-row');
         if (row) row.remove();
-        this._saveDials(charName);
+        AV._saveDials(charName);
     };
 
-    _renderBioTab = function(agentName: string, player: any, charState: any, area: any, escName: string, isAuto: boolean, color: string) {
+    AV._renderBioTab = function(agentName: string, player: any, charState: any, area: any, escName: string, isAuto: boolean, color: string) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
-        const firstImpression = this._computeFirstImpression(player);
+        const firstImpression = AV._computeFirstImpression(player);
         let html = `<div data-tab="Bio" style="${showTab('Bio')}">`;
 
         // Stats / Skills / Traits
-        html += this._renderStatsBlocks(player, escName);
+        html += AV._renderStatsBlocks(player, escName);
 
         // Personality
         html += `<div class="inspector-section">
@@ -949,7 +946,7 @@ type AVWin = { [key: string]: any };
 
         // Personality dials (task-806): the numeric decision weights beside the
         // prose. A dial is authored here and read by the disposition (task-802).
-        html += this._renderDialsSection(player, escName);
+        html += AV._renderDialsSection(player, escName);
 
         // Appearance
         html += `<div class="inspector-section">
@@ -975,7 +972,7 @@ type AVWin = { [key: string]: any };
         // Aliases — subjective names others use to target this character
         const agentNodeId = `player_${agentName.replace(/\s+/g, '_')}`;
         const agentNode = worldState.getNode(agentNodeId);
-        html += this._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
+        html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
 
         // task-787: interest tags, fear tags, recipes, what-I-see, latest
         // thoughts and the plan moved into the Mind panel - the runtime mind no
@@ -995,7 +992,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] for the character, if found
      * @returns {string} HTML
      */
-    _renderImagesTab = function(agentName: string, player: any, characterNode: [string, any] | null) {
+    AV._renderImagesTab = function(agentName: string, player: any, characterNode: [string, any] | null) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Images" style="${showTab('Images')}">`;
         if (characterNode) {
@@ -1023,7 +1020,7 @@ type AVWin = { [key: string]: any };
      * @param {string} escName - HTML-escaped name
      * @returns {string} HTML
      */
-    _renderInventoryTab = function(agentName: string, player: any, escName: string) {
+    AV._renderInventoryTab = function(agentName: string, player: any, escName: string) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Inventory" style="${showTab('Inventory')}">`;
 
@@ -1162,7 +1159,7 @@ type AVWin = { [key: string]: any };
      * @param {Array|null} characterNode - [nodeId, node] pair or null
      * @returns {string} HTML
      */
-    _renderAdvancedTab = function(agentName: string, player: any, charState: any, escName: string, isAuto: boolean, characterNode: [string, any] | null) {
+    AV._renderAdvancedTab = function(agentName: string, player: any, charState: any, escName: string, isAuto: boolean, characterNode: [string, any] | null) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
 
@@ -1171,7 +1168,7 @@ type AVWin = { [key: string]: any };
         // who the character is. Rendered once, via the deferred helper, because
         // graphGravityControl returns a lit TemplateResult.
         if (characterNode) {
-            html += this._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
+            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
         }
 
         // Behaviors
@@ -1263,7 +1260,7 @@ type AVWin = { [key: string]: any };
      * @param {HTMLElement} panel - The inspector panel element
      * @param {string} agentName - Character name
      */
-    _bindRelationshipSliders = function(panel: HTMLElement, agentName: string) {
+    AV._bindRelationshipSliders = function(panel: HTMLElement, agentName: string) {
         panel.querySelectorAll<HTMLInputElement>('.rel-slider').forEach(slider => {
             slider.addEventListener('input', function(this: HTMLInputElement) {
                 const value = this.value;
@@ -1345,7 +1342,7 @@ type AVWin = { [key: string]: any };
      * Send a manual command for this character via the API
      * @param {string} charName - Character name
      */
-    _sendManualCommand = function(charName: string) {
+    AV._sendManualCommand = function(charName: string) {
         const input = document.getElementById('manual-cmd-input') as HTMLInputElement | null;
         const command = (input?.value || '').trim();
         if (!command) return;
@@ -1358,7 +1355,7 @@ type AVWin = { [key: string]: any };
      * Generate personality via AI
      * @param {string} charName - Character name
      */
-    _generatePersonality = async function(charName: string) {
+    AV._generatePersonality = async function(charName: string) {
         const input = document.getElementById('inspector-ai-prompt') as HTMLTextAreaElement | null;
         const prompt = (input?.value || '').trim();
         if (!prompt) { input?.focus(); return; }
@@ -1401,7 +1398,7 @@ type AVWin = { [key: string]: any };
      * Save personality from the inspector textarea
      * @param {string} charName - Character name
      */
-    _savePersonality = function(charName: string) {
+    AV._savePersonality = function(charName: string) {
         return (window as unknown as AVWin).InspectorHelpers.savePersonality(charName);
     };
 
@@ -1411,7 +1408,7 @@ type AVWin = { [key: string]: any };
      * @param {string} charName - Character name
      * @param {string} nodeId - Graph node ID
      */
-    _copyExpressionPrompt = async function(charName: string, nodeId: string): Promise<void> {
+    AV._copyExpressionPrompt = async function(charName: string, nodeId: string): Promise<void> {
         const player = worldState.players?.[charName];
         const node = worldState.getNode(nodeId);
         const props = node?.properties || {};
@@ -1474,7 +1471,7 @@ ${isNewPack
      * @param {string} text - Generated description
      * @returns {string[]} Detected issues (empty array = clean)
      */
-    _appearanceGrammarIssues = function(text: string): string[] {
+    AV._appearanceGrammarIssues = function(text: string): string[] {
         const issues: string[] = [];
         if (!text || !text.trim()) return issues;
         if (/\b(?:you|your|yours|you're|you've)\b/i.test(text)) issues.push('second-person pronoun (you/your)');
@@ -1490,8 +1487,8 @@ ${isNewPack
      * @param {string} text - Generated description with issues
      * @returns {Promise<string|null>} Cleaned text, or null
      */
-    _sanitizeAppearanceGrammar = async function(text: string): Promise<string | null> {
-        if (!text || this._appearanceGrammarIssues(text).length === 0) return text;
+    AV._sanitizeAppearanceGrammar = async function(text: string): Promise<string | null> {
+        if (!text || AV._appearanceGrammarIssues(text).length === 0) return text;
         try {
             const repair = await llmClient.chat([
                 { role: 'user', content:
@@ -1503,7 +1500,7 @@ ${isNewPack
                     + text }
                 ], { temperature: 0.4, label: 'inspector/appearance-repair' });
             const fixed = (repair || '').trim();
-            if (fixed && this._appearanceGrammarIssues(fixed).length === 0) return fixed;
+            if (fixed && AV._appearanceGrammarIssues(fixed).length === 0) return fixed;
             return null;
         } catch (e) {
             return null;
@@ -1514,7 +1511,7 @@ ${isNewPack
      * Generate description via AI (server-side LLM or client-side fallback)
      * @param {string} charName - Character name
      */
-    _generateDescription = async function(charName: string) {
+    AV._generateDescription = async function(charName: string) {
         const player = worldState.players[charName];
         if (!player) return;
         if (!(AIGenerator as unknown as { isConfigured(): boolean }).isConfigured()) return;
@@ -1563,13 +1560,13 @@ ${isNewPack
                 // and is seen by other characters, so never persist broken
                 // grammar/voice — validate, then one silent repair pass, else
                 // fall through to the safe client-side merge below.
-                const cleaned = await this._sanitizeAppearanceGrammar(response.trim());
+                const cleaned = await AV._sanitizeAppearanceGrammar(response.trim());
                 if (cleaned) {
                     if (textarea) textarea.value = cleaned;
-                    await this._saveDescription(charName);
+                    await AV._saveDescription(charName);
                     return;
                 }
-                if (this._appearanceGrammarIssues(response.trim()).length > 0) {
+                if (AV._appearanceGrammarIssues(response.trim()).length > 0) {
                     events.log(`⚠️ ${charName}: generated appearance failed grammar check — using safe fallback`, 'error-msg');
                 }
             }
@@ -1591,7 +1588,7 @@ ${isNewPack
         }
         if (textarea) {
             textarea.value = description || 'Nothing equipped.';
-            await this._saveDescription(charName);
+            await AV._saveDescription(charName);
         }
     };
 
@@ -1602,7 +1599,7 @@ ${isNewPack
      * @param {object} player - Player data object
      * @returns {string} First impression text
      */
-    _computeFirstImpression = function(player: any): string {
+    AV._computeFirstImpression = function(player: any): string {
         if (!player) return '';
         const tagMap: Record<string, string> = {
             female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',
@@ -1626,14 +1623,14 @@ ${isNewPack
      * Live-update the first impression preview as the description is typed.
      * @param {string} charName - Character name
      */
-    _updateFirstImpression = function(charName: string) {
+    AV._updateFirstImpression = function(charName: string) {
         const ta = document.getElementById('inspector-description') as HTMLTextAreaElement | null;
         const baseTa = document.getElementById('inspector-base-description') as HTMLTextAreaElement | null;
         const player = Object.assign({}, worldState.players?.[charName] || {});
         if (ta) player.description = ta.value;
         if (baseTa) player.base_description = baseTa.value;
         const preview = document.getElementById('inspector-first-impression');
-        if (preview) preview.textContent = this._computeFirstImpression(player);
+        if (preview) preview.textContent = AV._computeFirstImpression(player);
     };
 
     /**
@@ -1643,7 +1640,7 @@ ${isNewPack
      * @param {object} player - Player data object
      * @returns {Array} Recipe graph nodes (type === 'recipe')
      */
-    _knownRecipeNames = function(charName: string, player: any): any[] {
+    AV._knownRecipeNames = function(charName: string, player: any): any[] {
         const state = worldState.data || {};
         const nodes = (state.graph?.nodes || {}) as Record<string, any>;
         const carriedNames = new Set();
@@ -1694,7 +1691,7 @@ ${isNewPack
      * @param {Array} picked - Raw ids from the model
      * @returns {Array} Ids that exist in the pool, de-duplicated, order kept
      */
-    _validateAutoDressPicks = function(pool: any[], picked: any[]): string[] {
+    AV._validateAutoDressPicks = function(pool: any[], picked: any[]): string[] {
         const valid = new Set((Array.isArray(pool) ? pool : []).map((c: any) => String(c?.lib_id ?? '')));
         const out: string[] = [];
         const seen = new Set<string>();
@@ -1718,7 +1715,7 @@ ${isNewPack
      * @param {string} text - Raw model output
      * @returns {Array|null} Ids, or null if unparseable
      */
-    _parseAutoDressResponse = function(text: unknown): string[] | null {
+    AV._parseAutoDressResponse = function(text: unknown): string[] | null {
         const raw = String(text || '').trim();
         if (!raw) return null;
         let list = null;
@@ -1755,7 +1752,7 @@ ${isNewPack
      *
      * @param {string} charName - Character name
      */
-    _autoDress = async function(charName: string) {
+    AV._autoDress = async function(charName: string) {
         let libraryIds: string[] | null = null;
         let note = '';
         let pool: any[] = [];
@@ -1793,9 +1790,9 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
 
                 const response = await llmClient.chat([{ role: 'user', content: prompt }],
                     { temperature: 0.6, label: 'inspector/auto-dress' });
-                const picked = this._parseAutoDressResponse(response);
+                const picked = AV._parseAutoDressResponse(response);
                 if (picked) {
-                    const valid = this._validateAutoDressPicks(pool, picked);
+                    const valid = AV._validateAutoDressPicks(pool, picked);
                     if (valid.length > 0) {
                         libraryIds = valid;
                     } else {
@@ -1878,7 +1875,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {Array} picked - Tags the LLM chose, already validated
      * @returns {Array} Existing tags plus the new ones, no duplicates
      */
-    _mergeGeneratedTags = function(existing: any[], picked: any[]): string[] {
+    AV._mergeGeneratedTags = function(existing: any[], picked: any[]): string[] {
         const merged: string[] = [];
         const seen = new Set<string>();
         for (const tag of [...(Array.isArray(existing) ? existing : []), ...(Array.isArray(picked) ? picked : [])]) {
@@ -1903,7 +1900,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {Set<string>} [known] - Ids that already exist; passed through as-is
      * @returns {string} Normalized id, or '' if nothing usable was left
      */
-    _normalizeGeneratedTag = function(tag: unknown, known?: Set<string>): string {
+    AV._normalizeGeneratedTag = function(tag: unknown, known?: Set<string>): string {
         const text = String(tag ?? '').trim().toLowerCase();
         if (!text) return '';
         if (known && known.has(text)) return text;
@@ -1923,7 +1920,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {string} id
      * @returns {string[]} Candidate singulars, most likely first
      */
-    _singularVariants = function(id: string): string[] {
+    AV._singularVariants = function(id: string): string[] {
         const out: string[] = [];
         if (id.endsWith('ies')) out.push(`${id.slice(0, -3)}y`);
         if (id.endsWith('es')) out.push(id.slice(0, -2));
@@ -1950,7 +1947,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {object} vocab - {live, library, known} id collections
      * @returns {Array<{id: string, status: 'live'|'library'|'new', via: string}>}
      */
-    _resolveConcept = function(concept: string, vocab: { live: Set<string>; library: Set<string>; known: Set<string> }): any[] {
+    AV._resolveConcept = function(concept: string, vocab: { live: Set<string>; library: Set<string>; known: Set<string> }): any[] {
         const words = String(concept ?? '').trim().toLowerCase().split(/[\s/]+/).filter(Boolean);
         if (!words.length) return [];
         const found: any[] = [];
@@ -1958,12 +1955,12 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         // through its singular. Unmatched words are not tags: letting them be
         // would turn "worn iron tools" into `worn`, `iron` and `tools` as well.
         const push = (candidate: string) => {
-            const id = this._normalizeGeneratedTag(candidate, vocab.known);
+            const id = AV._normalizeGeneratedTag(candidate, vocab.known);
             if (!id) return null;
             if (vocab.live.has(id)) return { id, status: 'live' };
             if (vocab.library.has(id)) return { id, status: 'library' };
-            for (const form of this._singularVariants(id)) {
-                const singular = this._normalizeGeneratedTag(form, vocab.known);
+            for (const form of AV._singularVariants(id)) {
+                const singular = AV._normalizeGeneratedTag(form, vocab.known);
                 if (vocab.live.has(singular)) return { id: singular, status: 'live' };
                 if (vocab.library.has(singular)) return { id: singular, status: 'library' };
             }
@@ -1977,7 +1974,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         if (found.length) return found;
         // Nothing real anywhere: keep the head noun so the idea is not lost, and
         // let the caller report it as carrying nothing.
-        const head = this._normalizeGeneratedTag(words[words.length - 1], vocab.known);
+        const head = AV._normalizeGeneratedTag(words[words.length - 1], vocab.known);
         return head ? [{ id: head, status: 'new', via: concept }] : [];
     };
 
@@ -2001,7 +1998,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      *
      * @returns {Promise<{live: Set, library: Set, known: Set}>}
      */
-    _collectTagVocabulary = async function() {
+    AV._collectTagVocabulary = async function() {
         const live = new Set<string>();
         const library = new Set<string>();
         const add = (set: Set<string>, tag: unknown) => {
@@ -2036,7 +2033,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * vocabulary it showed was never the library at all.
      * @returns {Promise<Set<string>>}
      */
-    _collectItemTags = async function() {
+    AV._collectItemTags = async function() {
         const set = new Set();
         try {
             const payload = await (await fetch('/api/library/items')).json();
@@ -2075,7 +2072,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
      * @param {number} opts.limit - Max tags to accept from the model
      * @returns {Promise<void>}
      */
-    _generateTagsFromPersonality = async function({ charName, field, vocab, ask, contextNote, toastPrefix, limit }: { charName: string; field: string; vocab: { live: Set<string>; library: Set<string>; known: Set<string> }; ask: (prompt: string) => Promise<string>; contextNote: string; toastPrefix: string; limit: number }) {
+    AV._generateTagsFromPersonality = async function({ charName, field, vocab, ask, contextNote, toastPrefix, limit }: { charName: string; field: string; vocab: { live: Set<string>; library: Set<string>; known: Set<string> }; ask: (prompt: string) => Promise<string>; contextNote: string; toastPrefix: string; limit: number }) {
         const player = worldState.players?.[charName];
         if (!player || !AIGenerator.isConfigured()) return;
 
@@ -2125,7 +2122,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             // arrives twice.
             const resolved: any[] = [];
             for (const concept of concepts) {
-                for (const hit of this._resolveConcept(concept, vocab)) {
+                for (const hit of AV._resolveConcept(concept, vocab)) {
                     const seen = resolved.find((r: any) => r.id === hit.id);
                     if (seen) { if (hit.status === 'live') seen.status = 'live'; continue; }
                     resolved.push(hit);
@@ -2135,7 +2132,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             if (!chosen.length) { toastWarning('The character returned no usable tags.'); return; }
 
             const existing = Array.isArray(player[field]) ? player[field] : [];
-            const merged = this._mergeGeneratedTags(existing, chosen.map(c => c.id));
+            const merged = AV._mergeGeneratedTags(existing, chosen.map(c => c.id));
             const added = chosen.filter(c => !existing.some(e => String(e).toLowerCase() === c.id.toLowerCase()));
             await ApiClient.updateCharacter(charName, { [field]: merged });
 
@@ -2163,7 +2160,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * it is false, so it must not be called from render — only from a click.
      * @returns {boolean}
      */
-    _isAiConfigured = function() {
+    AV._isAiConfigured = function() {
         return !!(typeof config !== 'undefined' && config && config.apiKey && config.model);
     };
 
@@ -2176,16 +2173,16 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * than the world's. Picks are unioned into hand-placed tags.
      * @param {string} charName - Character name
      */
-    _generateInterestTags = async function(charName: string) {
+    AV._generateInterestTags = async function(charName: string) {
         // bug-514: check before the async tag/vocabulary collection, so the
         // "not configured" toast is immediate. When it lived inside
         // `_generateTagsFromPersonality` the collection could take long enough
         // that the click looked like it did nothing.
         if (!(AIGenerator as unknown as { isConfigured(): boolean }).isConfigured()) return;
-        const items = await this._collectItemTags();
-        const base = await this._collectTagVocabulary();
+        const items = await AV._collectItemTags();
+        const base = await AV._collectTagVocabulary();
         const vocab = { live: items, library: base.library, known: new Set([...items, ...base.live, ...base.library]) };
-        await this._generateTagsFromPersonality({
+        await AV._generateTagsFromPersonality({
             charName,
             field: 'interest_tags',
             vocab,
@@ -2208,11 +2205,11 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * interest. Picks are unioned into hand-placed tags.
      * @param {string} charName - Character name
      */
-    _generateFearTags = async function(charName: string) {
+    AV._generateFearTags = async function(charName: string) {
         // bug-514: immediate feedback, before the async vocabulary collection.
         if (!(AIGenerator as unknown as { isConfigured(): boolean }).isConfigured()) return;
-        const vocab = await this._collectTagVocabulary();
-        await this._generateTagsFromPersonality({
+        const vocab = await AV._collectTagVocabulary();
+        await AV._generateTagsFromPersonality({
             charName,
             field: 'fear_tags',
             vocab,
@@ -2227,7 +2224,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * Save description and base description from inspector textareas
      * @param {string} charName - Character name
      */
-    _saveDescription = function(charName: string) {
+    AV._saveDescription = function(charName: string) {
         return (window as unknown as AVWin).InspectorHelpers.saveDescription(charName);
     };
 
@@ -2243,7 +2240,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      * @returns {object} Character card in library format
      */
-    _buildCharacterCard = function(charName: string) {
+    AV._buildCharacterCard = function(charName: string) {
         const player = worldState.players[charName];
         if (!player) return null;
         const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
@@ -2324,8 +2321,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * Save character to registry
      * @param {string} charName - Character name
      */
-    _saveCharacter = async function(charName: string) {
-        const charCard = this._buildCharacterCard(charName);
+    AV._saveCharacter = async function(charName: string) {
+        const charCard = AV._buildCharacterCard(charName);
         if (!charCard) return;
 
         let libEntry = null;
@@ -2390,7 +2387,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * an active player (not the library). Distinct from "Add from Library":
      * no library entry required; sets active player and inventory edges.
      */
-    _importCharacter = async function() {
+    AV._importCharacter = async function() {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
@@ -2408,7 +2405,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                 if (res.error) { events.log(`Import failed: ${res.error}`, 'error-msg'); return; }
                 events.log(`Character "${data.name}" imported!`, 'system-msg');
                 await worldState.fetch();
-                this.showAgent(data.name);
+                AV.showAgent(data.name);
             } catch (error) {
                 events.log(`Import error: ${(error as Error).message}`, 'error-msg');
             }
@@ -2420,7 +2417,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * Kill a character
      * @param {string} charName - Character name
      */
-    _killCharacter = async function(charName: string) {
+    AV._killCharacter = async function(charName: string) {
         if (!confirm(`Kill "${charName}"? This will set HP to 0 and state to dead.`)) return;
         const res = await (ApiClient as Record<string, any>).killCharacter(charName);
         if (res.error) { events.log(`Kill failed: ${res.error}`, 'error-msg'); return; }
@@ -2433,7 +2430,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * Permanently remove a character from the world
      * @param {string} charName - Character name
      */
-    _removeCharacter = async function(charName: string) {
+    AV._removeCharacter = async function(charName: string) {
         if (!confirm(`Permanently remove "${charName}" from the world? This cannot be undone.`)) return;
         const res = await (ApiClient as Record<string, any>).deleteCharacter(charName);
         if (res.error) {
@@ -2461,7 +2458,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {number} entryIndex - Index of the timeline entry
      * @param {HTMLElement} entryEl - The clicked timeline entry element
      */
-    _showTimelineDetail = function(charName: string, entryIndex: number, entryEl: HTMLElement) {
+    AV._showTimelineDetail = function(charName: string, entryIndex: number, entryEl: HTMLElement) {
         const charState = events.getCharacterState(charName);
         const timeline = charState.detailedTimeline || [];
         if (entryIndex < 0 || entryIndex >= timeline.length) return;
@@ -2542,7 +2539,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} agentName - Character name
      * @param {string} otherName - Other character name
      */
-    _removeRelationship = async function(agentName: string, otherName: string) {
+    AV._removeRelationship = async function(agentName: string, otherName: string) {
         if (!agentName || !otherName) return;
         await ApiClient.updateCharacter(agentName, { relationships: { [otherName]: null } });
         worldState.fetch().then(() => {
@@ -2554,7 +2551,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * Show a modal to pick an item to add to inventory
      * @param {string} charName - Character name
      */
-    _showAddItemPicker = async function(charName: string) {
+    AV._showAddItemPicker = async function(charName: string) {
         // Held items are identified by ID (see getInventoryIds): a name
         // comparison hides distinct same-named items and re-offers held ones.
         const heldIds = new Set(worldState.getInventoryIds(charName));
@@ -2627,7 +2624,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         setTimeout(() => document.getElementById('add-item-filter')?.focus(), 100);
     };
 
-    _removeKnownAbility = function(charName: string, abilityId: string) {
+    AV._removeKnownAbility = function(charName: string, abilityId: string) {
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         fetch(`/api/graph/edge`, {
             method: 'DELETE',
@@ -2636,7 +2633,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         }).then(() => worldState.fetch());
     };
 
-    _showAddKnownAbilityPicker = function(charName: string) {
+    AV._showAddKnownAbilityPicker = function(charName: string) {
         // Identification is by ID, never by name: three characters can each know
         // a "Fireball" and a camp can hold two items called "Bag", so a name
         // comparison both hides distinct items and re-offers held ones.
@@ -2738,7 +2735,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         setTimeout(() => document.getElementById('add-known-filter')?.focus(), 100);
     };
 
-    _showContainerPicker = function(charName: string, itemName: string, itemId: string) {
+    AV._showContainerPicker = function(charName: string, itemName: string, itemId: string) {
         const player = worldState.players[charName];
         const equipped = player?.equipped || {};
         // Containers are identified by node ID. Deduplicating by name merged two
@@ -2786,83 +2783,71 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
         document.body.appendChild(picker);
     };
 
-    /** InspectorView contract: render the current view as a lit-html TemplateResult. */
-    render(): unknown {
-        return this._lastTemplate;
+    // Register the template-sync pattern for characters. The diff only covers
+    // author-editable fields - never runtime state (vitals, current_area,
+    // memories, relationships, emotion, inventory, conditions, equipped).
+    if ((window as unknown as AVWin).InspectorTemplateSync) {
+        (window as unknown as AVWin).InspectorTemplateSync.register('character', {
+            title: 'Refresh Character from Library',
+            buildWorldPayload(nodeId: string, node: any) {
+                const name = (node && node.name) || '';
+                const player = worldState.players[name];
+                if (!player) return null;
+                return {
+                    name,
+                    personality: player.personality || '',
+                    description: player.description || '',
+                    base_description: player.base_description || '',
+                    unknown_name: player.unknown_name || '',
+                    stats: player.stats || {},
+                    skills: player.skills || {},
+                    traits: player.traits || {},
+                    tags: player.tags || [],
+                    interest_tags: player.interest_tags || [],
+                    behaviors: player.behaviors || [],
+                    npc_behavior: player.npc_behavior || 'wander',
+                    npc_action_interval: player.npc_action_interval ?? 3,
+                    npc_state: player.npc_state || 'idle',
+                    simple_npc: player.simple_npc || false,
+                    memories: player.memories || [],
+                    relationships: player.relationships || {},
+                    vitals: player.vitals || {},
+                    decay_rates: player.decay_rates || {},
+                    conditions: player.conditions || {},
+                    equipped: player.equipped || {},
+                    recent_hearing: player.recent_hearing || [],
+                    activity: player.activity || null,
+                    current_area: player.current_area || '',
+                    emotion: (player.emotion && typeof player.emotion === 'object')
+                        ? player.emotion
+                        : { current: player.emotion || 'neutral', intensity: player.emotion_intensity || 0 },
+                };
+            },
+            sections: [
+                { key: 'personality', label: 'Personality' },
+                { key: 'description', label: 'Description' },
+                { key: 'base_description', label: 'Base Description' },
+                { key: 'unknown_name', label: 'Unknown Name' },
+                { key: 'stats', label: 'Stats' },
+                { key: 'skills', label: 'Skills' },
+                { key: 'traits', label: 'Traits' },
+                { key: 'tags', label: 'Tags' },
+                { key: 'interest_tags', label: 'Interest Tags' },
+                { key: 'behaviors', label: 'Behaviours' },
+                { key: 'npc_behavior', label: 'NPC Config' },
+                { key: 'memories', label: 'Memories', perEntry: true },
+                { key: 'relationships', label: 'Relationships', perEntry: true },
+                { key: 'vitals', label: 'Vitals', perEntry: true },
+                { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
+                { key: 'conditions', label: 'Conditions', perEntry: true },
+                { key: 'equipped', label: 'Equipped', perEntry: true },
+                { key: 'recent_hearing', label: 'Recent Hearing' },
+                { key: 'activity', label: 'Activity' },
+                { key: 'current_area', label: 'Current Area' },
+                { key: 'emotion', label: 'Emotion' },
+            ],
+        });
     }
 
-    constructor() {
-        super();
-        this._registerTemplateSync();
-    }
-
-    /** Register the template-sync pattern for characters. The diff only covers
-     * author-editable fields — never runtime state (vitals, current_area,
-     * memories, relationships, emotion, inventory, conditions, equipped). */
-    _registerTemplateSync(): void {
-        if ((window as unknown as AVWin).InspectorTemplateSync) {
-            (window as unknown as AVWin).InspectorTemplateSync.register('character', {
-                title: 'Refresh Character from Library',
-                buildWorldPayload(nodeId: string, node: any) {
-                    const name = (node && node.name) || '';
-                    const player = worldState.players[name];
-                    if (!player) return null;
-                    return {
-                        name,
-                        personality: player.personality || '',
-                        description: player.description || '',
-                        base_description: player.base_description || '',
-                        unknown_name: player.unknown_name || '',
-                        stats: player.stats || {},
-                        skills: player.skills || {},
-                        traits: player.traits || {},
-                        tags: player.tags || [],
-                        interest_tags: player.interest_tags || [],
-                        behaviors: player.behaviors || [],
-                        npc_behavior: player.npc_behavior || 'wander',
-                        npc_action_interval: player.npc_action_interval ?? 3,
-                        npc_state: player.npc_state || 'idle',
-                        simple_npc: player.simple_npc || false,
-                        memories: player.memories || [],
-                        relationships: player.relationships || {},
-                        vitals: player.vitals || {},
-                        decay_rates: player.decay_rates || {},
-                        conditions: player.conditions || {},
-                        equipped: player.equipped || {},
-                        recent_hearing: player.recent_hearing || [],
-                        activity: player.activity || null,
-                        current_area: player.current_area || '',
-                        emotion: (player.emotion && typeof player.emotion === 'object')
-                            ? player.emotion
-                            : { current: player.emotion || 'neutral', intensity: player.emotion_intensity || 0 },
-                    };
-                },
-                sections: [
-                    { key: 'personality', label: 'Personality' },
-                    { key: 'description', label: 'Description' },
-                    { key: 'base_description', label: 'Base Description' },
-                    { key: 'unknown_name', label: 'Unknown Name' },
-                    { key: 'stats', label: 'Stats' },
-                    { key: 'skills', label: 'Skills' },
-                    { key: 'traits', label: 'Traits' },
-                    { key: 'tags', label: 'Tags' },
-                    { key: 'interest_tags', label: 'Interest Tags' },
-                    { key: 'behaviors', label: 'Behaviours' },
-                    { key: 'npc_behavior', label: 'NPC Config' },
-                    { key: 'memories', label: 'Memories', perEntry: true },
-                    { key: 'relationships', label: 'Relationships', perEntry: true },
-                    { key: 'vitals', label: 'Vitals', perEntry: true },
-                    { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
-                    { key: 'conditions', label: 'Conditions', perEntry: true },
-                    { key: 'equipped', label: 'Equipped', perEntry: true },
-                    { key: 'recent_hearing', label: 'Recent Hearing' },
-                    { key: 'activity', label: 'Activity' },
-                    { key: 'current_area', label: 'Current Area' },
-                    { key: 'emotion', label: 'Emotion' },
-                ],
-            });
-        }
-    }
-}
-
-(window as unknown as AVWin).InspectorAgentView = new InspectorAgentView();
+    return AV;
+})();

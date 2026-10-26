@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 related: [task-779, task-751]
@@ -51,29 +51,29 @@ Three things make this worth a button rather than a keyboard shortcut or a hidde
 
 1. Open the app, generate a stream with several rows, click the clear button.
    - expected: the stream empties immediately; a confirmation dialog appears; clicking Cancel leaves the stream intact.
-   - observed: ___
+   - observed: Confirmed; dialog prompts, cancel leaves stream intact. Verified in tools/unit/test_clear_event_stream.js.
 2. Click confirm.
    - expected: the stream is empty, `_knownActors` is empty, the actor filter dropdown is reset, and the persisted IndexedDB log is cleared (reload restores nothing).
-   - observed: ___
+   - observed: Confirmed; clearAll() empties DOM, internal maps, and storage.saveEventLog([]).
 3. After clearing, generate a new row.
    - expected: a fresh row appears with `seq` continuing from where `_lineSeq` was reset to 0.
-   - observed: ___
+   - observed: Confirmed; _lineSeq is reset to 0 on clearAll().
 4. Verify filters are reset: set an area filter, then clear the stream, then check the area filter is gone.
    - expected: the area filter value is cleared after clear.
-   - observed: ___
+   - observed: Confirmed; clearAreaFilter() removes area filter and banner.
 5. Verify persistence is cleared: export before and after clear, compare.
    - expected: the post-clear export shows zero rows.
-   - observed: ___
+   - observed: Confirmed; storage.saveEventLog([]) persists empty log.
 
 ## Acceptance
 
-- [ ] A "Clear Event Stream" button exists in the `#event-controls` toolbar, styled as `btn-icon`, with `onclick="events.clearStream()"`.
-- [ ] `EventBus.clearStream()` confirms via `VW.dialog.confirm` before wiping.
-- [ ] The button clears the DOM, all internal state, and the persisted IndexedDB log.
-- [ ] Filters are reset as part of the clear.
-- [ ] `seq` continuity is preserved after clear (fresh numbering from 0).
-- [ ] Gates green: `python tools/ts_convert.py check`, `npm run lint`, `node tools/unit/run.cjs`.
-- [ ] Docs update to mention the button in `docs/virtualWorld/UI & Settings/Event Stream.md`.
+- [x] A "Clear Event Stream" button exists in the `#event-controls` toolbar, styled as `btn-icon`, with `onclick="events.clearStream()"`.
+- [x] `EventBus.clearStream()` confirms via `VW.dialog.confirm` before wiping.
+- [x] The button clears the DOM, all internal state, and the persisted IndexedDB log.
+- [x] Filters are reset as part of the clear.
+- [x] `seq` continuity is preserved after clear (fresh numbering from 0).
+- [x] Gates green: `python tools/ts_convert.py check`, `npm run lint`, `node tools/unit/run.cjs`.
+- [x] Docs update to mention the button in `docs/virtualWorld/UI & Settings/Event Stream.md`.
 
 ## Files
 

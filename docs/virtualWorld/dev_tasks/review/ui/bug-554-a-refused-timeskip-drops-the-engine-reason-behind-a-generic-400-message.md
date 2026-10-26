@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: ui
 priority: medium
 horizon: now
@@ -40,9 +40,9 @@ Intended UI home: the timeskip result/status line (and every other consumer of `
 
 ## Acceptance
 
-- [ ] A 400 whose body carries `reason` (no `error`) surfaces the reason in the UI.
-- [ ] A raw traceback body is still hidden behind the status line.
-- [ ] The emitted `api.js` is rebuilt from `api.ts`, not hand-edited.
+- [x] A 400 whose body carries `reason` (no `error`) surfaces the reason in the UI.
+- [x] A raw traceback body is still hidden behind the status line.
+- [x] The emitted `api.js` is rebuilt from `api.ts`, not hand-edited.
 
 ## Files
 

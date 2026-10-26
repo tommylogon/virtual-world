@@ -88,13 +88,27 @@ def handle_timeskip(app):
 
     target = data.get("target")
     player = world.get_active_player_obj()
+    heading = data.get("heading")
 
     # Travel to a known place can derive its own span from the route.
+    # For a place known only by belief/hearsay (with a heading), fall back to a
+    # single hop along the believed heading so `advance` can handle the belief path.
     if minutes is None and player is not None and intent == "travel" and target:
         route = timeskip.travel_minutes(world, player.current_area, target)
-        if route is None:
-            return jsonify({"error": f"No route to '{target}'"}), 400
-        minutes = route
+        if route is not None:
+            minutes = route
+        else:
+            belief = timeskip.resolve_belief_destination(world, player, target)
+            if belief and belief.get("heading"):
+                minutes = timeskip.per_hop_minutes()
+                if not heading:
+                    heading = belief["heading"]
+            else:
+                return jsonify({"error": f"No route to '{target}'"}), 400
+    elif player is not None and intent == "travel" and target and not heading:
+        belief = timeskip.resolve_belief_destination(world, player, target)
+        if belief and belief.get("heading"):
+            heading = belief["heading"]
     # "Until dawn/dusk/noon" derives the span from the world clock.
     if minutes is None and data.get("until") is not None:
         minutes = timeskip.minutes_until(world, data.get("until"))
@@ -122,6 +136,9 @@ def handle_timeskip(app):
         # character exists (the Ctrl+K "Advance World" command). Without it the
         # world path is reachable only with no active character at all.
         force_world = bool(data.get("world"))
+        if player is not None and not force_world:
+            if getattr(player, "state", None) == "dead" and not getattr(world, "ghost_mode", False):
+                return jsonify({"ok": False, "error": "The dead do not wait.", "reason": "The dead do not wait."}), 400
         if player is None or force_world:
             # No human/active character (or a forced world advance): a timeskip is
             # a WORLD advance - intent, target and watch tags have no subject, so
@@ -140,13 +157,25 @@ def handle_timeskip(app):
         elif _other_attended_humans(world, player):
             # Shared world: a blocking server jump would freeze the other players
             # (and lock them out while it runs). Attach a soak order to this
-            # character instead and let the normal turn loop carry it — the loop
+            # character instead and let the normal turn loop carry it - the loop
             # runs the span over many turns, so a week-long order is fine.
             order = soak.declare(
                 player, intent=intent, minutes=total,
                 target=target, watch_tags=watch_tags,
-                target_type=data.get("target_type"), heading=data.get("heading"))
-            return jsonify({"ok": True, "mode": "soak", "order": order})
+                target_type=data.get("target_type"), heading=heading)
+            clean_order = {k: (list(v) if isinstance(v, set) else v) for k, v in order.items()}
+            reason = soak.promote_reason(world, player, order)
+            if reason:
+                soak._promote(world, player, order, reason)
+                return jsonify({
+                    "ok": True,
+                    "mode": "soak",
+                    "order": {**clean_order, "ended": True, "reason": reason[1], "interrupted": True},
+                    "ended": True,
+                    "reason": reason[1],
+                    "interrupted": True,
+                })
+            return jsonify({"ok": True, "mode": "soak", "order": clean_order})
         else:
             results, remaining = [], total
             while remaining > 0:
@@ -154,7 +183,7 @@ def handle_timeskip(app):
                 outcome = timeskip.advance(
                     world, chunk, intent=intent, target=target,
                     watch_tags=watch_tags, target_type=data.get("target_type"),
-                    heading=data.get("heading"))
+                    heading=heading)
                 results.append(outcome)
                 remaining -= chunk
                 # An interrupt hands control back to the player, so stop early.
@@ -197,7 +226,11 @@ def _declared_span(world, player, data, intent):
         minutes = timeskip.travel_minutes(world, player.current_area,
                                           data.get("target"))
         if minutes is None:
-            raise ValueError(f"No route to '{data.get('target')}'")
+            belief = timeskip.resolve_belief_destination(world, player, data.get("target"))
+            if belief and belief.get("heading"):
+                minutes = timeskip.per_hop_minutes()
+            else:
+                raise ValueError(f"No route to '{data.get('target')}'")
     if minutes is None:
         raise ValueError("Missing duration (minutes, hours or turns)")
     span = float(minutes)
@@ -209,7 +242,7 @@ def _declared_span(world, player, data, intent):
 
 
 def handle_soak_declare(app):
-    """POST /api/world/soak — attach a soak order to the active character."""
+    """POST /api/world/soak - attach a soak order to the active character."""
     data = request.get_json(silent=True) or {}
     intent = str(data.get("intent", "idle")).lower()
     if intent not in timeskip.INTENTS:
@@ -219,22 +252,41 @@ def handle_soak_declare(app):
     player = world.get_active_player_obj()
     if player is None:
         return jsonify({"error": "No active character"}), 400
+    if getattr(player, "state", None) == "dead" and not getattr(world, "ghost_mode", False):
+        return jsonify({"ok": False, "error": "The dead do not wait.", "reason": "The dead do not wait."}), 400
     try:
         minutes = _declared_span(world, player, data, intent)
         watch_tags = data.get("watch_tags") or []
         if isinstance(watch_tags, str):
             watch_tags = [watch_tags]
+        heading = data.get("heading")
+        if not heading and intent == "travel" and data.get("target"):
+            belief = timeskip.resolve_belief_destination(world, player, data.get("target"))
+            if belief and belief.get("heading"):
+                heading = belief["heading"]
         order = soak.declare(
             player, intent=intent, minutes=minutes, target=data.get("target"),
             watch_tags=watch_tags, target_type=data.get("target_type"),
-            heading=data.get("heading"))
+            heading=heading)
+        clean_order = {k: (list(v) if isinstance(v, set) else v) for k, v in order.items()}
+        reason = soak.promote_reason(world, player, order)
+        if reason:
+            soak._promote(world, player, order, reason)
+            return jsonify({
+                "ok": True,
+                "mode": "soak",
+                "order": {**clean_order, "ended": True, "reason": reason[1], "interrupted": True},
+                "ended": True,
+                "reason": reason[1],
+                "interrupted": True,
+            })
     except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
-    return jsonify({"ok": True, "mode": "soak", "order": order})
+    return jsonify({"ok": True, "mode": "soak", "order": clean_order})
 
 
 def handle_soak_cancel(app):
-    """DELETE /api/world/soak[?character=Name] — drop a character's soak order.
+    """DELETE /api/world/soak[?character=Name] - drop a character's soak order.
 
     Defaults to the active character; the roster's cancel button names the row's
     character explicitly.

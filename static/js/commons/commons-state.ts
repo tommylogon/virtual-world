@@ -145,7 +145,9 @@
         }
 
         static receiveMessage(message: any) {
-            if (!message || message.channel_id !== this.selectedChannelId) return;
+            if (!message) return;
+            (window as any).CommonsAgent?.onMessageReceived?.(message);
+            if (message.channel_id !== this.selectedChannelId) return;
             if (this.messages.some((existing: any) => existing.id === message.id)) return;
             this.messages.push(message);
             this.emit();

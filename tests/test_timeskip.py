@@ -536,6 +536,57 @@ def test_mutating_routes_refuse_while_a_skip_runs():
     assert not timeskip.is_running()
 
 
+def test_timeskip_route_dead_character_gated_on_ghost_mode():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _safe(_hero(app.world))
+    app.world.player_manager.set_active_player(hero.name)
+    hero.state = "dead"
+    client = app.test_client()
+
+    # Ghost mode off -> refusal
+    app.world.ghost_mode = False
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 2})
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["error"] == "The dead do not wait."
+    assert data["reason"] == "The dead do not wait."
+
+    # Ghost mode on -> allowed
+    app.world.ghost_mode = True
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 2})
+    assert resp.status_code == 200
+    assert resp.get_json()["ok"]
+
+
+def test_soak_declare_dead_character_gated_on_ghost_mode():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _safe(_hero(app.world))
+    app.world.player_manager.set_active_player(hero.name)
+    hero.state = "dead"
+    client = app.test_client()
+
+    # Ghost mode off -> refusal, no order attached
+    app.world.ghost_mode = False
+    resp = client.post("/api/world/soak", json={"intent": "idle", "minutes": 30})
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["error"] == "The dead do not wait."
+    assert getattr(hero, "soak_order", None) is None
+
+    # Ghost mode on -> allowed, order attached
+    app.world.ghost_mode = True
+    resp = client.post("/api/world/soak", json={"intent": "idle", "minutes": 30})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["ok"]
+    assert data["mode"] == "soak"
+    assert hero.soak_order is not None
+
+
 # ─────────────────── world advance (no human player) ──────────────────────
 
 def test_world_advance_needs_no_character():
@@ -703,7 +754,7 @@ def test_an_idle_skip_leaves_the_ordering_character_where_it_is():
     """The ordering character is driven by its intent, not by the soak pass.
 
     Backgrounding it too handed the hero to the deterministic runner, which moved
-    them out of the area — an `idle` ("wait here") skip walked you away, and every
+    them out of the area  -  an `idle` ("wait here") skip walked you away, and every
     co-located interrupt lost its subject (the social approach stopped firing).
     """
     w = _world()
@@ -938,3 +989,44 @@ def test_an_idle_skip_still_reports_no_failure():
     sim = timeskip.BackgroundSimulation(w)
     step = timeskip.run_policy_step(w, sim, hero, intent="idle")
     assert step.found is None and step.blocked == ""
+
+
+def test_dead_character_timeskip_refused_without_ghost_mode():
+    w = _world()
+    hero = _safe(_hero(w))
+    hero.state = "dead"
+    w.ghost_mode = False
+
+    result = timeskip.advance(w, 10, intent="idle")
+    assert not result.ok
+    assert result.reason == "The dead do not wait."
+
+
+def test_dead_character_timeskip_allowed_with_ghost_mode():
+    w = _world()
+    hero = _safe(_hero(w))
+    hero.state = "dead"
+    w.ghost_mode = True
+
+    result = timeskip.advance(w, 10, intent="idle")
+    assert result.ok
+
+
+def test_dead_character_soak_step_respects_ghost_mode():
+    from engine import soak
+    w = _world()
+    hero = _safe(_hero(w))
+    hero.state = "dead"
+    sim = timeskip.BackgroundSimulation(w)
+
+    # Without ghost mode: finishes with death and clears soak_order
+    w.ghost_mode = False
+    order1 = soak.declare(hero, minutes=10, intent="idle")
+    soak._step_one(w, sim, hero, order1)
+    assert hero.soak_order is None
+
+    # With ghost mode: does not finish on death, soak_order remains active
+    w.ghost_mode = True
+    order2 = soak.declare(hero, minutes=10, intent="idle")
+    soak._step_one(w, sim, hero, order2)
+    assert hero.soak_order is not None

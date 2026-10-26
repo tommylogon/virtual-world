@@ -32,6 +32,7 @@ from engine.room_perception import (
     visible_area_items,
     way_visible_to,
 )
+from engine.character_spatial import get_character_at_way
 from engine.item_actions import get_carry_load_ratio
 from engine.name_masking import mask_name_in_text
 
@@ -268,6 +269,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
 
         entry = {
             "id": way_node.id,
+            "way_id": way_node.id,
             "direction": handle,
             "name": way_node.name,
             "to": target_display,
@@ -365,8 +367,17 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         except Exception:
             holding = []
 
+    at_way_id = None
+    try:
+        at_way_id = get_character_at_way(world.graph, player_node)
+    except Exception:
+        pass
+    if not at_way_id:
+        at_way_id = getattr(player, "at_way_id", None)
+
     scene["you"] = {
         "name": player_name,
+        "at_way_id": at_way_id,
         "vitals": dict(getattr(player, "vitals", {}) or {}),
         "conditions": conditions,
         "carrying": carrying,

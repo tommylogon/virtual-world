@@ -1,5 +1,5 @@
 /**
- * InspectorComponents — Composable UI components for inspector views.
+ * InspectorComponents - Composable UI components for inspector views.
  *
  * Extracted from duplication across agent-view, item-view, area-view, way-view.
  * Each component is a pure function returning a lit-html TemplateResult that
@@ -7,7 +7,7 @@
  *
  * @module inspector/components
  * @contributes InspectorComponents: Header, PropertyGrid, TabNav, Section, ActionGrid, Breadcrumb
- * @powers Node inspectors — reusable sections instead of duplicated HTML strings
+ * @powers Node inspectors - reusable sections instead of duplicated HTML strings
  * @relates InspectorView base class, InspectorHelpers field builders
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -17,10 +17,14 @@ const InspectorComponents = (() => {
     'use strict';
 
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
+    const liveVal = (val: unknown): unknown => {
+        const lit = (window as unknown as { Lit?: { live?: (v: unknown) => unknown } }).Lit;
+        return lit && typeof lit.live === 'function' ? lit.live(val) : val;
+    };
 
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
     // Field definition type (shared contract between views and components)
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
 
     /** A single editable field rendered by PropertyGridComponent. */
     class FieldDef {
@@ -38,45 +42,50 @@ const InspectorComponents = (() => {
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // HeaderComponent — title + subtitle + node type badge
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // HeaderComponent - title + subtitle + node type badge
+    // ----------------------------------------------------------------------
 
     /**
-     * Renders the inspector header: node name, type badge, optional subtitle.
-     * @param {object} opts - { title, subtitle?, nodeType?, color? }
+     * Renders the inspector header: node name, type badge, optional subtitle, optional close button.
+     * @param {object} opts - { title, subtitle?, nodeType?, color?, onClose? }
      */
-    function HeaderComponent(opts: { title: string; subtitle?: string; nodeType?: string; color?: string }): unknown {
-        const { title, subtitle, nodeType, color } = opts;
+    function HeaderComponent(opts: { title: string; subtitle?: string; nodeType?: string; color?: string; onClose?: () => void }): unknown {
+        const { title, subtitle, nodeType, color, onClose } = opts;
         const typeBadge = nodeType
-            ? htmlTag`<span class="inspector-header-badge" style="background:${color || 'var(--bg-inset)'}">${nodeType}</span>`
+            ? htmlTag`<span class="inspector-type-badge inspector-header-badge" style="background:${color || 'var(--bg-inset)'}">${nodeType}</span>`
+            : '';
+        const closeBtn = onClose
+            ? htmlTag`<button class="btn btn-sm btn-ghost" @click=${onClose}>✕</button>`
             : '';
         return htmlTag`<div class="inspector-header">
-            <div class="inspector-header-title">${title}${typeBadge}</div>
+            ${typeBadge}
+            <div class="inspector-header-title"><h2>${title}</h2></div>
             ${subtitle ? htmlTag`<div class="inspector-header-sub">${subtitle}</div>` : ''}
+            ${closeBtn}
         </div>`;
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // SectionComponent — titled section wrapper with optional hint
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // SectionComponent - titled section wrapper with optional hint
+    // ----------------------------------------------------------------------
 
     /**
      * Renders a titled section containing content.
-     * @param {object} opts - { title, hint?, content }
+     * @param {object} opts - { title?, hint?, content }
      */
-    function SectionComponent(opts: { title: string; hint?: string; content: unknown }): unknown {
+    function SectionComponent(opts: { title?: string; hint?: string; content: unknown }): unknown {
         const { title, hint, content } = opts;
         return htmlTag`<div class="inspector-section">
-            <h3>${title}</h3>
+            ${title ? htmlTag`<h3>${title}</h3>` : ''}
             ${hint ? htmlTag`<p class="section-hint">${hint}</p>` : ''}
             ${content}
         </div>`;
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // PropertyGridComponent — labeled input fields from a FieldDef[] + values
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // PropertyGridComponent - labeled input fields from a FieldDef[] + values
+    // ----------------------------------------------------------------------
 
     /**
      * Renders a grid of labeled input fields.
@@ -91,16 +100,15 @@ const InspectorComponents = (() => {
         const { fields, values, onChange, lockedFields = [] } = opts;
         return htmlTag`<div class="inspector-property-grid">
             ${fields.map((f: FieldDef) => {
-                const isLocked = lockedFields.includes(f.key);
+                const isLocked = Boolean(f.locked) || lockedFields.includes(f.key);
                 const value = values[f.key] ?? '';
-                const lockedAttr = isLocked ? ' disabled' : '';
                 const lockIcon = isLocked ? '🔒' : '🔓';
                 switch (f.type) {
                     case 'checkbox':
                         return htmlTag`<div class="field">
                             <label style="display:flex;align-items:center;gap:6px;">
-                                <input type="checkbox" .checked=${Boolean(value)}
-                                    @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLInputElement).checked)}${lockedAttr}>
+                                <input type="checkbox" .checked=${liveVal(Boolean(value))} ?disabled=${isLocked}
+                                    @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLInputElement).checked)}>
                                 ${lockIcon} ${f.label}
                             </label>
                             ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
@@ -108,14 +116,15 @@ const InspectorComponents = (() => {
                     case 'textarea':
                         return htmlTag`<div class="field">
                             <label>${lockIcon} ${f.label}</label>
-                            <textarea .value=${String(value)} placeholder="${f.placeholder || ''}"
-                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLTextAreaElement).value)}${lockedAttr}></textarea>
+                            <textarea .value=${liveVal(String(value))} placeholder="${f.placeholder || ''}" ?disabled=${isLocked}
+                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLTextAreaElement).value)}></textarea>
                             ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
                         </div>`;
                     case 'select':
                         return htmlTag`<div class="field">
                             <label>${lockIcon} ${f.label}</label>
-                            <select .value=${String(value)} @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLSelectElement).value)}${lockedAttr}>
+                            <select .value=${liveVal(String(value))} ?disabled=${isLocked}
+                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLSelectElement).value)}>
                                 ${(f.options || []).map((opt: string) => htmlTag`<option value="${opt}" ?selected=${opt === value}>${opt}</option>`)}
                             </select>
                             ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
@@ -123,17 +132,24 @@ const InspectorComponents = (() => {
                     case 'tags':
                         return htmlTag`<div class="field">
                             <label>${lockIcon} ${f.label}</label>
-                            <input type="text" .value=${Array.isArray(value) ? value.join(', ') : String(value)}
-                                placeholder="${f.placeholder || 'comma-separated tags'}"
-                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLInputElement).value.split(',').map((s: string) => s.trim()).filter(Boolean))}${lockedAttr}>
+                            <input type="text" .value=${liveVal(Array.isArray(value) ? value.join(', ') : String(value))}
+                                placeholder="${f.placeholder || 'comma-separated tags'}" ?disabled=${isLocked}
+                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLInputElement).value.split(',').map((s: string) => s.trim()).filter(Boolean))}>
                             ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
                         </div>`;
                     case 'number':
+                        return htmlTag`<div class="field">
+                            <label>${lockIcon} ${f.label}</label>
+                            <input type="number" .value=${liveVal(String(value))} placeholder="${f.placeholder || ''}" ?disabled=${isLocked}
+                                @change=${(ev: Event) => onChange(f.key, Number((ev.target as HTMLInputElement).value) || 0)}>
+                            ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
+                        </div>`;
+                    case 'text':
                     default:
                         return htmlTag`<div class="field">
                             <label>${lockIcon} ${f.label}</label>
-                            <input type="number" .value=${String(value)} placeholder="${f.placeholder || ''}"
-                                @change=${(ev: Event) => onChange(f.key, Number((ev.target as HTMLInputElement).value) || 0)}${lockedAttr}>
+                            <input type="text" .value=${liveVal(String(value))} placeholder="${f.placeholder || ''}" ?disabled=${isLocked}
+                                @change=${(ev: Event) => onChange(f.key, (ev.target as HTMLInputElement).value)}>
                             ${f.hint ? htmlTag`<div class="section-hint">${f.hint}</div>` : ''}
                         </div>`;
                 }
@@ -141,9 +157,9 @@ const InspectorComponents = (() => {
         </div>`;
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // TabNavComponent — tab navigation bar
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // TabNavComponent - tab navigation bar
+    // ----------------------------------------------------------------------
 
     /**
      * Renders tab navigation.
@@ -160,9 +176,9 @@ const InspectorComponents = (() => {
         </div>`;
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // ActionGridComponent — action buttons grid
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // ActionGridComponent - action buttons grid
+    // ----------------------------------------------------------------------
 
     /**
      * Renders a grid of action buttons.
@@ -174,37 +190,38 @@ const InspectorComponents = (() => {
             ${actions.map((action: string) => {
                 const isLocked = locked.includes(action);
                 return htmlTag`<button class="inspector-action-btn${isLocked ? ' inspector-action-locked' : ''}"
-                    @click=${() => onAction(action)}${isLocked ? ' disabled' : ''}>${action}</button>`;
+                    ?disabled=${isLocked} @click=${() => onAction(action)}>${action}</button>`;
             })}
         </div>`;
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-    // BreadcrumbComponent — centralized breadcrumb trail
-    // ──────────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------------
+    // BreadcrumbComponent - centralized breadcrumb trail
+    // ----------------------------------------------------------------------
 
     /**
      * Renders the breadcrumb trail from the Inspector singleton's history.
-     * @param {object} opts - { onBack: () => void, onCrumbClick: (index: number) => void }
+     * Uses the canonical .inspector-crumb* classes styled in index.html.
+     * @param {object} opts - { onBack?: () => void, onCrumbClick?: (index: number) => void }
      */
     function BreadcrumbComponent(opts: { onBack?: () => void; onCrumbClick?: (index: number) => void }): unknown {
         const inspector = (window as unknown as { inspector?: any }).inspector;
         const history = inspector?._history || [];
         if (!history.length) return window.Lit.nothing;
         const { onBack, onCrumbClick } = opts;
-        return htmlTag`<div class="inspector-breadcrumb">
-            ${history.length > 1 && onBack
-                ? htmlTag`<button class="inspector-breadcrumb-back" @click=${onBack}>←</button>`
-                : ''}
-            ${history.map((crumb: any, i: number) => {
-                const last = i === history.length - 1;
-                const sep = i > 0 ? htmlTag`<span class="inspector-breadcrumb-sep">›</span>` : '';
-                const body = last
-                    ? htmlTag`<span class="inspector-breadcrumb-label">${crumb.label}</span>`
-                    : htmlTag`<button class="inspector-breadcrumb-btn" @click=${() => onCrumbClick?.(i)}>${crumb.label}</button>`;
-                return htmlTag`<span class="inspector-breadcrumb">${sep}${body}</span>`;
-            })}
-        </div>`;
+        const trail = history.map((crumb: any, i: number) => {
+            const last = i === history.length - 1;
+            const sep = i > 0 ? htmlTag`<span class="inspector-crumb-sep">›</span>` : '';
+            const body = last
+                ? htmlTag`<span class="inspector-crumb-label">${crumb.label}</span>`
+                : htmlTag`<button class="inspector-crumb-btn" title="Back to ${crumb.label}"
+                    @click=${() => onCrumbClick?.(i)}>${crumb.label}</button>`;
+            return htmlTag`<span class="inspector-crumb">${sep}${body}</span>`;
+        });
+        const back = history.length > 1 && onBack
+            ? htmlTag`<button class="inspector-crumb-back" title="Back one step" @click=${onBack}>←</button>`
+            : '';
+        return htmlTag`${back}${trail}`;
     }
 
     return {

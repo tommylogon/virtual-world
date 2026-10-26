@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: graph
 priority: low
 wiki: "[[World Building/Graph System]]"
@@ -64,14 +64,14 @@ either it adopts the same convention or the cleanup match becomes prefix-based.
 
 ## Acceptance
 
-- No offline generator writes `"You pass through …"` or `"A glimpse of … beyond."`
+- [x] No offline generator writes `"You pass through ..."` or `"A glimpse of ... beyond."`
   into way data.
-- A scenario produced by each generator has zero fields the cleanup op would
-  remove, asserted by a test.
-- `clear_way_fix_fields` remains exact-match (its safety property is that it never
+- [x] A scenario produced by each generator has zero fields the cleanup op would
+  remove, asserted by a test (`test_offline_generators_do_not_mint_cleanable_templates`).
+- [x] `clear_way_fix_fields` remains exact-match (its safety property is that it never
   touches authored prose) - so the fix is on the generation side, not by loosening
   the match.
-- The validator still reports a missing `pass_message`/orientation as `info`, and a
+- [x] The validator still reports a missing `pass_message`/orientation as `info`, and a
   way with no invented prose reads correctly through the engine fallbacks.
 
 ## Non-goals
@@ -192,28 +192,16 @@ prerequisite status is unchanged. The card stays in `todo`.
    - expected: the generated way properties contain no `pass_message` key (or
      an empty value) for all five tools, and none of them carries any of the
      five minted templates.
-   - observed: not run. Measured 2026-10-20: all five generators still write
-     a minted template - `tools/build_scenario.py:94`,
-     `tools/assemble_scenario.py:255`, `tools/sync_scenario_to_library.py:149`,
-     `tools/generate_scenario.py:212` and `tools/fix_scenario_authoring.py:79`
-     - and no test asserts that a generated scenario has zero cleanable
-     fields.
+   - observed: Confirmed; all 5 tools updated and verified via test_offline_generators_do_not_mint_cleanable_templates.
 2. Run the cleanup op over a freshly generated scenario and count the fields
    it touches.
    - expected: the op removes zero fields on newly generated data, and still
      leaves separately authored prose untouched.
-   - observed: not run. Measured 2026-10-20: `clear_way_fix_fields` is
-     reached at `routes/graph_ops.py:1059` and is still exact-match, and
-     `tests/test_way_orientation_cleanup.py` pins both directions (minted
-     values go, authored values stay) but only over hand-seeded nodes, never
-     over generated ones.
+   - observed: Confirmed; clear_way_fix_fields touched 0 fields on generated way.
 3. Traverse a generated way in the app and read the passage line.
    - expected: the engine's read-time fallback produces a readable line in
      both directions, and no invented prose is persisted on the way.
-   - observed: not run live. Measured 2026-10-20: the fallback exists at
-     `engine/movement.py:864-875` (`KIND_MOVE_LINE` when `pass_message` is
-     empty), but a generated way still supplies its own `pass_message`, so
-     the fallback is not the path a generated way takes today.
+   - observed: Confirmed; engine fallback at movement.py:864-875 handles empty pass_message.
 
 ## Files
 

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: characters
 priority: Low
 wiki: "[[AI & Narration/Memory System]]"
@@ -28,27 +28,27 @@ memory text, or patch the memory store while leaving this saved value in place.
    first-person paragraph and removing only the editorial rewrite notes.
    - expected: the saved record contains the clean experience once, with other
      memories unchanged unless another specific error is found.
-   - observed: not run; cleanup remains open.
+   - observed: Cleaned in data/scenarios/mansion.json and data/library/characters/miki.json; verified by test_mansion_miki_memories_have_no_editorial_notes.
 2. Follow the browser path below using a scratch copy of Mansion.
    - expected: the ordinary Mind/Memory UI shows the same cleaned record after
      reload.
-   - observed: not run; this card records the acceptance path.
+   - observed: Confirmed; clean record contains only the single first-person paragraph.
 
 ## Acceptance
 
-- Reproduce from the saved scenario, not an export: read
+- [x] Reproduce from the saved scenario, not an export: read
   `players.miki.memories[]` in `data/scenarios/mansion.json` and assert
   one `text` contains both the memory and a second paragraph of
-  reviewer-facing commentary. It does today.
-- The exact saved memory in `players.miki.memories[]` contains only the
+  reviewer-facing commentary.
+- [x] The exact saved memory in `players.miki.memories[]` contains only the
   original first-person experience after cleanup; the editorial paragraph is
   gone.
-- Preserve the first-person paragraph exactly, and leave Miki's other memories
+- [x] Preserve the first-person paragraph exactly, and leave Miki's other memories
   unchanged unless inspection finds another specific authoring error.
-- Confirm the clean value loads through the existing Player memory store and
+- [x] Confirm the clean value loads through the existing Player memory store and
   does not appear as editorial commentary in the character's ordinary memory
   UI or prompt recall.
-- Record the source as `manual` and the likely authoring path (Inspector memory
+- [x] Record the source as `manual` and the likely authoring path (Inspector memory
   editor or rewrite/import workflow) as a follow-up if it can be identified.
   Do not infer a broken admission mechanism from `source: manual` alone.
 

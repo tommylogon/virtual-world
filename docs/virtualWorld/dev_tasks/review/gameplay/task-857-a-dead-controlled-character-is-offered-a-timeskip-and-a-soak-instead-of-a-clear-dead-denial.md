@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: gameplay
 priority: medium
 horizon: now
@@ -38,24 +38,24 @@ Intended UI home: the timeskip dialog and the soak controls (request a timeskip 
 
 1. With the active character dead and ghost mode off, open the timeskip dialog.
    - expected: the control is disabled and an explicit dead-state line is shown; no request is sent.
-   - observed: TODO
+   - observed: Verified in `tools/unit/test_timeskip.js`: `isDeadNoGhost` returns true; `timeskip-go` button is disabled and status displays "You are dead. You cannot act. Ghost mode is off."; `run()` returns early without posting.
 2. Turn ghost mode on and reopen the dialog with the same dead character.
    - expected: the control is enabled (a ghost may act); the request is allowed.
-   - observed: TODO
+   - observed: Verified in `tools/unit/test_timeskip.js` and `tests/test_timeskip.py`: `isDeadNoGhost` returns false when `ghost_mode` is true, enabling the button and allowing the timeskip request.
 3. POST a soak declare for a dead character with ghost mode off.
    - expected: 400 with a clear dead refusal, and no order attached.
-   - observed: TODO
+   - observed: Verified in `tests/test_timeskip.py::test_soak_declare_dead_character_gated_on_ghost_mode`: returns HTTP 400 with error and reason "The dead do not wait." and `hero.soak_order` remains None.
 4. Repeat 1 and 3 with a live character.
    - expected: timeskip and soak behave exactly as before.
-   - observed: TODO
+   - observed: Verified in `tests/test_timeskip.py`: all 68 tests pass without regression.
 
 ## Acceptance
 
-- [ ] A dead active character with ghost mode off cannot start a timeskip or declare a soak from the UI, and is told why.
-- [ ] With ghost mode on, a dead (ghost) character can still start a timeskip and declare a soak.
-- [ ] `POST /api/world/soak` refuses a dead character (ghost mode off) with a clear reason and attaches no order.
-- [ ] A live character's timeskip/soak behavior is unchanged.
-- [ ] The wording does not assert that death is irreversible.
+- [x] A dead active character with ghost mode off cannot start a timeskip or declare a soak from the UI, and is told why.
+- [x] With ghost mode on, a dead (ghost) character can still start a timeskip and declare a soak.
+- [x] `POST /api/world/soak` refuses a dead character (ghost mode off) with a clear reason and attaches no order.
+- [x] A live character's timeskip/soak behavior is unchanged.
+- [x] The wording does not assert that death is irreversible.
 
 ## Files
 

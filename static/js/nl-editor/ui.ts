@@ -484,6 +484,7 @@ interface NlEditorUiWindowSurface {
                     lines = (window as unknown as NlEditorUiWindowSurface).NLEditorDiff.summaryLines(op, {
                         nodes: (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {},
                         creations: this.controller.staging.getStagedCreations(),
+                        players: (typeof worldState !== 'undefined' && (worldState as unknown as { players?: Record<string, unknown> })?.players) || {},
                     });
                 } catch (e) { lines = []; }
                 if (lines.length) {

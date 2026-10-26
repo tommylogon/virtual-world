@@ -55,10 +55,16 @@
                 </div>
                 <div>
                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--b-dim);margin-bottom:3px;">
-                        <span>Max Model Size</span>
+                        <span>Model Size Range</span>
                         <span id="bench-size-val" style="font-weight:600;color:var(--b-text);">Any</span>
                     </div>
-                    <input type="range" id="bench-size-slider" min="1" max="40" value="40" step="1" style="width:100%;cursor:pointer;">
+                    <div class="bench-range-slider-wrap">
+                        <div class="bench-range-slider-track">
+                            <div class="bench-range-slider-highlight" id="bench-size-highlight"></div>
+                        </div>
+                        <input type="range" id="bench-size-min" min="0" max="72" value="0" step="1" aria-label="Minimum model size">
+                        <input type="range" id="bench-size-max" min="0" max="72" value="72" step="1" aria-label="Maximum model size">
+                    </div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;margin-top:2px;">
                     <label style="font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">

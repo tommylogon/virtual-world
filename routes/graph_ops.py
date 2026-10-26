@@ -912,30 +912,8 @@ def _apply_batch_op(app, optype, p):
         if isinstance(emo, dict) and emo.get('name'):
             player.spike_emotion(str(emo.get('name')), float(emo.get('delta', 0) or 0))
             applied['emotion'] = str(emo.get('name'))
-        beh = patch.get('behaviors')
-        if isinstance(beh, list):
-            # task-739: behaviours are the compiled array the engine runs
-            # ({trigger, interval, conditions, actions, priority}); the editor
-            # can author them directly, validated structurally above. The
-            # browser-side TriggerGraph.compileToBehaviorsWithIssues is the
-            # graph->array compile for the visual editor.
-            player.behaviors = list(beh)
-            applied['behaviors'] = len(beh)
-        sched = patch.get('schedule')
-        if isinstance(sched, list):
-            from engine.schedule import normalize as _normalize_schedule
-            player.schedule = _normalize_schedule(sched)
-            applied['schedule'] = len(sched)
-        gls = patch.get('goals')
-        if isinstance(gls, list):
-            from engine.goals import normalize as _normalize_goals
-            player.goals = _normalize_goals(gls)
-            applied['goals'] = len(gls)
-        obl = patch.get('obligations')
-        if isinstance(obl, list):
-            from engine.goals import normalize_obligations as _normalize_obligations
-            player.obligations = _normalize_obligations(obl)
-            applied['obligations'] = len(obl)
+        from routes.player_ops import apply_mind_patch
+        applied.update(apply_mind_patch(player, patch))
         return {"player": player.name, "applied": applied}
 
     if optype == 'rename_character':

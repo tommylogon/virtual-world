@@ -180,7 +180,8 @@ function _evValue(ev: Event): string {
 }
 
 const _InspectorItemView: InspectorItemViewApi = (() => {
-    const IV = {} as InspectorItemViewApi;
+    const Base = (window as unknown as { InspectorView?: new () => unknown }).InspectorView;
+    const IV = (Base ? new Base() : {}) as InspectorItemViewApi;
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => Lit.html(strings, ...values);

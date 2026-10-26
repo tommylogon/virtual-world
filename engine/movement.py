@@ -711,9 +711,10 @@ class MovementSystem:
         # read `player.known`; nothing wrote to it, so a walked room stayed
         # unknown. Best-effort: fog must never break a move.
         try:
-            from engine.fog import reveal_area
+            from engine.fog import materialize_frontier, reveal_area
             if self.gs.player is not None:
                 reveal_area(self.gs.player, target_area_node)
+                materialize_frontier(self.gs, self.gs.player, target_area_node)
         except Exception:
             logger.debug("[fog] reveal on arrival failed", exc_info=True)
 

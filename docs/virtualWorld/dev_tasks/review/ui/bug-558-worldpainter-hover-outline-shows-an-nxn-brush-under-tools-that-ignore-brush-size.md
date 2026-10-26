@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-536, task-719, task-776
 
-<!-- deps:start -->
-**Related:** [[task-536-worldpainter-left-tool-rail-marquee-cell-selection-move-selection]], [[task-719-worldpainter-per-tool-brush-options-brush-hover-outline-toolbar-layout-fix]], [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]]
-<!-- deps:end -->
-
 ## What
 
 The brush hover outline is drawn for every tool, so after setting a 5x5 brush for Paint, switching to Area, Feature, Select or Inspect still shows a 5x5 dashed box under the cursor. Those tools act on one cell, so the outline promises a footprint the click does not use.

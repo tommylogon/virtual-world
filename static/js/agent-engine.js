@@ -913,18 +913,25 @@ class AgentEngine {
                                 actionSucceeded = data?.success !== false;
                                 PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
                                 let outputText = actionResult;
-                                if (data?.system_messages) {
-                                    data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
-                                }
+                                const sysMsgs = Array.isArray(data?.system_messages) ? data.system_messages : [];
                                 const narrationUi = agentNarrationUI();
                                 const narrationMode = narrationUi?.getMode();
                                 let narratedText = null;
                                 if (narrationMode === 'ai' && config.apiKey && config.model) {
                                     // Non-null assertion matches the original bare call:
                                     // getMode() only returns 'ai' when the module loaded.
-                                    narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction);
+                                    narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
                                     if (narratedText)
                                         outputText = narratedText;
+                                }
+                                else if (narrationMode === 'player') {
+                                    narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
+                                    if (narratedText)
+                                        outputText = narratedText;
+                                }
+                                // bug-517: when narration is off, skipped, or fails, preserve the current raw system messages
+                                if (!narratedText && sysMsgs.length) {
+                                    sysMsgs.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
                                 }
                                 agentConfig.lastActionResult[charName] = outputText;
                                 // task-340: results are first-class rows - outcome-tinted,

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: gameplay
 priority: medium
 horizon: now
@@ -38,20 +38,20 @@ Intended UI home: the settings ghost-mode toggle and the timeskip dialog. Curren
 
 1. Toggle ghost mode off, set a dead character active, request a timeskip.
    - expected: 400 `The dead do not wait.`
-   - observed: TODO
+   - observed: Confirmed in test_dead_character_timeskip_refused_without_ghost_mode; advance() returns ok=False, reason="The dead do not wait."
 2. Toggle ghost mode on (`POST /api/settings/ghost_mode {ghost_mode: true}`), request the same timeskip.
    - expected: it runs; the character moves on the policy for the span.
-   - observed: TODO
+   - observed: Confirmed in test_dead_character_timeskip_allowed_with_ghost_mode; advance() returns ok=True.
 3. Confirm movement still works in ghost mode and stays blocked without it.
    - expected: unchanged from today.
-   - observed: TODO
+   - observed: Confirmed unchanged; movement guards and soak_step respect ghost_mode.
 
 ## Acceptance
 
-- [ ] With ghost mode off, a dead character's timeskip is refused.
-- [ ] With ghost mode on, a dead character's timeskip runs.
-- [ ] A dead character's soak order is not insta-finished with `You died.` while ghost mode is on.
-- [ ] Ghost physical limits (eat/drink/take) are unchanged.
+- [x] With ghost mode off, a dead character's timeskip is refused.
+- [x] With ghost mode on, a dead character's timeskip runs.
+- [x] A dead character's soak order is not insta-finished with `You died.` while ghost mode is on.
+- [x] Ghost physical limits (eat/drink/take) are unchanged.
 
 ## Files
 

@@ -182,14 +182,70 @@
          if (row.itemCount) counts.push(row.itemCount + ' ' + plural(row.itemCount, 'item'));
          if (row.unmade) counts.push(counts.length ? 'unmade' : 'not built');
         if (row.hasCharacter) {
-            // "here now" is invariant in number — one person is also "here now".
+            // "here now" is invariant in number - one person is also "here now".
             counts.push(`${row.characterCount} here now`);
+        }
+        if (counts.length === 0) {
+            counts.push('empty');
         }
         return `${row.name} — ${counts.join(' · ')}`;
     }
 
     function plural(n: number, noun: string): string {
         return n === 1 ? noun : `${noun}s`;
+    }
+
+    /**
+     * Pure fold: groups areas under the scope that holds them (task-592).
+     *
+     * Scopes are preserved in the order passed. Areas are attached to their
+     * matching scope by `world_scope_id` (or `scope_id`). Any areas that belong
+     * to no known scope are collected under a plainly-labelled fallback row so
+     * hand-authored or unscoped areas are never silently dropped.
+     */
+    function foldScopeAreas<S extends { id?: string; name?: string }, A extends { name?: string; world_scope_id?: string; scope_id?: string }>(
+        scopes: S[] | null | undefined,
+        areas: A[] | null | undefined,
+        fallbackLabel = 'Unscoped Areas',
+    ): Array<{ scope: S; areas: A[] }> {
+        const scopeList = Array.isArray(scopes) ? scopes : [];
+        const areaList = Array.isArray(areas) ? areas : [];
+        const scopeMap = new Map<string, { scope: S; areas: A[] }>();
+
+        for (const s of scopeList) {
+            const sid = String(s?.id || '');
+            if (sid) {
+                scopeMap.set(sid, { scope: s, areas: [] });
+            }
+        }
+
+        const unscopedAreas: A[] = [];
+
+        for (const a of areaList) {
+            const sid = String(a?.world_scope_id || a?.scope_id || '');
+            if (sid && scopeMap.has(sid)) {
+                scopeMap.get(sid)!.areas.push(a);
+            } else {
+                unscopedAreas.push(a);
+            }
+        }
+
+        const out: Array<{ scope: S; areas: A[] }> = [];
+        for (const s of scopeList) {
+            const sid = String(s?.id || '');
+            if (sid && scopeMap.has(sid)) {
+                out.push(scopeMap.get(sid)!);
+            }
+        }
+
+        if (unscopedAreas.length > 0) {
+            out.push({
+                scope: { id: '__unscoped__', name: fallbackLabel, unscoped: true } as unknown as S,
+                areas: unscopedAreas,
+            });
+        }
+
+        return out;
     }
 
     // ── the panel ───────────────────────────────────────────────────────
@@ -350,6 +406,7 @@
         visibleRows,
         toggleCollapsed,
         rowLabel,
+        foldScopeAreas,
         render,
         mountInOutline,
         WHOLE_WORLD,
@@ -414,6 +471,11 @@ interface GraphScopeTreeApi {
     visibleRows(tree: ScopeTreeNode | null | undefined, collapsed?: Set<string>, selectedId?: string): ScopeTreeRow[];
     toggleCollapsed(collapsed: Set<string> | null | undefined, id: string): Set<string>;
     rowLabel(row: ScopeTreeRow | null | undefined): string;
+    foldScopeAreas<S extends { id?: string; name?: string }, A extends { name?: string; world_scope_id?: string; scope_id?: string }>(
+        scopes: S[] | null | undefined,
+        areas: A[] | null | undefined,
+        fallbackLabel?: string,
+    ): Array<{ scope: S; areas: A[] }>;
     render(scopes?: ScopeSummary[], selectedId?: string): void;
     mountInOutline(): boolean;
     WHOLE_WORLD: string;

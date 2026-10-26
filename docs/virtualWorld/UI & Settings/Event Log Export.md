@@ -171,6 +171,44 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 
 ---
 
+---
+
+## Standalone CLI reader (`tools/stream_read.cjs`)
+
+Query an exported event-stream JSON or JSONL run without running the app or server (task-778).
+
+```bash
+# Timeline output (default)
+node tools/stream_read.cjs run.jsonl
+
+# Filter by actor, area, type, and tick sequence range
+node tools/stream_read.cjs run.jsonl --actor Lyrie --area "Camp Entrance" --type action --from 0 --to 50
+
+# Output matching events as JSON
+node tools/stream_read.cjs run.jsonl --actor Lyrie --from 0 --to 50 --json
+
+# Summary mode: per-actor, per-area, and per-type event counts
+node tools/stream_read.cjs run.jsonl --mode summary
+node tools/stream_read.cjs run.jsonl --mode summary --json
+
+# Raw JSONL mode: stream matching JSON lines
+node tools/stream_read.cjs run.jsonl --actor Lyrie --mode raw
+```
+
+Options:
+- `--actor <name>`: Filter by actor name (case-insensitive)
+- `--area <name>`: Filter by area name (case-insensitive)
+- `--type <type>`: Filter by event type (`speech`, `action`, `system`, `thought`, etc.)
+- `--from <seq>`: Minimum tick-sequence number (inclusive)
+- `--to <seq>`: Maximum tick-sequence number (inclusive)
+- `--mode <mode>`: Output mode: `timeline` (default), `summary`, `raw`
+- `--json`: Output results in JSON format
+- `--help`, `-h`: Show usage instructions
+
+Exit codes: `0` = success, `2` = usage or file I/O error.
+
+---
+
 ## Export source
 
 | File | Role |

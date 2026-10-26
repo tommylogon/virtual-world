@@ -109,7 +109,7 @@ def apply_orders(gs) -> None:
 # ───────────────────────────── internals ──────────────────────────────────
 
 def _step_one(gs, sim, player, order) -> None:
-    if getattr(player, "state", "") == "dead":
+    if getattr(player, "state", "") == "dead" and not getattr(gs, "ghost_mode", False):
         _finish(gs, player, order, ("death", "You died."))
         return
 
@@ -160,10 +160,37 @@ def _step_one(gs, sim, player, order) -> None:
 
 def _promote(gs, player, order, reason) -> None:
     """Hand a soaking character back to their player."""
+    if reason and len(reason) > 1:
+        order["ended"] = True
+        order["reason"] = reason[1]
+        order["interrupted"] = True
     if reason[0] == "fear":
         sources = fear_mod.fear_sources(gs, player)
         fear_mod.apply_frightening(gs, player, sources)
     _finish(gs, player, order, reason)
+
+
+def promote_reason(gs, player, order):
+    """Why a soaking character should be handed back, or None. Checks immediate conditions."""
+    if fear_mod.fear_sources(gs, player):
+        return ("fear", "Something you fear is here.")
+
+    present = set(getattr(player, "conditions", {}) or {})
+    if getattr(gs, "ghost_mode", False):
+        present.discard("dead")
+    hostile = present & interrupts_mod.HOSTILE_CONDITIONS
+    if hostile:
+        cid = sorted(hostile)[0]
+        return ("threat", f"You are {cid.replace('_', ' ')}.")
+
+    vitals = getattr(player, "vitals", {}) or {}
+    for stat, band in interrupts_mod.DRIVE_DANGER.items():
+        if stat in vitals and vitals.get(stat, 0) >= band:
+            return ("vital", f"Your {stat.lower()} is critical.")
+    for stat, band in interrupts_mod.RESOURCE_DANGER.items():
+        if stat in vitals and vitals.get(stat, 100) <= band:
+            return ("vital", f"Your {stat.lower()} is dangerously low.")
+    return None
 
 
 def _promote_reason(gs, player, order):
@@ -177,6 +204,8 @@ def _promote_reason(gs, player, order):
         return ("fear", "Something you fear is here.")
 
     present = set(getattr(player, "conditions", {}) or {})
+    if getattr(gs, "ghost_mode", False):
+        present.discard("dead")
     hostile = present & interrupts_mod.HOSTILE_CONDITIONS
     if hostile:
         cid = sorted(hostile)[0]
@@ -213,6 +242,10 @@ def _promote_reason(gs, player, order):
 
 def _finish(gs, player, order, reason) -> None:
     """End an order: clear it, remember what happened, tell the stream."""
+    if reason and len(reason) > 1:
+        order["ended"] = True
+        order["reason"] = reason[1]
+        order["interrupted"] = True
     declared = float(order.get("declared_minutes", 0) or 0)
     remaining = max(0.0, float(order.get("remaining_minutes", 0) or 0))
     elapsed = max(0, int(round(declared - remaining)))

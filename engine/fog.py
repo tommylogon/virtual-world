@@ -33,6 +33,7 @@ player knows, and never more.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Iterable, List, Optional, Set
 
 
@@ -61,6 +62,74 @@ def _add(known: List[str], value: str) -> bool:
         return False
     known.append(text)
     return True
+
+
+def _upgrade_supporting_beliefs(player, forms: Iterable[str]) -> List[Dict[str, Any]]:
+    """Link newly learned place forms to any belief memories they support (task-467).
+
+    When a character learns a place from a map, a spoken direction, or walking in,
+    only a belief memory that actually names that place is upgraded (`upgraded_to_known`
+    and `confidence = 1.0`). Unrelated beliefs stay untouched.
+    """
+    memories = getattr(player, "memories", None) or []
+    if not memories:
+        return []
+    clean_forms = [str(f).strip() for f in forms if str(f or "").strip()]
+    if not clean_forms:
+        return []
+    upgraded: List[Dict[str, Any]] = []
+    for mem in memories:
+        if not isinstance(mem, dict):
+            continue
+        mtype = str(mem.get("type") or "").lower()
+        mcat = str(mem.get("category") or "").lower()
+        tags = {str(t).lower() for t in (mem.get("tags") or [])}
+        if mtype != "belief" and mcat != "belief" and "belief" not in tags:
+            continue
+        text = str(mem.get("text") or "").lower()
+        matched_form = None
+        for form in clean_forms:
+            fl = form.lower()
+            if fl in tags or re.search(r"(?<!\w)" + re.escape(fl) + r"(?!\w)", text):
+                matched_form = form
+                break
+        if matched_form:
+            mem["upgraded_to_known"] = matched_form
+            mem["confidence"] = 1.0
+            upgraded.append(mem)
+    return upgraded
+
+
+def resolve_known_area(graph, ref: Any) -> Optional[Any]:
+    """Resolve an area id or display name against *graph* without duplicating lookup rules.
+
+    Delegates to :func:`engine.room_perception.resolve_area` when *graph* exposes
+    ``get_node``, and falls back to scanning ``graph.nodes`` for lightweight test
+    stubs.
+    """
+    if graph is None or not ref:
+        return None
+    text = str(ref).strip()
+    if not text:
+        return None
+    if callable(getattr(graph, "get_node", None)):
+        try:
+            from engine.room_perception import resolve_area
+            node = resolve_area(graph, text)
+            if node is not None:
+                return node
+        except Exception:
+            pass
+    nodes = getattr(graph, "nodes", None) or {}
+    text_lower = text.lower()
+    for node in nodes.values():
+        if getattr(node, "type", None) != "area":
+            continue
+        nid = str(getattr(node, "id", "") or "")
+        nname = str(getattr(node, "name", "") or "")
+        if nid == text or nname == text or nid.lower() == text_lower or nname.lower() == text_lower:
+            return node
+    return None
 
 
 class Known:
@@ -118,6 +187,8 @@ class Known:
             for form in _forms(candidate):
                 if _add(self.known, form):
                     added.append(form)
+        if added:
+            _upgrade_supporting_beliefs(self.player, added)
         return added
 
     def forget(self, *candidates: Any) -> List[str]:
@@ -254,6 +325,7 @@ def teach_from_map(player, map_item, *, graph=None, areas=None) -> Dict[str, Any
     """
     props = (getattr(map_item, "properties", None) or {}) if map_item else {}
     known = Known(player)
+    source = graph if graph is not None else _graph_of(player)
     # `in`, not a truthiness test: an explicit empty chart is a map of nowhere and
     # must teach nothing, while an ABSENT chart is a map of wherever you are. The
     # difference is a blank prop and an absent one, and a truthiness test reads
@@ -263,33 +335,16 @@ def teach_from_map(player, map_item, *, graph=None, areas=None) -> Dict[str, Any
     elif "charted_areas" in props:
         candidates = list(props.get("charted_areas") or [])
     else:
-        source = graph if graph is not None else _graph_of(player)
         candidates = [n for n in (getattr(source, "nodes", {}) or {}).values()
                       if getattr(n, "type", None) == "area"]
 
-    # A chart entry is usually an area id, but a hand-authored one is often a
-    # display name. Resolving a name to its node means both end up teaching the
-    # *same* set of forms, so a map that charts "Room 1" and a walk that reaches
-    # `area_1` agree instead of holding two half-entries.
-    source = graph if graph is not None else _graph_of(player)
-    by_name: Dict[str, Any] = {}
-    by_id: Dict[str, Any] = {}
-    for node in (getattr(source, "nodes", {}) or {}).values():
-        if getattr(node, "type", None) != "area":
-            continue
-        node_id = getattr(node, "id", None)
-        name = getattr(node, "name", None)
-        if node_id:
-            by_id[str(node_id)] = node
-        if name:
-            by_name.setdefault(str(name), node)
-
     added: List[str] = []
     places: List[str] = []
+    upgraded: List[str] = []
     for candidate in candidates:
         if isinstance(candidate, str):
             text = candidate.strip()
-            candidate = by_id.get(text) or by_name.get(text, text)
+            candidate = resolve_known_area(source, text) or text
         node_id = getattr(candidate, "id", None)
         if node_id and str(node_id) not in places:
             places.append(str(node_id))
@@ -297,9 +352,15 @@ def teach_from_map(player, map_item, *, graph=None, areas=None) -> Dict[str, Any
             # A chart entry that resolves to nothing still taught that literal
             # string, so it belongs in the count rather than vanishing from it.
             places.append(str(candidate))
+        forms = _forms(candidate)
         added.extend(known.reveal(candidate))
+        for m in _upgrade_supporting_beliefs(player, forms):
+            u = m.get("upgraded_to_known")
+            if u and u not in upgraded:
+                upgraded.append(u)
     return {"taught": added, "places": places, "count": len(places),
-            "entries": len(added), "total_known": len(known)}
+            "entries": len(added), "total_known": len(known),
+            "upgraded_beliefs": upgraded}
 
 
 # ── what a character may be told ────────────────────────────────────────────
@@ -358,3 +419,164 @@ def unknown_are_hidden(player, area_name: str) -> bool:
     rule ever becomes "a rough bearing is allowed".
     """
     return not Known(player).has(area_name)
+
+
+def materialize_frontier(gs, player, area_or_id: Any, *,
+                         heading: Optional[str] = None) -> List[str]:
+    """Generate content on discovery when entering or stepping toward an unmade frontier (task-467).
+
+    Uses the task-398 / task-496 generation contract (`generation.apply_patch`,
+    `generation_recipes`, and `world_compile.compile_grid` with task-9's
+    `LibraryIndex`) so frontier discovery never invents a second world format:
+    1. Unmade child scopes attached to the current area (`child_scope_id`,
+       `entry_area_id`, or a grid placement on the current or heading-adjacent cell).
+    2. Uncompiled painted frontier cells on the current scope's grid in direction
+       *heading* when the cell has paint in `world_scopes` that has not yet been
+       compiled into an area node.
+    Every newly materialized entry area is revealed in fog for *player* only.
+    """
+    graph = getattr(gs, "graph", None)
+    manifest = getattr(gs, "world_scopes", None)
+    if graph is None or not isinstance(manifest, dict) or not manifest:
+        return []
+    area_node = resolve_known_area(graph, area_or_id)
+    if area_node is None:
+        return []
+
+    from pathlib import Path
+    from engine import generation, generation_recipes, world_compile, world_grid
+
+    props = getattr(area_node, "properties", None) or {}
+    scope_id = props.get("world_scope_id")
+    cell = props.get("cell") if isinstance(props.get("cell"), dict) else None
+    cx = cell.get("x") if cell is not None else None
+    cy = cell.get("y") if cell is not None else None
+
+    adj_cell = None
+    if isinstance(cx, int) and isinstance(cy, int) and heading:
+        delta = world_compile.DIRECTIONS.get(str(heading).strip().lower())
+        if delta:
+            adj_cell = (cx + delta[0], cy + delta[1])
+
+    # Collect (target_scope_id, allow_regenerate, entry_override) candidates
+    candidates: List[ tuple ] = []
+    seen_scopes: Set[str] = set()
+
+    def _queue(sid: Optional[str], allow_regen: bool = False, entry_id: Optional[str] = None):
+        if not sid or sid in seen_scopes or sid not in manifest:
+            return
+        seen_scopes.add(sid)
+        candidates.append((sid, allow_regen, entry_id))
+
+    # (a) Direct child_scope_id on the area node
+    child_sid = props.get("child_scope_id")
+    if child_sid and manifest.get(child_sid, {}).get("state", generation.UNMADE) == generation.UNMADE:
+        _queue(str(child_sid), False, area_node.id)
+
+    # (b) Any unmade scope whose entry_area_id names this area
+    for sid, srec in list(manifest.items()):
+        if not isinstance(srec, dict):
+            continue
+        if srec.get("state", generation.UNMADE) != generation.UNMADE:
+            continue
+        if srec.get("entry_area_id") in (area_node.id, area_node.name):
+            _queue(str(sid), False, area_node.id)
+
+    # (c) Parent scope placements or uncompiled painted frontier cells
+    if scope_id and scope_id in manifest:
+        parent_rec = manifest[scope_id]
+        target_cells = {(cx, cy)} if (isinstance(cx, int) and isinstance(cy, int)) else set()
+        if adj_cell is not None:
+            target_cells.add(adj_cell)
+        for cid, pos in (parent_rec.get("placements") or {}).items():
+            if not isinstance(pos, dict):
+                continue
+            pcell = (pos.get("x"), pos.get("y"))
+            if (pcell in target_cells or pos.get("area_id") == area_node.id) and cid in manifest:
+                crec = manifest[cid]
+                if crec.get("state", generation.UNMADE) == generation.UNMADE:
+                    _queue(str(cid), False, area_node.id)
+
+        # Check if adj_cell on parent_rec is painted but has no compiled area node yet
+        if adj_cell is not None and world_grid.has_grid(parent_rec):
+            ax, ay = adj_cell
+            if world_grid.in_bounds(parent_rec, ax, ay):
+                key = world_grid.cell_key(ax, ay)
+                layers = parent_rec.get("layers") or {}
+                has_paint = bool((layers.get("biome") or {}).get(key) or (layers.get("road") or {}).get(key))
+                if has_paint:
+                    already_compiled = any(
+                        getattr(n, "type", None) == "area"
+                        and (getattr(n, "properties", None) or {}).get("world_scope_id") == scope_id
+                        and (
+                            (getattr(n, "properties", None) or {}).get("cell") == {"x": ax, "y": ay}
+                            or {"x": ax, "y": ay} in ((getattr(n, "properties", None) or {}).get("cells") or [])
+                        )
+                        for n in graph.nodes.values()
+                    )
+                    if not already_compiled:
+                        _queue(str(scope_id), True, None)
+
+    if not candidates:
+        return []
+
+    try:
+        from engine.population import LibraryIndex
+        root_dir = Path(__file__).resolve().parent.parent
+        index = LibraryIndex.from_directory(root_dir / "data" / "library" / "items")
+    except Exception:
+        index = None
+
+    tick = int(getattr(gs, "time_ticks", 0) or getattr(gs, "turn_number", 0) or 0)
+    materialized_areas: List[str] = []
+    pre_existing_areas = {
+        n.id for n in graph.nodes.values() if getattr(n, "type", None) == "area"
+    }
+
+    for sid, allow_regen, entry_id in candidates:
+        srec = manifest.get(sid) or {}
+        seed = str(srec.get("seed") or sid)
+        patch = None
+        try:
+            if srec.get("recipe"):
+                recipe_fn = generation_recipes.get_recipe(str(srec["recipe"]))
+                if recipe_fn is not None and index is not None:
+                    patch = recipe_fn(
+                        sid, seed=seed, index=index,
+                        entry_area_id=entry_id or srec.get("entry_area_id") or area_node.id,
+                        tick=tick,
+                    )
+            elif world_grid.has_grid(srec):
+                patch = world_compile.compile_grid(
+                    manifest, sid,
+                    region_merge=bool(srec.get("region_merge", False)),
+                    seed=seed, tick=tick, graph=graph,
+                    spawn_index=index,
+                )
+            if patch is None:
+                continue
+            report = generation.apply_patch(
+                graph, manifest, patch, allow_regenerate=allow_regen,
+            )
+            new_ids = [
+                aid for aid in (report.area_ids or [])
+                if aid not in pre_existing_areas or not allow_regen
+            ]
+            if not new_ids and report.area_ids:
+                new_ids = list(report.area_ids)
+            materialized_areas.extend(new_ids)
+            if player is not None:
+                entry_aid = (new_ids[0] if new_ids else None) or manifest.get(sid, {}).get("entry_area_id")
+                if adj_cell is not None:
+                    for aid in new_ids:
+                        anode = graph.get_node(aid)
+                        aprops = getattr(anode, "properties", None) or {}
+                        if aprops.get("cell") == {"x": adj_cell[0], "y": adj_cell[1]}:
+                            entry_aid = aid
+                            break
+                if entry_aid:
+                    reveal_area(player, graph.get_node(entry_aid) or entry_aid)
+        except Exception:
+            continue
+
+    return materialized_areas

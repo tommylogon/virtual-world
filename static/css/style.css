@@ -1,4 +1,4 @@
-/* style.css — VirtualWorld Engine Dark Theme
+/* style.css  -  VirtualWorld Engine Dark Theme
  * Cyberpunk/horror aesthetic with neon accents
  */
 
@@ -179,7 +179,7 @@ body.play-mode-active #top-bar {
 }
 
 /* ===== Editor Toolbar =====
- * NOTE: overflow MUST stay visible — the toolbar hosts absolutely-positioned
+ * NOTE: overflow MUST stay visible  -  the toolbar hosts absolutely-positioned
  * dropdowns (More ▾, Overlays ▾) that open BELOW its box; overflow-y:hidden
  * clipped them into invisibility. Rows wrap via flex-wrap, so no scrolling
  * is lost. */
@@ -206,7 +206,7 @@ body.play-mode-active #top-bar {
 /* Active feedback for toggle buttons (Triggers, Items, Inhabited, Labels…) */
 .toolbar-btn.active { background: var(--bg-hover); color: var(--accent); border-color: var(--accent-dim); }
 /* Honest affordances (task-530): a control that cannot run right now says so
- * instead of silently doing nothing. The label never changes — only disabled. */
+ * instead of silently doing nothing. The label never changes  -  only disabled. */
 .toolbar-btn:disabled, .menu-toggle:disabled, .dropdown-item:disabled {
     opacity: .42; cursor: not-allowed; background: transparent; color: var(--text-dim);
     border-color: var(--border);
@@ -225,7 +225,7 @@ body.play-mode-active #top-bar {
 .toolbar-zone-where { flex: 1 1 320px; min-width: 0; }
 .toolbar-btn-primary { color: var(--text); border-color: var(--accent-dim); }
 
-/* Scope chip: the single most important control on a painted world — what is
+/* Scope chip: the single most important control on a painted world  -  what is
  * loaded, and how much of it. */
 .scope-chip {
     display: inline-flex; align-items: center; gap: 4px; max-width: 190px;
@@ -240,7 +240,7 @@ body.play-mode-active #top-bar {
     max-width: 150px; text-overflow: ellipsis;
 }
 /* Options inherit the select's colour, and a native popup may paint its own
-   background — so the options carry the palette themselves. */
+   background  -  so the options carry the palette themselves. */
 .scope-chip option, .menu-select option, .graph-search option {
     background: var(--bg-card); color: var(--text); font-family: var(--font);
 }
@@ -269,7 +269,7 @@ body.play-mode-active #top-bar {
 .keep-toggle.disabled:hover { color: var(--text-dim); }
 
 /* Layout axis: one segmented control, three fixed labels, state in
- * aria-selected — the old three toggles each rewrote their own text. */
+ * aria-selected  -  the old three toggles each rewrote their own text. */
 .toolbar-segment {
     display: inline-flex; align-items: center;
     border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
@@ -283,7 +283,7 @@ body.play-mode-active #top-bar {
 }
 .toolbar-segment .toolbar-btn:disabled { background: transparent; }
 
-/* Popovers inside the toolbar (Build ▾, View ▾, More ▾). Hidden by default —
+/* Popovers inside the toolbar (Build ▾, View ▾, More ▾). Hidden by default  - 
  * they are opened by GraphToolbar.togglePopover, which flips the inline display
  * and the `menu-open` class the global closeTopMenus() helper looks for. */
 .toolbar-dropdown { position: relative; }
@@ -438,8 +438,8 @@ body.play-mode-active #top-bar {
 /* The "open in the WorldPainter" jump on an unmade scope (task-592).
  *
  * `flex: 0 0 auto` is the whole fix. The card next to it is `flex: 1 1 auto`, so
- * without this the jump takes a share of the row and the card — which is the part
- * carrying the name — is what gets squeezed; with `nowrap` + `text-overflow:
+ * without this the jump takes a share of the row and the card  -  which is the part
+ * carrying the name  -  is what gets squeezed; with `nowrap` + `text-overflow:
  * ellipsis` the name silently loses its last characters instead, which is how it
  * read "10 here na…". The jump is a small fixed control and must never be the
  * thing that reflows. */
@@ -450,7 +450,7 @@ body.play-mode-active #top-bar {
     font-family: var(--font); font-size: 10px; line-height: 1.4; white-space: nowrap;
 }
 .scope-tree-jump:hover { background: var(--bg-hover); color: var(--text); }
-/* "Whole world" is a card too, not a default button — it sits above the
+/* "Whole world" is a card too, not a default button  -  it sits above the
    hierarchy and is the way back out of it. */
 .scope-tree-whole {
     width: 100%; text-align: left; display: block; font-family: var(--font);
@@ -569,7 +569,7 @@ body.play-mode-active #top-bar {
 .agent-item.active { background: var(--bg-inset); border-left: 3px solid var(--accent); }
 .agent-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 /* Control mode (👾 NPC / 🤖 LLM / 👤 human). Clicking cycles the controller, so it
-   needs a hit target and a hover cue — with no rule at all it rendered flush
+   needs a hit target and a hover cue  -  with no rule at all it rendered flush
    against the name and read as part of it. */
 .agent-ctrl {
     flex: 0 0 auto; cursor: pointer; line-height: 1; padding: 1px 3px;
@@ -620,7 +620,7 @@ body.play-mode-active #top-bar {
     flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
 }
 
-/* Lens tab: footer alerts/validator steal ~300px — hide them so preview gets the panel */
+/* Lens tab: footer alerts/validator steal ~300px  -  hide them so preview gets the panel */
 #left-panel.left-panel--lens #alert-section,
 #left-panel.left-panel--lens #validation-section {
     display: none;
@@ -1462,7 +1462,7 @@ body.play-mode-active #top-bar {
     grid-template-columns: 84px 84px 84px;
     grid-template-rows: repeat(6, 84px);
 }
-/* task-852 P2: back face recenters the back slot — same template, no art. */
+/* task-852 P2: back face recenters the back slot  -  same template, no art. */
 .paperdoll[data-mode="navigate"][data-facing="back"] {
     grid-template-areas:
         ".       head    ."
@@ -1713,7 +1713,7 @@ body.play-mode-active #top-bar {
 #create-modal-body textarea { resize: vertical; min-height: 36px; }
 .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
-/* Create modal — sectioned form layout */
+/* Create modal  -  sectioned form layout */
 .cm-section { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 6px; }
 .cm-section-title { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin: 6px 0 4px; display: flex; align-items: center; gap: 6px; }
 .cm-section-title .cm-hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-muted); font-size: 9px; }
@@ -1721,7 +1721,7 @@ body.play-mode-active #top-bar {
 .cm-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .cm-hint { font-size: 9px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
 
-/* Toggle chips — actions, equip slots, mechanical tags */
+/* Toggle chips  -  actions, equip slots, mechanical tags */
 .chip-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 label.chip-toggle {
     display: inline-flex; align-items: center; gap: 5px;
@@ -2427,8 +2427,8 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 .lib-tab-pane.active { display: flex; flex-direction: column; flex: 1; }
 
 /* ── Library Browser: use the viewport (2026-10-11) ──────────────────
- * The browser is modal — nothing behind it is clickable while it is
- * open — so it may take the viewport instead of an 800px card with
+ * The browser is modal  -  nothing behind it is clickable while it is
+ * open  -  so it may take the viewport instead of an 800px card with
  * 300px lists. The panes, their list columns and their lists become
  * flex children that fill the height, so the modal never scrolls as a
  * whole and nothing spills sideways. `!important` beats the one-off
@@ -2456,13 +2456,13 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
     flex: 1;
     min-height: 0;
 }
-/* the list column — a flex column so its list can grow into it */
+/* the list column  -  a flex column so its list can grow into it */
 #library-modal .lib-tab-pane.active > div:first-child > div:first-child {
     display: flex;
     flex-direction: column;
     min-height: 0;
 }
-/* the list itself — was capped at 300px, stranding the extra height */
+/* the list itself  -  was capped at 300px, stranding the extra height */
 #library-modal div[id$="-list"] {
     flex: 1;
     min-height: 0;
@@ -2521,8 +2521,8 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
     #right-panel { width: 320px; min-width: 260px; }
 }
 /* Graph toolbar, narrow windows (bug_18 / task-530 / task-532). The bar wraps
- * rather than overflowing, and the controls you need most — what is loaded and
- * the search — get a full row of their own before anything crowds them. Below
+ * rather than overflowing, and the controls you need most  -  what is loaded and
+ * the search  -  get a full row of their own before anything crowds them. Below
  * 900px the secondary controls move into More ▾ (see toolbar.js), so the
  * contextual scope bar is dropped rather than given a row of its own. */
 @media (max-width: 1240px) {
@@ -2611,7 +2611,7 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Event Stream v2 (task-340) — phase pills, outcome rows, narration,
+   Event Stream v2 (task-340)  -  phase pills, outcome rows, narration,
    whispers, crisis/prune rows, transitions, time gaps, collapsed LLM
    chips, scrubber, queue strip, compact + story modes.
    ══════════════════════════════════════════════════════════════════ */
@@ -2780,7 +2780,7 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 #event-stream.compact .thought-bubble { font-size: 11px; padding: 3px 6px; }
 #event-stream.compact .msg-bubble-phase { padding: 0; }
 
-/* ── Story mode — the session as readable fiction ── */
+/* ── Story mode  -  the session as readable fiction ── */
 #event-stream.story-mode { background: #12151a; gap: 4px; }
 #event-stream.story-mode .timeline-scrubber,
 #event-stream.story-mode .turn-queue-strip,
@@ -2879,3 +2879,163 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 .sim-pacing-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sim-pacing-row input { width: 100%; min-width: 0; }
 .sim-pacing-row output { text-align: right; color: var(--text-muted, #8b949e); }
+
+/* task-456: Save game list row items and badges */
+.save-game-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+}
+.save-game-item.save-game-auto {
+    background: rgba(74, 158, 255, 0.06);
+}
+.save-game-info {
+    flex: 1;
+    cursor: pointer;
+}
+.save-game-stats {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.save-game-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.save-badge.save-badge-auto {
+    background: var(--accent, #4a9eff);
+    color: #fff;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 9px;
+    margin-right: 5px;
+}
+.save-version-badge {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+
+/* ===== Game UI Rendering Model (task-826) ===== */
+
+/* 1. Global Vignette & Grain Overlay */
+.game-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9980;
+    background: radial-gradient(circle at 50% 48%, transparent 55%, rgba(6, 9, 13, 0.45) 85%, rgba(3, 5, 8, 0.72) 100%);
+}
+
+.game-grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9981;
+    opacity: 0.038;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+}
+
+/* 2. Light Direction & Material Variables (Top-Left Light Model) */
+:root {
+    --light-edge: inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+    --shadow-edge: inset -1px -1px 0 rgba(0, 0, 0, 0.45);
+    --bevel-panel: inset 1px 1px 0 rgba(255, 255, 255, 0.09), inset -1px -1px 0 rgba(0, 0, 0, 0.5);
+    --bevel-btn: inset 0 1px 0 rgba(255, 255, 255, 0.13), inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+    --bevel-btn-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    --panel-depth-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+    --text-shadow-engraved: 0 1px 2px rgba(0, 0, 0, 0.85);
+    --text-shadow-embossed: 0 -1px 0 rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* 3. Panel & Card Depth with Light Direction */
+.modal-content,
+.dialog-card,
+.card,
+.inspector,
+.left-panel-content,
+.library-modal .modal-content {
+    box-shadow: var(--bevel-panel), var(--panel-depth-shadow) !important;
+}
+
+/* Frosted glass backdrop on modals instead of flat black scrim */
+.modal,
+#dialog-root {
+    backdrop-filter: blur(4px) saturate(1.15);
+}
+
+/* 4. Rendered Headers & Badges */
+h1, h2, h3, h4,
+.modal-title,
+.section-title,
+.badge,
+.tab-badge {
+    text-shadow: var(--text-shadow-engraved);
+}
+
+/* 5. Buttons catching light */
+.btn {
+    box-shadow: var(--bevel-btn);
+}
+
+.btn:hover:not(:disabled) {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.btn:active:not(:disabled) {
+    box-shadow: var(--bevel-btn-pressed) !important;
+    transform: translateY(1px);
+}
+
+/* 6. Game UI Material Layers & Idle Animation (task-826) */
+:root {
+    --ease-game-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-game-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-game-inout: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inspector,
+.left-panel-content,
+.modal-content,
+.dialog-card {
+    background-image: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.035) 0%, transparent 65%), linear-gradient(180deg, var(--bg-card, #161b22), var(--bg, #0d1117));
+    background-blend-mode: screen, normal;
+}
+
+@keyframes ambient-idle-glow {
+    0%, 100% { opacity: 0.82; filter: drop-shadow(0 0 2px rgba(88, 166, 255, 0.35)); }
+    50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(88, 166, 255, 0.8)); }
+}
+
+.turn-modal-badge,
+.agent-item.active .agent-dot,
+.live-turn-indicator {
+    animation: ambient-idle-glow 3.2s var(--ease-game-inout) infinite;
+}
+
+.sound-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    box-shadow: var(--bevel-btn);
+    transition: color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.sound-toggle-btn:hover {
+    color: var(--text);
+    border-color: var(--accent);
+}
+
+.sound-toggle-btn:active {
+    box-shadow: var(--bevel-btn-pressed) !important;
+    transform: translateY(1px);
+}

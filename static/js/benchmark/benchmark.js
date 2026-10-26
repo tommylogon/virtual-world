@@ -59,7 +59,10 @@ window.BenchmarkApp = (() => {
         els.refreshModelsBtn = document.getElementById('bench-refresh-models');
         els.modelList = document.getElementById('bench-model-list');
         els.modelSearchInput = document.getElementById('bench-model-search');
-        els.sizeSlider = document.getElementById('bench-size-slider');
+        els.sizeMinSlider = document.getElementById('bench-size-min');
+        els.sizeMaxSlider = document.getElementById('bench-size-max');
+        els.sizeHighlight = document.getElementById('bench-size-highlight');
+        els.sizeSlider = els.sizeMaxSlider || document.getElementById('bench-size-slider');
         els.sizeVal = document.getElementById('bench-size-val');
         els.modelsCount = document.getElementById('bench-models-count');
         els.selectAllModels = document.getElementById('bench-select-all');
@@ -176,14 +179,75 @@ window.BenchmarkApp = (() => {
             });
         }
 
-        if (els.sizeSlider) {
+        const updateSizeSliderUI = () => {
+            if (!els.sizeMinSlider || !els.sizeMaxSlider) {
+                if (els.sizeSlider) {
+                    const val = parseInt(els.sizeSlider.value, 10);
+                    if (els.sizeVal) els.sizeVal.textContent = val >= 40 ? 'Any' : ('<=' + val + 'B');
+                }
+                return;
+            }
+            let minVal = parseInt(els.sizeMinSlider.value, 10) || 0;
+            let maxVal = parseInt(els.sizeMaxSlider.value, 10) || 72;
+            if (minVal > maxVal) {
+                const temp = minVal;
+                minVal = maxVal;
+                maxVal = temp;
+            }
+            const maxLimit = parseInt(els.sizeMaxSlider.max, 10) || 72;
+            if (els.sizeHighlight) {
+                const leftPercent = Math.min(100, Math.max(0, (minVal / maxLimit) * 100));
+                const rightPercent = Math.min(100, Math.max(0, 100 - (maxVal / maxLimit) * 100));
+                els.sizeHighlight.style.left = leftPercent + '%';
+                els.sizeHighlight.style.right = rightPercent + '%';
+            }
+            if (els.sizeVal) {
+                if (minVal <= 0 && maxVal >= maxLimit) {
+                    els.sizeVal.textContent = 'Any';
+                } else if (minVal <= 0) {
+                    els.sizeVal.textContent = '<=' + maxVal + 'B';
+                } else if (maxVal >= maxLimit) {
+                    els.sizeVal.textContent = '>=' + minVal + 'B';
+                } else {
+                    els.sizeVal.textContent = minVal + 'B - ' + maxVal + 'B';
+                }
+            }
+        };
+
+        if (els.sizeMinSlider && els.sizeMaxSlider) {
+            const onMinInput = () => {
+                const minVal = parseInt(els.sizeMinSlider.value, 10) || 0;
+                const maxVal = parseInt(els.sizeMaxSlider.value, 10) || 72;
+                if (minVal > maxVal) {
+                    els.sizeMinSlider.value = maxVal;
+                }
+                updateSizeSliderUI();
+                renderModelList();
+            };
+            const onMaxInput = () => {
+                const minVal = parseInt(els.sizeMinSlider.value, 10) || 0;
+                const maxVal = parseInt(els.sizeMaxSlider.value, 10) || 72;
+                if (maxVal < minVal) {
+                    els.sizeMaxSlider.value = minVal;
+                }
+                updateSizeSliderUI();
+                renderModelList();
+            };
+            els.sizeMinSlider.addEventListener('input', onMinInput);
+            els.sizeMaxSlider.addEventListener('input', onMaxInput);
+            els.sizeMinSlider.addEventListener('pointerdown', () => {
+                els.sizeMinSlider.style.zIndex = '3';
+                els.sizeMaxSlider.style.zIndex = '2';
+            });
+            els.sizeMaxSlider.addEventListener('pointerdown', () => {
+                els.sizeMaxSlider.style.zIndex = '3';
+                els.sizeMinSlider.style.zIndex = '2';
+            });
+            updateSizeSliderUI();
+        } else if (els.sizeSlider) {
             els.sizeSlider.addEventListener('input', () => {
                 const val = parseInt(els.sizeSlider.value, 10);
-                if (val >= 40) {
-                    if (els.sizeVal) els.sizeVal.textContent = 'Any';
-                } else {
-                    if (els.sizeVal) els.sizeVal.textContent = `≤ ${val}B`;
-                }
+                if (els.sizeVal) els.sizeVal.textContent = val >= 40 ? 'Any' : ('<=' + val + 'B');
                 renderModelList();
             });
         }
@@ -420,7 +484,9 @@ window.BenchmarkApp = (() => {
 
         const searchQuery = (els.modelSearchInput?.value || '').toLowerCase().trim();
         const searchTokens = searchQuery ? searchQuery.split(/\s+/).filter(Boolean) : [];
-        const maxSize = els.sizeSlider ? parseInt(els.sizeSlider.value, 10) : 40;
+        const minSize = els.sizeMinSlider ? (parseInt(els.sizeMinSlider.value, 10) || 0) : 0;
+        const maxLimit = els.sizeMaxSlider ? (parseInt(els.sizeMaxSlider.max, 10) || 72) : 40;
+        const maxSize = els.sizeMaxSlider ? (parseInt(els.sizeMaxSlider.value, 10) || maxLimit) : (els.sizeSlider ? parseInt(els.sizeSlider.value, 10) : maxLimit);
 
         let visibleCount = 0;
 
@@ -429,10 +495,16 @@ window.BenchmarkApp = (() => {
             const modelId = m.id || m.name;
             const modelName = m.name || modelId;
 
-            // 1. Max size filter
+
+            // 1. Min/Max size filter
             const sizeB = parseModelSizeB(m);
-            if (maxSize < 40 && sizeB !== null && sizeB > maxSize) {
-                return;
+            if (sizeB !== null) {
+                if (minSize > 0 && sizeB < minSize) {
+                    return;
+                }
+                if (maxSize < maxLimit && sizeB > maxSize) {
+                    return;
+                }
             }
 
             // 2. Search query filter

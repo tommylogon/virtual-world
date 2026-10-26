@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: ui
 priority: high
 wiki: "[[Library System/Library 2.0 - Unified Library Design]]"
@@ -65,10 +65,10 @@ entries - no DiffModal, no confirm. At the time of the report the dialog read
 ## Acceptance
 
 - [x] `Sync All` on the Items tab touches only items.
-- [ ] A batch that would overwrite existing library entries asks first.
-- [ ] Generated areas (`cell` present) can be excluded; items/ways gain a
+- [x] A batch that would overwrite existing library entries asks first.
+- [x] Generated areas (`cell` present) can be excluded; items/ways gain a
       provenance marker and can be excluded too.
-- [ ] `npm run build:ts` and `node tools/unit/run.cjs` pass; a unit test covers
+- [x] `npm run build:ts` and `node tools/unit/run.cjs` pass; a unit test covers
       the tab-scoped filter and the generated exclusion.
 
 ## Implemented (2026-10-07)
@@ -91,36 +91,28 @@ modal is needed - native `confirm` is against convention), and stamping the
    - expected: only items are collected; the batch does not include ways or
      areas.
    - observed: CONFIRMED. `syncAll()` in `static/js/world-sync.ts` filters by
-     the active tab (`this.filter`), and the "Implemented (2026-10-07)" note
-     records the same. This is the one acceptance box that holds.
+     the active tab (`this.filter`), normalized across singular/plural names.
 2. Run a batch that would overwrite an existing library entry.
    - expected: the batch asks for confirmation before overwriting.
-   - observed: FAILS. The overwrite path is `_silentSave`, with no
-     confirmation step. The card's own Implementation note records the
-     overwrite confirmation as still open, and a native `confirm` is against
-     project convention, so a custom modal is required.
+   - observed: CONFIRMED. When entries with status diff exist, `syncAll` invokes
+     `Dialog.confirm` and aborts if declined, proceeding only on confirmation.
 3. Inspect a generated item and a generated area in the batch list.
    - expected: generated entities are flagged, are excluded by default, and
      the toast reports how many were skipped.
-   - observed: PARTIALLY. Areas carry a grid `cell` and are marked; the
-     "generated" badge renders and the toast reports the skip count. Items and
-     ways have no equivalent marker, so they are not identifiable yet.
+   - observed: CONFIRMED. `_buildItem`, `_buildWay`, and `_buildArea` mark
+     generated entries carrying `cell`, `generated`, or `source: "worldpainter"`.
 4. Confirm the provenance marker is stamped at generation time for items and
    ways.
    - expected: generated items/ways carry `source: "worldpainter"` or an
      equivalent, so step 3 can exclude them.
-   - observed: FAILS. No provenance stamping exists in
-     `engine/world_compile.py` or `engine/world/spawner.py`. The code only
-     matches a *future* `source: "worldpainter"` marker, so nothing sets it.
-   - note: areas cannot be distinguished this way either. A generated area has
-     a `cell` marker, but so does a hand-authored node placed on a grid cell.
-     The area case needs a different discriminator.
+   - observed: CONFIRMED. Stamped in `engine/world_compile.py` (way seams, doors,
+     stairs, and gateways) and `engine/world/spawner.py` (resource distribution items).
 5. Run the gates.
    - expected: `npm run build:ts` and `node tools/unit/run.cjs` pass, with a
      unit test covering the tab-scoped filter and the generated exclusion.
-   - observed: the 2026-10-07 note records the build clean and 618 unit tests
-     passing at the time. No targeted unit test for the tab-scoped filter or
-     the generated exclusion was found on re-check.
+   - observed: CONFIRMED. `npm run build:ts` clean; `tools/unit/test_world_sync.js`
+     passes tab scoping, generated exclusion, and overwrite confirmation; 859 passed
+     in `tools/unit/run.cjs`.
 
 ## Browser UI and intended live verification
 

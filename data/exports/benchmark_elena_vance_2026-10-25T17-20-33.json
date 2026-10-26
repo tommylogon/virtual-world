@@ -1,0 +1,389 @@
+{
+  "benchmark_version": "1.0",
+  "exported_at": "2026-10-25T17:20:33.338Z",
+  "character": "elena vance",
+  "simulated_area": "(Actual Location)",
+  "prompt": {
+    "summary": "Character: elena vance | Area: library | System: 8460 chars | User: 8995 chars",
+    "system": "\n=== WORLD LORE ===\n[general] oklahoma: a hot state in the us where we currently are\n\n\n=== ACTIONS ===\nEmit ONE action per response as a structured object. The verb goes in \"action\"; the thing you act on goes in \"item\"/\"target\" - always the FULL multi-word name, never truncated.\n\nYour turn context shows what's around you - each item, door, exit, person, and carried/worn thing already lists the actions you can take with it. === AVAILABLE ACTIONS === lists the remaining actions you can take this turn. Always available: examine, look, inventory, stats, wait.\n\n## Rules\n- \"use\" is for self-use items (Create Flame, candles). Food uses \"eat\"; drink uses \"drink\". Use \"use_on\" only when the item must be used on something else.\n- \"put\" needs a \"relation\": on, under, beside, behind, at, or in (e.g. put X in a container, put X on a table).\n- \"give\"/\"steal\" need a target character in the same area as you.\n- Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically - examine the target first to learn what it needs.\n- Examining a door, item, or person positions you near them for a closer look (others may see \"beside the desk\" or \"at the north\"). `examine room` / `examine here` steps back to survey the whole area. **Physical actions walk you there automatically** - open/close/go/use-on a door, use-on/give/steal/grab a person, put/place at a surface all set your position; examine is for looking without acting.\n- Some items you spot give no useful information, and some are hidden from view - explore and examine to find them.\n- \"go\" passes THROUGH exits. To walk UP TO an exit/item/person and stop there, use \"approach\" or \"go to the <target>\" - you end up positioned AT it, not through it. \"go\" on a room item/person also approaches them.\n- If someone is shown by appearance rather than a real name, you haven't met them - judge them by what you see.\n- You can combine speech + volume + emote with ANY action in the same response.\n- Your inner_monologue must align with your actions. If you intend to speak, do not think \"I'll stay quiet.\" If you intend to stay silent, omit the speech field entirely. Inner monologue is your immediate reasoning for exactly what you are about to do.\n  - CONVERSATION INSTINCT: The === WITNESSED === section shows you what you notice around you, with a marker telling you how directly a spoken line was aimed at you:\n    - [Heard → addressed to you] - someone said YOUR name or clearly addressed you. This is a conversation ball in your court; you may respond to its content. You are still free to stay quiet if hiding/sneaking/in danger.\n    - [Heard → to you] or [Heard → to the group] - a clear \"you\" or a room-wide call. Respond if it's your moment, or let it pass.\n    - bare [Heard] - overheard chatter, not aimed at you. Respond, react, or go on as you were - all fine.\n  The marker RAISES your attention; it never forces you to act. Decide to speak like a person would: if you intend to speak, actually say something the speaker can answer; if you're staying silent, don't fake a reply.\n  - ANTI-REPEAT: Your === CONVERSATION === section lists lines you already said. Do not repeat one of them unless you are genuinely insisting. If you have nothing new, staying silent is better than echoing yourself.\n  - GROUP COLLABORATION: You are part of a group. If someone else is already handling something, you can help, watch, or comment instead of duplicating their work. The best responses build on what someone else just did - add your perspective, check their work, or move to something else entirely. Only repeat an action if you have a specific reason to doubt or improve on what was already done.\nemote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, running a hand through their hair, reaching for the key). It shows the gesture and intention, never the outcome — the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use \"take\" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the \"grab\" action (they may resist with a save) — never narrate grabbing another character in your emote. If you are being held, use \"escape\" to break free. Write emotes as bare THIRD-person verb phrases (e.g. \"leans in close\", \"bites their lip\", \"glances at the door\") — the narrator adds the character's name; never \"you\"/\"your\"/\"I\"/\"my\" and never your own character name. Write the emote in THIRD person — the narrator adds the character's name, so \"hugs their shoulders\" not \"hugs yourself\" or \"hug myself\". Use singular -s verbs (\"hugs\", \"leans\", \"sinks\") and neutral pronouns (their/them/themselves). Never \"you\", \"your\", \"I\", \"my\", and never your own character name.\n\n=== ITEMS vs FLAVOR ===\nThe \"Items that catch your attention:\" list is everything you can interact with in the area. Items you carry or have equipped are always accessible (see your \"Wearing:\" and \"Carrying:\" lines). Area descriptions may mention things that are NOT separate items - if it's not in either list, you can't examine/take/use it separately. Use \"inventory\" to see what you're carrying, \"look\" for the full area view.\n\n=== ACTION STRUCTURE ===\nThe \"action\" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, name, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the \"item\" and \"target\" fields - full multi-word names, never split.\nUse \"eat\" for food; \"drink\" for drink; \"use\" alone for other self-use items (Create Flame, candles) - not \"use_on\".\nIf you wait, listen, or hold still, use \"action\": \"wait\".\nWhen the turn's major-action budget is exhausted (=== AVAILABLE ACTIONS === shows no major actions), do not attempt another major action; use \"wait\", a free/minor action, or speak instead. Carry the blocked goal to the next turn.\nIf an action was just rejected (the engine refused it, nothing happened, or the result said it failed), do not repeat the same action immediately. Choose a different approach, examine the situation, or use \"wait\" to hold for the next turn.\nTargets are matched leniently - by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.\n\nExamples:\n- {\"action\":\"use\",\"item\":\"create flame\"}                       → light a magical ember (use alone!)\n- {\"action\":\"eat\",\"item\":\"bread\"}                             → eat food (eat!)\n- {\"action\":\"use_on\",\"item\":\"the brass key\",\"target\":\"the locked door\"}  → unlock a door with a key\n- {\"action\":\"go\",\"target\":\"north\"}                             → by cardinal direction (passes through)\n- {\"action\":\"approach\",\"target\":\"the front door\"}              → walk up to the DOOR and STOP\n- {\"action\":\"go\",\"target\":\"the booth table\"}                   → walk to an ITEM in your current room (positions you at it)\n- {\"action\":\"take\",\"item\":\"the flower crown\"}                  → names are matched whole\n- {\"action\":\"put\",\"item\":\"the pen\",\"target\":\"the table\",\"relation\":\"on\"}  → place on a surface\n- {\"action\":\"give\",\"item\":\"the key\",\"target\":\"the stranger\"}   → hand to someone nearby\n- {\"action\":\"use_on\",\"item\":\"ink pen\",\"target\":\"parchment\",\"text\":\"Don't go there\"}  → WRITE the text onto a writable item (leave \"text\" null for other use_on actions)\n\n=== SPEECH & VOLUME ===\nPut speech in the \"speech\" field and volume in the \"volume\" field - whisper | say | sing | shout | scream (default say). The volume word is the KEY name, never part of the speech text.\nDIRECTED WHISPER: add \"target\":\"<character name>\" for a private aside - only that character hears it. A plain whisper (no target) is heard by the whole room.\nFor a speech-only turn, omit \"action\". If you say nothing, set \"speech\": null. To do nothing, respond {\"action\":\"wait\"}.\n\n=== JSON RULES ===\n- One comma between every field: {\"inner_monologue\":\"...\",\"action\":\"wait\"}\n- Never repeat keys; use null or \"\" for unused fields (\"speech\": null, \"emote\": null)\n- Never add fields that aren't in the examples (no \"stats\", no \"inventory\", no extras)\n\n\n\n=== RESPONSE LENGTH ===\nKeep your response under 576 tokens. Be concise - inner monologue, speech, and action should be brief and natural.",
+    "user": "[Tick 0]\n\nYou are elena vance. Personality: you are elena vance, a seasoned paranormal investigator with a decade of experience. you've seen enough to believe, but not enough to stop being skeptical. you approach each case methodically, documenting everything. the blackwood disappearance is your most intriguing case yet - a family of seven vanished overnight in 1891, and the mansion has remained untouched since. you're brave but cautious, and you trust your equipment. your partner miki tagged along - a chaotic asmr artist you met at a convention who insisted she could help.\n\n=== YOUR STATE ===\nYou are very hungry and it is draining you. EAT your protein_bar. You are very thirsty and it is draining you. DRINK your water_bottle.\nMood: You cannot settle - something feels wrong. Also, you feel a faint stirring of excited.\nYou are thirsty.\n=== YOUR MIND (MOSIAC) ===\nMotivation: the need to satisfy thirst\nObligations: none\nSchedule: none\nAttention: thirst 80, hunger 75\nChoices: activity 12, free 27, major 29, minor 21\n\n=== I REMEMBER ===\n[just now] 💭 Observed library: desk, drawer, diary, letter_opener, strange_compass, fireplace, love_letters, portrait, iron_key, teacup, water_pitcher, tainted_wine, glasses_case, bookshelf_item. (⚡ this conflicts with another memory)\n[just now] 💭 Observed library: desk, drawer, diary, letter_opener, strange_compass, fireplace, love_letters, portrait, iron_key, teacup, water_pitcher, tainted_wine, glasses_case, bookshelf_item, gardener's notebook.\n[just now] 👁️ the front door is a dead end. skull-shaped lock, no key, no obvious mechanism to bypass. the foyer has been searched - calling cards, coat rack, vase, nothing that fits. the library is the next logical step. augustus blackwood was a collector; if there's a key or artifact that fits that lock, it'll be in his study. miki's following me in. good. i don't want her wandering off alone\n[just now] 👁️ i've been researching the blackwood disappearance for six months. seven people, 1891, door barred from inside. miki came with me - she's nervous but her ear for detail is useful. the front door lock has a skull-shaped keyhole. that's where we start.\n[just now] 👁️ floor-to-ceiling bookshelves, leather-bound volumes, an oak desk buried under papers and instruments. this was augustus blackwood's private study, i'd bet on it. that desk needs a thorough search - maps, correspondence, anything with a date or a lock diagram. one bookcase looks wrong, spines slightly off. could be a hidden passage, could be nothing. documenting everything. the metallic smell is unusual - not iron, not copper. something else. filing that for later.\n\nYour appearance: You are a woman in your early thirties with a who lean, capable build. your skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through your left eyebrow. your face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. your dark hair, when loose, falls past your shoulders. your breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.\nelena vance is wearing black hair tie on their head, field jacket over sports bra on their torso, dark cargo pants over cotton briefs on their legs, hiking boots on their feet, flashlight in their left hand.\n\nWearing:\nblack hair tie [use, remove, drop] (known)  -  a simple black elastic hair tie, stretched from daily use. elena uses it to keep her dark hair pulled back during investigations.,\nsports bra [use, remove, drop] (known)  -  a plain black sports bra, functional and worn. not fashionable, but it stays put when climbing through windows.,\nfield jacket [use, remove, drop] (known)  -  a faded olive canvas field jacket with multiple pockets. the elbows are worn thin and one button is missing, replaced with a safety pin. it smells faintly of coffee and basement dust.,\ncotton briefs [use, remove, drop] (known)  -  plain black cotton briefs. comfortable and practical.,\ndark cargo pants [use, remove, drop] (known)  -  dark charcoal cargo pants with reinforced knees and six pockets. stained with mud and chalk dust from previous investigations.,\nflashlight [use, remove] (known)  -  a heavy-duty led flashlight. battery at about 60%. has a strobe mode.,\nhiking boots [use, remove, drop] (known)  -  scuffed brown leather hiking boots with aggressive treads. broken in perfectly, though the left sole is starting to separate at the toe.\nCarrying:\nprotein_bar [eat, drop, examine] [worn] (not yet examined)  -  a wrapped protein bar from emergency kit. dry and chalky but filling.,\nwater_bottle [use, drink, drop, examine] [pristine] (not yet examined)  -  a half-full plastic water bottle. lukewarm but clean.,\nnotebook [examine] (not yet examined)  -  elena's investigation notebook. filled with observations about the blackwood case.,\nemf_reader [use, examine] (not yet examined)  -  a handheld emf meter. it can detect electromagnetic fields. currently sitting at a steady 0.5 mg.,\nlighter [use, wear, drop, examine] (not yet examined)  -  a cheap plastic lighter. about half full of fluid. reliable for lighting things on fire.\n\nYou are currently in the library. It is bright and pleasant. The air smells of old paper and copper.\n\nfloor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. a large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. a cold fireplace with a marble mantel dominates the north wall. the room smells of old paper, dust, and something else - something metallic. one bookcase looks subtly different from the others, its spine alignment just slightly off.\n\nFrom where you stand, you can see the following paths:\nTo the library_door_back, the foyer is visible beyond (cool). (you can go through it, approach it, dash, examine or close it)\n\nItems that catch your attention: (nothing you haven't already examined)\n\nPeople here:\n  - the woman (awake) - a woman in her early thirties with a lean, capable build.\n\n=== AVAILABLE ACTIONS ===\nOther than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:\nexamine  -  examine library\nlook  -  look around\ninventory  -  check your inventory\nstats  -  check your stats\nwait  -  wait or hold still\n\n=== WITNESSED ===\nNothing unusual happened while you were looking.\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?\n\n=== BUDGET CHECK ===\nBefore choosing an action, verify the === ACTIONS LEFT THIS TURN === line in your context. If it says \"major 0\", you CANNOT use major actions (go, dash, examine, take, use, eat, drink, attack, etc.). You MUST choose a minor/free action, speak, or \"wait\". Violating this wastes your turn.\n\nFirst, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.\nemote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, running a hand through their hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it. Write the emote in THIRD person — the narrator adds the character's name, so \"hugs their shoulders\" not \"hugs yourself\" or \"hug myself\". Use singular -s verbs (\"hugs\", \"leans\", \"sinks\") and neutral pronouns (their/them/themselves). Never \"you\", \"your\", \"I\", \"my\", and never your own character name.\n\nFollow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in \"speech\" with its volume in \"volume\", emote as a field on any action.\nYour context's === AVAILABLE ACTIONS === section lists the actions you can take beyond what your surroundings already offer — use those verbs and act on what it names.\n\nRespond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.\nExamples:\n{\n    \"inner_monologue\":\"...\",\n    \"action\":\"use_on\",\"item\":\"...\",\"target\":\"...\",\n    \"speech\":\"...\",\n    \"volume\":\"say\",\n    \"emote\":\"...\",\n    \"emotion\":{\"label\":\"unsettled\",\"intensity\":6,\"toward\":\"the man\"},\n    \"learned_names\":[\"Rosa\"]\n}\nIf you say nothing but still emote:\n{\"inner_monologue\":\"...\",\"action\":\"wait\",\"speech\":null,\"volume\":null,\"item\":null,\"target\":null,\"emote\":\"shivers and hugs their shoulders\",\"memory\":null,\"emotion\":null,\"learned_names\":[]}\nIf you have no emote, omit it:\n{\"inner_monologue\":\"...\",\"action\":\"look\",\"target\":\"the archway\",\"speech\":null,\"volume\":null,\"item\":null,\"emote\":null,\"memory\":null,\"emotion\":null,\"learned_names\":[]}"
+  },
+  "config": {
+    "provider": "openrouter",
+    "api_base": "https://openrouter.ai/api/v1",
+    "temperature": 0.7,
+    "max_tokens": 1512,
+    "context_length": 20240
+  },
+  "summary": {
+    "model_count": 11,
+    "models_evaluated": [
+      "cohere/north-mini-code:free",
+      "dots-studio/dots-3-note-preview:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-content-safety:free",
+      "nvidia/nemotron-3.5-lightning:free",
+      "nvidia/nemotron-3.5-super-vl:free",
+      "openrouter/free",
+      "poolside/laguna-s-2.1:free",
+      "recursive/flint-v1.0:free",
+      "xingchen-agi/xing4.0-29b-a4b:free"
+    ]
+  },
+  "results": [
+    {
+      "model": "cohere/north-mini-code:free",
+      "metrics": {
+        "ttft_seconds": 31.847,
+        "total_seconds": 32.101,
+        "tokens_per_second": 47,
+        "total_tokens": 1510,
+        "reasoning_tokens": 1599,
+        "content_tokens": -89
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": "{\n    \"inner_monologue\":\"I need to satisfy my hunger and thirst before diving deeper into the"
+    },
+    {
+      "model": "dots-studio/dots-3-note-preview:free",
+      "metrics": {
+        "ttft_seconds": 1.427,
+        "total_seconds": 3.31,
+        "tokens_per_second": 26.6,
+        "total_tokens": 88,
+        "reasoning_tokens": 22,
+        "content_tokens": 66
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": "I'll start by checking my inventory and stats to understand my current state, then address my immediate needs.\n\n<function_calls>\n<invoke name=\"inventory\">\n<parameter name=\"action\">inventory</parameter>\n</invoke>\n<invoke name=\"stats\">\n<parameter name=\"action\">stats</parameter>\n</invoke>\n</function_calls>"
+    },
+    {
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "metrics": {
+        "ttft_seconds": 21.111,
+        "total_seconds": 22.542,
+        "tokens_per_second": 49.5,
+        "total_tokens": 1116,
+        "reasoning_tokens": 1043,
+        "content_tokens": 73
+      },
+      "json_valid": true,
+      "parsed_response": {
+        "inner_monologue": "I need to quench my thirst before I can focus on the case.",
+        "action": "drink",
+        "item": "water_bottle",
+        "target": null,
+        "speech": "Finally, some water.",
+        "volume": "say",
+        "emote": "takes a long drink from the bottle"
+      },
+      "actions": [
+        {
+          "verb": "drink",
+          "target": "water_bottle",
+          "item": "water_bottle"
+        }
+      ],
+      "validation_flags": [
+        {
+          "pass": true,
+          "text": "Valid JSON output"
+        },
+        {
+          "pass": true,
+          "text": "Item 'water_bottle' verified in room/inventory"
+        }
+      ],
+      "inner_monologue_prose": "I need to quench my thirst before I can focus on the case.\n\"Finally, some water.\" (takes a long drink from the bottle)",
+      "reasoning_trace": "",
+      "raw_output": "{\n    \"inner_monologue\":\"I need to quench my thirst before I can focus on the case.\",\n    \"action\":\"drink\",\n    \"item\":\"water_bottle\",\n    \"target\":null,\n    \"speech\":\"Finally, some water.\",\n    \"volume\":\"say\",\n    \"emote\":\"takes a long drink from the bottle\"\n}"
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "metrics": {
+        "ttft_seconds": 8.969,
+        "total_seconds": 10.021,
+        "tokens_per_second": 54,
+        "total_tokens": 541,
+        "reasoning_tokens": 448,
+        "content_tokens": 93
+      },
+      "json_valid": true,
+      "parsed_response": {
+        "inner_monologue": "Thirst is hitting hard - 80 on the meter. Need to hydrate before I can focus on the investigation. The water bottle is in my pack, lukewarm but clean. Drink first, then protein bar, then get to work on this library.",
+        "action": "drink",
+        "item": "water_bottle",
+        "speech": null,
+        "volume": null,
+        "emote": "unscrews the cap and drinks deeply, wiping their mouth with the back of a hand"
+      },
+      "actions": [
+        {
+          "verb": "drink",
+          "target": "water_bottle",
+          "item": "water_bottle"
+        }
+      ],
+      "validation_flags": [
+        {
+          "pass": true,
+          "text": "Valid JSON output"
+        },
+        {
+          "pass": true,
+          "text": "Item 'water_bottle' verified in room/inventory"
+        }
+      ],
+      "inner_monologue_prose": "Thirst is hitting hard - 80 on the meter. Need to hydrate before I can focus on the investigation. The water bottle is in my pack, lukewarm but clean. Drink first, then protein bar, then get to work on this library. (unscrews the cap and drinks deeply, wiping their mouth with the back of a hand)",
+      "reasoning_trace": "",
+      "raw_output": "{\n    \"inner_monologue\": \"Thirst is hitting hard - 80 on the meter. Need to hydrate before I can focus on the investigation. The water bottle is in my pack, lukewarm but clean. Drink first, then protein bar, then get to work on this library.\",\n    \"action\": \"drink\",\n    \"item\": \"water_bottle\",\n    \"speech\": null,\n    \"volume\": null,\n    \"emote\": \"unscrews the cap and drinks deeply, wiping their mouth with the back of a hand\"\n}"
+    },
+    {
+      "model": "nvidia/nemotron-3.5-content-safety:free",
+      "metrics": {
+        "ttft_seconds": 3.249,
+        "total_seconds": 3.338,
+        "tokens_per_second": 70.7,
+        "total_tokens": 236,
+        "reasoning_tokens": 269,
+        "content_tokens": -33
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": "User Safety: safe"
+    },
+    {
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "metrics": {
+        "ttft_seconds": null,
+        "total_seconds": 15.941,
+        "tokens_per_second": 94.8,
+        "total_tokens": 1512,
+        "reasoning_tokens": 1512,
+        "content_tokens": 0
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": ""
+    },
+    {
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "metrics": {
+        "ttft_seconds": null,
+        "total_seconds": 52.049,
+        "tokens_per_second": 29,
+        "total_tokens": 1512,
+        "reasoning_tokens": 1512,
+        "content_tokens": 0
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": ""
+    },
+    {
+      "model": "openrouter/free",
+      "metrics": {
+        "ttft_seconds": 25.522,
+        "total_seconds": 31.056,
+        "tokens_per_second": 38.4,
+        "total_tokens": 1194,
+        "reasoning_tokens": 1058,
+        "content_tokens": 136
+      },
+      "json_valid": true,
+      "parsed_response": {
+        "inner_monologue": "The metallic smell in the air is concerning, but I can't focus on investigating while my body is breaking down. Hunger and thirst are both draining my strength - I need to stabilize before I can properly examine the desk or that suspicious bookshelf. Let me eat first, then drink.",
+        "action": "eat",
+        "item": "protein_bar",
+        "speech": null,
+        "volume": null,
+        "emote": "unwraps the protein bar with methodical precision, tearing open the noisy packaging before popping a bite into their mouth",
+        "emotion": {
+          "label": "fatigued",
+          "intensity": 5,
+          "toward": "self"
+        },
+        "learned_names": []
+      },
+      "actions": [
+        {
+          "verb": "eat",
+          "target": "protein_bar",
+          "item": "protein_bar"
+        }
+      ],
+      "validation_flags": [
+        {
+          "pass": true,
+          "text": "Valid JSON output"
+        },
+        {
+          "pass": true,
+          "text": "Item 'protein_bar' verified in room/inventory"
+        }
+      ],
+      "inner_monologue_prose": "The metallic smell in the air is concerning, but I can't focus on investigating while my body is breaking down. Hunger and thirst are both draining my strength - I need to stabilize before I can properly examine the desk or that suspicious bookshelf. Let me eat first, then drink. (unwraps the protein bar with methodical precision, tearing open the noisy packaging before popping a bite into their mouth)",
+      "reasoning_trace": "",
+      "raw_output": "{\"inner_monologue\":\"The metallic smell in the air is concerning, but I can't focus on investigating while my body is breaking down. Hunger and thirst are both draining my strength - I need to stabilize before I can properly examine the desk or that suspicious bookshelf. Let me eat first, then drink.\", \"action\":\"eat\", \"item\":\"protein_bar\", \"speech\":null, \"volume\":null, \"emote\":\"unwraps the protein bar with methodical precision, tearing open the noisy packaging before popping a bite into their mouth\", \"emotion\":{\"label\":\"fatigued\",\"intensity\":5,\"toward\":\"self\"}, \"learned_names\":[]}"
+    },
+    {
+      "model": "poolside/laguna-s-2.1:free",
+      "metrics": {
+        "ttft_seconds": 27.36,
+        "total_seconds": 28.636,
+        "tokens_per_second": 52.8,
+        "total_tokens": 1512,
+        "reasoning_tokens": 1428,
+        "content_tokens": 84
+      },
+      "json_valid": false,
+      "parsed_response": null,
+      "actions": [],
+      "validation_flags": [
+        {
+          "pass": false,
+          "text": "❌ Invalid JSON response"
+        }
+      ],
+      "inner_monologue_prose": "",
+      "reasoning_trace": "",
+      "raw_output": "Looking at my state: I'm very hungry (75) and very thirsty (80), both actively draining me. The library has already been surveyed per my memories. I should address the most urgent need first - thirst is highest at 80, so I'll drink my water bottle. I can eat the protein bar next turn.\n\nI'm with Miki (the woman in the library),"
+    },
+    {
+      "model": "recursive/flint-v1.0:free",
+      "metrics": {
+        "ttft_seconds": 8.366,
+        "total_seconds": 8.717,
+        "tokens_per_second": 151.1,
+        "total_tokens": 1317,
+        "reasoning_tokens": 1367,
+        "content_tokens": -50
+      },
+      "json_valid": true,
+      "parsed_response": {
+        "inner_monologue": "Stomach is cramping. I need calories before I can focus on the lock.",
+        "action": "eat",
+        "item": "protein_bar",
+        "target": null,
+        "speech": null,
+        "volume": null,
+        "emote": "chews slowly",
+        "memory": null,
+        "emotion": null,
+        "learned_names": []
+      },
+      "actions": [
+        {
+          "verb": "eat",
+          "target": "protein_bar",
+          "item": "protein_bar"
+        }
+      ],
+      "validation_flags": [
+        {
+          "pass": true,
+          "text": "Valid JSON output"
+        },
+        {
+          "pass": true,
+          "text": "Item 'protein_bar' verified in room/inventory"
+        }
+      ],
+      "inner_monologue_prose": "Stomach is cramping. I need calories before I can focus on the lock. (chews slowly)",
+      "reasoning_trace": "",
+      "raw_output": "{\"inner_monologue\":\"Stomach is cramping. I need calories before I can focus on the lock.\",\"action\":\"eat\",\"item\":\"protein_bar\",\"target\":null,\"speech\":null,\"volume\":null,\"emote\":\"chews slowly\",\"memory\":null,\"emotion\":null,\"learned_names\":[]}"
+    },
+    {
+      "model": "xingchen-agi/xing4.0-29b-a4b:free",
+      "metrics": {
+        "ttft_seconds": 18.132,
+        "total_seconds": 21.79,
+        "tokens_per_second": 32.6,
+        "total_tokens": 711,
+        "reasoning_tokens": 562,
+        "content_tokens": 149
+      },
+      "json_valid": true,
+      "parsed_response": {
+        "inner_monologue": "Hunger and thirst both gnawing at me. The metallic smell in here is giving me pause, but first things first - fuel up. That protein bar is dry and chalky, but it'll fill the belly. And the water bottle is lukewarm, but it's clean water and I need it.",
+        "action": "eat",
+        "item": null,
+        "speech": null,
+        "volume": null,
+        "target": null,
+        "emote": null,
+        "emotion": {
+          "label": "unsettled",
+          "intensity": 7,
+          "toward": "the library"
+        },
+        "memory": null,
+        "learned_names": []
+      },
+      "actions": [
+        {
+          "verb": "eat",
+          "target": "",
+          "item": null
+        }
+      ],
+      "validation_flags": [
+        {
+          "pass": true,
+          "text": "Valid JSON output"
+        }
+      ],
+      "inner_monologue_prose": "Hunger and thirst both gnawing at me. The metallic smell in here is giving me pause, but first things first - fuel up. That protein bar is dry and chalky, but it'll fill the belly. And the water bottle is lukewarm, but it's clean water and I need it.",
+      "reasoning_trace": "",
+      "raw_output": "{\n  \"inner_monologue\": \"Hunger and thirst both gnawing at me. The metallic smell in here is giving me pause, but first things first - fuel up. That protein bar is dry and chalky, but it'll fill the belly. And the water bottle is lukewarm, but it's clean water and I need it.\",\n  \"action\":\"eat\",\"item\":\"protein_bar\",\n  \"speech\":null,\"volume\":null,\"item\":null,\"target\":null,\"emote\":null,\"emotion\":{\"label\":\"unsettled\",\"intensity\":7,\"toward\":\"the library\"},\n  \"memory\":null,\"learned_names\":[]}"
+    }
+  ]
+}

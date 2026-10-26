@@ -107,6 +107,7 @@ def spawn_resources(area_nodes: List[Node], index: LibraryIndex, *,
             library_id = candidates[rng.randrange(len(candidates))]
             node_id = f"item_{scope_id}_{area.id}_res{slot}"
             extra = provenance(scope_id, RESOURCE_RECIPE_ID, seed, tick)
+            extra["source"] = "worldpainter"
             item_nodes, item_edges, missing_contents = build_item_subtree(
                 library_id, index.entries[library_id], node_id,
                 index.entries.get, extra=extra)

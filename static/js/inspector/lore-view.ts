@@ -1,20 +1,21 @@
 /**
- * InspectorLore — World lore editor (view, add, edit, delete lore entries)
+ * InspectorLore - World lore editor (view, add, edit, delete lore entries)
  * task-216: renders a lit-html TemplateResult via InspectorPanel instead of
  * writing #inspector-panel directly. Inline on* handlers are real @click
  * closures; interpolated values are auto-escaped by lit-html, so the old
  * `esc()` dance is gone.
  *
- * @module inspector/lore-view — world lore editor
+ * @module inspector/lore-view - world lore editor
  * @contributes InspectorLore: list / add / edit / delete lore entries
- * @powers Node inspectors — editing the common-knowledge lore every character receives in its system prompt
+ * @powers Node inspectors - editing the common-knowledge lore every character receives in its system prompt
  * @relates renders through InspectorPanel; lore is read by prompt-builder/system-prompt.js
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 const InspectorLore = (() => {
-    const L: LoreView = {} as LoreView;
+    const Base = (window as unknown as { InspectorView?: new () => unknown }).InspectorView;
+    const L: LoreView = (Base ? new Base() : {}) as LoreView;
 
     // types/globals.d.ts declares only the ApiClient calls other converted
     // modules make, so the lore surface is cast in locally rather than editing
@@ -94,22 +95,41 @@ const InspectorLore = (() => {
             })
             : [htmlTag`<div style="font-size:12px;color:var(--text-muted);padding:12px;text-align:center;">No world lore yet. Add entries to define your world's setting, history, and factions.</div>`];
 
-        IP.InspectorPanel.render(htmlTag`
-            <div class="inspector-header">
+        const IC = (window as unknown as {
+            InspectorComponents?: {
+                HeaderComponent: (opts: { title: string; nodeType?: string; color?: string; onClose?: () => void }) => unknown;
+                SectionComponent: (opts: { title?: string; hint?: string; content: unknown }) => unknown;
+            };
+        }).InspectorComponents;
+
+        const headerTpl = IC
+            ? IC.HeaderComponent({
+                title: 'World Lore',
+                nodeType: '🌍 World',
+                color: '#8a6e3b',
+                onClose: () => IP.hideInspectorPanel(),
+            })
+            : htmlTag`<div class="inspector-header">
                 <span class="inspector-type-badge" style="background:#8a6e3b;">🌍 World</span>
                 <h2>World Lore</h2>
                 <button class="btn btn-sm btn-ghost" @click=${() => IP.hideInspectorPanel()}>✕</button>
+            </div>`;
+
+        const bodyContent = htmlTag`
+            <div style="display:flex;gap:4px;margin-bottom:8px;">
+                <button class="btn btn-sm btn-blue" @click=${() => L.addLoreEntry()}>+ Add Lore Entry</button>
+                <button class="btn btn-sm btn-red" @click=${() => { if (confirm('Delete ALL lore entries?')) { AC.setWorldLore([]).then(() => L.renderWorldLore()); } }}>🗑 Clear All</button>
             </div>
-            <div class="inspector-section">
-                <div style="display:flex;gap:4px;margin-bottom:8px;">
-                    <button class="btn btn-sm btn-blue" @click=${() => L.addLoreEntry()}>+ Add Lore Entry</button>
-                    <button class="btn btn-sm btn-red" @click=${() => { if (confirm('Delete ALL lore entries?')) { AC.setWorldLore([]).then(() => L.renderWorldLore()); } }}>🗑 Clear All</button>
-                </div>
-                <div id="lore-list" style="max-height:calc(100vh - 200px);overflow-y:auto;">
-                    ${entries}
-                </div>
+            <div id="lore-list" style="max-height:calc(100vh - 200px);overflow-y:auto;">
+                ${entries}
             </div>
-        `);
+        `;
+
+        const sectionTpl = IC
+            ? IC.SectionComponent({ content: bodyContent })
+            : htmlTag`<div class="inspector-section">${bodyContent}</div>`;
+
+        IP.InspectorPanel.render(htmlTag`${headerTpl}${sectionTpl}`);
     };
 
     /**
@@ -140,7 +160,7 @@ const InspectorLore = (() => {
             } catch (e) {}
         }
         const categories = ['general','geography','history','characters','factions','magic','religion','culture','bestiary'];
-        const catOpts = categories.map(c => `<option value="${c}" ${existing?.category === c ? 'selected' : ''}>${c}</option>`).join('');
+        const catOpts = categories.map(c => htmlTag`<option value="${c}" ?selected=${existing?.category === c}>${c}</option>`);
 
         const overlay = htmlTag`<div class="modal-overlay" id="lore-editor-modal">
             <div class="modal-content" style="max-width:550px;">
@@ -152,7 +172,7 @@ const InspectorLore = (() => {
                 <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;">
                     <div style="flex:1;min-width:100px;">
                         <label style="font-size:10px;">Category</label>
-                        <select id="lore-editor-category" style="width:100%;font-size:11px;">${window.Lit.unsafeHTML(catOpts)}</select>
+                        <select id="lore-editor-category" style="width:100%;font-size:11px;">${catOpts}</select>
                     </div>
                     <div style="width:70px;">
                         <label style="font-size:10px;">Importance (1-5)</label>
@@ -174,7 +194,7 @@ const InspectorLore = (() => {
             </div>
         </div>`;
 
-        // Render into a dedicated container appended to body — never render into
+        // Render into a dedicated container appended to body - never render into
         // document.body itself (lit would own the whole app).
         const container = document.createElement('div');
         container.id = 'lore-editor-container';

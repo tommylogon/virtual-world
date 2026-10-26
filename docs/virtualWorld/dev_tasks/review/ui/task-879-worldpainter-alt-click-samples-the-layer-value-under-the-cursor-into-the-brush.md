@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-776
 
-<!-- deps:start -->
-**Related:** [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]]
-<!-- deps:end -->
-
 ## What
 
 Holding Alt and clicking a painted cell sets the active layer's value to whatever is on that cell, so the author can keep painting with a tile they see without hunting for it in the palette.

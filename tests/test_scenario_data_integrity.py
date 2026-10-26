@@ -342,3 +342,24 @@ def test_goblins_have_high_metabolism_or_a_documented_reason():
         "high_metabolism is attached to nobody and the task file records no "
         "decision; add the trait or say why not"
     )
+
+
+def test_mansion_miki_memories_have_no_editorial_notes():
+    """Miki memory index 1 contains only first-person lived recollection (bug-519)."""
+    mansion_file = SCENARIOS / "mansion.json"
+    with open(mansion_file, encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    miki = data.get("players", {}).get("miki", {})
+    memories = miki.get("memories", [])
+    assert len(memories) >= 2, "miki should have at least 2 memories"
+
+    mem1 = memories[1]["text"]
+    assert mem1.startswith("okay this place is like heaven for ambiance!")
+    assert mem1.endswith("where she goes, i go.")
+    assert "\n\n" not in mem1, "editorial review paragraph must not be attached"
+    assert "shorter, punchier" not in mem1
+
+    for m in memories:
+        t = m.get("text", "")
+        assert "shorter, punchier" not in t, "editorial note found in miki memory"

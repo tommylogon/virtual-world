@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: library
 priority: medium
 related: [task-751]
@@ -112,19 +112,19 @@ This section is not a claim that planned UI exists or works today.
 
 ## Acceptance
 
-- [ ] The way placement flow in the Library Browser offers a target picker
+- [x] The way placement flow in the Library Browser offers a target picker
       instead of a free-text prompt, for both the source and the destination
       endpoint.
-- [ ] The picker lists areas in the current scope by their displayed names,
+- [x] The picker lists areas in the current scope by their displayed names,
       is searchable, and resolves the author's selection to a node id
       internally.
-- [ ] The author can complete a way placement without knowing, discovering or
+- [x] The author can complete a way placement without knowing, discovering or
       typing a single node id.
-- [ ] Cancelling the picker at either step creates no edge and leaves the
+- [x] Cancelling the picker at either step creates no edge and leaves the
       graph unchanged.
-- [ ] A placed way connects exactly the two selected areas, and the
+- [x] A placed way connects exactly the two selected areas, and the
       connection survives a scenario reload.
-- [ ] The typed-id path still works for programmatic callers, but no human
+- [x] The typed-id path still works for programmatic callers, but no human
       surface requires it.
 
 ## Files

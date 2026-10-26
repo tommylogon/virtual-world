@@ -366,6 +366,7 @@
                         <button class="btn-icon" onclick="WorldExport.showRangeExport()" title="Export a range of turns (copy or file)" style="background:transparent;border:none;cursor:pointer;font-size:14px;">⏩</button>
                         <button class="btn-icon" onclick="copyEventLogToClipboard()" title="Copy event stream to clipboard" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📋</button>
                         <button id="stream-auto-scroll" class="btn-icon" title="Auto-scroll (on)" style="background:transparent;border:none;cursor:pointer;font-size:16px;">📌</button>
+                        <button class="btn-icon" onclick="events.clearStream()" title="Clear event stream" style="background:transparent;border:none;cursor:pointer;font-size:14px;">🗑️</button>
                         <select id="stream-style" onchange="events.setStyle(this.value); config.save()" title="Stream visual style" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
                             <option value="dark">Dark</option>
                             <option value="disco">Disco Elysium</option>
@@ -1376,6 +1377,7 @@
     <script src="/static/js/vendor/tippy/tippy-6.min.js"></script>
     <script src="/static/js/vendor/choices/choices-10.2.0.min.js"></script>
     <script src="/static/js/ui-helpers.js"></script>
+    <script src="/static/js/audio.js"></script>
 
     <!-- Load JS modules in dependency order -->
     <script src="/static/js/event-bus.js"></script>
@@ -1551,6 +1553,9 @@
          module must not run before that or it would publish onto an empty VW
          namespace that main.js then throws away. It reads window.VW.llm,
          window.PromptBuilder, worldState, config and storage at call time. -->
+    <!-- Game UI Rendering Model Overlays (task-826) -->
+    <div id="game-vignette" class="game-vignette" aria-hidden="true"></div>
+    <div id="game-grain" class="game-grain" aria-hidden="true"></div>
     <script src="/static/js/llm-bench.js"></script>
 </body>
 </html>

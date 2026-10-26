@@ -13,7 +13,8 @@
 
 interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
 (window as unknown as InspectorAreaViewWindowSurface).InspectorAreaView = (() => {
-    const RV = {} as AreaViewApi;
+    const Base = (window as unknown as { InspectorView?: new () => unknown }).InspectorView;
+    const RV = (Base ? new Base() : {}) as AreaViewApi;
 
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown =>

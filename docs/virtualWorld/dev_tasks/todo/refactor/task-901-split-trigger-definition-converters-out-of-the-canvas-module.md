@@ -11,10 +11,6 @@ wiki: "[[Triggers]]"
 **Filed:** 2026-10-22
 **Related:** bug-567, task-900
 
-<!-- deps:start -->
-**Related:** [[bug-567-trigger-graph-editor-reads-and-writes-the-legacy-edge-store]], [[task-900-materialize-trigger-writes-three-homes-and-documents-one]]
-<!-- deps:end -->
-
 ## What
 
 The four pure converters (`triggerToGraph`, `compileToEngine`, `triggerDefFromEdge`, `triggersFromGraphEdges`) live inside the same 2900-line IIFE as the canvas, camera, viewport store and blueprint browser in `static/js/shared/trigger-graph.ts`. Because of that, the only way to test them is the browser-ish vm harness, and the same condition list is normalised three times in one round trip: `triggerDefFromEdge` wraps leaves into `{operator: 'and'}`, `triggerToGraph` flattens it again with `_treeIsFlat` and `_flattenConditions`, and `_conditionToGraphProps` accepts a third shape. Each function has its own idea of "flat".

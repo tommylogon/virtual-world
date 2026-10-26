@@ -3,7 +3,7 @@ import math
 import re
 import time
 import random
-from flask import Flask, request, jsonify
+from flask import Flask, g, request, jsonify
 from logger import setup_logger
 from engine.spatial_memory import SpatialMemory, known_route_areas
 from engine.vector_store import VectorStore
@@ -70,6 +70,15 @@ def _resolve_entity_ids(world, names):
         node_name = str(getattr(node, "name", "") or "").strip().lower()
         if node_name:
             by_name.setdefault(node_name, node_id)
+    players = getattr(world, "players", None) or {}
+    for pname in players:
+        key = str(pname or "").strip().lower()
+        if key and key not in by_name:
+            try:
+                pid = world._player_node_id(pname)
+            except Exception:
+                pid = "player_" + re.sub(r"\s+", "_", key)
+            by_name[key] = pid
     out = []
     for name in (names or []):
         want = str(name or "").strip().lower()
@@ -79,6 +88,266 @@ def _resolve_entity_ids(world, names):
         if node_id and node_id not in out:
             out.append(node_id)
     return out
+
+
+def _resolve_person_name(app, actor_name, who):
+    """Resolve a person handle or name to a canonical player name, or None."""
+    raw = str(who or "").strip()
+    if not raw:
+        return None
+    resolved = None
+    try:
+        from routes.player_ops import _resolve_other
+        resolved = _resolve_other(app, actor_name, raw)
+    except Exception:
+        resolved = None
+    if resolved:
+        return resolved
+    players = getattr(getattr(app, "world", None), "players", None) or {}
+    raw_lower = raw.lower()
+    for pname in players:
+        if pname != actor_name and str(pname).strip().lower() == raw_lower:
+            return pname
+    return None
+
+
+def _apply_relationship_deltas(app, player, actor_name, entry, raw_deltas, raw_emotions, tick, ensure_rel=True):
+    """Normalize and apply interpersonal feeling deltas onto a memory entry.
+
+    Supports both `relationship_deltas: [{who, why, data: {dim: delta}}]` and
+    legacy `emotions: {who, why, data: {dim: delta}}`. Resolves each `who` to a
+    canonical player name, ensures the relationship exists on `player` when
+    `ensure_rel` is True, adds `rel:<Name>` to `entry["tags"]`, and links the
+    person's entity ID in `entry["entity_ids"]`.
+    """
+    candidates = []
+    if isinstance(raw_deltas, list):
+        for item in raw_deltas:
+            if isinstance(item, dict) and item.get("who"):
+                candidates.append(item)
+    if not candidates and isinstance(raw_emotions, dict) and raw_emotions.get("who"):
+        candidates.append(raw_emotions)
+
+    tags = list(entry.get("tags") or [])
+    entity_ids = list(entry.get("entity_ids") or [])
+    cleaned = []
+    for item in candidates:
+        resolved_who = _resolve_person_name(app, actor_name, item.get("who"))
+        if not resolved_who or resolved_who == actor_name:
+            continue
+        raw_data = item.get("data") if isinstance(item.get("data"), dict) else {}
+        clean_data = {}
+        for k, v in raw_data.items():
+            try:
+                num = float(v)
+            except (TypeError, ValueError):
+                continue
+            if abs(num) > 1e-6:
+                clean_data[str(k).strip().lower()] = num
+        block = {
+            "who": resolved_who,
+            "why": str(item.get("why") or "").strip(),
+            "data": clean_data,
+        }
+        cleaned.append(block)
+        reltag = "rel:" + resolved_who
+        if not any(str(t).lower() == reltag.lower() for t in tags):
+            tags.append(reltag)
+        for pid in _resolve_entity_ids(app.world, [resolved_who]):
+            if pid not in entity_ids:
+                entity_ids.append(pid)
+        if ensure_rel and player is not None:
+            try:
+                from engine.relationships import ensure_relationship
+                ensure_relationship(player, resolved_who, tick=int(tick or 0))
+            except Exception:
+                pass
+
+    entry["tags"] = tags
+    entry["entity_ids"] = entity_ids
+    if cleaned:
+        entry["relationship_deltas"] = cleaned
+        entry["emotions"] = dict(cleaned[0])
+    elif isinstance(raw_emotions, dict):
+        entry["emotions"] = raw_emotions
+    return cleaned
+
+
+def _profile_summary_dict(profile):
+    return {
+        "trust": round(float(profile.get("trust", 0) or 0), 2),
+        "fear": round(float(profile.get("fear", 0) or 0), 2),
+        "attraction": round(float(profile.get("attraction", 0) or 0), 2),
+        "disgust": round(float(profile.get("disgust", 0) or 0), 2),
+        "respect": round(float(profile.get("respect", 0) or 0), 2),
+        "familiarity": round(float(profile.get("familiarity", 0) or 0), 2),
+        "closeness": round(float(profile.get("closeness", 0) or 0), 2),
+        "consent": round(float(profile.get("consent", 0) or 0), 3),
+        "role": profile.get("role", "stranger"),
+        "summary": profile.get("summary", ""),
+        "has_signal": bool(profile.get("_has_signal")),
+    }
+
+
+def _preview_contradictions(player, candidate_entry):
+    """Run contradiction detection against shallow-copied pool memories without mutating player."""
+    text = str(candidate_entry.get("text") or "").strip()
+    if not text:
+        return []
+    cand = dict(candidate_entry)
+    cand["id"] = str(cand.get("id") or "_preview_candidate")
+    cand["contradicts"] = list(cand.get("contradicts") or [])
+    cand["entity_ids"] = list(cand.get("entity_ids") or [])
+    pool_copy = []
+    for m in (getattr(player, "memories", None) or []):
+        if not isinstance(m, dict):
+            continue
+        mc = dict(m)
+        mc["contradicts"] = list(m.get("contradicts") or [])
+        mc["entity_ids"] = list(m.get("entity_ids") or [])
+        pool_copy.append(mc)
+    try:
+        linked = memory_dynamics.detect_contradiction(cand, pool_copy)
+    except Exception:
+        linked = []
+    return [
+        {
+            "id": m.get("id"),
+            "text": m.get("text", ""),
+            "tick": m.get("tick", 0),
+            "confidence": m.get("confidence", 0.7),
+        }
+        for m in linked
+    ]
+
+
+def _preview_relationships(player, candidate_entry):
+    """Compute before/after derived relationship profiles for a candidate memory without mutating player."""
+    from engine.derive import derive_person_profile
+
+    deltas = candidate_entry.get("relationship_deltas") or []
+    if not deltas and isinstance(candidate_entry.get("emotions"), dict):
+        deltas = [candidate_entry["emotions"]]
+    seen = set()
+    targets = []
+    for d in deltas:
+        if not isinstance(d, dict):
+            continue
+        who = str(d.get("who") or "").strip()
+        if who and who.lower() not in seen:
+            seen.add(who.lower())
+            targets.append(who)
+    if not targets:
+        return []
+
+    class _PlayerProxy:
+        def __init__(self, real_player, extra_memory):
+            self.name = getattr(real_player, "name", "")
+            self.relationships = getattr(real_player, "relationships", {}) or {}
+            self.player_manager = getattr(real_player, "player_manager", None)
+            self.memories = list(getattr(real_player, "memories", []) or []) + [extra_memory]
+            self._real = real_player
+
+        def emotions_map(self):
+            if hasattr(self._real, "emotions_map"):
+                return self._real.emotions_map()
+            return {}
+
+    proxy = _PlayerProxy(player, candidate_entry)
+    out = []
+    for who in targets:
+        before = derive_person_profile(player, who)
+        after = derive_person_profile(proxy, who)
+        out.append({
+            "who": who,
+            "before": _profile_summary_dict(before),
+            "after": _profile_summary_dict(after),
+        })
+    return out
+
+
+def _character_birth_bounds(app, player, name):
+    """Resolve the character's birth_tick, dd.mm.yyyy birthday, and age."""
+    birth_tick = None
+    birthday = None
+    age = None
+    try:
+        from engine import character_appearance as ca
+        from engine import lifecycle as _lifecycle
+        node = app.world.graph.get_node(app.world._player_node_id(name))
+        ident = (ca.identity(node) if node is not None else {}) or {}
+        birthday = ident.get("birthday")
+        age = ident.get("age")
+        birth_tick = _lifecycle.ensure_birth_tick(player, app.world, node)
+    except Exception:
+        birth_tick = getattr(player, "birth_tick", None)
+    return {
+        "birth_tick": int(birth_tick) if birth_tick is not None else None,
+        "birthday": birthday,
+        "age": age,
+    }
+
+
+def _format_birth_gate_error(name, requested_tick, bounds):
+    b_tick = bounds.get("birth_tick")
+    bday = bounds.get("birthday")
+    age = bounds.get("age")
+    parts = [f"tick {b_tick}"]
+    if bday:
+        parts.append(f"birthday {bday}")
+    if age is not None:
+        try:
+            parts.append(f"age {float(age):g}")
+        except (TypeError, ValueError):
+            pass
+    detail = ", ".join(parts)
+    return f"Cannot place memory at tick {requested_tick}: {name} was not born until {detail}."
+
+
+def _build_persona_summary(app, player, name):
+    """Assemble the character's persona summary from node record and Player fields."""
+    bounds = _character_birth_bounds(app, player, name)
+    summary = {
+        "base_description": str(getattr(player, "base_description", "") or getattr(player, "description", "") or "").strip(),
+        "personality": str(getattr(player, "personality", "") or "").strip(),
+        "birthday": bounds["birthday"],
+        "age": bounds["age"],
+        "birth_tick": bounds["birth_tick"],
+        "values": [],
+        "fears": list(getattr(player, "fear_tags", []) or []),
+        "likes": list(getattr(player, "interest_tags", []) or []),
+        "dislikes": [],
+        "biography": "",
+        "goals": [
+            str(g.get("what") or "").strip()
+            for g in (getattr(player, "goals", []) or [])
+            if isinstance(g, dict) and g.get("what")
+        ],
+    }
+    try:
+        from engine import character_appearance as ca
+        node = app.world.graph.get_node(app.world._player_node_id(name))
+        if node is not None:
+            props = getattr(node, "properties", None) or {}
+            if props.get("base_description"):
+                summary["base_description"] = str(props["base_description"]).strip()
+            if props.get("personality"):
+                summary["personality"] = str(props["personality"]).strip()
+            pers = ca.personality(node) or {}
+            narr = ca.narrative(node) or {}
+            if isinstance(pers.get("values"), list) and pers["values"]:
+                summary["values"] = [str(x) for x in pers["values"] if x]
+            if isinstance(pers.get("fears"), list) and pers["fears"]:
+                summary["fears"] = list(dict.fromkeys(summary["fears"] + [str(x) for x in pers["fears"] if x]))
+            if isinstance(pers.get("likes"), list) and pers["likes"]:
+                summary["likes"] = list(dict.fromkeys(summary["likes"] + [str(x) for x in pers["likes"] if x]))
+            if isinstance(pers.get("dislikes"), list) and pers["dislikes"]:
+                summary["dislikes"] = [str(x) for x in pers["dislikes"] if x]
+            if narr.get("backstory"):
+                summary["biography"] = str(narr["backstory"]).strip()
+    except Exception:
+        pass
+    return summary
 
 
 def register_memories_routes(app):
@@ -111,35 +380,20 @@ def register_memories_routes(app):
         data = request.get_json(force=True)
         emotions = data.get("emotions")
         tags = list(data.get("tags", []) or [])
-        # task-350: a memory can carry a structured feelings block about a person
-        # ({who, why, data:{dim:delta}}). Resolve the handle → real player name so
-        # the derive reducer can match it, canonicalize `who`, and stamp a rel:
-        # tag (which also registers the relationship). Guessing is blocked: an
-        # unresolved/ambiguous handle simply is not attributed to anyone.
-        if isinstance(emotions, dict):
-            who = str(emotions.get("who") or "").strip()
-            if who:
-                resolved_who = None
-                try:
-                    from routes.player_ops import _resolve_other
-                    resolved_who = _resolve_other(app, name, who)
-                except Exception:
-                    resolved_who = None
-                if resolved_who:
-                    emotions = dict(emotions)
-                    emotions["who"] = resolved_who
-                    reltag = "rel:" + resolved_who
-                    if reltag not in tags:
-                        tags.append(reltag)
+        entity_ids = list(data.get("entity_ids", []) or [])
+        if isinstance(data.get("entities"), list) and data["entities"]:
+            for eid in _resolve_entity_ids(app.world, data["entities"]):
+                if eid not in entity_ids:
+                    entity_ids.append(eid)
         entry = {
             "id": data.get("id", f"mem_{int(time.time()*1000)}_{random.randint(0,999)}"),
             "text": data.get("text", ""),
-            "tick": data.get("tick", app.world.time_ticks),
+            "tick": int(data.get("tick", app.world.time_ticks)),
             "timestamp": data.get("timestamp", time.time()),
             "importance": data.get("importance", 5),
             "type": data.get("type", "observation"),
             "location": data.get("location", ""),
-            "entity_ids": data.get("entity_ids", []),
+            "entity_ids": entity_ids,
             "embedding": data.get("embedding"),
             "tags": tags,
             "emotion": data.get("emotion"),
@@ -148,6 +402,22 @@ def register_memories_routes(app):
             "salience_override": data.get("salience_override", data.get("salience", 0)),
             "source": data.get("source", "auto")
         }
+        bounds = _character_birth_bounds(app, player, name)
+        if bounds["birth_tick"] is not None and entry["tick"] < bounds["birth_tick"]:
+            return jsonify({
+                "error": _format_birth_gate_error(name, entry["tick"], bounds),
+                "birth_tick": bounds["birth_tick"],
+                "birthday": bounds["birthday"],
+            }), 400
+        # task-350 / task-730: a memory can carry structured feelings about one
+        # or more people (`relationship_deltas` or `emotions`). Resolve each
+        # handle to the canonical player name, stamp `rel:<Name>`, and link the
+        # entity id. Guessing is blocked: unresolved handles are dropped.
+        _apply_relationship_deltas(
+            app, player, name, entry,
+            data.get("relationship_deltas"), emotions, entry["tick"],
+            ensure_rel=True,
+        )
         # task-685: optional dynamics fields  -  client-provided values win,
         # ensure_dynamics fills only what is missing (old clients unaffected).
         for key in ("category", "confidence", "activation", "reflection_depth",
@@ -155,6 +425,19 @@ def register_memories_routes(app):
             if data.get(key) is not None:
                 entry[key] = data[key]
         memory_dynamics.ensure_dynamics(entry)
+        # task-730: optional natural age-decay simulation for backdated memories.
+        if data.get("simulate_age_decay") and data.get("activation") is None:
+            current_tick = int(getattr(app.world, "time_ticks", 0) or 0)
+            elapsed = max(0, current_tick - int(entry.get("tick", 0) or 0))
+            if elapsed > 0 and str(entry.get("source", "")) not in memory_dynamics.NON_DECAYING_SOURCES:
+                try:
+                    from engine.runtime_config import config as runtime_config
+                    rate = float(runtime_config.get(memory_dynamics.DECAY_RATE_KEY, 0.002) or 0.002)
+                except Exception:
+                    rate = 0.002
+                mult = 0.5 if str(entry.get("source", "")) in memory_dynamics.HALF_DECAY_SOURCES else 1.0
+                step = elapsed * rate * mult * memory_dynamics.decay_resistance(entry)
+                entry["activation"] = round(max(0.15, 1.0 - step), 4)
         # task-689: structural contradiction marking runs on the HTTP write
         # path too, not only Player.add_memory. Guarded: a write must never
         # fail because detection did.
@@ -192,7 +475,33 @@ def register_memories_routes(app):
                                     "deduped": True, "reinforced": True}), 200
 
         player.memories.append(entry)
-        return jsonify({"status": "success", "entry": entry}), 201
+        derived_entry = None
+        derived_text = str(data.get("derived_expectation") or "").strip()
+        if len(derived_text) > 5:
+            derived_entry = {
+                "id": f"{entry['id']}_exp",
+                "text": derived_text,
+                "tick": entry["tick"],
+                "timestamp": entry["timestamp"],
+                "importance": max(4, min(10, int(entry.get("importance", 5) or 5) - 1)),
+                "type": "expectation",
+                "category": "procedural",
+                "location": entry.get("location", ""),
+                "entity_ids": list(entry.get("entity_ids") or []),
+                "embedding": None,
+                "tags": ["expectation"],
+                "source": entry.get("source", "manual"),
+                "confidence": entry.get("confidence", 0.9),
+                "reflection_depth": 1,
+                "source_memory_ids": [entry["id"]],
+                "contradicts": [],
+            }
+            memory_dynamics.ensure_dynamics(derived_entry)
+            player.memories.append(derived_entry)
+        resp = {"status": "success", "entry": entry}
+        if derived_entry is not None:
+            resp["derived_entry"] = derived_entry
+        return jsonify(resp), 201
 
     @app.route('/api/players/<name>/memories/entry/<entry_id>', methods=['POST'])
     def update_player_memory(name, entry_id):
@@ -200,16 +509,33 @@ def register_memories_routes(app):
         if not player:
             return jsonify({"error": "Player not found"}), 404
         data = request.get_json(force=True)
+        if "tick" in data and data["tick"] is not None:
+            bounds = _character_birth_bounds(app, player, name)
+            req_tick = int(data["tick"])
+            if bounds["birth_tick"] is not None and req_tick < bounds["birth_tick"]:
+                return jsonify({
+                    "error": _format_birth_gate_error(name, req_tick, bounds),
+                    "birth_tick": bounds["birth_tick"],
+                    "birthday": bounds["birthday"],
+                }), 400
         for entry in player.memories:
             if entry.get("id") == entry_id:
                 previous_contra = list(entry.get("contradicts") or [])
                 for key in ["text", "type", "importance", "location", "tags",
                             "tick", "source", "entity_ids", "emotion", "emotions",
-                            "memory_emotions", "salience_override", "timestamp",
+                            "relationship_deltas", "memory_emotions",
+                            "salience_override", "timestamp",
                             "category", "confidence", "activation",
                             "reflection_depth", "source_memory_ids", "contradicts"]:
                     if key in data:
                         entry[key] = data[key]
+                if "relationship_deltas" in data or "emotions" in data:
+                    _apply_relationship_deltas(
+                        app, player, name, entry,
+                        data.get("relationship_deltas"), data.get("emotions"),
+                        entry.get("tick", getattr(app.world, "time_ticks", 0)),
+                        ensure_rel=True,
+                    )
                 memory_dynamics.ensure_dynamics(entry)
                 # task-691: a contradicts link is a mutual relation  -  the
                 # editor edits one side, so sync the other side here (idempotent).
@@ -655,6 +981,184 @@ def register_memories_routes(app):
                 })
         people.sort(key=lambda p: (-p["memory_count"], p["name"]))
         return jsonify({"people": people})
+
+    @app.route('/api/players/<name>/memories/context', methods=['POST'])
+    def get_memory_context(name):
+        """Grounding and dry-run preview bundle for the Memory Weaver & Editor (task-730).
+
+        Read-only (`g.no_broadcast = True`): returns the character's persona
+        summary, current mood, relevant recalled memories (`reinforce=False`),
+        derived per-person profiles, world entities, and non-mutating previews
+        of contradiction links and relationship profile shifts for an optional
+        `candidate` memory draft.
+        """
+        g.no_broadcast = True
+        player = app.world.players.get(name)
+        if not player:
+            return jsonify({"error": "Player not found"}), 404
+        data = request.get_json(silent=True) or {}
+        query = str(data.get("query", "") or "").strip()
+        candidate_raw = data.get("candidate") if isinstance(data.get("candidate"), dict) else {}
+        current_tick = int(getattr(app.world, "time_ticks", 0) or 0)
+        tm = getattr(app.world, "tick_manager", None)
+        mpt_attr = getattr(tm, "minutes_per_tick", 1)
+        try:
+            minutes_per_tick = int((mpt_attr() if callable(mpt_attr) else mpt_attr) or 1)
+        except Exception:
+            minutes_per_tick = 1
+
+        from engine.derive import derive_person_profile
+
+        # 1. Persona summary & mood
+        persona_summary = _build_persona_summary(app, player, name)
+        current_emotion = getattr(player, "emotion", None) or {"current": "neutral", "intensity": 0}
+
+        # 2. People profiles (anyone in relationships, rel: tags, or other world players)
+        seen_people = set()
+        people_profiles = []
+        candidate_names = list((getattr(player, "relationships", None) or {}).keys())
+        for m in (getattr(player, "memories", None) or []):
+            for t in (m.get("tags") or []):
+                ts = str(t)
+                if ts.lower().startswith("rel:"):
+                    who = ts[4:].strip()
+                    if who:
+                        candidate_names.append(who)
+        for pname in (getattr(app.world, "players", None) or {}):
+            if pname != name:
+                candidate_names.append(pname)
+        for who in candidate_names:
+            key = str(who or "").strip().lower()
+            if not key or key == name.lower() or key in seen_people:
+                continue
+            seen_people.add(key)
+            prof = derive_person_profile(player, who)
+            mem_count = sum(
+                1 for m in (getattr(player, "memories", None) or [])
+                for t in (m.get("tags") or [])
+                if str(t).lower() == "rel:" + key
+            )
+            people_profiles.append({
+                "name": who,
+                "memory_count": mem_count,
+                "profile": _profile_summary_dict(prof),
+            })
+        people_profiles.sort(key=lambda p: (-p["memory_count"], p["name"]))
+
+        # 3. World entities (characters, areas, notable items)
+        chars = [p for p in (getattr(app.world, "players", None) or {}).keys() if p != name]
+        areas = []
+        items = []
+        graph = getattr(app.world, "graph", None)
+        for node in ((getattr(graph, "nodes", None) or {}).values()):
+            ntype = getattr(node, "type", "")
+            nname = str(getattr(node, "name", "") or "").strip()
+            if not nname:
+                continue
+            if ntype == "area" and nname not in areas:
+                areas.append(nname)
+            elif ntype == "item" and nname not in items:
+                items.append(nname)
+        world_entities = {
+            "characters": sorted(chars),
+            "areas": sorted(areas)[:60],
+            "items": sorted(items)[:60],
+        }
+
+        # 4. Candidate normalization + previews (non-mutating)
+        bounds = _character_birth_bounds(app, player, name)
+        contradictions_preview = []
+        relationship_preview = []
+        birth_gate_error = None
+        requested_target_tick = data.get("target_tick")
+        if requested_target_tick is not None and bounds["birth_tick"] is not None:
+            if int(requested_target_tick) < bounds["birth_tick"]:
+                birth_gate_error = _format_birth_gate_error(name, int(requested_target_tick), bounds)
+        cand_entities = set()
+        if candidate_raw:
+            cand_tick = int(candidate_raw.get("tick") if candidate_raw.get("tick") is not None else current_tick)
+            if bounds["birth_tick"] is not None and cand_tick < bounds["birth_tick"]:
+                birth_gate_error = _format_birth_gate_error(name, cand_tick, bounds)
+            cand_entry = {
+                "id": str(candidate_raw.get("id") or "_preview_candidate"),
+                "text": str(candidate_raw.get("text") or "").strip(),
+                "tick": cand_tick,
+                "importance": int(candidate_raw.get("importance", 5) or 5),
+                "type": str(candidate_raw.get("type") or "memory"),
+                "category": candidate_raw.get("category"),
+                "location": str(candidate_raw.get("location") or ""),
+                "entity_ids": list(candidate_raw.get("entity_ids") or []),
+                "tags": list(candidate_raw.get("tags") or []),
+                "emotions": candidate_raw.get("emotions"),
+                "memory_emotions": list(candidate_raw.get("memory_emotions") or []),
+                "salience_override": int(candidate_raw.get("salience_override", 0) or 0),
+                "source": str(candidate_raw.get("source") or "manual"),
+            }
+            if isinstance(candidate_raw.get("entities"), list) and candidate_raw["entities"]:
+                for eid in _resolve_entity_ids(app.world, candidate_raw["entities"]):
+                    if eid not in cand_entry["entity_ids"]:
+                        cand_entry["entity_ids"].append(eid)
+            _apply_relationship_deltas(
+                app, player, name, cand_entry,
+                candidate_raw.get("relationship_deltas"),
+                candidate_raw.get("emotions"),
+                cand_entry["tick"],
+                ensure_rel=False,
+            )
+            # Also resolve entity names mentioned in candidate text so contradiction preview works before manual entity linking
+            if cand_entry["text"]:
+                words = re.findall(r"[a-zA-Z0-9_']+", cand_entry["text"])
+                for eid in _resolve_entity_ids(app.world, words):
+                    if eid not in cand_entry["entity_ids"]:
+                        cand_entry["entity_ids"].append(eid)
+            cand_entities = {str(e).lower() for e in (cand_entry.get("entity_ids") or []) if e}
+            contradictions_preview = _preview_contradictions(player, cand_entry)
+            relationship_preview = _preview_relationships(player, cand_entry)
+
+        # 5. Recalled memories (non-mutating, reinforce=False)
+        search_text = (query + " " + str(candidate_raw.get("text") or "")).strip().lower()
+        q_words = {w for w in re.findall(r"[a-z0-9']+", search_text) if len(w) > 2}
+        q_entities = set(cand_entities)
+        if q_words:
+            q_entities |= {e.lower() for e in _resolve_entity_ids(app.world, list(q_words))}
+
+        memories = getattr(player, "memories", []) or []
+        scored = []
+        for m in memories:
+            mtext = str(m.get("text") or "").strip()
+            if not mtext or m.get("superseded_by"):
+                continue
+            m_lower = mtext.lower()
+            overlap = sum(1 for w in q_words if w in m_lower)
+            kw_score = (overlap / len(q_words)) if q_words else 0.0
+            age = max(0, current_tick - int(m.get("tick", 0) or 0))
+            recency = 0.5 ** (age / 300.0)
+            weight = memory_dynamics.effective_importance(m) / 10.0
+            eboost = 2.5 if (q_entities and {str(e).lower() for e in (m.get("entity_ids") or [])} & q_entities) else 0.0
+            score = (kw_score * 3.0) + (recency * 1.5) + (weight * 2.0) + eboost
+            if score > 0.25 or not q_words:
+                copy_m = dict(m)
+                copy_m["score"] = round(score, 3)
+                scored.append((score, copy_m))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        recalled_memories = [m for _, m in scored[:8]]
+
+        return jsonify({
+            "character": name,
+            "current_tick": current_tick,
+            "time_per_tick_minutes": minutes_per_tick,
+            "birth_tick": bounds["birth_tick"],
+            "birthday": bounds["birthday"],
+            "age": bounds["age"],
+            "birth_gate_error": birth_gate_error,
+            "persona_summary": persona_summary,
+            "current_emotion": current_emotion,
+            "recalled_memories": recalled_memories,
+            "people_profiles": people_profiles,
+            "world_entities": world_entities,
+            "contradictions_preview": contradictions_preview,
+            "relationship_preview": relationship_preview,
+        })
 
     @app.route('/api/players/<name>/memories/spatial', methods=['GET'])
     def get_spatial_routes(name):

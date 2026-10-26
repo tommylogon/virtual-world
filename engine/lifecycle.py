@@ -88,30 +88,74 @@ def _species_of(player, node=None) -> str:
     return "human"
 
 
-def ensure_birth_tick(player, world, node=None) -> Optional[int]:
-    """Resolve a birth tick once: authored age → date, or stay unknown.
+def ensure_birth_tick(player, world, node=None, force: bool = False) -> Optional[int]:
+    """Resolve a birth tick from authored ``identity.birthday`` (dd.mm.yyyy)
+    and/or ``identity.age``, or stay unknown.
 
     A character with neither stays ageless (prose-only authors are not
-    forced onto the clock). Returns the tick or None.
+    forced onto the clock). Pass ``force=True`` after a Persona edit so
+    changing ``identity.birthday`` or ``identity.age`` updates ``birth_tick``.
     """
     birth = getattr(player, "birth_tick", None)
-    if birth is not None:
+    if birth is not None and not force:
         return int(birth)
-    authored = None
+    authored_age = None
+    birthday_raw = None
+    parsed_bday = None
     try:
         from engine import character_appearance as ca
         record = node if isinstance(node, dict) else ca.get_record(node)
-        authored = (record.get("identity") or {}).get("age")
+        ident = record.get("identity") or {}
+        authored_age = ident.get("age")
+        birthday_raw = ident.get("birthday")
+        parsed_bday = ca.parse_birthday(birthday_raw)
     except Exception:
-        authored = None
-    if authored is None:
-        return None
-    try:
-        years = float(authored)
-    except (TypeError, ValueError):
-        return None
+        authored_age = None
+        parsed_bday = None
+
+    if authored_age is None and parsed_bday is None:
+        return int(birth) if (birth is not None and not force) else None
+
     per_tick = float(getattr(world, "time_per_tick_minutes", 5) or 5)
     year_ticks = minutes_per_year(world) / per_tick if per_tick else 0
+    day_ticks = 1440.0 / per_tick if per_tick else 0
+
+    cfg = getattr(world, "calendar_config", None) or {}
+    try:
+        days_per_month = max(1, int(cfg.get("days_per_month", 30)))
+        months_per_year = max(1, int(cfg.get("months_per_year", 12)))
+    except (TypeError, ValueError):
+        days_per_month, months_per_year = 30, 12
+
+    cur_day_total = max(1, int(getattr(world, "game_day", 1) or 1))
+    cur_dom = ((cur_day_total - 1) % days_per_month) + 1
+    cur_month = int(getattr(world, "game_month", 1) or 1)
+    cur_year = int(getattr(world, "game_year", 1) or 1)
+
+    if parsed_bday is not None:
+        b_day, b_month, b_year = parsed_bday
+        b_day_c = min(b_day, days_per_month)
+        b_month_c = min(b_month, months_per_year)
+        sub_year_days = (cur_month - b_month_c) * days_per_month + (cur_dom - b_day_c)
+        if authored_age is not None and (cur_year < b_year or (cur_year == 1 and b_year > 1)):
+            try:
+                years = float(authored_age)
+            except (TypeError, ValueError):
+                years = 0.0
+            birth = int(now_ticks(world) - years * year_ticks - sub_year_days * day_ticks)
+        else:
+            ref_year = cur_year
+            if cur_year < b_year and cur_year < 100 and b_year >= 1900:
+                ref_year = max(b_year, int(cfg.get("start_year") or 2026))
+            elapsed_days = (ref_year - b_year) * (days_per_month * months_per_year) + sub_year_days
+            birth = int(now_ticks(world) - elapsed_days * day_ticks)
+        player.birth_tick = birth
+        return birth
+
+    try:
+        years = float(authored_age)
+    except (TypeError, ValueError):
+        return None
     birth = int(now_ticks(world) - years * year_ticks)
     player.birth_tick = birth
     return birth
@@ -227,10 +271,20 @@ def on_clock(world, rng=None) -> list:
 
 def status(player, world, node=None) -> dict:
     """The lifecycle read model for prompts, prose and the Bio tab."""
+    birth = ensure_birth_tick(player, world, node)
     age = age_years(player, world, node)
+    birthday_str = None
+    try:
+        from engine import character_appearance as ca
+        rec = node if isinstance(node, dict) else ca.get_record(node)
+        birthday_str = (rec.get("identity") or {}).get("birthday")
+    except Exception:
+        birthday_str = None
     return {
         "age": round(age, 1) if age is not None else None,
         "life_stage": life_stage(age),
         "lifespan": lifespan_years(player, node),
-        "birth_tick_known": getattr(player, "birth_tick", None) is not None,
+        "birth_tick_known": birth is not None,
+        "birth_tick": birth,
+        "birthday": birthday_str,
     }

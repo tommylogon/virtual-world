@@ -1,16 +1,16 @@
 /**
- * InspectorView — Base class for all inspector views.
+ * InspectorView - Base class for all inspector views.
  *
  * Provides lifecycle hooks, breadcrumb integration, state coalescing, and safe
- * worldState access. Every inspector view (agent, item, area, way, etc.) extends
- * this instead of managing its own state and event wiring from scratch.
+ * worldState access. Every inspector view (agent, item, area, way, lore, etc.)
+ * extends this instead of managing its own state and event wiring from scratch.
  *
  * Views stay classic scripts (Option B): they build TemplateResults via the
  * lazy `window.Lit.html` tag and hand them to InspectorPanel.render().
  *
  * @module inspector/inspector-view-base
  * @contributes InspectorView: lifecycle, breadcrumbs, coalescing, worldState access
- * @powers Node inspectors — every view extends this instead of reinventing state
+ * @powers Node inspectors - every view extends this instead of reinventing state
  * @relates InspectorPanel (only panel writer), InspectorHelpers (shared builders)
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -27,8 +27,8 @@ const InspectorViewBase = (() => {
         nodeId: string | null = null;
         /** Whether the view is currently mounted in the panel. */
         mounted = false;
-        /** Deferred render flag — coalesces multiple show() calls into one render. */
-        _deferRender = false;
+        /** Microtask render-coalescing guard (named _renderQueued so it never collides with agent-view's _deferRender method). */
+        _renderQueued = false;
         /** Pending render callback. */
         _renderPending = null;
 
@@ -51,8 +51,9 @@ const InspectorViewBase = (() => {
             this.mounted = false;
             this.nodeId = null;
             this.dispose();
+            const vw = (window as unknown as { VW?: { inspector?: { showWorldLore?: () => void } } }).VW;
             window.InspectorPanel.renderStatic(
-                window.Lit.html`<div class="inspector-empty"><div class="inspector-empty-icon">🔍</div><p>Select a node or agent to inspect</p></div>`
+                window.Lit.html`<div class="inspector-empty"><div class="inspector-empty-icon">🔍</div><p>Select a node or agent to inspect</p><p class="section-hint">Click on the graph or an agent in the list</p><button class="btn btn-sm" @click=${() => vw?.inspector?.showWorldLore?.()} style="margin-top:12px;font-size:12px;padding:6px 16px;">🌍 World Lore</button></div>`
             );
         }
 
@@ -85,10 +86,10 @@ const InspectorViewBase = (() => {
 
         /** Schedule a render (coalesced via microtask). */
         _scheduleRender(): void {
-            if (this._deferRender) return;
-            this._deferRender = true;
+            if (this._renderQueued) return;
+            this._renderQueued = true;
             queueMicrotask(() => {
-                this._deferRender = false;
+                this._renderQueued = false;
                 if (!this.mounted) return;
                 const template = this.render();
                 if (template) {
@@ -99,7 +100,7 @@ const InspectorViewBase = (() => {
 
         /** Cancel any pending render. */
         _cancelRender(): void {
-            this._deferRender = false;
+            this._renderQueued = false;
         }
     }
 

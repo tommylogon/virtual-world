@@ -14,6 +14,7 @@
         static remainingMs = {};
         static controllers = {};
         static isRunning = false;
+        static burstCounts = {};
         static participantSignature = '';
         static getTalkativeness(name) {
             const config = window.config;
@@ -21,7 +22,7 @@
                 return config.getTalkativeness(name);
             return window.VWSimultaneous?.TALKATIVENESS_DEFAULT_SECONDS || 25;
         }
-        static setTalkativeness(name, value, persist = false) {
+        static setTalkativeness(name, value, persist = false, shouldResetTimer = true) {
             const mode = window.VWSimultaneous;
             const pace = mode?.normalizeTalkativeness(value) || 25;
             const config = window.config;
@@ -29,20 +30,21 @@
                 config.talkativenessByCharacter[name] = pace;
             if (persist && config?.setTalkativeness)
                 void config.setTalkativeness(name, pace);
-            this.resetTimer(name);
+            if (shouldResetTimer)
+                this.resetTimer(name);
             return pace;
         }
-        static randomizeTalkativeness(name, persist = true) {
+        static randomizeTalkativeness(name, persist = true, shouldResetTimer = true) {
             const mode = window.VWSimultaneous;
             const min = mode?.TALKATIVENESS_MIN_SECONDS || 5;
             const max = mode?.TALKATIVENESS_MAX_SECONDS || 120;
             const pace = Math.floor(Math.random() * (max - min + 1)) + min;
-            return this.setTalkativeness(name, pace, persist);
+            return this.setTalkativeness(name, pace, persist, shouldResetTimer);
         }
         static start() {
             this.isRunning = true;
             if (!window.CommonsState.isPaused)
-                this.scheduleAll();
+                this.scheduleAll(true);
         }
         static stop() {
             this.isRunning = false;
@@ -72,8 +74,9 @@
             }
             this.timers = {};
             this.deadlines = {};
+            this.burstCounts = {};
         }
-        static resetTimer(charName) {
+        static resetTimer(charName, extraCooldownMs = 0) {
             const oldTimer = this.timers[charName];
             if (oldTimer)
                 clearTimeout(oldTimer);
@@ -81,33 +84,137 @@
             delete this.deadlines[charName];
             const state = window.CommonsState;
             const participant = state.participants?.[charName];
-            if (!this.isRunning || state.isPaused || participant?.control_mode !== 'llm' || !participant.active || participant.blocked) {
+            const pState = String(participant?.state || '').toLowerCase();
+            const isUnconsciousOrSleeping = pState === 'sleeping' || pState === 'unconscious' || pState === 'dead';
+            if (!this.isRunning || state.isPaused || participant?.control_mode !== 'llm' || !participant.active || participant.blocked || isUnconsciousOrSleeping) {
                 delete this.remainingMs[charName];
+                delete this.burstCounts[charName];
                 return;
             }
             const savedRemaining = this.remainingMs[charName];
-            const delayMs = Number.isFinite(savedRemaining)
+            const pace = this.getTalkativeness(charName);
+            const baseCooldown = window.VWSimultaneous?.jitteredCooldownMs
+                ? window.VWSimultaneous.jitteredCooldownMs(pace)
+                : (pace * 1000);
+            let delayMs = Number.isFinite(savedRemaining)
                 ? Math.max(0, savedRemaining)
-                : window.VWSimultaneous.jitteredCooldownMs(this.getTalkativeness(charName));
+                : baseCooldown;
+            if (extraCooldownMs > 0) {
+                delayMs += extraCooldownMs;
+            }
             delete this.remainingMs[charName];
             this.deadlines[charName] = Date.now() + delayMs;
             this.timers[charName] = setTimeout(async () => {
                 delete this.timers[charName];
                 delete this.deadlines[charName];
+                let turnOutcome = false;
                 try {
-                    await this.actCharacter(charName);
+                    turnOutcome = await this.actCharacter(charName);
                 }
                 finally {
-                    if (this.isRunning && !window.CommonsState.isPaused)
-                        this.resetTimer(charName);
+                    if (this.isRunning && !window.CommonsState.isPaused) {
+                        this.handlePostTurnCadence(charName, turnOutcome);
+                    }
                 }
             }, delayMs);
         }
-        static scheduleAll() {
-            const participants = window.CommonsState.participants || {};
+        static handlePostTurnCadence(charName, turnOutcome) {
+            const didPost = Boolean(turnOutcome?.didPost ?? turnOutcome);
+            const playerContext = turnOutcome?.player || null;
+            if (!didPost) {
+                delete this.burstCounts[charName];
+                this.resetTimer(charName);
+                return;
+            }
+            const currentBurst = this.burstCounts[charName] || 0;
+            const traits = playerContext?.traits || {};
+            const tags = Array.isArray(playerContext?.tags) ? playerContext.tags : [];
+            const hasTrait = (traitName) => {
+                const lower = traitName.toLowerCase();
+                return Boolean(traits[lower] || traits[traitName] || tags.includes(lower));
+            };
+            const isImpulsive = hasTrait('impulsive') || hasTrait('talkative') || hasTrait('excitable') || hasTrait('manic');
+            const isReserved = hasTrait('stoic') || hasTrait('quiet') || hasTrait('reserved') || hasTrait('calm') || hasTrait('patient');
+            const maxBursts = isImpulsive ? 3 : (isReserved ? 1 : 2);
+            if (currentBurst < maxBursts) {
+                const pace = this.getTalkativeness(charName);
+                const paceFactor = Math.max(0, Math.min(1, (60 - pace) / 55));
+                let burstChance = 0.08 + (paceFactor * 0.32);
+                if (isImpulsive)
+                    burstChance += 0.20;
+                if (isReserved)
+                    burstChance -= 0.20;
+                burstChance = Math.max(0.05, Math.min(0.80, burstChance));
+                if (Math.random() < burstChance) {
+                    this.burstCounts[charName] = currentBurst + 1;
+                    const burstDelay = Math.round(1500 + Math.random() * 2000);
+                    this.remainingMs[charName] = burstDelay;
+                    this.resetTimer(charName);
+                    return;
+                }
+            }
+            delete this.burstCounts[charName];
+            const floorYield = currentBurst > 0 ? 8000 : 0;
+            this.resetTimer(charName, floorYield);
+        }
+        static scheduleAll(initialStartup = false) {
+            const state = window.CommonsState;
+            const participants = state?.participants || {};
+            const config = window.config;
             for (const name of Object.keys(participants)) {
-                if (name !== 'User')
-                    this.resetTimer(name);
+                if (name === 'User')
+                    continue;
+                const participant = participants[name];
+                // Strictly exclude non-LLM characters (simple NPCs, humans, blocked, inactive)
+                if (participant?.control_mode !== 'llm' || !participant.active || participant.blocked)
+                    continue;
+                // Randomize unconfigured starting talkativeness
+                if (config && (!config.talkativenessByCharacter || config.talkativenessByCharacter[name] === undefined)) {
+                    this.randomizeTalkativeness(name, false, false);
+                }
+                // On cold start, stagger the countdown across the pace range so characters do not all fire at T=25s
+                if (initialStartup && !Number.isFinite(this.remainingMs[name])) {
+                    const pace = this.getTalkativeness(name);
+                    const baseCooldown = window.VWSimultaneous?.jitteredCooldownMs(pace) || (pace * 1000);
+                    const staggeredDelay = Math.max(2000, Math.round(baseCooldown * (0.15 + Math.random() * 0.70)));
+                    this.remainingMs[name] = staggeredDelay;
+                }
+                this.resetTimer(name);
+            }
+        }
+        static onMessageReceived(message) {
+            if (!message || !this.isRunning || window.CommonsState?.isPaused)
+                return;
+            const author = String(message.author || '');
+            const channelId = String(message.channel_id || '');
+            const state = window.CommonsState;
+            const channel = (state?.channels || []).find((c) => c.id === channelId);
+            if (!channel)
+                return;
+            const members = channel.kind === 'public'
+                ? Object.keys(state.participants || {})
+                : (channel.members || []);
+            const textLower = String(message.text || '').toLowerCase();
+            for (const name of members) {
+                if (name === author || name === 'User')
+                    continue;
+                const participant = state.participants?.[name];
+                // Strictly exclude simple NPCs and non-LLM characters
+                if (participant?.control_mode !== 'llm' || !participant.active || participant.blocked)
+                    continue;
+                const isDm = channel.kind === 'dm';
+                const nameLower = name.toLowerCase();
+                const isMentioned = textLower.includes('@' + nameLower) || textLower.includes(nameLower);
+                if (isDm || isMentioned) {
+                    const currentDeadline = this.deadlines[name] || 0;
+                    const now = Date.now();
+                    const remaining = currentDeadline - now;
+                    if (remaining > 3500 || !this.timers[name]) {
+                        const fastTrackDelay = Math.round(1500 + Math.random() * 2000);
+                        this.remainingMs[name] = fastTrackDelay;
+                        this.resetTimer(name);
+                    }
+                }
             }
         }
         static reconcileParticipants() {
@@ -188,7 +295,10 @@
                     if (channel.kind !== 'public' && Array.isArray(channel.members) && !channel.members.includes(charName))
                         throw new Error('This character is not a member of that channel.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
-                    return { result: { ok: true, message_id: posted?.message?.id || posted?.id || null }, summary: `sent a message to #${channel.name || 'chat'}`, readMessages: [] };
+                    const postRecord = posted?.message || posted;
+                    if (postRecord)
+                        window.CommonsState?.receiveMessage?.(postRecord);
+                    return { result: { ok: true, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `sent a message to #${channel.name || 'chat'}`, readMessages: [] };
                 }
                 if (name === 'start_dm') {
                     const recipient = String(args.recipient || '');
@@ -201,7 +311,10 @@
                     if (!channel?.id)
                         throw new Error('The direct conversation could not be created.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
-                    return { result: { ok: true, channel_id: channel.id, message_id: posted?.message?.id || posted?.id || null }, summary: `started a direct conversation with ${recipient}`, readMessages: [] };
+                    const postRecord = posted?.message || posted;
+                    if (postRecord)
+                        window.CommonsState?.receiveMessage?.(postRecord);
+                    return { result: { ok: true, channel_id: channel.id, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `started a direct conversation with ${recipient}`, readMessages: [] };
                 }
                 if (name === 'start_group') {
                     if (theme === 'town_board')
@@ -217,7 +330,10 @@
                     if (!channel?.id)
                         throw new Error('The group conversation could not be created.');
                     const posted = await api.postMessage(charName, text, channel.id, signal);
-                    return { result: { ok: true, channel_id: channel.id, message_id: posted?.message?.id || posted?.id || null }, summary: `started group #${groupName}`, readMessages: [] };
+                    const postRecord = posted?.message || posted;
+                    if (postRecord)
+                        window.CommonsState?.receiveMessage?.(postRecord);
+                    return { result: { ok: true, channel_id: channel.id, message_id: postRecord?.id || posted?.message?.id || posted?.id || null }, summary: `started group #${groupName}`, readMessages: [] };
                 }
                 if (name === 'remember') {
                     if (!text)
@@ -289,6 +405,7 @@
                 const summaries = [];
                 const readMessages = [];
                 let inner = '';
+                let didPost = false;
                 const maxToolRounds = 6;
                 for (let round = 0; round < maxToolRounds; round++) {
                     const reply = await llm.chatWithTools(messages, {
@@ -296,7 +413,7 @@
                         signal, label: 'commons/communication',
                     });
                     if ((!isManualStep && state.isPaused) || signal.aborted || !reply)
-                        return;
+                        return false;
                     if (typeof reply.content === 'string')
                         inner = reply.content.slice(0, 1000);
                     const calls = Array.isArray(reply.tool_calls) ? reply.tool_calls : [];
@@ -309,7 +426,11 @@
                             outcome = { result: { ok: false, error: 'Only the first tool call was run. Review its result before choosing another action.' }, summary: '', readMessages: [] };
                         }
                         else {
+                            const toolName = String(calls[index]?.function?.name || '');
                             outcome = await this.executeCommunicationTool(charName, calls[index], channels, knownCharacters, theme, api, signal);
+                            if (['send_chat', 'start_dm', 'start_group'].includes(toolName) && outcome?.result?.ok) {
+                                didPost = true;
+                            }
                             if (outcome.summary)
                                 summaries.push(outcome.summary);
                             readMessages.push(...outcome.readMessages);
@@ -338,6 +459,7 @@
                         detail: { actions: summaries },
                     });
                 }
+                return { didPost, player };
             }
             catch (error) {
                 if (!signal.aborted)

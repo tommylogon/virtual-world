@@ -35,8 +35,13 @@ window.ItemLibraryPlacement = {
                 for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes)) {
                     const node = rawNode;
                     if (node.type === 'item') {
-                        const tags = node.properties?.tags || [];
-                        if (tags.includes('container') || (node.properties?.contents?.length ?? 0) > 0) {
+                        const rawTags = node.properties?.tags;
+                        const hasContainerTag = Array.isArray(rawTags)
+                            ? rawTags.includes('container')
+                            : (rawTags && typeof rawTags === 'object')
+                                ? Object.values(rawTags).some((v) => Array.isArray(v) ? v.includes('container') : v === 'container')
+                                : false;
+                        if (hasContainerTag || (node.properties?.contents?.length ?? 0) > 0) {
                             containers.push({ id: nodeId, name: node.name || nodeId });
                         }
                     }

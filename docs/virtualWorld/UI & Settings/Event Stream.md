@@ -43,6 +43,12 @@ Turn cards (`StreamTurnCards`) open on `beginActorTurn` (human turns) or `logPha
 
 The `StreamScrubber` builds a minimap of up to 120 coloured segments (teal=speech/thought, red=error/crisis, blue=action) from the current DOM, with a purple head tracking scroll position. Click anywhere to jump. Debounced rebuild on every log append.
 
+## Clearing the stream
+
+A dedicated **Clear Event Stream** (🗑️) button in the `#event-controls` toolbar lets you wipe the visible DOM, reset all internal tracking state (`_knownActors`, `_lineSeq`, `_areaEventLog`, `_characterState`), reset active filters, and clear the persisted IndexedDB log (task-898).
+
+To prevent accidental loss, clicking the button prompts a confirmation dialog via `VW.dialog.confirm`. Confirming executes `clearAll()`, resets the actor and area filters, resets the text search input, and rebuilds the timeline scrubber.
+
 ## Persistence
 
 `StreamPersistence` saves the stream HTML to IndexedDB (`storage.saveEventLog`) on `persist()` and restores on load. Cap is 2000 rows (DOM keeps 5000). The stream is keyed by world (`_worldKey` from scenario name or source); switching worlds drops the old log. Restore rebuilds `_lineSeq` from bubble-tick labels, rebinds card toggles, re-populates the actor dropdown, and restores the area filter.

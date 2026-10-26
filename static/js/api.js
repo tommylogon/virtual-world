@@ -23,10 +23,21 @@ class ApiClientImpl {
      * to the player. A short status message is the readable thing to surface.
      */
     static _errorMessage(resp, data) {
-        const raw = (data && typeof data.error === 'string') ? data.error : '';
-        if (raw && !/\bTraceback\b|File "\S/.test(raw))
-            return raw;
         const status = `${resp.status}${resp.statusText ? ' ' + resp.statusText : ''}`;
+        if (data) {
+            const candidates = [data.error, data.reason, data.message, data.detail];
+            for (const cand of candidates) {
+                if (typeof cand === 'string') {
+                    const trimmed = cand.trim();
+                    if (trimmed) {
+                        if (/\bTraceback\b|File "\S/.test(trimmed)) {
+                            return `Request failed (${status})`;
+                        }
+                        return trimmed;
+                    }
+                }
+            }
+        }
         return `Request failed (${status})`;
     }
     /** Generic POST helper */

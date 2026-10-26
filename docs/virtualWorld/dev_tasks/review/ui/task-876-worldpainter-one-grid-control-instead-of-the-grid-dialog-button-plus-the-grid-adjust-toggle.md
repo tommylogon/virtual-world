@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-597, task-717, task-776
 
-<!-- deps:start -->
-**Related:** [[task-597-worldpainter-grid-sizing-by-cell-size-not-a-cell-count]], [[task-717-worldpainter-grid-resize-numbered-w-h-fields-are-buried-at-the-modal-bottom-while-the-promoted-adjust-affordance-is-imprecise-drag-handles]], [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]]
-<!-- deps:end -->
-
 ## What
 
 The toolbar carries two adjacent grid buttons: '▦ Grid…' opens a dialog for exact numbers and '✥ grid' toggles on-canvas drag handles. Merge them into one 'Grid' control that offers both.

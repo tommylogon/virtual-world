@@ -1,7 +1,7 @@
 """Structured appearance and personality, one slice (task-507).
 
 Two authoring modes must both work: prose-only, and fully structured. The tests
-are written so that the *default* case is the prose-only one — a library
+are written so that the *default* case is the prose-only one - a library
 character with no structured block is a normal character, not a half-configured
 one, and the feature must not change how it reads or renders.
 
@@ -279,7 +279,7 @@ class TestStorage:
         node = _node(world)
         # Pre-load with legacy key
         node.properties[ca._LEGACY_KEY] = {"identity": {"age": 12}}
-        # Write via new API — should evict legacy and write persona
+        # Write via new API - should evict legacy and write persona
         set_record(node, {"identity": {"age": 13}})
         assert ca.RECORD_KEY in node.properties
         assert ca._LEGACY_KEY not in node.properties
@@ -446,10 +446,10 @@ class TestCuratedSet:
             "quirks", "habits", "speech_pattern", "experience"}
         assert set(IDENTITY_FIELDS) == {
             "pronouns", "age", "gender", "species", "occupation", "sexuality",
-            "mbti", "alignment", "birthday", "media", "potential_storylines"}
+            "mbti", "alignment", "birthday", "potential_storylines"}
         assert set(NARRATIVE_FIELDS) == {
             "biography", "secrets", "example_dialogues", "role_in_town",
-            "arc"}
+            "arc", "media"}
 
     def test_the_excluded_catalog_fields_are_absent(self):
         """The task says grow per-feature, not dump the graph-editor catalog.
@@ -591,12 +591,12 @@ RICH = {
         "style": {"clothing": ["leather apron"], "footwear": ["steel boots"]},
     },
     "personality": {
-        "traits": ["Brave", "blunt"],
+        "traits": ["brave", "blunt"],
         "interests": ["smithing"],
         "fears": ["drowning"],
         "traumas": ["mine-collapse"],
         "likes": ["dark-ale"],
-        "quirks": ["hums while working"],
+        "quirks": ["hums_while_working"],
         "speech_pattern": {"style": "terse", "catchphrases": ["mind the sparks"]},
         "experience": "apprenticed ten years",
     },
@@ -626,12 +626,20 @@ class TestExpandedSchema:
         assert identity(_node) is not None  # reader exists
 
     def test_prose_lists_take_free_text(self):
-        node_record = validate({"personality": {"traits": ["Brave", "soft spoken"]}})
-        assert node_record["personality"]["traits"] == ["Brave", "soft spoken"]
+        node_record = validate({"narrative": {"example_dialogues": ["Brave", "soft spoken"]}})
+        assert node_record["narrative"]["example_dialogues"] == ["Brave", "soft spoken"]
 
     def test_id_lists_still_reject_display_names(self):
         with pytest.raises(StructuredError):
             validate({"personality": {"fears": ["Not An Id"]}})
+        with pytest.raises(StructuredError):
+            validate({"personality": {"traits": ["Not An Id"]}})
+        with pytest.raises(StructuredError):
+            validate({"personality": {"quirks": ["Not An Id"]}})
+        with pytest.raises(StructuredError):
+            validate({"personality": {"habits": ["Not An Id"]}})
+        with pytest.raises(StructuredError):
+            validate({"personality": {"aspirations": ["Not An Id"]}})
 
     def test_negative_age_is_rejected(self):
         with pytest.raises(StructuredError):
@@ -648,7 +656,7 @@ class TestExpandedSchema:
         assert "dark-ale" in compiled["interest_tags"]
         assert "drowning" in compiled["fear_tags"]
         assert "mine-collapse" in compiled["fear_tags"]
-        assert "Brave" in compiled["traits"]
+        assert "brave" in compiled["traits"]
         assert "mind the sparks" in compiled["personality"]
         assert "holds the forge alone" in compiled["description"]
         assert "bisexual" in compiled["personality"]
@@ -693,7 +701,7 @@ class TestExpandedSchema:
         assert identity(node)["species"] == "human"
         assert narrative(node)["role_in_town"] == "smith"
         assert appearance(node)["scent"] == "coal-smoke"
-        assert personality(node)["traits"] == ["Brave", "blunt"]
+        assert personality(node)["traits"] == ["brave", "blunt"]
 
     def test_group_fields_declare_object_type(self):
         """The tab renders groups from decl.type/properties; a group
@@ -865,3 +873,22 @@ class TestIdentitySuggestions:
                           json={"record": custom}).status_code == 200
         stored = client.get("/api/players/Lyrie/record").get_json()["record"]
         assert stored["identity"] == custom["identity"]
+
+    def test_birthday_standardises_to_dd_mm_yyyy_and_rejects_invalid_dates(self):
+        from engine.character_appearance import (
+            StructuredError,
+            normalize_birthday,
+            parse_birthday,
+            validate,
+        )
+
+        assert parse_birthday("14.03.1998") == (14, 3, 1998)
+        assert normalize_birthday("5.3.1998") == "05.03.1998"
+        assert normalize_birthday("14/03/1998") == "14.03.1998"
+        assert normalize_birthday("1998-03-14") == "14.03.1998"
+        assert validate({"identity": {"birthday": "5.3.1998"}})["identity"]["birthday"] == "05.03.1998"
+
+        for bad in ("unknown", "32.01.1998", "14.13.1998", "14.03.98", "not-a-date"):
+            with pytest.raises(StructuredError):
+                validate({"identity": {"birthday": bad}})
+

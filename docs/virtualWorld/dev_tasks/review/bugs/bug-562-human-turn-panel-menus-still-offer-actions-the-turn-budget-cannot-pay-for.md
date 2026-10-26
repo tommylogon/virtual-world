@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: medium
 wiki: "[[Gameplay/Turn Queue & Human Turns]]"
@@ -78,13 +78,13 @@ This section defines intended access and live acceptance. It is not a claim that
 
 ## Acceptance
 
-- [ ] Every budgeted scene-menu row is gated on the remaining turn slots, using the tier table the engine gate uses.
-- [ ] A row the budget cannot pay for renders disabled with a reason, the way the Dash row already does.
-- [ ] A row the budget can pay for stays enabled, and a free verb is never disabled by the budget.
-- [ ] An unpublished budget (turn_slots is an empty object) disables nothing.
-- [ ] The panel and the engine gate resolve a verb's tier the same way, so the menu never blocks a verb the gate would allow.
-- [ ] The commit-time refusal in commitStep stays as the enforcement and its flash text is unchanged.
-- [ ] A targeted regression test covers the spent-major case and the unpublished-budget case.
+- [x] Every budgeted scene-menu row is gated on the remaining turn slots, using the tier table the engine gate uses.
+- [x] A row the budget cannot pay for renders disabled with a reason, the way the Dash row already does.
+- [x] A row the budget can pay for stays enabled, and a free verb is never disabled by the budget.
+- [x] An unpublished budget (turn_slots is an empty object) disables nothing.
+- [x] The panel and the engine gate resolve a verb's tier the same way, so the menu never blocks a verb the gate would allow.
+- [x] The commit-time refusal in commitStep stays as the enforcement and its flash text is unchanged.
+- [x] A targeted regression test covers the spent-major case and the unpublished-budget case.
 
 ## Files
 

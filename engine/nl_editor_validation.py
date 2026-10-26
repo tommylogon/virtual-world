@@ -107,6 +107,22 @@ def _trait_issues(index: int, optype: str, patch: Any, trait_ids: Set[str]) -> L
     return []
 
 
+def _persona_issues(index: int, optype: str, patch: Any) -> List[Dict[str, Any]]:
+    if not isinstance(patch, dict):
+        return []
+    persona = patch.get("persona")
+    if persona is None and isinstance(patch.get("properties"), dict):
+        persona = patch["properties"].get("persona")
+    if persona is None:
+        return []
+    from engine.character_appearance import validate, StructuredError
+    try:
+        validate(persona)
+    except StructuredError as e:
+        return [_issue(index, optype, ERROR, f"Invalid persona: {e}", "persona")]
+    return []
+
+
 def _action_issues(index: int, optype: str, patch: Any, valid_actions: Optional[Set[str]]) -> List[Dict[str, Any]]:
     if not valid_actions or not isinstance(patch, dict):
         return []
@@ -308,48 +324,37 @@ def _behaviour_issues(index: int, optype: str, behaviours: List[Any]) -> List[Di
 
 def _schedule_issues(index: int, optype: str, schedule: Any) -> List[Dict[str, Any]]:
     """Validate a schedule array against engine/schedule.py vocabulary."""
+    from engine.schedule import KNOWN_ACTIVITIES, parse_start
+
     issues: List[Dict[str, Any]] = []
     if not isinstance(schedule, list):
         return [_issue(index, optype, ERROR, "'schedule' must be a list of steps.")]
+    valid_activities = set(KNOWN_ACTIVITIES)
     for si, step in enumerate(schedule):
         if not isinstance(step, dict):
             issues.append(_issue(index, optype, ERROR, f"schedule[{si}] must be an object."))
             continue
         start = step.get("start")
-        if not start:
+        if start in (None, ""):
             issues.append(_issue(index, optype, ERROR, f"schedule[{si}] needs a 'start' time (HH:MM)."))
-        else:
-            # Validate HH:MM format
-            if not isinstance(start, str) or ":" not in start:
-                issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start must be HH:MM (got {start!r})."))
-            else:
-                parts = start.split(":")
-                try:
-                    h = int(parts[0]); m = int(parts[1]) if len(parts) > 1 else 0
-                    if not (0 <= h <= 23 and 0 <= m <= 59):
-                        issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start out of range (0-23:0-59)."))
-                except (ValueError, TypeError):
-                    issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start must be HH:MM (got {start!r})."))
-        act = step.get("activity")
-        if act is not None:
-            valid = {"work", "socialise", "eat", "drink", "sleep", "rest", "patrol", "guard", "roam", "wait"}
-            if str(act).strip().lower() not in valid:
+        elif parse_start(start) is None or (isinstance(start, str) and ":" in start and int(start.split(":")[0]) > 23):
+            issues.append(_issue(index, optype, ERROR, f"schedule[{si}].start must be HH:MM in 00:00-23:59 (got {start!r})."))
+        for field_name in ("activity", "fallback"):
+            val = step.get(field_name)
+            if val is not None and str(val).strip().lower() not in valid_activities:
                 issues.append(_issue(index, optype, WARNING,
-                                     f"schedule[{si}].activity '{act}' unknown; will default to 'wait'."))
-        fb = step.get("fallback")
-        if fb is not None:
-            valid = {"work", "socialise", "eat", "drink", "sleep", "rest", "patrol", "guard", "roam", "wait"}
-            if str(fb).strip().lower() not in valid:
-                issues.append(_issue(index, optype, WARNING,
-                                     f"schedule[{si}].fallback '{fb}' unknown; will default to 'wait'."))
+                                     f"schedule[{si}].{field_name} '{val}' unknown; will default to 'wait'."))
     return issues
 
 
 def _goals_issues(index: int, optype: str, goals: Any) -> List[Dict[str, Any]]:
     """Validate a goals array against engine/goals.py vocabulary."""
+    from engine.goals import DEFAULT_STATUS, GOAL_STATUSES, slug
+
     issues: List[Dict[str, Any]] = []
     if not isinstance(goals, list):
         return [_issue(index, optype, ERROR, "'goals' must be a list.")]
+    valid_status = set(GOAL_STATUSES)
     seen = set()
     for gi, goal in enumerate(goals):
         if not isinstance(goal, dict):
@@ -358,16 +363,12 @@ def _goals_issues(index: int, optype: str, goals: Any) -> List[Dict[str, Any]]:
         what = str(goal.get("what") or "").strip()
         if not what:
             issues.append(_issue(index, optype, ERROR, f"goals[{gi}] needs a 'what'."))
-        gid = str(goal.get("id") or "").strip().lower()
-        if not gid:
-            # slug from what
-            import re
-            gid = re.sub(r"[^a-z0-9]+", "_", what.lower()).strip("_")
-        if gid in seen:
+        gid = slug(goal.get("id") or what)
+        if gid and gid in seen:
             issues.append(_issue(index, optype, ERROR, f"goals[{gi}] duplicate id '{gid}'."))
-        seen.add(gid)
-        status = str(goal.get("status") or "proposed").strip().lower()
-        valid_status = {"proposed", "active", "dormant", "reached", "blocked", "dropped"}
+        if gid:
+            seen.add(gid)
+        status = str(goal.get("status") or DEFAULT_STATUS).strip().lower()
         if status not in valid_status:
             issues.append(_issue(index, optype, ERROR,
                                  f"goals[{gi}].status '{status}' unknown; valid: {sorted(valid_status)}."))
@@ -390,9 +391,12 @@ def _goals_issues(index: int, optype: str, goals: Any) -> List[Dict[str, Any]]:
 
 def _obligations_issues(index: int, optype: str, obligations: Any) -> List[Dict[str, Any]]:
     """Validate an obligations array against engine/goals.py vocabulary."""
+    from engine.goals import OBLIGATION_DEFAULT_STATUS, OBLIGATION_STATUSES, slug
+
     issues: List[Dict[str, Any]] = []
     if not isinstance(obligations, list):
         return [_issue(index, optype, ERROR, "'obligations' must be a list.")]
+    valid_status = set(OBLIGATION_STATUSES)
     seen = set()
     for oi, obl in enumerate(obligations):
         if not isinstance(obl, dict):
@@ -401,15 +405,12 @@ def _obligations_issues(index: int, optype: str, obligations: Any) -> List[Dict[
         charge = str(obl.get("charge") or "").strip()
         if not charge:
             issues.append(_issue(index, optype, ERROR, f"obligations[{oi}] needs a 'charge'."))
-        oid = str(obl.get("id") or "").strip().lower()
-        if not oid:
-            import re
-            oid = re.sub(r"[^a-z0-9]+", "_", charge.lower()).strip("_")
-        if oid in seen:
+        oid = slug(obl.get("id") or charge)
+        if oid and oid in seen:
             issues.append(_issue(index, optype, ERROR, f"obligations[{oi}] duplicate id '{oid}'."))
-        seen.add(oid)
-        status = str(obl.get("status") or "offered").strip().lower()
-        valid_status = {"offered", "accepted", "refused", "forgotten", "done"}
+        if oid:
+            seen.add(oid)
+        status = str(obl.get("status") or OBLIGATION_DEFAULT_STATUS).strip().lower()
         if status not in valid_status:
             issues.append(_issue(index, optype, ERROR,
                                  f"obligations[{oi}].status '{status}' unknown; valid: {sorted(valid_status)}."))
@@ -603,6 +604,7 @@ def validate_ops(
             node_id = str(node.get("id") or "").lower()
             if not name:
                 issues.append(_issue(idx, optype, ERROR, "create_character needs 'name'."))
+            issues.extend(_persona_issues(idx, optype, node))
             if node_id:
                 if node_id in known_ids:
                     issues.append(_issue(idx, optype, ERROR,
@@ -622,6 +624,7 @@ def validate_ops(
                 issues.append(_issue(idx, optype, ERROR, "update_node needs a non-empty 'patch'."))
             else:
                 issues.extend(_trait_issues(idx, optype, patch, traits))
+                issues.extend(_persona_issues(idx, optype, patch))
                 issues.extend(_action_issues(idx, optype, patch, actions))
                 issues.extend(_id_warning(idx, optype, payload.get("node_id")))
                 if str(node_id).lower() in index_map and \
@@ -638,6 +641,7 @@ def validate_ops(
                 issues.append(_issue(idx, optype, ERROR, "update_matching_nodes needs a non-empty 'patch'."))
             else:
                 issues.extend(_trait_issues(idx, optype, patch, traits))
+                issues.extend(_persona_issues(idx, optype, patch))
                 issues.extend(_action_issues(idx, optype, patch, actions))
                 if str(selector.get("kind") or selector.get("type") or "") == "logic_trigger":
                     issues.extend(_trigger_issues(idx, optype, patch))

@@ -510,3 +510,214 @@ test('the commons: actCharacter records inner monologue and updates lastActed an
         h.restore();
     }
 });
+
+
+test('the commons: startup schedules randomized talkativeness and staggered countdowns excluding simple NPCs', () => {
+    const originalRandom = Math.random;
+    const originalPaces = window.config.talkativenessByCharacter;
+    const originalSetTimeout = setTimeout;
+    const scheduled = [];
+    setTimeout = (fn, delay) => {
+        const id = scheduled.length + 1;
+        scheduled.push({ id, fn, delay });
+        return id;
+    };
+    window.config.talkativenessByCharacter = {};
+    window.CommonsState = {
+        isPaused: false,
+        participants: {
+            User: { control_mode: 'human', active: true, blocked: false },
+            Mira: { control_mode: 'llm', active: true, blocked: false },
+            Krikka: { control_mode: 'npc', active: true, blocked: false },
+            Vekka: { control_mode: 'llm', active: true, blocked: false },
+        },
+    };
+    CommonsAgent.timers = {};
+    CommonsAgent.deadlines = {};
+    CommonsAgent.remainingMs = {};
+    CommonsAgent.isRunning = true;
+
+    try {
+        Math.random = () => 0.5;
+        CommonsAgent.scheduleAll(true);
+
+        // Mira (LLM) should have received randomized talkativeness and a scheduled timer
+        assertTrue(Number.isFinite(window.config.talkativenessByCharacter.Mira));
+        assertTrue(window.config.talkativenessByCharacter.Mira >= 5 && window.config.talkativenessByCharacter.Mira <= 120);
+        assertTrue(CommonsAgent.timers.Mira !== undefined);
+        assertTrue(Number.isFinite(CommonsAgent.deadlines.Mira));
+
+        // Vekka (LLM) should also be scheduled
+        assertTrue(Number.isFinite(window.config.talkativenessByCharacter.Vekka));
+        assertTrue(window.config.talkativenessByCharacter.Vekka >= 5 && window.config.talkativenessByCharacter.Vekka <= 120);
+        assertTrue(CommonsAgent.timers.Vekka !== undefined);
+
+        // Krikka (simple NPC) and User must NEVER receive talkativeness or timers
+        assertEq(window.config.talkativenessByCharacter.Krikka, undefined);
+        assertEq(CommonsAgent.timers.Krikka, undefined);
+        assertEq(CommonsAgent.timers.User, undefined);
+    } finally {
+        CommonsAgent.isRunning = false;
+        CommonsAgent.clearScheduledTimers(false);
+        setTimeout = originalSetTimeout;
+        Math.random = originalRandom;
+        if (originalPaces === undefined) delete window.config.talkativenessByCharacter;
+        else window.config.talkativenessByCharacter = originalPaces;
+    }
+});
+
+test('the commons: onMessageReceived fast-tracks mentioned or DM recipients while yielding floor after posting', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'Replying to the direct message.',
+        communication: { action: 'send_chat', channel_id: 'group-night', text: 'On my way.' },
+        memory: null,
+    });
+    const originalNow = Date.now;
+    let fakeNow = 1000000;
+    Date.now = () => fakeNow;
+    const originalSetTimeout = setTimeout;
+    const scheduled = [];
+    setTimeout = (fn, delay) => {
+        const id = scheduled.length + 1;
+        scheduled.push({ id, fn, delay });
+        return id;
+    };
+    CommonsAgent.isRunning = true;
+    window.CommonsState.isPaused = false;
+    window.CommonsState.channels = [
+        { id: 'group-night', kind: 'group', members: ['Mira', 'User'] },
+        { id: 'public', kind: 'public', members: ['Mira', 'Vekka', 'Krikka'] },
+    ];
+    window.CommonsState.participants = {
+        User: { control_mode: 'human', active: true, blocked: false },
+        Mira: { control_mode: 'llm', active: true, blocked: false },
+        Vekka: { control_mode: 'llm', active: true, blocked: false },
+        Krikka: { control_mode: 'npc', active: true, blocked: false },
+    };
+
+    try {
+        // Schedule Mira with a 60-second deadline
+        CommonsAgent.deadlines.Mira = fakeNow + 60000;
+        CommonsAgent.timers.Mira = 123;
+
+        // Message mentioning Mira arrives in DM
+        CommonsAgent.onMessageReceived({
+            author: 'User',
+            channel_id: 'group-night',
+            text: 'Hey @Mira are you there?',
+        });
+
+        // Mira deadline must be accelerated (under 5 seconds)
+        assertTrue(CommonsAgent.deadlines.Mira <= fakeNow + 5000);
+        assertTrue(CommonsAgent.deadlines.Mira >= fakeNow + 1500);
+
+        // Simple NPC Krikka should never be given a timer
+        assertEq(CommonsAgent.timers.Krikka, undefined);
+
+        // Test floor-yielding: when Mira acts and posts, didPost is true
+        const didPost = await CommonsAgent.actCharacter('Mira');
+        assertTrue(didPost);
+
+        // Reset timer with floor-yielding penalty should add 12s extra delay
+        CommonsAgent.resetTimer('Mira', didPost ? 12000 : 0);
+        const lastScheduled = scheduled[scheduled.length - 1];
+        assertTrue(lastScheduled && lastScheduled.delay >= 12000);
+    } finally {
+        CommonsAgent.isRunning = false;
+        CommonsAgent.clearScheduledTimers(false);
+        setTimeout = originalSetTimeout;
+        Date.now = originalNow;
+        h.restore();
+    }
+});
+
+
+test('the commons: sleeping or unconscious characters are excluded from timers', () => {
+    window.CommonsState = {
+        isPaused: false,
+        participants: {
+            Mira: { control_mode: 'llm', active: true, blocked: false, state: 'sleeping' },
+            Vekka: { control_mode: 'llm', active: true, blocked: false, state: 'unconscious' },
+            Lysa: { control_mode: 'llm', active: true, blocked: false, state: 'awake' },
+        },
+    };
+    CommonsAgent.isRunning = true;
+    CommonsAgent.timers = {};
+    CommonsAgent.deadlines = {};
+    const scheduled = [];
+    const origSetTimeout = setTimeout;
+    setTimeout = (fn, delay) => {
+        const id = scheduled.length + 1;
+        scheduled.push({ id, fn, delay });
+        return id;
+    };
+
+    try {
+        CommonsAgent.resetTimer('Mira');
+        CommonsAgent.resetTimer('Vekka');
+        CommonsAgent.resetTimer('Lysa');
+
+        // Sleeping and unconscious characters should not have timers
+        assertEq(CommonsAgent.timers.Mira, undefined);
+        assertEq(CommonsAgent.timers.Vekka, undefined);
+        // Awake LLM character should have a timer scheduled
+        assertTrue(CommonsAgent.timers.Lysa !== undefined);
+    } finally {
+        CommonsAgent.isRunning = false;
+        CommonsAgent.clearScheduledTimers(false);
+        setTimeout = origSetTimeout;
+    }
+});
+
+test('the commons: burst governor allows double-texting and caps consecutive bursts', () => {
+    window.CommonsState = {
+        isPaused: false,
+        participants: {
+            Mira: { control_mode: 'llm', active: true, blocked: false, state: 'awake' },
+        },
+    };
+    CommonsAgent.isRunning = true;
+    CommonsAgent.burstCounts = {};
+    const scheduled = [];
+    const origSetTimeout = setTimeout;
+    const origRandom = Math.random;
+    setTimeout = (fn, delay) => {
+        const id = scheduled.length + 1;
+        scheduled.push({ id, fn, delay });
+        return id;
+    };
+    Math.random = () => 0.01; // Force burst chance to pass
+
+    const playerImpulsive = {
+        name: 'Mira',
+        traits: { impulsive: true, talkative: true },
+        tags: ['impulsive'],
+    };
+
+    try {
+        // Burst 1: didPost is true, burst rolls success -> fast-tracks to 1.5s - 3.5s
+        CommonsAgent.handlePostTurnCadence('Mira', { didPost: true, player: playerImpulsive });
+        assertEq(CommonsAgent.burstCounts.Mira, 1);
+        let last = scheduled[scheduled.length - 1];
+        assertTrue(last && last.delay >= 1500 && last.delay <= 3500);
+
+        // Burst 2: second rapid message
+        CommonsAgent.handlePostTurnCadence('Mira', { didPost: true, player: playerImpulsive });
+        assertEq(CommonsAgent.burstCounts.Mira, 2);
+
+        // Burst 3: third rapid message (reaches cap of 3 for impulsive)
+        CommonsAgent.handlePostTurnCadence('Mira', { didPost: true, player: playerImpulsive });
+        assertEq(CommonsAgent.burstCounts.Mira, 3);
+
+        // Burst 4: cap reached, burst momentum resets to 0 and yields floor
+        CommonsAgent.handlePostTurnCadence('Mira', { didPost: true, player: playerImpulsive });
+        assertEq(CommonsAgent.burstCounts.Mira, undefined);
+        last = scheduled[scheduled.length - 1];
+        assertTrue(last && last.delay >= 8000);
+    } finally {
+        CommonsAgent.isRunning = false;
+        CommonsAgent.clearScheduledTimers(false);
+        setTimeout = origSetTimeout;
+        Math.random = origRandom;
+    }
+});

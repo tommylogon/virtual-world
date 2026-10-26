@@ -99,6 +99,7 @@ def register_commons_routes(app):
                 "active": bool(row.get("active", True)),
                 "blocked": bool(row.get("blocked", False)),
                 "control_mode": control_mode,
+                "state": getattr(character, "state", "awake") if character is not None else "unavailable",
             }
         return jsonify({
             "perspective": perspective,

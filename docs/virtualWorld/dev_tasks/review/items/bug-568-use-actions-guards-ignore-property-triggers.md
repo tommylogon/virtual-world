@@ -11,10 +11,6 @@ wiki: "[[Items]]"
 **Filed:** 2026-10-22
 **Related:** bug-567
 
-<!-- deps:start -->
-**Related:** [[bug-567-trigger-graph-editor-reads-and-writes-the-legacy-edge-store]]
-<!-- deps:end -->
-
 ## What
 
 `engine/items/use_actions.py` decides whether an item can be used by counting `triggers` edges, not by reading `properties.triggers`. Line 135 sets `has_any_trigger = len(get_edges_for_source(item_node.id, EDGE_TRIGGERS)) > 0`, and lines 356 to 369 scan the same edges for an `on_use_on` trigger. After the task-886 migration an item whose triggers live in the property array has zero edges, so `use` is refused for any item that does not also list `use` in `actions`, and `use X on Y` is refused for every authored `on_use_on` rule. Measured on HEAD mansion.json: 4 definitions on 3 items (`item_granola_bar`, `item_water_bottle`, `item_unlabeled_vial`) have an `on_use` property trigger and no `use` action, so all three regress to "you can't use that" after migration.

@@ -119,25 +119,17 @@ class Inspector {
         const el = document.getElementById('inspector-breadcrumb');
         if (!el || !window.Lit)
             return;
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-        if (!this._history.length) {
-            window.Lit.render(window.Lit.nothing, el);
+        const IC = window.InspectorComponents;
+        if (IC && typeof IC.BreadcrumbComponent === 'function') {
+            window.Lit.render(IC.BreadcrumbComponent({
+                onBack: () => this._goBack(),
+                onCrumbClick: (i) => this._goTo(i),
+            }), el);
             return;
         }
-        const trail = this._history.map((crumb, i) => {
-            const last = i === this._history.length - 1;
-            const sep = i > 0 ? htmlTag `<span class="inspector-crumb-sep">›</span>` : '';
-            const body = last
-                ? htmlTag `<span class="inspector-crumb-label">${crumb.label}</span>`
-                : htmlTag `<button class="inspector-crumb-btn" title="Back to ${crumb.label}"
-                    @click=${() => this._goTo(i)}>${crumb.label}</button>`;
-            return htmlTag `<span class="inspector-crumb">${sep}${body}</span>`;
-        });
-        const back = this._history.length > 1
-            ? htmlTag `<button class="inspector-crumb-back" title="Back one step"
-                @click=${() => this._goBack()}>←</button>`
-            : '';
-        window.Lit.render(htmlTag `${back}${trail}`, el);
+        if (!this._history.length) {
+            window.Lit.render(window.Lit.nothing, el);
+        }
     }
     /** Walk the trail back to stop *index* and truncate the stack there. */
     _goTo(index) {

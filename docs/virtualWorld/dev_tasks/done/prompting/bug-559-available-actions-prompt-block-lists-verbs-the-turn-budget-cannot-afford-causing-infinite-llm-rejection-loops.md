@@ -13,6 +13,10 @@ wiki: "[[AI & Narration/Agent Engine]]"
 **Area:** prompting / agent engine  
 **Priority:** High  
 
+<!-- deps:start -->
+**Related:** [[task-352-action-economy]], [[task-491-single-source-of-truth-for-action-verbs-scoped-registry]], [[bug-539-nl-editor-turn-can-end-with-a-plan-and-no-tool-call-so-the-requested-action-never-runs]]
+<!-- deps:end -->
+
 ## What
 
 When an agent character expends their major action budget (`major: 0`), `PromptBuilder.buildRoomContext` (`static/js/agent/prompt-builder/room-context.ts`) continues to list major action verbs under `=== AVAILABLE ACTIONS ===` (such as `attack`, `grab`, `lead`, `go`). The LLM selects one of these visible actions, which the engine immediately rejects with `"You have no major action left this turn."` In the subsequent decision retry, the same prompt block is rebuilt with the same major verbs, causing a recursive rejection loop that consumes tens of thousands of tokens on a single tick.

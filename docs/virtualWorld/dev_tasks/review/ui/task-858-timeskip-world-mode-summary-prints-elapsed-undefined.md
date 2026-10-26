@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: low
 horizon: next
@@ -33,7 +33,7 @@ Intended UI home: the timeskip result summary. Current availability: the bug is 
 
 1. `node tools/unit/run.cjs` for the timeskip summary test.
    - expected: pass, and `_summarize({ mode: 'world' })` contains no `undefined`.
-   - observed: TODO
+   - observed: passed in tools/unit/test_timeskip.js (test: timeskip world mode prints only the world-advance line and never undefined (task-858)).
 2. Live: request a world timeskip with no active character.
    - expected: the summary shows only the world-advance line.
    - observed: TODO
@@ -41,7 +41,7 @@ Intended UI home: the timeskip result summary. Current availability: the bug is 
 ## Acceptance
 
 - [ ] `mode: 'world'` prints only the world-advance line.
-- [ ] A unit test asserts `_summarize` never emits `undefined` for the world mode.
+- [x] A unit test asserts `_summarize` never emits `undefined` for the world mode.
 
 ## Files
 

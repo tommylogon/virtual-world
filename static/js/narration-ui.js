@@ -1,22 +1,40 @@
 "use strict";
 /**
- * narration-ui.js — Narration Mode Toggle UI
+
+ * narration-ui.js - Narration Mode Toggle UI
+
  *
- * @module narration-ui — the narration mode selector
+
+ * @module narration-ui - the narration mode selector
+
  * @contributes NarrationUI: the none / player / ai toggle and its wiring
+
  * @powers turning area narration on or off and choosing who writes it
+
  * @relates output feeds area descriptions, recent events, and the turn log consumed by prompts
+
  * @docs docs/virtualWorld/AI & Narration/Narration System.md
+
  *
+
  * Provides a 3-way toggle for narration mode:
+
  *   - "none": Static descriptions only (default)
+
  *   - "player": Player is prompted to narrate actions/descriptions
+
  *   - "ai": AI generates narrative flavor text
+
  *
+
  * The narration text feeds into:
+
  *   - The area event log for the current turn
+
  *   - Character perception context (recent_hearing / recent events)
+
  *   - Replaces the default area description/items the agent sees
+
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const narrationUiTag = (strings, ...values) => window.Lit.html(strings, ...values);
@@ -58,9 +76,13 @@ class NarrationUI {
     }
     getMode() { return this.mode; }
     /**
+
      * Get narrated area context - replaces the default area description
+
      * with player or AI narration when applicable.
+
      * Returns the narrated text, or null if no narration is needed.
+
      */
     async getNarratedRoomContext(roomContext, charName) {
         if (this.mode === 'none')
@@ -83,29 +105,38 @@ class NarrationUI {
         return null;
     }
     /**
+
      * Get narrated action result - replaces the default action output
+
      * with player or AI narration when applicable.
+
      */
-    async getNarratedActionResult(actionOutput, charName, action) {
+    async getNarratedActionResult(actionOutput, charName, action, systemMessages) {
         if (this.mode === 'none')
             return null;
+        const fullOutput = (Array.isArray(systemMessages) && systemMessages.length > 0)
+            ? [actionOutput, ...systemMessages].filter(Boolean).join('\n')
+            : actionOutput;
         if (this.mode === 'player') {
             return await this.promptPlayerNarration({
                 type: 'action',
                 actor: charName,
                 description: action,
-                result: actionOutput,
+                result: fullOutput,
                 areaName: worldState.players?.[charName]?.current_area || 'unknown'
             });
         }
         if (this.mode === 'ai') {
-            return await this._generateAINarrationResult(actionOutput, charName, action);
+            return await this._generateAINarrationResult(fullOutput, charName, action);
         }
         return null;
     }
     /**
+
      * Prompt the player for narration text (player mode).
+
      * Shows a modal with the current context pre-filled that the player can edit.
+
      */
     async promptPlayerNarration(context) {
         if (this.mode !== 'player')
@@ -131,16 +162,16 @@ class NarrationUI {
             }
             const overlay = document.createElement('div');
             overlay.className = 'narration-overlay';
-            window.Lit.render(narrationUiTag `
-                <div class="narration-modal">
-                    <div class="narration-header">🎭 Player Narration</div>
-                    <div class="narration-context">Edit the description the agent will see:</div>
-                    <textarea class="narration-input" rows="5">${prefillText}</textarea>
-                    <div class="narration-actions">
-                        <button class="btn btn-sm btn-ghost narration-skip" title="Use default description">⏭ Use Default</button>
-                        <button class="btn btn-sm btn-green narration-submit">📝 Narrate</button>
-                    </div>
-                </div>
+            window.Lit.render(narrationUiTag `
+                <div class="narration-modal">
+                    <div class="narration-header">🎭 Player Narration</div>
+                    <div class="narration-context">Edit the description the agent will see:</div>
+                    <textarea class="narration-input" rows="5">${prefillText}</textarea>
+                    <div class="narration-actions">
+                        <button class="btn btn-sm btn-ghost narration-skip" title="Use default description">⏭ Use Default</button>
+                        <button class="btn btn-sm btn-green narration-submit">📝 Narrate</button>
+                    </div>
+                </div>
             `, overlay);
             document.body.appendChild(overlay);
             const textarea = overlay.querySelector('.narration-input');
@@ -174,13 +205,15 @@ class NarrationUI {
         });
     }
     /**
+
      * Generate AI narration for a area context
+
      */
     async _generateAINarration(roomContext, charName) {
         if (!config.apiKey || !config.model)
             return null;
         try {
-            const systemMsg = `You are a narrative game master — a DM describing a scene to a player. Write in second person ("You see...", "You notice...", "You smell..."). Be atmospheric and vivid. Use sensory details: sight, sound, smell, touch. Keep it 2-4 sentences. Do NOT list items mechanically. Integrate notable items into the description naturally. Do NOT use markdown or quotes.`;
+            const systemMsg = `You are a narrative game master - a DM describing a scene to a player. Write in second person ("You see...", "You notice...", "You smell..."). Be atmospheric and vivid. Use sensory details: sight, sound, smell, touch. Keep it 2-4 sentences. Do NOT list items mechanically. Integrate notable items into the description naturally. Do NOT use markdown or quotes.`;
             const items = roomContext.items || [];
             const itemText = items.length > 0 ? `Notable objects here: ${items.join(', ')}. Work them into the description naturally.` : '';
             const prompt = `Describe this scene for ${charName}, who is standing in the ${roomContext.areaName || 'unknown'}:\n\nThe area: ${roomContext.description || 'A area.'}\n${itemText}\n${roomContext.characters?.length ? `Also present: ${roomContext.characters.join(', ')}` : ''}\nExits: ${roomContext.exits || 'unknown'}\n\nWrite a short atmospheric description in second person.`;
@@ -203,7 +236,9 @@ class NarrationUI {
         return null;
     }
     /**
+
      * Generate AI narration for an action result
+
      */
     async _generateAINarrationResult(actionOutput, charName, action) {
         if (!config.apiKey || !config.model)

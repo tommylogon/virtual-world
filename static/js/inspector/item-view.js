@@ -45,7 +45,8 @@ function _evValue(ev) {
     return ev.target.value;
 }
 const _InspectorItemView = (() => {
-    const IV = {};
+    const Base = window.InspectorView;
+    const IV = (Base ? new Base() : {});
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings, ...values) => Lit.html(strings, ...values);
     // ─── Constants ───

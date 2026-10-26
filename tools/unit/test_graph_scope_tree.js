@@ -150,3 +150,66 @@ test('the graph manager persists and restores the selected scope', () => {
     assertTrue(/localStorage\.getItem\(this\._scopeStorageKey\(\)\)/.test(src), 'reads the scope from localStorage');
     assertTrue(/_restoreScopeFilterOnce\s*\(\)/.test(src), 'loadGraphData restores it on load');
 });
+
+// ─── task-592: pure fold of scopes and areas ──────────────────────────────────
+
+test('rowLabel reports empty for materialized scope with zero areas and items (task-592)', () => {
+    const row = {
+        id: 'empty_scope',
+        name: 'Empty Zone',
+        state: 'materialized',
+        areaCount: 0,
+        itemCount: 0,
+        characterCount: 0,
+        hasCharacter: false,
+        unmade: false,
+    };
+    // \u2014 matches the existing rowLabel separator
+    assertEq(ST.rowLabel(row), 'Empty Zone \u2014 empty', 'reports empty state');
+});
+
+test('foldScopeAreas nests areas under the scope that holds them (task-592)', () => {
+    const scopes = [
+        { id: 'town', name: 'Town' },
+        { id: 'dungeon', name: 'Dungeon' },
+        { id: 'empty_realm', name: 'Empty Realm' },
+    ];
+    const areas = [
+        { name: 'Town Square', world_scope_id: 'town' },
+        { name: 'Tavern', world_scope_id: 'town' },
+        { name: 'Boss Chamber', world_scope_id: 'dungeon' },
+        { name: 'Lost Cabin', world_scope_id: 'nowhere' },
+        { name: 'Wilderness' }, // no scope at all
+    ];
+
+    const folded = ST.foldScopeAreas(scopes, areas);
+    assertEq(folded.length, 4, 'three scopes plus one fallback group');
+
+    assertEq(folded[0].scope.id, 'town', 'town first');
+    assertEq(folded[0].areas.map(a => a.name), ['Town Square', 'Tavern'], 'town areas');
+
+    assertEq(folded[1].scope.id, 'dungeon', 'dungeon second');
+    assertEq(folded[1].areas.map(a => a.name), ['Boss Chamber'], 'dungeon areas');
+
+    assertEq(folded[2].scope.id, 'empty_realm', 'empty realm third');
+    assertEq(folded[2].areas.length, 0, 'empty realm has zero areas');
+
+    assertEq(folded[3].scope.id, '__unscoped__', 'fallback row for unscoped areas');
+    assertEq(folded[3].scope.name, 'Unscoped Areas', 'plainly-labelled fallback row');
+    assertEq(folded[3].areas.map(a => a.name), ['Lost Cabin', 'Wilderness'], 'unscoped areas collected');
+});
+
+test('foldScopeAreas handles empty or null inputs gracefully (task-592)', () => {
+    const areas = [{ name: 'A', world_scope_id: 's1' }];
+    const noScopes = ST.foldScopeAreas([], areas);
+    assertEq(noScopes.length, 1, 'all areas go to fallback row when scopes empty');
+    assertEq(noScopes[0].areas.map(a => a.name), ['A'], 'area preserved');
+
+    const scopes = [{ id: 's1', name: 'S1' }];
+    const noAreas = ST.foldScopeAreas(scopes, []);
+    assertEq(noAreas.length, 1, 'scope present');
+    assertEq(noAreas[0].areas.length, 0, 'areas empty');
+
+    assertEq(ST.foldScopeAreas(null, null).length, 0, 'null inputs return empty list');
+});
+

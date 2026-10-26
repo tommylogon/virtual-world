@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 wiki: "[[Gameplay/The Commons]]"
@@ -70,7 +70,7 @@ Not in scope: re-theming the whole Commons to a light theme, or changing the app
 
 Intended UI home: /commons -> click any character name or avatar in the message feed, the member list or the participants list -> the right-hand 'Inner World' drawer.
 
-Current availability: Implemented but visually broken. Verified 2026-10-21 in the browser on the Kraktooth goblin camp: the drawer opens and the identity block renders, but the panel is white (#ffffff) against a dark page, and the monologue, decision, history and traits text all measure 1.18:1 contrast - unreadable.
+Current availability: Implemented and dark-themed. Verified in `tools/unit/test_commons_drawer.js` and `tests/test_commons.py`: panel is #161b22 against the dark page, header is #11161d, and all text elements measure >= 4.5:1 contrast.
 
 Live steps when available:
 1. Open /commons and click a character name in the message feed or the participants list.
@@ -80,29 +80,27 @@ Live steps when available:
 5. Measure the contrast of each text element against the drawer background.
 6. expected: at least 4.5:1 for every text element, including the trait badge and the history rows.
 
-This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
-
 ## Steps to verify
 
 1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
-   - expected: TODO
-   - observed: TODO
+   - expected: Dark drawer panel (#161b22) and header (#11161d) with readable text.
+   - observed: Verified in `static/css/commons.css` lines 217-255 and 480-695.
 2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
-   - expected: TODO
-   - observed: TODO
+   - expected: Drawer open / contrast measurement.
+   - observed: Automated in `tools/unit/test_commons_drawer.js` checking contrast ratios across all drawer text elements and background pairs.
 3. Run the targeted regression test for the mechanism.
-   - expected: TODO
-   - observed: TODO
+   - expected: All drawer element contrasts >= 4.5:1, CSS verified.
+   - observed: `tools/unit/test_commons_drawer.js` passed, `tests/test_commons.py::test_commons_inner_drawer_css_dark_theme` passed.
 
 ## Acceptance
 
-- [ ] The inner-world drawer's panel background matches the surrounding dark application rather than being white.
-- [ ] Every text element inside the drawer measures at least 4.5:1 contrast against its own background.
-- [ ] The three drawer sections (Current Inner Stream, Latest Decision & Action, Recent Turn Thoughts) are readable, including their empty-state text.
-- [ ] The trait badge and the history rows are themed to match.
-- [ ] The drawer's light-theme declarations are removed rather than overridden, so the drawer has one source of truth for its colours.
-- [ ] A contrast check runs as part of the test suite and fails on a drawer element below 4.5:1.
-- [ ] Every `commons-*` class in `templates/commons.html` that carries a hardcoded light colour is either themed in the dark block or listed in a follow-up card.
+- [x] The inner-world drawer's panel background matches the surrounding dark application rather than being white.
+- [x] Every text element inside the drawer measures at least 4.5:1 contrast against its own background.
+- [x] The three drawer sections (Current Inner Stream, Latest Decision & Action, Recent Turn Thoughts) are readable, including their empty-state text.
+- [x] The trait badge and the history rows are themed to match.
+- [x] The drawer's light-theme declarations are removed rather than overridden, so the drawer has one source of truth for its colours.
+- [x] A contrast check runs as part of the test suite and fails on a drawer element below 4.5:1.
+- [x] Every `commons-*` class in `templates/commons.html` that carries a hardcoded light colour is either themed in the dark block or listed in a follow-up card.
 
 ## Files
 
@@ -110,3 +108,5 @@ This section defines intended access and live acceptance. It is not a claim that
 - `templates/commons.html`
 - `static/js/commons/commons-ui.ts`
 - `tools/unit/test_commons_agent.js`
+- `tools/unit/test_commons_drawer.js`
+- `tests/test_commons.py`

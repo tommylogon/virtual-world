@@ -86,3 +86,48 @@ test('timeskip a blocking advance still reports elapsed minutes and the clock', 
     assertTrue(/10:00/.test(text), 'clock line: ' + text);
     assertTrue(/hunger 50→62/.test(text), 'vitals line: ' + text);
 });
+
+test('timeskip world mode prints only the world-advance line and never undefined (task-858)', () => {
+    const g = window.Timeskip._internals;
+    const lines = g.summarize({ ok: true, mode: 'world' });
+    const text = lines.join('\n');
+    assertEq(lines.length, 1, 'world mode has exactly one summary line: ' + text);
+    assertEq(lines[0], 'No active character - the world advances.', 'world line matches');
+    assertTrue(text.indexOf('undefined') === -1, 'no undefined in: ' + text);
+    assertTrue(text.indexOf('Elapsed:') === -1, 'no elapsed line in: ' + text);
+});
+
+test('timeskip a soak order promoted before it runs reports ended with its reason (task-859)', () => {
+    const g = window.Timeskip._internals;
+    const text = g.summarize({
+        ok: true, mode: 'soak', ended: true, reason: 'Your bladder is critical.',
+        order: { intent: 'explore', declared_minutes: 120, remaining_minutes: 120,
+                 ended: true, reason: 'Your bladder is critical.' },
+    }).join('\n');
+    assertTrue(/ended: Your bladder is critical\./.test(text), 'reports ended and reason: ' + text);
+    assertTrue(text.indexOf('Control comes back early') === -1, 'no control comes back placeholder in: ' + text);
+});
+
+test('timeskip isDeadNoGhost detects dead character gated on ghost mode (task-857)', () => {
+    const g = window.Timeskip._internals;
+    const oldWs = window.worldState;
+    try {
+        window.worldState = {
+            data: {
+                active_player: 'Hero',
+                players: { Hero: { state: 'dead' } },
+                ghost_mode: false,
+            },
+        };
+        assertTrue(g.isDeadNoGhost(), 'dead player and ghost mode off is blocked');
+
+        window.worldState.data.ghost_mode = true;
+        assertTrue(!g.isDeadNoGhost(), 'ghost mode on allows ghost');
+
+        window.worldState.data.ghost_mode = false;
+        window.worldState.data.players.Hero.state = 'awake';
+        assertTrue(!g.isDeadNoGhost(), 'awake player is not blocked');
+    } finally {
+        window.worldState = oldWs;
+    }
+});

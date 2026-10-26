@@ -56,7 +56,7 @@ const agentApi = ApiClient as unknown as {
 /** narration-ui.ts assigns `window.narrationUI`; globals.d.ts lists `NarrationUi`. */
 type AgentEngineNarrationUi = {
     getMode(): string | null | undefined;
-    getNarratedActionResult(output: string, charName: string, action: string): Promise<string | null>;
+    getNarratedActionResult(output: string, charName: string, action: string, systemMessages?: string[]): Promise<string | null>;
 };
 /** Read late, not captured at load: narration-ui.js is a separate script tag. */
 const agentNarrationUI = (): AgentEngineNarrationUi | undefined =>
@@ -910,17 +910,22 @@ class AgentEngine {
                         actionSucceeded = data?.success !== false;
                         PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
                         let outputText = actionResult;
-                        if (data?.system_messages) {
-                            data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
-                        }
+                        const sysMsgs: string[] = Array.isArray(data?.system_messages) ? data.system_messages : [];
                         const narrationUi = agentNarrationUI();
                         const narrationMode = narrationUi?.getMode();
                         let narratedText: string | null = null;
                         if (narrationMode === 'ai' && config.apiKey && config.model) {
                             // Non-null assertion matches the original bare call:
                             // getMode() only returns 'ai' when the module loaded.
-                            narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction);
+                            narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
                             if (narratedText) outputText = narratedText;
+                        } else if (narrationMode === 'player') {
+                            narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
+                            if (narratedText) outputText = narratedText;
+                        }
+                        // bug-517: when narration is off, skipped, or fails, preserve the current raw system messages
+                        if (!narratedText && sysMsgs.length) {
+                            sysMsgs.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
                         }
                         agentConfig.lastActionResult[charName] = outputText;
                         // task-340: results are first-class rows - outcome-tinted,

@@ -11,10 +11,6 @@ wiki: "[[World Building/WorldPainter]]"
 **Filed:** 2026-10-19
 **Related:** task-776, task-759, task-774
 
-<!-- deps:start -->
-**Related:** [[task-776-worldpainter-polish-and-performance-soft-render-konva-offscreen-paint-palette-side-dock-and-the-cheap-workflow-wins]], [[task-759-worldpainter-biome-palette-tile-grid-category-rail-and-detail-panel]], [[task-774-worldpainter-biome-palette-filter-by-scope-mode-world-town-interior]]
-<!-- deps:end -->
-
 ## What
 
 Move the WorldPainter biome/tile palette (`_palettePanel()`) from a stacked vertical document block above the canvas into a dedicated, dockable right-hand sidebar beside the canvas viewport.

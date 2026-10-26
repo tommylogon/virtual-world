@@ -488,13 +488,41 @@ window.SaveLoadView = (() => {
     /**
      * Rename a saved game (display name; timestamped files also get renamed).
      */
+    /**
+     * Rename a saved game using the in-app promise-based prompt (task-455).
+     */
     async function doRenameSave(filename, currentName) {
-        var newName = prompt('Rename save "' + (currentName || filename) + '":', currentName || filename);
-        if (newName === null)
+        var dialog = window.VW && window.VW.dialog;
+        var newName = null;
+        if (dialog && typeof dialog.prompt === 'function') {
+            var out = await dialog.prompt({
+                title: 'Rename Save',
+                message: 'Enter a new display name for "' + (currentName || filename) + '":',
+                confirmLabel: 'Rename',
+                fields: [{ key: 'name', label: 'Save Name', value: currentName || filename }]
+            });
+            if (!out)
+                return;
+            newName = out.name;
+        }
+        else {
             return;
-        newName = newName.trim();
-        if (!newName || newName === currentName)
+        }
+        newName = (newName || '').trim();
+        if (!newName) {
+            toastError('Save name cannot be empty.');
             return;
+        }
+        if (newName === currentName)
+            return;
+        try {
+            var saves = await api.listSaveGames() || [];
+            if (saves.some(function (s) { return s.filename !== filename && (s.name === newName || s.filename === newName); })) {
+                toastError('A save named "' + newName + '" already exists.');
+                return;
+            }
+        }
+        catch (e) { /* non-fatal duplicate check */ }
         var result = await api.renameSaveGame(filename, newName);
         if (result && result.status === 'success') {
             saveloadToastSuccess('Renamed to ' + result.filename);
@@ -516,6 +544,55 @@ window.SaveLoadView = (() => {
         return (bytes / 1048576).toFixed(1) + ' MB';
     }
     /**
+     * Render a single savegame row for the load-game list (task-456).
+     */
+    function renderSaveRow(save) {
+        var ts = save.timestamp ? save.timestamp.replace('_', ' ') : '';
+        var tickStr = events.tickToTime(save.tick ?? 0);
+        var stats = [];
+        if (ts)
+            stats.push(ts);
+        if (tickStr)
+            stats.push(tickStr);
+        if (save.turn != null && save.turn !== 0)
+            stats.push('Turn ' + save.turn);
+        if (save.player)
+            stats.push(save.player);
+        if (save.scenario)
+            stats.push(save.scenario);
+        if (save.players)
+            stats.push(save.players + ' PC' + (save.players > 1 ? 's' : ''));
+        if (save.areas)
+            stats.push(save.areas + ' areas');
+        var size = fmtSize(save.size);
+        if (size)
+            stats.push(size);
+        var statLine = stats.join(' · ');
+        var isAuto = !!save.autosave;
+        var badge = isAuto
+            ? saveLoadViewTag `<span class="save-badge save-badge-auto">AUTO</span>`
+            : '';
+        var versionBadge = save.version
+            ? saveLoadViewTag `<span class="save-version-badge">v${save.version}</span>`
+            : '';
+        var actions = isAuto
+            ? saveLoadViewTag `<button class="btn btn-sm" @click=${() => window.SaveLoadView.saveGameToSlot(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Overwrite this slot with current state">💾</button>`
+            : saveLoadViewTag `
+                <button class="btn btn-sm" @click=${() => window.SaveLoadView.saveGameToSlot(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Overwrite this slot with current state">💾</button>
+                <button class="btn btn-sm" @click=${() => window.SaveLoadView.doRenameSave(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Rename save">✏️</button>
+                <button class="btn btn-sm btn-red" @click=${() => window.SaveLoadView.doDeleteSave(save)} style="font-size:10px;padding:2px 6px;" title="Delete save">🗑</button>
+            `;
+        return saveLoadViewTag `<div class="save-game-item ${isAuto ? 'save-game-auto' : ''}">
+            <div class="save-game-info" @click=${() => window.SaveLoadView.doLoadGame(save)}>
+                <strong>${badge}${save.name || save.filename}</strong>${versionBadge}
+                <div class="save-game-stats">${statLine}</div>
+            </div>
+            <div class="save-game-actions">
+                ${actions}
+            </div>
+        </div>`;
+    }
+    /**
      * Fetch and render the list of saved games in the load-game modal.
      */
     async function loadGameList() {
@@ -529,63 +606,35 @@ window.SaveLoadView = (() => {
                 window.Lit.render(saveLoadViewTag `<div style="color:var(--text-muted);padding:20px;text-align:center;">No saves found.</div>`, listEl);
                 return;
             }
-            window.Lit.render(saveLoadViewTag `${saves.map(function (save) {
-                var ts = save.timestamp ? save.timestamp.replace('_', ' ') : '';
-                var tickStr = events.tickToTime(save.tick ?? 0);
-                var stats = [];
-                if (ts)
-                    stats.push(ts);
-                if (tickStr)
-                    stats.push(tickStr);
-                if (save.turn != null && save.turn !== 0)
-                    stats.push('Turn ' + save.turn);
-                if (save.player)
-                    stats.push(save.player);
-                if (save.scenario)
-                    stats.push(save.scenario);
-                if (save.players)
-                    stats.push(save.players + ' PC' + (save.players > 1 ? 's' : ''));
-                if (save.areas)
-                    stats.push(save.areas + ' areas');
-                var size = fmtSize(save.size);
-                if (size)
-                    stats.push(size);
-                var statLine = stats.join(' · ');
-                var isAuto = !!save.autosave;
-                // Build the badges as elements, not HTML strings: a Lit text
-                // binding escapes markup, so pre-built strings rendered as
-                // literal `<span ...>` text (bug-40).
-                var badge = isAuto
-                    ? saveLoadViewTag `<span style="background:var(--accent,#4a9eff);color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;margin-right:5px;">AUTO</span>`
-                    : '';
-                var versionBadge = save.version
-                    ? saveLoadViewTag `<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">v${save.version}</span>`
-                    : '';
-                return saveLoadViewTag `<div class="save-game-item" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);${isAuto ? 'background:rgba(74,158,255,0.06);' : ''}">
-                    <div style="flex:1;cursor:pointer;" @click=${() => window.SaveLoadView.doLoadGame(save.filename)}>
-                    <strong>${badge}${save.name || save.filename}</strong>${versionBadge}
-                    <div style="font-size:10px;color:var(--text-muted);">
-                    ${statLine}
-                    </div></div>
-                    <div style="display:flex;gap:4px;align-items:center;">
-                        <button class="btn btn-sm" @click=${() => window.SaveLoadView.saveGameToSlot(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Overwrite this slot with current state">💾</button>
-                        <button class="btn btn-sm" @click=${() => window.SaveLoadView.doRenameSave(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Rename save">✏️</button>
-                        <button class="btn btn-sm btn-red" @click=${() => window.SaveLoadView.doDeleteSave(save.filename)} style="font-size:10px;padding:2px 6px;" title="Delete save">🗑</button>
-                    </div>
-                </div>`;
-            })}`, listEl);
+            window.Lit.render(saveLoadViewTag `${saves.map(renderSaveRow)}`, listEl);
         }
         catch (err) {
             window.Lit.render(saveLoadViewTag `<div style="color:var(--text-error);padding:20px;text-align:center;">Error: ${saveloadErrMessage(err)}</div>`, listEl);
         }
     }
     /**
-     * Load a saved game by filename.
-     * @param {string} filename - The save file name to load
+     * Load a saved game by filename or save object with in-modal confirmation (task-455).
+     * @param {string|object} filenameOrSave - The save file name or save object to load
      */
-    async function doLoadGame(filename) {
-        if (!confirm('Load game "' + filename + '"? Current progress will be replaced.'))
+    async function doLoadGame(filenameOrSave) {
+        var filename = typeof filenameOrSave === 'object' ? filenameOrSave.filename : filenameOrSave;
+        var displayName = (typeof filenameOrSave === 'object' && filenameOrSave.name) ? filenameOrSave.name : filename;
+        var ts = (typeof filenameOrSave === 'object' && filenameOrSave.timestamp) ? filenameOrSave.timestamp.replace('_', ' ') : '';
+        var msg = 'Load "' + displayName + '"' + (ts ? ' (' + ts + ')' : '') + '?\n" + "Current progress will be replaced.';
+        var dialog = window.VW && window.VW.dialog;
+        if (dialog && typeof dialog.confirm === 'function') {
+            var ok = await dialog.confirm({
+                title: 'Load Game',
+                message: msg,
+                confirmLabel: 'Load',
+                danger: true
+            });
+            if (!ok)
+                return;
+        }
+        else {
             return;
+        }
         var result = await api.loadGame(filename);
         if (result && result.status === 'success') {
             if (result.schema_notice)
@@ -603,12 +652,28 @@ window.SaveLoadView = (() => {
         }
     }
     /**
-     * Delete a saved game by filename.
-     * @param {string} filename - The save file name to delete
+     * Delete a saved game with in-modal confirmation (task-455).
+     * @param {string|object} filenameOrSave - The save file name or save object to delete
      */
-    async function doDeleteSave(filename) {
-        if (!confirm('Delete save "' + filename + '"?'))
+    async function doDeleteSave(filenameOrSave) {
+        var filename = typeof filenameOrSave === 'object' ? filenameOrSave.filename : filenameOrSave;
+        var displayName = (typeof filenameOrSave === 'object' && filenameOrSave.name) ? filenameOrSave.name : filename;
+        var ts = (typeof filenameOrSave === 'object' && filenameOrSave.timestamp) ? filenameOrSave.timestamp.replace('_', ' ') : '';
+        var msg = 'Delete "' + displayName + '"' + (ts ? ' (' + ts + ')' : '') + '?\n" + "This cannot be undone.';
+        var dialog = window.VW && window.VW.dialog;
+        if (dialog && typeof dialog.confirm === 'function') {
+            var ok = await dialog.confirm({
+                title: 'Delete Save',
+                message: msg,
+                confirmLabel: 'Delete',
+                danger: true
+            });
+            if (!ok)
+                return;
+        }
+        else {
             return;
+        }
         var result = await api.deleteSaveGame(filename);
         if (result && result.status === 'success') {
             events.log('🗑 Save deleted: ' + filename, 'system-msg');
@@ -619,11 +684,7 @@ window.SaveLoadView = (() => {
         }
     }
     /**
-     * Delete all user saves, keeping the autosave slot (bug-42).
-     *
-     * One bulk request rather than N+1 DELETEs, so a failure cannot leave a
-     * silently partial wipe, and the autosave the modal promises to keep is
-     * excluded.
+     * Delete all user saves, keeping the autosave slot (bug-42, task-455).
      */
     async function confirmDeleteAllSaves() {
         var saves = [];
@@ -640,8 +701,21 @@ window.SaveLoadView = (() => {
             return;
         }
         var noun = userSaves.length === 1 ? 'save' : 'saves';
-        if (!confirm('Delete all ' + userSaves.length + ' ' + noun + '? Autosave is kept. This cannot be undone.'))
+        var msg = 'Delete all ' + userSaves.length + ' ' + noun + '? Autosave is kept. This cannot be undone.';
+        var dialog = window.VW && window.VW.dialog;
+        if (dialog && typeof dialog.confirm === 'function') {
+            var ok = await dialog.confirm({
+                title: 'Delete All Saves',
+                message: msg,
+                confirmLabel: 'Delete All',
+                danger: true
+            });
+            if (!ok)
+                return;
+        }
+        else {
             return;
+        }
         try {
             var result = await api.deleteAllSaveGames(false);
             if (result && result.status === 'success') {
@@ -662,18 +736,12 @@ window.SaveLoadView = (() => {
      */
     async function restartScenario() {
         try {
-            // Abort any in-flight agent step and stop the loop BEFORE wiping
-            // state, so a mid-iteration step() can't repopulate the event
-            // stream with drugs while we're trying to give a clean slate.
             agent.cancel();
             var resp = await fetch('/api/reset', { method: 'POST' });
             var data = await resp.json();
             if (data.status === 'success') {
                 agent.reset();
                 await refreshReplacedWorld();
-                // Clear AFTER fetch: any straggler bubble the aborted step
-                // managed to log while the async fetch was resolving is wiped
-                // here too, leaving only the reset banner below.
                 events.clearAll();
                 events.log('🔄 World reset to initial state.', 'system-msg');
                 events._persistLog();
@@ -687,10 +755,12 @@ window.SaveLoadView = (() => {
         }
     }
     /**
-     * Toggle spectator mode on/off.
-     * When enabled, the world state is polled every 1.5s for live updates.
+     * Delegates for world settings toggles moved to SettingsView (task-456).
      */
     function toggleSpectator() {
+        if (window.SettingsView && typeof window.SettingsView.toggleSpectator === 'function') {
+            return window.SettingsView.toggleSpectator();
+        }
         var checkbox = document.getElementById('spectator-mode');
         if (checkbox?.checked) {
             worldState.startPolling();
@@ -699,56 +769,14 @@ window.SaveLoadView = (() => {
             worldState.stopPolling();
         }
     }
-    /**
-     * Update the time-per-tick setting on the backend.
-     * @param {number} minutes - Game minutes per agent step
-     */
-    async function updateTimePerTick(minutes) {
-        try {
-            var resp = await fetch('/api/settings/time_per_tick', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ time_per_tick_minutes: minutes })
-            });
-            var data = await resp.json();
-            if (data.status === 'success') {
-                events.log('⏰ Time per tick set to ' + data.time_per_tick_minutes + ' min', 'system-msg');
-                worldState.fetch();
-            }
-        }
-        catch (err) {
-            events.log('❌ Failed to update time per tick: ' + saveloadErrMessage(err), 'error-msg');
+    function updateTimePerTick(minutes) {
+        if (window.SettingsView && typeof window.SettingsView.updateTimePerTick === 'function') {
+            return window.SettingsView.updateTimePerTick(minutes);
         }
     }
-    /**
-     * Update the scenario clock start time on the backend.
-     * @param {string} value - "HH:MM" 24h time string
-     */
-    async function updateClockStart(value) {
-        var m = /^(\d{1,2}):(\d{2})$/.exec(value || '');
-        if (!m) {
-            events.log('❌ Invalid clock start time: ' + value, 'error-msg');
-            return;
-        }
-        var hour = parseInt(m[1], 10);
-        var minute = parseInt(m[2], 10);
-        try {
-            var resp = await fetch('/api/settings/clock_start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clock_start_hour: hour, clock_start_minute: minute })
-            });
-            var data = await resp.json();
-            if (data.status === 'success') {
-                events.log('⏰ Clock start set to ' + String(data.clock_start_hour).padStart(2, '0') + ':' + String(data.clock_start_minute).padStart(2, '0'), 'system-msg');
-                worldState.fetch();
-            }
-            else {
-                events.log('❌ ' + (data.error || 'Failed to update clock start'), 'error-msg');
-            }
-        }
-        catch (err) {
-            events.log('❌ Failed to update clock start: ' + saveloadErrMessage(err), 'error-msg');
+    function updateClockStart(value) {
+        if (window.SettingsView && typeof window.SettingsView.updateClockStart === 'function') {
+            return window.SettingsView.updateClockStart(value);
         }
     }
     return {
@@ -759,6 +787,7 @@ window.SaveLoadView = (() => {
         saveGame: saveGame,
         saveGameToSlot: saveGameToSlot,
         doRenameSave: doRenameSave,
+        renderSaveRow: renderSaveRow,
         loadGameList: loadGameList,
         doLoadGame: doLoadGame,
         doDeleteSave: doDeleteSave,

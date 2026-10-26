@@ -65,7 +65,7 @@ page or deep note yet.
 | 41 | [[memory-pipeline\|Memory pipeline]] | `wired` | [[Memory System]] |
 | 42 | [[prompt-lens\|Prompt lens]] | `wired` | [[LLM Providers]] |
 | 43 | [[where-you-ve-been\|Where you've been]] | `wired` | [[Turn Queue & Human Turns]] |
-| 77 | Crafting | `wired` | — (no feature page yet) |
+| 77 | [[crafting\|Crafting]] | `wired` | - |
 | 78 | [[the-commons\|The Commons]] | `wired` | [[Gameplay/The Commons]] |
 
 ## In the editor

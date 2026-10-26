@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: prompting
 priority: medium
 wiki: "[[AI & Narration/Narration System]]"
@@ -40,19 +40,30 @@ narrated result and leave the event stream showing both versions of one action.
 
 ## Acceptance
 
-- In AI narration mode, a successful action narration includes the action output
+- [x] In AI narration mode, a successful action narration includes the action output
   and its systemic consequences.
-- The event stream shows the narrated result without duplicate raw system rows
+- [x] The event stream shows the narrated result without duplicate raw system rows
   for that action.
-- When narration is off or fails, the existing system rows and action result
+- [x] When narration is off or fails, the existing system rows and action result
   remain visible.
-- No narration text is sent through the character speech endpoint.
+- [x] No narration text is sent through the character speech endpoint.
+
+## Verification
+
+- static/js/narration-ui.ts: updated getNarratedActionResult to combine systemMessages with action output into prompt context (ullOutput), passing consequences to LLM narrator.
+- static/js/agent-engine.ts: gathered ctionResult and data.system_messages before logging. Passed sysMsgs into 
+arrationUi.getNarratedActionResult(). When narration succeeds (
+arratedText returned), duplicate raw system messages are suppressed. When narration is off, skipped, or fails, raw system messages are logged via events.log(systemMessage, 'system-msg').
+- Unit test 	ools/unit/test_narration_system_messages.js: verified that getNarratedActionResult combines output and system messages into LLM prompt context in AI mode, returns null in none mode, and handles fallback.
+- 
+pm run typecheck and 
+pm run build:ts pass with 0 errors.
 
 ## Files
 
-- `static/js/agent-engine.ts`
-- `static/js/narration-ui.ts`
-- Targeted browser and regression coverage
+- static/js/agent-engine.ts
+- static/js/narration-ui.ts
+- 	ools/unit/test_narration_system_messages.js
 
 ## Browser UI and intended live verification
 

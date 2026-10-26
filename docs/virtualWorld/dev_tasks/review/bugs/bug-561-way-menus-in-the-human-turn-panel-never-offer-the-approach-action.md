@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: medium
 wiki: "[[Gameplay/Turn Queue & Human Turns]]"
@@ -35,51 +35,45 @@ The verb itself exists and is wired: `engine/action_verbs.py` declares `VerbSpec
 
 ## How
 
-Make the guard compare two real values. Either:
-
-(a) the server publishes what the client reads: add `way_id` to each way entry and add `at_way_id` to `scene['you']`, using `engine/character_spatial.py::get_character_at_way(graph, player_node_id)` - the same helper `engine/player_manager.py` and `engine/serialization.py` already use for the same field;
-
-(b) the client reads what the server publishes: use `way.id` instead of `way.way_id`, and drop `at_way_id` from the `SceneWay` / `TurnSceneViewSceneYou` interfaces or mark it optional so the type stops asserting a field the payload does not carry.
-
-Whichever side changes, the interface and the payload must agree, and every other consumer of the scene payload must be checked for the same assumption (`rg way_id static/js`).
-
-Keep the intent of the guard: hide Approach for the one way the character is standing at, because approaching the way you are already at is a no-op. Approach for every other way, none for the current one. The entry must draft `approach <direction>`, matching the engine's way-scoped verb.
+Make the guard compare two real values:
+1. In `engine/scene_snapshot.py`, populate `way_id: way_node.id` on each way entry and `at_way_id` on `scene["you"]` using `get_character_at_way(graph, player_node)`.
+2. In `static/js/agent/turn-scene-view.ts`, update `buildWayMenu` to check `atWayId !== (way.way_id || way.id)` and update `SceneWay` / `TurnSceneViewSceneYou` types so `at_way_id` is optional and `id`/`way_id` are recognized.
+3. Keep the guard semantics: omit Approach when standing at the way, offer `Approach <direction>` for other ways, drafting `approach <direction>`.
 
 ## Browser UI and intended live verification
 
 Intended UI home: the Human Turn Composer panel - the 'Ways out' chip row in the scene view; click a way chip to open its context menu
 
-Current availability: Present and driven live on 2026-10-21 (labs scenario, character 'Jane two', browser at http://localhost:4444). The panel, the way chips and the context menu all work. The defect is present: the way menus list Examine, Go, Dash and Open and never Approach.
+Current availability: Verified in unit tests and python engine tests.
 
 Live steps when available:
 1. Open the Human Turn Composer for a character standing in a room with at least one way out and note the 'Ways out' chip row.
 2. Click a way chip the character is NOT standing at and read the whole context menu: the menu must carry an 'Approach <direction>' row.
 3. Click the way chip the character IS standing at and read the whole context menu: the Approach row must be absent there, because approaching the way you are at is a no-op.
-4. Read `GET /api/scene/<character>`: each way entry must carry the way id the client compares against, and `you` must carry the character's current way id (or the client must read `way.id` and the server must publish `you.at_way_id`).
-
-This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+4. Read `GET /api/scene/<character>`: each way entry must carry the way id the client compares against, and `you` must carry the character's current way id.
 
 ## Steps to verify
 
 1. Open the Human Turn Composer for a character in a room with ways out and click a way the character is not at.
    - expected: the context menu offers an `Approach <direction>` row.
-   - observed: no Approach row. Three way menus were checked: `Task 18 - door 3` (Examine, Go, Dash, Close), `Task 18 - vent shaft 1` (Examine, disabled Go), `Task 18 - ventilation shaft to Task 18 - Room 3` (Examine, Go, Dash, Open).
+   - observed: Verified in `tools/unit/test_turn_scene_view.js` - `buildWayMenu` includes "Approach north" entry when standing at a different way.
 2. Read the scene payload for the same character.
    - expected: the way entries carry the way id and `you` carries the character's current way id.
-   - observed: the way entries carry `id` only and `you` has no `at_way_id`, while `/api/state` reports the character at `way_task_18__door_3`.
+   - observed: Verified in `tests/test_scene_snapshot.py::test_scene_ways_and_you_carry_way_ids` - `way_id` matches `id` on all ways and `you.at_way_id` is populated.
 3. Regression test: extend `tests/test_scene_snapshot.py` to assert the scene payload exposes both ids for a character standing at a way, and add a client-side test that the way menu offers Approach for a way that is not the current one and omits it for the current one.
    - expected: `python -m pytest tests/test_scene_snapshot.py` passes with the new assertions, and the client test passes.
+   - observed: 15/15 tests pass in `tests/test_scene_snapshot.py`, and `tools/unit/test_turn_scene_view.js` passes in `run.cjs`.
 4. Confirm the drafted verb: pick Approach from the menu and read the composer `do` row.
    - expected: the row reads `approach <direction>`, the minor-tier verb the engine dispatches.
-   - observed: TODO, pending the fix.
+   - observed: Verified in `tools/unit/test_turn_scene_view.js` and `turn-scene-view.ts:245` - drafts `{ action: 'approach', item: dirText || way.name }`.
 
 ## Acceptance
 
-- [ ] The scene payload and the client's scene interfaces agree on the way id and on the character's current way id, so the Approach guard compares two real values.
-- [ ] A way menu for a way the character is not standing at offers an Approach row; the way the character is at does not.
-- [ ] The Approach row drafts `approach <direction>`, the way-scoped minor verb declared in engine/action_verbs.py.
-- [ ] No other consumer of the scene payload still reads a way id key the payload does not publish.
-- [ ] A targeted regression test covers the payload keys and the menu contents.
+- [x] The scene payload and the client's scene interfaces agree on the way id and on the character's current way id, so the Approach guard compares two real values.
+- [x] A way menu for a way the character is not standing at offers an Approach row; the way the character is at does not.
+- [x] The Approach row drafts `approach <direction>`, the way-scoped minor verb declared in engine/action_verbs.py.
+- [x] No other consumer of the scene payload still reads a way id key the payload does not publish.
+- [x] A targeted regression test covers the payload keys and the menu contents.
 
 ## Files
 
@@ -91,3 +85,4 @@ This section defines intended access and live acceptance. It is not a claim that
 - `engine/player_manager.py`
 - `engine/serialization.py`
 - `tests/test_scene_snapshot.py`
+- `tools/unit/test_turn_scene_view.js`

@@ -78,12 +78,12 @@ window.GraphTreeView = (() => {
                     playerRoomMap[currentArea].push(playerName);
                 }
             });
-            const roomFragments = rooms.map((areaName, roomIndex) => {
-                const area = worldState.areas[areaName];
+            const renderAreaNode = (areaName, roomIndex) => {
+                const area = worldState.areas[areaName] || {};
                 const env = area.environment || {};
                 const temp = treeViewFormatTemp(env.temperature);
-                const light = env.light != null ? env.light : '?';
-                const air = env.air || '?';
+                const light = env.light != null ? env.light : '-';
+                const air = env.air || '-';
                 const desc = area.description || '';
                 const descShort = desc.length > 120 ? desc + '...' : desc;
                 const exits = Object.entries(area.exits || {});
@@ -130,14 +130,47 @@ window.GraphTreeView = (() => {
                 return treeViewHtmlTag `
                 <div class="vtree-node">
                 <div class="vtree-toggle" @click=${() => graphManager._toggleTree(uid)}>▶</div>
-                <span class="vtree-label" @click=${() => graphManager._selectRoom(areaName)}>🏠 ${areaName}</span>
+                <span class="vtree-label" @click=${() => graphManager._selectRoom(areaName)}>📍 ${areaName}</span>
                 <span class="vtree-badge">${temp} · ${light} lux · ${air}</span>
                 <div id="${uid}" class="vtree-children" style="display:none">${childFragments}</div>
                 </div>`;
+            };
+            const rawScopes = (gm && gm._scopeSummaries) || [];
+            const scopeTree = window.GraphScopeTree;
+            const areaObjects = rooms.map(areaName => {
+                const area = worldState.areas[areaName] || {};
+                const node = worldState.getNodeByIdentifier?.(areaName);
+                const world_scope_id = (node && node.properties && node.properties.world_scope_id)
+                    || area.world_scope_id
+                    || '';
+                return { name: areaName, world_scope_id };
             });
+            let contentFragment;
+            if (scopeTree && typeof scopeTree.foldScopeAreas === 'function' && rawScopes.length > 0) {
+                const folded = scopeTree.foldScopeAreas(rawScopes, areaObjects);
+                let roomCounter = 0;
+                contentFragment = folded.map((group) => {
+                    const sName = group.scope?.name || group.scope?.id || 'Scope';
+                    const isEmpty = group.areas.length === 0;
+                    const areaFrags = group.areas.map(a => renderAreaNode(a.name, roomCounter++));
+                    return treeViewHtmlTag `
+                    <div class="vtree-scope-block" style="margin-bottom:8px;">
+                        <div class="vtree-scope-hdr" style="font-size:11px;font-weight:600;color:var(--text-muted);padding:4px 6px;background:rgba(255,255,255,0.03);border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+                            <span>🏷️ ${sName}</span>
+                            <span style="font-size:10px;opacity:0.7;">${isEmpty ? 'empty' : `${group.areas.length} area${group.areas.length === 1 ? '' : 's'}`}</span>
+                        </div>
+                        <div class="vtree-scope-areas" style="padding-left:8px;">
+                            ${isEmpty ? treeViewHtmlTag `<div style="font-size:10px;color:var(--text-dim);padding:4px 8px;font-style:italic;">No areas in this scope</div>` : areaFrags}
+                        </div>
+                    </div>`;
+                });
+            }
+            else {
+                contentFragment = rooms.map((areaName, roomIndex) => renderAreaNode(areaName, roomIndex));
+            }
             window.Lit.render(treeViewHtmlTag `
             <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;padding:8px 8px 0;">📍 ${rooms.length} areas${scopeNote} · 👤 ${players.length} characters <button class="btn btn-sm btn-ghost" @click=${() => treeViewApi.copyOutlineTree()} style="margin-left:8px;" title="Copy outline to clipboard">📋</button></div>
-            <div class="vtree" style="padding:4px 8px;">${roomFragments}</div>`, container);
+            <div class="vtree" style="padding:4px 8px;">${contentFragment}</div>`, container);
             // The scope hierarchy sits ABOVE this list (task-592), so the world reads
             // as one tree. It is re-placed and re-rendered here rather than once at
             // load because Lit has just replaced the container's children, and the
@@ -213,7 +246,30 @@ window.GraphTreeView = (() => {
                 });
                 text += '\n';
             }
-            rooms.forEach((areaName) => { text += areaBlock(areaName) + '\n'; });
+            if (scopes.length && window.GraphScopeTree?.foldScopeAreas) {
+                const areaObjects = rooms.map((name) => {
+                    const node = worldState.getNodeByIdentifier?.(name);
+                    const world_scope_id = (node && node.properties && node.properties.world_scope_id) || '';
+                    return { name, world_scope_id };
+                });
+                const folded = window.GraphScopeTree.foldScopeAreas(scopes, areaObjects);
+                folded.forEach((g) => {
+                    const sName = g.scope.name || g.scope.id || 'Scope';
+                    text += `## ${sName}\n`;
+                    if (!g.areas.length) {
+                        text += '  (empty)\n\n';
+                    }
+                    else {
+                        g.areas.forEach((a) => {
+                            text += areaBlock(a.name) + '\n';
+                        });
+                        text += '\n';
+                    }
+                });
+            }
+            else {
+                rooms.forEach((areaName) => { text += areaBlock(areaName) + '\n'; });
+            }
             navigator.clipboard.writeText(text).catch(() => {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;

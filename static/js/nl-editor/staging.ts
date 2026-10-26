@@ -169,6 +169,19 @@
             return updates;
         }
 
+        /** Get map of staged player-state patches: character key/id -> merged patch */
+        getStagedPlayerUpdates() {
+            const updates: Record<string, Record<string, unknown>> = {};
+            for (const op of this.ops) {
+                const cid = op.payload?.character || op.payload?.character_id;
+                if (op.type === 'update_player' && cid) {
+                    const key = String(cid).toLowerCase();
+                    updates[key] = Object.assign(updates[key] || {}, op.payload.patch || {});
+                }
+            }
+            return updates;
+        }
+
         /** Get staged relation edges */
         getStagedEdges() {
             const edges: StagedEdge[] = [];
@@ -266,7 +279,7 @@
             const appliedIds = new Set<string>();
 
             const creates = targets.filter((o: StagedOp) => o.type === 'create_node' || o.type === 'create_character' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
-            const updates = targets.filter((o: StagedOp) => o.type === 'update_node' || o.type === 'link_to_library');
+            const updates = targets.filter((o: StagedOp) => o.type === 'update_node' || o.type === 'update_player' || o.type === 'link_to_library');
             const edges = targets.filter((o: StagedOp) => o.type === 'attach' || o.type === 'detach');
             const deletes = targets.filter((o: StagedOp) => o.type === 'delete_node');
             const sortedOps = [...creates, ...updates, ...edges, ...deletes];
@@ -345,6 +358,16 @@
                             const ok = await api().updateNode(p.node_id, patch);
                             if (!ok) errors.push(`${op.summary}: node update rejected`);
                             else appliedIds.add(op.id);
+                            break;
+                        }
+                        case 'update_player': {
+                            const p = op.payload;
+                            const res = await api().post('/api/graph/batch', { ops: [{ type: 'update_player', payload: p }] });
+                            if (!res || res.error || (res.errors && res.errors.length)) {
+                                errors.push(`${op.summary}: player update rejected`);
+                            } else {
+                                appliedIds.add(op.id);
+                            }
                             break;
                         }
                         case 'update_matching_nodes': {

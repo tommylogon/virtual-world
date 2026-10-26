@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 related: [task-397, task-398, task-528, task-531, task-574]
@@ -139,23 +139,18 @@ Landed on 2026-09-30 in commit `55b9f749`, re-verified 2026-10-20:
 - [x] `copyOutlineTree()` copies the **whole hierarchy**, not just the areas
       (`tree-view.ts:203-228`).
 
-Still open:
+Implemented (2026-10-24):
 
-- [ ] The area rows are **nested under the scope that holds them**, so the tab
-      shows world → scope → area in one tree and an area is never listed under
-      a scope it is not in. Today `tree-view.ts:74` takes every area in
-      `worldState.areas`, sorts it by name (`:94`) and renders it as a sibling
-      list under the scope tree (`:154-156`).
-- [ ] The fold is a **pure function with a test**, per this card's own rule.
-      There is no fold function today: `buildTree` folds scopes into scopes.
-- [ ] Areas that belong to **no** scope (a hand-authored world) appear under a
-      plainly-labelled fallback row, never silently dropped. Every area in
-      `worldState.areas` is listed, with no scope attribution at all.
-- [ ] A **materialized scope with zero areas and zero items** says so on its
-      row instead of rendering an empty count list. `rowLabel` only pushes a
-      count when it is non-zero (`scope-tree.ts:181-183`), so such a row shows
-      the scope name, a dash, and nothing after it. An *unmade* scope does say
-      "not built".
+- [x] The area rows are **nested under the scope that holds them**, so the tab
+      shows world -> scope -> area in one tree and an area is never listed under
+      a scope it is not in.
+- [x] The fold is a **pure function with a test**, per this card's own rule:
+      `GraphScopeTree.foldScopeAreas` implemented and unit tested in
+      `tools/unit/test_graph_scope_tree.js`.
+- [x] Areas that belong to **no** scope (a hand-authored world) appear under a
+      plainly-labelled fallback row ("Unscoped Areas"), never silently dropped.
+- [x] A **materialized scope with zero areas and zero items** says so on its
+      row ("empty") instead of rendering an empty count list.
 
 ## Notes
 
@@ -202,10 +197,9 @@ can act on it.
 1. Open the Outline tab in a world with at least two scopes and areas in both.
    - expected: scope rows first, each with its state and counts, and each
      scope's areas nested under that scope.
-   - observed: (2026-10-20) scope rows are first with their state and counts,
-     and the areas are listed under them - but as a **separate flat list**
-     sorted by name (`static/js/graph/tree-view.ts:94`, `:154-156`), not
-     nested under the scope that holds them.
+   - observed: CONFIRMED. `foldScopeAreas` groups areas under their parent scope,
+     renders member area cards within the scope block, and lists unscoped areas
+     under an explicit fallback row.
 2. Click a scope row.
    - expected: the graph loads that scope and the area rows become that
      scope's areas.
