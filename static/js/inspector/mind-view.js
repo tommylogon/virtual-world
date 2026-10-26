@@ -2258,7 +2258,7 @@ const InspectorMindView = (() => {
             : tab === 'memories' ? memoriesPane
                 : tab === 'people' ? peoplePane
                     : tab === 'persona' ? personaPane : mindPane;
-        _container.innerHTML = `
+        const modalContent = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
         <div style="position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;">
             <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-inset);flex-wrap:wrap;">
@@ -2274,6 +2274,12 @@ const InspectorMindView = (() => {
                 ${tabBody}
             </div>
         </div>`;
+        if (window.Lit?.render && window.Lit?.unsafeHTML) {
+            window.Lit.render(window.Lit.unsafeHTML(modalContent), _container);
+        }
+        else {
+            _container.innerHTML = modalContent;
+        }
         // wiring
         _container.querySelectorAll('.mind-close').forEach(el => el.addEventListener('click', () => M.close()));
         _container.querySelectorAll('.mind-tab').forEach(el => el.addEventListener('click', () => { if (_state) {
