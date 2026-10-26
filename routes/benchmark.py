@@ -10,6 +10,7 @@ Provides:
 import os
 import re
 import json
+import time
 import logging
 import requests
 from datetime import datetime, timezone
@@ -245,35 +246,53 @@ def register_benchmark_routes(app):
         if stream:
             req_payload['stream_options'] = {'include_usage': True}
 
-        try:
-            upstream = requests.post(
-                f'{api_base}/chat/completions',
-                headers=headers,
-                json=req_payload,
-                stream=stream,
-                timeout=300
-            )
+        max_attempts = 3
+        upstream = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                upstream = requests.post(
+                    f'{api_base}/chat/completions',
+                    headers=headers,
+                    json=req_payload,
+                    stream=stream,
+                    timeout=300
+                )
 
-            if not upstream.ok:
-                return jsonify({
-                    'error': f'Provider returned HTTP {upstream.status_code}: {upstream.text[:200]}'
-                }), upstream.status_code
+                if upstream.status_code == 429 or upstream.status_code in (502, 503, 504):
+                    if attempt < max_attempts:
+                        retry_after = upstream.headers.get('Retry-After')
+                        wait_sec = 2.0 ** attempt
+                        if retry_after:
+                            try:
+                                wait_sec = min(max(float(retry_after), 0.5), 30.0)
+                            except ValueError:
+                                pass
+                        time.sleep(wait_sec)
+                        continue
 
-            if not stream:
-                return jsonify(upstream.json())
+                if not upstream.ok:
+                    return jsonify({
+                        'error': f'Provider returned HTTP {upstream.status_code}: {upstream.text[:200]}'
+                    }), upstream.status_code
 
-            def generate():
-                for chunk in upstream.iter_content(chunk_size=None):
-                    if chunk:
-                        yield chunk
+                if not stream:
+                    return jsonify(upstream.json())
 
-            return Response(
-                stream_with_context(generate()),
-                content_type=upstream.headers.get('Content-Type', 'text/event-stream')
-            )
+                def generate():
+                    for chunk in upstream.iter_content(chunk_size=None):
+                        if chunk:
+                            yield chunk
 
-        except requests.exceptions.RequestException as e:
-            return jsonify({'error': f'Failed calling {api_base}: {str(e)}'}), 502
+                return Response(
+                    stream_with_context(generate()),
+                    content_type=upstream.headers.get('Content-Type', 'text/event-stream')
+                )
+
+            except requests.exceptions.RequestException as e:
+                if attempt < max_attempts:
+                    time.sleep(2.0 ** attempt)
+                    continue
+                return jsonify({'error': f'Failed calling {api_base}: {str(e)}'}), 502
 
     @app.route('/api/bench/runs', methods=['GET'])
     def list_bench_runs():

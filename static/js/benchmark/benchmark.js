@@ -20,6 +20,8 @@ window.BenchmarkApp = (() => {
         activeRun: false,
         abortController: null,
         results: {},
+        modelHistory: {},
+        activeRollIndex: {},
         pastRuns: [],
         profileMap: {},
         lastLoadedModel: null,
@@ -589,46 +591,21 @@ window.BenchmarkApp = (() => {
 
             (run.results || []).forEach(r => {
                 createModelCard(r.model);
-                const id = sanitizeId(r.model);
-                const proseEl = document.getElementById(`prose-${id}`);
-                const actionEl = document.getElementById(`action-${id}`);
-                const flagsEl = document.getElementById(`flags-${id}`);
-                const ttftEl = document.getElementById(`metric-ttft-${id}`);
-                const tpsEl = document.getElementById(`metric-tps-${id}`);
-                const tokensEl = document.getElementById(`metric-tokens-${id}`);
-                const totalEl = document.getElementById(`metric-total-${id}`);
-                const rawEl = document.getElementById(`raw-${id}`);
-
-                if (ttftEl && r.metrics?.ttft) ttftEl.textContent = `${r.metrics.ttft.toFixed(2)}s`;
-                if (tpsEl && r.metrics?.tps) tpsEl.textContent = `${r.metrics.tps}/s`;
-                if (tokensEl && r.metrics?.tokens) {
-                    tokensEl.textContent = `${r.metrics.tokens}`;
-                    if (r.metrics.reasoning_tokens) {
-                        tokensEl.title = `${r.metrics.reasoning_tokens} reasoning / ${r.metrics.content_tokens || 0} content tokens`;
-                    }
-                }
-                if (totalEl && r.metrics?.total) totalEl.textContent = `${r.metrics.total.toFixed(2)}s`;
-                if (proseEl) proseEl.textContent = r.prose || 'No prose';
-                if (rawEl && r.output) rawEl.textContent = r.output;
-
-                if (actionEl && r.actions_summary) {
-                    actionEl.innerHTML = r.actions_summary.map(a => `
-                        <div class="bench-action-chip">
-                            <span class="bench-action-chip-verb">${escapeHtml(a.verb)}</span>
-                            ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
-                        </div>
-                    `).join('');
-                }
-
-                if (flagsEl && r.flags) {
-                    flagsEl.innerHTML = r.flags.map(f => `
-                        <span class="bench-flag-item ${f.pass ? 'bench-flag-pass' : 'bench-flag-fail'}">
-                            ${f.pass ? '✅' : '❌'} ${escapeHtml(f.text || f)}
-                        </span>
-                    `).join('');
-                }
-
                 state.results[r.model] = r;
+                state.modelHistory = state.modelHistory || {};
+                if (Array.isArray(r.history) && r.history.length > 0) {
+                    state.modelHistory[r.model] = r.history;
+                } else {
+                    state.modelHistory[r.model] = [{
+                        ...r,
+                        roll_number: 1,
+                        timestamp: run.timestamp || new Date().toISOString()
+                    }];
+                }
+                state.activeRollIndex = state.activeRollIndex || {};
+                state.activeRollIndex[r.model] = state.modelHistory[r.model].length - 1;
+                renderCardData(r.model, r);
+                updateCardRollsUI(r.model);
             });
 
             checkEnableDiff();
@@ -658,6 +635,8 @@ window.BenchmarkApp = (() => {
         state.activeRun = true;
         state.abortController = new AbortController();
         state.results = {};
+        state.modelHistory = {};
+        state.activeRollIndex = {};
 
         els.runBtn.disabled = true;
         els.cancelBtn.disabled = false;
@@ -692,64 +671,8 @@ window.BenchmarkApp = (() => {
         for (let i = 0; i < modelsToRun.length; i++) {
             if (!state.activeRun) break;
             const model = modelsToRun[i];
-            let modelInstanceId = model;
-
-            // Step A: Load model into VRAM
-            if (els.unloadCycleCb && els.unloadCycleCb.checked) {
-                els.statusText.textContent = `Loading model ${i + 1}/${modelsToRun.length}: ${model}...`;
-                try {
-                    const loadBody = {
-                        api_base: els.apiBaseInput.value.trim(),
-                        api_key: els.apiKeyInput.value.trim(),
-                        model: model
-                    };
-                    const ctxVal = parseInt(els.contextLengthInput?.value, 10);
-                    if (ctxVal && !isNaN(ctxVal) && ctxVal > 0) {
-                        loadBody.context_length = ctxVal;
-                    }
-                    const loadResp = await fetch('/api/bench/load', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(loadBody)
-                    });
-                    const loadData = await loadResp.json().catch(() => ({}));
-                    if (loadData.instance_id) {
-                        modelInstanceId = loadData.instance_id;
-                    }
-                    state.lastLoadedModel = modelInstanceId;
-                    await new Promise(r => setTimeout(r, 400));
-                } catch (e) {
-                    console.warn('[Benchmark] Load error:', e);
-                }
-            }
-
-            // Step B: Generate output
-            els.statusText.textContent = `Running model ${i + 1}/${modelsToRun.length}: ${model}`;
-            try {
-                await runSingleModel(model, state.abortController.signal);
-            } catch (runErr) {
-                console.error('[Benchmark] Run single model error:', runErr);
-            }
-
-            // Step C: Immediately unload model so VRAM is clear before next model or exit
-            if (els.unloadCycleCb && els.unloadCycleCb.checked) {
-                els.statusText.textContent = `Unloading ${model} (releasing VRAM)...`;
-                try {
-                    await fetch('/api/bench/unload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            api_base: els.apiBaseInput.value.trim(),
-                            api_key: els.apiKeyInput.value.trim(),
-                            instance_id: modelInstanceId
-                        })
-                    });
-                    state.lastLoadedModel = null;
-                    await new Promise(r => setTimeout(r, 400));
-                } catch (e) {
-                    console.warn('[Benchmark] Unload error:', e);
-                }
-            }
+            const prefix = `[${i + 1}/${modelsToRun.length}] `;
+            await executeModelLifecycle(model, state.abortController.signal, false, prefix);
         }
 
         state.activeRun = false;
@@ -758,6 +681,8 @@ window.BenchmarkApp = (() => {
         els.statusBadge.className = 'bench-status-badge bench-status-done';
         els.statusBadge.textContent = 'Complete';
         els.statusText.textContent = `Completed ${modelsToRun.length} model evaluations.`;
+
+        modelsToRun.forEach(m => updateCardRollsUI(m));
 
         checkEnableDiff();
         saveRunRecord(modelsToRun);
@@ -786,32 +711,42 @@ window.BenchmarkApp = (() => {
             state.lastLoadedModel = null;
         } catch (e) {}
         els.statusText.textContent = 'Benchmark sweep was cancelled by user. VRAM released.';
+        Object.keys(state.results).forEach(m => updateCardRollsUI(m));
         checkEnableDiff();
     }
 
     function createModelCard(model) {
+        const id = sanitizeId(model);
         const card = document.createElement('div');
         card.className = 'bench-card';
-        card.id = `bench-card-${sanitizeId(model)}`;
+        card.id = `bench-card-${id}`;
 
         card.innerHTML = `
             <div class="bench-card-header">
-                <div class="bench-card-model" title="${escapeHtml(model)}">${escapeHtml(model)}</div>
+                <div class="bench-card-header-top">
+                    <div class="bench-card-model" title="${escapeHtml(model)}">${escapeHtml(model)}</div>
+                    <div class="bench-card-actions">
+                        <div class="bench-card-rolls" id="rolls-${id}"></div>
+                        <button class="bench-reroll-btn" id="btn-reroll-${id}" title="Reroll this model with current prompt" disabled>
+                            <span>&#x1F504;</span> Reroll
+                        </button>
+                    </div>
+                </div>
                 <div class="bench-card-metrics">
                     <div class="bench-metric">
-                        <span class="bench-metric-val" id="metric-ttft-${sanitizeId(model)}">-</span>
+                        <span class="bench-metric-val" id="metric-ttft-${id}">-</span>
                         <span class="bench-metric-lbl">TTFT</span>
                     </div>
                     <div class="bench-metric">
-                        <span class="bench-metric-val" id="metric-tps-${sanitizeId(model)}">-</span>
+                        <span class="bench-metric-val" id="metric-tps-${id}">-</span>
                         <span class="bench-metric-lbl">TPS</span>
                     </div>
                     <div class="bench-metric" title="Completion tokens (reasoning / content)">
-                        <span class="bench-metric-val" id="metric-tokens-${sanitizeId(model)}">-</span>
+                        <span class="bench-metric-val" id="metric-tokens-${id}">-</span>
                         <span class="bench-metric-lbl">Tokens</span>
                     </div>
                     <div class="bench-metric">
-                        <span class="bench-metric-val" id="metric-total-${sanitizeId(model)}">-</span>
+                        <span class="bench-metric-val" id="metric-total-${id}">-</span>
                         <span class="bench-metric-lbl">Total</span>
                     </div>
                 </div>
@@ -819,28 +754,269 @@ window.BenchmarkApp = (() => {
             <div class="bench-card-body">
                 <div>
                     <div class="bench-section-label">Inner Monologue &amp; Prose</div>
-                    <div class="bench-prose-box" id="prose-${sanitizeId(model)}">Waiting to execute...</div>
+                    <div class="bench-prose-box" id="prose-${id}">Waiting to execute...</div>
                 </div>
                 <div>
                     <div class="bench-section-label">Intended Actions</div>
-                    <div class="bench-action-strip" id="action-${sanitizeId(model)}">
+                    <div class="bench-action-strip" id="action-${id}">
                         <span style="color:var(--b-dim);font-size:11px;">-</span>
                     </div>
                 </div>
                 <div>
                     <div class="bench-section-label">Validation &amp; Ground Truth</div>
-                    <div class="bench-flag-list" id="flags-${sanitizeId(model)}">
+                    <div class="bench-flag-list" id="flags-${id}">
                         <span style="color:var(--b-dim);font-size:11px;">Pending...</span>
                     </div>
                 </div>
                 <details class="bench-raw-toggle">
                     <summary>View Raw Response</summary>
-                    <div class="bench-raw-output" id="raw-${sanitizeId(model)}"></div>
+                    <div class="bench-raw-output" id="raw-${id}"></div>
                 </details>
             </div>
         `;
 
+        const rerollBtn = card.querySelector(`#btn-reroll-${id}`);
+        if (rerollBtn) {
+            rerollBtn.addEventListener('click', () => rerollSingleModel(model));
+        }
+
         els.cardsGrid.appendChild(card);
+    }
+
+    function renderCardData(model, r) {
+        if (!r) return;
+        const id = sanitizeId(model);
+        const proseEl = document.getElementById(`prose-${id}`);
+        const actionEl = document.getElementById(`action-${id}`);
+        const flagsEl = document.getElementById(`flags-${id}`);
+        const ttftEl = document.getElementById(`metric-ttft-${id}`);
+        const tpsEl = document.getElementById(`metric-tps-${id}`);
+        const tokensEl = document.getElementById(`metric-tokens-${id}`);
+        const totalEl = document.getElementById(`metric-total-${id}`);
+        const rawEl = document.getElementById(`raw-${id}`);
+
+        if (ttftEl) ttftEl.textContent = (r.metrics?.ttft != null) ? `${r.metrics.ttft.toFixed(2)}s` : '-';
+        if (tpsEl) tpsEl.textContent = (r.metrics?.tps != null) ? `${r.metrics.tps}/s` : '-';
+        if (tokensEl) {
+            tokensEl.textContent = (r.metrics?.tokens != null) ? `${r.metrics.tokens}` : '-';
+            if (r.metrics?.reasoning_tokens != null) {
+                tokensEl.title = `${r.metrics.reasoning_tokens} reasoning / ${r.metrics.content_tokens || 0} content tokens`;
+            } else {
+                tokensEl.title = 'Completion tokens (reasoning / content)';
+            }
+        }
+        if (totalEl) totalEl.textContent = (r.metrics?.total != null) ? `${r.metrics.total.toFixed(2)}s` : '-';
+        if (proseEl) proseEl.textContent = r.prose || 'No prose';
+        if (rawEl) {
+            const rawContent = r.output || '';
+            const rawReasoning = r.reasoning || '';
+            if (rawReasoning && !rawContent.includes('<think>')) {
+                rawEl.textContent = `<think>\n${rawReasoning}\n</think>\n\n${rawContent}`;
+            } else {
+                rawEl.textContent = rawContent;
+            }
+        }
+
+        if (actionEl) {
+            if (r.actions_summary && r.actions_summary.length > 0) {
+                actionEl.innerHTML = r.actions_summary.map(a => `
+                    <div class="bench-action-chip">
+                        <span class="bench-action-chip-verb">${escapeHtml(a.verb)}</span>
+                        ${a.target ? `<span class="bench-action-chip-target">${escapeHtml(a.target)}</span>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                actionEl.innerHTML = '<span style="color:var(--b-dim);font-size:11px;">-</span>';
+            }
+        }
+
+        if (flagsEl) {
+            if (r.flags && r.flags.length > 0) {
+                flagsEl.innerHTML = r.flags.map(f => `
+                    <span class="bench-flag-item ${f.pass ? 'bench-flag-pass' : 'bench-flag-fail'}">
+                        ${f.pass ? '✅' : '❌'} ${escapeHtml(f.text || f)}
+                    </span>
+                `).join('');
+            } else {
+                flagsEl.innerHTML = '<span style="color:var(--b-dim);font-size:11px;">Pending...</span>';
+            }
+        }
+    }
+
+    function archiveCurrentRoll(model) {
+        state.modelHistory = state.modelHistory || {};
+        if (!state.modelHistory[model]) {
+            state.modelHistory[model] = [];
+        }
+        const currentResult = state.results[model];
+        if (!currentResult) return;
+        const rollNum = state.modelHistory[model].length + 1;
+        const entry = {
+            ...currentResult,
+            roll_number: rollNum,
+            timestamp: new Date().toISOString()
+        };
+        state.modelHistory[model].push(entry);
+        state.activeRollIndex = state.activeRollIndex || {};
+        state.activeRollIndex[model] = state.modelHistory[model].length - 1;
+        updateCardRollsUI(model);
+    }
+
+    function displayModelRoll(model, rollIndex) {
+        const history = state.modelHistory?.[model];
+        if (!history || !history[rollIndex]) return;
+        state.activeRollIndex = state.activeRollIndex || {};
+        state.activeRollIndex[model] = rollIndex;
+        const rollData = history[rollIndex];
+        state.results[model] = rollData;
+        renderCardData(model, rollData);
+        updateCardRollsUI(model);
+    }
+
+    function updateCardRollsUI(model) {
+        const id = sanitizeId(model);
+        const rollsEl = document.getElementById(`rolls-${id}`);
+        const rerollBtn = document.getElementById(`btn-reroll-${id}`);
+        if (rerollBtn && !state.activeRun) {
+            rerollBtn.disabled = false;
+            rerollBtn.innerHTML = '<span>&#x1F504;</span> Reroll';
+        }
+        if (!rollsEl) return;
+        const history = state.modelHistory?.[model] || [];
+        if (history.length <= 1) {
+            rollsEl.innerHTML = '';
+            return;
+        }
+        const activeIdx = state.activeRollIndex?.[model] ?? (history.length - 1);
+        rollsEl.innerHTML = history.map((_, idx) => `
+            <button class="bench-roll-tab ${idx === activeIdx ? 'active' : ''}" data-model="${escapeHtml(model)}" data-roll="${idx}">
+                #${idx + 1}
+            </button>
+        `).join('');
+
+        rollsEl.querySelectorAll('.bench-roll-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rollIdx = parseInt(tab.getAttribute('data-roll'), 10);
+                displayModelRoll(model, rollIdx);
+            });
+        });
+    }
+
+    async function rerollSingleModel(model) {
+        if (state.activeRun) {
+            alert('A benchmark run is currently in progress. Please wait for it to finish or cancel it before rerolling.');
+            return;
+        }
+        if (!state.currentPrompt) {
+            alert('No current prompt captured. Please check the prompt panel.');
+            return;
+        }
+        const id = sanitizeId(model);
+        const rerollBtn = document.getElementById(`btn-reroll-${id}`);
+        if (rerollBtn) {
+            rerollBtn.disabled = true;
+            rerollBtn.innerHTML = '<span>&#x23F3;</span> Rolling...';
+        }
+        const proseEl = document.getElementById(`prose-${id}`);
+        if (proseEl) proseEl.textContent = 'Rerolling with current prompt...';
+
+        const abortCtrl = new AbortController();
+        try {
+            await executeModelLifecycle(model, abortCtrl.signal, true, 'Reroll: ');
+            if (els.statusText) {
+                els.statusText.textContent = `Completed reroll for ${model}.`;
+            }
+        } catch (err) {
+            console.error('[Benchmark] Reroll error:', err);
+            if (els.statusText) {
+                els.statusText.textContent = `Reroll failed for ${model}: ${err.message}`;
+            }
+        } finally {
+            if (rerollBtn) {
+                rerollBtn.disabled = false;
+                rerollBtn.innerHTML = '<span>&#x1F504;</span> Reroll';
+            }
+            checkEnableDiff();
+        }
+    }
+
+    async function executeModelLifecycle(model, signal, isReroll, statusPrefix = '') {
+        let modelInstanceId = model;
+        if (els.unloadCycleCb && els.unloadCycleCb.checked) {
+            if (isReroll) {
+                try {
+                    await fetch('/api/bench/unload-all', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            api_base: els.apiBaseInput.value.trim(),
+                            api_key: els.apiKeyInput.value.trim()
+                        })
+                    });
+                    await new Promise(r => setTimeout(r, 300));
+                } catch (e) {
+                    console.warn('[Benchmark] Reroll unload-all error:', e);
+                }
+            }
+            if (els.statusText) {
+                els.statusText.textContent = `${statusPrefix}Loading ${model}...`;
+            }
+            try {
+                const loadBody = {
+                    api_base: els.apiBaseInput.value.trim(),
+                    api_key: els.apiKeyInput.value.trim(),
+                    model: model
+                };
+                const ctxVal = parseInt(els.contextLengthInput?.value, 10);
+                if (ctxVal && !isNaN(ctxVal) && ctxVal > 0) {
+                    loadBody.context_length = ctxVal;
+                }
+                const loadResp = await fetch('/api/bench/load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loadBody)
+                });
+                const loadData = await loadResp.json().catch(() => ({}));
+                if (loadData.instance_id) {
+                    modelInstanceId = loadData.instance_id;
+                }
+                state.lastLoadedModel = modelInstanceId;
+                await new Promise(r => setTimeout(r, 400));
+            } catch (e) {
+                console.warn('[Benchmark] Load error:', e);
+            }
+        }
+
+        if (els.statusText) {
+            els.statusText.textContent = `${statusPrefix}Running ${model}...`;
+        }
+        try {
+            await runSingleModel(model, signal);
+        } catch (runErr) {
+            console.error('[Benchmark] Run single model error:', runErr);
+        }
+
+        if (els.unloadCycleCb && els.unloadCycleCb.checked) {
+            if (els.statusText) {
+                els.statusText.textContent = `${statusPrefix}Unloading ${model}...`;
+            }
+            try {
+                await fetch('/api/bench/unload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        api_base: els.apiBaseInput.value.trim(),
+                        api_key: els.apiKeyInput.value.trim(),
+                        instance_id: modelInstanceId
+                    })
+                });
+                state.lastLoadedModel = null;
+                await new Promise(r => setTimeout(r, 400));
+            } catch (e) {
+                console.warn('[Benchmark] Unload error:', e);
+            }
+        }
     }
 
     async function runSingleModel(model, signal) {
@@ -1030,8 +1206,11 @@ window.BenchmarkApp = (() => {
             const failMsg = (reasoning && (!text || text === reasoning))
                 ? '❌ Hit token limit while reasoning (increase Max Tokens)'
                 : '❌ Invalid JSON response';
+            let failProse = '';
+            if (proseEl) failProse = proseEl.textContent || '';
             if (flagsEl) flagsEl.innerHTML = `<span class="bench-flag-item bench-flag-fail">${failMsg}</span>`;
-            state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: failMsg }], output: text, reasoning: reasoning || '' };
+            state.results[model] = { json_valid: false, metrics, flags: [{ pass: false, text: failMsg }], output: text, reasoning: reasoning || '', prose: failProse };
+            archiveCurrentRoll(model);
             return;
         }
 
@@ -1223,6 +1402,7 @@ window.BenchmarkApp = (() => {
             output: text,
             reasoning: reasoning || '',
         };
+        archiveCurrentRoll(model);
     }
 
     function checkEnableDiff() {
@@ -1265,8 +1445,48 @@ window.BenchmarkApp = (() => {
             },
             results: completedModels.map(model => {
                 const r = state.results[model] || {};
+                const history = state.modelHistory?.[model] || [];
                 return {
                     model: model,
+                    rolls_count: history.length || 1,
+                    active_roll_index: state.activeRollIndex?.[model] ?? (history.length ? history.length - 1 : 0),
+                    history: history.length > 0 ? history.map(h => ({
+                        roll_number: h.roll_number,
+                        timestamp: h.timestamp,
+                        metrics: {
+                            ttft_seconds: h.metrics?.ttft ?? null,
+                            total_seconds: h.metrics?.total ?? null,
+                            tokens_per_second: h.metrics?.tps ?? null,
+                            total_tokens: h.metrics?.tokens ?? null,
+                            reasoning_tokens: h.metrics?.reasoning_tokens ?? 0,
+                            content_tokens: h.metrics?.content_tokens ?? (h.metrics?.tokens ?? null)
+                        },
+                        json_valid: h.json_valid ?? false,
+                        parsed_response: h.parsed ?? null,
+                        actions: h.actions_summary || [],
+                        validation_flags: h.flags || [],
+                        inner_monologue_prose: h.prose || '',
+                        reasoning_trace: h.reasoning || '',
+                        raw_output: h.output || ''
+                    })) : [{
+                        roll_number: 1,
+                        timestamp: new Date().toISOString(),
+                        metrics: {
+                            ttft_seconds: r.metrics?.ttft ?? null,
+                            total_seconds: r.metrics?.total ?? null,
+                            tokens_per_second: r.metrics?.tps ?? null,
+                            total_tokens: r.metrics?.tokens ?? null,
+                            reasoning_tokens: r.metrics?.reasoning_tokens ?? 0,
+                            content_tokens: r.metrics?.content_tokens ?? (r.metrics?.tokens ?? null)
+                        },
+                        json_valid: r.json_valid ?? false,
+                        parsed_response: r.parsed ?? null,
+                        actions: r.actions_summary || [],
+                        validation_flags: r.flags || [],
+                        inner_monologue_prose: r.prose || '',
+                        reasoning_trace: r.reasoning || '',
+                        raw_output: r.output || ''
+                    }],
                     metrics: {
                         ttft_seconds: r.metrics?.ttft ?? null,
                         total_seconds: r.metrics?.total ?? null,
@@ -1399,7 +1619,13 @@ window.BenchmarkApp = (() => {
             .replace(/"/g, '&quot;');
     }
 
-    return { init };
+    return {
+        init,
+        _state: state,
+        displayModelRoll,
+        rerollSingleModel,
+        archiveCurrentRoll,
+    };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

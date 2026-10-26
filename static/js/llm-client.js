@@ -1,9 +1,9 @@
 "use strict";
 /**
- * LLMClient — OpenAI-compatible API calls with streaming support
+ * LLMClient - OpenAI-compatible API calls with streaming support
  * Handles URL normalization, auth, retry logic, streaming, and error handling.
  *
- * @module llm-client — the provider client (Chat Completions / Responses)
+ * @module llm-client - the provider client (Chat Completions / Responses)
  * @contributes LLMClient.chat/chatWithTools: retries, streaming, JSON repair, thinking/reasoning controls, truncation escalation, raw-capture hook
  * @powers all character and narration LLM calls, plus the 🔬 LLM inspector's raw exchanges
  * @relates configured from config.toLLMConfig(); feeds dataset-collector.captureRaw
@@ -16,7 +16,7 @@ window.VW = window.VW || {};
 /** How many times a length-stopped response is re-requested with a larger
  *  budget before the caller is told the answer is genuinely incomplete. */
 const MAX_TRUNCATION_RETRIES = 3;
-/** Hard ceiling for that escalation — well past any local model's practical
+/** Hard ceiling for that escalation - well past any local model's practical
  *  output length, so this only stops a pathological loop. */
 const MAX_TOKEN_CEILING = 32768;
 class LLMClient {
@@ -42,7 +42,7 @@ class LLMClient {
         this._callMeta = null;
         // Structured output bookkeeping: log once per schema when attached,
         // and detect providers that silently IGNORE the schema (LM Studio
-        // with sub-7B models does this — no error, model just emits free JSON).
+        // with sub-7B models does this - no error, model just emits free JSON).
         this._structuredLogged = new Set();
         this._schemaIgnoredWarned = new Set();
     }
@@ -63,7 +63,7 @@ class LLMClient {
         this.apiFormat = config.apiFormat || this.apiFormat;
     }
     /** Chat completion with retry: 3 attempts, 1s/2s/4s backoff on 429/5xx/network errors.
-     *  options.label — human name for this call shown on the raw-LLM chips
+     *  options.label - human name for this call shown on the raw-LLM chips
      *  (e.g. 'think-decide', 'result-reaction', 'plan', 'reflect'); defaults
      *  to the model id. */
     async chat(messages, options = {}) {
@@ -100,14 +100,14 @@ class LLMClient {
         let lastError = null;
         const startedAt = Date.now();
         // Truncation escalation. `max_tokens` is a HARD cap at the provider, and
-        // until now the stop reason was discarded — every caller received a
+        // until now the stop reason was discarded - every caller received a
         // silently cut-off string with no way to tell it from a complete one.
         // A truncated answer is worse than a slow one (a half-written JSON plan
         // silently becomes no plan), so a length stop re-requests with a larger
         // budget instead of returning the fragment.
         let effectiveMaxTokens = options.max_tokens;
         // The escalation base is the CALLER's cap, never the previously
-        // escalated one — feeding the raised budget back in compounds instead of
+        // escalated one - feeding the raised budget back in compounds instead of
         // doubling (300 -> 600 -> 2400 -> 19200), which on a local model means
         // one very long doomed generation instead of three quick ones. Caught
         // by a live browser run; the unit tests only checked the helper.
@@ -116,7 +116,7 @@ class LLMClient {
         // Transport retries and truncation retries are SEPARATE budgets. Sharing
         // one counter means three length stops exhaust the network budget and
         // the call throws "failed after retries" having never failed at
-        // transport at all — which is how the first version of this behaved.
+        // transport at all - which is how the first version of this behaved.
         let attempt = 0;
         const maxIterations = maxRetries + MAX_TRUNCATION_RETRIES;
         for (let iteration = 0; iteration < maxIterations; iteration++) {
@@ -147,7 +147,7 @@ class LLMClient {
                         }
                         // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
                         // DeepSeek defaults thinking ON at effort `high`, so we must send an
-                        // explicit disable when it is off — omitting the parameter silently
+                        // explicit disable when it is off - omitting the parameter silently
                         // re-enables high-effort reasoning on every call.
                         // `effort: "none"` is the disable spelling for providers that key
                         // thinking off the effort value, so treat it as OFF here too rather
@@ -195,22 +195,30 @@ class LLMClient {
                     // Capture provider error shapes (400/429/500) too (task-405).
                     this._captureRawExchange(label, requestBody, errBody || { error: errText }, resp, startedAt, headers);
                     // Provider rejected structured output (unknown param, json
-                    // word missing, schema unsupported) — drop it for the rest
+                    // word missing, schema unsupported) - drop it for the rest
                     // of the session and retry immediately without burning the
                     // remaining attempts on the same 400.
                     if (responseFormat && (resp.status === 400 || resp.status === 422)
                         && /response_format|json_schema|json object|structured|word ['"]?json['"]?/i.test(errText)) {
                         this._structuredUnsupported = true;
                         if (VW?.events)
-                            VW.events.log('⚠️ Provider rejected structured output — falling back to plain prompts for this session.', 'system-msg');
+                            VW.events.log('⚠️ Provider rejected structured output - falling back to plain prompts for this session.', 'system-msg');
                         attempt++;
                         continue;
                     }
                     attempt++;
                     if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
-                        const delay = Math.pow(2, attempt - 1) * 1000;
+                        const retryAfter = resp.headers?.get?.('Retry-After');
+                        let delay = Math.pow(2, attempt - 1) * 1000;
+                        if (retryAfter) {
+                            const parsed = parseFloat(retryAfter);
+                            if (!isNaN(parsed) && parsed > 0) {
+                                delay = Math.min(parsed * 1000, 30_000);
+                            }
+                        }
+                        const waitSec = (delay / 1000).toFixed(1);
                         if (VW?.events)
-                            VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after ${resp.status}...`, 'system-msg');
+                            VW.events.log(`LLM retry ${attempt}/${maxRetries} after ${resp.status} (waiting ${waitSec}s)...`, 'system-msg');
                         await new Promise(r => setTimeout(r, delay));
                         continue;
                     }
@@ -220,7 +228,7 @@ class LLMClient {
                     const streamInfo = { truncated: false };
                     // A retry must not paint a SECOND stream over the partial
                     // text already on screen, so onChunk is suppressed once the
-                    // retry budget is in play — the complete answer replaces it.
+                    // retry budget is in play - the complete answer replaces it.
                     const chunkSink = truncationRetries > 0 ? undefined : options.onChunk;
                     const streamed = await this._handleStream(resp, format, chunkSink, label, messages, options, streamInfo);
                     // A stream isn't reassembled into a provider envelope, so
@@ -229,7 +237,7 @@ class LLMClient {
                     if (streamInfo.truncated && truncationRetries < MAX_TRUNCATION_RETRIES) {
                         truncationRetries++;
                         effectiveMaxTokens = this._nextTokenBudget(baseMaxTokens, truncationRetries);
-                        VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap mid-stream — retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
+                        VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap mid-stream - retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
                         continue;
                     }
                     if (streamInfo.truncated)
@@ -242,7 +250,7 @@ class LLMClient {
                 if (this._truncationReason(completion, isResponses) && truncationRetries < MAX_TRUNCATION_RETRIES) {
                     truncationRetries++;
                     effectiveMaxTokens = this._nextTokenBudget(baseMaxTokens, truncationRetries);
-                    VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap (${this._truncationReason(completion, isResponses)}) — retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
+                    VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap (${this._truncationReason(completion, isResponses)}) - retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
                     continue;
                 }
                 if (this._truncationReason(completion, isResponses)) {
@@ -343,7 +351,7 @@ class LLMClient {
     }
     /**
      * Detect providers that silently IGNORE a strict json_schema (LM Studio
-     * does this for models without grammar support — no error is raised, the
+     * does this for models without grammar support - no error is raised, the
      * model just emits free JSON). Proof of non-enforcement: the response
      * parses as an object but contains keys the closed schema forbids.
      * Warns once per schema and disables structured output for the session,
@@ -373,7 +381,7 @@ class LLMClient {
         this._schemaIgnoredWarned.add(def.name);
         this._structuredUnsupported = true;
         if (VW?.events)
-            VW.events.log(`⚠️ ${def.name}: provider ignored the JSON schema (unexpected keys: ${extras.join(', ')}) — the loaded model likely can't do structured output (LM Studio: models under 7B usually can't). Structured output disabled for this session.`, 'error-msg');
+            VW.events.log(`⚠️ ${def.name}: provider ignored the JSON schema (unexpected keys: ${extras.join(', ')}) - the loaded model likely can't do structured output (LM Studio: models under 7B usually can't). Structured output disabled for this session.`, 'error-msg');
     }
     getLastPrompt() {
         if (!this._lastMessages)
@@ -440,7 +448,7 @@ class LLMClient {
         if (!VW?.events?.log)
             return;
         const tail = String(content || '').slice(-60).replace(/\s+/g, ' ');
-        VW.events.log(`✂️ ${label || 'LLM'} STILL truncated at ${budget || MAX_TOKEN_CEILING} tokens — the answer is incomplete. Raise Max Tokens in Settings.${tail ? ` …"${tail}"` : ''}`, 'system-msg');
+        VW.events.log(`✂️ ${label || 'LLM'} STILL truncated at ${budget || MAX_TOKEN_CEILING} tokens - the answer is incomplete. Raise Max Tokens in Settings.${tail ? ` …"${tail}"` : ''}`, 'system-msg');
     }
     _logAssistantResponse(label, content, meta) {
         const text = this._normalizeAssistantText(content);
@@ -454,7 +462,7 @@ class LLMClient {
         VW.events.logRawLLMResponse(label || 'LLM', text, effective);
     }
     /** Feed one completed request/response pair to the dataset collector.
-     *  Never throws — capture is best-effort and must not affect gameplay. */
+     *  Never throws - capture is best-effort and must not affect gameplay. */
     _captureDataset(messages, content, label, options) {
         try {
             if (typeof DatasetCollector !== 'undefined' && DatasetCollector && content) {
@@ -529,7 +537,7 @@ class LLMClient {
                     : { type: 'json_object' }
             };
         }
-        // Thinking OFF — or an explicit `none` effort — disables reasoning by
+        // Thinking OFF - or an explicit `none` effort - disables reasoning by
         // sending effort 'none'; otherwise the selected effort passes through.
         const thinkingOff = !this.thinking || this.thinkingEffort === 'none';
         body.reasoning = { effort: thinkingOff ? 'none' : (this.thinkingEffort || 'high') };
@@ -565,7 +573,7 @@ class LLMClient {
         }
         return '';
     }
-    /** Handle streaming response — OpenAI SSE + LM Studio formats (chat-completions and responses) */
+    /** Handle streaming response - OpenAI SSE + LM Studio formats (chat-completions and responses) */
     async _handleStream(resp, format, onChunk, label, messages, options, info) {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
@@ -592,9 +600,9 @@ class LLMClient {
                 const data = trimmed.slice(5).trim();
                 if (data === '[DONE]' || currentEvent === 'chat.end')
                     continue;
-                // Responses API has no [DONE] — terminate on response.completed / response.failed
+                // Responses API has no [DONE] - terminate on response.completed / response.failed
                 if (isResponses && (currentEvent === 'response.completed' || currentEvent === 'response.failed')) {
-                    // Some local providers emit NO delta chunks — the whole
+                    // Some local providers emit NO delta chunks - the whole
                     // answer rides inside the final envelope as
                     // { response: { output: [{ content: [{ text }] }] } }.
                     // Pull it out so we don't return an empty string, and log
@@ -641,7 +649,7 @@ class LLMClient {
                         content = parsed?.delta || parsed?.output_text || '';
                     }
                     else {
-                        // Content tokens only — ignore reasoning/thinking deltas (Nemotron, DeepSeek, etc.)
+                        // Content tokens only - ignore reasoning/thinking deltas (Nemotron, DeepSeek, etc.)
                         content = parsed.choices?.[0]?.delta?.content
                             || parsed.choices?.[0]?.message?.content
                             || parsed.content

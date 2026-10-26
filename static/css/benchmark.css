@@ -291,11 +291,17 @@ html.bench-doc, html.bench-doc body { height: auto; overflow: visible; }
 }
 .bench-card-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
     padding: 10px 14px;
     background: var(--b-inset);
     border-bottom: 1px solid var(--b-border);
+}
+.bench-card-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
 }
 .bench-card-model {
     font-weight: 700;
@@ -304,10 +310,64 @@ html.bench-doc, html.bench-doc body { height: auto; overflow: visible; }
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 240px;
+    flex: 1;
+}
+.bench-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.bench-card-rolls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.bench-roll-tab {
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    background: var(--b-bg);
+    color: var(--b-dim);
+    border: 1px solid var(--b-border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.bench-roll-tab:hover {
+    color: var(--b-text);
+    border-color: var(--b-accent);
+}
+.bench-roll-tab.active {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--b-accent);
+    border-color: var(--b-accent);
+}
+.bench-reroll-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    border: 1px solid var(--b-border);
+    background: var(--b-card);
+    color: var(--b-text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+.bench-reroll-btn:hover:not(:disabled) {
+    background: var(--b-accent);
+    color: #fff;
+    border-color: var(--b-accent);
+}
+.bench-reroll-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 .bench-card-metrics {
     display: flex;
+    justify-content: flex-end;
     gap: 10px;
     font-size: 11px;
 }

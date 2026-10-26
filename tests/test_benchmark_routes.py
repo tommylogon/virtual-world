@@ -118,4 +118,38 @@ def test_benchmark_native_lmstudio_parsing(client, monkeypatch):
     assert m['loaded'] is True
     assert m['context_length'] == 262144
 
+def test_benchmark_chat_retry_after(client, monkeypatch):
+    import requests
+    calls = []
+    class MockResp429:
+        ok = False
+        status_code = 429
+        headers = {'Retry-After': '0.01'}
+        text = 'Too Many Requests'
+    class MockResp200:
+        ok = True
+        status_code = 200
+        headers = {'Content-Type': 'application/json'}
+        def json(self):
+            return {'choices': [{'message': {'content': 'Success after retry'}}]}
+
+    def mock_post(*args, **kwargs):
+        calls.append(len(calls) + 1)
+        if len(calls) == 1:
+            return MockResp429()
+        return MockResp200()
+
+    monkeypatch.setattr(requests, 'post', mock_post)
+    resp = client.post('/api/bench/chat', json={
+        'model': 'test-model',
+        'messages': [{'role': 'user', 'content': 'hi'}],
+        'stream': False,
+        'api_base': 'http://localhost:1234/v1'
+    })
+    assert resp.status_code == 200
+    assert len(calls) == 2
+    data = json.loads(resp.data)
+    assert data['choices'][0]['message']['content'] == 'Success after retry'
+
+
 
