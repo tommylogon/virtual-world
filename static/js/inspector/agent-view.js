@@ -17,11 +17,9 @@
 window.InspectorAgentView = (() => {
     const AV = window.InspectorView ? new window.InspectorView() : {};
     AV._lastTemplate = null;
-    // Lazy tag for the PICKERS/OVERLAYS only (trait option, condition editor,
-    // timeline detail, add-item/container pickers). The main agent template and
-    // its deferred gravity/alias helpers stay as STRINGS via unsafeHTML (the
-    // documented HEAD design) - never mix this tag into those string builds.
-    const agentViewTag = (strings, ...values) => window.Lit.html(strings, ...values);
+    const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+    // Lazy tag for pickers/overlays; aliases htmlTag for backward compatibility.
+    const agentViewTag = htmlTag;
     // ─── Internal state ───
     let _activeTab = 'Bio';
     // Deferred renders: agent-view builds one big HTML string, so helpers that
@@ -60,7 +58,6 @@ window.InspectorAgentView = (() => {
      * @param {string} agentName - Character name
      */
     AV.showAgent = function (agentName) {
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         const panel = document.getElementById('inspector-panel');
         if (!panel || !worldState.data)
             return;
@@ -95,9 +92,9 @@ window.InspectorAgentView = (() => {
             onClose: () => hideInspectorPanel(),
             actions: htmlTag `<span style="font-size:10px;color:var(--text-muted);margin-right:6px;">tick ${worldState.tick}</span>`
         });
-        let html = AV._renderStatusRow(agentName, player, color, isAuto, escName);
-        html += AV._renderEmotionSelector(agentName, player, escName);
-        html += AV._renderVitals(player, agentName);
+        const statusRowTmpl = AV._renderStatusRow(agentName, player, color, isAuto, escName);
+        const emotionSelectorTmpl = AV._renderEmotionSelector(agentName, player, escName);
+        let html = AV._renderVitals(player, agentName);
         // Tab navigation
         html += AV._renderTabNav(escName);
         // Inventory tab (paperdoll on top, inventory below)
@@ -113,7 +110,7 @@ window.InspectorAgentView = (() => {
         // handlers. Render it through InspectorPanel (single panel owner) inside
         // an unsafeHTML marker so lit never tries to diff against string content
         // and its part tracking stays intact across re-renders.
-        window.InspectorPanel.render(htmlTag `${headerTmpl}${window.Lit.unsafeHTML(html)}`);
+        window.InspectorPanel.render(htmlTag `${headerTmpl}${statusRowTmpl}${emotionSelectorTmpl}${window.Lit.unsafeHTML(html)}`);
         // Known-by authoring: who knows THIS character (the Knowledge modal
         // for what they know lives in the Advanced tab). Render into a slot
         // inside the Advanced tab so it only shows when that tab is active.
@@ -279,14 +276,13 @@ window.InspectorAgentView = (() => {
      * @param {string} color - Agent color
      * @param {boolean} isAuto - Whether autonomous
      * @param {string} escName - HTML-escaped name
-     * @returns {string} HTML
+     * @returns {unknown} lit-html TemplateResult
      */
-    AV._renderStatusRow = function (agentName, player, color, isAuto, escName) {
+    AV._renderStatusRow = function (agentName, player, _color, _isAuto, escName) {
         const currentArea = player.current_area || '';
-        const escCurrentArea = currentArea.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const listId = 'player-room-list-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
         const areaNames = Object.keys(worldState.areas || {}).sort((a, b) => a.localeCompare(b));
-        const roomOptions = areaNames.map(areaName => `<option value="${areaName.replace(/"/g, '&quot;')}"></option>`).join('');
+        const roomOptions = areaNames.map(areaName => htmlTag `<option value="${areaName}"></option>`);
         // stacked instance (4 vials of poison = 4 cards under `poisoned`).
         const condColors = {
             dead: 'var(--red)', unconscious: '#e65100', paralysed: '#555',
@@ -299,27 +295,28 @@ window.InspectorAgentView = (() => {
         // The state badge duplicates the interactive condition chip when the
         // state IS a listed condition (e.g. "grappled") - show the chip only.
         const stateHasChip = Array.isArray(conds[player.state]) && conds[player.state].length > 0;
-        const condBadges = Object.entries(conds).map(([cid, instances]) => {
-            if (!Array.isArray(instances) || instances.length === 0)
-                return '';
-            const color = condColors[cid] || '#888';
+        const condBadges = Object.entries(conds)
+            .filter(([, instances]) => Array.isArray(instances) && instances.length > 0)
+            .map(([cid, instances]) => {
+            const badgeColor = condColors[cid] || '#888';
             const label = `${cid}${instances.length > 1 ? ' ×' + instances.length : ''}`;
             const cards = instances.map(inst => {
                 const bits = [];
                 if (inst.source)
-                    bits.push(`why: <b>${inst.source}</b>`);
-                bits.push(inst.duration ? `left: <b>${inst.duration}t</b>` : '<b>permanent</b>');
+                    bits.push(htmlTag `<span>why: <b>${inst.source}</b></span>`);
+                bits.push(inst.duration ? htmlTag `<span>left: <b>${inst.duration}t</b></span>` : htmlTag `<span><b>permanent</b></span>`);
                 if (inst.level)
-                    bits.push(`lvl <b>${inst.level}</b>`);
+                    bits.push(htmlTag `<span>lvl <b>${inst.level}</b></span>`);
                 if (inst.periodic && Object.keys(inst.periodic).length) {
-                    bits.push(`per tick: <b>${Object.entries(inst.periodic).map(([k, v]) => `${k} ${v > 0 ? '+' : ''}${v}`).join(', ')}</b>`);
+                    const periodicStr = Object.entries(inst.periodic).map(([k, v]) => `${k} ${v > 0 ? '+' : ''}${v}`).join(', ');
+                    bits.push(htmlTag `<span>per tick: <b>${periodicStr}</b></span>`);
                 }
                 if (inst.ends_on && inst.ends_on.length)
-                    bits.push(`ends on: <b>${inst.ends_on.join(', ')}</b>`);
-                return `<div style="padding:2px 4px;border-left:2px solid ${color};color:var(--text-dim);display:flex;gap:8px;flex-wrap:wrap;font-size:10px;">${bits.join(' ')}</div>`;
-            }).join('');
-            return `<span style="position:relative;display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${color}22;color:${color};border:1px solid ${color};cursor:pointer;" onclick="const pop=this.querySelector('.cond-pop'); pop.style.display = pop.style.display==='block'?'none':'block';">${label} ▾<div class="cond-pop" style="display:none;position:absolute;top:100%;left:0;z-index:99;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:4px;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">${cards}<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:3px;"><span style="cursor:pointer;color:var(--red);font-size:10px;" onclick="event.stopPropagation();InspectorAgentView._removeCondition('${escName}','${cid}')">✕ Clear ${cid}</span></div></div></span>`;
-        }).join(' ');
+                    bits.push(htmlTag `<span>ends on: <b>${inst.ends_on.join(', ')}</b></span>`);
+                return htmlTag `<div style="padding:2px 4px;border-left:2px solid ${badgeColor};color:var(--text-dim);display:flex;gap:8px;flex-wrap:wrap;font-size:10px;">${bits}</div>`;
+            });
+            return htmlTag `<span style="position:relative;display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor};cursor:pointer;" onclick="const pop=this.querySelector('.cond-pop'); pop.style.display = pop.style.display==='block'?'none':'block';">${label} ▾<div class="cond-pop" style="display:none;position:absolute;top:100%;left:0;z-index:99;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:4px;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">${cards}<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:3px;"><span style="cursor:pointer;color:var(--red);font-size:10px;" onclick="event.stopPropagation();InspectorAgentView._removeCondition('${escName}','${cid}')">✕ Clear ${cid}</span></div></div></span>`;
+        });
         // Control mode: npc | human | llm - one vocabulary with the graph badges and
         // the agent list (StreamControlMode.controlBadge).
         const mode = events.getControlMode(agentName);
@@ -332,10 +329,10 @@ window.InspectorAgentView = (() => {
             npc: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'), bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
         }[mode];
         const inputId = 'player-room-' + escName.replace(/[^a-zA-Z0-9_-]/g, '_');
-        return `<div style="display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
+        return htmlTag `<div style="display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span>📍</span>
             <input id="${inputId}" list="${listId}" name="area"
-                value="${escCurrentArea}"
+                value="${currentArea}"
                 placeholder="Search area..."
                 autocomplete="off"
                 onfocus="this.select()"
@@ -346,7 +343,7 @@ window.InspectorAgentView = (() => {
                 ${roomOptions}
             </datalist>
             <button class="btn btn-sm btn-blue" onclick="InspectorAgentView._commitPlayerRoom('${escName}', document.getElementById('${inputId}'))" style="font-size:10px;padding:1px 8px;" title="Move character to selected area">Move</button>
-            ${stateHasChip ? '' : `<span title="Most significant condition (derived from conditions)" style="font-size:10px;background:${player.state === 'dead' ? 'var(--red)' : 'var(--accent-dim)'};color:${player.state === 'dead' ? '#fff' : '#000'};border-radius:4px;padding:2px 8px;font-weight:600;border:1px solid var(--border);">${player.state}</span>`}
+            ${stateHasChip ? (window.Lit?.nothing ?? '') : htmlTag `<span title="Most significant condition (derived from conditions)" style="font-size:10px;background:${player.state === 'dead' ? 'var(--red)' : 'var(--accent-dim)'};color:${player.state === 'dead' ? '#fff' : '#000'};border-radius:4px;padding:2px 8px;font-weight:600;border:1px solid var(--border);">${player.state}</span>`}
             ${condBadges}
             <button class="btn btn-sm" onclick="InspectorAgentView._openConditionEditor('${escName}')" title="Add a specific condition (blind, poisoned, unconscious...) with a duration, source, or level" style="font-size:10px;">➕ Add Condition</button>
             <span style="flex:1;"></span>
@@ -412,12 +409,12 @@ window.InspectorAgentView = (() => {
      * @param {string} agentName - Character name
      * @param {object} player - Player data
      * @param {string} escName - HTML-escaped name
-     * @returns {string} HTML
+     * @returns {unknown} lit-html TemplateResult
      */
-    AV._renderEmotionSelector = function (agentName, player, escName) {
+    AV._renderEmotionSelector = function (_agentName, player, escName) {
         const emotion = player.emotion || { current: 'neutral', intensity: 0 };
-        const emotionOptions = Object.keys(EMOTION_ICONS).map(emotionName => `<option value="${emotionName}" ${emotion.current === emotionName ? 'selected' : ''}>${EMOTION_ICONS[emotionName]} ${emotionName}</option>`).join('');
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
+        const emotionOptions = Object.keys(EMOTION_ICONS).map(emotionName => htmlTag `<option value="${emotionName}" ?selected=${emotion.current === emotionName}>${EMOTION_ICONS[emotionName]} ${emotionName}</option>`);
+        return htmlTag `<div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span style="font-size:13px;">${EMOTION_ICONS[emotion.current] || '😐'}</span>
             <select id="player-emotion" name="emotion" onchange="ApiClient.updateCharacter('${escName}',{emotion:{current:this.value,intensity:parseFloat(document.getElementById('emotion-intensity-${escName}').value)||0}}).then(()=>worldState.fetch())" style="font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 4px;">
                 ${emotionOptions}
@@ -425,7 +422,7 @@ window.InspectorAgentView = (() => {
             <span style="font-size:10px;color:var(--text-dim);">intensity</span>
             <input type="range" id="emotion-intensity-${escName}" min="0" max="1" step="0.05" value="${emotion.intensity || 0}" style="width:60px;" oninput="document.getElementById('emotion-val-${escName}').textContent=parseFloat(this.value).toFixed(2);ApiClient.updateCharacter('${escName}',{emotion:{current:'${emotion.current}',intensity:parseFloat(this.value)}}).then(()=>worldState.fetch())">
             <span id="emotion-val-${escName}" style="min-width:30px;font-size:10px;color:var(--text-dim);">${(emotion.intensity || 0).toFixed(2)}</span>
-            ${emotion.description ? `<span style="font-size:10px;color:var(--text-muted);font-style:italic;">${emotion.description}</span>` : ''}
+            ${emotion.description ? htmlTag `<span style="font-size:10px;color:var(--text-muted);font-style:italic;">${emotion.description}</span>` : ''}
         </div>`;
     };
     /**

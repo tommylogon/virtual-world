@@ -1,19 +1,19 @@
 /**
- * scenario-wizard.js — "Scenario from Text" world-creation wizard.
+ * scenario-wizard.js - "Scenario from Text" world-creation wizard.
  *
  * One premise sentence → LLM drafts a whole world in the TEMPLATE format
  * (engine/serialization_template.py): areas + environment + mirrored exits
  * + items (with tags/triggers/contents) + protagonist + supporting cast +
  * lore. The draft is reviewed card-by-card (accept / regenerate per room,
- * prune items), then applied through the existing POST /api/load path —
+ * prune items), then applied through the existing POST /api/load path -
  * which snapshots the current world onto the undo stack and saves the draft
  * as a scenario, so ↩ Undo restores everything.
  *
  * Load AFTER shared/ai-generator.js and api.js; before the UI is used.
  *
- * @module ui/scenario-wizard — "Scenario from Text" wizard
+ * @module ui/scenario-wizard - "Scenario from Text" wizard
  * @contributes ScenarioWizard: premise → LLM-drafted world in the template format, card-by-card review, apply
- * @powers Scenario creation — creating a whole scenario from one sentence
+ * @powers Scenario creation - creating a whole scenario from one sentence
  * @relates uses shared/ai-generator; applies through POST /api/load (undo-snapshotted)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
@@ -24,9 +24,11 @@
 (window as unknown as ScenarioWizardWindowSurface).ScenarioWizard = (() => {
     'use strict';
 
+    const wizardHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
+
     const OPPOSITE: Record<string, string> = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up', in: 'out', out: 'in', left: 'right', right: 'left', inside: 'outside', outside: 'inside' };
 
-    const SYSTEM_PROMPT = `You are a world architect for a text-based AI-agent RPG engine. Convert a scenario premise into ONE complete world draft. Respond with ONLY raw JSON — no markdown, no code fences, no commentary.
+    const SYSTEM_PROMPT = `You are a world architect for a text-based AI-agent RPG engine. Convert a scenario premise into ONE complete world draft. Respond with ONLY raw JSON - no markdown, no code fences, no commentary.
 
 Schema (exact shape):
 {
@@ -67,7 +69,7 @@ RULES:
      * `window.AIGenerator` is `undefined`. It must therefore be read bare.
      * globals.d.ts does not declare it, and a `declare const` here would be a
      * TS2451 "cannot redeclare block-scoped variable" against ai-generator.ts in
-     * the project build — hence the scoped @ts-ignore. Delete it once the hub
+     * the project build - hence the scoped @ts-ignore. Delete it once the hub
      * declares AIGenerator.
      *
      * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
@@ -141,78 +143,48 @@ RULES:
 
     // ────────────────────────── UI builders ──────────────────────────
 
-    function baseBox(): { overlay: HTMLElement; box: HTMLElement } {
-        // Close any previous wizard overlay before stacking a new one — the
-        // wizard can be re-opened/re-rendered (review ↔ input) mid-session.
-        if (_overlay && _overlay.parentNode) {
-            _overlay.parentNode.removeChild(_overlay);
+    function getMountPoint(): HTMLElement {
+        if (!_overlay || !_overlay.parentNode) {
+            _overlay = document.createElement('div');
+            _overlay.id = 'scenario-wizard-root';
+            document.body.appendChild(_overlay);
         }
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
-        const box = document.createElement('div');
-        box.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;width:620px;max-height:88vh;display:flex;flex-direction:column;gap:10px;';
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        return { overlay, box };
+        return _overlay;
     }
 
     function renderInput(): void {
-        const { overlay, box } = baseBox();
-        _overlay = overlay;
+        const mount = getMountPoint();
 
-        const header = document.createElement('div');
-        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-        const title = document.createElement('h3');
-        title.style.cssText = 'margin:0;font-size:15px;';
-        title.textContent = '✨ Scenario from Text';
-        const close = document.createElement('button');
-        close.className = 'btn btn-sm';
-        close.textContent = '\u2715';
-        close.onclick = () => closeOverlay();
-        header.appendChild(title);
-        header.appendChild(close);
-        box.appendChild(header);
-
-        const hint = document.createElement('div');
-        hint.style.cssText = 'font-size:11px;color:var(--text-muted);';
-        hint.textContent = 'Describe a world in one or two sentences. The AI drafts rooms, doors, items, characters, and lore — you review every card before anything touches the graph. Applying REPLACES the current world; ↩ Undo restores it.';
-        box.appendChild(hint);
-
-        const textarea = document.createElement('textarea');
-        textarea.rows = 5;
-        textarea.placeholder = 'e.g. A mountain hunting lodge cut off by a blizzard. Eight guests, one dead, an old grudge in the walls. The survivor has to find out who killed the guide before the lights go out.';
-        textarea.style.cssText = 'width:100%;font-size:12px;padding:8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:8px;resize:vertical;';
-        box.appendChild(textarea);
-
-        const nameRow = document.createElement('div');
-        nameRow.style.cssText = 'display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text-dim);';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.placeholder = 'Scenario name (optional — defaults to the draft title)';
-        nameInput.style.cssText = 'flex:1;font-size:11px;padding:5px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:6px;';
-        nameRow.appendChild(nameInput);
-        box.appendChild(nameRow);
-
-        const actions = document.createElement('div');
-        actions.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
-        const cancel = document.createElement('button');
-        cancel.className = 'btn btn-sm';
-        cancel.textContent = 'Cancel';
-        cancel.onclick = () => closeOverlay();
-        const gen = document.createElement('button');
-        gen.className = 'btn btn-sm btn-blue';
-        gen.textContent = '🪄 Draft World';
-        gen.onclick = () => {
-            const premise = textarea.value.trim();
-            if (!premise) { gen.textContent = 'Type a premise first'; setTimeout(() => { gen.textContent = '🪄 Draft World'; }, 1200); return; }
+        const onDraft = () => {
+            const textarea = document.getElementById('wz-premise') as HTMLTextAreaElement | null;
+            const nameInput = document.getElementById('wz-name') as HTMLInputElement | null;
+            const gen = document.getElementById('wz-draft-btn') as HTMLButtonElement | null;
+            const premise = textarea?.value.trim() || '';
+            if (!premise) {
+                if (gen) {
+                    gen.textContent = 'Type a premise first';
+                    setTimeout(() => { if (gen) gen.textContent = '🪄 Draft World'; }, 1200);
+                }
+                return;
+            }
             if (!aiGenerator || !aiGenerator.isConfigured()) return;
-            gen.disabled = true;
-            gen.textContent = 'Architecting…';
-            aiGenerator.generate(`Scenario premise:\n\n${premise}\n\nBuild the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
+            if (gen) {
+                gen.disabled = true;
+                gen.textContent = 'Architecting…';
+            }
+            aiGenerator.generate(`Scenario premise:
+
+${premise}
+
+Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 .then((result: ScenarioWizardAiResult) => {
                     if (result.success && result.data) {
-                        _state = { draft: normalizeDraft(result.data), name: nameInput.value.trim() || (result.data as Partial<WorldDraft>).name || 'Generated Scenario', premise, include: { rooms: {}, items: {}, chars: {}, lore: {} } };
+                        _state = {
+                            draft: normalizeDraft(result.data),
+                            name: nameInput?.value.trim() || (result.data as Partial<WorldDraft>).name || 'Generated Scenario',
+                            premise,
+                            include: { rooms: {}, items: {}, chars: {}, lore: {} }
+                        };
                         try {
                             renderReview();
                         } catch (e) {
@@ -222,59 +194,79 @@ RULES:
                         }
                     } else {
                         toastError('Draft failed: ' + (result.error || 'unknown error'));
-                        gen.disabled = false;
-                        gen.textContent = '🪄 Draft World';
+                        if (gen) {
+                            gen.disabled = false;
+                            gen.textContent = '🪄 Draft World';
+                        }
                     }
                 })
                 .catch((err: unknown) => {
                     toastError('Draft failed: ' + (err instanceof Error ? err.message : err));
-                    gen.disabled = false;
-                    gen.textContent = '🪄 Draft World';
+                    if (gen) {
+                        gen.disabled = false;
+                        gen.textContent = '🪄 Draft World';
+                    }
                 });
         };
-        actions.appendChild(cancel);
-        actions.appendChild(gen);
-        box.appendChild(actions);
 
-        setTimeout(() => textarea.focus(), 50);
+        const content = wizardHtmlTag`
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+                Describe a world in one or two sentences. The AI drafts rooms, doors, items, characters, and lore - you review every card before anything touches the graph. Applying REPLACES the current world; ↩ Undo restores it.
+            </div>
+            <textarea id="wz-premise" rows="5"
+                placeholder="e.g. A mountain hunting lodge cut off by a blizzard. Eight guests, one dead, an old grudge in the walls. The survivor has to find out who killed the guide before the lights go out."
+                style="width:100%;font-size:12px;padding:8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:8px;resize:vertical;box-sizing:border-box;margin-bottom:8px;"></textarea>
+            <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text-dim);">
+                <input type="text" id="wz-name"
+                    placeholder="Scenario name (optional - defaults to the draft title)"
+                    style="flex:1;font-size:11px;padding:5px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:6px;box-sizing:border-box;">
+            </div>
+        `;
+
+        const actions = wizardHtmlTag`
+            <button class="btn btn-sm" @click=${() => closeOverlay()}>Cancel</button>
+            <button class="btn btn-sm btn-blue" id="wz-draft-btn" @click=${() => onDraft()}>🪄 Draft World</button>
+        `;
+
+        const modalTmpl = window.UiPrimitives?.ModalDialog ? window.UiPrimitives.ModalDialog({
+            title: '✨ Scenario from Text',
+            isOpen: true,
+            size: 'lg',
+            content,
+            actions,
+            onClose: () => closeOverlay()
+        }) : wizardHtmlTag`
+            <div class="modal-backdrop" @click=${(ev: MouseEvent) => { if (ev.target === ev.currentTarget) closeOverlay(); }} style="position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(2px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">
+                <div class="modal-card" style="background:var(--bg-panel, #1a1e24);border:1px solid var(--border, #333a45);border-radius:8px;width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(0,0,0,0.5);overflow:hidden;">
+                    <div class="modal-header" style="padding:12px 16px;border-bottom:1px solid var(--border, #333a45);display:flex;align-items:center;justify-content:space-between;">
+                        <h3 style="margin:0;font-size:15px;color:var(--text, #e6e6e6);">✨ Scenario from Text</h3>
+                        <button class="btn btn-sm btn-ghost" @click=${() => closeOverlay()} style="cursor:pointer;padding:2px 8px;">✕</button>
+                    </div>
+                    <div class="modal-body" style="padding:16px;overflow-y:auto;flex:1;">
+                        ${content}
+                    </div>
+                    <div class="modal-actions" style="padding:10px 16px;border-top:1px solid var(--border, #333a45);display:flex;gap:8px;justify-content:flex-end;background:var(--bg-inset, #242a33);">
+                        ${actions}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (window.Lit?.render && modalTmpl) {
+            window.Lit.render(modalTmpl, mount);
+        }
+
+        setTimeout(() => (document.getElementById('wz-premise') as HTMLTextAreaElement | null)?.focus(), 50);
     }
 
     function renderReview(): void {
-        const { overlay, box } = baseBox();
-        _overlay = overlay;
-        box.style.width = '720px';
-
-        const header = document.createElement('div');
-        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;';
-        const title = document.createElement('h3');
-        title.style.cssText = 'margin:0;font-size:15px;white-space:nowrap;';
-        title.textContent = '📋 Review World Draft';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = _state!.name;
-        nameInput.style.cssText = 'flex:1;font-size:12px;padding:5px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:6px;text-align:right;';
-        nameInput.title = 'Scenario name';
-        nameInput.onchange = () => { _state!.name = nameInput.value.trim() || _state!.name; };
-        const close = document.createElement('button');
-        close.className = 'btn btn-sm';
-        close.textContent = '\u2715';
-        close.onclick = () => closeOverlay();
-        header.appendChild(title);
-        header.appendChild(nameInput);
-        header.appendChild(close);
-        box.appendChild(header);
-
+        const mount = getMountPoint();
         const d = _state!.draft;
         const roomNames = Object.keys(d.areas);
         const itemCount = roomNames.reduce((n: number, r: string) => n + (d.areas[r].items || []).length, 0);
-        const stats = document.createElement('div');
-        stats.style.cssText = 'font-size:10px;color:var(--text-muted);';
-        stats.textContent = `🏠 ${roomNames.length} rooms · 📦 ${itemCount} items · 🧍 ${(d.characters || []).length} characters · 📖 ${(d.world_lore || []).length} lore entries — ticking a card off skips it.`;
-        box.appendChild(stats);
 
         const list = document.createElement('div');
         list.style.cssText = 'overflow-y:auto;max-height:52vh;display:flex;flex-direction:column;gap:8px;';
-        box.appendChild(list);
 
         // Characters
         if ((d.characters || []).length) {
@@ -285,7 +277,7 @@ RULES:
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.innerHTML = `<strong>${esc(c.name || '?')}</strong> <span style="color:var(--text-dim);">— starts in ${esc(c.area || '?')}</span><br><span style="color:var(--text-dim);">${esc((c.description || '').slice(0, 160))}</span>`;
+                body.innerHTML = `<strong>${esc(c.name || '?')}</strong> <span style="color:var(--text-dim);">- starts in ${esc(c.area || '?')}</span><br><span style="color:var(--text-dim);">${esc((c.description || '').slice(0, 160))}</span>`;
                 el.appendChild(body);
                 return el;
             })));
@@ -371,34 +363,55 @@ RULES:
             list.appendChild(card);
         });
 
-        // Footer
-        const footer = document.createElement('div');
-        footer.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-        const left = document.createElement('button');
-        left.className = 'btn btn-sm';
-        left.textContent = '↩ Back';
-        left.onclick = () => renderInput();
-        // Append mode toggle (task-383): merge into the live world instead of
-        // replacing it. Existing area names are skipped (never clobbered).
-        const appendCb = document.createElement('label');
-        appendCb.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer;';
-        appendCb.innerHTML = '<input type="checkbox" id="wz-append"> ➕ Append to current world (skip existing rooms)';
-        const right = document.createElement('div');
-        right.style.cssText = 'display:flex;gap:8px;align-items:center;';
-        const cancel = document.createElement('button');
-        cancel.className = 'btn btn-sm';
-        cancel.textContent = 'Cancel';
-        cancel.onclick = () => closeOverlay();
-        const apply = document.createElement('button');
-        apply.className = 'btn btn-sm btn-green';
-        apply.textContent = '🚀 Apply World';
-        apply.onclick = () => applyDraft(apply);
-        right.appendChild(cancel);
-        right.appendChild(apply);
-        footer.appendChild(appendCb);
-        footer.appendChild(left);
-        footer.appendChild(right);
-        box.appendChild(footer);
+        const content = wizardHtmlTag`
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                <label style="font-size:11px;color:var(--text-dim);white-space:nowrap;">Scenario Name:</label>
+                <input type="text" id="wz-review-name" .value=${_state!.name}
+                    @change=${(e: Event) => { _state!.name = (e.target as HTMLInputElement).value.trim() || _state!.name; }}
+                    style="flex:1;font-size:12px;padding:5px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:6px;">
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">
+                🏠 ${roomNames.length} rooms · 📦 ${itemCount} items · 🧍 ${(d.characters || []).length} characters · 📖 ${(d.world_lore || []).length} lore entries - ticking a card off skips it.
+            </div>
+            ${list}
+        `;
+
+        const actions = wizardHtmlTag`
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer;margin-right:auto;">
+                <input type="checkbox" id="wz-append"> ➕ Append to current world (skip existing rooms)
+            </label>
+            <button class="btn btn-sm" @click=${() => renderInput()}>↩ Back</button>
+            <button class="btn btn-sm" @click=${() => closeOverlay()}>Cancel</button>
+            <button class="btn btn-sm btn-green" id="wz-apply-btn" @click=${(e: MouseEvent) => applyDraft(e.currentTarget as HTMLButtonElement)}>🚀 Apply World</button>
+        `;
+
+        const modalTmpl = window.UiPrimitives?.ModalDialog ? window.UiPrimitives.ModalDialog({
+            title: '📋 Review World Draft',
+            isOpen: true,
+            size: 'lg',
+            content,
+            actions,
+            onClose: () => closeOverlay()
+        }) : wizardHtmlTag`
+            <div class="modal-backdrop" @click=${(ev: MouseEvent) => { if (ev.target === ev.currentTarget) closeOverlay(); }} style="position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(2px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">
+                <div class="modal-card" style="background:var(--bg-panel, #1a1e24);border:1px solid var(--border, #333a45);border-radius:8px;width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(0,0,0,0.5);overflow:hidden;">
+                    <div class="modal-header" style="padding:12px 16px;border-bottom:1px solid var(--border, #333a45);display:flex;align-items:center;justify-content:space-between;">
+                        <h3 style="margin:0;font-size:15px;color:var(--text, #e6e6e6);">📋 Review World Draft</h3>
+                        <button class="btn btn-sm btn-ghost" @click=${() => closeOverlay()} style="cursor:pointer;padding:2px 8px;">✕</button>
+                    </div>
+                    <div class="modal-body" style="padding:16px;overflow-y:auto;flex:1;">
+                        ${content}
+                    </div>
+                    <div class="modal-actions" style="padding:10px 16px;border-top:1px solid var(--border, #333a45);display:flex;gap:8px;justify-content:flex-end;background:var(--bg-inset, #242a33);">
+                        ${actions}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (window.Lit?.render && modalTmpl) {
+            window.Lit.render(modalTmpl, mount);
+        }
     }
 
     function docCheckbox(container: Record<string, boolean | undefined>, key: string | number, defaultValue: boolean, onChange?: () => void): HTMLInputElement {
@@ -470,11 +483,11 @@ RULES:
     function applyDraft(btn: HTMLButtonElement): void {
         const d = _state!.draft;
         const names = Object.keys(d.areas).filter((_: string, i: number) => _state!.include.rooms[i] !== false);
-        if (!names.length) { toastInfo('Nothing selected — tick at least one room.'); return; }
+        if (!names.length) { toastInfo('Nothing selected - tick at least one room.'); return; }
         const appendMode = (document.getElementById('wz-append') as HTMLInputElement | null)?.checked === true;
         if (!confirm(appendMode
-            ? `Append "${_state!.name}"?\n\nNew rooms/ways/items/characters/lore get MERGED into the current world. Existing room names are skipped. The world is on the undo stack — use ↩ Undo to revert.`
-            : `Apply "${_state!.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack — use ↩ Undo (or Ctrl+Z) to restore it.`)) return;
+            ? `Append "${_state!.name}"?\n\nNew rooms/ways/items/characters/lore get MERGED into the current world. Existing room names are skipped. The world is on the undo stack - use ↩ Undo to revert.`
+            : `Apply "${_state!.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack - use ↩ Undo (or Ctrl+Z) to restore it.`)) return;
 
         const out: ApplyPayload = {
             name: _state!.name || 'Generated Scenario',
@@ -508,7 +521,7 @@ RULES:
                 .then(({ ok, j }) => {
                     if (!ok) throw new Error(j.error || 'append failed');
                     worldState.fetch().then(() => {
-                        try { events.log(`✨ Appended "${out.name}" — ${j.added_areas?.length || 0} new rooms, ${j.ways_created || 0} ways, ${j.items_created || 0} items.`, 'system-msg'); } catch (e) {}
+                        try { events.log(`✨ Appended "${out.name}" - ${j.added_areas?.length || 0} new rooms, ${j.ways_created || 0} ways, ${j.items_created || 0} items.`, 'system-msg'); } catch (e) {}
                         closeOverlay();
                         const skippedNote = j.skipped_areas?.length ? ` (skipped: ${j.skipped_areas.join(', ')})` : '';
                         if (typeof toastInfo === 'function') toastInfo(`Appended: ${j.added_areas?.length || 0} rooms${skippedNote}. Undo (↩) reverts.`);
@@ -522,7 +535,7 @@ RULES:
                 });
             return;
         }
-        out.persist = true;  // wizard builds a new scenario — write it to scenarios/
+        out.persist = true;  // wizard builds a new scenario - write it to scenarios/
         fetch('/api/load', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -532,7 +545,7 @@ RULES:
             .then(({ ok, j }) => {
                 if (!ok) throw new Error(j.error || 'load failed');
                 worldState.fetch().then(() => {
-                    try { events.log(`✨ Scenario "${out.name}" applied — ${names.length} rooms from text.`, 'system-msg'); } catch (e) {}
+                    try { events.log(`✨ Scenario "${out.name}" applied - ${names.length} rooms from text.`, 'system-msg'); } catch (e) {}
                     closeOverlay();
                     if (typeof toastInfo === 'function') toastInfo(`World built: ${names.length} rooms. Undo (↩) restores the previous world.`);
                 });

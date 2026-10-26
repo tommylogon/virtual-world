@@ -1,13 +1,13 @@
 "use strict";
 /**
- * InspectorBehaviors — Simple NPC behavior editor
+ * InspectorBehaviors - Simple NPC behavior editor
  * task-216: renders lit-html templates via InspectorPanel / window.Lit.render.
  * The editor modal and action cards are TemplateResults with @click handlers;
  * inline on* attribute handlers are gone.
  *
- * @module inspector/behaviors-view — the scripted-NPC behaviour editor
+ * @module inspector/behaviors-view - the scripted-NPC behaviour editor
  * @contributes InspectorBehaviors: behaviour list, action cards, trigger/interval/priority config
- * @powers Node inspectors, NPC behaviour — authoring what `simple_npc` characters do without the LLM
+ * @powers Node inspectors, NPC behaviour - authoring what `simple_npc` characters do without the LLM
  * @relates renders through InspectorPanel; opens shared/trigger-graph for the node editor
  * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
@@ -18,7 +18,7 @@ window.InspectorBehaviors = (() => {
     // runs, so window.Lit only exists when a view actually renders.
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
     // The behavior editor mixes text inputs, selects and textareas;
-    // getElementById's HTMLElement has no .value — cast at the read sites.
+    // getElementById's HTMLElement has no .value - cast at the read sites.
     const inputById = (id) => document.getElementById(id);
     /**
      * Get available behavior action types with their parameter schemas
@@ -46,7 +46,7 @@ window.InspectorBehaviors = (() => {
      */
     B.BEHAVIOR_CONDITION_TYPES = function () {
         return [
-            { value: 'none', label: '— No Condition —', params: [] },
+            { value: 'none', label: '- No Condition -', params: [] },
             { value: 'eq', label: 'Equals (=)', params: ['cond_target', 'cond_value'] },
             { value: 'has_item', label: 'Has Item', params: ['cond_item', 'cond_item_target'] },
             { value: 'has_trait', label: 'Has Trait', params: ['cond_trait'] },
@@ -338,9 +338,9 @@ window.InspectorBehaviors = (() => {
 <div class="field beh-act-field" data-act="go" style="display:${show('go') ? 'block' : 'none'};">
                         <label>Movement Mode</label>
                         <select class="beh-act-go-mode" style="width:100%;" @change=${(e) => B.toggleGoModeFields(e.target)}>
-                            <option value="goto" ?selected=${goMode === 'goto'}>Goto — pathfind toward area (one step)</option>
-                            <option value="random" ?selected=${goMode === 'random'}>Random — pick an open exit</option>
-                            <option value="patrol" ?selected=${goMode === 'patrol'}>Patrol — cycle through area list</option>
+                            <option value="goto" ?selected=${goMode === 'goto'}>Goto - pathfind toward area (one step)</option>
+                            <option value="random" ?selected=${goMode === 'random'}>Random - pick an open exit</option>
+                            <option value="patrol" ?selected=${goMode === 'patrol'}>Patrol - cycle through area list</option>
                         </select>
                     </div>
                     <div class="field beh-act-field beh-act-go-goto" data-act="go" style="display:${action.type === 'go' && goMode !== 'patrol' && goMode !== 'random' ? 'block' : 'none'};">
@@ -752,10 +752,8 @@ window.InspectorBehaviors = (() => {
         // Build action cards
         const actions = b.actions || [];
         const actionCards = actions.map((a, ai) => B.buildBehaviorActionCard(index, ai, a));
-        const overlay = htmlTag `
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:540px;max-height:85vh;overflow-y:auto;">
-                <h3 style="margin:0 0 12px 0;">🤖 Edit Behavior</h3>
-
+        const content = htmlTag `
+            <div>
                 <div class="field">
                     <label>Trigger Type</label>
                     <select id="beh-trigger-${index}" style="width:100%;">
@@ -779,7 +777,7 @@ window.InspectorBehaviors = (() => {
                 </div>
 
                 <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
-                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--pink);">🧩 Conditions</h3>
+                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--pink);">Conditions</h3>
 
                     <div class="field">
                         <label>Condition Mode</label>
@@ -827,103 +825,103 @@ window.InspectorBehaviors = (() => {
                                 <label>Minimum Ticks</label>
                                 <input type="number" id="beh-cond-min-ticks-${index}" .value=${condMinTicks} min="0" style="width:100%;">
                             </div>
-                             <div class="field beh-cond-field" data-cond="proximity" style="display:${condType === 'proximity' ? 'block' : 'none'};">
-                                 <label>Max Rooms Away (0 = same area)</label>
-                                 <input type="number" id="beh-cond-max-rooms-${index}" .value=${condMaxRooms} min="0" style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
-                                 <label>Emotion Name</label>
-                                 <select id="beh-cond-emotion-name-${index}" style="width:100%;">
-                                     <option value="neutral" ?selected=${cond.emotion === 'neutral'}>neutral</option>
-                                     <option value="happy" ?selected=${cond.emotion === 'happy'}>happy</option>
-                                     <option value="sad" ?selected=${cond.emotion === 'sad'}>sad</option>
-                                     <option value="angry" ?selected=${cond.emotion === 'angry'}>angry</option>
-                                     <option value="afraid" ?selected=${cond.emotion === 'afraid'}>afraid</option>
-                                     <option value="surprised" ?selected=${cond.emotion === 'surprised'}>surprised</option>
-                                     <option value="disgusted" ?selected=${cond.emotion === 'disgusted'}>disgusted</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
-                                 <label>Operator</label>
-                                 <select id="beh-cond-emotion-op-${index}" style="width:100%;">
-                                     <option value="eq" ?selected=${cond.operator === 'eq'}>equals (name match)</option>
-                                     <option value="gt" ?selected=${cond.operator === 'gt'}>intensity &gt;</option>
-                                     <option value="gte" ?selected=${cond.operator === 'gte'}>intensity &gt;=</option>
-                                     <option value="lt" ?selected=${cond.operator === 'lt'}>intensity &lt;</option>
-                                     <option value="lte" ?selected=${cond.operator === 'lte'}>intensity &lt;=</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
-                                 <label>Intensity Threshold</label>
-                                 <input type="number" id="beh-cond-emotion-value-${index}" .value=${cond.value !== undefined ? cond.value : 0} min="0" max="1" step="0.1" style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="npc_is_hidden" style="display:${condType === 'npc_is_hidden' ? 'block' : 'none'};">
-                                 <label>Should Be Hidden?</label>
-                                 <select id="beh-cond-hidden-value-${index}" style="width:100%;">
-                                     <option value="true" ?selected=${cond.value !== false}>Yes, hidden</option>
-                                     <option value="false" ?selected=${cond.value === false}>No, visible</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="character_has_tag" style="display:${condType === 'character_has_tag' ? 'block' : 'none'};">
-                                 <label>Tag</label>
-                                 <input type="text" id="beh-cond-char-tag-${index}" .value=${cond.tag || ''} placeholder="vampire, faction:guard..." style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="character_has_tag" style="display:${condType === 'character_has_tag' ? 'block' : 'none'};">
-                                 <label>Target</label>
-                                 <select id="beh-cond-char-tag-target-${index}" style="width:100%;">
-                                     <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
-                                     <option value="player" ?selected=${cond.target === 'player'}>Player</option>
-                                     <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
-                                 <label>Item Tag</label>
-                                 <input type="text" id="beh-cond-item-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, weapon, faction_guards..." style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
-                                 <label>Target</label>
-                                 <select id="beh-cond-item-tag-target-${index}" style="width:100%;">
-                                     <option value="player" ?selected=${(!cond.target || cond.target === 'player')}>Player</option>
-                                     <option value="self" ?selected=${cond.target === 'self'}>NPC (self)</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
-                                 <label>Smell Tag</label>
-                                 <input type="text" id="beh-cond-smell-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, blood, smoke..." style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
-                                 <label>Range (areas away, 0 = same area)</label>
-                                 <input type="number" id="beh-cond-smell-range-${index}" .value=${cond.range !== undefined ? cond.range : 0} min="0" style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
-                                 <label>Threshold (0.0 - 1.0)</label>
-                                 <input type="number" id="beh-cond-sound-threshold-${index}" .value=${cond.threshold !== undefined ? cond.threshold : 0.5} min="0" max="1" step="0.1" style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
-                                 <label>Listener</label>
-                                 <select id="beh-cond-sound-target-${index}" style="width:100%;">
-                                     <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
-                                     <option value="player" ?selected=${cond.target === 'player'}>Player</option>
-                                 </select>
-                             </div>
-                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
-                                 <label>Flag Key</label>
-                                 <input type="text" id="beh-cond-flag-key-${index}" .value=${cond.key || ''} placeholder="player_fed_me..." style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
-                                 <label>Expected Value</label>
-                                 <input type="text" id="beh-cond-flag-value-${index}" .value=${cond.value !== undefined ? cond.value : 'true'} placeholder="true" style="width:100%;">
-                             </div>
-                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
-                                 <label>Target</label>
-                                 <select id="beh-cond-flag-target-${index}" style="width:100%;">
-                                     <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
-                                     <option value="player" ?selected=${cond.target === 'player'}>Player</option>
-                                     <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
-                                 </select>
-                             </div>
-                         </div>
-                     </div>
+                            <div class="field beh-cond-field" data-cond="proximity" style="display:${condType === 'proximity' ? 'block' : 'none'};">
+                                <label>Max Rooms Away (0 = same area)</label>
+                                <input type="number" id="beh-cond-max-rooms-${index}" .value=${condMaxRooms} min="0" style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
+                                <label>Emotion Name</label>
+                                <select id="beh-cond-emotion-name-${index}" style="width:100%;">
+                                    <option value="neutral" ?selected=${cond.emotion === 'neutral'}>neutral</option>
+                                    <option value="happy" ?selected=${cond.emotion === 'happy'}>happy</option>
+                                    <option value="sad" ?selected=${cond.emotion === 'sad'}>sad</option>
+                                    <option value="angry" ?selected=${cond.emotion === 'angry'}>angry</option>
+                                    <option value="afraid" ?selected=${cond.emotion === 'afraid'}>afraid</option>
+                                    <option value="surprised" ?selected=${cond.emotion === 'surprised'}>surprised</option>
+                                    <option value="disgusted" ?selected=${cond.emotion === 'disgusted'}>disgusted</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
+                                <label>Operator</label>
+                                <select id="beh-cond-emotion-op-${index}" style="width:100%;">
+                                    <option value="eq" ?selected=${cond.operator === 'eq'}>equals (name match)</option>
+                                    <option value="gt" ?selected=${cond.operator === 'gt'}>intensity &gt;</option>
+                                    <option value="gte" ?selected=${cond.operator === 'gte'}>intensity &gt;=</option>
+                                    <option value="lt" ?selected=${cond.operator === 'lt'}>intensity &lt;</option>
+                                    <option value="lte" ?selected=${cond.operator === 'lte'}>intensity &lt;=</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="npc_emotion_is" style="display:${condType === 'npc_emotion_is' ? 'block' : 'none'};">
+                                <label>Intensity Threshold</label>
+                                <input type="number" id="beh-cond-emotion-value-${index}" .value=${cond.value !== undefined ? cond.value : 0} min="0" max="1" step="0.1" style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="npc_is_hidden" style="display:${condType === 'npc_is_hidden' ? 'block' : 'none'};">
+                                <label>Should Be Hidden?</label>
+                                <select id="beh-cond-hidden-value-${index}" style="width:100%;">
+                                    <option value="true" ?selected=${cond.value !== false}>Yes, hidden</option>
+                                    <option value="false" ?selected=${cond.value === false}>No, visible</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="character_has_tag" style="display:${condType === 'character_has_tag' ? 'block' : 'none'};">
+                                <label>Tag</label>
+                                <input type="text" id="beh-cond-char-tag-${index}" .value=${cond.tag || ''} placeholder="vampire, faction:guard..." style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="character_has_tag" style="display:${condType === 'character_has_tag' ? 'block' : 'none'};">
+                                <label>Target</label>
+                                <select id="beh-cond-char-tag-target-${index}" style="width:100%;">
+                                    <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
+                                    <option value="player" ?selected=${cond.target === 'player'}>Player</option>
+                                    <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
+                                <label>Item Tag</label>
+                                <input type="text" id="beh-cond-item-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, weapon, faction_guards..." style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
+                                <label>Target</label>
+                                <select id="beh-cond-item-tag-target-${index}" style="width:100%;">
+                                    <option value="player" ?selected=${(!cond.target || cond.target === 'player')}>Player</option>
+                                    <option value="self" ?selected=${cond.target === 'self'}>NPC (self)</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
+                                <label>Smell Tag</label>
+                                <input type="text" id="beh-cond-smell-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, blood, smoke..." style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
+                                <label>Range (areas away, 0 = same area)</label>
+                                <input type="number" id="beh-cond-smell-range-${index}" .value=${cond.range !== undefined ? cond.range : 0} min="0" style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
+                                <label>Threshold (0.0 - 1.0)</label>
+                                <input type="number" id="beh-cond-sound-threshold-${index}" .value=${cond.threshold !== undefined ? cond.threshold : 0.5} min="0" max="1" step="0.1" style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
+                                <label>Listener</label>
+                                <select id="beh-cond-sound-target-${index}" style="width:100%;">
+                                    <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
+                                    <option value="player" ?selected=${cond.target === 'player'}>Player</option>
+                                </select>
+                            </div>
+                            <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                <label>Flag Key</label>
+                                <input type="text" id="beh-cond-flag-key-${index}" .value=${cond.key || ''} placeholder="player_fed_me..." style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                <label>Expected Value</label>
+                                <input type="text" id="beh-cond-flag-value-${index}" .value=${cond.value !== undefined ? cond.value : 'true'} placeholder="true" style="width:100%;">
+                            </div>
+                            <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                <label>Target</label>
+                                <select id="beh-cond-flag-target-${index}" style="width:100%;">
+                                    <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
+                                    <option value="player" ?selected=${cond.target === 'player'}>Player</option>
+                                    <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
                     <div id="beh-cond-compound-${index}" style="display:${isCompound ? 'block' : 'none'};">
                         <div class="field"><label>Operator</label>
@@ -941,26 +939,49 @@ window.InspectorBehaviors = (() => {
                 </div>
 
                 <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
-                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--orange);">⚡ Actions
-                        <button class="btn btn-sm btn-blue" @click=${() => B.addBehaviorAction(index)} style="float:right;">➕ Add</button>
+                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--orange);">Actions
+                        <button class="btn btn-sm btn-blue" @click=${() => B.addBehaviorAction(index)} style="float:right;">Add</button>
                     </h3>
                     <div id="beh-actions-list-${index}">
-                        ${actionCards.length ? actionCards : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">No actions. Click + Add to add one.</div>`}
+                        ${actionCards.length ? actionCards : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">No actions. Click Add to add one.</div>`}
                     </div>
                 </div>
-
-                <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px;">
-<button class="btn btn-sm" @click=${() => B.openGraphEditor(charName)} style="font-size:10px;margin-top:3px;">🧩 Graph</button>
-                    <div style="flex:1;"></div>
-                    <button class="btn" @click=${() => B._closeBehaviorEditor()}>Cancel</button>
-                    <button class="btn btn-green" @click=${() => B.saveBehavior(charName, index)}>✅ Save</button>
-                </div>
             </div>`;
+        const modalActions = htmlTag `
+            <button class="btn btn-sm" @click=${() => B.openGraphEditor(charName)}>Graph</button>
+            <div style="flex:1;"></div>
+            <button class="btn" @click=${() => B._closeBehaviorEditor()}>Cancel</button>
+            <button class="btn btn-green" @click=${() => B.saveBehavior(charName, index)}>Save</button>
+        `;
+        const modalTmpl = window.UiPrimitives?.ModalDialog
+            ? window.UiPrimitives.ModalDialog({
+                title: 'Edit Behavior',
+                isOpen: true,
+                size: 'lg',
+                content,
+                actions: modalActions,
+                onClose: () => B._closeBehaviorEditor()
+            })
+            : htmlTag `
+                  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:540px;max-height:85vh;overflow-y:auto;">
+                      ${content}
+                      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px;">
+                          <button class="btn btn-sm" @click=${() => B.openGraphEditor(charName)}>Graph</button>
+                          <div style="flex:1;"></div>
+                          <button class="btn" @click=${() => B._closeBehaviorEditor()}>Cancel</button>
+                          <button class="btn btn-green" @click=${() => B.saveBehavior(charName, index)}>Save</button>
+                      </div>
+                  </div>
+              `;
         const container = document.createElement('div');
         container.id = 'behavior-modal';
-        container.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
         document.body.appendChild(container);
-        window.Lit.render(overlay, container);
+        if (window.Lit?.render && modalTmpl) {
+            window.Lit.render(modalTmpl, container);
+        }
+        else {
+            window.Lit.render(content, container);
+        }
         B.toggleBehaviorConditionFields(index);
     };
     B._closeBehaviorEditor = function () {

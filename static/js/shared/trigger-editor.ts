@@ -1,8 +1,8 @@
 /**
- * Shared Trigger Editor — builds the add/edit trigger overlay modal.
+ * Shared Trigger Editor - builds the add/edit trigger overlay modal.
  * Used by both Inspector (world items/doors) and ItemLibrary (library items).
  *
- * Flow: Trigger Type → Conditions (nested rule tree) → Effects → Messages
+ * Flow: Trigger Type -> Conditions (nested rule tree) -> Effects -> Messages
  *
  * Usage:
  *   TriggerEditor.show({
@@ -18,9 +18,9 @@
  *       itemDatalistHtml: '',
  *   })
  *
- * @module shared/trigger-editor — the add/edit trigger modal
+ * @module shared/trigger-editor - the add/edit trigger modal
  * @contributes TriggerEditor.show({ mode, initialData, onSave, ... }) + TRIGGER_SNIPPETS
- * @powers authoring a trigger: type → nested condition tree → effects → messages
+ * @powers authoring a trigger: type -> nested condition tree -> effects -> messages
  * @relates shared by the inspector (world items/doors) and the item library
  * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
@@ -61,12 +61,12 @@ const TRIGGER_SNIPPETS = [
     },
     {
         id: 'recorder', icon: '🎙', label: 'Recorder (capture recent speech)', triggerType: 'on_use',
-        message: 'The {name} clicks — recording what was just said.',
+        message: 'The {name} clicks - recording what was just said.',
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'speech', capture_limit: 5 } }],
     },
     {
         id: 'camera', icon: '📷', label: 'Camera (photo of what happened)', triggerType: 'on_use',
-        message: 'The {name} clicks — capturing the scene.',
+        message: 'The {name} clicks - capturing the scene.',
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'sight', capture_limit: 5 } }],
     },
     {
@@ -92,9 +92,9 @@ const TRIGGER_SNIPPETS = [
 // resolved all along.
 var triggerEditorApi = {
     _overlay: null as HTMLDivElement | null,
-    _onSave: null as ((data: any) => void) | null,
+    _onSave: null as ((data: TriggerEditorData) => void) | null,
     _onClose: null as (() => void) | null,
-    _initialData: null as Record<string, any> | null,
+    _initialData: null as TriggerEditorData | null,
     _mode: 'single' as 'single' | 'multi',
     _effectTypes: [] as TriggerEditorOption[],
     _conditionTypes: [] as TriggerEditorOption[],
@@ -105,7 +105,60 @@ var triggerEditorApi = {
     _escHandler: null as ((e: KeyboardEvent) => void) | null,
 
     open(itemId?: string, triggerType?: string): void {
-        return this.show({ initialData: null, mode: 'single' });
+        this.show({ initialData: null, mode: 'single' });
+    },
+
+    _getTargetOptions(rawHtml?: string): TriggerEditorOption[] {
+        const opts: TriggerEditorOption[] = [];
+        const seen = new Set<string>();
+        if (rawHtml) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(`<datalist>${rawHtml}</datalist>`, 'text/html');
+            doc.querySelectorAll('option').forEach(o => {
+                const val = o.value || '';
+                if (val && !seen.has(val)) {
+                    seen.add(val);
+                    opts.push({
+                        value: val,
+                        label: o.getAttribute('label') || o.textContent || val,
+                    });
+                }
+            });
+        }
+        if (opts.length === 0 && typeof worldState !== 'undefined') {
+            const nodes = (worldState?.graph?.nodes || {}) as Record<string, { type?: string; name?: string }>;
+            for (const [id, node] of Object.entries(nodes)) {
+                const name = node?.name || id;
+                if (node?.type === 'way' && !seen.has(name)) {
+                    seen.add(name);
+                    opts.push({ value: name, label: `🚪 ${name}` });
+                }
+            }
+            const areas = (worldState?.areas || {}) as Record<string, { exits?: Record<string, { target?: string; way_id?: string }>; items?: Array<string | { id?: string; name?: string }> }>;
+            for (const area of Object.values(areas)) {
+                const exits = area?.exits || {};
+                for (const [dir, exit] of Object.entries(exits)) {
+                    if (!seen.has(dir)) {
+                        seen.add(dir);
+                        const targetName = exit?.target || '';
+                        opts.push({ value: dir, label: `🚪 ${dir} -> ${targetName}` });
+                    }
+                    if (exit?.way_id && !seen.has(exit.way_id)) {
+                        seen.add(exit.way_id);
+                        opts.push({ value: exit.way_id, label: `🚪 ${exit.way_id}` });
+                    }
+                }
+                const items = area?.items || [];
+                for (const item of items) {
+                    const itemName = (item && typeof item === 'object') ? (item.name || item.id || '') : String(item);
+                    if (itemName && !seen.has(itemName)) {
+                        seen.add(itemName);
+                        opts.push({ value: itemName, label: `📦 ${itemName}` });
+                    }
+                }
+            }
+        }
+        return opts;
     },
 
     show(options: TriggerEditorShowOptions): void {
@@ -120,14 +173,14 @@ var triggerEditorApi = {
         this._contextItemId = options.contextItemId || '';
         this._targetDatalistHtml = options.targetDatalistHtml || '';
         const initial = options.initialData || null;
-        this._initialData = (initial as Record<string, any>) || null;
-        const targetDatalist = this._targetDatalistHtml;
+        this._initialData = initial || null;
+        const targetOptions = this._getTargetOptions(this._targetDatalistHtml);
 
         const initialTriggerType = initial?.trigger_type;
         const triggerTypeHtml = this._mode === 'multi'
             ? triggerEditorTag`<input type="text" id="te-trigger-type-filter" placeholder="Search trigger types..." style="width:100%;font-size:10px;padding:2px 6px;margin-bottom:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:3px;color:var(--text);" oninput="TriggerEditor._filterTriggerTypeList(this.value)">
                     <select id="te-trigger-type" multiple size="6" style="height:auto;min-height:100px;width:100%;">
-                    ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${(initialTriggerType || []).includes(t)}>${t.replace(/_/g, ' ')}</option>`)}
+                    ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${Array.isArray(initialTriggerType) ? initialTriggerType.includes(t) : false}>${t.replace(/_/g, ' ')}</option>`)}
                 </select>`
             : triggerEditorTag`<select id="te-trigger-type" style="width:100%;">
                     ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${initialTriggerType === t}>${t.replace(/_/g, ' ')}</option>`)}
@@ -139,16 +192,11 @@ var triggerEditorApi = {
         const isEdit = !!initial;
         const editTitle = isEdit ? '✏️ Edit Trigger' : '⚡ Add Trigger';
 
-        let effectRowsHtml = [];
-        if (initial && initial.effects && initial.effects.length > 0) {
-            initial.effects.forEach((eff, idx) => {
-                effectRowsHtml.push(triggerEditorApi._buildEffectRowHtml(eff, idx));
-            });
-        } else {
-            effectRowsHtml.push(triggerEditorApi._buildEffectRowHtml(null, 0));
-        }
+        const initialEffects: Array<TriggerEditorEffect | null> = (initial?.effects && initial.effects.length > 0)
+            ? initial.effects
+            : [null];
 
-window.Lit.render(triggerEditorTag`
+        window.Lit.render(triggerEditorTag`
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:480px;max-height:85vh;display:flex;flex-direction:column;overflow:visible;">
                 <h3 style="margin:0 0 12px 0;flex:0 0 auto;">${editTitle}</h3>
                 <div style="flex:1 1 auto;overflow-y:auto;min-height:0;">
@@ -165,9 +213,11 @@ window.Lit.render(triggerEditorTag`
                     <input type="text" id="te-target-state" .value=${initial?.target_state || ''} placeholder="e.g. lit" style="width:100%;font-size:11px;">
                 </div>
                 <div class="field" id="te-target-field" style="display:none;">
-                    <label>Target (searchable — exits, doors, items)</label>
+                    <label>Target (searchable - exits, doors, items)</label>
                     <div class="eff-select" data-kind="targets" data-input-class="te-target-name" data-input-id="te-target-name" data-value=${initial?.target_name || ''} data-placeholder="Search or type target..." data-free="true"></div>
-                    <datalist id="te-target-list">${window.Lit.unsafeHTML(targetDatalist)}</datalist>
+                    <datalist id="te-target-list">
+                        ${targetOptions.map(opt => triggerEditorTag`<option value=${opt.value} label=${opt.label || opt.value}>${opt.label || opt.value}</option>`)}
+                    </datalist>
                 </div>
 
                 <!-- ═══════ Conditions (before Effects) ═══════ -->
@@ -175,7 +225,7 @@ window.Lit.render(triggerEditorTag`
                     <h3 style="font-size:12px;margin:0 0 4px 0;color:var(--pink);">🧩 Conditions</h3>
                 </div>
                 <div id="te-conditions-container">
-                    <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions — always fires.</div>
+                    <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions - always fires.</div>
                 </div>
                 <div style="display:flex;gap:4px;margin-top:4px;">
                     <button class="btn btn-sm btn-blue" @click=${() => triggerEditorApi._addCondLeaf()} style="flex:1;">➕ Add Condition</button>
@@ -186,8 +236,8 @@ window.Lit.render(triggerEditorTag`
                 <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
                     <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--orange);">⚡ Effects</h3>
                 </div>
-                <div id="te-effects-container" data-count=${effectRowsHtml.length || 1}>
-                    ${effectRowsHtml.map(r => window.Lit.unsafeHTML(r))}
+                <div id="te-effects-container" data-count=${initialEffects.length}>
+                    ${initialEffects.map((eff, idx) => triggerEditorApi._renderEffectRow(eff, idx))}
                 </div>
                 <div style="display:flex;gap:4px;margin-top:4px;">
                     <button class="btn btn-sm btn-blue" @click=${() => triggerEditorApi._addEffectRow()} style="flex:1;">➕ Add Effect</button>
@@ -195,7 +245,16 @@ window.Lit.render(triggerEditorTag`
                 </div>
                 <div id="te-snippet-menu" style="display:none;margin-top:4px;border:1px solid var(--border);border-radius:8px;padding:6px;background:var(--bg-inset);">
                     <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Recipes fill the effects list + trigger type (tweak params, then save).</div>
-                    ${TRIGGER_SNIPPETS.map(s => `<div class="te-snippet-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;cursor:pointer;font-size:12px;border-radius:6px;" onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='transparent'" onclick="TriggerEditor._applySnippet('${s.id}')"><span>${s.icon} ${s.label}</span><span style="font-size:10px;color:var(--text-dim);">${s.triggerType.replace(/_/g, ' ')}</span></div>`).join('')}
+                    ${TRIGGER_SNIPPETS.map(s => triggerEditorTag`
+                        <div class="te-snippet-item"
+                             style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;cursor:pointer;font-size:12px;border-radius:6px;"
+                             @mouseenter=${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+                             @mouseleave=${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                             @click=${() => triggerEditorApi._applySnippet(s.id)}>
+                            <span>${s.icon} ${s.label}</span>
+                            <span style="font-size:10px;color:var(--text-dim);">${s.triggerType.replace(/_/g, ' ')}</span>
+                        </div>
+                    `)}
                 </div>
 
                 <!-- ═══════ Messages ═══════ -->
@@ -235,28 +294,30 @@ window.Lit.render(triggerEditorTag`
         });
 
         // Ensure shared datalists
-        ['eff-vital-stat-list', 'eff-state-node-list', 'eff-state-val-list', 'eff-trait-list', 'eff-tag-list', 'eff-weather-list', 'eff-char-list', 'eff-condition-list'].forEach(id => {
+        const sharedDatalistIds = ['eff-vital-stat-list', 'eff-state-node-list', 'eff-state-val-list', 'eff-trait-list', 'eff-tag-list', 'eff-weather-list', 'eff-char-list', 'eff-condition-list'];
+        sharedDatalistIds.forEach(id => {
             if (!document.getElementById(id)) {
                 const dl = document.createElement('datalist');
                 dl.id = id;
                 document.body.appendChild(dl);
             }
         });
-        const vitals = document.getElementById('eff-vital-stat-list') as HTMLElement;
-        if (!vitals.children.length) ['HP','Energy','Bladder','Sanity','Entertainment','Temperature'].forEach(v => {
-            const o = document.createElement('option'); o.value = v; vitals.appendChild(o);
-        });
-        const states = document.getElementById('eff-state-val-list') as HTMLElement;
-        if (!states.children.length) ['on','off','open','closed','locked','unlocked','lit','unlit','broken','pristine','activated','deactivated','hidden','visible'].forEach(s => {
-            const o = document.createElement('option'); o.value = s; states.appendChild(o);
-        });
+        const vitals = document.getElementById('eff-vital-stat-list');
+        if (vitals && !vitals.children.length) {
+            const items = ['HP', 'Energy', 'Bladder', 'Sanity', 'Entertainment', 'Temperature'];
+            window.Lit.render(triggerEditorTag`${items.map(v => triggerEditorTag`<option value=${v}></option>`)}`, vitals);
+        }
+        const states = document.getElementById('eff-state-val-list');
+        if (states && !states.children.length) {
+            const items = ['on', 'off', 'open', 'closed', 'locked', 'unlocked', 'lit', 'unlit', 'broken', 'pristine', 'activated', 'deactivated', 'hidden', 'visible'];
+            window.Lit.render(triggerEditorTag`${items.map(s => triggerEditorTag`<option value=${s}></option>`)}`, states);
+        }
         const traitList = document.getElementById('eff-trait-list');
         if (traitList && !traitList.children.length) {
             triggerEditorApiClient().getLibraryType('traits').then((traits: unknown) => {
                 if (traits && typeof traits === 'object') {
-                    Object.keys(traits).forEach(id => {
-                        const o = document.createElement('option'); o.value = id; traitList.appendChild(o);
-                    });
+                    const keys = Object.keys(traits);
+                    window.Lit.render(triggerEditorTag`${keys.map(id => triggerEditorTag`<option value=${id}></option>`)}`, traitList);
                 }
             }).catch(() => {});
         }
@@ -264,57 +325,54 @@ window.Lit.render(triggerEditorTag`
         if (tagList && !tagList.children.length) {
             triggerEditorApiClient().getLibraryType('tags').then((tags: unknown) => {
                 if (tags && typeof tags === 'object') {
-                    Object.keys(tags).forEach(id => {
-                        const o = document.createElement('option'); o.value = id; tagList.appendChild(o);
-                    });
+                    const keys = Object.keys(tags);
+                    window.Lit.render(triggerEditorTag`${keys.map(id => triggerEditorTag`<option value=${id}></option>`)}`, tagList);
                 }
             }).catch(() => {});
         }
         const weatherList = document.getElementById('eff-weather-list');
         if (weatherList && !weatherList.children.length) {
-            ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow', 'windy'].forEach(w => {
-                const o = document.createElement('option'); o.value = w; weatherList.appendChild(o);
-            });
+            const items = ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow', 'windy'];
+            window.Lit.render(triggerEditorTag`${items.map(w => triggerEditorTag`<option value=${w}></option>`)}`, weatherList);
         }
         const conditionList = document.getElementById('eff-condition-list');
         if (conditionList && !conditionList.children.length) {
-            ['awake','dead','unconscious','paralysed','stunned','grappled','restrained','prone','busy',
-             'exhausted','sick','poisoned','blind','deaf','mute','frightened','charmed'].forEach(c => {
-                const o = document.createElement('option'); o.value = c; conditionList.appendChild(o);
-            });
+            const items = ['awake', 'dead', 'unconscious', 'paralysed', 'stunned', 'grappled', 'restrained', 'prone', 'busy',
+             'exhausted', 'sick', 'poisoned', 'blind', 'deaf', 'mute', 'frightened', 'charmed'];
+            window.Lit.render(triggerEditorTag`${items.map(c => triggerEditorTag`<option value=${c}></option>`)}`, conditionList);
         }
         const charList = document.getElementById('eff-char-list');
         if (charList && !charList.children.length) {
-            const chars = worldState?.players || {};
-            Object.keys(chars).forEach(name => {
-                const o = document.createElement('option'); o.value = name; charList.appendChild(o);
-            });
+            const chars = Object.keys(worldState?.players || {});
+            window.Lit.render(triggerEditorTag`${chars.map(name => triggerEditorTag`<option value=${name}></option>`)}`, charList);
         }
-        const nodeList = document.getElementById('eff-state-node-list') as HTMLElement;
-        if (!nodeList.children.length && worldState?.graph?.nodes) {
-            Object.keys(worldState.graph.nodes).forEach(id => {
-                const o = document.createElement('option'); o.value = id; nodeList.appendChild(o);
-            });
+        const nodeList = document.getElementById('eff-state-node-list');
+        if (nodeList && !nodeList.children.length && worldState?.graph?.nodes) {
+            const nodeIds = Object.keys(worldState.graph.nodes);
+            window.Lit.render(triggerEditorTag`${nodeIds.map(id => triggerEditorTag`<option value=${id}></option>`)}`, nodeList);
         }
-        const itemList = document.getElementById('te-item-list');
-        if (!itemList) {
-            const dl = document.createElement('datalist');
-            dl.id = 'te-item-list';
-            document.body.appendChild(dl);
+        let itemListEl = document.getElementById('te-item-list') as HTMLDataListElement | null;
+        if (!itemListEl) {
+            itemListEl = document.createElement('datalist');
+            itemListEl.id = 'te-item-list';
+            document.body.appendChild(itemListEl);
         }
-        const itemListEl = document.getElementById('te-item-list') as HTMLElement;
         if (!itemListEl.children.length) {
+            const itemIds: string[] = [];
             if (worldState?.graph?.nodes) {
-                Object.entries(worldState.graph.nodes).forEach(([id, node]: [string, any]) => {
-                    if (node.type === 'item') {
-                        const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
+                Object.entries(worldState.graph.nodes as Record<string, { type?: string }>).forEach(([id, node]) => {
+                    if (node?.type === 'item') {
+                        itemIds.push(id);
                     }
                 });
             }
             if (window.VW?.itemLib?.data) {
                 Object.keys(window.VW.itemLib.data).forEach(id => {
-                    const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
+                    if (!itemIds.includes(id)) itemIds.push(id);
                 });
+            }
+            if (itemIds.length > 0) {
+                window.Lit.render(triggerEditorTag`${itemIds.map(id => triggerEditorTag`<option value=${id}></option>`)}`, itemListEl);
             }
         }
 
@@ -333,7 +391,7 @@ window.Lit.render(triggerEditorTag`
         // Load initial conditions tree
         const initConditions = initial?.conditions;
         const condContainer = document.getElementById('te-conditions-container');
-        if (initConditions && (Array.isArray(initConditions) && initConditions.length > 0 || (typeof initConditions === 'object' && !Array.isArray(initConditions) && initConditions?.conditions?.length > 0))) {
+        if (initConditions && ((Array.isArray(initConditions) && initConditions.length > 0) || (typeof initConditions === 'object' && !Array.isArray(initConditions) && (initConditions as TriggerEditorConditionGroup)?.conditions && (initConditions as TriggerEditorConditionGroup).conditions!.length > 0))) {
             window.Lit.render(triggerEditorTag`${window.Lit.nothing}`, condContainer as HTMLElement);
             triggerEditorApi._loadConditionTree(initConditions, initial?.conditions_logic || 'and', condContainer as HTMLElement);
         }
@@ -353,7 +411,7 @@ window.Lit.render(triggerEditorTag`
 
     // The library registry may not be loaded yet (trigger editor opened from an
     // item inspector without ever opening the Library Browser). Load it once in
-    // the background and hot-swap the item pickers' options in place — show()
+    // the background and hot-swap the item pickers' options in place - show()
     // stays fully synchronous for callers and tests.
     async _ensureLibraryItemOptions(root: HTMLElement): Promise<void> {
         const itemLib = window.VW?.itemLib;
@@ -363,13 +421,16 @@ window.Lit.render(triggerEditorTag`
         if (!overlay || overlay !== root) return; // closed / reopened meanwhile
         // Top up the shared on_use_on target datalist too.
         const itemListEl = document.getElementById('te-item-list');
-        if (itemListEl) {
+        if (itemListEl && itemLib.data) {
             const known = new Set([...itemListEl.children].map(o => (o as HTMLOptionElement).value));
-            Object.keys(itemLib.data).forEach(id => {
-                if (!known.has(id)) {
-                    const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
-                }
-            });
+            const newIds = Object.keys(itemLib.data).filter(id => !known.has(id));
+            if (newIds.length > 0) {
+                const fragment = document.createDocumentFragment();
+                const temp = document.createElement('div');
+                window.Lit.render(triggerEditorTag`${newIds.map(id => triggerEditorTag`<option value=${id}></option>`)}`, temp);
+                while (temp.firstElementChild) fragment.appendChild(temp.firstElementChild);
+                itemListEl.appendChild(fragment);
+            }
         }
         (overlay as ParentNode).querySelectorAll<TriggerEditorSearchSelectHost>('.eff-select[data-kind="items"]').forEach(container => {
             const prev = container.__searchSelect;
@@ -377,7 +438,7 @@ window.Lit.render(triggerEditorTag`
             if (prev) prev.destroy();
             delete container.dataset.searchSelectInit;
             // `SearchSelect` has no ambient declaration and may not be loaded, so
-            // it is read through `window` — the guard below is the original
+            // it is read through `window` - the guard below is the original
             // `typeof SearchSelect === 'undefined'` check.
             const SearchSelectCtor = (window as unknown as { SearchSelect?: TriggerEditorSearchSelectCtor }).SearchSelect;
             container.__searchSelect = new SearchSelectCtor!(container, {
@@ -391,7 +452,7 @@ window.Lit.render(triggerEditorTag`
         });
     },
 
-    _updateFailGroupVisibility() {
+    _updateFailGroupVisibility(): void {
         const group = document.getElementById('te-fail-msg-group');
         if (!group) return;
         const container = document.getElementById('te-conditions-container');
@@ -401,7 +462,7 @@ window.Lit.render(triggerEditorTag`
 
     _searchSelectOptions(kind: string): TriggerEditorSearchOption[] {
         const opts: TriggerEditorSearchOption[] = [];
-        const nodes: Record<string, any> = worldState?.graph?.nodes || {};
+        const nodes = (worldState?.graph?.nodes || {}) as Record<string, { type?: string; name?: string }>;
         switch (kind) {
             case 'ways':
                 opts.push({ value: 'target', label: 'target (used-on)', icon: '🎯' });
@@ -414,7 +475,7 @@ window.Lit.render(triggerEditorTag`
                 // that is NOT yet in the world), then world items after.
                 const libOpts: TriggerEditorSearchOption[] = [];
                 if (window.VW?.itemLib?.data) {
-                    for (const [id, entry] of Object.entries(window.VW.itemLib.data) as Array<[string, any]>) {
+                    for (const [id, entry] of Object.entries(window.VW.itemLib.data) as Array<[string, { name?: string } | undefined]>) {
                         const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
                         libOpts.push({ value: id, label, icon: '📚' });
                     }
@@ -432,7 +493,7 @@ window.Lit.render(triggerEditorTag`
             }
             case 'nodes':
                 for (const [id, n] of Object.entries(nodes)) {
-                    const icon = ({ area: '🗺️', way: '🚪', item: '📦', player: '🧍', character: '🧍', logic_trigger: '⚡' } as Record<string, string>)[n.type] || '▪️';
+                    const icon = ({ area: '🗺️', way: '🚪', item: '📦', player: '🧍', character: '🧍', logic_trigger: '⚡' } as Record<string, string>)[n.type || ''] || '▪️';
                     opts.push({ value: id, label: n.name || id, icon });
                 }
                 break;
@@ -499,7 +560,7 @@ window.Lit.render(triggerEditorTag`
                 triggerEditorApi._conditionTypes.forEach(c => opts.push({ value: c.value, label: c.label }));
                 break;
         }
-        // 'items' is already grouped (library first, then world) — keep that order.
+        // 'items' is already grouped (library first, then world) - keep that order.
         if (kind !== 'items') opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
         return opts;
     },
@@ -565,7 +626,7 @@ window.Lit.render(triggerEditorTag`
         triggerEditorApi._updateFailGroupVisibility();
     },
 
-    close() {
+    close(): void {
         if (this._escHandler) {
             document.removeEventListener('keydown', this._escHandler, true);
             this._escHandler = null;
@@ -577,13 +638,13 @@ window.Lit.render(triggerEditorTag`
         if (this._onClose) this._onClose();
     },
 
-    _onSaveClick() {
+    _onSaveClick(): void {
         const data = this._collectData();
         if (this._onSave) this._onSave(data);
         this.close();
     },
 
-    _onOpenGraphClick() {
+    _onOpenGraphClick(): void {
         if (typeof TriggerGraph === 'undefined') return;
         const data = this._collectData();
         // The form has no fields for id, once, fired or cooldown. Carry them
@@ -610,7 +671,7 @@ window.Lit.render(triggerEditorTag`
             contextItemId: this._contextItemId,
             sourceNodeId: this._contextItemId,
             editorBridge: bridge,
-            onSave: (newGraph: any) => {
+            onSave: (newGraph: unknown) => {
                 const compiled = TriggerGraph.compileToEngine(newGraph);
                 if (TriggerGraph.reportCompileError(compiled)) return;
                 if (!compiled || !onSave) return;
@@ -625,14 +686,14 @@ window.Lit.render(triggerEditorTag`
         });
     },
 
-    async _onTestClick() {
+    async _onTestClick(): Promise<void> {
         const data = this._collectData();
         const resultEl = document.getElementById('te-test-result');
         if (!resultEl) return;
         resultEl.style.display = 'block';
         window.Lit.render(triggerEditorTag`<span style="color:var(--text-secondary);">Testing…</span>`, resultEl);
 
-        // Trigger type may be an array (multi-select) — test the first for now.
+        // Trigger type may be an array (multi-select) - test the first for now.
         const triggerType = Array.isArray(data.trigger_type)
             ? data.trigger_type[0]
             : data.trigger_type;
@@ -667,17 +728,17 @@ window.Lit.render(triggerEditorTag`
             const res = await resp.json();
             if (res.error) throw new Error(res.error);
 
-            const rows = (res.conditions || []).map((c: any) =>
+            const rows = (res.conditions || []).map((c: TriggerEditorTestCondition) =>
                 triggerEditorTag`<div style="display:flex;gap:6px;align-items:center;">
                     <span style="color:${c.passed ? 'var(--green)' : 'var(--red)'};font-weight:600;">${c.passed ? '✓' : '✕'}</span>
                     <span style="color:var(--text-primary);">${String(c.condition || '(none)')}</span>
-                    <span style="color:var(--text-muted);">${c.detail?.phrase ? `— "${c.detail.phrase}" (${c.detail.mode || 'contains'})` : ''}</span>
+                    <span style="color:var(--text-muted);">${c.detail?.phrase ? `- "${c.detail.phrase}" (${c.detail.mode || 'contains'})` : ''}</span>
                 </div>`
             );
 
             const fireableMsg = res.fireable_reason
-                || `this trigger type (${String(triggerType)}) needs an item/way context to fire — no target node matched "${String(data.target_name || '')}".`;
-            const outputs = (res.outputs || []).map((o: any) =>
+                || `this trigger type (${String(triggerType)}) needs an item/way context to fire - no target node matched "${String(data.target_name || '')}".`;
+            const outputs = (res.outputs || []).map((o: string) =>
                 triggerEditorTag`<div style="padding-left:8px;color:${o.includes('dry-run') ? 'var(--text-secondary)' : 'var(--accent-green)'};">${o}</div>`
             );
 
@@ -688,18 +749,18 @@ window.Lit.render(triggerEditorTag`
                 <div>Type: <span style="color:var(--text-primary);">${String(typeLabel)}</span></div>
                 ${res.fireable === false ? triggerEditorTag`<div style="color:var(--accent-orange);">⚠️ ${String(fireableMsg)}</div>` : ''}
                 <div style="margin-top:4px;font-weight:600;color:${res.conditions_pass ? 'var(--green)' : 'var(--red)'};">Conditions: ${res.conditions_pass ? 'PASS' : 'FAIL'}</div>
-                ${rows.length ? rows : triggerEditorTag`<div style="color:var(--text-muted);">(no conditions — always fires)</div>`}
+                ${rows.length ? rows : triggerEditorTag`<div style="color:var(--text-muted);">(no conditions - always fires)</div>`}
                 <div style="margin-top:4px;font-weight:600;">Would run:</div>
                 ${outputs.length ? outputs : triggerEditorTag`<div style="color:var(--text-muted);">(no effects)</div>`}
                 ${res.side_effects && res.side_effects.length ? triggerEditorTag`<div style="margin-top:4px;color:var(--accent-orange);font-size:10px;">⚠️ ${res.side_effects.join(' · ')}</div>` : ''}
-                <div style="margin-top:6px;font-size:10px;color:var(--text-muted);">Dry-run — no effects were applied.</div>
+                <div style="margin-top:6px;font-size:10px;color:var(--text-muted);">Dry-run - no effects were applied.</div>
             `, resultEl);
         } catch (e) {
             window.Lit.render(triggerEditorTag`<div style="color:var(--red);">Test failed: ${(e as { message?: string } | null)?.message || String(e)}</div>`, resultEl);
         }
     },
 
-    _collectData() {
+    _collectData(): TriggerEditorData {
         const typeEl = document.getElementById('te-trigger-type') as HTMLSelectElement;
         const triggerType = this._mode === 'multi'
             ? Array.from(typeEl.selectedOptions).map(o => o.value)
@@ -707,144 +768,148 @@ window.Lit.render(triggerEditorTag`
 
         const effects: TriggerEditorEffect[] = [];
         document.querySelectorAll<TriggerEditorEffectRow>('#te-effects-container .eff-row').forEach(row => {
-            const eff = { type: row.querySelector('.eff-type')?.value || 'message', params: {} as Record<string, any> };
+            const eff: TriggerEditorEffect = {
+                type: row.querySelector('.eff-type')?.value || 'message',
+                params: {}
+            };
             const effType = eff.type;
+            const params = eff.params;
             if (effType === 'damage' || effType === 'heal') {
-                eff.params.amount = parseInt(row.querySelector('.eff-amount')?.value) || 5;
-                if (effType === 'damage') eff.params.target = row.querySelector('.eff-dmg-target')?.value || 'self';
+                params.amount = parseInt(row.querySelector('.eff-amount')?.value || '', 10) || 5;
+                if (effType === 'damage') params.target = row.querySelector('.eff-dmg-target')?.value || 'self';
             } else if (effType === 'adjust_vital') {
-                eff.params.stat = row.querySelector('.eff-vital-stat')?.value || 'HP';
-                eff.params.amount = parseInt(row.querySelector('.eff-vital-amount')?.value) || 0;
-                eff.params.target = row.querySelector('.eff-vital-target')?.value || 'self';
+                params.stat = row.querySelector('.eff-vital-stat')?.value || 'HP';
+                params.amount = parseInt(row.querySelector('.eff-vital-amount')?.value || '', 10) || 0;
+                params.target = row.querySelector('.eff-vital-target')?.value || 'self';
             } else if (effType === 'spawn_item') {
-                eff.params.item_id = row.querySelector('.eff-spawn-id')?.value || '';
-                eff.params.display_name = row.querySelector('.eff-spawn-name')?.value || '';
+                params.item_id = row.querySelector('.eff-spawn-id')?.value || '';
+                params.display_name = row.querySelector('.eff-spawn-name')?.value || '';
                 const into = row.querySelector('.eff-spawn-into')?.value || 'area';
-                if (into !== 'area') eff.params.into = into;
+                if (into !== 'area') params.into = into;
                 const capture = row.querySelector('.eff-spawn-capture')?.value || '';
-                if (capture) eff.params.capture = capture;
+                if (capture) params.capture = capture;
             } else if (effType === 'spawn_character') {
-                eff.params.character_id = row.querySelector('.eff-spawn-char-id')?.value || '';
-                eff.params.display_name = row.querySelector('.eff-spawn-char-name')?.value || '';
-                eff.params.area = row.querySelector('.eff-spawn-char-area')?.value || '';
-                eff.params.message = row.querySelector('.eff-spawn-char-msg')?.value || '';
+                params.character_id = row.querySelector('.eff-spawn-char-id')?.value || '';
+                params.display_name = row.querySelector('.eff-spawn-char-name')?.value || '';
+                params.area = row.querySelector('.eff-spawn-char-area')?.value || '';
+                params.message = row.querySelector('.eff-spawn-char-msg')?.value || '';
             } else if (effType === 'give_item') {
-                eff.params.item_id = row.querySelector('.eff-give-id')?.value || '';
-                eff.params.target = row.querySelector('.eff-give-target')?.value || 'self';
-                eff.params.message = row.querySelector('.eff-give-msg')?.value || '';
+                params.item_id = row.querySelector('.eff-give-id')?.value || '';
+                params.target = row.querySelector('.eff-give-target')?.value || 'self';
+                params.message = row.querySelector('.eff-give-msg')?.value || '';
             } else if (effType === 'remove_item') {
-                eff.params.item_id = row.querySelector('.eff-remove-id')?.value || '';
+                params.item_id = row.querySelector('.eff-remove-id')?.value || '';
             } else if (effType === 'set_state') {
-                eff.params.node_id = row.querySelector('.eff-state-node')?.value || 'self';
-                eff.params.state = row.querySelector('.eff-state-val')?.value || 'on';
+                params.node_id = row.querySelector('.eff-state-node')?.value || 'self';
+                params.state = row.querySelector('.eff-state-val')?.value || 'on';
             } else if (effType === 'set_hidden') {
-                eff.params.node_id = row.querySelector('.eff-hidden-node')?.value || 'self';
-                eff.params.hidden = row.querySelector('.eff-hidden-val')?.value === 'true';
+                params.node_id = row.querySelector('.eff-hidden-node')?.value || 'self';
+                params.hidden = row.querySelector('.eff-hidden-val')?.value === 'true';
             } else if (effType === 'adjust_uses') {
-                eff.params.node_id = row.querySelector('.eff-uses-node')?.value || 'self';
-                eff.params.delta = parseInt(row.querySelector('.eff-uses-delta')?.value) || 0;
+                params.node_id = row.querySelector('.eff-uses-node')?.value || 'self';
+                params.delta = parseInt(row.querySelector('.eff-uses-delta')?.value || '', 10) || 0;
             } else if (effType === 'set_parameter' || effType === 'adjust_parameter') {
-                eff.params.node_id = row.querySelector('.eff-param-node')?.value || 'self';
-                eff.params.key = row.querySelector('.eff-param-key')?.value || '';
+                params.node_id = row.querySelector('.eff-param-node')?.value || 'self';
+                params.key = row.querySelector('.eff-param-key')?.value || '';
                 if (effType === 'set_parameter') {
-                    eff.params.value = row.querySelector('.eff-param-value')?.value ?? '';
+                    params.value = row.querySelector('.eff-param-value')?.value ?? '';
                 } else {
-                    eff.params.delta = parseInt(row.querySelector('.eff-param-delta')?.value) || 0;
+                    params.delta = parseInt(row.querySelector('.eff-param-delta')?.value || '', 10) || 0;
                 }
             } else if (effType === 'rename') {
-                eff.params.name = row.querySelector('.eff-rename')?.value || '';
+                params.name = row.querySelector('.eff-rename')?.value || '';
             } else if (effType === 'teleport') {
-                eff.params.area = row.querySelector('.eff-teleport')?.value || '';
+                params.area = row.querySelector('.eff-teleport')?.value || '';
             } else if (effType === 'unlock_way') {
-                eff.params.way_id = row.querySelector('.eff-unlock')?.value || '';
+                params.way_id = row.querySelector('.eff-unlock')?.value || '';
             } else if (effType === 'set_description') {
-                eff.params.target = row.querySelector('.eff-setdesc-target')?.value || '';
-                eff.params.value = row.querySelector('.eff-setdesc-value')?.value || '';
+                params.target = row.querySelector('.eff-setdesc-target')?.value || '';
+                params.value = row.querySelector('.eff-setdesc-value')?.value || '';
             } else if (effType === 'append_description') {
-                eff.params.target = row.querySelector('.eff-setdesc-target')?.value || '';
-                eff.params.text = row.querySelector('.eff-appenddesc-text')?.value || '';
+                params.target = row.querySelector('.eff-setdesc-target')?.value || '';
+                params.text = row.querySelector('.eff-appenddesc-text')?.value || '';
             } else if (effType === 'schedule_trigger') {
-                eff.params.delay_ticks = parseInt(row.querySelector('.eff-schedule-delay')?.value) || 3;
-                eff.params.target = row.querySelector('.eff-schedule-target')?.value || '';
+                params.delay_ticks = parseInt(row.querySelector('.eff-schedule-delay')?.value || '', 10) || 3;
+                params.target = row.querySelector('.eff-schedule-target')?.value || '';
             } else if (effType === 'set_environment') {
                 const lightVal = row.querySelector('.eff-env-light')?.value || '';
-                if (lightVal) eff.params.light = lightVal;
+                if (lightVal) params.light = lightVal;
                 const tempVal = row.querySelector('.eff-env-temp')?.value;
-                if (tempVal !== undefined && tempVal !== '') eff.params.temperature = parseInt(tempVal);
+                if (tempVal !== undefined && tempVal !== '') params.temperature = parseInt(tempVal, 10);
                 const airVal = row.querySelector('.eff-env-air')?.value || '';
-                if (airVal) eff.params.air = airVal;
+                if (airVal) params.air = airVal;
                 const smellVal = row.querySelector('.eff-env-smell')?.value || '';
-                if (smellVal) eff.params.smell = smellVal;
+                if (smellVal) params.smell = smellVal;
                 const noiseVal = row.querySelector('.eff-env-noise')?.value || '';
-                if (noiseVal) eff.params.noise = noiseVal;
+                if (noiseVal) params.noise = noiseVal;
                 const nodeVal = row.querySelector('.eff-env-node')?.value || '';
-                if (nodeVal) eff.params.target_node = nodeVal;
+                if (nodeVal) params.target_node = nodeVal;
             } else if (effType === 'adjust_environment') {
                 const adjTemp = row.querySelector('.eff-adj-temp')?.value;
-                if (adjTemp !== undefined && adjTemp !== '') eff.params.temperature = parseInt(adjTemp);
+                if (adjTemp !== undefined && adjTemp !== '') params.temperature = parseInt(adjTemp, 10);
                 const adjLight = row.querySelector('.eff-adj-light')?.value;
-                if (adjLight !== undefined && adjLight !== '') eff.params.light = parseInt(adjLight);
+                if (adjLight !== undefined && adjLight !== '') params.light = parseInt(adjLight, 10);
             } else if (effType === 'llm_respond') {
                 // task-330: object speaks via browser-side LLM.
-                eff.params.instructions = row.querySelector('.eff-llm-instructions')?.value || '';
-                eff.params.fallback_message = row.querySelector('.eff-llm-fallback')?.value || '';
-                eff.params.max_words = parseInt(row.querySelector('.eff-llm-maxwords')?.value) || 40;
+                params.instructions = row.querySelector('.eff-llm-instructions')?.value || '';
+                params.fallback_message = row.querySelector('.eff-llm-fallback')?.value || '';
+                params.max_words = parseInt(row.querySelector('.eff-llm-maxwords')?.value || '', 10) || 40;
                 const cooldown = row.querySelector('.eff-llm-cooldown')?.value;
-                if (cooldown && cooldown !== '') eff.params.cooldown = parseInt(cooldown);
+                if (cooldown && cooldown !== '') params.cooldown = parseInt(cooldown, 10);
                 const name = row.querySelector('.eff-llm-name')?.value;
-                if (name) eff.params.name = name;
+                if (name) params.name = name;
             } else if (effType === 'scry') {
                 // task-320: far-sight view of a distant area.
-                eff.params.target = row.querySelector('.eff-scry-target')?.value || '';
-                eff.params.message = row.querySelector('.eff-scry-msg')?.value || '';
-                eff.params.fail_message = row.querySelector('.eff-scry-fail')?.value || '';
+                params.target = row.querySelector('.eff-scry-target')?.value || '';
+                params.message = row.querySelector('.eff-scry-msg')?.value || '';
+                params.fail_message = row.querySelector('.eff-scry-fail')?.value || '';
             } else if (effType === 'save') {
                 const mode = row.querySelector('.eff-save-mode')?.value || 'stat';
                 if (mode === 'skill') {
-                    eff.params.skill = row.querySelector('.eff-save-skill')?.value || 'Athletics';
-                    delete eff.params.stat;
+                    params.skill = row.querySelector('.eff-save-skill')?.value || 'Athletics';
+                    delete params.stat;
                 } else {
-                    eff.params.stat = row.querySelector('.eff-save-stat')?.value || 'WIS';
-                    delete eff.params.skill;
+                    params.stat = row.querySelector('.eff-save-stat')?.value || 'WIS';
+                    delete params.skill;
                 }
-                eff.params.dc = parseInt(row.querySelector('.eff-save-dc')?.value) || 12;
-                eff.params.on_success = triggerEditorApi._buildSaveBranchEffect(row, 'success');
-                eff.params.on_fail = triggerEditorApi._buildSaveBranchEffect(row, 'fail');
+                params.dc = parseInt(row.querySelector('.eff-save-dc')?.value || '', 10) || 12;
+                params.on_success = triggerEditorApi._buildSaveBranchEffect(row, 'success');
+                params.on_fail = triggerEditorApi._buildSaveBranchEffect(row, 'fail');
             } else if (effType === 'add_tag' || effType === 'remove_tag') {
-                eff.params.node_id = row.querySelector('.eff-tag-node')?.value || 'self';
-                eff.params.tag = row.querySelector('.eff-tag-name')?.value || '';
+                params.node_id = row.querySelector('.eff-tag-node')?.value || 'self';
+                params.tag = row.querySelector('.eff-tag-name')?.value || '';
                 const tagMsg = row.querySelector('.eff-tag-msg')?.value;
-                if (tagMsg) eff.params.message = tagMsg;
+                if (tagMsg) params.message = tagMsg;
             } else if (effType === 'apply_trait' || effType === 'remove_trait') {
-                eff.params.trait = row.querySelector('.eff-trait-id')?.value || '';
-                eff.params.target = row.querySelector('.eff-trait-target')?.value || 'self';
+                params.trait = row.querySelector('.eff-trait-id')?.value || '';
+                params.target = row.querySelector('.eff-trait-target')?.value || 'self';
                 if (effType === 'apply_trait') {
                     const paramVal = row.querySelector('.eff-trait-param')?.value;
-                    eff.params.param = (paramVal === undefined || paramVal === '') ? true : paramVal;
+                    params.param = (paramVal === undefined || paramVal === '') ? true : paramVal;
                 }
             } else if (effType === 'apply_condition' || effType === 'remove_condition') {
-                eff.params.condition = row.querySelector('.eff-condition-id')?.value || '';
+                params.condition = row.querySelector('.eff-condition-id')?.value || '';
                 const by = row.querySelector('.eff-condition-target-by')?.value || 'self';
                 if (by === 'self') {
-                    eff.params.target = 'self';
-                    delete eff.params.target_by;
-                    delete eff.params.target_value;
+                    params.target = 'self';
+                    delete params.target_by;
+                    delete params.target_value;
                 } else if (by === 'all_in_area') {
-                    eff.params.target_by = 'all_in_area';
-                    delete eff.params.target_value;
-                    delete eff.params.target;
+                    params.target_by = 'all_in_area';
+                    delete params.target_value;
+                    delete params.target;
                 } else {
-                    eff.params.target_by = by;
-                    eff.params.target_value = row.querySelector('.eff-condition-target')?.value || '';
-                    delete eff.params.target;
+                    params.target_by = by;
+                    params.target_value = row.querySelector('.eff-condition-target')?.value || '';
+                    delete params.target;
                 }
                 if (effType === 'apply_condition') {
                     const durVal = row.querySelector('.eff-condition-duration')?.value;
-                    if (durVal !== undefined && durVal !== '') eff.params.duration = parseInt(durVal);
+                    if (durVal !== undefined && durVal !== '') params.duration = parseInt(durVal, 10);
                     const srcVal = row.querySelector('.eff-condition-source')?.value;
-                    if (srcVal) eff.params.source = srcVal;
+                    if (srcVal) params.source = srcVal;
                     // Per-tick drain form: only non-zero vitals are serialized.
-                    // All zeros → omit periodic entirely (catalog default applies).
+                    // All zeros -> omit periodic entirely (catalog default applies).
                     const drain: Record<string, number> = {};
                     ['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].forEach(v => {
                         const el = row.querySelector(`.eff-periodic-${v}`);
@@ -852,65 +917,65 @@ window.Lit.render(triggerEditorTag`
                         const val = parseFloat(el.value);
                         if (!isNaN(val) && val !== 0) drain[v] = val;
                     });
-                    if (Object.keys(drain).length > 0) eff.params.periodic = drain;
+                    if (Object.keys(drain).length > 0) params.periodic = drain;
                     const symVal = row.querySelector('.eff-condition-symptoms')?.value;
                     if (symVal) {
-                        try { eff.params.symptoms = JSON.parse(symVal); } catch (e) {}
+                        try { params.symptoms = JSON.parse(symVal); } catch (e) {}
                     }
                     const extraVal = row.querySelector('.eff-condition-extras')?.value;
                     if (extraVal) {
-                        try { eff.params.extra_conditions = JSON.parse(extraVal); } catch (e) {}
+                        try { params.extra_conditions = JSON.parse(extraVal); } catch (e) {}
                     }
                 }
             } else if (effType === 'set_time') {
                 const tv = row.querySelector('.eff-settime-time')?.value || '';
-                if (tv.includes(':')) eff.params.time = tv; else eff.params.hour = parseInt(tv) || 0;
+                if (tv.includes(':')) params.time = tv; else params.hour = parseInt(tv, 10) || 0;
             } else if (effType === 'set_date') {
                 const d = row.querySelector('.eff-setdate-day')?.value;
                 const m = row.querySelector('.eff-setdate-month')?.value;
                 const y = row.querySelector('.eff-setdate-year')?.value;
-                if (d !== undefined && d !== '') eff.params.day = parseInt(d);
-                if (m !== undefined && m !== '') eff.params.month = parseInt(m);
-                if (y !== undefined && y !== '') eff.params.year = parseInt(y);
+                if (d !== undefined && d !== '') params.day = parseInt(d, 10);
+                if (m !== undefined && m !== '') params.month = parseInt(m, 10);
+                if (y !== undefined && y !== '') params.year = parseInt(y, 10);
             } else if (effType === 'set_weather') {
-                eff.params.weather = row.querySelector('.eff-setweather')?.value || 'clear';
+                params.weather = row.querySelector('.eff-setweather')?.value || 'clear';
                 const dur = row.querySelector('.eff-setweather-dur')?.value;
-                if (dur !== undefined && dur !== '') eff.params.duration_ticks = parseInt(dur);
+                if (dur !== undefined && dur !== '') params.duration_ticks = parseInt(dur, 10);
             } else if (effType === 'forecast_override') {
                 const weather = row.querySelector('.eff-fcast-weather')?.value;
-                if (weather) eff.params.weather = weather;
+                if (weather) params.weather = weather;
                 const wind = row.querySelector('.eff-fcast-wind')?.value;
-                if (wind) eff.params.wind = wind;
+                if (wind) params.wind = wind;
                 const temp = row.querySelector('.eff-fcast-temp')?.value;
-                if (temp !== undefined && temp !== '') eff.params.temperature_mod = parseInt(temp);
+                if (temp !== undefined && temp !== '') params.temperature_mod = parseInt(temp, 10);
                 const bdur = row.querySelector('.eff-fcast-dur')?.value;
-                if (bdur !== undefined && bdur !== '') eff.params.duration_ticks = parseInt(bdur);
+                if (bdur !== undefined && bdur !== '') params.duration_ticks = parseInt(bdur, 10);
                 const btarget = row.querySelector('.eff-fcast-target')?.value;
-                if (btarget) eff.params.target = btarget;
-                if (row.querySelector('.eff-fcast-blood')?.checked) eff.params.blood_moon = true;
+                if (btarget) params.target = btarget;
+                if (row.querySelector('.eff-fcast-blood')?.checked) params.blood_moon = true;
             } else if (effType === 'adjust_forecast') {
                 const td = row.querySelector('.eff-fcast-tdelta')?.value;
-                if (td !== undefined && td !== '') eff.params.temperature_mod_delta = parseInt(td);
+                if (td !== undefined && td !== '') params.temperature_mod_delta = parseInt(td, 10);
                 const ld = row.querySelector('.eff-fcast-ldelta')?.value;
-                if (ld !== undefined && ld !== '') eff.params.light_mod_delta = parseInt(ld);
+                if (ld !== undefined && ld !== '') params.light_mod_delta = parseInt(ld, 10);
                 const adur = row.querySelector('.eff-fcast-adur')?.value;
-                if (adur !== undefined && adur !== '') eff.params.duration_ticks = parseInt(adur);
+                if (adur !== undefined && adur !== '') params.duration_ticks = parseInt(adur, 10);
             } else if (effType === 'apply_area_status') {
                 const at = row.querySelector('.eff-astat-target')?.value;
-                if (at) eff.params.target = at;
-                eff.params.status_type = row.querySelector('.eff-astat-type')?.value || 'on_fire';
-                eff.params.severity = parseInt(row.querySelector('.eff-astat-sev')?.value) || 1;
+                if (at) params.target = at;
+                params.status_type = row.querySelector('.eff-astat-type')?.value || 'on_fire';
+                params.severity = parseInt(row.querySelector('.eff-astat-sev')?.value || '', 10) || 1;
                 const ad = row.querySelector('.eff-astat-dur')?.value;
-                if (ad !== undefined && ad !== '') eff.params.duration = parseInt(ad);
+                if (ad !== undefined && ad !== '') params.duration = parseInt(ad, 10);
             } else if (effType === 'clear_area_status') {
                 // Target area for the clear-status effect (blank = current area).
                 const clearTarget = row.querySelector('.eff-astat-clrtarget')?.value;
-                if (clearTarget) eff.params.target = clearTarget;
-                eff.params.status_type = row.querySelector('.eff-astat-clrtype')?.value || 'on_fire';
+                if (clearTarget) params.target = clearTarget;
+                params.status_type = row.querySelector('.eff-astat-clrtype')?.value || 'on_fire';
             } else if (effType === 'set_wet') {
-                eff.params.wet = (row.querySelector('.eff-setwet-val')?.value || 'true') === 'true';
+                params.wet = (row.querySelector('.eff-setwet-val')?.value || 'true') === 'true';
                 const wn = row.querySelector('.eff-setwet-node')?.value;
-                if (wn) eff.params.node_id = wn;
+                if (wn) params.node_id = wn;
             }
             effects.push(eff);
         });
@@ -919,7 +984,7 @@ window.Lit.render(triggerEditorTag`
         const condContainer = document.getElementById('te-conditions-container');
         const conditions = triggerEditorApi._collectConditionGroup(condContainer as HTMLElement);
 
-        const result = {
+        const result: TriggerEditorData = {
             name: (document.getElementById('te-trigger-name') as HTMLInputElement | null)?.value || '',
             trigger_type: triggerType,
             effects: effects,
@@ -931,7 +996,7 @@ window.Lit.render(triggerEditorTag`
         };
 
         // The runtime reads messages from the first effect's params
-        // (trigger_system.py reads fail_message there) — mirror them so
+        // (trigger_system.py reads fail_message there) - mirror them so
         // configured messages actually surface in-game.
         if (effects.length > 0) {
             if (!effects[0].params) effects[0].params = {};
@@ -949,14 +1014,18 @@ window.Lit.render(triggerEditorTag`
 
     // ─────────────────── Condition Rule Tree ───────────────────
 
-    _loadConditionTree(conditions: any, defaultOperator: string, container: HTMLElement): void {
+    _loadConditionTree(conditions: TriggerEditorConditionNode | TriggerEditorConditionNode[] | null | undefined, defaultOperator: string, container: HTMLElement): void {
         // Accept tree object {operator, conditions} or flat array
-        let tree = conditions;
+        let tree: TriggerEditorConditionGroup;
         if (Array.isArray(conditions)) {
             tree = { operator: defaultOperator || 'and', conditions: conditions };
+        } else if (conditions && typeof conditions === 'object') {
+            tree = conditions as TriggerEditorConditionGroup;
+        } else {
+            tree = { operator: defaultOperator || 'and', conditions: [] };
         }
         if (!tree || !tree.conditions || tree.conditions.length === 0) {
-            window.Lit.render(triggerEditorTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions — always fires.</div>`, container);
+            window.Lit.render(triggerEditorTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions - always fires.</div>`, container);
             return;
         }
         window.Lit.render(triggerEditorTag`${window.Lit.nothing}`, container);
@@ -1019,7 +1088,7 @@ window.Lit.render(triggerEditorTag`
                 itemDiv.appendChild(pill);
             }
 
-            if (item.operator) {
+            if ((item as TriggerEditorConditionGroup).operator) {
                 // Nested group
                 triggerEditorApi._renderConditionGroup(item as TriggerEditorConditionGroup, itemDiv, depth + 1);
             } else {
@@ -1146,7 +1215,15 @@ window.Lit.render(triggerEditorTag`
                 </div>
                 <div class="cond-field" data-cond="save_throw" style="display:${SHOWS(['save_throw'])};">
                     <label style="font-size:9px;">Type</label>
-                    <select class="cond-save-type" style="width:100%;font-size:10px;" @change=${(e: any) => { const row=e.target.closest('.cond-row'); row.querySelector('.cond-stat-or-skill').style.display = e.target.value==='stat' ? 'block':'none'; row.querySelector('.cond-skill-or-stat').style.display = e.target.value==='skill' ? 'block':'none'; }}>
+                    <select class="cond-save-type" style="width:100%;font-size:10px;" @change=${(e: Event) => {
+                        const target = e.target as HTMLSelectElement;
+                        const r = target.closest('.cond-row');
+                        if (!r) return;
+                        const statWrap = r.querySelector('.cond-stat-or-skill') as HTMLElement | null;
+                        const skillWrap = r.querySelector('.cond-skill-or-stat') as HTMLElement | null;
+                        if (statWrap) statWrap.style.display = target.value === 'stat' ? 'block' : 'none';
+                        if (skillWrap) skillWrap.style.display = target.value === 'skill' ? 'block' : 'none';
+                    }}>
                         <option value="stat" ?selected=${cSaveType !== 'skill'}>Base Stat</option>
                         <option value="skill" ?selected=${cSaveType === 'skill'}>Skill</option>
                     </select>
@@ -1164,7 +1241,7 @@ window.Lit.render(triggerEditorTag`
                     <label style="font-size:9px;">Target (blank = self)</label><div class="eff-select" data-kind="chars" data-input-class="cond-target" data-value=${cTarget} data-placeholder="self or character name" data-free="true" style="width:100%;font-size:11px;"></div>
                 </div>
             </div>
-            <span @click=${(e: any) => triggerEditorApi._removeCondItem(e.target)} style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:10px;">✕</span>
+            <span @click=${(e: MouseEvent) => triggerEditorApi._removeCondItem(e.currentTarget as HTMLElement)} style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:10px;">✕</span>
         `, row);
 
         return row;
@@ -1194,37 +1271,37 @@ window.Lit.render(triggerEditorTag`
                     if (row) {
                         const ctype = (row.querySelector('.cond-type') as TriggerEditorField | null)?.value || '';
                         const cond: TriggerEditorConditionLeaf = { type: ctype };
-                        const q = (cls: string): any => (row.querySelector(`.${cls}`) as TriggerEditorField | null)?.value;
+                        const q = (cls: string): string => ((row.querySelector(`.${cls}`) as TriggerEditorField | null)?.value ?? '') as string;
                         if (ctype === 'has_item') {
-                            cond.value = q('cond-value') || '';
+                            cond.value = q('cond-value');
                         } else if (ctype === 'skill_check') {
                             cond.skill = q('cond-skill') || 'Athletics';
-                            cond.dc = parseInt(q('cond-dc')) || 10;
+                            cond.dc = parseInt(q('cond-dc'), 10) || 10;
                         } else if (ctype === 'save_throw') {
                             if ((q('cond-save-type') || 'stat') === 'skill') {
                                 cond.skill = q('cond-save-skill') || 'Athletics';
                             } else {
                                 cond.stat = q('cond-save-stat') || 'DEX';
                             }
-                            cond.dc = parseInt(q('cond-dc')) || 12;
+                            cond.dc = parseInt(q('cond-dc'), 10) || 12;
                             cond.target = q('cond-target') || 'self';
                         } else if (ctype === 'state_equals') {
-                            const node = q('cond-node') || '';
-                            const state = q('cond-state') || '';
+                            const node = q('cond-node');
+                            const state = q('cond-state');
                             if (node) cond.target = node;
-                            cond.value = state || q('cond-value') || '';
+                            cond.value = state || q('cond-value');
                         } else if (ctype === 'has_trait') {
-                            cond.value = q('cond-value') || '';
+                            cond.value = q('cond-value');
                             cond.target = q('cond-target') || 'self';
                         } else if (ctype === 'has_tag') {
                             const multi = row.querySelector('.cond-tag-multi') as TriggerEditorTagMultiHost | null;
-                            cond.value = (multi && multi.__condTagMulti) ? multi.__condTagMulti.tags : (q('cond-value') || '');
+                            cond.value = (multi && multi.__condTagMulti) ? multi.__condTagMulti.tags : q('cond-value');
                             cond.target = q('cond-target') || 'self';
                         } else if (ctype === 'has_items') {
-                            const val = q('cond-value') || '';
+                            const val = q('cond-value');
                             cond.value = val.split(',').map((s: string) => s.trim()).filter(Boolean);
                         } else if (ctype === 'speech_matches') {
-                            cond.phrase = q('cond-value') || '';
+                            cond.phrase = q('cond-value');
                             cond.mode = q('cond-mode') || 'contains';
                         } else if (ctype === 'area_temp' || ctype === 'vital' || ctype === 'vital_above' || ctype === 'vital_below') {
                             cond.value = parseFloat(q('cond-value')) || 0;
@@ -1234,17 +1311,17 @@ window.Lit.render(triggerEditorTag`
                             }
                             cond.target = q('cond-target') || 'self';
                         } else if (ctype === 'is_equipped') {
-                            cond.item = q('cond-item') || '';
+                            cond.item = q('cond-item');
                             cond.target = q('cond-target') || 'self';
                         } else if (ctype === 'random_chance') {
-                            cond.value = parseInt(q('cond-value')) || 0;
+                            cond.value = parseInt(q('cond-value'), 10) || 0;
                         } else if (ctype === 'time_of_day' || ctype === 'weather') {
-                            cond.value = q('cond-value') || '';
+                            cond.value = q('cond-value');
                         } else if (ctype === 'area_has_status') {
-                            cond.status_type = q('cond-status-type') || '';
-                            cond.target = q('cond-target') || '';
+                            cond.status_type = q('cond-status-type');
+                            cond.target = q('cond-target');
                         } else {
-                            cond.value = q('cond-value') || '';
+                            cond.value = q('cond-value');
                         }
                         conditions.push(cond);
                     }
@@ -1259,12 +1336,12 @@ window.Lit.render(triggerEditorTag`
         return { operator, conditions };
     },
 
-    _addCondLeaf() {
+    _addCondLeaf(): void {
         const container = document.getElementById('te-conditions-container');
         if (!container) return;
         const group = container.querySelector(':scope > .cond-group');
         if (!group) {
-            // First items — create default group
+            // First items - create default group
             triggerEditorApi._addCondGroup();
             // Then add condition to it
             const newGroup = container.querySelector(':scope > .cond-group');
@@ -1278,7 +1355,7 @@ window.Lit.render(triggerEditorTag`
         triggerEditorApi._addLeafTo(itemsDiv, (group.querySelector('.cond-group-op') as HTMLSelectElement | null)?.value || 'and');
     },
 
-    _addCondGroup() {
+    _addCondGroup(): void {
         const container = document.getElementById('te-conditions-container');
         if (!container) return;
         const existing = container.querySelector(':scope > .cond-group');
@@ -1395,12 +1472,12 @@ window.Lit.render(triggerEditorTag`
     _renderConditionSummary(conditions?: TriggerEditorConditionNode | TriggerEditorConditionNode[] | null): string[] {
         if (!conditions) return [];
         // Tree format
-        if (typeof conditions === 'object' && !Array.isArray(conditions) && conditions.operator) {
-            const items = conditions.conditions || [];
-            const op = conditions.operator === 'and' ? '+' : '|';
+        if (typeof conditions === 'object' && !Array.isArray(conditions) && (conditions as TriggerEditorConditionGroup).operator) {
+            const items = (conditions as TriggerEditorConditionGroup).conditions || [];
+            const op = (conditions as TriggerEditorConditionGroup).operator === 'and' ? '+' : '|';
             const results: string[] = [];
             items.forEach((item: TriggerEditorConditionNode, idx: number) => {
-                if (item.operator) {
+                if ((item as TriggerEditorConditionGroup).operator) {
                     // Nested group
                     const nested = triggerEditorApi._renderConditionSummary(item);
                     if (nested.length > 0) {
@@ -1433,34 +1510,34 @@ window.Lit.render(triggerEditorTag`
             return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}(${check} DC${dc}${tgt})</span>`;
         }
         if (cond.type === 'has_items') {
-            const items = Array.isArray(cond.value) ? cond.value.join(',') : (cond.value||'');
+            const items = Array.isArray(cond.value) ? cond.value.join(',') : (cond.value || '');
             return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=[${items}]</span>`;
         }
-        return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=${cond.value||cond.target||''}</span>`;
+        return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=${cond.value || cond.target || ''}</span>`;
     },
 
     // ─────────────────── Effects ───────────────────
 
-    _parseSaveBranchEffect(branchArr?: TriggerEditorEffect[] | null): Record<string, any> {
+    _parseSaveBranchEffect(branchArr?: TriggerEditorEffect[] | null): TriggerEditorSaveBranch {
         const first = (branchArr || [])[0];
         if (!first?.type) return { type: 'none' };
-        const params = first.params || {};
-        if (first.type === 'message') return { type: 'message', message: params.message || '' };
+        const params = (first.params || {}) as TriggerEditorEffectParams;
+        if (first.type === 'message') return { type: 'message', message: String(params.message || '') };
         if (first.type === 'apply_condition') {
             return {
                 type: 'apply_condition',
-                condition: params.condition || '',
-                duration: params.duration,
-                source: params.source || '',
-                source_type: params.source_type || '',
+                condition: String(params.condition || ''),
+                duration: typeof params.duration === 'number' ? params.duration : undefined,
+                source: String(params.source || ''),
+                source_type: String(params.source_type || ''),
             };
         }
-        if (first.type === 'damage') return { type: 'damage', amount: params.amount || 5 };
+        if (first.type === 'damage') return { type: 'damage', amount: typeof params.amount === 'number' ? params.amount : 5 };
         return { type: 'none' };
     },
 
     _buildSaveBranchEffect(row: TriggerEditorEffectRow, prefix: string): TriggerEditorEffect[] {
-        const jsonVal = row.querySelector(`.eff-save-${prefix}-json`)?.value?.trim();
+        const jsonVal = (row.querySelector(`.eff-save-${prefix}-json`) as HTMLTextAreaElement | null)?.value?.trim();
         if (jsonVal) {
             try {
                 const parsed = JSON.parse(jsonVal);
@@ -1469,19 +1546,22 @@ window.Lit.render(triggerEditorTag`
                 return [];
             }
         }
-        const type = row.querySelector(`.eff-save-${prefix}-type`)?.value || 'none';
+        const type = (row.querySelector(`.eff-save-${prefix}-type`) as HTMLSelectElement | null)?.value || 'none';
         if (type === 'none') return [];
         if (type === 'message') {
-            const msg = row.querySelector(`.eff-save-${prefix}-msg`)?.value || '';
+            const msg = (row.querySelector(`.eff-save-${prefix}-msg`) as HTMLInputElement | null)?.value || '';
             return msg ? [{ type: 'message', params: { message: msg } }] : [];
         }
         if (type === 'apply_condition') {
-            const params: Record<string, any> = { condition: row.querySelector(`.eff-save-${prefix}-cond`)?.value || '', target: 'self' };
-            const durVal = row.querySelector(`.eff-save-${prefix}-dur`)?.value;
-            if (durVal !== undefined && durVal !== '') params.duration = parseInt(durVal);
-            const src = row.querySelector(`.eff-save-${prefix}-source`)?.value;
+            const params: TriggerEditorEffectParams = {
+                condition: (row.querySelector(`.eff-save-${prefix}-cond`) as HTMLInputElement | null)?.value || '',
+                target: 'self'
+            };
+            const durVal = (row.querySelector(`.eff-save-${prefix}-dur`) as HTMLInputElement | null)?.value;
+            if (durVal !== undefined && durVal !== '') params.duration = parseInt(durVal, 10);
+            const src = (row.querySelector(`.eff-save-${prefix}-source`) as HTMLInputElement | null)?.value;
             if (src) params.source = src;
-            const srcType = row.querySelector(`.eff-save-${prefix}-src-type`)?.value;
+            const srcType = (row.querySelector(`.eff-save-${prefix}-src-type`) as HTMLSelectElement | null)?.value;
             if (srcType) params.source_type = srcType;
             return [{ type: 'apply_condition', params }];
         }
@@ -1489,7 +1569,7 @@ window.Lit.render(triggerEditorTag`
             return [{
                 type: 'damage',
                 params: {
-                    amount: parseInt(row.querySelector(`.eff-save-${prefix}-dmg`)?.value) || 5,
+                    amount: parseInt((row.querySelector(`.eff-save-${prefix}-dmg`) as HTMLInputElement | null)?.value || '', 10) || 5,
                     target: 'self',
                 },
             }];
@@ -1517,455 +1597,482 @@ window.Lit.render(triggerEditorTag`
     },
 
     _toggleSaveBranch(row: TriggerEditorEffectRow | null | undefined, prefix: string): void {
-        if (typeof row === 'string') {
-            prefix = row;
-            row = null;
-        }
         if (!row || !row.querySelector) {
-            row = document.querySelector(`.eff-save-${prefix}-type`)?.closest<TriggerEditorEffectRow>('.eff-row');
+            row = document.querySelector(`.eff-save-${prefix}-type`)?.closest<TriggerEditorEffectRow>('.eff-row') || null;
         }
         if (!row) return;
-        const type = row.querySelector(`.eff-save-${prefix}-type`)?.value || 'none';
+        const type = (row.querySelector(`.eff-save-${prefix}-type`) as HTMLSelectElement | null)?.value || 'none';
         row.querySelectorAll<HTMLElement>(`.eff-save-${prefix}-field`).forEach(el => {
             const branches = (el.dataset.branch || '').split(',');
             el.style.display = branches.includes(type) ? 'block' : 'none';
         });
     },
 
-    _buildEffectRowHtml(existingEff: TriggerEditorEffect | null, idx: number): string {
+    _renderEffectRow(existingEff: TriggerEditorEffect | null, idx: number): unknown {
         const effType = existingEff?.type || 'message';
-        const effParams = existingEff?.params || {};
+        const effParams = (existingEff?.params || {}) as TriggerEditorEffectParams;
         const failFx = triggerEditorApi._parseSaveBranchEffect(effParams.on_fail);
         const successFx = triggerEditorApi._parseSaveBranchEffect(effParams.on_success);
         const saveMode = effParams.skill ? 'skill' : 'stat';
         const saveCheck = effParams.stat || effParams.skill || 'WIS';
-        const advFailJson = (effParams.on_fail?.length > 1 || (effParams.on_fail?.length && failFx.type === 'none'))
+        const advFailJson = (effParams.on_fail && (effParams.on_fail.length > 1 || (effParams.on_fail.length && failFx.type === 'none')))
             ? JSON.stringify(effParams.on_fail, null, 2) : '';
-        const advSuccessJson = (effParams.on_success?.length > 1 || (effParams.on_success?.length && successFx.type === 'none'))
+        const advSuccessJson = (effParams.on_success && (effParams.on_success.length > 1 || (effParams.on_success.length && successFx.type === 'none')))
             ? JSON.stringify(effParams.on_success, null, 2) : '';
 
-return `
+        return triggerEditorTag`
             <div class="eff-row" data-idx="${idx}" style="background:var(--bg-inset);border-radius:6px;padding:6px;margin-bottom:4px;border-left:3px solid var(--orange);position:relative;">
                 <label style="font-size:9px;font-weight:600;">Effect type</label>
-                <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value="${window.escapeForHtmlAttribute(effType)}" data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
+                <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value=${effType} data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
                 <div class="eff-params" style="display:${effType === 'message' ? 'none' : 'block'};">
                     <div class="eff-param" data-effect="damage,heal" style="display:${['damage','heal'].includes(effType) ? 'block' : 'none'};">
-                        <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" value="${effParams.amount || 5}" style="width:100%;">
+                        <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" .value=${String(effParams.amount ?? 5)} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="damage" style="display:${effType === 'damage' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-dmg-target" style="width:100%;">
-                            <option value="self" ${effParams.target === 'self' ? 'selected' : ''}>Self</option>
-                            <option value="other" ${effParams.target === 'other' ? 'selected' : ''}>Other</option>
+                            <option value="self" ?selected=${effParams.target === 'self'}>Self</option>
+                            <option value="other" ?selected=${effParams.target === 'other'}>Other</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Stat</label>
-                        <div class="eff-select" data-kind="vitals" data-input-class="eff-vital-stat" data-value="${window.escapeForHtmlAttribute(effParams.stat || 'HP')}" data-placeholder="HP, Energy, Bladder..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="vitals" data-input-class="eff-vital-stat" data-value=${effParams.stat || 'HP'} data-placeholder="HP, Energy, Bladder..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Amount (+/-)</label>
-                        <input type="number" class="eff-vital-amount" value="${effParams.amount || 0}" style="width:100%;">
+                        <input type="number" class="eff-vital-amount" .value=${String(effParams.amount ?? 0)} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-vital-target" style="width:100%;">
-                            <option value="self" ${effParams.target === 'self' ? 'selected' : ''}>Self</option>
-                            <option value="other" ${effParams.target === 'other' ? 'selected' : ''}>Other</option>
+                            <option value="self" ?selected=${effParams.target === 'self'}>Self</option>
+                            <option value="other" ?selected=${effParams.target === 'other'}>Other</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="save" style="display:${effType === 'save' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;font-weight:600;">Save roll</label>
-                        <select class="eff-save-mode" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveMode(this)">
-                            <option value="stat" ${saveMode === 'stat' ? 'selected' : ''}>Ability</option>
-                            <option value="skill" ${saveMode === 'skill' ? 'selected' : ''}>Skill</option>
+                        <select class="eff-save-mode" style="width:100%;font-size:10px;margin-bottom:4px;" @change=${(e: Event) => triggerEditorApi._toggleSaveMode(e.target as HTMLSelectElement)}>
+                            <option value="stat" ?selected=${saveMode === 'stat'}>Ability</option>
+                            <option value="skill" ?selected=${saveMode === 'skill'}>Skill</option>
                         </select>
                         <div class="eff-save-stat-wrap" style="display:${saveMode === 'stat' ? 'block' : 'none'};margin-bottom:4px;">
                             <label style="font-size:9px;">Stat</label>
                             <select class="eff-save-stat" style="width:100%;font-size:11px;">
-                                ${['STR','DEX','CON','INT','WIS','CHA'].map(s => `<option value="${s}" ${saveCheck === s ? 'selected' : ''}>${s}</option>`).join('')}
+                                ${['STR','DEX','CON','INT','WIS','CHA'].map(s => triggerEditorTag`<option value=${s} ?selected=${saveCheck === s}>${s}</option>`)}
                             </select>
                         </div>
                         <div class="eff-save-skill-wrap" style="display:${saveMode === 'skill' ? 'block' : 'none'};margin-bottom:4px;">
                             <label style="font-size:9px;">Skill</label>
-                            <div class="eff-select" data-kind="skills" data-input-class="eff-save-skill" data-value="${window.escapeForHtmlAttribute(saveMode === 'skill' ? saveCheck : 'Athletics')}" data-placeholder="Athletics, Perception..." data-free="true" style="width:100%;"></div>
+                            <div class="eff-select" data-kind="skills" data-input-class="eff-save-skill" data-value=${saveMode === 'skill' ? saveCheck : 'Athletics'} data-placeholder="Athletics, Perception..." data-free="true" style="width:100%;"></div>
                         </div>
                         <label style="font-size:9px;">DC</label>
-                        <input type="number" class="eff-save-dc" value="${effParams.dc || 12}" min="1" max="30" style="width:100%;margin-bottom:6px;">
+                        <input type="number" class="eff-save-dc" .value=${String(effParams.dc ?? 12)} min="1" max="30" style="width:100%;margin-bottom:6px;">
                         <label style="font-size:10px;font-weight:600;margin-top:4px;display:block;">On success</label>
-                        <select class="eff-save-success-type" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveBranch(this.closest('.eff-row'), 'success')">
-                            ${['none','message','apply_condition','damage'].map(t => `<option value="${t}" ${successFx.type === t ? 'selected' : ''}>${t.replace(/_/g,' ')}</option>`).join('')}
+                        <select class="eff-save-success-type" style="width:100%;font-size:10px;margin-bottom:4px;" @change=${(e: Event) => triggerEditorApi._toggleSaveBranch((e.target as HTMLElement).closest('.eff-row') as TriggerEditorEffectRow | null, 'success')}>
+                            ${['none','message','apply_condition','damage'].map(t => triggerEditorTag`<option value=${t} ?selected=${successFx.type === t}>${t.replace(/_/g,' ')}</option>`)}
                         </select>
                         <div class="eff-save-success-field" data-branch="message" style="display:${successFx.type === 'message' ? 'block' : 'none'};margin-bottom:4px;">
-                            <input type="text" class="eff-save-success-msg" value="${window.escapeForHtmlAttribute(successFx.message || '')}" placeholder="You resist!" style="width:100%;font-size:11px;">
+                            <input type="text" class="eff-save-success-msg" .value=${successFx.message || ''} placeholder="You resist!" style="width:100%;font-size:11px;">
                         </div>
                         <div class="eff-save-success-field" data-branch="apply_condition" style="display:${successFx.type === 'apply_condition' ? 'block' : 'none'};margin-bottom:4px;">
-                            <div class="eff-select" data-kind="conditions" data-input-class="eff-save-success-cond" data-value="${window.escapeForHtmlAttribute(successFx.condition || '')}" data-placeholder="frightened, poisoned..." data-free="true" style="width:100%;margin-bottom:2px;"></div>
-                            <input type="number" class="eff-save-success-dur" value="${successFx.duration !== undefined ? successFx.duration : ''}" placeholder="duration ticks" style="width:100%;font-size:11px;margin-bottom:2px;">
-                            <input type="text" class="eff-save-success-source" value="${window.escapeForHtmlAttribute(successFx.source || '')}" placeholder="source label" style="width:100%;font-size:11px;">
+                            <div class="eff-select" data-kind="conditions" data-input-class="eff-save-success-cond" data-value=${successFx.condition || ''} data-placeholder="frightened, poisoned..." data-free="true" style="width:100%;margin-bottom:2px;"></div>
+                            <input type="number" class="eff-save-success-dur" .value=${successFx.duration !== undefined ? String(successFx.duration) : ''} placeholder="duration ticks" style="width:100%;font-size:11px;margin-bottom:2px;">
+                            <input type="text" class="eff-save-success-source" .value=${successFx.source || ''} placeholder="source label" style="width:100%;font-size:11px;">
                         </div>
                         <div class="eff-save-success-field" data-branch="damage" style="display:${successFx.type === 'damage' ? 'block' : 'none'};margin-bottom:4px;">
-                            <input type="number" class="eff-save-success-dmg" value="${successFx.amount || 5}" placeholder="damage amount" style="width:100%;font-size:11px;">
+                            <input type="number" class="eff-save-success-dmg" .value=${String(successFx.amount ?? 5)} placeholder="damage amount" style="width:100%;font-size:11px;">
                         </div>
-                        <textarea class="eff-save-success-json" rows="2" placeholder="Advanced: full on_success JSON array" style="width:100%;font-size:10px;margin-bottom:6px;display:${advSuccessJson ? 'block' : 'none'};">${window.escapeForHtmlAttribute(advSuccessJson)}</textarea>
+                        <textarea class="eff-save-success-json" rows="2" placeholder="Advanced: full on_success JSON array" style="width:100%;font-size:10px;margin-bottom:6px;display:${advSuccessJson ? 'block' : 'none'};" .value=${advSuccessJson}></textarea>
                         <label style="font-size:10px;font-weight:600;margin-top:4px;display:block;">On fail</label>
-                        <select class="eff-save-fail-type" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveBranch(this.closest('.eff-row'), 'fail')">
-                            ${['none','message','apply_condition','damage'].map(t => `<option value="${t}" ${failFx.type === t ? 'selected' : ''}>${t.replace(/_/g,' ')}</option>`).join('')}
+                        <select class="eff-save-fail-type" style="width:100%;font-size:10px;margin-bottom:4px;" @change=${(e: Event) => triggerEditorApi._toggleSaveBranch((e.target as HTMLElement).closest('.eff-row') as TriggerEditorEffectRow | null, 'fail')}>
+                            ${['none','message','apply_condition','damage'].map(t => triggerEditorTag`<option value=${t} ?selected=${failFx.type === t}>${t.replace(/_/g,' ')}</option>`)}
                         </select>
                         <div class="eff-save-fail-field" data-branch="message" style="display:${failFx.type === 'message' ? 'block' : 'none'};margin-bottom:4px;">
-                            <input type="text" class="eff-save-fail-msg" value="${window.escapeForHtmlAttribute(failFx.message || '')}" placeholder="You fail the save!" style="width:100%;font-size:11px;">
+                            <input type="text" class="eff-save-fail-msg" .value=${failFx.message || ''} placeholder="You fail the save!" style="width:100%;font-size:11px;">
                         </div>
                         <div class="eff-save-fail-field" data-branch="apply_condition" style="display:${failFx.type === 'apply_condition' ? 'block' : 'none'};margin-bottom:4px;">
-                            <div class="eff-select" data-kind="conditions" data-input-class="eff-save-fail-cond" data-value="${window.escapeForHtmlAttribute(failFx.condition || '')}" data-placeholder="frightened, poisoned..." data-free="true" style="width:100%;margin-bottom:2px;"></div>
-                            <input type="number" class="eff-save-fail-dur" value="${failFx.duration !== undefined ? failFx.duration : ''}" placeholder="duration ticks" style="width:100%;font-size:11px;margin-bottom:2px;">
-                            <input type="text" class="eff-save-fail-source" value="${window.escapeForHtmlAttribute(failFx.source || '')}" placeholder="source label" style="width:100%;font-size:11px;margin-bottom:2px;">
+                            <div class="eff-select" data-kind="conditions" data-input-class="eff-save-fail-cond" data-value=${failFx.condition || ''} data-placeholder="frightened, poisoned..." data-free="true" style="width:100%;margin-bottom:2px;"></div>
+                            <input type="number" class="eff-save-fail-dur" .value=${failFx.duration !== undefined ? String(failFx.duration) : ''} placeholder="duration ticks" style="width:100%;font-size:11px;margin-bottom:2px;">
+                            <input type="text" class="eff-save-fail-source" .value=${failFx.source || ''} placeholder="source label" style="width:100%;font-size:11px;margin-bottom:2px;">
                             <select class="eff-save-fail-src-type" style="width:100%;font-size:10px;">
-                                <option value="" ${!failFx.source_type ? 'selected' : ''}>— source type —</option>
-                                ${['way','area','item','character'].map(st => `<option value="${st}" ${failFx.source_type === st ? 'selected' : ''}>${st}</option>`).join('')}
+                                <option value="" ?selected=${!failFx.source_type}>- source type -</option>
+                                ${['way','area','item','character'].map(st => triggerEditorTag`<option value=${st} ?selected=${failFx.source_type === st}>${st}</option>`)}
                             </select>
                         </div>
                         <div class="eff-save-fail-field" data-branch="damage" style="display:${failFx.type === 'damage' ? 'block' : 'none'};margin-bottom:4px;">
-                            <input type="number" class="eff-save-fail-dmg" value="${failFx.amount || 5}" placeholder="damage amount" style="width:100%;font-size:11px;">
+                            <input type="number" class="eff-save-fail-dmg" .value=${String(failFx.amount ?? 5)} placeholder="damage amount" style="width:100%;font-size:11px;">
                         </div>
-                        <textarea class="eff-save-fail-json" rows="2" placeholder="Advanced: full on_fail JSON array" style="width:100%;font-size:10px;display:${advFailJson ? 'block' : 'none'};">${window.escapeForHtmlAttribute(advFailJson)}</textarea>
-                        <button type="button" class="btn btn-sm btn-ghost" style="font-size:9px;margin-top:4px;" onclick="const r=this.closest('.eff-row'); r.querySelector('.eff-save-fail-json').style.display='block'; r.querySelector('.eff-save-success-json').style.display='block';">Show advanced JSON</button>
+                        <textarea class="eff-save-fail-json" rows="2" placeholder="Advanced: full on_fail JSON array" style="width:100%;font-size:10px;display:${advFailJson ? 'block' : 'none'};" .value=${advFailJson}></textarea>
+                        <button type="button" class="btn btn-sm btn-ghost" style="font-size:9px;margin-top:4px;" @click=${(e: MouseEvent) => {
+                            const r = (e.currentTarget as HTMLElement).closest('.eff-row');
+                            if (r) {
+                                const failArea = r.querySelector('.eff-save-fail-json') as HTMLElement | null;
+                                const succArea = r.querySelector('.eff-save-success-json') as HTMLElement | null;
+                                if (failArea) failArea.style.display = 'block';
+                                if (succArea) succArea.style.display = 'block';
+                            }
+                        }}>Show advanced JSON</button>
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-tag-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-tag-node" data-value=${effParams.node_id || 'self'} data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Tag</label>
-                        <div class="eff-select" data-kind="tags" data-input-class="eff-tag-name" data-value="${window.escapeForHtmlAttribute(effParams.tag || '')}" data-placeholder="flammable, container..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="tags" data-input-class="eff-tag-name" data-value=${effParams.tag || ''} data-placeholder="flammable, container..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional)</label>
-                        <input type="text" class="eff-tag-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" style="width:100%;">
+                        <input type="text" class="eff-tag-msg" .value=${effParams.message || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-spawn-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-spawn-id" data-value=${effParams.item_id || ''} data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Display Name</label>
-                        <input type="text" class="eff-spawn-name" value="${window.escapeForHtmlAttribute(effParams.display_name || '')}" style="width:100%;">
+                        <input type="text" class="eff-spawn-name" .value=${effParams.display_name || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Place into</label>
                         <select class="eff-spawn-into" style="width:100%;font-size:11px;">
-                            <option value="area" ${(!effParams.into || effParams.into === 'area') ? 'selected' : ''}>Current area</option>
-                            <option value="container" ${effParams.into === 'container' ? 'selected' : ''}>This container (self)</option>
+                            <option value="area" ?selected=${!effParams.into || effParams.into === 'area'}>Current area</option>
+                            <option value="container" ?selected=${effParams.into === 'container'}>This container (self)</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Capture</label>
                         <select class="eff-spawn-capture" style="width:100%;font-size:11px;">
-                            <option value="" ${!effParams.capture ? 'selected' : ''}>— none —</option>
-                            <option value="speech" ${effParams.capture === 'speech' ? 'selected' : ''}>Recent speech (recorder)</option>
-                            <option value="sight" ${effParams.capture === 'sight' ? 'selected' : ''}>Recent sights (camera)</option>
+                            <option value="" ?selected=${!effParams.capture}>- none -</option>
+                            <option value="speech" ?selected=${effParams.capture === 'speech'}>Recent speech (recorder)</option>
+                            <option value="sight" ?selected=${effParams.capture === 'sight'}>Recent sights (camera)</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Character ID</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-spawn-char-id" data-value="${window.escapeForHtmlAttribute(effParams.character_id || '')}" data-placeholder="character_id (library file name)" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-spawn-char-id" data-value=${effParams.character_id || ''} data-placeholder="character_id (library file name)" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Display Name (optional override)</label>
-                        <input type="text" class="eff-spawn-char-name" value="${window.escapeForHtmlAttribute(effParams.display_name || '')}" style="width:100%;">
+                        <input type="text" class="eff-spawn-char-name" .value=${effParams.display_name || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (optional, blank = current area)</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-spawn-char-area" data-value="${window.escapeForHtmlAttribute(effParams.area || '')}" data-placeholder="Search areas..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-spawn-char-area" data-value=${effParams.area || ''} data-placeholder="Search areas..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional, supports {character_name})</label>
-                        <input type="text" class="eff-spawn-char-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="{character_name} arrives!" style="width:100%;">
+                        <input type="text" class="eff-spawn-char-msg" .value=${effParams.message || ''} placeholder="{character_name} arrives!" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID to Give</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-give-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-give-id" data-value=${effParams.item_id || ''} data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-give-target" data-value="${window.escapeForHtmlAttribute(effParams.target || 'self')}" data-placeholder="self, target, or character name" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-give-target" data-value=${effParams.target || 'self'} data-placeholder="self, target, or character name" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional)</label>
-                        <input type="text" class="eff-give-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="supports {target_name}" style="width:100%;">
+                        <input type="text" class="eff-give-msg" .value=${effParams.message || ''} placeholder="supports {target_name}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="remove_item" style="display:${effType === 'remove_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID to Remove</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-remove-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-remove-id" data-value=${effParams.item_id || ''} data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_state" style="display:${effType === 'set_state' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-state-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-state-node" data-value=${effParams.node_id || 'self'} data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_state" style="display:${effType === 'set_state' ? 'block' : 'none'};">
                         <label style="font-size:10px;">New State</label>
-                        <div class="eff-select" data-kind="states" data-input-class="eff-state-val" data-value="${window.escapeForHtmlAttribute(effParams.state || 'on')}" data-placeholder="on, off, open..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="states" data-input-class="eff-state-val" data-value=${effParams.state || 'on'} data-placeholder="on, off, open..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_hidden,adjust_uses" style="display:${['set_hidden','adjust_uses'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-hidden-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-hidden-node" data-value=${effParams.node_id || 'self'} data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="adjust_uses" style="display:${effType === 'adjust_uses' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delta (+/-)</label>
-                        <input type="number" class="eff-uses-delta" value="${effParams.delta || -1}" style="width:100%;">
+                        <input type="number" class="eff-uses-delta" .value=${String(effParams.delta ?? -1)} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter','adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-param-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-param-node" data-value=${effParams.node_id || 'self'} data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter','adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Parameter Key</label>
-                        <input type="text" class="eff-param-key" value="${window.escapeForHtmlAttribute(effParams.key || '')}" placeholder="e.g. light" style="width:100%;">
+                        <input type="text" class="eff-param-key" .value=${effParams.key || ''} placeholder="e.g. light" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_parameter" style="display:${effType === 'set_parameter' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Value</label>
-                        <input type="text" class="eff-param-value" value="${window.escapeForHtmlAttribute(effParams.value ?? '')}" placeholder="e.g. green" style="width:100%;">
+                        <input type="text" class="eff-param-value" .value=${String(effParams.value ?? '')} placeholder="e.g. green" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="adjust_parameter" style="display:${effType === 'adjust_parameter' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delta (+/-)</label>
-                        <input type="number" class="eff-param-delta" value="${effParams.delta || 0}" style="width:100%;">
+                        <input type="number" class="eff-param-delta" .value=${String(effParams.delta ?? 0)} style="width:100%;">
                     </div>
-                    <div class="eff-param" data-effect="rename" style="display:${effType === 'rename' ? 'block' : 'none'};">    
+                    <div class="eff-param" data-effect="rename" style="display:${effType === 'rename' ? 'block' : 'none'};">
                         <label style="font-size:10px;">New Name</label>
-                        <input type="text" class="eff-rename" value="${window.escapeForHtmlAttribute(effParams.name || '')}" placeholder="Empty Bottle" style="width:100%;">
+                        <input type="text" class="eff-rename" .value=${effParams.name || ''} placeholder="Empty Bottle" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="teleport" style="display:${effType === 'teleport' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Area</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-teleport" data-value="${window.escapeForHtmlAttribute(effParams.area || '')}" data-placeholder="Search areas..." style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-teleport" data-value=${effParams.area || ''} data-placeholder="Search areas..." style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="unlock_way" style="display:${effType === 'unlock_way' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Way ID</label>
-                        <div class="eff-select" data-kind="ways" data-input-class="eff-unlock" data-value="${window.escapeForHtmlAttribute(effParams.way_id || '')}" data-placeholder="Search ways..." style="width:100%;"></div>
+                        <div class="eff-select" data-kind="ways" data-input-class="eff-unlock" data-value=${effParams.way_id || ''} data-placeholder="Search ways..." style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_description,append_description" style="display:${['set_description','append_description'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
-                        <input type="text" class="eff-setdesc-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;">
+                        <input type="text" class="eff-setdesc-target" .value=${effParams.target || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_description" style="display:${effType === 'set_description' ? 'block' : 'none'};">
                         <label style="font-size:10px;">New Description</label>
-                        <input type="text" class="eff-setdesc-value" value="${window.escapeForHtmlAttribute(effParams.value || effParams.description || '')}" style="width:100%;">
+                        <input type="text" class="eff-setdesc-value" .value=${effParams.value || effParams.description || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="append_description" style="display:${effType === 'append_description' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Text to Append</label>
-                        <input type="text" class="eff-appenddesc-text" value="${window.escapeForHtmlAttribute(effParams.text || '')}" style="width:100%;">
+                        <input type="text" class="eff-appenddesc-text" .value=${effParams.text || ''} style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delay (ticks)</label>
-                        <input type="number" class="eff-schedule-delay" value="${effParams.delay_ticks || 3}" min="1" style="width:100%;">
+                        <input type="number" class="eff-schedule-delay" .value=${String(effParams.delay_ticks ?? 3)} min="1" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target (name or node ID, blank = this item)</label>
-                        <input type="text" class="eff-schedule-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" placeholder="cursed_ring" style="width:100%;">
+                        <input type="text" class="eff-schedule-target" .value=${effParams.target || ''} placeholder="cursed_ring" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Fires the target's <b>on_delayed</b> trigger. Add an <b>on_delayed</b> trigger to that item to say what happens.</div>
                     </div>
                     <div class="eff-param" data-effect="set_environment" style="display:${effType === 'set_environment' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Target Area/Node (leave blank = current)</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-env-node" data-value="${window.escapeForHtmlAttribute(effParams.target_node || '')}" data-placeholder="area_id or blank" data-free="true" style="width:100%;font-size:10px;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-env-node" data-value=${effParams.target_node || ''} data-placeholder="area_id or blank" data-free="true" style="width:100%;font-size:10px;"></div>
                         <label style="font-size:10px;">Light</label>
                         <select class="eff-env-light" style="width:100%;">
-                            <option value="">— Keep —</option>
-                            <option value="pitch_black" ${effParams.light === 'pitch_black' ? 'selected' : ''}>Pitch Black</option>
-                            <option value="dim" ${effParams.light === 'dim' ? 'selected' : ''}>Dim</option>
-                            <option value="normal" ${effParams.light === 'normal' ? 'selected' : ''}>Normal</option>
-                            <option value="bright" ${effParams.light === 'bright' ? 'selected' : ''}>Bright</option>
-                            <option value="blinding" ${effParams.light === 'blinding' ? 'selected' : ''}>Blinding</option>
+                            <option value="">- Keep -</option>
+                            <option value="pitch_black" ?selected=${effParams.light === 'pitch_black'}>Pitch Black</option>
+                            <option value="dim" ?selected=${effParams.light === 'dim'}>Dim</option>
+                            <option value="normal" ?selected=${effParams.light === 'normal'}>Normal</option>
+                            <option value="bright" ?selected=${effParams.light === 'bright'}>Bright</option>
+                            <option value="blinding" ?selected=${effParams.light === 'blinding'}>Blinding</option>
                         </select>
                         <label style="font-size:10px;">Temp °C</label>
-                        <input type="number" class="eff-env-temp" value="${effParams.temperature !== undefined ? effParams.temperature : ''}" min="-50" max="100" placeholder="e.g. 25" style="width:100%;">
+                        <input type="number" class="eff-env-temp" .value=${effParams.temperature !== undefined ? String(effParams.temperature) : ''} min="-50" max="100" placeholder="e.g. 25" style="width:100%;">
                         <label style="font-size:10px;">Air</label>
                         <select class="eff-env-air" style="width:100%;">
-                            <option value="">— Keep —</option>
-                            <option value="fresh" ${effParams.air === 'fresh' ? 'selected' : ''}>Fresh</option>
-                            <option value="stale" ${effParams.air === 'stale' ? 'selected' : ''}>Stale</option>
-                            <option value="humid" ${effParams.air === 'humid' ? 'selected' : ''}>Humid</option>
-                            <option value="toxic" ${effParams.air === 'toxic' ? 'selected' : ''}>Toxic</option>
-                            <option value="smoky" ${effParams.air === 'smoky' ? 'selected' : ''}>Smoky</option>
-                            <option value="fragrant" ${effParams.air === 'fragrant' ? 'selected' : ''}>Fragrant</option>
+                            <option value="">- Keep -</option>
+                            <option value="fresh" ?selected=${effParams.air === 'fresh'}>Fresh</option>
+                            <option value="stale" ?selected=${effParams.air === 'stale'}>Stale</option>
+                            <option value="humid" ?selected=${effParams.air === 'humid'}>Humid</option>
+                            <option value="toxic" ?selected=${effParams.air === 'toxic'}>Toxic</option>
+                            <option value="smoky" ?selected=${effParams.air === 'smoky'}>Smoky</option>
+                            <option value="fragrant" ?selected=${effParams.air === 'fragrant'}>Fragrant</option>
                         </select>
                         <label style="font-size:10px;">Smell</label>
-                        <input type="text" class="eff-env-smell" value="${window.escapeForHtmlAttribute(effParams.smell || '')}" placeholder="musty, floral..." style="width:100%;">
+                        <input type="text" class="eff-env-smell" .value=${effParams.smell || ''} placeholder="musty, floral..." style="width:100%;">
                         <label style="font-size:10px;">Noise</label>
                         <select class="eff-env-noise" style="width:100%;">
-                            <option value="">— Keep —</option>
-                            <option value="quiet" ${effParams.noise === 'quiet' ? 'selected' : ''}>Quiet</option>
-                            <option value="dripping" ${effParams.noise === 'dripping' ? 'selected' : ''}>Dripping</option>
-                            <option value="humming" ${effParams.noise === 'humming' ? 'selected' : ''}>Humming</option>
-                            <option value="windy" ${effParams.noise === 'windy' ? 'selected' : ''}>Windy</option>
-                            <option value="loud" ${effParams.noise === 'loud' ? 'selected' : ''}>Loud</option>
-                            <option value="chaotic" ${effParams.noise === 'chaotic' ? 'selected' : ''}>Chaotic</option>
-                            <option value="silent" ${effParams.noise === 'silent' ? 'selected' : ''}>Silent</option>
+                            <option value="">- Keep -</option>
+                            <option value="quiet" ?selected=${effParams.noise === 'quiet'}>Quiet</option>
+                            <option value="dripping" ?selected=${effParams.noise === 'dripping'}>Dripping</option>
+                            <option value="humming" ?selected=${effParams.noise === 'humming'}>Humming</option>
+                            <option value="windy" ?selected=${effParams.noise === 'windy'}>Windy</option>
+                            <option value="loud" ?selected=${effParams.noise === 'loud'}>Loud</option>
+                            <option value="chaotic" ?selected=${effParams.noise === 'chaotic'}>Chaotic</option>
+                            <option value="silent" ?selected=${effParams.noise === 'silent'}>Silent</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="adjust_environment" style="display:${effType === 'adjust_environment' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Temperature (+/-)</label>
-                        <input type="number" class="eff-adj-temp" value="${effParams.temperature !== undefined ? effParams.temperature : 0}" placeholder="5 or -3" style="width:100%;">
+                        <input type="number" class="eff-adj-temp" .value=${String(effParams.temperature ?? 0)} placeholder="5 or -3" style="width:100%;">
                         <label style="font-size:10px;">Light (+/-)</label>
-                        <input type="number" class="eff-adj-light" value="${effParams.light !== undefined ? effParams.light : 0}" placeholder="10 or -20" style="width:100%;">
+                        <input type="number" class="eff-adj-light" .value=${String(effParams.light ?? 0)} placeholder="10 or -20" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="llm_respond" style="display:${effType === 'llm_respond' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Instructions (persona prompt)</label>
-                        <textarea class="eff-llm-instructions" rows="3" placeholder="You are a grumpy magic mirror. Stay in character. Be brief." style="width:100%;font-size:11px;">${window.escapeForHtmlAttribute(effParams.instructions || '')}</textarea>
+                        <textarea class="eff-llm-instructions" rows="3" placeholder="You are a grumpy magic mirror. Stay in character. Be brief." style="width:100%;font-size:11px;" .value=${effParams.instructions || ''}></textarea>
                         <label style="font-size:10px;">Fallback message (no key / failure / empty reply)</label>
-                        <input type="text" class="eff-llm-fallback" value="${window.escapeForHtmlAttribute(effParams.fallback_message || '')}" placeholder="The mirror remains silent." style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-llm-fallback" .value=${effParams.fallback_message || ''} placeholder="The mirror remains silent." style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Max words</label>
-                        <input type="number" class="eff-llm-maxwords" value="${effParams.max_words || 40}" min="5" max="200" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-llm-maxwords" .value=${String(effParams.max_words ?? 40)} min="5" max="200" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Cooldown seconds (per node; empty = 30)</label>
-                        <input type="number" class="eff-llm-cooldown" value="${effParams.cooldown !== undefined ? effParams.cooldown : ''}" min="0" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-llm-cooldown" .value=${effParams.cooldown !== undefined ? String(effParams.cooldown) : ''} min="0" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Speaker name (empty = the node's name)</label>
-                        <input type="text" class="eff-llm-name" value="${window.escapeForHtmlAttribute(effParams.name || '')}" placeholder="e.g. The Magic Mirror" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-llm-name" .value=${effParams.name || ''} placeholder="e.g. The Magic Mirror" style="width:100%;font-size:11px;">
                         <div style="font-size:9px;color:var(--text-muted);">The browser generates the line (API keys live client-side) and broadcasts it as area speech. Agent characters in earshot hear it.</div>
                     </div>
                     <div class="eff-param" data-effect="scry" style="display:${effType === 'scry' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Target area (name)</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-scry-target" data-value="${window.escapeForHtmlAttribute(effParams.target || '')}" data-placeholder="Kitchen, Taco Bell..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-scry-target" data-value=${effParams.target || ''} data-placeholder="Kitchen, Taco Bell..." data-free="true" style="width:100%;"></div>
                         <label style="font-size:10px;">Lead-in message</label>
-                        <input type="text" class="eff-scry-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="You peer into the distance..." style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-scry-msg" .value=${effParams.message || ''} placeholder="You peer into the distance..." style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Fail message (target missing)</label>
-                        <input type="text" class="eff-scry-fail" value="${window.escapeForHtmlAttribute(effParams.fail_message || '')}" placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
-                        <div style="font-size:9px;color:var(--text-muted);">Shows the target area's description, ambient light and exits — frozen narrative, no agent-prompt changes.</div>
+                        <input type="text" class="eff-scry-fail" .value=${effParams.fail_message || ''} placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
+                        <div style="font-size:9px;color:var(--text-muted);">Shows the target area's description, ambient light and exits - frozen narrative, no agent-prompt changes.</div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait','remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Trait ID</label>
-                        <div class="eff-select" data-kind="traits" data-input-class="eff-trait-id" data-value="${window.escapeForHtmlAttribute(effParams.trait || '')}" data-placeholder="dark_vision, hardy, allergic..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="traits" data-input-class="eff-trait-id" data-value=${effParams.trait || ''} data-placeholder="dark_vision, hardy, allergic..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait','remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-trait-target" data-value="${window.escapeForHtmlAttribute(effParams.target || 'self')}" data-placeholder="self or character name" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-trait-target" data-value=${effParams.target || 'self'} data-placeholder="self or character name" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait" style="display:${effType === 'apply_trait' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Param Value</label>
-                        <input type="text" class="eff-trait-param" value="${effParams.param !== undefined ? window.escapeForHtmlAttribute(String(effParams.param)) : 'true'}" placeholder="true or value (e.g. pollen)" style="width:100%;">
+                        <input type="text" class="eff-trait-param" .value=${effParams.param !== undefined ? String(effParams.param) : 'true'} placeholder="true or value (e.g. pollen)" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Condition</label>
-                        <div class="eff-select" data-kind="conditions" data-input-class="eff-condition-id" data-value="${window.escapeForHtmlAttribute(effParams.condition || '')}" data-placeholder="poisoned, blind, exhausted, charmed..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="conditions" data-input-class="eff-condition-id" data-value=${effParams.condition || ''} data-placeholder="poisoned, blind, exhausted, charmed..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition,remove_condition" style="display:${['apply_condition','remove_condition'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
-                        <select class="eff-condition-target-by" style="width:100%;font-size:10px;" onchange="const row=this.closest('.eff-row'); const inp=row.querySelector('.eff-condition-target'); const show=this.value && this.value!=='self' && this.value!=='all_in_area'; inp.style.display=show?'block':'none'; inp.placeholder={name:'Character or node name',tag:'Tag',trait:'Trait id',type:'item / character / way / area'}[this.value]||'self or character name'; if(this.value==='self') inp.value='';">
-                            <option value="self" ${!effParams.target_by && (effParams.target==='self' || !effParams.target) ? 'selected' : ''}>Self (actor)</option>
-                            <option value="all_in_area" ${effParams.target_by==='all_in_area' ? 'selected' : ''}>All characters in area</option>
-                            <option value="name" ${effParams.target_by==='name' ? 'selected' : ''}>By name</option>
-                            <option value="tag" ${effParams.target_by==='tag' ? 'selected' : ''}>By tag</option>
-                            <option value="trait" ${effParams.target_by==='trait' ? 'selected' : ''}>By trait</option>
-                            <option value="type" ${effParams.target_by==='type' ? 'selected' : ''}>By type</option>
+                        <select class="eff-condition-target-by" style="width:100%;font-size:10px;" @change=${(e: Event) => {
+                            const select = e.target as HTMLSelectElement;
+                            const row = select.closest('.eff-row');
+                            if (!row) return;
+                            const inp = row.querySelector('.eff-condition-target') as HTMLInputElement | null;
+                            if (!inp) return;
+                            const show = select.value && select.value !== 'self' && select.value !== 'all_in_area';
+                            inp.style.display = show ? 'block' : 'none';
+                            const placeholders: Record<string, string> = {
+                                name: 'Character or node name',
+                                tag: 'Tag',
+                                trait: 'Trait id',
+                                type: 'item / character / way / area'
+                            };
+                            inp.placeholder = placeholders[select.value] || 'self or character name';
+                            if (select.value === 'self') inp.value = '';
+                        }}>
+                            <option value="self" ?selected=${!effParams.target_by && (effParams.target === 'self' || !effParams.target)}>Self (actor)</option>
+                            <option value="all_in_area" ?selected=${effParams.target_by === 'all_in_area'}>All characters in area</option>
+                            <option value="name" ?selected=${effParams.target_by === 'name'}>By name</option>
+                            <option value="tag" ?selected=${effParams.target_by === 'tag'}>By tag</option>
+                            <option value="trait" ?selected=${effParams.target_by === 'trait'}>By trait</option>
+                            <option value="type" ?selected=${effParams.target_by === 'type'}>By type</option>
                         </select>
-                        <input type="text" class="eff-condition-target" value="${window.escapeForHtmlAttribute(effParams.target_by ? (effParams.target_value || '') : (effParams.target === 'self' ? '' : (effParams.target || '')))}" list="eff-char-list" placeholder="self or character name" style="width:100%;font-size:10px;margin-top:2px;display:${(!effParams.target_by && effParams.target && effParams.target !== 'self') || (effParams.target_by && effParams.target_by !== 'all_in_area') ? 'block' : 'none'};">
+                        <input type="text" class="eff-condition-target" .value=${effParams.target_by ? (effParams.target_value || '') : (effParams.target === 'self' ? '' : (effParams.target || ''))} list="eff-char-list" placeholder="self or character name" style="width:100%;font-size:10px;margin-top:2px;display:${(!effParams.target_by && effParams.target && effParams.target !== 'self') || (effParams.target_by && effParams.target_by !== 'all_in_area') ? 'block' : 'none'};">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Duration (ticks, blank = catalog default)</label>
-                        <input type="number" class="eff-condition-duration" value="${effParams.duration !== undefined ? effParams.duration : ''}" placeholder="10" style="width:100%;">
+                        <input type="number" class="eff-condition-duration" .value=${effParams.duration !== undefined ? String(effParams.duration) : ''} placeholder="10" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Source (shown on the condition card)</label>
-                        <input type="text" class="eff-condition-source" value="${window.escapeForHtmlAttribute(effParams.source || '')}" placeholder="poisoned wine, viper..." style="width:100%;">
+                        <input type="text" class="eff-condition-source" .value=${effParams.source || ''} placeholder="poisoned wine, viper..." style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Per-tick drain (blank = catalog default; set 0 to disable that vital)</label>
                         <div class="eff-condition-periodic-form" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:2px;">
-                            ${['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].map(v =>
-                                `<label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
+                            ${['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].map(v => triggerEditorTag`
+                                <label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
                                     <span style="flex:1;">${v}</span>
-                                    <input type="number" step="any" class="eff-periodic-${v}" value="${effParams.periodic?.[v] !== undefined ? effParams.periodic[v] : 0}" style="width:52px;font-size:10px;">
-                                </label>`
-                            ).join('')}
+                                    <input type="number" step="any" class="eff-periodic-${v}" .value=${String(effParams.periodic?.[v] !== undefined ? effParams.periodic[v] : 0)} style="width:52px;font-size:10px;">
+                                </label>
+                            `)}
                         </div>
                         <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Leave all at 0 to use the condition's catalog default.</div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
-                        <label style="font-size:10px;">Symptoms — progression by ticks left (e.g. {"8":"a queasy twist...","4":"cold sweat...","1":"everything spins"}; blank = catalog)</label>
-                        <textarea class="eff-condition-symptoms" rows="3" placeholder='{"8": "A queasy twist in your stomach.", "4": "Cold sweat beads on your forehead.", "1": "Everything spins."}' style="width:100%;font-size:11px;">${effParams.symptoms ? window.escapeForHtmlAttribute(JSON.stringify(effParams.symptoms, null, 1)) : ''}</textarea>
-                        <div style="font-size:9px;color:var(--text-muted);">Keyed by ticks remaining — the highest threshold ≤ current time wins. Use "level" keys instead for leveled conditions (exhausted).</div>
+                        <label style="font-size:10px;">Symptoms - progression by ticks left (e.g. {"8":"a queasy twist...","4":"cold sweat...","1":"everything spins"}; blank = catalog)</label>
+                        <textarea class="eff-condition-symptoms" rows="3" placeholder='{"8": "A queasy twist in your stomach.", "4": "Cold sweat beads on your forehead.", "1": "Everything spins."}' style="width:100%;font-size:11px;" .value=${effParams.symptoms ? JSON.stringify(effParams.symptoms, null, 1) : ''}></textarea>
+                        <div style="font-size:9px;color:var(--text-muted);">Keyed by ticks remaining - the highest threshold &lt;= current time wins. Use "level" keys instead for leveled conditions (exhausted).</div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
-                        <label style="font-size:10px;">Extra conditions — applied alongside (e.g. [{"condition":"blind","duration":3}]); blank = none</label>
-                        <textarea class="eff-condition-extras" rows="2" placeholder='[{"condition": "blind", "duration": 3}, {"condition": "exhausted", "level": 1}]' style="width:100%;font-size:11px;">${effParams.extra_conditions ? window.escapeForHtmlAttribute(JSON.stringify(effParams.extra_conditions)) : ''}</textarea>
+                        <label style="font-size:10px;">Extra conditions - applied alongside (e.g. [{"condition":"blind","duration":3}]); blank = none</label>
+                        <textarea class="eff-condition-extras" rows="2" placeholder='[{"condition": "blind", "duration": 3}, {"condition": "exhausted", "level": 1}]' style="width:100%;font-size:11px;" .value=${effParams.extra_conditions ? JSON.stringify(effParams.extra_conditions) : ''}></textarea>
                     </div>
                     <div class="eff-param" data-effect="set_time" style="display:${effType === 'set_time' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Time (HH:MM or 24h hour)</label>
-                        <input type="text" class="eff-settime-time" value="${window.escapeForHtmlAttribute(effParams.time || (effParams.hour !== undefined ? String(effParams.hour) : ''))}" placeholder="14:30" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-settime-time" .value=${effParams.time || (effParams.hour !== undefined ? String(effParams.hour) : '')} placeholder="14:30" style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="set_date" style="display:${effType === 'set_date' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Day / Month / Year</label>
                         <div style="display:flex;gap:4px;">
-                            <input type="number" class="eff-setdate-day" value="${effParams.day ?? ''}" placeholder="day" style="width:33%;font-size:11px;">
-                            <input type="number" class="eff-setdate-month" value="${effParams.month ?? ''}" placeholder="month" style="width:33%;font-size:11px;">
-                            <input type="number" class="eff-setdate-year" value="${effParams.year ?? ''}" placeholder="year" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-day" .value=${effParams.day !== undefined ? String(effParams.day) : ''} placeholder="day" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-month" .value=${effParams.month !== undefined ? String(effParams.month) : ''} placeholder="month" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-year" .value=${effParams.year !== undefined ? String(effParams.year) : ''} placeholder="year" style="width:33%;font-size:11px;">
                         </div>
                     </div>
                     <div class="eff-param" data-effect="set_weather" style="display:${effType === 'set_weather' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-setweather" style="width:100%;font-size:11px;">
-                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${effParams.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => triggerEditorTag`<option value=${w} ?selected=${effParams.weather === w}>${w}</option>`)}
                         </select>
                         <label style="font-size:10px;">Duration (ticks, blank = until changed)</label>
-                        <input type="number" class="eff-setweather-dur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-setweather-dur" .value=${effParams.duration_ticks !== undefined ? String(effParams.duration_ticks) : ''} style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="forecast_override" style="display:${effType === 'forecast_override' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-fcast-weather" style="width:100%;font-size:11px;">
-                            <option value="" ${!effParams.weather ? 'selected' : ''}>— keep —</option>
-                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${effParams.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <option value="" ?selected=${!effParams.weather}>- keep -</option>
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => triggerEditorTag`<option value=${w} ?selected=${effParams.weather === w}>${w}</option>`)}
                         </select>
                         <label style="font-size:10px;">Wind</label>
                         <select class="eff-fcast-wind" style="width:100%;font-size:11px;">
-                            <option value="" ${!effParams.wind ? 'selected' : ''}>— keep —</option>
-                            ${['none','breeze','wind','gale','storm','hurricane'].map(w => `<option value="${w}" ${effParams.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <option value="" ?selected=${!effParams.wind}>- keep -</option>
+                            ${['none','breeze','wind','gale','storm','hurricane'].map(w => triggerEditorTag`<option value=${w} ?selected=${effParams.wind === w}>${w}</option>`)}
                         </select>
                         <label style="font-size:10px;">Temperature mod (+/- °C)</label>
-                        <input type="number" class="eff-fcast-temp" value="${effParams.temperature_mod ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-temp" .value=${effParams.temperature_mod !== undefined ? String(effParams.temperature_mod) : ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks; blank = until cleared)</label>
-                        <input type="number" class="eff-fcast-dur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-dur" .value=${effParams.duration_ticks !== undefined ? String(effParams.duration_ticks) : ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Target (blank = global, or area id)</label>
-                        <input type="text" class="eff-fcast-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" placeholder="global / area id" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-fcast-target" .value=${effParams.target || ''} placeholder="global / area id" style="width:100%;font-size:11px;">
                         <label style="font-size:9px;display:flex;align-items:center;gap:4px;margin-top:2px;"><input type="checkbox" class="eff-fcast-blood" ?checked=${effParams.blood_moon === true}> Blood moon</label>
                     </div>
                     <div class="eff-param" data-effect="adjust_forecast" style="display:${effType === 'adjust_forecast' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Temperature mod delta</label>
-                        <input type="number" class="eff-fcast-tdelta" value="${effParams.temperature_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-tdelta" .value=${effParams.temperature_mod_delta !== undefined ? String(effParams.temperature_mod_delta) : ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Light mod delta</label>
-                        <input type="number" class="eff-fcast-ldelta" value="${effParams.light_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-ldelta" .value=${effParams.light_mod_delta !== undefined ? String(effParams.light_mod_delta) : ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks)</label>
-                        <input type="number" class="eff-fcast-adur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-adur" .value=${effParams.duration_ticks !== undefined ? String(effParams.duration_ticks) : ''} style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="apply_area_status" style="display:${effType === 'apply_area_status' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (blank = current)</label>
-                        <input type="text" class="eff-astat-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-astat-target" .value=${effParams.target || ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-type" style="width:100%;font-size:11px;">
-                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${effParams.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => triggerEditorTag`<option value=${s} ?selected=${effParams.status_type === s}>${s}</option>`)}
                         </select>
                         <label style="font-size:10px;">Severity (1-5)</label>
-                        <input type="number" class="eff-astat-sev" value="${effParams.severity ?? 1}" min="1" max="5" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-astat-sev" .value=${String(effParams.severity ?? 1)} min="1" max="5" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks, blank = until cleared)</label>
-                        <input type="number" class="eff-astat-dur" value="${effParams.duration ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-astat-dur" .value=${effParams.duration !== undefined ? String(effParams.duration) : ''} style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="clear_area_status" style="display:${effType === 'clear_area_status' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (blank = current)</label>
-                        <input type="text" class="eff-astat-clrtarget" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-astat-clrtarget" .value=${effParams.target || ''} style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-clrtype" style="width:100%;font-size:11px;">
-                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${effParams.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => triggerEditorTag`<option value=${s} ?selected=${effParams.status_type === s}>${s}</option>`)}
                         </select>
                     </div>
                     <div class="eff-param" data-effect="set_wet" style="display:${effType === 'set_wet' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Wet</label>
                         <select class="eff-setwet-val" style="width:100%;font-size:11px;">
-                            <option value="true" ${effParams.wet !== false ? 'selected' : ''}>Soak (wet)</option>
-                            <option value="false" ${effParams.wet === false ? 'selected' : ''}>Dry out</option>
+                            <option value="true" ?selected=${effParams.wet !== false}>Soak (wet)</option>
+                            <option value="false" ?selected=${effParams.wet === false}>Dry out</option>
                         </select>
                         <label style="font-size:10px;">Item node (blank = equipped gear)</label>
-                        <input type="text" class="eff-setwet-node" value="${window.escapeForHtmlAttribute(effParams.node_id || '')}" placeholder="actor's equipment" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-setwet-node" .value=${effParams.node_id || ''} placeholder="actor's equipment" style="width:100%;font-size:11px;">
                     </div>
                 </div>
-                <span onclick="this.closest('.eff-row').remove()" style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:12px;">✕</span>
-            </div>`;
+                <span @click=${(e: MouseEvent) => (e.currentTarget as HTMLElement).closest('.eff-row')?.remove()} style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:12px;">✕</span>
+            </div>
+        `;
+    },
+
+    _buildEffectRowHtml(existingEff: TriggerEditorEffect | null, idx: number): string {
+        const div = document.createElement('div');
+        window.Lit.render(triggerEditorApi._renderEffectRow(existingEff, idx), div);
+        return div.innerHTML;
     },
 
     _toggleEffectParams(select: TriggerEditorField): void {
@@ -1992,7 +2099,7 @@ return `
         });
     },
 
-    _toggleSnippetMenu() {
+    _toggleSnippetMenu(): void {
         const menu = document.getElementById('te-snippet-menu');
         if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     },
@@ -2004,17 +2111,15 @@ return `
         if (typeSelect && typeSelect.tagName === 'SELECT' && !typeSelect.multiple && snippet.triggerType) {
             typeSelect.value = snippet.triggerType;
         }
-        const msgInput = document.getElementById('te-success-msg') as HTMLTextAreaElement | null;
+        const msgInput = document.getElementById('te-success-msg') as HTMLInputElement | null;
         if (msgInput && snippet.message) msgInput.value = snippet.message;
         const container = document.getElementById('te-effects-container');
         if (container) {
-            container.innerHTML = '';
             container.setAttribute('data-count', String(snippet.effects.length));
-            const wrap = document.createElement('div');
-            wrap.innerHTML = snippet.effects.map((eff, idx) => triggerEditorApi._buildEffectRowHtml(eff, idx)).join('');
-            const fragment = document.createDocumentFragment();
-            while (wrap.firstElementChild) fragment.appendChild(wrap.firstElementChild);
-            container.appendChild(fragment);
+            window.Lit.render(
+                triggerEditorTag`${snippet.effects.map((eff, idx) => triggerEditorApi._renderEffectRow(eff, idx))}`,
+                container
+            );
             triggerEditorApi._initEffectSearchSelects(container);
             container.querySelectorAll<TriggerEditorField>('.eff-row .eff-type').forEach(sel => triggerEditorApi._toggleEffectParams(sel));
         }
@@ -2022,18 +2127,20 @@ return `
         if (menu) menu.style.display = 'none';
     },
 
-    _addEffectRow() {
+    _addEffectRow(): void {
         const container = document.getElementById('te-effects-container');
         if (!container) return;
-        const count = parseInt(container.getAttribute('data-count') || '0');
+        const count = parseInt(container.getAttribute('data-count') || '0', 10);
         container.setAttribute('data-count', String(count + 1));
-        const rowHtml = triggerEditorApi._buildEffectRowHtml(null, count);
         const div = document.createElement('div');
-        window.Lit.render(triggerEditorTag`${window.Lit.unsafeHTML(rowHtml)}`, div);
-        container.appendChild(div.firstElementChild as Node);
-        triggerEditorApi._initEffectSearchSelects(container);
-        const lastEff = container.querySelector('.eff-row:last-child .eff-type') as TriggerEditorField | null;
-        if (lastEff) triggerEditorApi._toggleEffectParams(lastEff);
+        window.Lit.render(triggerEditorApi._renderEffectRow(null, count), div);
+        const newRow = div.firstElementChild as HTMLElement;
+        if (newRow) {
+            container.appendChild(newRow);
+            triggerEditorApi._initEffectSearchSelects(newRow);
+            const lastEff = newRow.querySelector('.eff-type') as TriggerEditorField | null;
+            if (lastEff) triggerEditorApi._toggleEffectParams(lastEff);
+        }
     }
 };
 
@@ -2059,31 +2166,112 @@ interface TriggerEditorOption {
     label?: string;
 }
 
-/** One entry of `initialData.effects` / `TRIGGER_SNIPPETS[].effects`. `params`
- *  is per-effect-type and unmodelled, so it stays open. */
-interface TriggerEditorEffect {
-    type: string;
-    params: Record<string, any>;
-    [key: string]: any;
+/** Parameters recognized on trigger effect rows. */
+interface TriggerEditorEffectParams {
+    amount?: number;
+    target?: string;
+    stat?: string;
+    skill?: string;
+    dc?: number;
+    on_success?: TriggerEditorEffect[];
+    on_fail?: TriggerEditorEffect[];
+    node_id?: string;
+    tag?: string;
+    message?: string;
+    item_id?: string;
+    display_name?: string;
+    into?: string;
+    capture?: string;
+    character_id?: string;
+    area?: string;
+    state?: string;
+    hidden?: boolean;
+    delta?: number;
+    key?: string;
+    value?: unknown;
+    name?: string;
+    way_id?: string;
+    description?: string;
+    text?: string;
+    delay_ticks?: number;
+    light?: string | number;
+    temperature?: number;
+    air?: string;
+    smell?: string;
+    noise?: string;
+    target_node?: string;
+    instructions?: string;
+    fallback_message?: string;
+    max_words?: number;
+    cooldown?: number;
+    fail_message?: string;
+    success_message?: string;
+    trait?: string;
+    param?: unknown;
+    condition?: string;
+    target_by?: string;
+    target_value?: string;
+    duration?: number;
+    duration_ticks?: number;
+    source?: string;
+    source_type?: string;
+    periodic?: Record<string, number>;
+    symptoms?: unknown;
+    extra_conditions?: unknown;
+    time?: string;
+    hour?: number;
+    day?: number;
+    month?: number;
+    year?: number;
+    weather?: string;
+    wind?: string;
+    temperature_mod?: number;
+    blood_moon?: boolean;
+    temperature_mod_delta?: number;
+    light_mod_delta?: number;
+    status_type?: string;
+    severity?: number;
+    wet?: boolean;
+    [key: string]: unknown;
 }
 
-/** `initialData` — the trigger being edited, or null when authoring a new one. */
+/** One entry of `initialData.effects` / `TRIGGER_SNIPPETS[].effects`. */
+interface TriggerEditorEffect {
+    type: string;
+    params: TriggerEditorEffectParams;
+    [key: string]: unknown;
+}
+
+/** Normalized save branch effect parsed from on_success / on_fail. */
+interface TriggerEditorSaveBranch {
+    type: string;
+    message?: string;
+    condition?: string;
+    duration?: number;
+    source?: string;
+    source_type?: string;
+    amount?: number;
+}
+
+/** `initialData` - the trigger being edited, or null when authoring a new one. */
 interface TriggerEditorData {
     trigger_type?: string | string[];
     effects?: TriggerEditorEffect[];
-    conditions?: any;
+    conditions?: TriggerEditorConditionNode | TriggerEditorConditionNode[];
     conditions_logic?: string;
     name?: string;
+    target_name?: string;
+    target_state?: string;
     success_message?: string;
     fail_message?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /** The options object `show()` takes (inspector.js and item-library.js). */
 interface TriggerEditorShowOptions {
     mode?: 'single' | 'multi';
     initialData?: TriggerEditorData | null;
-    onSave?: ((data: any) => void) | null;
+    onSave?: ((data: TriggerEditorData) => void) | null;
     onClose?: (() => void) | null;
     onTriggerTypeChange?: ((selectedTypes: string[]) => void) | null;
     effectTypes?: TriggerEditorOption[];
@@ -2092,6 +2280,7 @@ interface TriggerEditorShowOptions {
     targetDatalistHtml?: string;
     itemDatalistHtml?: string;
     contextItemId?: string;
+    onOpenGraph?: boolean;
 }
 
 /**
@@ -2106,7 +2295,7 @@ interface TriggerEditorApiClient {
  * `ApiClient` as this module uses it. Narrowed at each use rather than hoisted
  * into a top-level const: `getLibraryType` is not in globals.d.ts, and reading
  * `ApiClient` at load time would make this file depend on api.js having already
- * executed — a dependency the original did not have, since every call to it
+ * executed - a dependency the original did not have, since every call to it
  * happens later, inside `show()`. Emitted as the bare `ApiClient.…` call.
  */
 function triggerEditorApiClient(): TriggerEditorApiClient {
@@ -2147,40 +2336,55 @@ interface TriggerEditorTagMultiHost extends HTMLElement {
 /**
  * One node of the nested condition rule tree. A group carries `operator` and
  * `conditions`; a leaf carries `type` plus per-type params. The open index
- * signature covers both shapes — the editor builds the leaves from a `<select>`.
+ * signature covers both shapes - the editor builds the leaves from a `<select>`.
  */
 interface TriggerEditorConditionGroup {
     operator?: string;
     conditions?: TriggerEditorConditionNode[];
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 interface TriggerEditorConditionLeaf {
     type: string;
-    [key: string]: any;
+    value?: unknown;
+    stat?: string;
+    skill?: string;
+    operator?: string;
+    save_type?: string;
+    dc?: number;
+    target?: string;
+    mode?: string;
+    phrase?: string;
+    status_type?: string;
+    item?: string;
+    node?: string;
+    state?: string;
+    [key: string]: unknown;
 }
 
 type TriggerEditorConditionNode = TriggerEditorConditionGroup | TriggerEditorConditionLeaf;
 
 /**
- * A form control inside an effect row. `value` is `any` rather than `string`
- * because every one of the ~40 reads below is `?.`-guarded and immediately
- * defaulted (`parseInt(...?.value) || 5`, `...?.value || 'self'`) or explicitly
- * tested against `undefined` — the serializer is written to survive a row that
- * never rendered the field for its effect type.
+ * A form control inside an effect row.
  */
 interface TriggerEditorField extends HTMLElement {
-    value: any;
+    value: string;
     checked?: boolean;
 }
 
 /**
  * An `.eff-row`. `querySelector` is narrowed to the row's own form controls so
- * the per-effect-type `params` reads type-check without 60 individual casts; the
+ * the per-effect-type `params` reads type-check without individual casts; the
  * rows only ever hold inputs, selects and checkboxes.
  */
 interface TriggerEditorEffectRow extends HTMLElement {
     querySelector(selectors: string): TriggerEditorField | null;
+}
+
+interface TriggerEditorTestCondition {
+    passed?: boolean;
+    condition?: string;
+    detail?: { phrase?: string; mode?: string };
 }
 
 /** The body posted to `POST /api/triggers/test` (dry run). */

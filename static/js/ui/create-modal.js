@@ -1,11 +1,11 @@
 "use strict";
 /**
- * Create Modal — opens the modal for creating rooms, items, and connections.
+ * Create Modal - opens the modal for creating rooms, items, and connections.
  * Used by graph-manager add buttons and the legacy openCreateModal() wrapper.
  *
- * @module ui/create-modal — create room/item/connection modal
+ * @module ui/create-modal - create room/item/connection modal
  * @contributes CreateModal + the item vocabularies (actions, equip slots, states, relations, damage)
- * @powers Scenario creation — adding new rooms, items, and connections from the graph's add buttons
+ * @powers Scenario creation - adding new rooms, items, and connections from the graph's add buttons
  * @relates opened by graph-manager; writes through the graph API
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
@@ -29,10 +29,10 @@ const DAMAGE_SKILLS = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Inve
 const DAMAGE_TYPES = ['slashing', 'piercing', 'bludgeoning', 'fire', 'cold', 'toxic', 'magic', 'electric', 'radiant', 'necrotic', 'psychic', 'acid'];
 // Cardinal vocabulary for the connection form's direction suggestions. Same set
 // as graph/layout-engine.js `dirOffsets`, so an authored cardinal is one the
-// map layout can resolve. Offered as datalist suggestions only — a direction
+// map layout can resolve. Offered as datalist suggestions only - a direction
 // is free text ("swinging door", "enter") and never restricted to this list.
 const CARDINALS = ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southeast', 'southwest', 'up', 'down'];
-// Mechanical capabilities — each chip owns one engine tag. Enabling a chip
+// Mechanical capabilities - each chip owns one engine tag. Enabling a chip
 // adds the tag (via the tag picker) and reveals its tuning fields. The
 // engine counterparts live in lighting.py (light_source), environment_propagation.py
 // (heat_source), sound.py (sound_source), toggleable_items.py (toggleable)
@@ -59,45 +59,71 @@ const CreateModal = {
     /** Open the create modal for a given entity type with a submit callback. */
     open(type, onSubmit) {
         const modal = createModalById('create-modal');
-        const title = createModalById('create-modal-title');
-        const body = createModalById('create-modal-body');
-        if (!modal || !body)
+        if (!modal)
             return;
-        // The item form is sectioned and wider; other forms keep the compact width.
-        body.style.width = type === 'item' ? '620px' : '480px';
         let formTemplate;
+        let titleText = '';
         if (type === 'area') {
             formTemplate = this._buildRoomForm();
-            title.innerText = 'Add New Area';
+            titleText = 'Add New Area';
         }
         else if (type === 'item') {
             formTemplate = this._buildItemForm();
-            title.innerText = 'Add New Item';
+            titleText = 'Add New Item';
         }
         else if (type === 'connection') {
             formTemplate = this._buildConnectionForm();
-            title.innerText = 'Connect Rooms';
+            titleText = 'Connect Rooms';
         }
-        const contentEl = createModalById('create-modal-content');
-        if (contentEl && formTemplate)
-            window.Lit.render(formTemplate, contentEl);
-        this._initTagMultiselects(type);
-        if (type === 'item')
-            this._initItemTargetSearch();
-        modal.style.display = 'flex';
-        const closeOnEscape = (event) => { if (event.key === 'Escape')
-            this.close(); };
-        document.addEventListener('keydown', closeOnEscape);
-        modal._closeOnEscape = closeOnEscape;
-        modal.onclick = (event) => { if (event.target === modal)
-            this.close(); };
-        const submitButton = createModalById('create-modal-submit');
-        submitButton.onclick = () => {
+        const handleSubmit = () => {
             const result = this._collectFormData(type);
             if (result && onSubmit)
                 onSubmit(result);
             this.close();
         };
+        const modalTemplate = (window.UiPrimitives?.ModalDialog)
+            ? window.UiPrimitives.ModalDialog({
+                title: titleText,
+                isOpen: true,
+                size: type === 'item' ? 'lg' : 'md',
+                content: createModalHtmlTag `
+                    <div id="create-modal-body" class="modal-content" style="padding:0;background:transparent;border:none;box-shadow:none;max-height:none;width:100%;">
+                        <div id="create-modal-content">
+                            ${formTemplate}
+                        </div>
+                    </div>
+                `,
+                actions: createModalHtmlTag `
+                    <button class="btn btn-secondary" @click=${() => this.close()}>Cancel</button>
+                    <button class="btn btn-green" id="create-modal-submit" @click=${handleSubmit}>✅ Create</button>
+                `,
+                onClose: () => this.close()
+            })
+            : createModalHtmlTag `
+                <div class="modal-backdrop" @click=${(ev) => {
+                if (ev.target === ev.currentTarget)
+                    this.close();
+            }} style="position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(2px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">
+                    <div id="create-modal-body" class="modal-card modal-content" style="background:var(--bg-panel, #1a1e24);border:1px solid var(--border, #333a45);border-radius:8px;width:100%;max-width:${type === 'item' ? '720px' : '500px'};max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(0,0,0,0.5);overflow:hidden;">
+                        <div class="modal-header" style="padding:12px 16px;border-bottom:1px solid var(--border, #333a45);display:flex;align-items:center;justify-content:space-between;">
+                            <h3 id="create-modal-title" style="margin:0;font-size:15px;color:var(--text, #e6e6e6);">${titleText}</h3>
+                            <button class="modal-close btn btn-sm btn-ghost" @click=${() => this.close()} style="cursor:pointer;padding:2px 8px;">✕</button>
+                        </div>
+                        <div id="create-modal-content" class="modal-body" style="padding:16px;overflow-y:auto;flex:1;">
+                            ${formTemplate}
+                        </div>
+                        <div class="modal-actions modal-footer" style="padding:10px 16px;border-top:1px solid var(--border, #333a45);display:flex;gap:8px;justify-content:flex-end;background:var(--bg-inset, #242a33);">
+                            <button class="btn btn-secondary" @click=${() => this.close()}>Cancel</button>
+                            <button class="btn btn-green" id="create-modal-submit" @click=${handleSubmit}>✅ Create</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        window.Lit.render(modalTemplate, modal);
+        this._initTagMultiselects(type);
+        if (type === 'item')
+            this._initItemTargetSearch();
+        modal.style.display = 'block';
     },
     _initTagMultiselects(type) {
         if (this._tagMSArea) {
@@ -154,9 +180,6 @@ const CreateModal = {
         const modal = createModalById('create-modal');
         if (modal) {
             modal.style.display = 'none';
-            const closeHandler = modal._closeOnEscape;
-            if (closeHandler)
-                document.removeEventListener('keydown', closeHandler);
         }
     },
     async _searchPlacementTargets(query) {
@@ -239,10 +262,10 @@ const CreateModal = {
         const stateOptions = ITEM_STATES.map(s => createModalHtmlTag `<option .value=${s} ?selected=${s === 'normal'}>${s}</option>`);
         const relationOptions = ITEM_RELATIONS.map(r => createModalHtmlTag `<option .value=${r} ?selected=${r === 'in'}>${r}</option>`);
         const damageSkillOptions = DAMAGE_SKILLS.map(s => createModalHtmlTag `<option .value=${s} ?selected=${s === 'Athletics'}>${s}</option>`);
-        const damageTypeOptions = [['', '— none —'], ...DAMAGE_TYPES.map(dt => [dt, dt])]
+        const damageTypeOptions = [['', '- none -'], ...DAMAGE_TYPES.map(dt => [dt, dt])]
             .map(([v, lbl]) => createModalHtmlTag `<option .value=${v} ?selected=${v === ''}>${lbl}</option>`);
         return createModalHtmlTag `<div style="display:flex;gap:4px;margin-bottom:2px;">
-            <input type="text" id="ai-prompt" placeholder="AI prompt — e.g. 'an old brass lantern'" style="flex:1;font-size:11px;">
+            <input type="text" id="ai-prompt" placeholder="AI prompt - e.g. 'an old brass lantern'" style="flex:1;font-size:11px;">
             <button class="btn btn-sm btn-purple" @click=${() => window.generateWithAI('item')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
             <button class="btn btn-sm" @click=${() => VW._previewPrompt('item')} title="Preview and edit prompt" style="background:var(--bg-inset);border-color:var(--border);">👁️</button>
             <label class="chip-toggle" title="Give the AI the target's description so the item fits the scene" style="align-self:center;"><input type="checkbox" id="gen-use-context" checked> 🧠 Context</label>
@@ -349,7 +372,7 @@ const CreateModal = {
                     </div>
                 </div>
                 <div class="mech-fields" data-mech="resistance">
-                    <div><label>Resistances</label><input type="text" id="item-resistances" placeholder="fire:5, cold:3, toxic:999"><div class="cm-hint">type:amount — amount subtracted from that damage type; 999 ≈ immune.</div></div>
+                    <div><label>Resistances</label><input type="text" id="item-resistances" placeholder="fire:5, cold:3, toxic:999"><div class="cm-hint">type:amount - amount subtracted from that damage type; 999 ≈ immune.</div></div>
                 </div>
                 <div class="mech-fields" data-mech="container">
                     <div class="cm-section-title" style="margin-top:2px;">📦 Contents</div>
@@ -373,7 +396,7 @@ const CreateModal = {
 
         <div class="cm-section">
             <details style="font-size:10px;">
-                <summary style="cursor:pointer;color:var(--accent);font-weight:600;">⚡ Triggers (optional) <span style="color:var(--text-muted);font-weight:400;">— advanced, JSON</span></summary>
+                <summary style="cursor:pointer;color:var(--accent);font-weight:600;">⚡ Triggers (optional) <span style="color:var(--text-muted);font-weight:400;">- advanced, JSON</span></summary>
                 <textarea id="item-triggers-json" rows="4" placeholder='[{"trigger_type":"on_eat","effect_type":"adjust_vital","effect_params":{"stat":"Hunger","amount":30,"message":"You feel nourished."}}]' style="width:100%;font-size:10px;margin-top:4px;"></textarea>
                 <div class="cm-hint">Trigger types: on_take, on_drop, on_examine, on_use, on_use_on, on_eat, on_drink, on_read, on_light, on_activate, on_equip, on_unequip, on_toggle_on/off, on_tick, on_open, on_close, on_depleted. Edit later in the library editor.</div>
             </details>
@@ -425,7 +448,7 @@ const CreateModal = {
         if (summary)
             summary.textContent = active.length
                 ? 'Active: ' + active.join(', ')
-                : 'No mechanics — a plain prop. Add chips above to make it glow, hum, heat, protect…';
+                : 'No mechanics - a plain prop. Add chips above to make it glow, hum, heat, protect…';
     },
     _addContentRow(name = '', description = '', relation = 'in') {
         const rows = createModalById('item-contents-rows');
@@ -472,7 +495,7 @@ const CreateModal = {
         <datalist id="conn-cardinals">
             ${window.Lit.unsafeHTML(CARDINALS.map(c => `<option value="${c}"></option>`).join(''))}
         </datalist>
-        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Type anything — "swinging door" and "enter" are as valid as a cardinal.</div>
+        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Type anything - "swinging door" and "enter" are as valid as a cardinal.</div>
         <div style="margin-top:6px;">
             <label style="font-size:11px;">View when open (from Area A)</label>
             <textarea id="conn-view-from-a" rows="2" placeholder="What you see through the way when open…" style="width:100%;font-size:11px;"></textarea>
@@ -583,7 +606,7 @@ const CreateModal = {
                 contents,
                 triggers
             };
-            // Mechanical props — only sent when their capability chip is on.
+            // Mechanical props - only sent when their capability chip is on.
             if (has('light_source'))
                 payload.light_level = createModalById('item-light-level')?.value || 'dim';
             if (has('heat_source')) {
