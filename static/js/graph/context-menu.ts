@@ -89,7 +89,7 @@ const contextMenuHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
      *
      * @param {string} action - The action identifier (e.g. 'inspect', 'delete', 'duplicate')
      */
-    ctxAction(action: string): void {
+    async ctxAction(action: string): Promise<void> {
         const menu = document.getElementById('context-menu');
         if (menu) menu.style.display = 'none';
         const target = graphManager._contextTarget;
@@ -148,7 +148,12 @@ const contextMenuHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
                     events.log('No characters to move.', 'system-msg');
                     return;
                 }
-                const characterName = prompt(`Move which character to "${name}"?\nAvailable: ${players.join(', ')}`, players[0]);
+                const promptRes = await (window as any).Dialog?.prompt?.({
+                    title: 'Move Character',
+                    message: `Move which character to "${name}"?\nAvailable: ${players.join(', ')}`,
+                    fields: [{ key: 'characterName', label: 'Character Name', value: players[0] }]
+                });
+                const characterName = promptRes?.characterName;
                 if (!characterName || !players.includes(characterName)) {
                     events.log('Character not found.', 'error-msg');
                     return;
@@ -161,7 +166,11 @@ const contextMenuHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
                 break;
             }
             case 'create_character': {
-                const newName = prompt('Enter name for new character:', 'New Character');
+                const promptRes = await (window as any).Dialog?.prompt?.({
+                    title: 'New Character',
+                    fields: [{ key: 'name', label: 'Character Name', value: 'New Character' }]
+                });
+                const newName = promptRes?.name;
                 if (!newName?.trim()) return;
                 (ApiClient as unknown as { createCharacter(name: string): Promise<{ error?: string }> }).createCharacter(newName.trim()).then((res: { error?: string }) => {
                     if (res.error) { events.log(`Create failed: ${res.error}`, 'error-msg'); return; }

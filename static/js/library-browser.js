@@ -204,12 +204,16 @@ class LibraryBrowser {
         bar.appendChild(typeSel);
         const newBtn = mk('button', '➕ New');
         newBtn.setAttribute('style', 'cursor:pointer;padding:3px 8px;border-radius:5px;');
-        newBtn.addEventListener('click', () => {
-            const id = window.prompt('New entry id (lowercase letters, digits, underscore):');
+        newBtn.addEventListener('click', async () => {
+            const promptRes = await window.Dialog?.prompt?.({
+                title: 'New Entry ID',
+                fields: [{ key: 'id', label: 'ID (lowercase letters, digits, underscore)', placeholder: 'new_entry_id' }]
+            });
+            const id = promptRes?.id?.trim();
             if (!id)
                 return;
             if (!/^[a-z0-9_]+$/.test(id)) {
-                window.alert('id must be lowercase letters, digits or underscore');
+                toastError('id must be lowercase letters, digits or underscore');
                 return;
             }
             const defaults = {
@@ -261,12 +265,12 @@ class LibraryBrowser {
                     rec = JSON.parse(ta.value);
                 }
                 catch (err) {
-                    window.alert('Invalid JSON: ' + err.message);
+                    toastError('Invalid JSON: ' + err.message);
                     return;
                 }
                 void LibraryApi.saveVocabulary(this._vocabType, cur.id, rec).then(res => {
                     if (res && res.error) {
-                        window.alert('Save refused: ' + res.error + '\n' + (res.problems || []).join('\n'));
+                        toastError('Save refused: ' + res.error + (res.problems?.length ? ' - ' + res.problems.join(', ') : ''));
                         return;
                     }
                     void this.loadVocabulary(this._vocabType);
@@ -276,12 +280,17 @@ class LibraryBrowser {
             const del = mk('button', '🗑️ Delete');
             del.setAttribute('data-role', 'lib-vocab-delete');
             del.setAttribute('style', 'cursor:pointer;padding:4px 10px;border-radius:5px;color:var(--red,#e66);');
-            del.addEventListener('click', () => {
-                if (!window.confirm(`Delete ${this._vocabType} "${cur.id}"?`))
+            del.addEventListener('click', async () => {
+                const ok = await window.Dialog?.confirm?.({
+                    title: `Delete ${this._vocabType}`,
+                    message: `Delete ${this._vocabType} "${cur.id}"?`,
+                    danger: true
+                });
+                if (!ok)
                     return;
                 void LibraryApi.deleteVocabulary(this._vocabType, cur.id).then(res => {
                     if (res && res.error) {
-                        window.alert(res.error);
+                        toastError(res.error);
                         return;
                     }
                     void this.loadVocabulary(this._vocabType);
@@ -845,7 +854,14 @@ class LibraryBrowser {
     }
     async deleteEntry(type) {
         const id = this.selectedId[type];
-        if (!id || id === '__new__' || !confirm(`Delete "${id}" from library?`))
+        if (!id || id === '__new__')
+            return;
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Library Entry',
+            message: `Delete "${id}" from library?`,
+            danger: true
+        });
+        if (!ok)
             return;
         const res = await LibraryApi.deleteLibraryType(type, id);
         if (res.error) {
@@ -892,8 +908,12 @@ class LibraryBrowser {
         const entry = this.data.areas[id];
         if (!entry)
             return;
-        const newName = prompt(`Import area as name?`, entry.name || id);
-        if (!newName || newName === null)
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Import Area',
+            fields: [{ key: 'name', label: 'Area Name', value: entry.name || id }]
+        });
+        const newName = promptRes?.name?.trim();
+        if (!newName)
             return;
         const res = await LibraryApi.importRoomFromLibrary(id, { name: newName });
         if (res.error) {
@@ -949,12 +969,20 @@ class LibraryBrowser {
             toName = toRes.value.trim();
         }
         else {
-            fromName = prompt(`Import way "${entry.name || id}".\nConnect FROM area name:`, '');
-            if (!fromName)
+            const fromP = await window.Dialog?.prompt?.({
+                title: `Import way "${entry.name || id}"`,
+                fields: [{ key: 'from', label: 'Connect FROM area name', placeholder: '' }]
+            });
+            if (!fromP?.from?.trim())
                 return;
-            toName = prompt(`Connect TO area name:`, '');
-            if (!toName)
+            fromName = fromP.from.trim();
+            const toP = await window.Dialog?.prompt?.({
+                title: `Import way "${entry.name || id}"`,
+                fields: [{ key: 'to', label: 'Connect TO area name', placeholder: '' }]
+            });
+            if (!toP?.to?.trim())
                 return;
+            toName = toP.to.trim();
         }
         if (!fromName || !toName)
             return;
@@ -979,14 +1007,20 @@ class LibraryBrowser {
             dirTo = (dirToRes.value && dirToRes.value.trim()) || 'out';
         }
         else {
-            const df = prompt(`Direction FROM ${fromName} (e.g. east):`, 'out');
-            if (df === null)
+            const dfP = await window.Dialog?.prompt?.({
+                title: 'Way direction',
+                fields: [{ key: 'dir', label: `Direction FROM ${fromName}`, value: 'out' }]
+            });
+            if (!dfP)
                 return;
-            dirFrom = df.trim() || 'out';
-            const dt = prompt(`Direction FROM ${toName} (e.g. west):`, 'out');
-            if (dt === null)
+            dirFrom = dfP.dir?.trim() || 'out';
+            const dtP = await window.Dialog?.prompt?.({
+                title: 'Way direction',
+                fields: [{ key: 'dir', label: `Direction FROM ${toName}`, value: 'out' }]
+            });
+            if (!dtP)
                 return;
-            dirTo = dt.trim() || 'out';
+            dirTo = dtP.dir?.trim() || 'out';
         }
         const res = await LibraryApi.importWayFromLibrary(id, { area_from: fromName, area_to: toName, dir_from: dirFrom, dir_to: dirTo });
         if (res.error) {
@@ -1070,7 +1104,12 @@ class LibraryBrowser {
             toastInfo('No characters in the world.');
             return;
         }
-        const charName = prompt(`Save which character to library?\nAvailable: ${players.join(', ')}`, players[0]);
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Save Character to Library',
+            message: `Available characters: ${players.join(', ')}`,
+            fields: [{ key: 'name', label: 'Character Name', value: players[0] }]
+        });
+        const charName = promptRes?.name?.trim();
         if (!charName || !players.includes(charName))
             return;
         const charCard = this._buildCharacterPayload(charName);
@@ -1321,7 +1360,12 @@ class LibraryBrowser {
             toastInfo('No areas in the world.');
             return;
         }
-        const areaName = prompt(`Save which area to library?\nAvailable: ${areaNames.join(', ')}`, areaNames[0]);
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Save Area to Library',
+            message: `Available areas: ${areaNames.join(', ')}`,
+            fields: [{ key: 'name', label: 'Area Name', value: areaNames[0] }]
+        });
+        const areaName = promptRes?.name?.trim();
         if (!areaName || !areaNames.includes(areaName))
             return;
         const payload = this._buildAreaPayload(areaName);

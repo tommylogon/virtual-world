@@ -33,7 +33,12 @@ const _InspectorTriggers = (() => {
      * @param target - Edge target node ID (logic_trigger)
      */
     api.removeTriggerFromNode = async function(nodeId: string, source: string, target: string) {
-        if (!confirm('Remove this trigger?')) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Remove Trigger',
+            message: 'Remove this trigger?',
+            danger: true
+        });
+        if (!ok) return;
         const node = worldState.getNode(nodeId);
         const TG = (window as unknown as { TriggerGraph?: TriggerGraphApi }).TriggerGraph;
         if (node) {
@@ -469,7 +474,13 @@ const _InspectorTriggers = (() => {
             if (!suggestDiff || !rows.length) {
                 if (existingData.length) {
                     if (typeof toastInfo === 'function' && rows.length === 0) toastInfo('All planned triggers are already covered — nothing to change.');
-                } else if (!confirm(`Add ${triggers.length} suggested trigger${triggers.length === 1 ? '' : 's'} to "${label}"?`)) return;
+                } else {
+                    const ok = await (window as any).Dialog?.confirm?.({
+                        title: 'Add Suggested Triggers',
+                        message: `Add ${triggers.length} suggested trigger${triggers.length === 1 ? '' : 's'} to "${label}"?`
+                    });
+                    if (!ok) return;
+                }
             }
 
             const apply = async (result: DiffResult) => {

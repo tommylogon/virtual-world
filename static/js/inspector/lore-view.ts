@@ -118,7 +118,7 @@ const InspectorLore = (() => {
         const bodyContent = htmlTag`
             <div style="display:flex;gap:4px;margin-bottom:8px;">
                 <button class="btn btn-sm btn-blue" @click=${() => L.addLoreEntry()}>+ Add Lore Entry</button>
-                <button class="btn btn-sm btn-red" @click=${() => { if (confirm('Delete ALL lore entries?')) { AC.setWorldLore([]).then(() => L.renderWorldLore()); } }}>🗑 Clear All</button>
+                <button class="btn btn-sm btn-red" @click=${async () => { const ok = await (window as any).Dialog?.confirm?.({ title: 'Clear All Lore', message: 'Delete ALL lore entries?', danger: true }); if (ok) { AC.setWorldLore([]).then(() => L.renderWorldLore()); } }}>🗑 Clear All</button>
             </div>
             <div id="lore-list" style="max-height:calc(100vh - 200px);overflow-y:auto;">
                 ${entries}

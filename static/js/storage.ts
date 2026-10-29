@@ -1,10 +1,10 @@
 /**
- * StorageProvider — IndexedDB-based persistent storage
+ * StorageProvider - IndexedDB-based persistent storage
  * Replaces localStorage with async, quota-unlimited storage.
  * Stores: config, profiles, item_library, character_histories, settings, event_log,
  *         llm_dataset, llm_raw_exchanges (LLM inspector), graph_assets (graph map)
  *
- * @module storage — the IndexedDB persistence layer (with a localStorage fallback)
+ * @module storage - the IndexedDB persistence layer (with a localStorage fallback)
  * @contributes StorageProvider: get/set/getAll/clear per named object store
  * @powers settings persistence, save games, dataset + LLM inspector, graph map overlays
  * @relates consumed by config.js and most feature modules; no dependencies of its own
@@ -16,7 +16,7 @@ class StorageProvider {
     declare version: number;
     /** Open handle; null when IndexedDB is unavailable (localStorage fallback). */
     declare _db: IDBDatabase | null;
-    /** Resolves once the open request settles — success OR failure. */
+    /** Resolves once the open request settles - success OR failure. */
     declare _ready: Promise<void>;
 
     constructor(dbName = 'VirtualWorldDB', version = 5) {
@@ -98,22 +98,22 @@ class StorageProvider {
 
     // --- Generic CRUD ---
 
-    async get(storeName: string, key: string): Promise<any> {
-        if (!await this._ensureReady()) return this._localFallback('get', storeName, key);
-        return new Promise<any>((resolve) => {
+    async get<T = unknown>(storeName: string, key: string): Promise<T | null> {
+        if (!await this._ensureReady()) return this._localFallback('get', storeName, key) as T | null;
+        return new Promise<T | null>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
                 const req = store.get(key);
-                req.onsuccess = () => resolve(req.result ? req.result.value : null);
+                req.onsuccess = () => resolve(req.result ? (req.result.value as T) : null);
                 req.onerror = () => resolve(null);
             } catch (e) { resolve(null); }
         });
     }
 
-    async set(storeName: string, key: string, value: unknown): Promise<any> {
-        if (!await this._ensureReady()) { this._localFallback('set', storeName, key, value); return; }
-        return new Promise<any>((resolve) => {
+    async set(storeName: string, key: string, value: unknown): Promise<boolean> {
+        if (!await this._ensureReady()) { this._localFallback('set', storeName, key, value); return false; }
+        return new Promise<boolean>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -124,9 +124,9 @@ class StorageProvider {
         });
     }
 
-    async delete(storeName: string, key: string): Promise<any> {
-        if (!await this._ensureReady()) { this._localFallback('delete', storeName, key); return; }
-        return new Promise<any>((resolve) => {
+    async delete(storeName: string, key: string): Promise<boolean> {
+        if (!await this._ensureReady()) { this._localFallback('delete', storeName, key); return false; }
+        return new Promise<boolean>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -137,17 +137,17 @@ class StorageProvider {
         });
     }
 
-    async getAll(storeName: string): Promise<any> {
-        if (!await this._ensureReady()) return this._localFallback('getAll', storeName);
-        return new Promise<any>((resolve) => {
+    async getAll<T = unknown>(storeName: string): Promise<Record<string, T>> {
+        if (!await this._ensureReady()) return (this._localFallback('getAll', storeName) as Record<string, T>) || {};
+        return new Promise<Record<string, T>>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
                 const req = store.getAll();
                 req.onsuccess = () => {
-                    const items = req.result || [];
-                    const map: Record<string, unknown> = {};
-                    items.forEach((item: any) => { map[item.key] = item.value; });
+                    const items = (req.result || []) as Array<{ key: string; value: T }>;
+                    const map: Record<string, T> = {};
+                    items.forEach((item) => { map[item.key] = item.value; });
                     resolve(map);
                 };
                 req.onerror = () => resolve({});
@@ -155,22 +155,22 @@ class StorageProvider {
         });
     }
 
-    async getAllAsArray(storeName: string): Promise<any> {
+    async getAllAsArray<T = unknown>(storeName: string): Promise<T[]> {
         if (!await this._ensureReady()) return [];
-        return new Promise<any>((resolve) => {
+        return new Promise<T[]>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
                 const req = store.getAll();
-                req.onsuccess = () => resolve(req.result || []);
+                req.onsuccess = () => resolve((req.result || []) as T[]);
                 req.onerror = () => resolve([]);
             } catch (e) { resolve([]); }
         });
     }
 
-    async clear(storeName: string): Promise<any> {
-        if (!await this._ensureReady()) return;
-        return new Promise<any>((resolve) => {
+    async clear(storeName: string): Promise<boolean> {
+        if (!await this._ensureReady()) return false;
+        return new Promise<boolean>((resolve) => {
             try {
                 const tx = this._db!.transaction(storeName, 'readwrite');
                 const store = tx.objectStore(storeName);
@@ -276,9 +276,9 @@ class StorageProvider {
 
     // --- Event Log persistence ---
 
-    async saveEventLog(entries: string[]): Promise<any> {
-        return new Promise<any>((resolve) => {
-            if (!this._db) { resolve(false); return; }
+    async saveEventLog(entries: string[]): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (!this._db) { resolve(); return; }
             try {
                 const tx = this._db.transaction('event_log', 'readwrite');
                 const store = tx.objectStore('event_log');
@@ -287,21 +287,21 @@ class StorageProvider {
                 for (let i = 0; i < entries.length; i++) {
                     store.add({ id: i, html: entries[i] });
                 }
-                tx.oncomplete = () => resolve(true);
-                tx.onerror = () => resolve(false);
-            } catch (e) { resolve(false); }
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => resolve();
+            } catch (e) { resolve(); }
         });
     }
 
-    async loadEventLog(): Promise<any> {
-        return new Promise<any>((resolve) => {
+    async loadEventLog(): Promise<string[]> {
+        return new Promise<string[]>((resolve) => {
             if (!this._db) { resolve([]); return; }
             try {
                 const tx = this._db.transaction('event_log', 'readonly');
                 const store = tx.objectStore('event_log');
                 const req = store.getAll();
                 req.onsuccess = () => {
-                    const items = req.result || [];
+                    const items = (req.result || []) as Array<{ id: number; html: string }>;
                     items.sort((a, b) => a.id - b.id);
                     resolve(items.map(item => item.html));
                 };

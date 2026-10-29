@@ -542,7 +542,11 @@ class ConfigManagerImpl {
         events.log(`Profile "${name}" updated.`, 'system-msg');
     }
     async saveProfileAsNew() {
-        const name = prompt('Enter a name for this profile:', '');
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Save Profile',
+            fields: [{ key: 'name', label: 'Profile Name', placeholder: 'New profile name' }]
+        });
+        const name = promptRes?.name;
         if (!name || !name.trim())
             return;
         await storage.setProfile(name.trim(), this.getCurrentSettingsObject());
@@ -557,7 +561,12 @@ class ConfigManagerImpl {
         const name = sel?.value;
         if (!name)
             return;
-        if (!confirm(`Delete profile "${name}"?`))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Profile',
+            message: `Delete profile "${name}"?`,
+            danger: true
+        });
+        if (!ok)
             return;
         await storage.deleteProfile(name);
         await VW?.ui?.populateProfileSelect();

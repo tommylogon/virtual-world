@@ -221,7 +221,11 @@ if (s === 0) {
         cloneBtn.textContent = '➕ Clone current world';
         cloneBtn.title = 'Save active in-memory world into a new scenario file';
         cloneBtn.onclick = async () => {
-            const nn = prompt('Name for new scenario clone:');
+            const promptRes = await (window as any).Dialog?.prompt?.({
+                title: 'Clone Scenario',
+                fields: [{ key: 'name', label: 'Name', placeholder: 'New scenario name' }]
+            });
+            const nn = promptRes?.name;
             if (!nn || !nn.trim()) return;
             try {
                 const j = await ApiClient.cloneScenario(nn.trim());
@@ -322,14 +326,23 @@ const stat = (glyph: string, value: unknown, label: string): HTMLSpanElement => 
                 renderList(container);
             }));
             actions.appendChild(btn('✏️ Rename', '', async () => {
-                const nn = prompt('New name:', sc.name);
+                const promptRes = await (window as any).Dialog?.prompt?.({
+                    title: 'Rename Scenario',
+                    fields: [{ key: 'name', label: 'Name', value: sc.name }]
+                });
+                const nn = promptRes?.name;
                 if (!nn || nn === sc.name) return;
                 const j = await ApiClient.renameScenario(sc.name, nn);
                 if (j.error) toastError(j.error); else toastInfo('Renamed to "' + j.name + '".');
                 renderList(container);
             }));
             actions.appendChild(btn('🗑 Delete', 'btn-red', async () => {
-                if (!confirm(`Delete scenario "${sc.name}"?`)) return;
+                const ok = await (window as any).Dialog?.confirm?.({
+                    title: 'Delete Scenario',
+                    message: `Delete scenario "${sc.name}"?`,
+                    danger: true
+                });
+                if (!ok) return;
                 const j = await ApiClient.deleteScenario(sc.name);
                 if (j.error) toastError(j.error); else toastInfo('Deleted.');
                 renderList(container);

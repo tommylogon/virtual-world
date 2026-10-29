@@ -148,8 +148,13 @@ function createCharacter() {
         worldState.fetch();
     });
 }
-function deleteCharacter(name) {
-    if (!confirm("Delete character '" + name + "'?"))
+async function deleteCharacter(name) {
+    const ok = await window.Dialog?.confirm?.({
+        title: 'Delete Character',
+        message: "Delete character '" + name + "'?",
+        danger: true
+    });
+    if (!ok)
         return;
     api.deleteCharacter(name).then((res) => {
         if (res.error)

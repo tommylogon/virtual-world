@@ -1061,7 +1061,14 @@ class ItemLibrary {
         this.select(id);
     }
     async delete(id) {
-        if (!id || !confirm(`Delete "${id}" from library?`))
+        if (!id)
+            return;
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Item',
+            message: `Delete "${id}" from library?`,
+            danger: true
+        });
+        if (!ok)
             return;
         const res = await ItemLibraryApi.deleteLibraryItem(id);
         if (res.error) {

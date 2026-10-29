@@ -2147,8 +2147,7 @@ window.TriggerGraph = (() => {
         if (isBehavior) {
             const hasBehavior = Object.values(_state.nodes).some(n => n.type === 'behavior');
             if (!hasBehavior) {
-                if (typeof toastInfo === 'function') toastInfo('Add a Behavior node before saving.');
-                else alert('Add a Behavior node before saving.');
+                toastInfo('Add a Behavior node before saving.');
                 return;
             }
             if (_onSave) _onSave(g);
@@ -2157,7 +2156,7 @@ window.TriggerGraph = (() => {
         }
         const compiled = TG.compileToTriggers(g);
         if (!compiled.length) {
-            alert('Add a trigger node before applying.');
+            toastInfo('Add a trigger node before applying.');
             return;
         }
         const refused = compiled.find((c: any) => TG.compileError(c));
@@ -2170,11 +2169,21 @@ window.TriggerGraph = (() => {
                 panel.style.display = 'block';
                 window.Lit.render(triggerGraphTag`${_renderValidateResultHtml(issues)}`, panel);
             }
-            if (errors.length && !confirm(`Found ${errors.length} validation error(s). Apply anyway?`)) {
-                return;
+            if (errors.length) {
+                const ok = await (window as any).Dialog?.confirm?.({
+                    title: 'Validation Errors',
+                    message: `Found ${errors.length} validation error(s). Apply anyway?`,
+                    danger: true
+                });
+                if (!ok) return;
             }
         } catch (e) {
-            if (!confirm(`Validation check failed (${(e as Error).message}). Apply anyway?`)) return;
+            const ok = await (window as any).Dialog?.confirm?.({
+                title: 'Validation Check Failed',
+                message: `Validation check failed (${(e as Error).message}). Apply anyway?`,
+                danger: true
+            });
+            if (!ok) return;
         }
         if (_onSave) _onSave(g);
         _close();
@@ -2204,8 +2213,8 @@ window.TriggerGraph = (() => {
             name = String(result.name || '').trim() || 'untitled';
             desc = String(result.description || '');
         } else {
-            name = prompt('Name:', defaultName) || 'untitled';
-            desc = prompt('Description:', '') || '';
+            name = defaultName || 'untitled';
+            desc = '';
         }
         _blueprintName = name;
         const slug = name.replace(/[^a-z0-9_]+/g, '_').toLowerCase() || 'untitled';
@@ -2221,8 +2230,7 @@ window.TriggerGraph = (() => {
             if (TG.reportCompileError(compiled)) return;
             const behaviors = compiled.behaviors || [];
             if (!behaviors.length) {
-                if (typeof toastInfo === 'function') toastInfo('Add a Behaviour node before saving.');
-                else alert('Add a Behaviour node before saving.');
+                toastInfo('Add a Behaviour node before saving.');
                 return;
             }
             try {
@@ -2240,10 +2248,9 @@ window.TriggerGraph = (() => {
                 const m = behaviors.length === 1
                     ? `💾 Behaviour saved to the behaviours library as "${name}".`
                     : `💾 Saved ${behaviors.length} behaviours to the behaviours library.`;
-                if (typeof toastInfo === 'function') toastInfo(m); else alert(m);
+                toastInfo(m);
             } catch (err) {
-                const m = 'Save failed: ' + (err as Error).message;
-                if (typeof toastError === 'function') toastError(m); else alert(m);
+                toastError('Save failed: ' + (err as Error).message);
             }
             return;
         }
@@ -2252,18 +2259,26 @@ window.TriggerGraph = (() => {
         const id = slug;
         // /api/library/triggers
         ApiClient.saveLibraryTrigger(id, bp).then(res => {
-            if (res.error) { if (typeof toastError === 'function') toastError('Save failed: ' + res.error); else alert('Save failed: ' + res.error); }
-            else { const m = '💾 Blueprint saved to library as "' + name + '".'; if (typeof toastInfo === 'function') toastInfo(m); else alert(m); }
-        }).catch(err => { if (typeof toastError === 'function') toastError('Save failed: ' + err.message); else alert('Save failed: ' + err.message); });
+            if (res.error) { toastError('Save failed: ' + res.error); }
+            else { toastInfo('💾 Blueprint saved to library as "' + name + '".'); }
+        }).catch(err => { toastError('Save failed: ' + err.message); });
     }
     TG._saveBlueprint = _saveBlueprint;
 
-    function _exportBlueprint() {
+    async function _exportBlueprint() {
         const g = _serializeGraph();
         const isBehavior = _mode === 'behavior';
         const defaultName = _blueprintName || (isBehavior ? 'my_behaviour' : 'my_trigger');
-        const name = prompt('Name:', defaultName) || 'untitled';
-        const desc = prompt('Description:', '') || '';
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: 'Export Blueprint',
+            fields: [
+                { key: 'name', label: 'Name', value: defaultName },
+                { key: 'description', label: 'Description', placeholder: '' }
+            ]
+        });
+        if (!promptRes) return;
+        const name = promptRes.name?.trim() || 'untitled';
+        const desc = promptRes.description || '';
         _blueprintName = name;
         const bp = { name, description: desc, graph: g };
         const blob = new Blob([JSON.stringify(bp, null, 2)], { type: 'application/json' });
@@ -2342,7 +2357,13 @@ window.TriggerGraph = (() => {
             .then(library => {
                 _bpLibrary = library || {};
                 if (Object.keys(_bpLibrary).length === 0) {
-                    if (confirm('No blueprints in the library yet. Import a .json file instead?')) _importBlueprintFile();
+                    (async () => {
+                        const ok = await (window as any).Dialog?.confirm?.({
+                            title: 'No Blueprints',
+                            message: 'No blueprints in the library yet. Import a .json file instead?'
+                        });
+                        if (ok) _importBlueprintFile();
+                    })();
                     return;
                 }
                 const modal = document.createElement('div');
@@ -2364,7 +2385,7 @@ window.TriggerGraph = (() => {
                 _renderBlueprintList('');
                 setTimeout(() => document.getElementById('tg-bp-search')?.focus(), 30);
             })
-            .catch((err: any) => alert('Could not load blueprints: ' + err.message));
+            .catch((err: any) => toastError('Could not load blueprints: ' + err.message));
     }
     TG._loadBlueprint = _loadBlueprint;
     TG._closeBlueprint = _closeBlueprintModal;
@@ -2402,8 +2423,7 @@ window.TriggerGraph = (() => {
             if (typeof toastInfo === 'function') toastInfo(`Attached blueprint → ${res.trigger_ids?.length || 0} trigger node(s).`);
             _closeBlueprintModal();
         } catch (err) {
-            if (typeof toastError === 'function') toastError('Attach failed: ' + (err as Error).message);
-            else alert('Attach failed: ' + (err as Error).message);
+            toastError('Attach failed: ' + (err as Error).message);
         }
     };
 
@@ -2416,7 +2436,7 @@ window.TriggerGraph = (() => {
                 const text = await file.text();
                 _applyBlueprint(JSON.parse(text));
                 _closeBlueprintModal();
-            } catch (err) { alert('Failed: ' + (err as Error).message); }
+            } catch (err) { toastError('Failed: ' + (err as Error).message); }
         };
         inp.click();
     }
@@ -3006,7 +3026,7 @@ window.TriggerGraph = (() => {
         const msg = TG.compileError(compiled);
         if (!msg) return false;
         if (typeof toastInfo === 'function') toastInfo(msg);
-        else if (typeof alert === 'function') alert(msg);
+        else if (typeof (window as any).Dialog?.alert === 'function') (window as any).Dialog.alert({ message: msg });
         return true;
     };
 

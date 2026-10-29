@@ -1137,7 +1137,13 @@ class ItemLibrary {
     }
 
     async delete(id: string) {
-        if (!id || !confirm(`Delete "${id}" from library?`)) return;
+        if (!id) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Delete Item',
+            message: `Delete "${id}" from library?`,
+            danger: true
+        });
+        if (!ok) return;
         const res = await ItemLibraryApi.deleteLibraryItem(id);
         if (res.error) { toastError('Error: ' + res.error); return; }
         events.log(`Deleted "${id}".`, 'system-msg');

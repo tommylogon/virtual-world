@@ -628,9 +628,13 @@ window.InspectorAgentView = (() => {
         const isParametric = window._traitLibrary?.[traitId]?.params;
         let value = true;
         if (isParametric) {
-            const input = prompt(`Enter value for "${traitId}" trait:`, isParametric.default || '');
-            if (input === null)
+            const promptRes = await window.Dialog?.prompt?.({
+                title: 'Trait Value',
+                fields: [{ key: 'value', label: 'Value', value: isParametric.default || '' }]
+            });
+            if (!promptRes)
                 return;
+            const input = promptRes.value;
             value = input.trim() || true;
         }
         const t = Object.assign({}, worldState.players?.[charName]?.traits || {});
@@ -2464,7 +2468,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._killCharacter = async function (charName) {
-        if (!confirm(`Kill "${charName}"? This will set HP to 0 and state to dead.`))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Kill Character',
+            message: `Kill "${charName}"? This will set HP to 0 and state to dead.`,
+            danger: true
+        });
+        if (!ok)
             return;
         const res = await ApiClient.killCharacter(charName);
         if (res.error) {
@@ -2481,7 +2490,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._removeCharacter = async function (charName) {
-        if (!confirm(`Permanently remove "${charName}" from the world? This cannot be undone.`))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Character',
+            message: `Permanently remove "${charName}" from the world? This cannot be undone.`,
+            danger: true
+        });
+        if (!ok)
             return;
         const res = await ApiClient.deleteCharacter(charName);
         if (res.error) {

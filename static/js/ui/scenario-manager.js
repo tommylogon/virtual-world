@@ -233,7 +233,11 @@ window.ScenarioManager = (() => {
         cloneBtn.textContent = '➕ Clone current world';
         cloneBtn.title = 'Save active in-memory world into a new scenario file';
         cloneBtn.onclick = async () => {
-            const nn = prompt('Name for new scenario clone:');
+            const promptRes = await window.Dialog?.prompt?.({
+                title: 'Clone Scenario',
+                fields: [{ key: 'name', label: 'Name', placeholder: 'New scenario name' }]
+            });
+            const nn = promptRes?.name;
             if (!nn || !nn.trim())
                 return;
             try {
@@ -337,7 +341,11 @@ window.ScenarioManager = (() => {
                 renderList(container);
             }));
             actions.appendChild(btn('✏️ Rename', '', async () => {
-                const nn = prompt('New name:', sc.name);
+                const promptRes = await window.Dialog?.prompt?.({
+                    title: 'Rename Scenario',
+                    fields: [{ key: 'name', label: 'Name', value: sc.name }]
+                });
+                const nn = promptRes?.name;
                 if (!nn || nn === sc.name)
                     return;
                 const j = await ApiClient.renameScenario(sc.name, nn);
@@ -348,7 +356,12 @@ window.ScenarioManager = (() => {
                 renderList(container);
             }));
             actions.appendChild(btn('🗑 Delete', 'btn-red', async () => {
-                if (!confirm(`Delete scenario "${sc.name}"?`))
+                const ok = await window.Dialog?.confirm?.({
+                    title: 'Delete Scenario',
+                    message: `Delete scenario "${sc.name}"?`,
+                    danger: true
+                });
+                if (!ok)
                     return;
                 const j = await ApiClient.deleteScenario(sc.name);
                 if (j.error)

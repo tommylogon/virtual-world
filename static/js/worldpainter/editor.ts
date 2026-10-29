@@ -2358,14 +2358,17 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     function generate(): Promise<void> | void {
         const p = state.payload!;
         const est = GM().estimateCompile(p, state.merge);
-        if (est.total > 3000 && !window.confirm(
-            `This will create about ${est.areas} areas and ${est.ways} ways `
-            + `(${est.total} nodes).\n\nThe graph view may become unresponsive. `
-            + `Consider "merge same-biome", or generating smaller zones.\n\nContinue?`)) {
-            return;
-        }
-        const body = { region_merge: !!state.merge };
+        const needConfirm = est.total > 3000;
         const run = async (allowRegenerate: boolean) => {
+            if (needConfirm && !allowRegenerate) {
+                const ok = await (window as any).Dialog?.confirm?.({
+                    title: 'Large Grid Warning',
+                    message: `This will create about ${est.areas} areas and ${est.ways} ways (${est.total} nodes).\n\nThe graph view may become unresponsive. Consider "merge same-biome", or generating smaller zones.`,
+                    danger: true
+                });
+                if (!ok) return;
+            }
+        const body = { region_merge: !!state.merge };
             try {
                 const result = await _post(
                     `/${encodeURIComponent(p.scope.id)}/grid/generate`,
@@ -2379,9 +2382,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                     `${r.edge_count || 0} edge(s)` +
                     (notes ? ` — ${notes}` : ''), false);
             } catch (e) {
-                if (!allowRegenerate && /already materialized/.test(errText(e))
-                        && window.confirm(`${errText(e)}\n\nRe-run generation?`)) {
-                    return run(true);
+                if (!allowRegenerate && /already materialized/.test(errText(e))) {
+                    const ok = await (window as any).Dialog?.confirm?.({
+                        title: 'Re-run Generation',
+                        message: `${errText(e)}\n\nRe-run generation?`,
+                        danger: true
+                    });
+                    if (ok) return run(true);
                 }
                 _status(`Generate failed: ${errText(e)}`, true);
             }
@@ -2392,13 +2399,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     function ungenerate(): void {
         const p = state.payload;
         if (!p || !p.scope) return;
-        if (!window.confirm(
-                `Delete every generated node for “${p.scope.name}”?\n\n` +
-                `The painted grid, reference and placements are kept, and the scope `
-                + `returns to unmade so you can ⚙ Generate again.`)) {
-            return;
-        }
         (async () => {
+            const ok = await (window as any).Dialog?.confirm?.({
+                title: 'Ungenerate Scope',
+                message: `Delete every generated node for “${p.scope.name}”?\n\nThe painted grid, reference and placements are kept, and the scope returns to unmade so you can ⚙ Generate again.`,
+                danger: true
+            });
+            if (!ok) return;
             try {
                 const result = await _post(
                     `/${encodeURIComponent(p.scope.id)}/grid/ungenerate`, {});
@@ -2667,10 +2674,12 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         const uploadBtn = _btn('⬆', () => uploadInput.click(), 'padding:1px 6px;');
         uploadBtn.title = 'Upload an image into static/images/backgrounds';
         wrap.appendChild(uploadBtn);
-        const urlBtn = _btn('🔗', () => {
-            const url = window.prompt(
-                'Reference image URL (/static/…, https://… or data:):', ref.image || '');
-            if (url !== null) updateReference({ image: url.trim() || null });
+        const urlBtn = _btn('🔗', async () => {
+            const promptRes = await (window as any).Dialog?.prompt?.({
+                title: 'Reference Image URL',
+                fields: [{ key: 'url', label: 'URL (/static/..., https://... or data:)', value: ref.image || '' }]
+            });
+            if (promptRes && promptRes.url !== undefined) updateReference({ image: promptRes.url.trim() || null });
         }, 'padding:1px 6px;');
         urlBtn.title = 'Use an image by URL';
         wrap.appendChild(urlBtn);
@@ -2791,10 +2800,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (!next) { _status('That image has no readable size — try another file.', true); return; }
         const stranded = GM().strandedCount(p, next.w, next.h);
         if (stranded > 0) {
-            const go = window.confirm(
-                `Match the grid to the image (${img.naturalWidth}×${img.naturalHeight})?\n\n`
-                + `The grid becomes ${next.w}×${next.h} cells, and ${stranded} painted cell(s) or `
-                + `placement(s) currently outside it will be removed. This can be undone.`);
+            const go = await (window as any).Dialog?.confirm?.({
+                title: 'Match Grid to Reference',
+                message: `Match the grid to the image (${img.naturalWidth}×${img.naturalHeight})?\n\nThe grid becomes ${next.w}×${next.h} cells, and ${stranded} painted cell(s) or placement(s) currently outside it will be removed. This can be undone.`,
+                danger: true
+            });
             if (!go) return;
         }
         try {
@@ -3486,11 +3496,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         rescaleRefFrom?: { w: number; h: number },
     ): Promise<boolean> {
         const stranded = GM().strandedCount(p, w, h);
-        if (stranded > 0 && !window.confirm(
-            `Resize the grid to ${w}×${h} (${why})?\n\n`
-            + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
-            + 'This can be undone.')) {
-            return false;
+        if (stranded > 0) {
+            const ok = await (window as any).Dialog?.confirm?.({
+                title: 'Resize Grid',
+                message: `Resize the grid to ${w}×${h} (${why})?\n\n${stranded} painted cell(s) or placement(s) outside it will be removed. This can be undone.`,
+                danger: true
+            });
+            if (!ok) return false;
         }
         const storedRect = (p.reference || {}).rect;
         state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`,
@@ -4666,7 +4678,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (!p.scope.has_grid) { _status('This scope has no grid to place on.', true); return; }
         const here = GM().areaAt(p, x, y);
         if (here) {
-            if (!window.confirm(`Take "${here.name}" off this map? The area itself stays.`)) return;
+            const ok = await (window as any).Dialog?.confirm?.({
+                title: 'Unplace Area',
+                message: `Take "${here.name}" off this map? The area itself stays.`
+            });
+            if (!ok) return;
             await unplaceArea(here.id);
             return;
         }
@@ -4688,9 +4704,16 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         } catch (e) {
             // The server names the occupant, so a clash is actionable as-is.
             const msg = errText(e);
-            if (/already holds/.test(msg) && window.confirm(`${msg}\n\nDisplace it?`)) {
-                await placeArea(areaId, x, y, 'displace');
-                return;
+            if (/already holds/.test(msg)) {
+                const ok = await (window as any).Dialog?.confirm?.({
+                    title: 'Displace Occupant',
+                    message: `${msg}\n\nDisplace it?`,
+                    danger: true
+                });
+                if (ok) {
+                    await placeArea(areaId, x, y, 'displace');
+                    return;
+                }
             }
             _status(`Place failed: ${msg}`, true);
         }
@@ -4745,11 +4768,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             _status('No building types in the vocabulary.', true);
             return;
         }
-        const pick = window.prompt(
-            `Paint which building's interior into "${p.scope.name}"?\n\n`
-            + options.join(', '),
-            options.indexOf('inn') >= 0 ? 'inn' : options[0]);
-        if (!pick || !options.indexOf(pick)) {
+        const pickRes = await (window as any).Dialog?.prompt?.({
+            title: 'Paint Building Interior',
+            message: `Paint which building's interior into "${p.scope.name}"?\n\nAvailable: ${options.join(', ')}`,
+            fields: [{ key: 'building', label: 'Building Type', value: options.indexOf('inn') >= 0 ? 'inn' : options[0] }]
+        });
+        const pick = pickRes?.building?.trim();
+        if (!pick || !options.includes(pick)) {
             if (pick) _status(`${pick} is not a building type.`, true);
             return;
         }
@@ -4781,14 +4806,19 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             return;
         }
         const defaultName = `${area.name} interior`;
-        const name = (window.prompt(
-            'Name for the new child scope:', defaultName) || '').trim();
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: 'Promote to Scope',
+            fields: [
+                { key: 'name', label: 'Name for the new child scope', value: defaultName },
+                { key: 'id', label: 'ID for the new scope (lower-case, no spaces)', value: _slug(defaultName) }
+            ]
+        });
+        const name = (promptRes?.name || '').trim();
         if (!name) return;
+        const scopeId = (promptRes?.id || '').trim() || _slug(name);
         const hasCell = Number.isInteger(area.x) && Number.isInteger(area.y);
         const body: Record<string, unknown> = {
-            scope_id: (window.prompt(
-                'Id for the new scope (lower-case, no spaces):',
-                _slug(name)) || '').trim() || _slug(name),
+            scope_id: scopeId,
             name,
             area_ids: [areaId],
             parent_id: p.scope.id,
@@ -4867,9 +4897,13 @@ _notify(true);
             _notify(true);
             render();
         } catch (e) {
-            if (!onOverlap && /already holds/.test(errText(e))
-                    && window.confirm(`${errText(e)}\n\nDisplace the occupant?`)) {
-                return placeFeature(childId, x, y, 'displace');
+            if (!onOverlap && /already holds/.test(errText(e))) {
+                const ok = await (window as any).Dialog?.confirm?.({
+                    title: 'Displace Feature',
+                    message: `${errText(e)}\n\nDisplace the occupant?`,
+                    danger: true
+                });
+                if (ok) return placeFeature(childId, x, y, 'displace');
             }
             _status(`Place failed: ${errText(e)}`, true);
         }
@@ -4890,9 +4924,12 @@ _notify(true);
 
     /** Rename a scope's display name (its id, and every node reference, stays). */
     async function renameScope(scopeId: string, currentName?: string | null): Promise<void> {
-        const name = window.prompt('Rename scope:', currentName || scopeId);
-        if (name == null) return;
-        const clean = name.trim();
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: 'Rename Scope',
+            fields: [{ key: 'name', label: 'Scope Name', value: currentName || scopeId }]
+        });
+        if (!promptRes) return;
+        const clean = (promptRes.name || '').trim();
         if (!clean || clean === currentName) return;
         try {
             await _post(`/${encodeURIComponent(scopeId)}/rename`, { name: clean });
@@ -4916,11 +4953,12 @@ _notify(true);
      */
     async function deleteScope(scopeId: string, name?: string | null): Promise<void> {
         const label = name || scopeId;
-        if (!window.confirm(`Delete scope “${label}”?\n\n`
-            + `This removes the scope, unplaces it, and deletes the areas/ways/items `
-            + `generated for it. Scopes that still have children must be emptied first.`)) {
-            return;
-        }
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Delete Scope',
+            message: `Delete scope “${label}”?\n\nThis removes the scope, unplaces it, and deletes the areas/ways/items generated for it. Scopes that still have children must be emptied first.`,
+            danger: true
+        });
+        if (!ok) return;
         const trail = (state.payload && state.payload.breadcrumb) || [];
         const parentId = trail.length > 1 ? trail[trail.length - 2].id : null;
         try {
@@ -4939,7 +4977,11 @@ _notify(true);
     }
 
     async function _promptNewScope(parentId: string | null): Promise<void> {
-        const name = window.prompt('Feature name:', 'New feature');
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: 'New Feature Scope',
+            fields: [{ key: 'name', label: 'Feature Name', value: 'New feature' }]
+        });
+        const name = promptRes?.name?.trim();
         if (!name) return;
         const mode = parentId && state.payload
             ? GM().nextMode(state.payload.mode) : 'world';

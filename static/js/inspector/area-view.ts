@@ -372,20 +372,29 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
         </div>`;
     };
 
-    RV._saveEnvPreset = function(env: AreaEnv): void {
+    RV._saveEnvPreset = async function(env: AreaEnv): Promise<void> {
         if (!(window as unknown as AreaViewWindow).EnvPresets) return;
-        const name = prompt('Preset name:', 'Arctic: -12° bright fresh');
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: 'Save Preset',
+            fields: [{ key: 'name', label: 'Preset Name', value: 'Arctic: -12° bright fresh' }]
+        });
+        const name = promptRes?.name;
         if (!name) return;
         (window as unknown as AreaViewWindow).EnvPresets.save(name.trim(), env);
         if ((window as unknown as AreaViewWindow).VW?.inspector) (window as unknown as AreaViewWindow).VW.inspector._reRender();
     };
 
-    RV._deleteEnvPreset = function(): void {
+    RV._deleteEnvPreset = async function(): Promise<void> {
         if (!(window as unknown as AreaViewWindow).EnvPresets) return;
         const sel = document.getElementById('env-preset-select');
         const name = (sel as HTMLSelectElement | null)?.value;
         if (!name) return;
-        if (!confirm(`Delete preset "${name}"?`)) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Delete Preset',
+            message: `Delete preset "${name}"?`,
+            danger: true
+        });
+        if (!ok) return;
         (window as unknown as AreaViewWindow).EnvPresets.delete(name);
         if ((window as unknown as AreaViewWindow).VW?.inspector) (window as unknown as AreaViewWindow).VW.inspector._reRender();
     };
@@ -805,8 +814,8 @@ interface AreaViewApi {
     _renderFloorSection(props: NodeProps, actualNodeId: string): TemplateResult;
     _renderScopeSection(props: NodeProps, actualNodeId: string): TemplateResult;
     _renderExitItem(exitName: string, exitData: AreaViewExitData, actualNodeId: string): TemplateResult;
-    _saveEnvPreset(env: AreaEnv): void;
-    _deleteEnvPreset(): void;
+    _saveEnvPreset(env: AreaEnv): void | Promise<void>;
+    _deleteEnvPreset(): void | Promise<void>;
     _applyEnvPreset(actualNodeId: string): Promise<void>;
     _fillAreaSounds(el: HTMLElement, areaId: string): void;
     _fillScopeSelect(actualNodeId: string, currentScopeId: string): void;

@@ -843,7 +843,12 @@ const InspectorHelpersModule = (() => {
             return;
         }
         const label = kinds.length > 1 ? `${kinds.length} image files` : 'its image file';
-        if (!confirm(`Delete expression '${key}' and ${label}? This cannot be undone.`)) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Delete Expression',
+            message: `Delete expression '${key}' and ${label}? This cannot be undone.`,
+            danger: true
+        });
+        if (!ok) return;
         for (const k of kinds) {
             const res = await api.removeExpressionImage(nodeId, k, key);
             if (res.error) { events.log('Delete failed: ' + res.error, 'error-msg'); return; }

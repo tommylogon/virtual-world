@@ -83,11 +83,16 @@ window.InspectorBehaviors = (() => {
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.deleteBehavior = function (charName, index) {
+    B.deleteBehavior = async function (charName, index) {
         const player = worldState.players[charName];
         if (!player || !Array.isArray(player.behaviors))
             return;
-        if (!confirm('Delete this behavior?'))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Behavior',
+            message: 'Delete this behavior?',
+            danger: true
+        });
+        if (!ok)
             return;
         player.behaviors.splice(index, 1);
         ApiClient.updateCharacter(charName, { behaviors: player.behaviors }).then(() => {

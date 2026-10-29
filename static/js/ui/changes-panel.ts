@@ -255,7 +255,12 @@ const ChangesPanel = (() => {
     box.querySelectorAll<HTMLElement>('.cp-discard').forEach(btn => {
       btn.onclick = async () => {
         const section = btn.dataset.section || '';
-        if (!confirm('Discard live ' + section + ' changes and restore from source? (undoable)')) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+          title: 'Discard Changes',
+          message: 'Discard live ' + section + ' changes and restore from source? (undoable)',
+          danger: true
+        });
+        if (!ok) return;
         try {
           await apply([], [section]);
           toastInfo('Restored ' + section + ' from source.');

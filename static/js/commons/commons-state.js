@@ -45,10 +45,12 @@
         }
         static async sync() {
             try {
-                const data = await window.CommonsApi.getState(this.perspective);
+                const api = window.CommonsApi;
+                const agent = window.CommonsAgent;
+                const data = await api.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
-                window.CommonsAgent?.reconcileParticipants?.();
+                agent?.reconcileParticipants?.();
                 this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 this.knownCharacters = Array.isArray(data.known_characters) ? data.known_characters : [];
                 if (!this.channels.some((channel) => channel.id === this.selectedChannelId)) {
@@ -59,7 +61,7 @@
                     const sinceId = this.messages.length
                         ? Math.max(...this.messages.map((message) => Number(message.id) || 0))
                         : undefined;
-                    const result = await window.CommonsApi.getMessages(this.perspective, this.selectedChannelId, sinceId);
+                    const result = await api.getMessages(this.perspective, this.selectedChannelId, sinceId);
                     if (sinceId)
                         this.messages = [...this.messages, ...(result.messages || [])];
                     else
@@ -78,7 +80,8 @@
             await this.sync();
         }
         static async selectTheme(theme) {
-            await window.CommonsApi.setTheme(theme);
+            const api = window.CommonsApi;
+            await api.setTheme(theme);
             await this.sync();
         }
         static async selectChannel(channelId, explicitRead = true) {
@@ -86,13 +89,14 @@
                 return;
             this.selectedChannelId = channelId;
             this.messages = [];
+            const api = window.CommonsApi;
             if (explicitRead) {
-                await window.CommonsApi.readMessages(this.perspective, channelId, 'all');
-                const history = await window.CommonsApi.getMessages(this.perspective, channelId);
+                await api.readMessages(this.perspective, channelId, 'all');
+                const history = await api.getMessages(this.perspective, channelId);
                 this.messages = history.messages || [];
             }
             else {
-                const result = await window.CommonsApi.getMessages(this.perspective, channelId);
+                const result = await api.getMessages(this.perspective, channelId);
                 this.messages = result.messages || [];
             }
             await this.sync();
@@ -102,17 +106,19 @@
                 this.visibilityPaused = paused;
             else
                 this.manualPaused = paused;
+            const agent = window.CommonsAgent;
             if (this.isPaused) {
-                window.CommonsAgent.pause();
+                agent.pause();
             }
             else {
-                window.CommonsAgent.resume();
+                agent.resume();
             }
             if (this.visibilityPaused)
                 this.stopLiveUpdates();
             else
                 this.startLiveUpdates();
-            window.CommonsUI?.renderPauseState();
+            const ui = window.CommonsUI;
+            ui?.renderPauseState();
             this.emit();
         }
         static startLiveUpdates() {
@@ -142,7 +148,8 @@
         static receiveMessage(message) {
             if (!message)
                 return;
-            window.CommonsAgent?.onMessageReceived?.(message);
+            const agent = window.CommonsAgent;
+            agent?.onMessageReceived?.(message);
             if (message.channel_id !== this.selectedChannelId)
                 return;
             if (this.messages.some((existing) => existing.id === message.id))

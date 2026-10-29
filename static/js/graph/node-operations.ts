@@ -589,7 +589,12 @@ const GraphNodeOpsModule = {
             `${index + 1}. ${nodeData.name || id} (${nodeData.type})`
         ).join('\n');
 
-        const desc = prompt(promptMsg + candidateList + '\n\nEnter number, or node ID:', '1');
+        const promptRes = await (window as any).Dialog?.prompt?.({
+            title: `${emoji} Connect Node`,
+            message: promptMsg + candidateList,
+            fields: [{ key: 'target', label: 'Target number or node ID', value: '1' }]
+        });
+        const desc = promptRes?.target;
         if (!desc) return;
 
         // Parse: either a number or node ID
@@ -610,7 +615,11 @@ const GraphNodeOpsModule = {
         }
 
         // Ask for optional description
-        const description = prompt(`Enter a description for this ${edgeType} edge (optional):`, '');
+        const descRes = await (window as any).Dialog?.prompt?.({
+            title: 'Edge Description',
+            fields: [{ key: 'description', label: `Description for ${edgeType} edge (optional)`, placeholder: '' }]
+        });
+        const description = descRes?.description;
 
         const properties: Record<string, unknown> = {};
         if (description) properties.description = description;

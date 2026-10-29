@@ -777,8 +777,7 @@ class EventBus {
                 message: 'Wipe every row from the visible stream and the persisted log? This cannot be undone.',
                 danger: true
             });
-        } else if (typeof window.confirm === 'function') {
-            confirmed = window.confirm('Wipe every row from the visible stream and the persisted log? This cannot be undone.');
+
         } else {
             confirmed = true;
         }

@@ -1955,7 +1955,7 @@ interface BackgroundState {
         state.panel = panel;
     }
 
-    function _onPanelClick(event: Event): void {
+    async function _onPanelClick(event: Event): Promise<void> {
         const target = event.target as HTMLElement | null;
         const el = target?.closest('[data-act]') as HTMLElement | null;
         if (!el) return;
@@ -1978,8 +1978,11 @@ interface BackgroundState {
             case 'rename': {
                 const layer = state.layers.find((candidate) => candidate.id === id);
                 if (!layer || !id) break;
-                const value = prompt('Layer name:', layer.label || '');
-                if (value !== null) renameLayer(id, value);
+                const promptRes = await (window as any).Dialog?.prompt?.({
+                    title: 'Rename Layer',
+                    fields: [{ key: 'name', label: 'Layer Name', value: layer.label || '' }]
+                });
+                if (promptRes && promptRes.name != null) renameLayer(id, promptRes.name);
                 break;
             }
             case 'up': if (id) moveLayer(id, 1); break;
@@ -2139,7 +2142,7 @@ interface BackgroundState {
         });
     }
 
-    function _menuAction(action: string): void {
+    async function _menuAction(action: string): Promise<void> {
         const layer = _active();
         switch (action) {
             case 'add': _pickFile(); break;
@@ -2150,8 +2153,11 @@ interface BackgroundState {
             case 'zone-move': setZoneMove(!state.zoneMove); break;
             case 'opacity': {
                 if (!layer) break;
-                const value = prompt('Layer opacity (0-100):', String(Math.round(layer.opacity * 100)));
-                if (value !== null) setOpacity(Number(value) / 100);
+                const promptRes = await (window as any).Dialog?.prompt?.({
+                    title: 'Layer Opacity',
+                    fields: [{ key: 'opacity', label: 'Opacity (0-100)', value: String(Math.round(layer.opacity * 100)), type: 'number' }]
+                });
+                if (promptRes && promptRes.opacity != null) setOpacity(Number(promptRes.opacity) / 100);
                 break;
             }
             case 'layer-lock': if (layer) setLayerLocked(layer.id, !layer.locked); break;

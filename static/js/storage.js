@@ -1,11 +1,11 @@
 "use strict";
 /**
- * StorageProvider — IndexedDB-based persistent storage
+ * StorageProvider - IndexedDB-based persistent storage
  * Replaces localStorage with async, quota-unlimited storage.
  * Stores: config, profiles, item_library, character_histories, settings, event_log,
  *         llm_dataset, llm_raw_exchanges (LLM inspector), graph_assets (graph map)
  *
- * @module storage — the IndexedDB persistence layer (with a localStorage fallback)
+ * @module storage - the IndexedDB persistence layer (with a localStorage fallback)
  * @contributes StorageProvider: get/set/getAll/clear per named object store
  * @powers settings persistence, save games, dataset + LLM inspector, graph map overlays
  * @relates consumed by config.js and most feature modules; no dependencies of its own
@@ -106,7 +106,7 @@ class StorageProvider {
     async set(storeName, key, value) {
         if (!await this._ensureReady()) {
             this._localFallback('set', storeName, key, value);
-            return;
+            return false;
         }
         return new Promise((resolve) => {
             try {
@@ -124,7 +124,7 @@ class StorageProvider {
     async delete(storeName, key) {
         if (!await this._ensureReady()) {
             this._localFallback('delete', storeName, key);
-            return;
+            return false;
         }
         return new Promise((resolve) => {
             try {
@@ -141,14 +141,14 @@ class StorageProvider {
     }
     async getAll(storeName) {
         if (!await this._ensureReady())
-            return this._localFallback('getAll', storeName);
+            return this._localFallback('getAll', storeName) || {};
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
                 const req = store.getAll();
                 req.onsuccess = () => {
-                    const items = req.result || [];
+                    const items = (req.result || []);
                     const map = {};
                     items.forEach((item) => { map[item.key] = item.value; });
                     resolve(map);
@@ -168,7 +168,7 @@ class StorageProvider {
                 const tx = this._db.transaction(storeName, 'readonly');
                 const store = tx.objectStore(storeName);
                 const req = store.getAll();
-                req.onsuccess = () => resolve(req.result || []);
+                req.onsuccess = () => resolve((req.result || []));
                 req.onerror = () => resolve([]);
             }
             catch (e) {
@@ -178,7 +178,7 @@ class StorageProvider {
     }
     async clear(storeName) {
         if (!await this._ensureReady())
-            return;
+            return false;
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readwrite');
@@ -278,7 +278,7 @@ class StorageProvider {
     async saveEventLog(entries) {
         return new Promise((resolve) => {
             if (!this._db) {
-                resolve(false);
+                resolve();
                 return;
             }
             try {
@@ -289,11 +289,11 @@ class StorageProvider {
                 for (let i = 0; i < entries.length; i++) {
                     store.add({ id: i, html: entries[i] });
                 }
-                tx.oncomplete = () => resolve(true);
-                tx.onerror = () => resolve(false);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => resolve();
             }
             catch (e) {
-                resolve(false);
+                resolve();
             }
         });
     }
@@ -308,7 +308,7 @@ class StorageProvider {
                 const store = tx.objectStore('event_log');
                 const req = store.getAll();
                 req.onsuccess = () => {
-                    const items = req.result || [];
+                    const items = (req.result || []);
                     items.sort((a, b) => a.id - b.id);
                     resolve(items.map(item => item.html));
                 };

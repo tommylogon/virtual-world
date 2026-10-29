@@ -625,8 +625,12 @@ window.EventLogExport = (() => {
             const text = render(scoped, meta, opts.format);
             if (destSel.value === 'clipboard') {
                 if (text.length > 2000000) {
-                    const ok = window.confirm('This export is ' + Math.round(text.length / 1048576 * 10) / 10 +
-                        ' MB. Some browsers refuse a clipboard write that large. Copy anyway?');
+                    const ok = await window.Dialog?.confirm?.({
+                        title: 'Large Export',
+                        message: 'This export is ' + Math.round(text.length / 1048576 * 10) / 10 +
+                            ' MB. Some browsers refuse a clipboard write that large. Copy anyway?',
+                        danger: true
+                    });
                     if (!ok)
                         return;
                 }

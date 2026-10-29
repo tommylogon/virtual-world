@@ -217,8 +217,13 @@ window.NLEditorUI = (() => {
                     handleSend();
                 }
             });
-            resetBtn?.addEventListener('click', () => {
-                if (confirm('Reset NL Editor chat session?')) {
+            resetBtn?.addEventListener('click', async () => {
+                const ok = await window.Dialog?.confirm?.({
+                    title: 'Reset Chat',
+                    message: 'Reset NL Editor chat session?',
+                    danger: true
+                });
+                if (ok) {
                     this.controller.reset();
                 }
             });

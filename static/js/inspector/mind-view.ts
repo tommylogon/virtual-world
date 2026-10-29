@@ -974,7 +974,7 @@ const InspectorMindView = (() => {
             <button class="btn btn-sm btn-green" onclick="InspectorMemory.openWeaver('${e}',{mode:'social'})" title="Weave an interpersonal memory about another character" style="font-size:10px;">🤝 About Person</button>
             <button class="btn btn-sm btn-blue" onclick="InspectorMemory.addMemory('${e}')" style="font-size:10px;">+ Add / Edit</button>
             <button class="btn btn-sm" onclick="InspectorMemory.clearExpired('${e}')" style="font-size:10px;" title="Drop expired suppressions">🧹 Clear Expired</button>
-            <button class="btn btn-sm btn-red" onclick="if(confirm('Clear all memories?')){ApiClient.clearPlayerMemories('${e}').then(()=>worldState.fetch())}" style="font-size:10px;">🗑 Clear All</button>
+            <button class="btn btn-sm btn-red" onclick="(window.Dialog?.confirm?window.Dialog.confirm({title:'Clear Memories',message:'Clear all memories?',danger:true}):Promise.resolve(true)).then((ok)=>ok&&ApiClient.clearPlayerMemories('${e}').then(()=>worldState.fetch()))" style="font-size:10px;">🗑 Clear All</button>
         </div>`;
     }
 

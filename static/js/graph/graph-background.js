@@ -1862,7 +1862,7 @@
         container.appendChild(panel);
         state.panel = panel;
     }
-    function _onPanelClick(event) {
+    async function _onPanelClick(event) {
         const target = event.target;
         const el = target?.closest('[data-act]');
         if (!el)
@@ -1896,9 +1896,12 @@
                 const layer = state.layers.find((candidate) => candidate.id === id);
                 if (!layer || !id)
                     break;
-                const value = prompt('Layer name:', layer.label || '');
-                if (value !== null)
-                    renameLayer(id, value);
+                const promptRes = await window.Dialog?.prompt?.({
+                    title: 'Rename Layer',
+                    fields: [{ key: 'name', label: 'Layer Name', value: layer.label || '' }]
+                });
+                if (promptRes && promptRes.name != null)
+                    renameLayer(id, promptRes.name);
                 break;
             }
             case 'up':
@@ -2082,7 +2085,7 @@
             });
         });
     }
-    function _menuAction(action) {
+    async function _menuAction(action) {
         const layer = _active();
         switch (action) {
             case 'add':
@@ -2106,9 +2109,12 @@
             case 'opacity': {
                 if (!layer)
                     break;
-                const value = prompt('Layer opacity (0-100):', String(Math.round(layer.opacity * 100)));
-                if (value !== null)
-                    setOpacity(Number(value) / 100);
+                const promptRes = await window.Dialog?.prompt?.({
+                    title: 'Layer Opacity',
+                    fields: [{ key: 'opacity', label: 'Opacity (0-100)', value: String(Math.round(layer.opacity * 100)), type: 'number' }]
+                });
+                if (promptRes && promptRes.opacity != null)
+                    setOpacity(Number(promptRes.opacity) / 100);
                 break;
             }
             case 'layer-lock':

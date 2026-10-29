@@ -343,24 +343,33 @@ window.InspectorAreaView = (() => {
             </div>
         </div>`;
     };
-    RV._saveEnvPreset = function (env) {
+    RV._saveEnvPreset = async function (env) {
         if (!window.EnvPresets)
             return;
-        const name = prompt('Preset name:', 'Arctic: -12° bright fresh');
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Save Preset',
+            fields: [{ key: 'name', label: 'Preset Name', value: 'Arctic: -12° bright fresh' }]
+        });
+        const name = promptRes?.name;
         if (!name)
             return;
         window.EnvPresets.save(name.trim(), env);
         if (window.VW?.inspector)
             window.VW.inspector._reRender();
     };
-    RV._deleteEnvPreset = function () {
+    RV._deleteEnvPreset = async function () {
         if (!window.EnvPresets)
             return;
         const sel = document.getElementById('env-preset-select');
         const name = sel?.value;
         if (!name)
             return;
-        if (!confirm(`Delete preset "${name}"?`))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Delete Preset',
+            message: `Delete preset "${name}"?`,
+            danger: true
+        });
+        if (!ok)
             return;
         window.EnvPresets.delete(name);
         if (window.VW?.inspector)

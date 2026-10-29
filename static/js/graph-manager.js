@@ -324,10 +324,14 @@ class GraphManagerImpl {
     async _bulkTag() {
         const _gmApi = ApiClient;
         const _gmToast = window;
-        const tags = prompt('Add tag(s) to the selected nodes (comma-separated):');
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Bulk Tag',
+            fields: [{ key: 'tags', label: 'Tags (comma-separated)', placeholder: 'tag1, tag2' }]
+        });
+        const tags = promptRes?.tags;
         if (!tags || !tags.trim())
             return;
-        const add = tags.split(',').map(t => t.trim()).filter(Boolean);
+        const add = tags.split(',').map((t) => t.trim()).filter(Boolean);
         const ids = [...this._bulkSelection];
         for (const id of ids) {
             const node = this.nodes.get(id);
@@ -346,7 +350,11 @@ class GraphManagerImpl {
     async _bulkState() {
         const _gmApi = ApiClient;
         const _gmToast = window;
-        const state = prompt('Set current_state on selected nodes (e.g. on/closed/locked):');
+        const promptRes = await window.Dialog?.prompt?.({
+            title: 'Bulk State',
+            fields: [{ key: 'state', label: 'current_state (e.g. on/closed/locked)', placeholder: 'open' }]
+        });
+        const state = promptRes?.state;
         if (!state || !state.trim())
             return;
         const ids = [...this._bulkSelection];
@@ -365,7 +373,12 @@ class GraphManagerImpl {
         const _gmApi = ApiClient;
         const _gmToast = window;
         const ids = [...this._bulkSelection];
-        if (!confirm(`Delete ${ids.length} node(s)? (undo-safe)`))
+        const ok = await window.Dialog?.confirm?.({
+            title: 'Bulk Delete',
+            message: `Delete ${ids.length} node(s)? (undo-safe)`,
+            danger: true
+        });
+        if (!ok)
             return;
         for (const id of ids) {
             try {
@@ -781,7 +794,7 @@ class GraphManagerImpl {
         menu.style.top = event.clientY + 'px';
         setTimeout(() => document.addEventListener('click', () => menu.style.display = 'none', { once: true }), 0);
     }
-    _ctxAction(action) {
+    async _ctxAction(action) {
         const menu = document.getElementById('context-menu');
         if (menu)
             menu.style.display = 'none';
@@ -855,7 +868,12 @@ class GraphManagerImpl {
                     events.log('No characters to move.', 'system-msg');
                     return;
                 }
-                const charName = prompt(`Move which character to "${name}"?\nAvailable: ${players.join(', ')}`, players[0]);
+                const promptRes = await window.Dialog?.prompt?.({
+                    title: 'Move Character',
+                    message: `Move which character to "${name}"?\nAvailable: ${players.join(', ')}`,
+                    fields: [{ key: 'charName', label: 'Character Name', value: players[0] }]
+                });
+                const charName = promptRes?.charName;
                 if (!charName || !players.includes(charName)) {
                     events.log('Character not found.', 'error-msg');
                     return;
@@ -872,7 +890,11 @@ class GraphManagerImpl {
             }
             case 'create_character': {
                 const _gmApi = ApiClient;
-                const newName = prompt('Enter name for new character:', 'New Character');
+                const promptRes = await window.Dialog?.prompt?.({
+                    title: 'New Character',
+                    fields: [{ key: 'name', label: 'Character Name', value: 'New Character' }]
+                });
+                const newName = promptRes?.name;
                 if (!newName?.trim())
                     return;
                 _gmApi.createCharacter(newName.trim()).then(res => {
@@ -974,7 +996,12 @@ class GraphManagerImpl {
             const cfg = _gmEdgeTypes.getConfig(t);
             return `${i + 1}. ${cfg.icon} ${cfg.label} — ${cfg.desc}`;
         }).join('\n');
-        const typeChoice = prompt(`Select edge type for "${fromNode.name}":\n\n${typeList}\n\nEnter number (1-${edgeTypes.length}):`, '1');
+        const typeRes = await window.Dialog?.prompt?.({
+            title: 'Edge Type',
+            message: `Select edge type for "${fromNode.name}":\n\n${typeList}`,
+            fields: [{ key: 'typeChoice', label: `Number (1-${edgeTypes.length})`, value: '1' }]
+        });
+        const typeChoice = typeRes?.typeChoice;
         if (!typeChoice)
             return;
         const typeIdx = parseInt(typeChoice) - 1;
@@ -992,7 +1019,12 @@ class GraphManagerImpl {
             return;
         }
         const candidateList = candidates.map(([id, nd], i) => `${i + 1}. ${nd.name || id} (${nd.type})`).join('\n');
-        const targetChoice = prompt(`${cfg.icon} Which target for "${fromNode.name}"?\n\n${candidateList}\n\nEnter number or node ID:`, '1');
+        const targetRes = await window.Dialog?.prompt?.({
+            title: `${cfg.icon} Target Node`,
+            message: `Which target for "${fromNode.name}"?\n\n${candidateList}`,
+            fields: [{ key: 'targetChoice', label: 'Number or node ID', value: '1' }]
+        });
+        const targetChoice = targetRes?.targetChoice;
         if (!targetChoice)
             return;
         let targetId = null;
@@ -1005,7 +1037,11 @@ class GraphManagerImpl {
             events.log('Invalid target selected.', 'error-msg');
             return;
         }
-        const description = prompt(`Enter a description for this ${cfg.label} edge (optional):`, '');
+        const descRes = await window.Dialog?.prompt?.({
+            title: 'Edge Description',
+            fields: [{ key: 'description', label: `Description for ${cfg.label} edge (optional)`, placeholder: '' }]
+        });
+        const description = descRes?.description;
         const properties = {};
         if (description)
             properties.description = description;
@@ -1090,11 +1126,20 @@ class GraphManagerImpl {
     }
     async _addEdgeProperty(fromId, toId, rawType) {
         const _gmApi = ApiClient;
-        const key = prompt('Property name:');
+        const propRes = await window.Dialog?.prompt?.({
+            title: 'Add Edge Property',
+            fields: [
+                { key: 'name', label: 'Property Name', placeholder: 'name' },
+                { key: 'value', label: 'Property Value (JSON or plain text)', value: '' }
+            ]
+        });
+        if (!propRes)
+            return;
+        const key = propRes.name;
         if (!key || !key.trim())
             return;
-        const rawValue = prompt('Property value (JSON or plain text):', '');
-        if (rawValue === null)
+        const rawValue = propRes.value;
+        if (rawValue === null || rawValue === undefined)
             return;
         let value = rawValue;
         try {

@@ -670,8 +670,12 @@ type AVWin = { [key: string]: any };
         const isParametric = (window as unknown as AVWin)._traitLibrary?.[traitId]?.params;
         let value: any = true;
         if (isParametric) {
-            const input = prompt(`Enter value for "${traitId}" trait:`, isParametric.default || '');
-            if (input === null) return;
+            const promptRes = await (window as any).Dialog?.prompt?.({
+                title: 'Trait Value',
+                fields: [{ key: 'value', label: 'Value', value: isParametric.default || '' }]
+            });
+            if (!promptRes) return;
+            const input = promptRes.value;
             value = input.trim() || true;
         }
         const t = Object.assign({}, worldState.players?.[charName]?.traits || {});
@@ -2420,7 +2424,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._killCharacter = async function(charName: string) {
-        if (!confirm(`Kill "${charName}"? This will set HP to 0 and state to dead.`)) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Kill Character',
+            message: `Kill "${charName}"? This will set HP to 0 and state to dead.`,
+            danger: true
+        });
+        if (!ok) return;
         const res = await (ApiClient as Record<string, any>).killCharacter(charName);
         if (res.error) { events.log(`Kill failed: ${res.error}`, 'error-msg'); return; }
         events.log(`"${charName}" has been killed.`, 'system-msg');
@@ -2433,7 +2442,12 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._removeCharacter = async function(charName: string) {
-        if (!confirm(`Permanently remove "${charName}" from the world? This cannot be undone.`)) return;
+        const ok = await (window as any).Dialog?.confirm?.({
+            title: 'Delete Character',
+            message: `Permanently remove "${charName}" from the world? This cannot be undone.`,
+            danger: true
+        });
+        if (!ok) return;
         const res = await (ApiClient as Record<string, any>).deleteCharacter(charName);
         if (res.error) {
             // Not a registered player (e.g. a bare character node) - fall back
