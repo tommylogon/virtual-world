@@ -231,24 +231,25 @@ class AgentEngine {
         // the target; the rest of the room sees the gesture, not the words.
         const directed = spokenVolume === 'whisper' && target;
         const command = directed ? `whisper to ${target}: ${speech}` : `${spokenVolume} ${speech}`;
+        const speakerName = player?.name || charName;
         try {
             const data = await agentApi.action(command, charName);
             const output = (data && data.output) || '';
             const blocked = (data && data.success === false) ||
                 /no sound comes out|can't move or act|can't do that/i.test(output);
             if (blocked) {
-                events.log(`🔇 ${player.name}: ${output.trim() || 'cannot speak.'}`, 'error-msg');
+                events.log(`🔇 ${speakerName}: ${output.trim() || 'cannot speak.'}`, 'error-msg');
             }
             else if (directed) {
                 // task-340: whispered lines get a distinct locked row in the stream.
-                events.log(`🔒 ${player.name} → ${target}: "${speech}"`, "msg-whisper");
+                events.log(`🔒 ${speakerName} → ${target}: "${speech}"`, "msg-whisper");
             }
             else {
-                events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
+                events.log(`[${speakerName}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             }
         }
         catch (err) {
-            events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
+            events.log(`[${speakerName}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
         }
     }
     async _performEmote(charName, emote) {
@@ -390,7 +391,7 @@ class AgentEngine {
                 if (currentArea)
                     agentConfig.lastRoom[charName] = currentArea;
                 if (step.memory?.text)
-                    this._storeReactionMemory(charName, step.memory);
+                    this._storeReactionMemory(charName, { text: step.memory.text, ...(step.memory || {}) });
                 // Deterministic auto-memory: one instant, LLM-free line per action.
                 const areaName = worldState.runtimePlayer(charName)?.current_area || '';
                 const memoryBits = [
@@ -953,7 +954,7 @@ class AgentEngine {
                     // of asking the LLM (which would likely pick another major action).
                     const budgetExhausted = !actionSucceeded && /no major action left|major action budget exhausted/i.test(actionResult);
                     if (budgetExhausted) {
-                        events.log(`↩️ ${charName}: budget exhausted — auto-substituting "wait"`, 'system-msg');
+                        events.log(`↩️ ${charName}: budget exhausted - auto-substituting "wait"`, 'system-msg');
                         actionResult = 'You wait, watching and listening.';
                         actionSucceeded = true;
                         PlanTracker.trackStep(charName, 'wait', actionResult, true);

@@ -96,6 +96,7 @@ interface ConfigManager {
     graphDamping?: number;
     graphFocusZoom?: number;
     graphNodeScale?: number;
+    getTalkativeness(name: string): number;
 }
 
 /** ConfigManager singleton (config.js): user settings + feature flags. */
@@ -120,6 +121,7 @@ declare const config: {
     embedDims?: number;
     controllingPlayer?: string;
     apiKey?: string;
+    getTalkativeness(name: string): number;
     save(): void;
     [key: string]: unknown;
 };
