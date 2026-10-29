@@ -1,12 +1,12 @@
 /**
- * GraphNetwork — vis.js network setup and management for the graph
+ * GraphNetwork - vis.js network setup and management for the graph
  * Handles vis.Network initialization, options building, data loading,
  * tooltip building, physics toggling, legend rendering, and node filtering.
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
- * @module graph/network-manager — vis.js Network construction and data loading
+ * @module graph/network-manager - vis.js Network construction and data loading
  * @contributes GraphNetwork: options, loadGraphData, applyVisibility, legend/tags, node configs
- * @powers Graph canvas — the graph canvas itself — layout physics, filtering, tooltips, node badges
+ * @powers Graph canvas - the graph canvas itself - layout physics, filtering, tooltips, node badges
  * @relates driven by graph-manager; collaborators in static/js/graph/*
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
@@ -123,8 +123,8 @@ const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside'
 /**
  * How wide an edge label may get before it wraps (task-558).
  *
- * Wide enough that the labels people actually write — "west", "enter the inn",
- * "climb down the mine shaft" — stay on one line, so nothing that reads well
+ * Wide enough that the labels people actually write - "west", "enter the inn",
+ * "climb down the mine shaft" - stay on one line, so nothing that reads well
  * today starts reading differently. Narrow enough that a runaway label (an
  * `unlocks` edge carrying a whole `properties.description`) wraps instead of
  * running across half the canvas.
@@ -139,8 +139,8 @@ const EDGE_LABEL_WRAP = 160;
  * and wrong for three: the same 60 characters spread over three lines are a much
  * narrower block and need a much shorter edge, and a formula that cannot see the
  * line count either stretches the layout or lets a wrapped label collide with the
- * nodes at either end. So the label is wrapped *here* — the same wrap, at the same
- * width, that vis will draw — and the edge is sized from the widest line plus a
+ * nodes at either end. So the label is wrapped *here* - the same wrap, at the same
+ * width, that vis will draw - and the edge is sized from the widest line plus a
  * line of height for each extra one.
  */
 function _labelEdgeLength(label: unknown): number {
@@ -155,7 +155,7 @@ function _labelEdgeLength(label: unknown): number {
 
 /**
  * Break a label into the lines vis will draw: on spaces, greedy. A single word
- * longer than the wrap width is left as one line — a long id or URL has no spaces
+ * longer than the wrap width is left as one line - a long id or URL has no spaces
  * to break on, and cutting it mid-word would make it unusable.
  */
 function _wrapLabel(text: unknown, maxWidth: number): string[] {
@@ -262,7 +262,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         await graphManager.loadScopeFilterOptions();
         // Restore the saved scope BEFORE the first load (task-749). Without this
         // the first loadGraphData builds the WHOLE WORLD, the saved scope is
-        // applied a moment later, and the graph is rebuilt a second time — two
+        // applied a moment later, and the graph is rebuilt a second time - two
         // full builds per refresh, which is why selecting a scope never made the
         // load smaller: you were paying the whole-world cost first, every time.
         graphManager._restoreScopeFilterOnce();
@@ -281,8 +281,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
      *  - **graph** (the free force layout): ON. It is what holds a component
      *    that is not edge-connected to the rest of the world near the middle
      *    instead of letting it drift off.
-     *  - **map**: 0. The painted lattice *is* the map — areas are pinned to
-     *    their cells — so a pull toward the canvas origin fights the art. With it
+     *  - **map**: 0. The painted lattice *is* the map - areas are pinned to
+     *    their cells - so a pull toward the canvas origin fights the art. With it
      *    off, a room's contents are held by their own `in` edge spring.
      *  - **levels**: 0. vis's hierarchical layout owns positions and forces
      *    physics off, so this is never read; it is set anyway so that switching
@@ -354,7 +354,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @returns {Object} vis.js Network options
      */
     buildOptions() {
-        // `config` is a top-level const (lexical global) — NEVER window.config
+        // `config` is a top-level const (lexical global) - NEVER window.config
         // (which is always undefined and made every slider a silent no-op).
         const cfg = config || ({} as ConfigManager);
         const solver = cfg.graphSolver || 'forceAtlas2Based';
@@ -375,7 +375,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const marks = (GraphNetwork as any)._markSizes();
         // centralGravity follows the layout (see centralGravityFor): ON in the free
         // graph layout, 0 for Map and Levels. The map-mode numbers below are the
-        // balance measured with it off — with no central pull, repulsion is the
+        // balance measured with it off - with no central pull, repulsion is the
         // only thing pushing, and the old forceAtlas2 numbers (repulsion -40,
         // spring 0.02) lost it: a measured cold load ran away at +4069px of width
         // per 12s and left contents a median 888px from the room that holds them.
@@ -403,7 +403,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 // owned by the physics solver: when we reposition nodes
                 // programmatically (grid layout, DataSet update) the real nodes
                 // teleport but each edge's support node is left behind and has to
-                // crawl to the new spot — the "stretched rubber band" fan that
+                // crawl to the new spot - the "stretched rubber band" fan that
                 // collapses only when physics is switched on to let it catch up.
                 // `'continuous'` computes the curve from the two node positions
                 // with no support node, so the edge is correct on the same frame
@@ -507,7 +507,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * slider's range; 1 everywhere when unset, so nothing changes by default.
      * The separation pass multiplies its type radii by the same value, so a
      * bigger node is granted correspondingly more room. Font sizes deliberately
-     * stay on `mapSizeScale()` only — labels keep a readable size while shapes
+     * stay on `mapSizeScale()` only - labels keep a readable size while shapes
      * grow under it.
      */
     nodeSizeScale(): number {
@@ -550,10 +550,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const background = (window as unknown as RelLayoutWin).GraphBackground;
         if (background) {
             // The art is positioned in px from this same pitch, so it has to move
-            // with it — for *every* mounted reference, because the whole-world view
+            // with it - for *every* mounted reference, because the whole-world view
             // has no single grid and the ordinary per-scope reconcile stops there.
             // Not `fitToPaintedGrid`: that persists the world, and this is a load
-            // path. Not awaited — a grid fetch per scope must not stall the layout.
+            // path. Not awaited - a grid fetch per scope must not stall the layout.
             // Guarded on the module only: a `typeof … === 'function'` guard here is
             // what let commit 6fd774b8 delete `reconcileAllForGapChange` and leave
             // this call site silently doing nothing (task-526).
@@ -567,21 +567,21 @@ function _firstSentence(text: unknown, maxLines: number): string {
      *
      * Default (tuning a graph that is already on screen): hand the new force
      * parameters to the running simulation via setOptions() and wake the
-     * solver — vis.js freezes it after its initial stabilization, so without
+     * solver - vis.js freezes it after its initial stabilization, so without
      * startSimulation() setOptions alone never moves a node. Nodes keep their
      * positions and settle under the new forces, and the camera never moves.
      * Measured against the old behavior: it blanked the load signature,
      * refetched the whole dataset, reseeded the rings and re-stabilized on
-     * every slider tick, and the async rebuild re-fit the camera ~1s later —
+     * every slider tick, and the async rebuild re-fit the camera ~1s later -
      * tuning physics felt like the graph reloading under the user.
      *
      * `rebuild` (a Levels/Free switch, which changes WHAT is laid out rather
      * than how it settles) keeps the old full re-derivation: reload the
      * dataset, reseed the ring caches so the seed re-applies on
      * stabilizationIterationsDone, restabilize. The camera reset is wanted
-     * there — a different layout is a different view.
+     * there - a different layout is a different view.
      *
-     * Children are held by their own edge springs ("a seed, not a leash" —
+     * Children are held by their own edge springs ("a seed, not a leash" -
      * graph/relative-layout.ts), so a changed Item Edge Length re-orbits them
      * by simulation in the default path; no reseed needed.
      *
@@ -631,7 +631,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // options: lengths are stamped per edge in the dataset (attachments
             // from Contents length, connections from their labels or a per-way
             // edge_length), and the guard runs once per layout pass. The full
-            // rebuild this path replaced refreshed them as a side effect —
+            // rebuild this path replaced refreshed them as a side effect -
             // re-derive them here whenever a knob that feeds them moved, or
             // dragging Contents length / the guard knobs does nothing until the
             // next data reload (measured: attachment distances never moved).
@@ -658,7 +658,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         if ((window as unknown as RelLayoutWin).GraphRelativeLayout && !levelsOn) (window as unknown as RelLayoutWin).GraphRelativeLayout!.reseed();
         GraphNetwork.loadGraphData();
         // Hierarchical layout places every node itself, so there is nothing to
-        // simulate — and stabilize() would turn the solver back on and undo it.
+        // simulate - and stabilize() would turn the solver back on and undo it.
         if (levelsOn) {
             GraphNetwork._syncLayoutButton();
             if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
@@ -666,11 +666,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
         }
         // Re-run the simulation with the new force parameters. After the
         // initial stabilization vis.js freezes the network (physics.stabilized
-        // = true), so setOptions() alone never moves a node — explicitly
+        // = true), so setOptions() alone never moves a node - explicitly
         // re-stabilize so slider changes actually reshape the layout.
         try {
             graphManager.network.stabilize(200);
-        } catch (err) { /* ignore — settings apply on the next reload */ }
+        } catch (err) { /* ignore - settings apply on the next reload */ }
         if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
     },
 
@@ -764,7 +764,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // A selected scope loads only that scope's slice (areas + ways +
             // characters, items optional); without one the whole world loads.
             // Loading one scope at a time is what keeps a densely painted
-            // WorldPainter world from freezing the canvas — the browser never
+            // WorldPainter world from freezing the canvas - the browser never
             // receives nodes outside the scope (task-397 step 3 / task-400).
             const scopeId = graphManager._scopeFilter || null;
             let nodesObj, edgesArr;
@@ -775,7 +775,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                     edgesArr = sub.edges || [];
                 } catch (err) {
                     // Stale selection (e.g. after a scenario load, or a persisted
-                    // id whose scope was renamed/deleted — task-749): drop it, clear
+                    // id whose scope was renamed/deleted - task-749): drop it, clear
                     // the saved key, and fall back to the whole world.
                     graphManager._scopeFilter = null;
                     (graphManager as unknown as { _persistScopeFilter?: () => void })._persistScopeFilter?.();
@@ -816,7 +816,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
 
             // Preserve the camera too. vis.js setData() emits initPhysics, and the
             // physics engine (re)stabilization ends in a View.fit() that snaps the
-            // viewport to the fit-all position/scale — destroying the user's zoom
+            // viewport to the fit-all position/scale - destroying the user's zoom
             // and pan on every reload. Only restore once the network has data; the
             // very first load keeps the fitView() in init().
             let savedView = null;
@@ -836,7 +836,6 @@ function _firstSentence(text: unknown, maxLines: number): string {
             graphManager._nodeLabelsShown = null;
             graphManager._labelCache = null;
             const visNodes = [];
-            const visEdges = [];
             graphManager._graphNodesObj = nodesObj;
             graphManager._graphEdgesArr = edgesArr;
             const stateGraph = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
@@ -850,7 +849,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // settled afterwards would leave them disagreeing (task-526).
             try { this.applyAutoMapSpacing(nodesObj); } catch (err) { /* keep the current pitch */ }
             // The stepper reads the effective pitch and whether it is derived, and
-            // the menu says so when the map is drawing dots — both cheap DOM writes
+            // the menu says so when the map is drawing dots - both cheap DOM writes
             // that must be told the truth on every load, not only when it moves.
             if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
 
@@ -872,148 +871,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 visNodes.push(this.buildNodeConfig(nodeData, seedFrame));
             }
 
-            const renderedConnectionPairs = new Set<string>();
-
-            // Node-type lookup for endpoint-aware edge suppression.
-            const nodeTypeById: Record<string, string> = {};
-            for (const id in nodesObj) nodeTypeById[id] = nodesObj[id] && nodesObj[id].type;
-
-            // The backend emits both a carrying and an equipped edge to the same
-            // item↔character pair. Track equipped pairs so the redundant carrying
-            // edge is suppressed.
-            const equippedPairs = new Set<string>();
-            for (const e of edgesArr) {
-                if (EdgeTypes.resolve(e.type || 'connection') === 'equipped') {
-                    equippedPairs.add([e.source, e.target].sort().join('|'));
-                }
-            }
-
-            for (const edgeObj of edgesArr) {
-                const rawType = edgeObj.type || 'connection';
-                const edgeType = EdgeTypes.resolve(rawType);
-                const style = edgeObj.properties?.style || {};
-
-                // Never draw a "connection" edge between a character and an item —
-                // the backend sometimes emits one alongside carrying/equipped.
-                if (edgeType === 'connection') {
-                    const st = nodeTypeById[edgeObj.source];
-                    const tt = nodeTypeById[edgeObj.target];
-                    if ((st === 'character' && tt === 'item') || (st === 'item' && tt === 'character')) continue;
-                }
-                // An equipped item is not separately "carrying" — drop the duplicate.
-                if (edgeType === 'carrying') {
-                    const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
-                    if (equippedPairs.has(pairKey)) continue;
-                }
-                const typeCfg = EdgeTypes.getConfig(edgeType);
-                let defaultColor = typeCfg.color;
-                let defaultDashes = edgeType === 'unlocks';
-
-                let edgeLabel = '';
-                if (graphManager._showEdgeLabels) {
-                    edgeLabel = edgeType;
-                } else if (edgeType === 'unlocks') {
-                    // A whole `properties.description` is arbitrary-length
-                    // author-written prose, which is the one label that cannot be
-                    // trusted to be short (task-558). Three lines is what fits the
-                    // edge without pushing its ends apart; the full text stays on
-                    // the hover tooltip that is already built for this edge.
-                    edgeLabel = _firstSentence(
-                        edgeObj.properties?.description || 'unlocks', 3);
-                }
-
-                // Collapse bidirectional connection pairs into a single visual edge
-                if (edgeType === 'connection') {
-                    const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
-                    if (renderedConnectionPairs.has(pairKey)) continue;
-                    renderedConnectionPairs.add(pairKey);
-                    const otherEdges = edgesArr.filter((e: any) =>
-                        e.type === 'connection' &&
-                        ((e.source === edgeObj.target && e.target === edgeObj.source) ||
-                         (e.source === edgeObj.source && e.target === edgeObj.target))
-                    );
-                    if (otherEdges.length > 1) {
-                        const dirs = otherEdges.map((e: any) => e.properties?.direction).filter(Boolean);
-                        edgeLabel = (graphManager._showEdgeLabels ? '↔ ' : '') + dirs.join(' ↔ ');
-                    }
-                }
-
-                if (typeof WayAuthoring !== 'undefined') {
-                    const tip = WayAuthoring.buildEdgeTooltipForVis(edgeObj.source, edgeObj.target, nodesObj, edgesArr);
-                    if (tip) {
-                        graphManager._edgeTooltipHtml[`${edgeObj.source}|${edgeObj.target}`] = tip.html;
-                    }
-                }
-
-                // Attachment edges (item -> its parent, or a trigger -> its host)
-                // get short springs so a child settles next to its parent rather
-                // than floating at the global length. Children are in the solver
-                // and that short spring is the only thing keeping them local
-                // (there is no central gravity to fight).
-                const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
-                    || edgeType === 'triggers' || edgeType === 'grappled';
-
-                // In hierarchical mode a relation edge is the level link: orient
-                // it parent -> child from the resolved relations rather than the
-                // stored direction, which is inconsistent for `in` (bug-44).
-                const levelsMode = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
-                const levelsPlan = (levelsMode && (window as unknown as RelLayoutWin).GraphRelativeLayout)
-                    ? (isAttachment
-                        ? (window as unknown as RelLayoutWin).GraphRelativeLayout!.levelEdge(edgeObj.source, edgeObj.target, nodesObj, edgesArr)
-                        : (edgeType === 'connection'
-                            ? (window as unknown as RelLayoutWin).GraphRelativeLayout!.connectionLevelEdge(edgeObj.source, edgeObj.target, nodesObj)
-                            : null))
-                    : null;
-
-                let edgeLength = undefined;
-                if (edgeType === 'connection') {
-                    const targetNode = nodesObj[edgeObj.target];
-                    const sourceNode = nodesObj[edgeObj.source];
-                    const wayNode = targetNode?.type === 'way' ? targetNode : sourceNode?.type === 'way' ? sourceNode : null;
-                    if (wayNode) {
-                        const len = wayNode.properties?.edge_length;
-                        if (len && len > 0) edgeLength = len;
-                    }
-                    // Dynamic default: a connection edge is only as long as its
-                    // labels need. A short name ("west") stays tight; a long one
-                    // ("northwest passage") gets room — so edges stop being
-                    // stretched to the global spring length. A per-way
-                    // `edge_length` property still wins.
-                    if (!edgeLength) {
-                        // Size to the label actually drawn along the edge: an
-                        // unlabelled edge can be short, a long one needs room.
-                        // Capped so a two-sided label can't stretch the layout.
-                        edgeLength = _labelEdgeLength(edgeLabel);
-                    }
-                } else if (isAttachment) {
-                    const len = (config || ({} as ConfigManager)).graphItemEdgeLength || 35;
-                    edgeLength = len;
-                }
-                visEdges.push({
-                    from: (levelsPlan && levelsPlan.from) || edgeObj.source,
-                    to: (levelsPlan && levelsPlan.to) || edgeObj.target,
-                    type: edgeType,
-                    label: edgeLabel,
-                    length: edgeLength,
-                    // Hierarchical levels come from direction, so a relation
-                    // stored child -> parent is flipped for layout and the arrow
-                    // is flipped back to keep reading the right way (task-485).
-                    arrows: (levelsPlan && levelsPlan.flipped)
-                        ? (edgeType === 'connection' ? 'from,to' : 'from')
-                        : (edgeType === 'connection' ? 'from,to' : (style.arrows || 'to')),
-                    dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
-                    color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
-                    font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
-                    // Edge labels are drawn on a canvas, so they wrap by **width**
-                    // and not by the reader: `widthConstraint` breaks a long label
-                    // onto more lines instead of letting it run off the edge (task-558).
-                    // Edges only — a way *node*'s name is a node label, and growing
-                    // the node box for it collides with the map layout's margins.
-                    widthConstraint: { maximum: EDGE_LABEL_WRAP },
-                    width: style.width || 1,
-                    smooth: isAttachment ? false : undefined
-                });
-            }
+            const visEdges = this.buildEdgeConfigs(nodesObj, edgesArr);
             // Disable physics during data swap to avoid jitter
             const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
             GraphPhysics.pause();
@@ -1022,7 +880,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // our back (bug-534): the disable above is not enough, so re-assert it
             // for the whole placement window. Until `apply()` below has placed the
             // content relative to its holder, free nodes are unpositioned, and a
-            // live solver flings them out — stretching every edge until it
+            // live solver flings them out - stretching every edge until it
             // converges. That was the intermittent load slowness/edge stretch.
             GraphNetwork.applyModePhysics(false);
             // Restore positions only for nodes that still exist
@@ -1038,7 +896,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // and loose nodes there moved a way the user had just positioned.
             // Not in hierarchical mode either: that layout owns every position.
             // The "way directions" overlay deliberately does NOT count as map
-            // mode any more — it only labels ways (task-530), so picking it must
+            // mode any more - it only labels ways (task-530), so picking it must
             // never rearrange the canvas behind the user's back.
             const mapMode = graphManager._cardinalLayout === true;
             // `worldState.areas` is a legacy per-area map that a generated
@@ -1046,7 +904,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // cardinal path no-ops on an empty map), and the painted-grid path
             // reads only `nodesObj`, so don't gate map mode on it.
             let layoutKind = null;
-            // A painted scope's layout *is* its grid — every node's position is a
+            // A painted scope's layout *is* its grid - every node's position is a
             // cell. Hierarchical has nothing to build on: a painted graph is a
             // lattice, not a tree, so vis's hierarchical layout drops all 1696
             // nodes of deep_woods onto one 142,000px row (a flat fan of stretched
@@ -1064,8 +922,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
             graphManager._paintedGridLayout = layoutKind === 'grid';
             // `buildOptions` enables vis's hierarchical layout whenever Levels
             // is selected (line ~396). On a painted scope that layout does not
-            // get to run: it lays the whole lattice out as a tree — deep_woods's
-            // 1696 nodes onto a single 142,000px row — overriding the grid we
+            // get to run: it lays the whole lattice out as a tree - deep_woods's
+            // 1696 nodes onto a single 142,000px row - overriding the grid we
             // just applied. Turn it back off so the grid is the last word.
             if (layoutKind === 'grid' && graphManager.network && graphManager.network.setOptions) {
                 try { graphManager.network.setOptions({ layout: { hierarchical: { enabled: false } } }); } catch (err) { /* ignore */ }
@@ -1073,12 +931,12 @@ function _firstSentence(text: unknown, maxLines: number): string {
 
 
         // Items, characters and triggers sit relative to whatever holds them,
-        // derived fresh each load (task-485) — never a saved snapshot, so a
+        // derived fresh each load (task-485) - never a saved snapshot, so a
         // carried item follows its carrier.
         //
         // SKIPPED when the painted grid already placed them. `_gridUpdates`
-        // places every cell-less node in a painted scope — held children beside
-        // their area (the `beside` pass), the rest from their own coords — so
+        // places every cell-less node in a painted scope - held children beside
+        // their area (the `beside` pass), the rest from their own coords - so
         // running the ring seed afterwards does not add anything and actively
         // HURTS: it re-derives each child from its parent's position as the
         // solver/DataSet last held it, which is a frame behind the grid move, so
@@ -1099,7 +957,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // restored below, so a map scope with physics on simulates after every
             // reload instead of being silently frozen. Areas and ways are pinned
             // to their map coordinates (layout-engine), so restoring physics only
-            // simulates items and characters — the rooms stay on their cells and
+            // simulates items and characters - the rooms stay on their cells and
             // the background art keeps lining up. Locking the node layout (🔒 in
             // the background menu) still wins over both.
             // NOTE: the solver is deliberately NOT resumed here. The placement
@@ -1138,8 +996,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // Everything is placed AND decorated: release the placement window.
             // The policy reads the user's own preference (seeded from the engine
             // config before this load, task-765), so a saved "physics off" stays
-            // off rather than being forced back on. Resuming here — not before the
-            // decoration passes — keeps the solver's animation loop from fighting
+            // off rather than being forced back on. Resuming here - not before the
+            // decoration passes - keeps the solver's animation loop from fighting
             // the per-node work above for the main thread.
             GraphPhysics.resume();
 
@@ -1172,8 +1030,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * or a dataset rebuild (task-764).
      *
      * The `/api/state` payload already carries the graph, so a tick or an
-     * inspector edit that changed only node PROPERTIES — a character's
-     * `current_state`, an emotion/avatar, a pinned flag, a cell, a name — must
+     * inspector edit that changed only node PROPERTIES - a character's
+     * `current_state`, an emotion/avatar, a pinned flag, a cell, a name - must
      * not pay a world fetch, a `setData()`, a re-relayout and a camera refit.
      * Those property changes are the ones that fire many times a minute, and
      * they are what this exists to keep cheap.
@@ -1196,26 +1054,29 @@ function _firstSentence(text: unknown, maxLines: number): string {
         if (!next || !next.nodes) return;
         const scoped = !!gm._scopeFilter;
 
+        const body = gm.network.body;
+        const nodesDS = body && body.data && body.data.nodes;
+        const edgesDS = body && body.data && body.data.edges;
+        if (!nodesDS || !edgesDS) return;
+
+        // Scoped mode edge diffing or whole-world edge diffing.
+        // We diff the rendered edge configs so edge addition, removal, and retargeting
+        // update the vis.js DataSet in place without tearing down the graph canvas.
+        const nextEdgesArr = next.edges || [];
+        let edgeUpdatesNeeded = false;
         if (scoped) {
             const edgeWatchSig = GraphNetwork._scopedEdgeSig(
-                next.edges || [], next.nodes, loaded
+                nextEdgesArr, next.nodes, loaded
             );
             if (edgeWatchSig !== gm._scopeEdgeWatchSig) {
+                edgeUpdatesNeeded = true;
                 gm._scopeEdgeWatchSig = edgeWatchSig;
-                gm._lastSig = '';
-                GraphNetwork.loadGraphData();
-                return;
             }
-        }
-
-        // Whole-world view: the payload and the view share a node/edge set, so
-        // a changed set is a real structural change. A scoped view is a slice,
-        // so only a vanished node can be detected here (below).
-        if (!scoped) {
-            if (GraphNetwork._edgeSig(next.edges || []) !== gm._lastEdgeSig) {
-                gm._lastSig = '';
-                GraphNetwork.loadGraphData();
-                return;
+        } else {
+            const nextEdgeSig = GraphNetwork._edgeSig(nextEdgesArr);
+            if (nextEdgeSig !== gm._lastEdgeSig) {
+                edgeUpdatesNeeded = true;
+                gm._lastEdgeSig = nextEdgeSig;
             }
             if (Object.keys(next.nodes).length !== Object.keys(loaded).length) {
                 gm._lastSig = '';
@@ -1223,10 +1084,6 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 return;
             }
         }
-
-        const body = gm.network.body;
-        const nodesDS = body && body.data && body.data.nodes;
-        if (!nodesDS) return;
 
         const frame = (GraphLayoutEngine as any)?.paintedFrame
             ? (GraphLayoutEngine as any).paintedFrame(next.nodes)
@@ -1237,7 +1094,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         for (const id in loaded) {
             const nextNode = next.nodes[id];
             if (!nextNode) {
-                // A node the view holds is gone from the payload — structural.
+                // A node the view holds is gone from the payload - structural.
                 gm._lastSig = '';
                 GraphNetwork.loadGraphData();
                 return;
@@ -1247,8 +1104,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
             if (projection !== (gm._nodeProj && gm._nodeProj[id])) {
                 const config = GraphNetwork.buildNodeConfig(nextNode, frame);
                 // A property-only change must NOT move the node. buildNodeConfig
-                // re-seeds x/y from seedFor() — the node's saved properties.x/y
-                // or its painted cell — so an unchanged-cell node would be
+                // re-seeds x/y from seedFor() - the node's saved properties.x/y
+                // or its painted cell - so an unchanged-cell node would be
                 // carried to that SEED and a live drag reset. Only a genuine
                 // painted-cell change legitimately relocates a node, so drop the
                 // seed x/y otherwise and let the solver/drag position stand.
@@ -1270,7 +1127,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // loaded set (that is what `_graphNodesObj` is, and what the
             // toolbar counts). Doing so makes the NEXT sync treat every world
             // node as "loaded", build a config for each, and pour the whole
-            // world into the scope's dataset — the scope silently disappears.
+            // world into the scope's dataset - the scope silently disappears.
             // Keep the scope's node set and only refresh the data it points at.
             for (const id in loaded) {
                 const fresh = next.nodes[id];
@@ -1279,14 +1136,59 @@ function _firstSentence(text: unknown, maxLines: number): string {
         } else {
             gm._graphNodesObj = next.nodes;
         }
+        // Incremental edge diff and update (task-764).
+        // If the edge set changed, compute added, updated, and removed edge configs
+        // and apply them to edgesDS in place.
+        if (edgeUpdatesNeeded) {
+            gm._graphEdgesArr = nextEdgesArr;
+            const newVisEdges = GraphNetwork.buildEdgeConfigs(loaded, nextEdgesArr);
+            const nextEdgeMap = new Map<string, any>();
+            for (const edge of newVisEdges) {
+                nextEdgeMap.set(edge.id, edge);
+            }
+
+            const currentEdgeIds: string[] = edgesDS.getIds() || [];
+            const toRemove: string[] = [];
+            const toUpdate: any[] = [];
+            const toAdd: any[] = [];
+
+            for (const id of currentEdgeIds) {
+                const nextEdge = nextEdgeMap.get(id);
+                if (!nextEdge) {
+                    toRemove.push(id);
+                } else {
+                    toUpdate.push(nextEdge);
+                }
+            }
+
+            const currentIdSet = new Set(currentEdgeIds);
+            for (const [id, edge] of nextEdgeMap) {
+                if (!currentIdSet.has(id)) {
+                    toAdd.push(edge);
+                }
+            }
+
+            if (toRemove.length > 0) {
+                edgesDS.remove(toRemove);
+            }
+            if (toUpdate.length > 0) {
+                edgesDS.update(toUpdate);
+            }
+            if (toAdd.length > 0) {
+                edgesDS.add(toAdd);
+            }
+        }
+
         // Any later structural change must not be masked by a stale reload hash.
         gm._lastSig = '';
-        if (!updates.length) return;
+        if (!updates.length && !edgeUpdatesNeeded) return;
 
-        // One batched DataSet pass — the labels/icons and visibility were
+        // One batched DataSet pass - the labels/icons and visibility were
         // derived from the OLD node data, so re-apply them for the change.
-        nodesDS.update(updates);
-        GraphNetwork._applyNodeLabelDecorations();
+        if (updates.length > 0) {
+            nodesDS.update(updates);
+            GraphNetwork._applyNodeLabelDecorations();
+        }
         GraphNetwork.applyVisibility();
         GraphNetwork.applyNodeLabelVisibility();
         if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
@@ -1310,7 +1212,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Applies the current visibility state to the live vis.js dataset in place.
      * Hides nodes via the `hidden` flag and hides edges whose endpoints are not
      * both visible. Called by toggles and filters instead of a full rebuild, so
-     * zoom/pan and physics survive — the core fix for the laggy reloads.
+     * zoom/pan and physics survive - the core fix for the laggy reloads.
      */
     applyVisibility() {
         const visibleIds = GraphNetwork._computeVisibleNodeIds();
@@ -1321,7 +1223,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Should node names be drawn right now?
      *
      * One rule: a name is worth drawing when a **cell** is big enough on screen
-     * to hold it — `pitch × zoom >= graphLabelMinCellPx` (default 14px) — plus the
+     * to hold it - `pitch × zoom >= graphLabelMinCellPx` (default 14px) - plus the
      * manual toggle. The old count gate (hide every name over
      * `graphLabelMaxNodes` until the raw network scale passed `graphLabelMinScale`
      * 0.6) measured the wrong thing: on a high-pitch map the raw scale sits near
@@ -1343,7 +1245,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the label policy in one DataSet pass — only when the decision
+     * Apply the label policy in one DataSet pass - only when the decision
      * changes, so zooming does not re-write 1k nodes every frame. Decorated
      * labels are cached while hidden and restored verbatim.
      */
@@ -1435,7 +1337,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const cfg: Record<string, unknown> = (typeof config !== 'undefined' && config) || {};
         cfg.graphLayoutMode = (cfg.graphLayoutMode as string) === 'levels' ? 'free' : 'levels';
         GraphNetwork._syncLayoutButton();
-        // A mode switch changes what is laid out, not just how it settles —
+        // A mode switch changes what is laid out, not just how it settles -
         // the full re-derivation, not the in-place tuning path.
         GraphNetwork.applyGraphSettings(true);
         if ((cfg as { save?: () => void }).save) { try { (cfg as { save: () => void }).save(); } catch (err) { /* ignore */ } }
@@ -1551,6 +1453,153 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @param {Object} nodeData - raw node data from the graph
      * @returns {Object} vis.js node configuration
      */
+    buildEdgeConfigs(nodesObj: Record<string, any>, edgesArr: any[]): any[] {
+        const visEdges: any[] = [];
+const renderedConnectionPairs = new Set<string>();
+
+        // Node-type lookup for endpoint-aware edge suppression.
+        const nodeTypeById: Record<string, string> = {};
+        for (const id in nodesObj) nodeTypeById[id] = nodesObj[id] && nodesObj[id].type;
+
+        // The backend emits both a carrying and an equipped edge to the same
+        // item↔character pair. Track equipped pairs so the redundant carrying
+        // edge is suppressed.
+        const equippedPairs = new Set<string>();
+        for (const e of edgesArr) {
+            if (EdgeTypes.resolve(e.type || 'connection') === 'equipped') {
+                equippedPairs.add([e.source, e.target].sort().join('|'));
+            }
+        }
+
+        for (const edgeObj of edgesArr) {
+            const rawType = edgeObj.type || 'connection';
+            const edgeType = EdgeTypes.resolve(rawType);
+            const style = edgeObj.properties?.style || {};
+
+            // Never draw a "connection" edge between a character and an item -
+            // the backend sometimes emits one alongside carrying/equipped.
+            if (edgeType === 'connection') {
+                const st = nodeTypeById[edgeObj.source];
+                const tt = nodeTypeById[edgeObj.target];
+                if ((st === 'character' && tt === 'item') || (st === 'item' && tt === 'character')) continue;
+            }
+            // An equipped item is not separately "carrying" - drop the duplicate.
+            if (edgeType === 'carrying') {
+                const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
+                if (equippedPairs.has(pairKey)) continue;
+            }
+            const typeCfg = EdgeTypes.getConfig(edgeType);
+            let defaultColor = typeCfg.color;
+            let defaultDashes = edgeType === 'unlocks';
+
+            let edgeLabel = '';
+            if (graphManager._showEdgeLabels) {
+                edgeLabel = edgeType;
+            } else if (edgeType === 'unlocks') {
+                // A whole `properties.description` is arbitrary-length
+                // author-written prose, which is the one label that cannot be
+                // trusted to be short (task-558). Three lines is what fits the
+                // edge without pushing its ends apart; the full text stays on
+                // the hover tooltip that is already built for this edge.
+                edgeLabel = _firstSentence(
+                    edgeObj.properties?.description || 'unlocks', 3);
+            }
+
+            // Collapse bidirectional connection pairs into a single visual edge
+            if (edgeType === 'connection') {
+                const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
+                if (renderedConnectionPairs.has(pairKey)) continue;
+                renderedConnectionPairs.add(pairKey);
+                const otherEdges = edgesArr.filter((e: any) =>
+                    e.type === 'connection' &&
+                    ((e.source === edgeObj.target && e.target === edgeObj.source) ||
+                     (e.source === edgeObj.source && e.target === edgeObj.target))
+                );
+                if (otherEdges.length > 1) {
+                    const dirs = otherEdges.map((e: any) => e.properties?.direction).filter(Boolean);
+                    edgeLabel = (graphManager._showEdgeLabels ? '↔ ' : '') + dirs.join(' ↔ ');
+                }
+            }
+
+            if (typeof WayAuthoring !== 'undefined') {
+                const tip = WayAuthoring.buildEdgeTooltipForVis(edgeObj.source, edgeObj.target, nodesObj, edgesArr);
+                if (tip) {
+                    graphManager._edgeTooltipHtml[`${edgeObj.source}|${edgeObj.target}`] = tip.html;
+                }
+            }
+
+            // Attachment edges (item -> its parent, or a trigger -> its host)
+            // get short springs so a child settles next to its parent rather
+            // than floating at the global length. Children are in the solver
+            // and that short spring is the only thing keeping them local
+            // (there is no central gravity to fight).
+            const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
+                || edgeType === 'triggers' || edgeType === 'grappled';
+
+            // In hierarchical mode a relation edge is the level link: orient
+            // it parent -> child from the resolved relations rather than the
+            // stored direction, which is inconsistent for `in` (bug-44).
+            const levelsMode = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
+            const levelsPlan = (levelsMode && (window as unknown as RelLayoutWin).GraphRelativeLayout)
+                ? (isAttachment
+                    ? (window as unknown as RelLayoutWin).GraphRelativeLayout!.levelEdge(edgeObj.source, edgeObj.target, nodesObj, edgesArr)
+                    : (edgeType === 'connection'
+                        ? (window as unknown as RelLayoutWin).GraphRelativeLayout!.connectionLevelEdge(edgeObj.source, edgeObj.target, nodesObj)
+                        : null))
+                : null;
+
+            let edgeLength = undefined;
+            if (edgeType === 'connection') {
+                const targetNode = nodesObj[edgeObj.target];
+                const sourceNode = nodesObj[edgeObj.source];
+                const wayNode = targetNode?.type === 'way' ? targetNode : sourceNode?.type === 'way' ? sourceNode : null;
+                if (wayNode) {
+                    const len = wayNode.properties?.edge_length;
+                    if (len && len > 0) edgeLength = len;
+                }
+                // Dynamic default: a connection edge is only as long as its
+                // labels need. A short name ("west") stays tight; a long one
+                // ("northwest passage") gets room - so edges stop being
+                // stretched to the global spring length. A per-way
+                // `edge_length` property still wins.
+                if (!edgeLength) {
+                    // Size to the label actually drawn along the edge: an
+                    // unlabelled edge can be short, a long one needs room.
+                    // Capped so a two-sided label can't stretch the layout.
+                    edgeLength = _labelEdgeLength(edgeLabel);
+                }
+            } else if (isAttachment) {
+                const len = (config || ({} as ConfigManager)).graphItemEdgeLength || 35;
+                edgeLength = len;
+            }
+            visEdges.push({
+                from: (levelsPlan && levelsPlan.from) || edgeObj.source,
+                to: (levelsPlan && levelsPlan.to) || edgeObj.target,
+                type: edgeType,
+                label: edgeLabel,
+                length: edgeLength,
+                // Hierarchical levels come from direction, so a relation
+                // stored child -> parent is flipped for layout and the arrow
+                // is flipped back to keep reading the right way (task-485).
+                arrows: (levelsPlan && levelsPlan.flipped)
+                    ? (edgeType === 'connection' ? 'from,to' : 'from')
+                    : (edgeType === 'connection' ? 'from,to' : (style.arrows || 'to')),
+                dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
+                color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
+                font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
+                // Edge labels are drawn on a canvas, so they wrap by **width**
+                // and not by the reader: `widthConstraint` breaks a long label
+                // onto more lines instead of letting it run off the edge (task-558).
+                // Edges only - a way *node*'s name is a node label, and growing
+                // the node box for it collides with the map layout's margins.
+                widthConstraint: { maximum: EDGE_LABEL_WRAP },
+                width: style.width || 1,
+                smooth: isAttachment ? false : undefined
+            });
+        }
+        return visEdges;
+    },
+
     buildNodeConfig(nodeData: any, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null): any {
         const nodeConfig: Record<string, any> = {
             id: nodeData.id,
@@ -1566,7 +1615,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // is pinned when the author froze it, or when it carries a painted cell
             // coordinate. The solver has no central gravity (see buildOptions), so
             // this flag is a straight "simulate this node or hold it in place".
-            // Per-node shape (groups no longer define shape — see options.groups).
+            // Per-node shape (groups no longer define shape - see options.groups).
             // The image branch below overrides this with circularImage.
             shape: ({ area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' } as Record<string, string>)[nodeData.type] || 'ellipse'
         };
@@ -1724,7 +1773,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
 
     /**
      * Legend panel chrome: title + a ✕. Every legend body (structural and the
-     * per-overlay ones) is wrapped in it, so the panel is always closable —
+     * per-overlay ones) is wrapped in it, so the panel is always closable -
      * task-530: it used to force itself open on every overlay change with no
      * way back except a menu item two clicks away.
      * @param {string} title - panel heading
@@ -1826,7 +1875,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         if (!nodes || typeof NodeBadges === 'undefined') return;
         // ONE batched update, never one-per-node. vis's `DataSet.update()` fires
         // an update + a full-graph redraw per CALL, so `nodes.update({...})` inside
-        // this loop was ~2763 redraws of a 2763-node/6340-edge graph — the 108s
+        // this loop was ~2763 redraws of a 2763-node/6340-edge graph - the 108s
         // freeze. It only bit on the second pass, once the tag library had loaded
         // and every label actually changed (the first pass changed nothing, so it
         // measured 61ms). Collect the changed rows and update the set once.
@@ -1986,7 +2035,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the Light overlay — color areas by ambient light with spill.
+     * Apply the Light overlay - color areas by ambient light with spill.
      */
     _applyLightOverlay() {
         GraphOverlays.applyLightOverlay();
@@ -1994,7 +2043,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the Heat overlay — color areas by temperature with propagation.
+     * Apply the Heat overlay - color areas by temperature with propagation.
      */
     _applyHeatOverlay() {
         GraphOverlays.applyHeatOverlay();
@@ -2002,7 +2051,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the Sound overlay — color areas by noise level with propagation.
+     * Apply the Sound overlay - color areas by noise level with propagation.
      */
     _applySoundOverlay() {
         GraphOverlays.applySoundOverlay();
@@ -2010,7 +2059,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the Trigger overlay — highlight trigger sources/targets, dim others.
+     * Apply the Trigger overlay - highlight trigger sources/targets, dim others.
      */
     _applyTriggerOverlay() {
         GraphOverlays.applyTriggerOverlay();
@@ -2018,7 +2067,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Apply the Cardinal overlay — label ways with cardinal direction.
+     * Apply the Cardinal overlay - label ways with cardinal direction.
      */
     _applyCardinalOverlay() {
         GraphOverlays.applyCardinalOverlay();
@@ -2032,7 +2081,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         graphManager._lastSig = '';
         GraphPhysics.pause();
         GraphNetwork.loadGraphData();
-        // The policy decides the final state — a saved "physics off" stays off.
+        // The policy decides the final state - a saved "physics off" stays off.
         GraphPhysics.apply();
     },
 
@@ -2040,8 +2089,8 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Update the legend for the current overlay view.
      *
      * The panel is updated IN PLACE and never opened here: it used to force
-     * itself open on every overlay change — including on the way back to the
-     * structural view — and had no close affordance at all (task-530). Open it
+     * itself open on every overlay change - including on the way back to the
+     * structural view - and had no close affordance at all (task-530). Open it
      * from View ▾ ▸ Legend, or close it with its own ✕.
      */
     _updateOverlayLegend(mode: string, extraData?: unknown): void {
@@ -2090,7 +2139,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             rows = `
                 <div style="font-size:9px;color:var(--text-muted);">Ways labeled with their direction</div>
                 <div style="font-size:9px;color:var(--text-muted);">N S E W NE NW SE SW U D</div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay — it does not rearrange anything</div>`;
+                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay - it does not rearrange anything</div>`;
         }
         if (!title) return;
         window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(GraphNetwork.legendChrome(title, rows))}`, graphManager._legendEl);
@@ -2104,7 +2153,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * Taken once per data load, after label decorations + LOD have settled but
      * before the active overlay recolours anything, so `resetOverlayStyles()`
      * can undo an overlay without a full `loadGraphData()` rebuild (which would
-     * refit the camera and re-run layout) — the reason switching overlays used
+     * refit the camera and re-run layout) - the reason switching overlays used
      * to stack colours (task-642).
      */
     _captureBaseStyles() {

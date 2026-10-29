@@ -597,6 +597,7 @@ declare const GraphNetwork: {
     buildLegendHTML(...args: any[]): any;
     buildLegendRows(...args: any[]): any;
     buildNodeConfig(...args: any[]): any;
+    buildEdgeConfigs(...args: any[]): any;
     buildOptions(...args: any[]): any;
     isNodePinned(...args: any[]): any;
     PHYSICS_NODE_LIMIT: any;
