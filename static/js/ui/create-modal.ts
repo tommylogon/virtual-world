@@ -181,17 +181,13 @@ const CreateModal: ThisType<{
 
     async _searchPlacementTargets(query: string): Promise<any[]> {
         const targetType = document.querySelector<HTMLInputElement>('input[name="item-target-type"]:checked')?.value || 'item';
-        const q = encodeURIComponent(query.trim().toLowerCase());
         try {
-            const resp = await fetch(`/api/search/placement-targets?q=${q}`);
-            if (!resp.ok) return [];
-            const all = await resp.json();
+            const all = await ApiClient.searchPlacementTargets(query.trim().toLowerCase());
             return all.filter((r: { type?: string }) => r.type === targetType);
         } catch {
             return [];
         }
     },
-
     _initItemTargetSearch() {
         const input = createModalById('item-target-search');
         const results = createModalById('item-target-results');

@@ -461,9 +461,8 @@ class GraphManagerImpl {
 
     async _applyEngineConfigDefaults() {
         try {
-            const resp = await fetch('/api/settings/engine_config');
-            if (!resp.ok) return;
-            const data = await resp.json();
+            const data = await ApiClient.getEngineConfig();
+            if (data.error) return;
             const values = data.values || {};
             if ('graph.physics_enabled' in values) {
                 this._physicsEnabled = !!values['graph.physics_enabled'];
@@ -496,12 +495,8 @@ class GraphManagerImpl {
 
     async _saveGraphConfigKey(key: string, value: unknown) {
         try {
-            const resp = await fetch('/api/settings/engine_config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ values: { [key]: value } }),
-            });
-            if (!resp.ok) throw new Error('Failed to save graph config');
+            const data = await ApiClient.setEngineConfig({ [key]: value });
+            if (data.error) throw new Error(data.error || 'Failed to save graph config');
         } catch (e) {
             console.warn('Failed to save graph config:', e);
         }

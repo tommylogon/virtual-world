@@ -33,8 +33,7 @@ const ScenarioStatus = (() => {
         if (!node) return;
         let st = null;
         try {
-            const resp = await fetch('/api/scenario/status');
-            st = await resp.json();
+            st = await ApiClient.getScenarioStatus();
         } catch (e) {
             return; // older server - chip stays quiet
         }
@@ -76,12 +75,7 @@ const ScenarioStatus = (() => {
         if (_busy) return;
         _busy = true;
         try {
-            const resp = await fetch('/api/scenario/commit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            const data = await resp.json();
+            const data = await ApiClient.commitScenario();
             if (data.error) throw new Error(data.error);
             if (typeof toastInfo === 'function') {
                 toastInfo(`Committed to scenario "${data.name}".`);

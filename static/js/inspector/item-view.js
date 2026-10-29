@@ -725,12 +725,8 @@ const _InspectorItemView = (() => {
         const show = async (query) => {
             const destTypeEl = document.querySelector('input[name="move-dest-type"]:checked');
             const targetType = (destTypeEl && destTypeEl.value) || 'item';
-            const q = encodeURIComponent(query.trim().toLowerCase());
             try {
-                const resp = await fetch(`/api/search/placement-targets?q=${q}`);
-                if (!resp.ok)
-                    return;
-                const all = await resp.json();
+                const all = await ApiClient.searchPlacementTargets(query.trim().toLowerCase());
                 const items = all.filter(r => r.type === targetType);
                 if (!items.length) {
                     results.style.display = 'none';

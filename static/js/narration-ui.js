@@ -49,8 +49,7 @@ class NarrationUI {
     }
     async _loadSetting() {
         try {
-            const res = await fetch('/api/settings/narration');
-            const data = await res.json();
+            const data = await ApiClient.getNarrationSettings();
             this.mode = data.mode || 'none';
         }
         catch (e) {
@@ -62,11 +61,7 @@ class NarrationUI {
             return;
         this.mode = mode;
         try {
-            await fetch('/api/settings/narration', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode })
-            });
+            await ApiClient.setNarrationSettings({ mode });
         }
         catch (e) {
             console.error('Failed to save narration mode:', e);
@@ -162,16 +157,26 @@ class NarrationUI {
             }
             const overlay = document.createElement('div');
             overlay.className = 'narration-overlay';
-            window.Lit.render(narrationUiTag `
-                <div class="narration-modal">
-                    <div class="narration-header">🎭 Player Narration</div>
-                    <div class="narration-context">Edit the description the agent will see:</div>
-                    <textarea class="narration-input" rows="5">${prefillText}</textarea>
-                    <div class="narration-actions">
-                        <button class="btn btn-sm btn-ghost narration-skip" title="Use default description">⏭ Use Default</button>
-                        <button class="btn btn-sm btn-green narration-submit">📝 Narrate</button>
-                    </div>
-                </div>
+            window.Lit.render(narrationUiTag `
+
+                <div class="narration-modal">
+
+                    <div class="narration-header">🎭 Player Narration</div>
+
+                    <div class="narration-context">Edit the description the agent will see:</div>
+
+                    <textarea class="narration-input" rows="5">${prefillText}</textarea>
+
+                    <div class="narration-actions">
+
+                        <button class="btn btn-sm btn-ghost narration-skip" title="Use default description">⏭ Use Default</button>
+
+                        <button class="btn btn-sm btn-green narration-submit">📝 Narrate</button>
+
+                    </div>
+
+                </div>
+
             `, overlay);
             document.body.appendChild(overlay);
             const textarea = overlay.querySelector('.narration-input');

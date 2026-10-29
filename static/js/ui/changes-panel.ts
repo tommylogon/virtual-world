@@ -45,17 +45,11 @@ const ChangesPanel = (() => {
   };
 
   async function fetchDiff(): Promise<DiffResponse> {
-    const resp = await fetch('/api/scenario/diff');
-    return resp.json();
+    return (await ApiClient.getScenarioDiff()) as DiffResponse;
   }
 
   async function apply(commit: string[] = [], discard: string[] = []): Promise<{ error?: string }> {
-    const resp = await fetch('/api/scenario/diff/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commit, discard }),
-    });
-    const data = await resp.json();
+    const data = await ApiClient.applyScenarioDiff(commit, discard);
     if (data.error) throw new Error(data.error);
     if (window.worldState) worldState.fetch();
     // ScenarioStatus is not declared in types/globals.d.ts (shared hub), so the

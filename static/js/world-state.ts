@@ -167,10 +167,18 @@ class WorldState {
                 const requestIds = this._runtimeRequestIds;
                 const generation = this._runtimeGeneration;
                 const query = requestIds.map(id => `character_id=${encodeURIComponent(id)}`).join('&');
-                const response = await fetch(`/api/runtime/state?${query}`);
-                state = await response.json();
-                if (!response.ok || state?.snapshot_type !== 'character_runtime') {
-                    throw new Error(state?.error || `Runtime state request failed (${response.status}).`);
+                state = typeof ApiClient !== 'undefined' && typeof ApiClient.getRuntimeState === 'function'
+                    ? await ApiClient.getRuntimeState(query)
+                    : await (async () => {
+                        const response = await fetch(`/api/runtime/state?${query}`);
+                        const resJson = await response.json();
+                        if (!response.ok || resJson?.snapshot_type !== 'character_runtime') {
+                            throw new Error(resJson?.error || `Runtime state request failed (${response.status}).`);
+                        }
+                        return resJson;
+                    })();
+                if (state?.error || state?.snapshot_type !== 'character_runtime') {
+                    throw new Error(state?.error || 'Runtime state request failed.');
                 }
                 if (generation === this._runtimeGeneration) {
                     this.runtimeData = state;
@@ -339,8 +347,7 @@ class WorldState {
     async fetchEquipSlots() {
         if (this._equipSlots) return this._equipSlots;
         try {
-            const resp = await fetch('/api/settings/equip_slots');
-            const data = await resp.json();
+            const data = await ApiClient.getEquipSlots();
             this._equipSlots = data.equip_slots || {};
             return this._equipSlots;
         } catch (e) {
@@ -348,7 +355,6 @@ class WorldState {
             return {};
         }
     }
-
     /** Graph node lookup helper - case-insensitive (ids are always lowercase) */
     getNode(id: string) {
         const key = String(id).toLowerCase();

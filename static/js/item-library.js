@@ -257,8 +257,7 @@ class ItemLibrary {
         el.textContent = '';
         if (!id || id === '__new__')
             return;
-        fetch('/api/docs/resolve?node=' + encodeURIComponent(id))
-            .then((r) => r.json())
+        ApiClient.resolveDoc(id)
             .then((rows) => {
             const target = byId('lib-item-doc-preview');
             if (!target)

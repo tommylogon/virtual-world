@@ -865,11 +865,8 @@ IV._renderFooter = function(nodeId) {
         const show = async (query: string) => {
             const destTypeEl = document.querySelector('input[name="move-dest-type"]:checked') as HTMLInputElement | null;
             const targetType = (destTypeEl && destTypeEl.value) || 'item';
-            const q = encodeURIComponent(query.trim().toLowerCase());
             try {
-                const resp = await fetch(`/api/search/placement-targets?q=${q}`);
-                if (!resp.ok) return;
-                const all: PlacementTarget[] = await resp.json();
+                const all: PlacementTarget[] = await ApiClient.searchPlacementTargets(query.trim().toLowerCase());
                 const items = all.filter(r => r.type === targetType);
                 if (!items.length) { results.style.display = 'none'; return; }
                 results.innerHTML = items.map((r: PlacementTarget) => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');

@@ -102,7 +102,7 @@ class TagMultiselect {
             applyTags(_tagListCache.tags);
             return;
         }
-        fetch("/api/tags/search").then(r => r.json()).then((tags) => {
+        ApiClient.searchTags().then((tags) => {
             const list = Array.isArray(tags) ? tags : ((tags || {}).tags || []);
             _tagListCache.at = Date.now();
             _tagListCache.tags = list;
@@ -116,8 +116,7 @@ class TagMultiselect {
             return;
         }
         try {
-            const resp = await fetch("/api/tags/search?q=" + encodeURIComponent(q));
-            const results = await resp.json();
+            const results = (await ApiClient.searchTags(q));
             this._showDropdown(results, q);
         }
         catch {
@@ -136,7 +135,7 @@ class TagMultiselect {
                 this.tags.push(query);
                 // Auto-register in library
                 const tagData = { id: query, name: query.charAt(0).toUpperCase() + query.slice(1), description: "", category: "custom", color: "#888888", icon: "\U0001f397\ufe0f", applies_to: this.appliesTo ? [this.appliesTo] : ["items"], examples: [] };
-                fetch("/api/library/tags", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(tagData) }).catch(() => { });
+                ApiClient.saveLibraryTag(tagData).catch(() => { });
             }
             else {
                 this.tags.push(id);
@@ -185,7 +184,7 @@ class TagMultiselect {
                 this.tags.push(q);
                 if (this.allowNew && !Object.values(this._tagCache).some(t => t.id === q || t.name.toLowerCase() === q)) {
                     const tagData = { id: q, name: q.charAt(0).toUpperCase() + q.slice(1), description: "", category: "custom", color: "#888888", icon: "\U0001f397\ufe0f", applies_to: this.appliesTo ? [this.appliesTo] : ["items"], examples: [] };
-                    fetch("/api/library/tags", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(tagData) }).catch(() => { });
+                    ApiClient.saveLibraryTag(tagData).catch(() => { });
                 }
                 this.input.value = "";
                 this._renderBadges();

@@ -46,16 +46,10 @@ const ChangesPanel = (() => {
         return null;
     };
     async function fetchDiff() {
-        const resp = await fetch('/api/scenario/diff');
-        return resp.json();
+        return (await ApiClient.getScenarioDiff());
     }
     async function apply(commit = [], discard = []) {
-        const resp = await fetch('/api/scenario/diff/apply', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ commit, discard }),
-        });
-        const data = await resp.json();
+        const data = await ApiClient.applyScenarioDiff(commit, discard);
         if (data.error)
             throw new Error(data.error);
         if (window.worldState)

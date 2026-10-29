@@ -71,12 +71,7 @@ const EditFeed = (() => {
         undoBtn.style.cssText = 'font-size:9px;padding:1px 6px;flex-shrink:0;';
         undoBtn.onclick = async () => {
             try {
-                const resp = await fetch('/api/undo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ steps: 1 })
-                });
-                const data = await resp.json();
+                const data = await ApiClient.undo(1);
                 if (data.error) {
                     toastError('Undo failed: ' + data.error);
                     return;

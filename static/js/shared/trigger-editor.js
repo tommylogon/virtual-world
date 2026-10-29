@@ -725,12 +725,7 @@ var triggerEditorApi = {
                 payload.item_id = node.id;
         }
         try {
-            const resp = await fetch('/api/triggers/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const res = await resp.json();
+            const res = await ApiClient.testTrigger(payload);
             if (res.error)
                 throw new Error(res.error);
             const rows = (res.conditions || []).map((c) => triggerEditorTag `<div style="display:flex;gap:6px;align-items:center;">

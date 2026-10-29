@@ -305,14 +305,10 @@ window.InspectorMemory = (() => {
      */
     M.fetchMemoryContext = async function (charName, query = '', candidate = null) {
         try {
-            const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/context`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ query, candidate })
-            });
-            if (!resp.ok)
+            const data = await ApiClient.getPlayerMemoriesContext(charName, { query, candidate });
+            if (data.error)
                 return null;
-            return await resp.json();
+            return data;
         }
         catch (_e) {
             return null;
@@ -1084,15 +1080,11 @@ window.InspectorMemory = (() => {
         return EmbeddingClient.embed(text).then((vector) => {
             if (!vector)
                 return false;
-            return fetch('/api/memory/embeddings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items: [{ key: `${charName}::${entryId}`, vector }],
-                    model: config.embedModel,
-                    dims: vector.length
-                })
-            }).then(r => r.ok).catch(() => false);
+            return ApiClient.getMemoryEmbeddings({
+                items: [{ key: `${charName}::${entryId}`, vector }],
+                model: config.embedModel,
+                dims: vector.length
+            }).then(r => !r.error).catch(() => false);
         }).catch(() => false);
     };
     /**

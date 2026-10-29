@@ -275,9 +275,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (cached && Date.now() - cached.at < 60000) return;
         _recipeCache[charName] = { at: Date.now(), list: cached ? cached.list : [] };
         if (typeof fetch !== 'function') return;
-        fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+        ApiClient.getPlayerRecipes(charName)
             .then((data: any) => {
                 _recipeCache[charName] = { at: Date.now(), list: data.recipes || [] };
             })

@@ -70,11 +70,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             try {
                 const vec = await EmbeddingClient.embed(text);
                 if (vec) {
-                    const resp = await fetch('/api/memory/embeddings/search', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ vector: vec, character: charName, k: 3 })
-                    });
-                    const data = await resp.json();
+                    const data = await ApiClient.searchMemoryEmbeddings({ vector: vec, character: charName, k: 3 });
                     for (const r of (data.results || [])) {
                         const key = r.key || '';
                         const memId = key.includes('::') ? key.split('::').pop() : key;
@@ -150,10 +146,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     body.toward = seed.speaker.trim();
                 }
                 _socialRecallGuard[charName] = now;
-                fetch(`/api/players/${encodeURIComponent(charName)}/emotions/map`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                }).catch(() => { });
+                ApiClient.getPlayerEmotionsMap(charName, body).catch(() => { });
                 break; // one social recall per turn so chatter doesn't stack
             }
         }

@@ -146,11 +146,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const reason = firstWithEmotion
             ? String(firstWithEmotion.text || '').replace(/^\[[^\]]*\]\s*/, '').trim()
             : '';
-        fetch(`/api/players/${encodeURIComponent(charName)}/emotions/map`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(reason ? { mapped, reason } : { mapped })
-        }).catch(() => {});
+        ApiClient.mapPlayerEmotions(charName, reason ? { mapped, reason } : { mapped }).catch(() => {});
     }
 
     /**
@@ -172,13 +168,8 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // 1. Spatial context from backend (KNOWN ROUTES FROM HERE)
         try {
-            const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/spatial`, {
-                headers: { 'Accept': 'application/json' }
-            });
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data.spatial) parts.push(data.spatial);
-            }
+            const data = await ApiClient.getPlayerSpatialMemories(charName);
+            if (data?.spatial) parts.push(data.spatial);
         } catch (e) {
             // Spatial context is best-effort  -  ignore failures
         }
@@ -222,28 +213,21 @@ window.PromptBuilder = window.PromptBuilder || {};
         // (task-686): retrieval reinforces what it recalls, but a preview must
         // never mutate the character.
         try {
-            const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/retrieve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query,
-                    max_results: 10,
-                    entity_boost: true,
-                    reinforce: !preview,
-                    current_area_id: currentArea ? `area_${currentArea.toLowerCase().replace(/\s+/g, '_')}` : ''
-                })
+            const data = await ApiClient.retrievePlayerMemories(charName, {
+                query,
+                max_results: 10,
+                entity_boost: true,
+                reinforce: !preview,
+                current_area_id: currentArea ? `area_${currentArea.toLowerCase().replace(/\s+/g, '_')}` : ''
             });
-            if (resp.ok) {
-                const data = await resp.json();
-                for (const mem of (data.memories || [])) {
-                    // A5: never render "undefined"  -  skip textless entries
-                    const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
-                    if (!memText) continue;
-                    // Backend now includes score directly on the memory object.
-                    const backendScore = typeof mem.score === 'number' ? mem.score : null;
-                    const icon = memIcon(mem.type);
-                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved', category: mem.category, type: mem.type, confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined, contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [] });
-                }
+            for (const mem of (data?.memories || [])) {
+                // A5: never render "undefined"  -  skip textless entries
+                const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
+                if (!memText) continue;
+                // Backend now includes score directly on the memory object.
+                const backendScore = typeof mem.score === 'number' ? mem.score : null;
+                const icon = memIcon(mem.type);
+                scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved', category: mem.category, type: mem.type, confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined, contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [] });
             }
         } catch (e) {
             // Retrieval is best-effort  -  fall through to player.memories scoring
@@ -285,34 +269,23 @@ window.PromptBuilder = window.PromptBuilder || {};
             try {
                 const queryVector = await EmbeddingClient.embed(query);
                 if (queryVector) {
-                    const resp = await fetch('/api/memory/embeddings/search', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ character: charName, vector: queryVector, k: 5 })
-                    });
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        const hitIds: string[] = [];
-                        for (const hit of (data.results || [])) {
-                            if (hit.score < 0.35) continue;
-                            const memEntry = rawMemories.find((m: RawMemory) => (typeof m === 'object' && (m as RawMemoryObject).id === hit.memory_id));
-                            const textContent = typeof memEntry === 'object' ? ((memEntry as RawMemoryObject)?.text || '') : '';
-                            if (!textContent) continue;
-                            hitIds.push(String(hit.memory_id));
-                            const tickValue = (memEntry as RawMemoryObject).tick || 0;
-                            const icon = memIcon((memEntry as RawMemoryObject).type);
-                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: (memEntry as RawMemoryObject).emotion || null, source: 'vector', kb: hit.score, category: (memEntry as RawMemoryObject).category, type: (memEntry as RawMemoryObject).type, confidence: typeof ((memEntry as RawMemoryObject) as { confidence?: unknown }).confidence === 'number' ? ((memEntry as RawMemoryObject) as { confidence?: number }).confidence : undefined, contradicts: Array.isArray(((memEntry as RawMemoryObject) as { contradicts?: unknown }).contradicts) ? ((memEntry as RawMemoryObject) as { contradicts?: unknown[] }).contradicts : [] });
-                        }
-                        // task-686: semantic hits were recalled, so they reinforce
-                        //  -  the scoring endpoint can't stamp them (it never saw
-                        // them). Fire-and-forget; previews skip entirely.
-                        if (hitIds.length > 0) {
-                            fetch(`/api/players/${encodeURIComponent(charName)}/memories/reinforce`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ids: hitIds, tick: worldState?.data?.time_ticks || 0 })
-                            }).catch(() => {});
-                        }
+                    const data = await ApiClient.searchMemoryEmbeddings({ character: charName, vector: queryVector, k: 5 });
+                    const hitIds: string[] = [];
+                    for (const hit of (data?.results || [])) {
+                        if (hit.score < 0.35) continue;
+                        const memEntry = rawMemories.find((m: RawMemory) => (typeof m === 'object' && (m as RawMemoryObject).id === hit.memory_id));
+                        const textContent = typeof memEntry === 'object' ? ((memEntry as RawMemoryObject)?.text || '') : '';
+                        if (!textContent) continue;
+                        hitIds.push(String(hit.memory_id));
+                        const tickValue = (memEntry as RawMemoryObject).tick || 0;
+                        const icon = memIcon((memEntry as RawMemoryObject).type);
+                        scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: (memEntry as RawMemoryObject).emotion || null, source: 'vector', kb: hit.score, category: (memEntry as RawMemoryObject).category, type: (memEntry as RawMemoryObject).type, confidence: typeof ((memEntry as RawMemoryObject) as { confidence?: unknown }).confidence === 'number' ? ((memEntry as RawMemoryObject) as { confidence?: number }).confidence : undefined, contradicts: Array.isArray(((memEntry as RawMemoryObject) as { contradicts?: unknown }).contradicts) ? ((memEntry as RawMemoryObject) as { contradicts?: unknown[] }).contradicts : [] });
+                    }
+                    // task-686: semantic hits were recalled, so they reinforce
+                    //  -  the scoring endpoint can't stamp them (it never saw
+                    // them). Fire-and-forget; previews skip entirely.
+                    if (hitIds.length > 0) {
+                        ApiClient.reinforcePlayerMemories(charName, { ids: hitIds, tick: worldState?.data?.time_ticks || 0 }).catch(() => {});
                     }
                 }
             } catch (e) {

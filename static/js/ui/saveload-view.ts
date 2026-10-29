@@ -80,13 +80,8 @@ window.SaveLoadView = (() => {
      */
     async function persistScenarioName(name: string, previous: string, textEl: HTMLElement | null) {
         try {
-            const resp = await fetch('/api/scenario/name', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name }),
-            });
-            const data = await resp.json().catch(() => ({}));
-            if (!resp.ok || data.error) throw new Error(data.error || ('HTTP ' + resp.status));
+            const data = await ApiClient.setScenarioName(name);
+            if (data.error) throw new Error(data.error);
 
             const applied = data.name || name;
             document.body.dataset.scenarioName = applied;
@@ -323,10 +318,7 @@ window.SaveLoadView = (() => {
         audit.onclick = function() {
             audit.disabled = true;
             audit.textContent = 'Auditing…';
-            fetch('/api/import/audit', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(function(r) { return r.json(); }).then(function(j) {
+            ApiClient.auditImport(data).then(function(j: any) {
                 audit.disabled = false;
                 audit.textContent = '🔬 Deep audit';
                 if (j.error) { toastError(j.error); return; }
@@ -695,8 +687,7 @@ window.SaveLoadView = (() => {
     async function restartScenario() {
         try {
             agent.cancel();
-            var resp = await fetch('/api/reset', { method: 'POST' });
-            var data = await resp.json();
+            var data = await ApiClient.resetWorld();
             if (data.status === 'success') {
                 agent.reset();
                 await refreshReplacedWorld();

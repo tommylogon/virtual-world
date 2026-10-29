@@ -34,8 +34,7 @@ window.EngineConfigView = (() => {
         if (!container)
             return;
         try {
-            const resp = await fetch('/api/settings/engine_config');
-            const data = await resp.json();
+            const data = await ApiClient.getEngineConfig();
             _state.values = data.values || {};
             _state.schema = data.schema || {};
             _state.sections = data.sections || {};
@@ -123,13 +122,8 @@ window.EngineConfigView = (() => {
             }
         }
         try {
-            const resp = await fetch('/api/settings/engine_config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ values: payload }),
-            });
-            const data = await resp.json();
-            if (!resp.ok)
+            const data = await ApiClient.setEngineConfig(payload);
+            if (data.error)
                 throw new Error(data.error || 'Failed to save');
             _state.values = data.values || {};
             if (typeof window.toastInfo === 'function')
@@ -147,9 +141,8 @@ window.EngineConfigView = (() => {
         if (!container)
             return;
         try {
-            const resp = await fetch('/api/settings/engine_config/reset', { method: 'POST' });
-            const data = await resp.json();
-            if (!resp.ok)
+            const data = await ApiClient.resetEngineConfig();
+            if (data.error)
                 throw new Error(data.error || 'HTTP error');
             _state.values = data.values || {};
             if (typeof window.toastInfo === 'function')

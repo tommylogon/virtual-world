@@ -1,7 +1,7 @@
 /**
- * ApiClient — Backend HTTP calls for the VirtualWorld engine
+ * ApiClient - Backend HTTP calls for the VirtualWorld engine
  *
- * @module api — the single HTTP client for every UI → engine call
+ * @module api - the single HTTP client for every UI → engine call
  * @contributes ApiClientImpl.* (actions, graph CRUD, items, saves, scenario ops) + runAction
  * @powers every button/panel that talks to the Flask engine, and the graph's data fetches
  * @relates used by world-state, graph, inspector, item library, agent-engine, main
@@ -136,8 +136,8 @@ class ApiClientImpl {
     }
 
     /** Undo the last snapshot (e.g. restore state deleted by reset) */
-    static async undo(): Promise<ApiResult> {
-        return this.post('/api/undo', {});
+    static async undo(steps?: number): Promise<ApiResult> {
+        return this.post('/api/undo', steps !== undefined ? { steps } : {});
     }
 
     /** Redo a previously undone state */
@@ -242,7 +242,7 @@ class ApiClientImpl {
         return resp.json();
     }
 
-    /** One scope's vis-loadable subgraph ({nodes, edges}) — the graph view
+    /** One scope's vis-loadable subgraph ({nodes, edges}) - the graph view
      *  loads this instead of the whole world when a scope is selected.
      *  Level-scoped by default (own areas only); pass `descendants` for the
      *  whole subtree. */
@@ -262,7 +262,7 @@ class ApiClientImpl {
         return resp.json();
     }
 
-    /** Persist a scope's map-layout offset (cell units) — the graph canvas zone
+    /** Persist a scope's map-layout offset (cell units) - the graph canvas zone
      *  drag (task-523). Pass `reset: true` (and no x/y) to return the zone to
      *  its painted position. Returns `{status, id, map_offset}`. */
     static async setScopeOffset(scopeId: string, offset: { x?: number; y?: number; reset?: boolean } = {}): Promise<ApiResult> {
@@ -286,7 +286,7 @@ class ApiClientImpl {
         return resp.ok;
     }
 
-    /** Reassign areas to a scope — **membership only** (task-539).
+    /** Reassign areas to a scope - **membership only** (task-539).
      *
      * This is deliberately not `updateNode({properties: {world_scope_id}})`:
      * membership also has to move in the manifest's `area_ids` mirror, and a
@@ -304,7 +304,7 @@ class ApiClientImpl {
         return data;
     }
 
-    /** Duplicate an area / item / way / character — one atomic write on the
+    /** Duplicate an area / item / way / character - one atomic write on the
      *  backend. `includeChildren=false` clones only the node (+ triggers),
      *  skipping its attached items. */
     static async duplicateNode(nodeId: string, includeChildren = true): Promise<ApiResult> {
@@ -373,6 +373,10 @@ class ApiClientImpl {
         return ApiClientImpl.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, payload);
     }
 
+    static async moveItem(nodeId: string, options: { area?: string; container?: string; character?: string; target_type?: string; target_id?: string; relation?: string } = {}): Promise<ApiResult> {
+        return this.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, options);
+    }
+
     static async deleteNode(nodeId: string): Promise<ApiResult> {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`, { method: 'DELETE' });
         return resp.json();
@@ -401,6 +405,12 @@ class ApiClientImpl {
 
     static async createEdge(source: string, target: string, type: string, properties: Record<string, unknown> = {}): Promise<ApiResult> {
         return this.post('/api/graph/edge', { source, target, type, properties });
+    }
+
+    static async searchTags(q?: string): Promise<ApiResult> {
+        const query = q ? `?q=${encodeURIComponent(q)}` : '';
+        const resp = await fetch(`/api/tags/search${query}`);
+        return resp.json();
     }
 
     // --- Item Registry (Library) API ---
@@ -433,7 +443,7 @@ class ApiClientImpl {
     }
 
     /**
-     * Unbind a node from its library template. The node keeps its current data —
+     * Unbind a node from its library template. The node keeps its current data -
      * this only removes the link, so a hand-fixed copy is no longer overwritten
      * by the next refresh (task-289/317).
      * @param {string} nodeId
@@ -447,6 +457,16 @@ class ApiClientImpl {
         const body: Record<string, unknown> = { node_id: nodeId };
         if (sections) body.sections = sections;
         return this.post('/api/library/refresh-to-world', body);
+    }
+
+    static async getAutoDressCandidates(charName: string): Promise<ApiResult> {
+        return this.post('/api/auto_dress/candidates', { character: charName });
+    }
+
+    static async autoDress(charName: string, libraryIds?: string[]): Promise<ApiResult> {
+        const body: { character: string; library_ids?: string[] } = { character: charName };
+        if (libraryIds) body.library_ids = libraryIds;
+        return this.post('/api/auto_dress', body);
     }
 
     // --- Character Registry API ---
@@ -491,6 +511,34 @@ class ApiClientImpl {
             body: JSON.stringify(payload)
         });
         return resp.json();
+    }
+
+    static async saveLibraryTag(tagData: unknown): Promise<ApiResult> {
+        return this.saveLibraryType('tags', tagData);
+    }
+
+    static async saveLibraryBehaviour(id: string, data: unknown): Promise<ApiResult> {
+        return this.saveLibraryType('behaviours', { id, data });
+    }
+
+    static async saveLibraryTrigger(id: string, data: unknown): Promise<ApiResult> {
+        return this.saveLibraryType('triggers', { id, data });
+    }
+
+    static async getLibraryTriggers(): Promise<ApiResult> {
+        return this.getLibraryType('triggers');
+    }
+
+    static async testTrigger(payload: unknown): Promise<ApiResult> {
+        return this.post('/api/triggers/test', payload);
+    }
+
+    static async validateTriggerDefinition(payload: unknown): Promise<ApiResult> {
+        return this.post('/api/triggers/validate-definition', payload);
+    }
+
+    static async attachTrigger(nodeId: string, trigger: unknown): Promise<ApiResult> {
+        return this.post('/api/triggers/attach', { node_id: nodeId, trigger });
     }
 
     static async deleteLibraryType(type: string, id: string): Promise<ApiResult> {
@@ -557,6 +605,51 @@ class ApiClientImpl {
         await fetch('/api/turn/clear', { method: 'POST' });
     }
 
+    static async getTimePerTick(): Promise<ApiResult> {
+        return this.get('/api/settings/time_per_tick');
+    }
+
+    static async setTimePerTick(minutes: number): Promise<ApiResult> {
+        return this.post('/api/settings/time_per_tick', { time_per_tick_minutes: minutes });
+    }
+
+    static async getClockStart(): Promise<ApiResult> {
+        return this.get('/api/settings/clock_start');
+    }
+
+    static async setClockStart(hour: number, minute: number): Promise<ApiResult> {
+        return this.post('/api/settings/clock_start', { clock_start_hour: hour, clock_start_minute: minute });
+    }
+
+    static async setGameDate(date: { day?: number; month?: number; year?: number }): Promise<ApiResult> {
+        return this.post('/api/settings/date', date);
+    }
+
+    static async setForecastOverride(data: Record<string, unknown>): Promise<ApiResult> {
+        const resp = await fetch('/api/settings/forecast-override', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
+            body: JSON.stringify(data)
+        });
+        return resp.json();
+    }
+
+    static async getForecastOutlook(days = 7): Promise<ApiResult> {
+        const resp = await fetch(`/api/settings/forecast/outlook?days=${days}`, { cache: 'no-store' });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async saveForecastSchedule(schedule?: Record<string, unknown>): Promise<ApiResult> {
+        const resp = await fetch('/api/settings/forecast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
+            body: JSON.stringify({ schedule })
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    }
+
     // --- Ghost Mode ---
 
     static async getGhostMode(): Promise<ApiResult> {
@@ -609,6 +702,60 @@ class ApiClientImpl {
         return resp.json();
     }
 
+    static async getPlayerRecipes(charName: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async updatePlayerBody(charName: string, sensitivity: Record<string, number>): Promise<ApiResult> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/body`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sensitivity })
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async getPlayerRecord(charName: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async savePlayerRecord(charName: string, record: Record<string, unknown>, render = false): Promise<{ ok: boolean; data: any }> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ record, render })
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+
+    static async compilePlayerRecord(charName: string, options: { force?: boolean; record?: Record<string, unknown> } = {}): Promise<{ ok: boolean; data: any }> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(options)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+
+    static async getPlayerMemoriesPeople(charName: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/people`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
     // --- Per-Character Memory API ---
 
     static async getPlayerMemories(name: string): Promise<ApiResult> {
@@ -647,6 +794,38 @@ class ApiClientImpl {
 
     static async clearExpiredSuppressions(name: string, currentTick: number): Promise<ApiResult> {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/clear-expired`, { current_tick: currentTick });
+    }
+
+    static async reflectPlayerMemories(charName: string, payload: { insights: unknown[]; tick: number; source_memory_ids: unknown[] }): Promise<ApiResult> {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, payload);
+    }
+
+    static async storeMemoryEmbeddings(payload: { items: Array<{ key: string; vector: number[] }>; model?: string; dims?: number }): Promise<ApiResult> {
+        return this.post('/api/memory/embeddings', payload);
+    }
+
+    static async searchMemoryEmbeddings(payload: { character: string; vector: number[]; k?: number }): Promise<ApiResult> {
+        return this.post('/api/memory/embeddings/search', payload);
+    }
+
+    static async mapPlayerEmotions(charName: string, payload: { mapped: unknown; reason?: string }): Promise<ApiResult> {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/emotions/map`, payload);
+    }
+
+    static async getPlayerSpatialMemories(charName: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/spatial`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(String(resp.status));
+        return resp.json();
+    }
+
+    static async retrievePlayerMemories(charName: string, payload: { query: string; max_results?: number; entity_boost?: boolean; reinforce?: boolean; current_area_id?: string }): Promise<ApiResult> {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/retrieve`, payload);
+    }
+
+    static async reinforcePlayerMemories(charName: string, payload: { ids: string[]; tick: number }): Promise<ApiResult> {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/reinforce`, payload);
     }
 
     static async getAreaDescription(): Promise<ApiResult> {
@@ -690,9 +869,97 @@ class ApiClientImpl {
     static async saveScenario(name: string): Promise<ApiResult> {
         return this.post('/api/save-scenario', { name });
     }
+
+    static async listScenarios(): Promise<ApiResult> {
+        const resp = await fetch('/api/scenarios');
+        return resp.json();
+    }
+
+    static async cloneScenario(name: string): Promise<ApiResult> {
+        return this.post('/api/scenarios/clone', { name });
+    }
+
+    static async duplicateScenario(name: string): Promise<ApiResult> {
+        return this.post(`/api/scenarios/${encodeURIComponent(name)}/duplicate`);
+    }
+
+    static async renameScenario(name: string, newName: string): Promise<ApiResult> {
+        return this.post(`/api/scenarios/${encodeURIComponent(name)}/rename`, { name: newName });
+    }
+
+    static async deleteScenario(name: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/scenarios/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        return resp.json();
+    }
+
+    static async getScenario(name: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/scenarios/${encodeURIComponent(name)}`);
+        return resp.json();
+    }
+
+    static async auditImport(data: unknown): Promise<ApiResult> {
+        return this.post('/api/import/audit', data);
+    }
+
+    static async getEngineConfig(): Promise<ApiResult> {
+        const resp = await fetch('/api/settings/engine_config');
+        return resp.json();
+    }
+
+    static async setEngineConfig(values: Record<string, unknown>): Promise<ApiResult> {
+        return this.post('/api/settings/engine_config', { values });
+    }
+
+    static async resetEngineConfig(): Promise<ApiResult> {
+        return this.post('/api/settings/engine_config/reset', {});
+    }
+
+    static async enterPlayMode(): Promise<ApiResult> {
+        return this.post('/api/play_mode/enter', {});
+    }
+
+    static async stopPlayMode(): Promise<ApiResult> {
+        return this.post('/api/play_mode/stop', {});
+    }
+
+    static async getPlayModeStatus(): Promise<ApiResult> {
+        const resp = await fetch('/api/play_mode/status');
+        return resp.json();
+    }
+
+    static async setScenarioName(name: string): Promise<ApiResult> {
+        return this.post('/api/scenario/name', { name });
+    }
+
+    static async getUndoList(): Promise<ApiResult> {
+        const resp = await fetch('/api/undo/list');
+        return resp.json();
+    }
+
+    static async getScenarioDiff(): Promise<ApiResult> {
+        const resp = await fetch('/api/scenario/diff');
+        return resp.json();
+    }
+
+    static async applyScenarioDiff(commit: unknown[] = [], discard: unknown[] = []): Promise<ApiResult> {
+        return this.post('/api/scenario/diff/apply', { commit, discard });
+    }
+
+    static async getScenarioStatus(): Promise<ApiResult> {
+        const resp = await fetch('/api/scenario/status');
+        return resp.json();
+    }
+
+    static async commitScenario(): Promise<ApiResult> {
+        return this.post('/api/scenario/commit', {});
+    }
+
+    static async appendScenario(data: unknown): Promise<ApiResult> {
+        return this.post('/api/scenario/append', data);
+    }
 }
 
-// Singleton — published under both names consumers use. See the note on the
+// Singleton - published under both names consumers use. See the note on the
 // class declaration for why these are assignments rather than top-level consts.
 const globals = window as unknown as { ApiClient: typeof ApiClientImpl; api: typeof ApiClientImpl };
 globals.ApiClient = ApiClientImpl;

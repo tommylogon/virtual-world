@@ -1786,8 +1786,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             GraphNetwork._applyNodeLabelDecorations();
             return;
         }
-        fetch('/api/tags/search')
-            .then(r => r.json())
+        ApiClient.searchTags()
             .then((tags: any[]) => {
                 const byId: Record<string, any> = {};
                 (tags || []).forEach((t: any) => { byId[t.id] = t; });

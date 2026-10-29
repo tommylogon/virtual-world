@@ -184,12 +184,8 @@ const CreateModal = {
     },
     async _searchPlacementTargets(query) {
         const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
-        const q = encodeURIComponent(query.trim().toLowerCase());
         try {
-            const resp = await fetch(`/api/search/placement-targets?q=${q}`);
-            if (!resp.ok)
-                return [];
-            const all = await resp.json();
+            const all = await ApiClient.searchPlacementTargets(query.trim().toLowerCase());
             return all.filter((r) => r.type === targetType);
         }
         catch {

@@ -38,9 +38,7 @@ const AgentMemory = (() => {
         if (!charName)
             return;
         try {
-            const allMemories = await fetch(`/api/players/${encodeURIComponent(charName)}/memories`, {
-                headers: { 'Accept': 'application/json' }
-            }).then(resp => resp.json()).catch(() => ({ memories: [] }));
+            const allMemories = await ApiClient.getPlayerMemories(charName).catch(() => ({ memories: [] }));
             const memories = allMemories.memories || [];
             const candidates = memories.filter((m) => ((Number(m.importance) || 0) >= 6 || (Number(m.reinforcements) || 0) >= 2)
                 && !(Number(m.reflection_depth) >= 1)).slice(0, 10);
@@ -99,14 +97,10 @@ const AgentMemory = (() => {
                 const insights = parsedList.filter((i) => (typeof i === 'string' && i.length > 10)
                     || (typeof i === 'object' && i !== null && String(i.belief || '').length > 10));
                 if (insights.length > 0) {
-                    await fetch(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            insights,
-                            tick: currentTick,
-                            source_memory_ids: candidates.map((m) => m.id)
-                        })
+                    await ApiClient.reflectPlayerMemories(charName, {
+                        insights,
+                        tick: currentTick,
+                        source_memory_ids: candidates.map((m) => m.id)
                     }).catch(() => { });
                 }
                 events.log(`🧠 ${charName} reflected on ${candidates.length} memories`, 'system-msg');
@@ -188,11 +182,7 @@ const AgentMemory = (() => {
                 emotion: (emotion && typeof emotion === 'object') ? { label: emotion.label, intensity: emotion.intensity } : null,
                 emotions: (emotions && typeof emotions === 'object') ? emotions : null
             };
-            fetch(`/api/players/${encodeURIComponent(charName)}/memories/entry`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(resp => resp.ok ? resp.json() : null).then(data => {
+            ApiClient.addPlayerMemory(charName, payload).then((data) => {
                 _embedAndStoreVector(charName, data?.entry?.id, text);
             }).catch(() => { });
             // Register any new single-word tags into the tag library (id-keyed → dedupes)
@@ -215,14 +205,10 @@ const AgentMemory = (() => {
         EmbeddingClient.embed(text).then((vector) => {
             if (!vector)
                 return;
-            fetch('/api/memory/embeddings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items: [{ key: `${charName}::${memoryId}`, vector }],
-                    model: config.embedModel,
-                    dims: vector.length
-                })
+            ApiClient.storeMemoryEmbeddings({
+                items: [{ key: `${charName}::${memoryId}`, vector }],
+                model: config.embedModel,
+                dims: vector.length
             }).catch(() => { });
         }).catch(() => { });
     }
@@ -238,8 +224,7 @@ const AgentMemory = (() => {
             return;
         _checkedTagIds.add(tagId);
         try {
-            fetch("/api/tags/search?q=" + encodeURIComponent(tagId))
-                .then(r => r.json())
+            ApiClient.searchTags(tagId)
                 .then((tags) => {
                 const exists = Array.isArray(tags) && tags.some((t) => (t.id || '').toLowerCase() === tagId.toLowerCase());
                 if (exists)
@@ -254,11 +239,7 @@ const AgentMemory = (() => {
                     applies_to: [],
                     examples: []
                 };
-                fetch("/api/library/tags", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(tagData)
-                }).catch(() => { });
+                ApiClient.saveLibraryTag(tagData).catch(() => { });
             })
                 .catch(() => { });
         }

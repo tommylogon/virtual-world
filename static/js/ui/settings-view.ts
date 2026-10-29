@@ -138,8 +138,7 @@ const SettingsView = (() => {
         // Load time per tick from backend
         (async function() {
             try {
-                var resp = await fetch('/api/settings/time_per_tick');
-                var data = await resp.json();
+                var data = await ApiClient.getTimePerTick();
                 var el = document.getElementById('time-per-tick') as HTMLInputElement | null;
                 if (el) el.value = data.time_per_tick_minutes ?? 5;
             } catch (e) { /* silently ignore */ }
@@ -148,8 +147,7 @@ const SettingsView = (() => {
         // Load clock start from backend
         (async function() {
             try {
-                var resp = await fetch('/api/settings/clock_start');
-                var data = await resp.json();
+                var data = await ApiClient.getClockStart();
                 var el = document.getElementById('clock-start') as HTMLInputElement | null;
                 if (el) {
                     var hh = String(data.clock_start_hour ?? 8).padStart(2, '0');
@@ -248,12 +246,7 @@ const SettingsView = (() => {
     async function updateTimePerTick(minutes: number) {
         var ev = (window as any).events;
         try {
-            var resp = await fetch('/api/settings/time_per_tick', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ time_per_tick_minutes: minutes })
-            });
-            var data = await resp.json();
+            var data = await ApiClient.setTimePerTick(minutes);
             if (data.status === 'success') {
                 if (ev?.log) ev.log('Time per tick set to ' + data.time_per_tick_minutes + ' min', 'system-msg');
                 (window as any).worldState?.fetch();
@@ -277,12 +270,7 @@ const SettingsView = (() => {
         var hour = parseInt(m[1], 10);
         var minute = parseInt(m[2], 10);
         try {
-            var resp = await fetch('/api/settings/clock_start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clock_start_hour: hour, clock_start_minute: minute })
-            });
-            var data = await resp.json();
+            var data = await ApiClient.setClockStart(hour, minute);
             if (data.status === 'success') {
                 if (ev?.log) ev.log('Clock start set to ' + String(data.clock_start_hour).padStart(2, '0') + ':' + String(data.clock_start_minute).padStart(2, '0'), 'system-msg');
                 (window as any).worldState?.fetch();

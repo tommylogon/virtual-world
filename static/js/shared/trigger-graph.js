@@ -987,12 +987,7 @@ window.TriggerGraph = (() => {
         if (_contextItemId)
             payload.item_id = _contextItemId;
         try {
-            const resp = await fetch('/api/triggers/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const res = await resp.json();
+            const res = await ApiClient.testTrigger(payload);
             if (res.error)
                 throw new Error(res.error);
             window.Lit.render(triggerGraphTag `${_renderTestResultHtml(res, triggerType)}`, panel);
@@ -1007,12 +1002,7 @@ window.TriggerGraph = (() => {
             trigger: compiled,
             source_node_id: _sourceNodeId || _contextItemId || '',
         };
-        const resp = await fetch('/api/triggers/validate-definition', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-        const res = await resp.json();
+        const res = await ApiClient.validateTriggerDefinition(payload);
         if (res.error)
             throw new Error(res.error);
         return res.issues || [];
@@ -2302,14 +2292,10 @@ window.TriggerGraph = (() => {
                         ...behaviors[i],
                     };
                     const id = i === 0 ? slug : `${slug}_${i + 1}`;
-                    const r = await fetch('/api/library/behaviours', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id, data: rec }),
-                    });
-                    const res = await r.json();
-                    if (!r.ok || res.error)
-                        throw new Error(res.error || ('HTTP ' + r.status));
+                    // /api/library/behaviours
+                    const res = await ApiClient.saveLibraryBehaviour(id, rec);
+                    if (res.error)
+                        throw new Error(res.error);
                 }
                 const m = behaviors.length === 1
                     ? `💾 Behaviour saved to the behaviours library as "${name}".`
@@ -2330,11 +2316,8 @@ window.TriggerGraph = (() => {
         }
         const bp = { name, description: desc, graph: g };
         const id = slug;
-        fetch('/api/library/triggers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, data: bp })
-        }).then(r => r.json()).then(res => {
+        // /api/library/triggers
+        ApiClient.saveLibraryTrigger(id, bp).then(res => {
             if (res.error) {
                 if (typeof toastError === 'function')
                     toastError('Save failed: ' + res.error);
@@ -2434,8 +2417,8 @@ window.TriggerGraph = (() => {
         window.Lit.render(triggerGraphTag `${rows}`, listEl);
     }
     function _loadBlueprint() {
-        fetch('/api/library/triggers')
-            .then(r => r.json())
+        // /api/library/triggers
+        ApiClient.getLibraryTriggers()
             .then(library => {
             _bpLibrary = library || {};
             if (Object.keys(_bpLibrary).length === 0) {
@@ -2498,14 +2481,9 @@ window.TriggerGraph = (() => {
             return;
         delete compiled.compile_error;
         try {
-            const resp = await fetch('/api/triggers/attach', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ node_id: target, trigger: compiled }),
-            });
-            const res = await resp.json();
-            if (!resp.ok || res.error)
-                throw new Error(res.error || ('HTTP ' + resp.status));
+            const res = await ApiClient.attachTrigger(target, compiled);
+            if (res.error)
+                throw new Error(res.error);
             if (typeof toastInfo === 'function')
                 toastInfo(`Attached blueprint → ${res.trigger_ids?.length || 0} trigger node(s).`);
             _closeBlueprintModal();

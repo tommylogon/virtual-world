@@ -38,9 +38,7 @@ const AgentMemory = (() => {
     async function reflect(charName: string): Promise<void> {
         if (!charName) return;
         try {
-            const allMemories = await fetch(`/api/players/${encodeURIComponent(charName)}/memories`, {
-                headers: { 'Accept': 'application/json' }
-            }).then(resp => resp.json()).catch(() => ({ memories: [] }));
+            const allMemories = await ApiClient.getPlayerMemories(charName).catch(() => ({ memories: [] }));
             const memories: MemoryRecord[] = allMemories.memories || [];
             const candidates = memories.filter((m: MemoryRecord) =>
                 ((Number(m.importance) || 0) >= 6 || (Number(m.reinforcements) || 0) >= 2)
@@ -97,14 +95,10 @@ const AgentMemory = (() => {
                     (typeof i === 'string' && i.length > 10)
                     || (typeof i === 'object' && i !== null && String((i as { belief?: unknown }).belief || '').length > 10));
                 if (insights.length > 0) {
-                    await fetch(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            insights,
-                            tick: currentTick,
-                            source_memory_ids: candidates.map((m: MemoryRecord) => m.id)
-                        })
+                    await ApiClient.reflectPlayerMemories(charName, {
+                        insights,
+                        tick: currentTick,
+                        source_memory_ids: candidates.map((m: MemoryRecord) => m.id)
                     }).catch(() => {});
                 }
                 events.log(`🧠 ${charName} reflected on ${candidates.length} memories`, 'system-msg');
@@ -182,11 +176,7 @@ const AgentMemory = (() => {
                 emotion: (emotion && typeof emotion === 'object') ? { label: emotion.label, intensity: emotion.intensity } : null,
                 emotions: (emotions && typeof emotions === 'object') ? emotions : null
             };
-            fetch(`/api/players/${encodeURIComponent(charName)}/memories/entry`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(resp => resp.ok ? resp.json() : null).then(data => {
+            ApiClient.addPlayerMemory(charName, payload).then((data: any) => {
                 _embedAndStoreVector(charName, data?.entry?.id, text);
             }).catch(() => {});
             // Register any new single-word tags into the tag library (id-keyed → dedupes)
@@ -207,14 +197,10 @@ const AgentMemory = (() => {
         if (!memoryId || !(window as unknown as { EmbeddingClient?: { configured(): boolean } }).EmbeddingClient?.configured()) return;
         EmbeddingClient.embed(text).then((vector: number[]) => {
             if (!vector) return;
-            fetch('/api/memory/embeddings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items: [{ key: `${charName}::${memoryId}`, vector }],
-                    model: config.embedModel,
-                    dims: vector.length
-                })
+            ApiClient.storeMemoryEmbeddings({
+                items: [{ key: `${charName}::${memoryId}`, vector }],
+                model: config.embedModel,
+                dims: vector.length
             }).catch(() => {});
         }).catch(() => {});
     }
@@ -230,8 +216,7 @@ const AgentMemory = (() => {
         if (_checkedTagIds.has(tagId)) return;
         _checkedTagIds.add(tagId);
         try {
-            fetch("/api/tags/search?q=" + encodeURIComponent(tagId))
-                .then(r => r.json())
+            ApiClient.searchTags(tagId)
                 .then((tags: { id?: string }[]) => {
                     const exists = Array.isArray(tags) && tags.some((t: { id?: string }) => (t.id || '').toLowerCase() === tagId.toLowerCase());
                     if (exists) return;
@@ -245,11 +230,7 @@ const AgentMemory = (() => {
                         applies_to: [],
                         examples: []
                     };
-                    fetch("/api/library/tags", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(tagData)
-                    }).catch(() => {});
+                    ApiClient.saveLibraryTag(tagData).catch(() => {});
                 })
                 .catch(() => {});
         } catch (error) {

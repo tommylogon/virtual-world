@@ -24,8 +24,7 @@ window.ScenarioHealth = (() => {
     async function open() {
         let list = _cache;
         if (!list) {
-            const resp = await fetch('/api/scenarios');
-            list = await resp.json();
+            list = (await ApiClient.listScenarios());
             _cache = list;
         }
         render(list);

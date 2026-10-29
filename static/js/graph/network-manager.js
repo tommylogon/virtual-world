@@ -1754,8 +1754,7 @@ window.GraphNetwork = {
             GraphNetwork._applyNodeLabelDecorations();
             return;
         }
-        fetch('/api/tags/search')
-            .then(r => r.json())
+        ApiClient.searchTags()
             .then((tags) => {
             const byId = {};
             (tags || []).forEach((t) => { byId[t.id] = t; });

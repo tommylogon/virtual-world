@@ -66,11 +66,7 @@ const PlayMode = (() => {
         if (_busy) return _isPlaying;
         _busy = true;
         try {
-            const resp = await fetch('/api/play_mode/enter', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = (await resp.json()) as PlayModeStatusResponse;
+            const data = (await ApiClient.enterPlayMode()) as PlayModeStatusResponse;
             if (data.error) throw new Error(data.error);
 
             updateUI(true);
@@ -110,11 +106,7 @@ const PlayMode = (() => {
                 try { ag.stop(); } catch (err) {}
             }
 
-            const resp = await fetch('/api/play_mode/stop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = (await resp.json()) as PlayModeStatusResponse;
+            const data = (await ApiClient.stopPlayMode()) as PlayModeStatusResponse;
             if (data.error) throw new Error(data.error);
 
             updateUI(false);
@@ -161,8 +153,7 @@ const PlayMode = (() => {
 
     async function checkStatus(): Promise<void> {
         try {
-            const resp = await fetch('/api/play_mode/status');
-            const data = (await resp.json()) as PlayModeStatusResponse;
+            const data = (await ApiClient.getPlayModeStatus()) as PlayModeStatusResponse;
             updateUI(Boolean(data && data.play_mode));
         } catch (e) {
             // Server may not support endpoint yet or be offline

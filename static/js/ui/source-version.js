@@ -52,10 +52,7 @@
             return;
         checkRunning = true;
         try {
-            const response = await fetch('/api/client-version', { cache: 'no-store' });
-            if (!response.ok)
-                return;
-            const current = await response.json();
+            const current = await ApiClient.getClientVersion();
             if (current?.version && current.version !== loadedVersion)
                 showRefreshNotice();
         }

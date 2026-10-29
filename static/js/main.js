@@ -784,11 +784,7 @@ async function newScenario() {
     };
     try {
         agent.cancel();
-        const resp = await fetch('/api/load', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(voidWorld)
-        });
-        const data = await resp.json();
+        const data = await ApiClient.loadWorld(voidWorld);
         if (data.error) {
             toastError('Error: ' + data.error);
             return;

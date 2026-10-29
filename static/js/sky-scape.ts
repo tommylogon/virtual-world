@@ -59,8 +59,7 @@ const _SkyScape = (() => {
     function _loadWeatherVocabulary(): void {
         if (_vocabLoaded) return;
         _vocabLoaded = true;
-        fetch('/api/vocabulary/weather', { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
+        ApiClient.listVocabulary('weather')
             .then((d) => {
                 const entries = (d && d.entries) || [];
                 _WEATHER_IDS.length = 0;
@@ -561,10 +560,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const targetMin = ((hh || 0) * 60 + (mm || 0) + minutes) % 1440;
         // Clamp to 0..1439 (negative wraparound)
         const clamped = ((targetMin % 1440) + 1440) % 1440;
-        fetch('/api/settings/clock_start', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clock_start_hour: Math.floor(clamped / 60), clock_start_minute: clamped % 60 })
-        }).then(() => worldState?.fetch?.());
+        ApiClient.setClockStart(Math.floor(clamped / 60), clamped % 60).then(() => worldState?.fetch?.());
     }
 
     function _setExactTime() {
@@ -572,10 +568,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (!input || !input.value) return;
         const [h, m] = input.value.split(':').map(Number);
         if (isNaN(h) || isNaN(m)) return;
-        fetch('/api/settings/clock_start', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clock_start_hour: h, clock_start_minute: m })
-        }).then(() => worldState?.fetch?.());
+        ApiClient.setClockStart(h, m).then(() => worldState?.fetch?.());
     }
 
     function _setExactDate() {
@@ -587,10 +580,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (!isNaN(d)) body.day = d;
         if (!isNaN(m)) body.month = m;
         if (!isNaN(y)) body.year = y;
-        fetch('/api/settings/date', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        }).then(() => worldState?.fetch?.());
+        ApiClient.setGameDate(body).then(() => worldState?.fetch?.());
     }
 
     function _setOverride() {
@@ -605,17 +595,11 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (windDir) data.wind_direction = windDir;
         if (humidity) data.humidity = humidity;
         if (dur > 0) data.duration_ticks = dur;
-        fetch('/api/settings/forecast-override', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
-            body: JSON.stringify(data)
-        }).then(() => worldState?.fetch?.());
+        ApiClient.setForecastOverride(data).then(() => worldState?.fetch?.());
     }
 
     function _clearOverride() {
-        fetch('/api/settings/forecast-override', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
-            body: JSON.stringify({ clear_all: true })
-        }).then(() => worldState?.fetch?.());
+        ApiClient.setForecastOverride({ clear_all: true }).then(() => worldState?.fetch?.());
     }
 
     function _populateControls() {
@@ -771,8 +755,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             const daysEl = document.getElementById('sky-regions-days') as HTMLInputElement | null;
             const days = Math.max(1, Math.min(30, Number(daysEl?.value) || 7));
             if (status) status.textContent = 'loading...';
-            fetch(`/api/settings/forecast/outlook?days=${days}`, { cache: 'no-store' })
-                .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+            ApiClient.getForecastOutlook(days)
                 .then((d) => {
                     _regionsData = d as ForecastOutlook;
                     _regionsFetching = false;
@@ -1230,12 +1213,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             if (status) { status.textContent = '✗ ' + collected.error; status.style.color = 'var(--red,#f85149)'; }
             return;
         }
-        fetch('/api/settings/forecast', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
-            body: JSON.stringify({ schedule: collected.schedule }),
-        })
-            .then((r) => (r.ok ? r.json() : Promise.reject('HTTP ' + r.status)))
+        ApiClient.saveForecastSchedule(collected.schedule)
             .then(() => {
                 if (status) { status.textContent = '✓ saved'; status.style.color = 'var(--green,#3fb950)'; }
                 return worldState?.fetch?.();

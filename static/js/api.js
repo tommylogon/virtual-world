@@ -1,8 +1,8 @@
 "use strict";
 /**
- * ApiClient — Backend HTTP calls for the VirtualWorld engine
+ * ApiClient - Backend HTTP calls for the VirtualWorld engine
  *
- * @module api — the single HTTP client for every UI → engine call
+ * @module api - the single HTTP client for every UI → engine call
  * @contributes ApiClientImpl.* (actions, graph CRUD, items, saves, scenario ops) + runAction
  * @powers every button/panel that talks to the Flask engine, and the graph's data fetches
  * @relates used by world-state, graph, inspector, item library, agent-engine, main
@@ -132,8 +132,8 @@ class ApiClientImpl {
         return resp.json();
     }
     /** Undo the last snapshot (e.g. restore state deleted by reset) */
-    static async undo() {
-        return this.post('/api/undo', {});
+    static async undo(steps) {
+        return this.post('/api/undo', steps !== undefined ? { steps } : {});
     }
     /** Redo a previously undone state */
     static async redo() {
@@ -220,7 +220,7 @@ class ApiClientImpl {
         const resp = await fetch(`/api/world/scopes${flat ? '?flat=1' : ''}`);
         return resp.json();
     }
-    /** One scope's vis-loadable subgraph ({nodes, edges}) — the graph view
+    /** One scope's vis-loadable subgraph ({nodes, edges}) - the graph view
      *  loads this instead of the whole world when a scope is selected.
      *  Level-scoped by default (own areas only); pass `descendants` for the
      *  whole subtree. */
@@ -239,7 +239,7 @@ class ApiClientImpl {
             throw new Error(`scope grid failed: ${resp.status}`);
         return resp.json();
     }
-    /** Persist a scope's map-layout offset (cell units) — the graph canvas zone
+    /** Persist a scope's map-layout offset (cell units) - the graph canvas zone
      *  drag (task-523). Pass `reset: true` (and no x/y) to return the zone to
      *  its painted position. Returns `{status, id, map_offset}`. */
     static async setScopeOffset(scopeId, offset = {}) {
@@ -262,7 +262,7 @@ class ApiClientImpl {
         });
         return resp.ok;
     }
-    /** Reassign areas to a scope — **membership only** (task-539).
+    /** Reassign areas to a scope - **membership only** (task-539).
      *
      * This is deliberately not `updateNode({properties: {world_scope_id}})`:
      * membership also has to move in the manifest's `area_ids` mirror, and a
@@ -280,7 +280,7 @@ class ApiClientImpl {
             throw new Error((data && data.error) || `scope areas failed: ${resp.status}`);
         return data;
     }
-    /** Duplicate an area / item / way / character — one atomic write on the
+    /** Duplicate an area / item / way / character - one atomic write on the
      *  backend. `includeChildren=false` clones only the node (+ triggers),
      *  skipping its attached items. */
     static async duplicateNode(nodeId, includeChildren = true) {
@@ -346,6 +346,9 @@ class ApiClientImpl {
         }
         return ApiClientImpl.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, payload);
     }
+    static async moveItem(nodeId, options = {}) {
+        return this.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, options);
+    }
     static async deleteNode(nodeId) {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`, { method: 'DELETE' });
         return resp.json();
@@ -369,6 +372,11 @@ class ApiClientImpl {
     }
     static async createEdge(source, target, type, properties = {}) {
         return this.post('/api/graph/edge', { source, target, type, properties });
+    }
+    static async searchTags(q) {
+        const query = q ? `?q=${encodeURIComponent(q)}` : '';
+        const resp = await fetch(`/api/tags/search${query}`);
+        return resp.json();
     }
     // --- Item Registry (Library) API ---
     static async getLibraryItems() {
@@ -398,7 +406,7 @@ class ApiClientImpl {
         return this.post('/api/library/refresh-to-world', body);
     }
     /**
-     * Unbind a node from its library template. The node keeps its current data —
+     * Unbind a node from its library template. The node keeps its current data -
      * this only removes the link, so a hand-fixed copy is no longer overwritten
      * by the next refresh (task-289/317).
      * @param {string} nodeId
@@ -412,6 +420,15 @@ class ApiClientImpl {
         if (sections)
             body.sections = sections;
         return this.post('/api/library/refresh-to-world', body);
+    }
+    static async getAutoDressCandidates(charName) {
+        return this.post('/api/auto_dress/candidates', { character: charName });
+    }
+    static async autoDress(charName, libraryIds) {
+        const body = { character: charName };
+        if (libraryIds)
+            body.library_ids = libraryIds;
+        return this.post('/api/auto_dress', body);
     }
     // --- Character Registry API ---
     static async saveCharacterToRegistry(charId, data) {
@@ -448,6 +465,27 @@ class ApiClientImpl {
             body: JSON.stringify(payload)
         });
         return resp.json();
+    }
+    static async saveLibraryTag(tagData) {
+        return this.saveLibraryType('tags', tagData);
+    }
+    static async saveLibraryBehaviour(id, data) {
+        return this.saveLibraryType('behaviours', { id, data });
+    }
+    static async saveLibraryTrigger(id, data) {
+        return this.saveLibraryType('triggers', { id, data });
+    }
+    static async getLibraryTriggers() {
+        return this.getLibraryType('triggers');
+    }
+    static async testTrigger(payload) {
+        return this.post('/api/triggers/test', payload);
+    }
+    static async validateTriggerDefinition(payload) {
+        return this.post('/api/triggers/validate-definition', payload);
+    }
+    static async attachTrigger(nodeId, trigger) {
+        return this.post('/api/triggers/attach', { node_id: nodeId, trigger });
     }
     static async deleteLibraryType(type, id) {
         const resp = await fetch(`/api/library/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method: 'DELETE' });
@@ -499,6 +537,45 @@ class ApiClientImpl {
     static async clearTurnEvents() {
         await fetch('/api/turn/clear', { method: 'POST' });
     }
+    static async getTimePerTick() {
+        return this.get('/api/settings/time_per_tick');
+    }
+    static async setTimePerTick(minutes) {
+        return this.post('/api/settings/time_per_tick', { time_per_tick_minutes: minutes });
+    }
+    static async getClockStart() {
+        return this.get('/api/settings/clock_start');
+    }
+    static async setClockStart(hour, minute) {
+        return this.post('/api/settings/clock_start', { clock_start_hour: hour, clock_start_minute: minute });
+    }
+    static async setGameDate(date) {
+        return this.post('/api/settings/date', date);
+    }
+    static async setForecastOverride(data) {
+        const resp = await fetch('/api/settings/forecast-override', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
+            body: JSON.stringify(data)
+        });
+        return resp.json();
+    }
+    static async getForecastOutlook(days = 7) {
+        const resp = await fetch(`/api/settings/forecast/outlook?days=${days}`, { cache: 'no-store' });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async saveForecastSchedule(schedule) {
+        const resp = await fetch('/api/settings/forecast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
+            body: JSON.stringify({ schedule })
+        });
+        if (!resp.ok)
+            throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    }
     // --- Ghost Mode ---
     static async getGhostMode() {
         const resp = await fetch('/api/settings/ghost_mode');
@@ -537,6 +614,58 @@ class ApiClientImpl {
         const resp = await fetch(`/api/world/lore/entry/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
         return resp.json();
     }
+    static async getPlayerRecipes(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async updatePlayerBody(charName, sensitivity) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/body`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sensitivity })
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async getPlayerRecord(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async savePlayerRecord(charName, record, render = false) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ record, render })
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+    static async compilePlayerRecord(charName, options = {}) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(options)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+    static async getPlayerMemoriesPeople(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/people`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
     // --- Per-Character Memory API ---
     static async getPlayerMemories(name) {
         const resp = await fetch(`/api/players/${encodeURIComponent(name)}/memories`);
@@ -566,6 +695,32 @@ class ApiClientImpl {
     }
     static async clearExpiredSuppressions(name, currentTick) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/clear-expired`, { current_tick: currentTick });
+    }
+    static async reflectPlayerMemories(charName, payload) {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, payload);
+    }
+    static async storeMemoryEmbeddings(payload) {
+        return this.post('/api/memory/embeddings', payload);
+    }
+    static async searchMemoryEmbeddings(payload) {
+        return this.post('/api/memory/embeddings/search', payload);
+    }
+    static async mapPlayerEmotions(charName, payload) {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/emotions/map`, payload);
+    }
+    static async getPlayerSpatialMemories(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/spatial`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok)
+            throw new Error(String(resp.status));
+        return resp.json();
+    }
+    static async retrievePlayerMemories(charName, payload) {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/retrieve`, payload);
+    }
+    static async reinforcePlayerMemories(charName, payload) {
+        return this.post(`/api/players/${encodeURIComponent(charName)}/memories/reinforce`, payload);
     }
     static async getAreaDescription() {
         const resp = await fetch('/api/area/description');
@@ -601,8 +756,76 @@ class ApiClientImpl {
     static async saveScenario(name) {
         return this.post('/api/save-scenario', { name });
     }
+    static async listScenarios() {
+        const resp = await fetch('/api/scenarios');
+        return resp.json();
+    }
+    static async cloneScenario(name) {
+        return this.post('/api/scenarios/clone', { name });
+    }
+    static async duplicateScenario(name) {
+        return this.post(`/api/scenarios/${encodeURIComponent(name)}/duplicate`);
+    }
+    static async renameScenario(name, newName) {
+        return this.post(`/api/scenarios/${encodeURIComponent(name)}/rename`, { name: newName });
+    }
+    static async deleteScenario(name) {
+        const resp = await fetch(`/api/scenarios/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        return resp.json();
+    }
+    static async getScenario(name) {
+        const resp = await fetch(`/api/scenarios/${encodeURIComponent(name)}`);
+        return resp.json();
+    }
+    static async auditImport(data) {
+        return this.post('/api/import/audit', data);
+    }
+    static async getEngineConfig() {
+        const resp = await fetch('/api/settings/engine_config');
+        return resp.json();
+    }
+    static async setEngineConfig(values) {
+        return this.post('/api/settings/engine_config', { values });
+    }
+    static async resetEngineConfig() {
+        return this.post('/api/settings/engine_config/reset', {});
+    }
+    static async enterPlayMode() {
+        return this.post('/api/play_mode/enter', {});
+    }
+    static async stopPlayMode() {
+        return this.post('/api/play_mode/stop', {});
+    }
+    static async getPlayModeStatus() {
+        const resp = await fetch('/api/play_mode/status');
+        return resp.json();
+    }
+    static async setScenarioName(name) {
+        return this.post('/api/scenario/name', { name });
+    }
+    static async getUndoList() {
+        const resp = await fetch('/api/undo/list');
+        return resp.json();
+    }
+    static async getScenarioDiff() {
+        const resp = await fetch('/api/scenario/diff');
+        return resp.json();
+    }
+    static async applyScenarioDiff(commit = [], discard = []) {
+        return this.post('/api/scenario/diff/apply', { commit, discard });
+    }
+    static async getScenarioStatus() {
+        const resp = await fetch('/api/scenario/status');
+        return resp.json();
+    }
+    static async commitScenario() {
+        return this.post('/api/scenario/commit', {});
+    }
+    static async appendScenario(data) {
+        return this.post('/api/scenario/append', data);
+    }
 }
-// Singleton — published under both names consumers use. See the note on the
+// Singleton - published under both names consumers use. See the note on the
 // class declaration for why these are assignments rather than top-level consts.
 const globals = window;
 globals.ApiClient = ApiClientImpl;

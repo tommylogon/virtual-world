@@ -496,14 +496,9 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
         btn.textContent = 'Applying…';
         if (appendMode) {
             // task-383: merge into the live world (server-side, undo snapshot).
-            fetch('/api/scenario/append', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(out)
-            })
-                .then(resp => resp.json().then(j => ({ ok: resp.ok, j })))
-                .then(({ ok, j }) => {
-                if (!ok)
+            ApiClient.appendScenario(out)
+                .then(j => {
+                if (j.error)
                     throw new Error(j.error || 'append failed');
                 worldState.fetch().then(() => {
                     try {
@@ -525,14 +520,9 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
             return;
         }
         out.persist = true; // wizard builds a new scenario - write it to scenarios/
-        fetch('/api/load', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(out)
-        })
-            .then(resp => resp.json().then(j => ({ ok: resp.ok, j })))
-            .then(({ ok, j }) => {
-            if (!ok)
+        ApiClient.loadWorld(out)
+            .then(j => {
+            if (j.error)
                 throw new Error(j.error || 'load failed');
             worldState.fetch().then(() => {
                 try {

@@ -388,8 +388,7 @@ window.InspectorAreaView = (() => {
      */
     RV._fillAreaSounds = function (el, areaId) {
         el.textContent = '…';
-        fetch(`/api/areas/${encodeURIComponent(areaId)}/sounds`)
-            .then(r => (r.ok ? r.json() : { sounds: [] }))
+        ApiClient.getAreaSounds(areaId)
             .then(data => {
             const sounds = data.sounds || [];
             if (!sounds.length) {
@@ -734,14 +733,9 @@ Improve this area's description and environment settings. Make the description m
             btn.textContent = 'Populating…';
         }
         try {
-            const res = await fetch(`/api/populate/area/${encodeURIComponent(nodeId)}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}),
-            });
-            const data = await res.json();
-            if (!res.ok || data.error) {
-                console.warn('Populate failed:', data.error || res.status);
+            const data = await ApiClient.populateArea(nodeId);
+            if (data.error) {
+                console.warn('Populate failed:', data.error);
             }
             else if (data.status === 'empty') {
                 console.info('Nothing to place for this area:', (data.unresolved_domains || []).join(', ') || data.notes);

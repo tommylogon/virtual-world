@@ -25,8 +25,8 @@ const UndoHistory = (() => {
         if (!menu) return;
         let entries: UndoEntry[] = [];
         try {
-            const resp = await fetch('/api/undo/list');
-            entries = (await resp.json()).entries || [];
+            const data = await ApiClient.getUndoList();
+            entries = data.entries || [];
         } catch (e) { entries = []; }
         menu.textContent = '';
         if (!entries.length) {
@@ -59,12 +59,7 @@ const UndoHistory = (() => {
 
     async function restoreTo(idx: number) {
         try {
-            const resp = await fetch('/api/undo', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steps: idx + 1 })
-            });
-            const data = await resp.json();
+            const data = await ApiClient.undo(idx + 1);
             if (data.error) { toastError('Undo failed: ' + data.error); return; }
             worldState.fetch();
             if (typeof toastInfo === 'function') toastInfo('Restored (' + (idx + 1) + ' step' + (idx ? 's' : '') + ').');

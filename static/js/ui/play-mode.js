@@ -53,11 +53,7 @@ const PlayMode = (() => {
             return _isPlaying;
         _busy = true;
         try {
-            const resp = await fetch('/api/play_mode/enter', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = (await resp.json());
+            const data = (await ApiClient.enterPlayMode());
             if (data.error)
                 throw new Error(data.error);
             updateUI(true);
@@ -101,11 +97,7 @@ const PlayMode = (() => {
                 }
                 catch (err) { }
             }
-            const resp = await fetch('/api/play_mode/stop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = (await resp.json());
+            const data = (await ApiClient.stopPlayMode());
             if (data.error)
                 throw new Error(data.error);
             updateUI(false);
@@ -150,8 +142,7 @@ const PlayMode = (() => {
     }
     async function checkStatus() {
         try {
-            const resp = await fetch('/api/play_mode/status');
-            const data = (await resp.json());
+            const data = (await ApiClient.getPlayModeStatus());
             updateUI(Boolean(data && data.play_mode));
         }
         catch (e) {

@@ -369,11 +369,7 @@ class AgentEngine {
         if (emotion.toward) body.toward = emotion.toward;
         else body.delta = body.intensity * 1.5;
         try {
-            return fetch(`/api/players/${encodeURIComponent(charName)}/emotions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            }).catch(() => {});
+            return ApiClient.getPlayerEmotions(charName, body).catch(() => {});
         } catch (e) { return null; }
     }
 
@@ -383,11 +379,7 @@ class AgentEngine {
     _learnNames(charName: string, learnedNames?: string[] | null): Promise<unknown> | null | undefined {
         if (!learnedNames?.length || !worldState.players?.[charName]) return;
         try {
-            return fetch(`/api/players/${encodeURIComponent(charName)}/names`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ names: learnedNames })
-            }).catch(() => {});
+            return ApiClient.getPlayerNames(charName, learnedNames).catch(() => {});
         } catch (e) { return null; }
     }
 

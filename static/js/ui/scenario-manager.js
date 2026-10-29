@@ -114,8 +114,7 @@ window.ScenarioManager = (() => {
     }
     async function loadList() {
         try {
-            const resp = await fetch('/api/scenarios');
-            _list = await resp.json();
+            _list = await ApiClient.listScenarios();
         }
         catch (e) {
             _list = [];
@@ -238,12 +237,7 @@ window.ScenarioManager = (() => {
             if (!nn || !nn.trim())
                 return;
             try {
-                const r = await fetch('/api/scenarios/clone', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: nn.trim() })
-                });
-                const j = await r.json();
+                const j = await ApiClient.cloneScenario(nn.trim());
                 if (j.error) {
                     toastError('Clone failed: ' + j.error);
                     return;
@@ -335,8 +329,7 @@ window.ScenarioManager = (() => {
                 await auditScenario(sc, row);
             }));
             actions.appendChild(btn('📋 Copy', '', async () => {
-                const r = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}/duplicate`, { method: 'POST' });
-                const j = await r.json();
+                const j = await ApiClient.duplicateScenario(sc.name);
                 if (j.error)
                     toastError(j.error);
                 else
@@ -347,11 +340,7 @@ window.ScenarioManager = (() => {
                 const nn = prompt('New name:', sc.name);
                 if (!nn || nn === sc.name)
                     return;
-                const r = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}/rename`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: nn })
-                });
-                const j = await r.json();
+                const j = await ApiClient.renameScenario(sc.name, nn);
                 if (j.error)
                     toastError(j.error);
                 else
@@ -361,8 +350,7 @@ window.ScenarioManager = (() => {
             actions.appendChild(btn('🗑 Delete', 'btn-red', async () => {
                 if (!confirm(`Delete scenario "${sc.name}"?`))
                     return;
-                const r = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}`, { method: 'DELETE' });
-                const j = await r.json();
+                const j = await ApiClient.deleteScenario(sc.name);
                 if (j.error)
                     toastError(j.error);
                 else
@@ -386,8 +374,7 @@ window.ScenarioManager = (() => {
     }
     async function openScenario(sc, row) {
         btn_guard(row, async () => {
-            const resp = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}`);
-            const data = await resp.json();
+            const data = await ApiClient.getScenario(sc.name);
             if (data.error) {
                 toastError(data.error);
                 return;
@@ -400,11 +387,7 @@ window.ScenarioManager = (() => {
                 return;
             }
             data.persist = true; // GUI open: keep the scenario file as the source
-            const r = await fetch('/api/load', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const j = await r.json();
+            const j = await ApiClient.loadWorld(data);
             if (j.error) {
                 toastError('Load failed: ' + j.error);
                 return;
@@ -421,17 +404,12 @@ window.ScenarioManager = (() => {
     }
     async function auditScenario(sc, row) {
         btn_guard(row, async () => {
-            const resp = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}`);
-            const data = await resp.json();
+            const data = await ApiClient.getScenario(sc.name);
             if (data.error) {
                 toastError(data.error);
                 return;
             }
-            const ar = await fetch('/api/import/audit', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const j = await ar.json();
+            const j = await ApiClient.auditImport(data);
             if (j.error) {
                 toastError(j.error);
                 return;
@@ -442,7 +420,7 @@ window.ScenarioManager = (() => {
                 (sev.error ? ` · ${sev.error} errors` : '') +
                 (sev.warning ? ` · ${sev.warning} warnings` : '') +
                 (sev.info ? ` · ${sev.info} info` : '') +
-                (j.count === 0 ? ' — clean ✅' : '');
+                (j.count === 0 ? ' - clean ✅' : '');
             (issues.length ? console.info : console.log)('[scenario-audit]', out, issues.slice(0, 5));
             toastInfo(out);
         });

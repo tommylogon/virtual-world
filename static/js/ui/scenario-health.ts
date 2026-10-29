@@ -26,8 +26,7 @@
   async function open() {
     let list = _cache;
     if (!list) {
-      const resp = await fetch('/api/scenarios');
-      list = await resp.json() as ScenarioSummary[];
+      list = (await ApiClient.listScenarios()) as ScenarioSummary[];
       _cache = list;
     }
     render(list);

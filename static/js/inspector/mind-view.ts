@@ -796,9 +796,7 @@ const InspectorMindView = (() => {
 
     function _fetchRecipes(): void {
         if (!_state) return;
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/recipes`, {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+        ApiClient.getPlayerRecipes(_state.charName)
             .then((data: { recipes?: Array<{ id: string; name: string; source: string; skill?: string; dc?: number; duration_min?: number }> }) => {
                 const live = _container?.querySelector('#mind-recipes');
                 if (!live || !_state) return;
@@ -1620,11 +1618,7 @@ const InspectorMindView = (() => {
                 const region = (el as HTMLElement).dataset.sensRegion || '';
                 const value = parseInt((el as HTMLInputElement).value, 10) || 0;
                 if (!_state || !region) return;
-                fetch(`/api/players/${encodeURIComponent(_state.charName)}/body`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sensitivity: { [region]: value / 100 } }),
-                }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+                ApiClient.updatePlayerBody(_state.charName, { [region]: value / 100 })
                     .then(() => {
                         const player = (worldState.players || {})[_state?.charName || ''];
                         if (player) {
@@ -1812,9 +1806,7 @@ const InspectorMindView = (() => {
             _state.persona.status = 'loading';
             _state.persona.msg = '';
         }
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record`, {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+        ApiClient.getPlayerRecord(_state.charName)
             .then((data: any) => {
                 if (!_state || !_state.persona) return;
                 const keepOpen = _state.persona.openSections || ['Identity', 'Appearance'];
@@ -1881,11 +1873,7 @@ const InspectorMindView = (() => {
     function _savePersona(): void {
         if (!_state) return;
         const record = _collectPersona();
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ record, render: false }),
-        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+        ApiClient.savePlayerRecord(_state.charName, record, false)
             .then(({ ok, data }: any) => {
                 if (!ok) {
                     _personaMsg(`save rejected: ${data.error || _shortErr(data)}`);
@@ -1907,11 +1895,7 @@ const InspectorMindView = (() => {
             _personaMsg('unsaved edits: save the block first. Compile reads the saved block, not the sheet.');
             return;
         }
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(force ? { force: true } : {}),
-        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+        ApiClient.compilePlayerRecord(_state.charName, force ? { force: true } : {})
             .then(({ ok, data }: any) => {
                 if (!ok || !_state?.persona) {
                     _personaMsg(`compile rejected: ${data.error || _shortErr(data)}`);
@@ -1983,11 +1967,7 @@ const InspectorMindView = (() => {
             box.innerHTML = `<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`;
             return;
         }
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ record }),
-        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+        ApiClient.compilePlayerRecord(_state.charName, { record })
             .then(({ ok, data }: any) => {
                 const live = _container?.querySelector('#mind-persona-codex');
                 if (!live) return;
@@ -2399,9 +2379,7 @@ const InspectorMindView = (() => {
     function _fetchPeople(): void {
         if (!_state) return;
         _state.peopleStatus = 'loading';
-        fetch(`/api/players/${encodeURIComponent(_state.charName)}/memories/people`, {
-            headers: { 'Accept': 'application/json' }
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+        ApiClient.getPlayerMemoriesPeople(_state.charName)
             .then((data: { people?: MindPerson[] }) => {
                 if (!_state) return;
                 _state.people = data.people || [];

@@ -1768,12 +1768,7 @@ ${isNewPack
         let pool = [];
         let context = null;
         try {
-            const candResp = await fetch('/api/auto_dress/candidates', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ character: charName }),
-            });
-            const cand = await candResp.json();
+            const cand = await ApiClient.getAutoDressCandidates(charName);
             pool = Array.isArray(cand?.pool) ? cand.pool : [];
             context = { personality: cand?.personality || '', description: cand?.base_description || '' };
             if (pool.length > 0 && AIGenerator.isConfigured()) {
@@ -1848,15 +1843,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
                 }
                 libraryIds = approved;
             }
-            const body = { character: charName };
-            if (libraryIds)
-                body.library_ids = libraryIds;
-            const resp = await fetch('/api/auto_dress', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-            });
-            const data = await resp.json();
+            const data = await ApiClient.autoDress(charName, libraryIds || undefined);
             const msg = data?.output || 'Auto-dress finished.';
             toastSuccess(msg.split('\n')[0]);
             events?.log?.(msg, 'system-msg');
@@ -2042,7 +2029,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
                 add(live, t);
         }
         try {
-            const tags = await (await fetch('/api/tags/search')).json();
+            const tags = await ApiClient.searchTags();
             for (const t of (Array.isArray(tags) ? tags : (tags?.tags || [])))
                 add(library, t?.id ?? t);
         }
@@ -2065,7 +2052,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
     AV._collectItemTags = async function () {
         const set = new Set();
         try {
-            const payload = await (await fetch('/api/library/items')).json();
+            const payload = await ApiClient.getLibraryItems();
             const entries = Array.isArray(payload) ? payload : Object.values(payload || {});
             for (const item of entries) {
                 for (const t of (item?.tags || [])) {
@@ -2652,8 +2639,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                     ApiClient.placeItemFromLibrary({ type: 'character', id: playerNodeId }, id).then(() => worldState.fetch());
                 }
                 else {
-                    fetch(`/api/graph/item/${id}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: currentArea }) })
-                        .then(r => r.json())
+                    ApiClient.moveItem(id, { area: currentArea })
                         .then(() => runAction(`take ${name}`, charName));
                 }
             }}>Add</button>
@@ -2682,11 +2668,7 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     };
     AV._removeKnownAbility = function (charName, abilityId) {
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
-        fetch(`/api/graph/edge`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ source: abilityId, target: playerNodeId, type: 'known' })
-        }).then(() => worldState.fetch());
+        ApiClient.deleteEdge(abilityId, playerNodeId, 'known').then(() => worldState.fetch());
     };
     AV._showAddKnownAbilityPicker = function (charName) {
         // Identification is by ID, never by name: three characters can each know
@@ -2746,26 +2728,14 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
                         const newId = placed?.node_id;
                         if (!newId)
                             return;
-                        await fetch('/api/graph/edge', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ source: newId, target: playerNodeId, type: 'carrying' })
-                        }).catch(() => { });
-                        await fetch('/api/graph/edge', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ source: newId, target: playerNodeId, type: 'known' })
-                        });
+                        await ApiClient.deleteEdge(newId, playerNodeId, 'carrying').catch(() => { });
+                        await ApiClient.createEdge(newId, playerNodeId, 'known', {});
                         worldState.fetch();
                     })
                         .catch(() => worldState.fetch());
                 }
                 else {
-                    fetch('/api/graph/edge', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ source: id, target: playerNodeId, type: 'known' })
-                    }).then(() => worldState.fetch());
+                    ApiClient.createEdge(id, playerNodeId, 'known', {}).then(() => worldState.fetch());
                 }
             }}>Know</button>
             </div>`;

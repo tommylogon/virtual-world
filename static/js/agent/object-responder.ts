@@ -63,12 +63,7 @@ const ObjectResponder = (() => {
     if (!line) line = request.fallback_message || '';
     // Post back (empty line = fallback consumed, still remove the request)
     try {
-      const resp = await fetch('/api/llm_respond', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: request.id, text: line })
-      });
-      await resp.json();
+      await ApiClient.llmRespond(request.id, line);
     } catch (e) {
       console.warn('[object-responder] postback failed:', e instanceof Error ? e.message : e);
     }
