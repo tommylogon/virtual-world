@@ -154,6 +154,7 @@ load('static/js/shared/trigger-suggest-ai.js');
 // absent, which would make the round-trip tests vacuously pass.
 load('static/js/shared/trigger-types.js');
 load('static/js/shared/trigger-graph.js');
+load('static/js/shared/trigger-editor.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/simultaneous.js');
 load('static/js/agent/sim-round.js');

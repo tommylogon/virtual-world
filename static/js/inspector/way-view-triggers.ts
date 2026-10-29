@@ -42,7 +42,6 @@ const InspectorWayViewTriggers = (() => {
                 target_name: edgeProps.target_name || '',
                 target_state: edgeProps.target_state || '',
                 conditions,
-                success_message: edgeProps.success_message || '',
                 fail_message: edgeProps.fail_message || ''
             });
         }
@@ -61,6 +60,6 @@ interface ExtractedTrigger {
     target_name: string;
     target_state: string;
     conditions: unknown;
-    success_message: string;
-    fail_message: string;
+    success_message?: string;
+    fail_message?: string;
 }

@@ -449,8 +449,6 @@ window.TriggerGraph = (() => {
                 </div>
                 <div class="tg-eff-msg" style="display:${et==='message'?'':'none'}">
                     <div class="tg-field-row"><label>Message</label><textarea class="tg-field" data-key="message" rows="2" onchange="TriggerGraph._onFieldChange(this)">${p.message||''}</textarea></div>
-                    <div class="tg-field-row"><label>Success</label><input class="tg-field" data-key="success_message" value="${p.success_message||''}" placeholder="optional" onchange="TriggerGraph._onFieldChange(this)"></div>
-                    <div class="tg-field-row"><label>Fail</label><input class="tg-field" data-key="fail_message" value="${p.fail_message||''}" placeholder="optional" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
                 <div class="tg-eff-spawn" style="display:${['spawn_item','give_item','spawn_character'].includes(et)?'':'none'}">
                     <div class="tg-field-row"><label>${et==='spawn_character'?'Character ID':'Item ID'}</label><input class="tg-field" data-key="${et==='spawn_character'?'character_id':'item_id'}" value="${p[et==='spawn_character'?'character_id':'item_id']||''}" placeholder="${et==='spawn_character'?'character_id':'item_id'}" list="${et==='spawn_character'?'tg-char-ids':'tg-items'}" onchange="TriggerGraph._onFieldChange(this)"></div>

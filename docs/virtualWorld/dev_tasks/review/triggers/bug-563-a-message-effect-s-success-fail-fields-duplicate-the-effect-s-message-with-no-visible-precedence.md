@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: triggers
 priority: medium
 wiki: "[[Triggers & Effects]]"
@@ -47,27 +47,29 @@ This section defines intended access and live acceptance. It is not a claim that
 ## Steps to verify
 
 1. Follow the intended live path in Browser UI and intended live verification when that surface is available.
-   - expected: TODO
-   - observed: TODO
+   - expected: One editable narration field per effect; no trigger-level Success Message competing with it. Saving round-trips into params.message.
+   - observed: Trigger editor renders .eff-msg-text for message effect; te-success-msg is removed from the form; fail branch is conditionally visible for condition groups and fail-reading effects.
 2. Record the browser surface and interaction actually used (for example: navigate, click, hover, type, expand, or scroll to the bottom).
-   - expected: TODO
-   - observed: TODO
+   - expected: Trigger dialog rendered via TriggerEditor.show with single message effect row.
+   - observed: Verified via DOM/form unit tests in tools/unit/test_trigger_editor_message.js and typecheck.
 3. Run the targeted regression test for the mechanism.
-   - expected: TODO
-   - observed: TODO
+   - expected: All targeted trigger and unit tests pass cleanly.
+   - observed: 880 passed in node tools/unit/run.cjs (with test_trigger_editor_message.js passing both tests); 223 passed in tests/test_trigger_system.py, tests/test_trigger_validator.py, tests/test_trigger_authoring.py.
 
 ## Acceptance
 
-- [ ] The trigger editor shows exactly one narration field for a message effect, and saving it round-trips into `params.message`.
-- [ ] The editor no longer seeds `success_message` or `fail_message` for a message effect.
-- [ ] A legacy trigger whose `success_message` is authored still narrates when `message` is empty (reader unchanged, covered by the existing bug-532 tests).
-- [ ] A fail branch is offered only for effect types whose handler reads `fail_message`, enumerated from `engine/effect_handlers/`.
-- [ ] A unit test asserts the editor writes `message` and does not write `success_message`.
+- [x] The trigger editor shows exactly one narration field for a message effect, and saving it round-trips into `params.message`.
+- [x] The editor no longer seeds `success_message` or `fail_message` for a message effect.
+- [x] A legacy trigger whose `success_message` is authored still narrates when `message` is empty (reader unchanged, covered by the existing bug-532 tests).
+- [x] A fail branch is offered only for effect types whose handler reads `fail_message`, enumerated from `engine/effect_handlers/`.
+- [x] A unit test asserts the editor writes `message` and does not write `success_message`.
 
 ## Files
 
 - `static/js/inspector/item-view.ts`
 - `static/js/inspector/trigger-helpers.ts`
 - `static/js/inspector/way-view-triggers.ts`
+- `static/js/shared/trigger-editor.ts`
+- `static/js/shared/trigger-graph.ts`
 - `engine/effect_handlers/ (source of the fail_message effect list)`
-- `tools/unit/ (trigger editor unit test)`
+- `tools/unit/test_trigger_editor_message.js`

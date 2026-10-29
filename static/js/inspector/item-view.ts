@@ -760,8 +760,6 @@ IV._renderFooter = function(nodeId) {
             trigger_type: triggerType,
             effects: [],
             conditions: [],
-            success_message: '',
-            fail_message: '',
         };
         const nodeRes = await _api().createNode({
             id: triggerId,

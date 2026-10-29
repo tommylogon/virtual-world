@@ -34,17 +34,14 @@ const triggerEditorTag = (strings, ...values) => window.Lit.html(strings, ...val
 const TRIGGER_SNIPPETS = [
     {
         id: 'book-read', icon: '📖', label: 'Book Read', triggerType: 'on_read',
-        message: 'You read the passage aloud.',
-        effects: [{ type: 'message', params: {} }],
+        effects: [{ type: 'message', params: { message: 'You read the passage aloud.' } }],
     },
     {
         id: 'chest', icon: '📦', label: 'Chest (spawn item inside me)', triggerType: 'on_use',
-        message: 'The chest creaks. Inside: {item_name}.',
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container' } }],
     },
     {
         id: 'light', icon: '🕯', label: 'Light Source (fill the room)', triggerType: 'on_light',
-        message: 'The {name} flares to life, casting warm light.',
         effects: [
             { type: 'set_state', params: { node_id: 'self', state: 'lit' } },
             { type: 'set_environment', params: { light: 55 } },
@@ -52,7 +49,6 @@ const TRIGGER_SNIPPETS = [
     },
     {
         id: 'heat', icon: '🔥', label: 'Heat Source (warm the room)', triggerType: 'on_use',
-        message: 'The {name} roars, and the room slowly warms.',
         effects: [
             { type: 'set_state', params: { node_id: 'self', state: 'lit' } },
             { type: 'set_environment', params: { temperature: 30 } },
@@ -60,17 +56,14 @@ const TRIGGER_SNIPPETS = [
     },
     {
         id: 'recorder', icon: '🎙', label: 'Recorder (capture recent speech)', triggerType: 'on_use',
-        message: 'The {name} clicks - recording what was just said.',
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'speech', capture_limit: 5 } }],
     },
     {
         id: 'camera', icon: '📷', label: 'Camera (photo of what happened)', triggerType: 'on_use',
-        message: 'The {name} clicks - capturing the scene.',
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'sight', capture_limit: 5 } }],
     },
     {
         id: 'firstaid', icon: '💉', label: 'First Aid (heal + stop bleeding)', triggerType: 'on_use',
-        message: 'You patch yourself up.',
         effects: [
             { type: 'adjust_vital', params: { stat: 'HP', amount: 10, target: 'self' } },
             { type: 'remove_condition', params: { condition: 'bleeding', target: 'self' } },
@@ -78,8 +71,7 @@ const TRIGGER_SNIPPETS = [
     },
     {
         id: 'whisper', icon: '🚪', label: 'Whispering Door', triggerType: 'on_open',
-        message: 'A low voice breathes: "not yet…"',
-        effects: [{ type: 'message', params: {} }],
+        effects: [{ type: 'message', params: { message: 'A low voice breathes: "not yet…"' } }],
     },
 ];
 // File-local binding. `types/globals.d.ts` already declares `TriggerEditor` as an
@@ -248,12 +240,9 @@ var triggerEditorApi = {
                 </div>
 
                 <!-- ═══════ Messages ═══════ -->
-                <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
-                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--green);">💬 Messages</h3>
-                    <div class="field"><label>✅ Success Message</label>
-                        <input type="text" id="te-success-msg" .value=${initial?.success_message || initial?.effects?.[0]?.params?.success_message || ''} placeholder="What happens on success..." style="width:100%;">
-                    </div>
-                    <div class="field" id="te-fail-msg-group" style="display:none;">
+                <div id="te-fail-msg-group" style="display:none;border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+                    <h3 style="font-size:12px;margin:0 0 8px 0;color:var(--green);">💬 Conditions / Branch Failure</h3>
+                    <div class="field">
                         <label>❌ Fail Message</label>
                         <input type="text" id="te-fail-msg" .value=${initial?.fail_message || initial?.effects?.[0]?.params?.fail_message || ''} placeholder="What happens if condition not met..." style="width:100%;">
                     </div>
@@ -454,7 +443,20 @@ var triggerEditorApi = {
             return;
         const container = document.getElementById('te-conditions-container');
         const hasConditions = container ? !!container.querySelector('.cond-row') : false;
-        group.style.display = hasConditions ? 'block' : 'none';
+        // Handler types that read fail_message in engine/effect_handlers/
+        const FAIL_MESSAGE_EFFECT_TYPES = new Set([
+            'scry', 'spawn_item', 'polymorph_target',
+            'create_illusory_companion', 'bind_companion',
+            'spawn_way', 'set_way_target'
+        ]);
+        let hasFailReadingEffect = false;
+        document.querySelectorAll('#te-effects-container .eff-row').forEach(row => {
+            const effType = row.querySelector('.eff-type')?.value || '';
+            if (FAIL_MESSAGE_EFFECT_TYPES.has(effType)) {
+                hasFailReadingEffect = true;
+            }
+        });
+        group.style.display = (hasConditions || hasFailReadingEffect) ? 'block' : 'none';
     },
     _searchSelectOptions(kind) {
         const opts = [];
@@ -766,7 +768,10 @@ var triggerEditorApi = {
             };
             const effType = eff.type;
             const params = eff.params;
-            if (effType === 'damage' || effType === 'heal') {
+            if (effType === 'message') {
+                params.message = row.querySelector('.eff-msg-text')?.value || '';
+            }
+            else if (effType === 'damage' || effType === 'heal') {
                 params.amount = parseInt(row.querySelector('.eff-amount')?.value || '', 10) || 5;
                 if (effType === 'damage')
                     params.target = row.querySelector('.eff-dmg-target')?.value || 'self';
@@ -1053,7 +1058,7 @@ var triggerEditorApi = {
         });
         // Collect condition tree
         const condContainer = document.getElementById('te-conditions-container');
-        const conditions = triggerEditorApi._collectConditionGroup(condContainer);
+        const conditions = condContainer ? triggerEditorApi._collectConditionGroup(condContainer) : {};
         const result = {
             name: document.getElementById('te-trigger-name')?.value || '',
             trigger_type: triggerType,
@@ -1061,17 +1066,13 @@ var triggerEditorApi = {
             conditions: conditions,
             target_name: document.getElementById('te-target-name')?.value || '',
             target_state: document.getElementById('te-target-state')?.value || '',
-            success_message: document.getElementById('te-success-msg')?.value || '',
             fail_message: document.getElementById('te-fail-msg')?.value || ''
         };
-        // The runtime reads messages from the first effect's params
-        // (trigger_system.py reads fail_message there) - mirror them so
-        // configured messages actually surface in-game.
+        // The runtime reads fail messages from the first effect's params
+        // (trigger_system.py reads fail_message there) - mirror if present.
         if (effects.length > 0) {
             if (!effects[0].params)
                 effects[0].params = {};
-            if (result.success_message)
-                effects[0].params.success_message = result.success_message;
             if (result.fail_message)
                 effects[0].params.fail_message = result.fail_message;
         }
@@ -1686,7 +1687,11 @@ var triggerEditorApi = {
             <div class="eff-row" data-idx="${idx}" style="background:var(--bg-inset);border-radius:6px;padding:6px;margin-bottom:4px;border-left:3px solid var(--orange);position:relative;">
                 <label style="font-size:9px;font-weight:600;">Effect type</label>
                 <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value=${effType} data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
-                <div class="eff-params" style="display:${effType === 'message' ? 'none' : 'block'};">
+                <div class="eff-params" style="display:block;">
+                    <div class="eff-param" data-effect="message" style="display:${effType === 'message' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Message</label>
+                        <textarea class="eff-msg-text" rows="2" style="width:100%;font-size:11px;" placeholder="What to show...">${effParams.message || effParams.success_message || ''}</textarea>
+                    </div>
                     <div class="eff-param" data-effect="damage,heal" style="display:${['damage', 'heal'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" .value=${String(effParams.amount ?? 5)} style="width:100%;">
                     </div>
@@ -2144,11 +2149,12 @@ var triggerEditorApi = {
         const row = select.closest('.eff-row');
         const params = row.querySelector('.eff-params');
         const val = select.value;
-        params.style.display = val !== 'message' ? 'block' : 'none';
+        params.style.display = 'block';
         row.querySelectorAll('.eff-param').forEach(p => {
             const effects = (p.getAttribute('data-effect') || '').split(',');
             p.style.display = effects.includes(val) ? 'block' : 'none';
         });
+        triggerEditorApi._updateFailGroupVisibility();
     },
     _toggleConditionFields(select) {
         const row = select.closest('.cond-row');
@@ -2175,9 +2181,6 @@ var triggerEditorApi = {
         if (typeSelect && typeSelect.tagName === 'SELECT' && !typeSelect.multiple && snippet.triggerType) {
             typeSelect.value = snippet.triggerType;
         }
-        const msgInput = document.getElementById('te-success-msg');
-        if (msgInput && snippet.message)
-            msgInput.value = snippet.message;
         const container = document.getElementById('te-effects-container');
         if (container) {
             container.setAttribute('data-count', String(snippet.effects.length));

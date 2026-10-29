@@ -331,7 +331,6 @@ const _InspectorTriggers = (() => {
             editorBridge: {
                 ...(window.VW?.inspector?._triggerEditorOptions(nodeId) || {}),
                 initialName: triggers[0]?.name || '',
-                success_message: triggers[0]?.success_message || '',
                 fail_message: triggers[0]?.fail_message || '',
                 onSave: async (data: TriggerDef) => persistDefinitions([data]),
             },
