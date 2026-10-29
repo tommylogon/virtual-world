@@ -807,14 +807,14 @@ const InspectorMindView = (() => {
                 const controlled = player && player.autonomy === false;
                 const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
                 if (!list.length) {
-                    live.innerHTML = `${head}<div style="font-size:10px;color:var(--text-dim);">None yet - teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
+                    live.replaceChildren(document.createRange().createContextualFragment(`${head}<div style="font-size:10px;color:var(--text-dim);">None yet - teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`));
                     return;
                 }
                 const srcColor: Record<string, string> = {
                     global: 'var(--text-dim)', taught: '#58a6ff', discovered: '#3fb950',
                     cookbook: '#d29922', skill: '#bc8cff',
                 };
-                live.innerHTML = `${head}${list.map((r) => {
+                live.replaceChildren(document.createRange().createContextualFragment(`${head}${list.map((r) => {
                     const meta = [
                         r.skill ? `${esc(r.skill)} ${r.dc ?? 10}` : '',
                         r.duration_min ? `${r.duration_min}m` : '',
@@ -823,7 +823,7 @@ const InspectorMindView = (() => {
                         <span style="flex:1;"><a href="#" data-recipe-lib="${esc(r.id)}" style="color:var(--text);text-decoration:underline dotted;" title="Browse in the library (read-only here)">🧾 ${esc(r.name)}</a> <span style="font-size:9px;color:${srcColor[r.source] || 'var(--text-dim)'};">${esc(r.source)}</span>${meta ? ` <span style="font-size:9px;color:var(--text-muted);">${esc(meta)}</span>` : ''}</span>
                         ${controlled ? `<button class="btn btn-sm" onclick="runAction('Make ${esc(r.name)}','${_state!.escName}')" style="font-size:9px;padding:2px 8px;" title="Same as typing Make ${esc(r.name)} in the turn box">Make</button>` : ''}
                     </div>`;
-                }).join('')}`;
+                }).join('')}`));
                 live.querySelectorAll('[data-recipe-lib]').forEach((a) => {
                     a.addEventListener('click', (ev: Event) => {
                         ev.preventDefault();
@@ -1516,9 +1516,9 @@ const InspectorMindView = (() => {
         const doll = pane.querySelector('#mind-persona-doll');
         if (doll && pd?.renderPaperdollFigureHtml) {
             const player = (worldState.players || {})[_state?.charName || ''];
-            doll.innerHTML = pd.renderPaperdollFigureHtml(
+            doll.replaceChildren(document.createRange().createContextualFragment(pd.renderPaperdollFigureHtml(
                 _state?.charName || '', player || {}, esc,
-                _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing });
+                _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing })));
         }
         pane.querySelectorAll('[data-doll-facing]').forEach((btn) => {
             const face = (btn as HTMLElement).dataset.dollFacing;
@@ -1526,9 +1526,9 @@ const InspectorMindView = (() => {
         });
         const nav = pane.querySelector('#mind-persona-bodynav');
         if (nav) {
-            nav.innerHTML = sel
+            nav.replaceChildren(document.createRange().createContextualFragment(sel
                 ? _bodyNavSideHtml(sel)
-                : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll - live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
+                : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll - live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`));
             _wireBodyNavJumps(pane);
             _wireBodyNavSliders(pane);
             _wireBodyNavMarks(pane);
@@ -1791,7 +1791,7 @@ const InspectorMindView = (() => {
     function _personaRepaint(syncForm = true): void {
         if (syncForm) _syncPersonaFromForm();
         const el = _container?.querySelector('#mind-persona');
-        if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+        if (el) { el.replaceChildren(document.createRange().createContextualFragment(_personaHtml())); _wirePersona(); }
     }
 
     function _fetchPersona(): void {
@@ -1920,7 +1920,7 @@ const InspectorMindView = (() => {
     function _personaDirty(): void {
         if (_state?.persona) _state.persona.dirty = true;
         const box = _container?.querySelector('#mind-persona-states');
-        if (box) box.innerHTML = _personaStatesHtml();
+        if (box) box.replaceChildren(document.createRange().createContextualFragment(_personaStatesHtml()));
     }
 
     function _chipValues(box: Element): string[] {
@@ -1964,7 +1964,7 @@ const InspectorMindView = (() => {
         if (!box || !(box.closest('details') as HTMLDetailsElement | null)?.open) return;
         const record = _collectPersona();
         if (!Object.keys(record).length) {
-            box.innerHTML = `<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`;
+            box.replaceChildren(document.createRange().createContextualFragment(`<span style="color:var(--text-muted);">empty sheet - nothing to project.</span>`));
             return;
         }
         ApiClient.compilePlayerRecord(_state.charName, { record })
@@ -1972,13 +1972,13 @@ const InspectorMindView = (() => {
                 const live = _container?.querySelector('#mind-persona-codex');
                 if (!live) return;
                 if (!ok) {
-                    live.innerHTML = `<span style="color:#e08a92;">cannot project: ${esc(data.error || 'rejected')}</span>`;
+                    live.replaceChildren(document.createRange().createContextualFragment(`<span style="color:#e08a92;">cannot project: ${esc(data.error || 'rejected')}</span>`));
                     return;
                 }
                 const c = data.compiled || {};
-                live.innerHTML = `${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
+                live.replaceChildren(document.createRange().createContextualFragment(`${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
                     ${c.personality ? `<div style="color:var(--text-dim);">${esc(c.personality)}</div>` : ''}
-                    ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '-'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '-'}</div>` : ''}`;
+                    ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '-'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '-'}</div>` : ''}`));
             })
             .catch(() => { /* preview is best-effort; save shows real errors */ });
     }
@@ -2222,7 +2222,7 @@ const InspectorMindView = (() => {
         if ((window as any).Lit?.render && (window as any).Lit?.unsafeHTML) {
             (window as any).Lit.render((window as any).Lit.unsafeHTML(modalContent), _container);
         } else {
-            _container.innerHTML = modalContent;
+            _container.replaceChildren(document.createRange().createContextualFragment(modalContent));
         }
 
         // wiring
@@ -2361,9 +2361,9 @@ const InspectorMindView = (() => {
                 if (_state) { _state.query = search.value; 
                     const list = _container?.querySelector('#mind-list');
                     const all2 = _memories();
-                    if (list) list.innerHTML = (_visible(all2).length
+                    if (list) list.replaceChildren(document.createRange().createContextualFragment((_visible(all2).length
                         ? _visible(all2).slice().reverse().map((m: any) => _cardHtml(m)).join('')
-                        : `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">nothing matches this view.</div>`);
+                        : `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">nothing matches this view.</div>`)));
                     _wireList();
                 }
             });
@@ -2385,13 +2385,13 @@ const InspectorMindView = (() => {
                 _state.people = data.people || [];
                 _state.peopleStatus = 'ok';
                 const el = _container?.querySelector('#mind-people');
-                if (el) el.innerHTML = _peopleHtml();
+                if (el) el.replaceChildren(document.createRange().createContextualFragment(_peopleHtml()));
             })
             .catch(() => {
                 if (!_state) return;
                 _state.peopleStatus = 'error';
                 const el = _container?.querySelector('#mind-people');
-                if (el) el.innerHTML = _peopleHtml();
+                if (el) el.replaceChildren(document.createRange().createContextualFragment(_peopleHtml()));
             });
     }
 

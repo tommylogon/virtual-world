@@ -292,8 +292,10 @@
         if (!list) return;
         list.textContent = '';
         if (!elements.length) {
-            list.innerHTML = '<div style="color:var(--text-dim);font-size:11px;">'
-                + 'No elements picked. The picker records the selector, box, computed styles and markup.</div>';
+            const empty = document.createElement('div');
+            empty.style.cssText = 'color:var(--text-dim);font-size:11px;';
+            empty.textContent = 'No elements picked. The picker records the selector, box, computed styles and markup.';
+            list.replaceChildren(empty);
             return;
         }
         elements.forEach((record, index) => {

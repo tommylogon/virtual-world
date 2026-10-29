@@ -79,63 +79,140 @@ const ChangesPanel = (() => {
     const source = data.source || '';
     const anyDiff = Object.values(groups).some(list => Array.isArray(list) && list.length > 0);
 
-    let body = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🔄 Changes since source</h3>'
-      + '<button class="modal-close-btn" id="cp-close">✕</button></div>'
-      + '<div style="font-size:10px;color:var(--text-muted);padding-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(source) + '">Source: ' + (source ? escAttr(source.split(/[\\/]/).pop()) : 'none — commit first') + '</div>';
+    // Construct modal contents via DOM elements
+    const head = document.createElement('div');
+    head.className = 'modal-head';
+    const h3 = document.createElement('h3');
+    h3.style.cssText = 'margin:0;font-size:15px;';
+    h3.textContent = '🔄 Changes since source';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close-btn';
+    closeBtn.id = 'cp-close';
+    closeBtn.textContent = '✕';
+    head.append(h3, closeBtn);
+
+    const sourceSub = document.createElement('div');
+    sourceSub.style.cssText = 'font-size:10px;color:var(--text-muted);padding-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    sourceSub.title = source;
+    const sourceLabel = source ? (source.split(/[\\/]/).pop() || '') : 'none - commit first';
+    sourceSub.textContent = `Source: ${sourceLabel}`;
+
+    box.append(head, sourceSub);
 
     if (!source) {
-      body += '<div style="padding:12px 0;color:var(--text-dim);font-size:12px;">No scenario source yet — use 💾 Commit Scenario first.</div>';
+      const emptyDiv = document.createElement('div');
+      emptyDiv.style.cssText = 'padding:12px 0;color:var(--text-dim);font-size:12px;';
+      emptyDiv.textContent = 'No scenario source yet - use 💾 Commit Scenario first.';
+      box.appendChild(emptyDiv);
     } else if (!anyDiff) {
-      body += '<div style="padding:12px 0;color:#3fb950;font-size:12px;">✅ No drift — the live world matches the source.</div>';
+      const matchDiv = document.createElement('div');
+      matchDiv.style.cssText = 'padding:12px 0;color:#3fb950;font-size:12px;';
+      matchDiv.textContent = '✅ No drift - the live world matches the source.';
+      box.appendChild(matchDiv);
     } else {
       // group rows
-      body += '<div style="overflow-y:auto;flex:1;">';
+      const listDiv = document.createElement('div');
+      listDiv.style.cssText = 'overflow-y:auto;flex:1;';
       let lastSection: string | null = null;
       for (const [key, names] of Object.entries(groups)) {
         if (!Array.isArray(names) || names.length === 0) continue;
         const meta = GROUP_META[key] || { emoji: '📄', label: key, kind: 'chg' };
         const section = SECTION_OF(key) || 'other';
         if (lastSection !== null && section !== lastSection && section !== 'other') {
-          body += '<div style="border-top:1px solid var(--border);margin:8px 0;"></div>';
+          const sep = document.createElement('div');
+          sep.style.cssText = 'border-top:1px solid var(--border);margin:8px 0;';
+          listDiv.appendChild(sep);
         }
         lastSection = section;
         const color = meta.kind === 'add' ? '#3fb950' : meta.kind === 'del' ? '#f85149' : '#e3b341';
         const short = names.length > 4 ? names.slice(0, 4).join(', ') + '…' : names.join(', ');
-        body += '<div style="padding:4px 2px;">'
-          + '<div style="display:flex;align-items:center;gap:6px;">'
-          + '<span style="flex-shrink:0;">' + meta.emoji + '</span>'
-          + '<span style="color:' + color + ';font-weight:600;font-size:12px;">' + meta.label + '</span>'
-          + '<span class="state-badge" style="font-size:9px;background:' + color + '22;color:' + color + ';border:1px solid ' + color + ';padding:1px 6px;border-radius:4px;">' + names.length + '</span>'
-          + '</div>'
-          + '<div style="font-size:10px;color:var(--text-muted);padding-left:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escAttr(short) + '">' + escAttr(short) + '</div>'
-          + '</div>';
+
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:4px 2px;';
+
+        const rowHeader = document.createElement('div');
+        rowHeader.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+        const emojiSpan = document.createElement('span');
+        emojiSpan.style.cssText = 'flex-shrink:0;';
+        emojiSpan.textContent = meta.emoji;
+
+        const labelSpan = document.createElement('span');
+        labelSpan.style.cssText = `color:${color};font-weight:600;font-size:12px;`;
+        labelSpan.textContent = meta.label;
+
+        const countBadge = document.createElement('span');
+        countBadge.className = 'state-badge';
+        countBadge.style.cssText = `font-size:9px;background:${color}22;color:${color};border:1px solid ${color};padding:1px 6px;border-radius:4px;`;
+        countBadge.textContent = String(names.length);
+
+        rowHeader.append(emojiSpan, labelSpan, countBadge);
+
+        const namesDiv = document.createElement('div');
+        namesDiv.style.cssText = 'font-size:10px;color:var(--text-muted);padding-left:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        namesDiv.title = short;
+        namesDiv.textContent = short;
+
+        row.append(rowHeader, namesDiv);
+        listDiv.appendChild(row);
       }
-      body += '</div>';
+      box.appendChild(listDiv);
 
       // per-section action buttons
       const sections = ['areas', 'items', 'ways', 'players'];
       const present = sections.filter(s => Object.keys(groups).some(k => SECTION_OF(k) === s && Array.isArray(groups[k]) && groups[k].length > 0));
       if (present.length > 0) {
-        body += '<div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">';
-        body += '<span style="font-size:10px;color:var(--text-dim);">Commit section:</span>';
+        const actionRow = document.createElement('div');
+        actionRow.style.cssText = 'border-top:1px solid var(--border);padding-top:8px;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;';
+
+        const commitLabel = document.createElement('span');
+        commitLabel.style.cssText = 'font-size:10px;color:var(--text-dim);';
+        commitLabel.textContent = 'Commit section:';
+        actionRow.appendChild(commitLabel);
+
         for (const s of present) {
-          body += '<button class="btn btn-sm btn-green cp-commit" data-section="' + s + '" style="font-size:10px;padding:2px 10px;">💾 ' + s.charAt(0).toUpperCase() + s.slice(1) + '</button>';
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-sm btn-green cp-commit';
+          btn.dataset.section = s;
+          btn.style.cssText = 'font-size:10px;padding:2px 10px;';
+          btn.textContent = `💾 ${s.charAt(0).toUpperCase() + s.slice(1)}`;
+          actionRow.appendChild(btn);
         }
-        body += '<span style="font-size:10px;color:var(--text-dim);margin-left:8px;">Discard section:</span>';
+
+        const discardLabel = document.createElement('span');
+        discardLabel.style.cssText = 'font-size:10px;color:var(--text-dim);margin-left:8px;';
+        discardLabel.textContent = 'Discard section:';
+        actionRow.appendChild(discardLabel);
+
         for (const s of present) {
-          body += '<button class="btn btn-sm btn-red cp-discard" data-section="' + s + '" style="font-size:10px;padding:2px 10px;">↩️ ' + s.charAt(0).toUpperCase() + s.slice(1) + '</button>';
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-sm btn-red cp-discard';
+          btn.dataset.section = s;
+          btn.style.cssText = 'font-size:10px;padding:2px 10px;';
+          btn.textContent = `↩️ ${s.charAt(0).toUpperCase() + s.slice(1)}`;
+          actionRow.appendChild(btn);
         }
-        body += '</div>';
+        box.appendChild(actionRow);
       }
     }
 
     // footer: full commit + refresh
-    body += '<div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:8px;">'
-      + '<button class="btn btn-sm btn-ghost" id="cp-refresh">🔄 Refresh</button>'
-      + (source && anyDiff ? '<button class="btn btn-sm btn-green" id="cp-commit-all">💾 Commit All</button>' : '')
-      + '</div>';
+    const footer = document.createElement('div');
+    footer.style.cssText = 'display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:8px;';
+    const refreshBtnEl = document.createElement('button');
+    refreshBtnEl.className = 'btn btn-sm btn-ghost';
+    refreshBtnEl.id = 'cp-refresh';
+    refreshBtnEl.textContent = '🔄 Refresh';
+    footer.appendChild(refreshBtnEl);
 
-    box.innerHTML = body;
+    if (source && anyDiff) {
+      const commitAllBtn = document.createElement('button');
+      commitAllBtn.className = 'btn btn-sm btn-green';
+      commitAllBtn.id = 'cp-commit-all';
+      commitAllBtn.textContent = '💾 Commit All';
+      footer.appendChild(commitAllBtn);
+    }
+    box.appendChild(footer);
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -189,10 +266,6 @@ const ChangesPanel = (() => {
     });
 
     _cache = data; // keep for re-render
-  }
-
-  function escAttr(s: unknown): string {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   return { open, fetchDiff, apply };

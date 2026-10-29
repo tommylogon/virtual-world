@@ -204,16 +204,31 @@ const CreateModal = {
                 results.style.display = 'none';
                 return;
             }
-            results.innerHTML = items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
-            results.style.display = 'block';
-            results.querySelectorAll('.tag-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    hidden.value = el.dataset.id;
-                    preview.textContent = `Selected: ${el.dataset.name} (${el.dataset.id})`;
+            results.replaceChildren();
+            for (const r of items) {
+                const opt = document.createElement('div');
+                opt.className = 'tag-option';
+                opt.dataset.id = r.id || '';
+                opt.dataset.name = r.name || '';
+                opt.style.cssText = 'padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;';
+                const iconSpan = document.createElement('span');
+                iconSpan.textContent = r.icon || '';
+                const nameSpan = document.createElement('span');
+                nameSpan.style.fontWeight = '600';
+                nameSpan.textContent = r.name || '';
+                const typeSpan = document.createElement('span');
+                typeSpan.style.cssText = 'color:var(--text-muted);font-size:9px;margin-left:auto;';
+                typeSpan.textContent = r.type || '';
+                opt.append(iconSpan, nameSpan, typeSpan);
+                opt.addEventListener('click', () => {
+                    hidden.value = opt.dataset.id;
+                    preview.textContent = `Selected: ${opt.dataset.name} (${opt.dataset.id})`;
                     results.style.display = 'none';
-                    input.value = el.dataset.name;
+                    input.value = opt.dataset.name;
                 });
-            });
+                results.appendChild(opt);
+            }
+            results.style.display = 'block';
         };
         input.oninput = async () => {
             const q = input.value.trim();
@@ -452,13 +467,33 @@ const CreateModal = {
             return;
         const row = document.createElement('div');
         row.className = 'cm-content-row';
-        const relOptions = ITEM_RELATIONS.map(r => `<option value="${r}"${r === relation ? ' selected' : ''}>${r}</option>`).join('');
-        row.innerHTML = `
-            <input type="text" class="cr-name" placeholder="Name" value="${name.replace(/"/g, '&quot;')}">
-            <input type="text" class="cr-desc" placeholder="Short description" value="${description.replace(/"/g, '&quot;')}">
-            <select class="cr-rel">${relOptions}</select>
-            <button class="btn btn-sm" title="Remove" style="background:var(--bg-inset);border-color:var(--border);">✕</button>`;
-        row.querySelector('button').addEventListener('click', () => row.remove());
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'cr-name';
+        nameInput.placeholder = 'Name';
+        nameInput.value = name;
+        const descInput = document.createElement('input');
+        descInput.type = 'text';
+        descInput.className = 'cr-desc';
+        descInput.placeholder = 'Short description';
+        descInput.value = description;
+        const relSelect = document.createElement('select');
+        relSelect.className = 'cr-rel';
+        for (const r of ITEM_RELATIONS) {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            if (r === relation)
+                opt.selected = true;
+            relSelect.appendChild(opt);
+        }
+        const rmBtn = document.createElement('button');
+        rmBtn.className = 'btn btn-sm';
+        rmBtn.title = 'Remove';
+        rmBtn.style.cssText = 'background:var(--bg-inset);border-color:var(--border);';
+        rmBtn.textContent = '✕';
+        rmBtn.addEventListener('click', () => row.remove());
+        row.append(nameInput, descInput, relSelect, rmBtn);
         rows.appendChild(row);
     },
     _buildConnectionForm() {

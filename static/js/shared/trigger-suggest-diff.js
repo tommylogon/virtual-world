@@ -167,12 +167,12 @@ const TriggerSuggestDiffModule = (() => {
         card.style.cssText = `border:1px solid var(--border);border-left:3px solid ${accent};border-radius:8px;padding:10px 12px;background:var(--bg-inset);`;
         const head = document.createElement('div');
         head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;';
-        head.innerHTML = `<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(row.type)}</div>${badge(row.status)}`;
+        head.replaceChildren(document.createRange().createContextualFragment(`<div style="font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(row.type)}</div>${badge(row.status)}`));
         card.appendChild(head);
         if (row.status === 'keep') {
             const line = document.createElement('div');
             line.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:6px;';
-            line.innerHTML = `An existing <b>${escapeHtml(row.type)}</b> trigger already does this — it will be <b style="color:${GREEN};">kept as-is</b>.`;
+            line.replaceChildren(document.createRange().createContextualFragment(`An existing <b>${escapeHtml(row.type)}</b> trigger already does this - it will be <b style="color:${GREEN};">kept as-is</b>.`));
             card.appendChild(line);
         }
         else {
@@ -189,7 +189,7 @@ const TriggerSuggestDiffModule = (() => {
     function blockHtml(label, trigger, color, bg) {
         const el = document.createElement('div');
         el.style.cssText = `margin-top:8px;border:1px solid var(--border-light);border-radius:6px;padding:7px 10px;background:${bg};`;
-        el.innerHTML = `<div style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${color};margin-bottom:2px;">${escapeHtml(label)}</div>${effectsHtml(trigger)}${renderMetaLines(trigger)}`;
+        el.replaceChildren(document.createRange().createContextualFragment(`<div style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${color};margin-bottom:2px;">${escapeHtml(label)}</div>${effectsHtml(trigger)}${renderMetaLines(trigger)}`));
         return el;
     }
     function renderMetaLines(t) {
@@ -283,17 +283,20 @@ const TriggerSuggestDiffModule = (() => {
         // Header
         const header = document.createElement('div');
         header.style.cssText = 'padding:14px 16px 10px;border-bottom:1px solid var(--border-light);flex-shrink:0;';
-        header.innerHTML = `
+        header.replaceChildren(document.createRange().createContextualFragment(`
             <div style="font-size:14px;font-weight:700;">${escapeHtml(opts.title || 'Review suggested triggers')}</div>
             ${opts.subtitle ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(opts.subtitle)}</div>` : ''}
             ${summaryHtml(rows)}
-        `;
+        `));
         panel.appendChild(header);
         // Body
         const body = document.createElement('div');
         body.style.cssText = 'padding:12px 16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;';
         if (!rows.length) {
-            body.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Everything planned is already covered — nothing to change.</div>';
+            const empty = document.createElement('div');
+            empty.style.cssText = 'font-size:12px;color:var(--text-muted);';
+            empty.textContent = 'Everything planned is already covered - nothing to change.';
+            body.replaceChildren(empty);
         }
         else {
             rows.forEach((row, i) => body.appendChild(buildRow(row, i)));

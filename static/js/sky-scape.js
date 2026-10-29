@@ -183,17 +183,28 @@ const _SkyScape = (() => {
         const date = `${_monthName(state?.game_month || 0)} ${_dayOfMonth(state)}, ${state?.game_year || 1}`;
         const moonLabel = (moon.name || '').replace(/_/g, ' ');
         const next = nextForecastChange(state);
-        let html = `🕐 ${(state?.game_time || '').slice(0, 5)}`;
-        html += ` · ${date}`;
-        html += ` · <span title="Moon phase (light bonus ${moon.light_bonus || 0})">${moonIcon} ${moonLabel}</span>`;
-        html += ` · <span title="Weather">${weatherIcon} ${weather}</span>`;
-        if (next)
-            html += ` · <span title="Next forecast change">${next.weather ? _weatherChip(next.weather, '⛅') : ''} ${next.label}</span>`;
         el.textContent = '';
         el.title = 'World Sky — click to open';
         el.style.cursor = 'pointer';
         const span = document.createElement('span');
-        span.innerHTML = html;
+        span.append(`🕐 ${(state?.game_time || '').slice(0, 5)} · ${date} · `);
+        const moonSpan = document.createElement('span');
+        moonSpan.title = `Moon phase (light bonus ${moon.light_bonus || 0})`;
+        moonSpan.textContent = `${moonIcon} ${moonLabel}`;
+        span.appendChild(moonSpan);
+        span.append(' · ');
+        const weatherSpan = document.createElement('span');
+        weatherSpan.title = 'Weather';
+        weatherSpan.textContent = `${weatherIcon} ${weather}`;
+        span.appendChild(weatherSpan);
+        if (next) {
+            span.append(' · ');
+            const nextSpan = document.createElement('span');
+            nextSpan.title = 'Next forecast change';
+            const icon = next.weather ? _weatherChip(next.weather, '⛅') : '';
+            nextSpan.textContent = `${icon ? icon + ' ' : ''}${next.label}`;
+            span.appendChild(nextSpan);
+        }
         el.appendChild(span);
         if (!el._skyClickBound) {
             el._skyClickBound = true;
@@ -337,7 +348,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         overlay.id = 'sky-overlay';
         const box = document.createElement('div');
         box.className = 'vwsky';
-        box.innerHTML = `
+        box.replaceChildren(document.createRange().createContextualFragment(`
             <div class="vwsky-head">
                 <span style="font-size:15px;">🌦</span>
                 <span class="vwsky-title">World Sky</span>
@@ -471,7 +482,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 <span>Moon <code id="sky-moon-readout"></code></span>
                 <span>Forecast <code id="sky-forecast-readout"></code></span>
             </div>
-        `;
+        `));
         overlay.appendChild(box);
         document.body.appendChild(overlay);
         _modalEl = overlay;
@@ -687,10 +698,16 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (!el)
             return;
         const { env } = _currentAreaEnv(_state());
-        const parts = [];
+        el.replaceChildren();
         const add = (label, value) => {
-            if (value)
-                parts.push(`<span class="vwsky-stat"><b>${_esc(label)}</b>${_esc(value)}</span>`);
+            if (!value)
+                return;
+            const span = document.createElement('span');
+            span.className = 'vwsky-stat';
+            const b = document.createElement('b');
+            b.textContent = label;
+            span.append(b, value);
+            el.appendChild(span);
         };
         const wind = env.wind ? `${String(env.wind)}${env.wind_direction ? ' · ' + String(env.wind_direction) : ''}` : '';
         add('Wind', wind);
@@ -700,7 +717,6 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         add('Light', env.light != null ? `${Math.round(Number(env.light))}%` : '');
         add('Precip', env.precipitation ? `${env.precipitation} mm/h` : '');
         add('Snow', env.snow_depth ? `${env.snow_depth} cm` : '');
-        el.innerHTML = parts.join('');
     }
     let _playTimer = null;
     function _stopPlay() {
@@ -793,19 +809,26 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 _regionsFetching = false;
                 if (status)
                     status.textContent = 'could not load outlook';
-                grid.innerHTML = '<div class="vwsky-empty">Could not load the outlook.</div>';
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'vwsky-empty';
+                emptyDiv.textContent = 'Could not load the outlook.';
+                grid.replaceChildren(emptyDiv);
             });
             return;
         }
         if (!_regionsData)
             return;
-        grid.innerHTML = _regionsTable(_regionsData);
+        grid.replaceChildren(_regionsTable(_regionsData));
     }
     /** The table: one row per open-sky area, one column per day, today first. */
     function _regionsTable(data) {
         const days = data.days || [];
-        if (!days.length)
-            return '<div class="vwsky-empty">No open-sky areas to forecast.</div>';
+        if (!days.length) {
+            const empty = document.createElement('div');
+            empty.className = 'vwsky-empty';
+            empty.textContent = 'No open-sky areas to forecast.';
+            return empty;
+        }
         // The badge is the honesty line: a live field vs a preview the sim is not
         // actually running.
         const badge = document.getElementById('sky-regions-badge');
@@ -817,30 +840,63 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const q = (filterEl?.value || '').trim().toLowerCase();
         const all = data.areas || [];
         const areas = all.filter((a) => !q || a.name.toLowerCase().includes(q));
-        let head = '<thead><tr><th class="vwsky-rcorner">Area</th>';
+        const frag = document.createElement('div');
+        const table = document.createElement('table');
+        table.className = 'vwsky-rtable';
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+        const thCorner = document.createElement('th');
+        thCorner.className = 'vwsky-rcorner';
+        thCorner.textContent = 'Area';
+        trHead.appendChild(thCorner);
         for (const d of days) {
+            const th = document.createElement('th');
+            if (d.offset === 0)
+                th.className = 'vwsky-rtoday';
+            th.textContent = `${_monthName(d.month)} ${d.day_of_month}`;
+            const br = document.createElement('br');
             const moon = MOON_CHIP[(d.moon && d.moon.name) || ''] || '';
-            const cls = d.offset === 0 ? ' class="vwsky-rtoday"' : '';
-            head += `<th${cls}>${_esc(_monthName(d.month))} ${_esc(d.day_of_month)}<br>${moon}</th>`;
+            th.append(br, moon);
+            trHead.appendChild(th);
         }
-        head += '</tr></thead>';
-        let body = '';
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
         for (const a of areas) {
-            body += `<tr><td class="vwsky-rname" title="${_esc(a.id)}">${_esc(a.name)}</td>`;
+            const tr = document.createElement('tr');
+            const tdName = document.createElement('td');
+            tdName.className = 'vwsky-rname';
+            tdName.title = a.id;
+            tdName.textContent = a.name;
+            tr.appendChild(tdName);
             for (const d of days) {
+                const td = document.createElement('td');
+                if (d.offset === 0)
+                    td.className = 'vwsky-rtoday';
                 const state = (d.states || {})[a.id] || '';
                 const temp = (d.temps || {})[a.id];
-                const cls = d.offset === 0 ? ' class="vwsky-rtoday"' : '';
                 const t = temp != null ? `${Math.round(Number(temp))}\u00b0` : '';
-                body += `<td${cls} title="${_esc(a.name)} - ${_esc(state)}${t ? ', ' + t : ''}">`
-                    + `<span class="vwsky-rchip">${_weatherChip(state, '')}</span>`
-                    + `<span class="vwsky-rtemp">${t}</span></td>`;
+                td.title = `${a.name} - ${state}${t ? ', ' + t : ''}`;
+                const chipSpan = document.createElement('span');
+                chipSpan.className = 'vwsky-rchip';
+                chipSpan.textContent = _weatherChip(state, '');
+                const tempSpan = document.createElement('span');
+                tempSpan.className = 'vwsky-rtemp';
+                tempSpan.textContent = t;
+                td.append(chipSpan, tempSpan);
+                tr.appendChild(td);
             }
-            body += '</tr>';
+            tbody.appendChild(tr);
         }
+        table.appendChild(tbody);
+        frag.appendChild(table);
         const count = `${areas.length} of ${all.length} areas - ${days.length} days`;
-        return `<table class="vwsky-rtable">${head}<tbody>${body}</tbody></table>`
-            + `<div class="vwsky-note" style="padding:7px 9px;">${_esc(count)}</div>`;
+        const note = document.createElement('div');
+        note.className = 'vwsky-note';
+        note.style.cssText = 'padding:7px 9px;';
+        note.textContent = count;
+        frag.appendChild(note);
+        return frag;
     }
     /** The "override active" dot. Refreshed here *and* on every state update
      *  (see `_paint`) so setting or clearing an override shows immediately,
@@ -895,10 +951,20 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             return; // registry unchanged since last build
         sel.dataset.sig = sig;
         const current = sel.value;
-        sel.innerHTML = '<option value="">— weather</option>' + ids.map((id) => {
+        sel.replaceChildren();
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = '- weather';
+        sel.appendChild(defaultOpt);
+        for (const id of ids) {
             const chip = _weatherChip(id, '');
-            return `<option value="${_esc(id)}"${id === current ? ' selected' : ''}>${chip ? chip + ' ' : ''}${_esc(id)}</option>`;
-        }).join('');
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `${chip ? chip + ' ' : ''}${id}`;
+            if (id === current)
+                opt.selected = true;
+            sel.appendChild(opt);
+        }
     }
     /** A compact "where in the period" label for an offset in minutes. */
     function _offsetHint(off, granularity) {
@@ -938,7 +1004,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const granularity = document.getElementById('sky-sched-granularity')?.value || 'hourly';
         const row = document.createElement('div');
         row.className = 'vwsky-grid sky-sched-row';
-        row.innerHTML = _entryFieldsHtml(e || { offset: _nextOffset() });
+        row.replaceChildren(document.createRange().createContextualFragment(_entryFieldsHtml(e || { offset: _nextOffset() })));
         _wireRow(row);
         // Drop the "no entries" placeholder if present.
         box.querySelector('div:not(.sky-sched-row)')?.remove();
@@ -982,21 +1048,29 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const box = document.getElementById('sky-sched-entries');
         if (box) {
             const entries = Array.isArray(sched.entries) ? sched.entries : [];
+            box.replaceChildren();
             if (entries.length) {
-                box.innerHTML = '';
                 for (const e of entries)
                     _addEntryRow(e);
             }
             else {
-                box.innerHTML = `<div class="vwsky-empty">No entries yet — add one, or pick a preset below.</div>`;
+                const empty = document.createElement('div');
+                empty.className = 'vwsky-empty';
+                empty.textContent = 'No entries yet - add one, or pick a preset below.';
+                box.appendChild(empty);
             }
         }
         _renderTimeline(sched);
         const presets = document.getElementById('sky-sched-presets');
         if (presets && !presets.childElementCount) {
-            presets.innerHTML = SCHED_PRESETS.map((p, i) => `<button class="vwsky-chip" data-preset="${i}">${_esc(p.name)}</button>`).join('');
-            presets.querySelectorAll('[data-preset]').forEach((b) => {
-                b.addEventListener('click', () => _applyPreset(SCHED_PRESETS[Number(b.dataset.preset)].hours));
+            presets.replaceChildren();
+            SCHED_PRESETS.forEach((p, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'vwsky-chip';
+                btn.dataset.preset = String(i);
+                btn.textContent = p.name;
+                btn.addEventListener('click', () => _applyPreset(p.hours));
+                presets.appendChild(btn);
             });
         }
     }
@@ -1123,12 +1197,12 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const nowPct = granularity === 'hourly' ? (_nowMinutes() / period) * 100 : -1;
         const playhead = (nowPct >= 0 && nowPct <= 100)
             ? `<div class="vwsky-now" style="left:${nowPct}%" title="now"></div>` : '';
-        tl.innerHTML = `<div class="vwsky-ruler">${ruler}</div>`
+        tl.replaceChildren(document.createRange().createContextualFragment(`<div class="vwsky-ruler">${ruler}</div>`
             + `<div class="vwsky-trackwrap">`
             + `<div class="vwsky-track" id="sky-tl-track">${blocks}${playhead}</div>`
             + `<div class="vwsky-scrub" id="sky-scrub" style="display:none;"></div>`
             + `<div class="vwsky-tip" id="sky-tip" style="display:none;"></div>`
-            + `</div>`;
+            + `</div>`));
         const track = tl.querySelector('#sky-tl-track');
         if (track)
             _wireTimeline(track, entries, period, granularity);
@@ -1189,7 +1263,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const box = document.getElementById('sky-sched-entries');
         if (!box)
             return;
-        box.innerHTML = '';
+        box.replaceChildren();
         for (const [h, weather] of hours)
             _addEntryRow({ offset: Math.round(h * 60), weather });
         _renderTimeline(_state().forecast_schedule);

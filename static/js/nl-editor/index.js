@@ -95,7 +95,7 @@ window.NLEditor = (() => {
                         break;
                     case 'session:reset':
                         if (this.ui.chatList)
-                            this.ui.chatList.innerHTML = '';
+                            this.ui.chatList.replaceChildren();
                         this.ui.hideClarification();
                         this.ui.setStatus('Ready', false);
                         this.ui.setActivity('idle');

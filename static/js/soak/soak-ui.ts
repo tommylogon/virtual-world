@@ -53,7 +53,7 @@
         if (window.Lit?.render) {
             window.Lit.render(template, container);
         } else if (typeof template === 'string') {
-            (container as HTMLElement).innerHTML = template;
+            (container as HTMLElement).replaceChildren(document.createRange().createContextualFragment(template));
         }
     };
 

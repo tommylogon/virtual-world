@@ -203,16 +203,35 @@ class GraphManagerImpl {
             const bar = document.createElement('div');
             bar.id = 'bulk-action-bar';
             bar.style.cssText = 'position:absolute;left:12px;bottom:12px;z-index:50;display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.5);';
-            bar.innerHTML =
-                '<span id="bulk-count" style="color:var(--text-muted);"></span>' +
-                    '<select id="bulk-scope" title="Move every selected area into one scope. ' +
-                    'Membership only — a scope is not a painted cell. One undo step for the whole selection." ' +
-                    'style="font-size:11px;padding:2px;border-radius:5px;max-width:150px;">' +
-                    '<option value="">🗺️ Scope…</option></select>' +
-                    '<button class="btn btn-sm" id="bulk-tag">🏷 Tag</button>' +
-                    '<button class="btn btn-sm" id="bulk-state">⚠ State</button>' +
-                    '<button class="btn btn-sm" id="bulk-delete" style="background:#3a1a1a;color:#ff6b6b;">🗑 Delete</button>' +
-                    '<button class="btn btn-sm" id="bulk-clear">✕ Clear</button>';
+            const countSpan = document.createElement('span');
+            countSpan.id = 'bulk-count';
+            countSpan.style.color = 'var(--text-muted)';
+            const sel = document.createElement('select');
+            sel.id = 'bulk-scope';
+            sel.title = 'Move every selected area into one scope. Membership only - a scope is not a painted cell. One undo step for the whole selection.';
+            sel.style.cssText = 'font-size:11px;padding:2px;border-radius:5px;max-width:150px;';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '🗺️ Scope…';
+            sel.appendChild(opt);
+            const tagBtn = document.createElement('button');
+            tagBtn.className = 'btn btn-sm';
+            tagBtn.id = 'bulk-tag';
+            tagBtn.textContent = '🏷 Tag';
+            const stateBtn = document.createElement('button');
+            stateBtn.className = 'btn btn-sm';
+            stateBtn.id = 'bulk-state';
+            stateBtn.textContent = '⚠ State';
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-sm';
+            delBtn.id = 'bulk-delete';
+            delBtn.style.cssText = 'background:#3a1a1a;color:#ff6b6b;';
+            delBtn.textContent = '🗑 Delete';
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'btn btn-sm';
+            clearBtn.id = 'bulk-clear';
+            clearBtn.textContent = '✕ Clear';
+            bar.append(countSpan, sel, tagBtn, stateBtn, delBtn, clearBtn);
             bar.querySelector('#bulk-tag').addEventListener('click', () => graphManager._bulkTag());
             bar.querySelector('#bulk-state').addEventListener('click', () => graphManager._bulkState());
             bar.querySelector('#bulk-delete').addEventListener('click', () => graphManager._bulkDelete());
@@ -230,7 +249,7 @@ class GraphManagerImpl {
         }
         const count = this._bulkBar.querySelector('#bulk-count');
         if (count)
-            count.textContent = `${this._bulkSelection.size} selected — `;
+            count.textContent = `${this._bulkSelection.size} selected - `;
     }
     /**
      * Fill the bulk bar's scope picker once (task-539). The option list comes
@@ -247,7 +266,11 @@ class GraphManagerImpl {
         try {
             const data = await _gmApi.getWorldScopes(true);
             const scopes = (data && data.scopes) || [];
-            sel.innerHTML = '<option value="">🗺️ Scope…</option>';
+            sel.replaceChildren();
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '🗺️ Scope…';
+            sel.appendChild(defaultOpt);
             scopes.forEach((s) => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
@@ -259,7 +282,11 @@ class GraphManagerImpl {
         }
         catch (e) {
             this._bulkScopesFilled = false; // let a later selection retry
-            sel.innerHTML = '<option value="">scopes unavailable</option>';
+            sel.replaceChildren();
+            const errOpt = document.createElement('option');
+            errOpt.value = '';
+            errOpt.textContent = 'scopes unavailable';
+            sel.appendChild(errOpt);
         }
     }
     /**
@@ -433,7 +460,7 @@ class GraphManagerImpl {
             }
             if (!sel)
                 return;
-            sel.innerHTML = '';
+            sel.replaceChildren();
             const wholeWorld = document.createElement('option');
             wholeWorld.value = '';
             wholeWorld.textContent = '🌍 Whole world';

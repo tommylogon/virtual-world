@@ -133,12 +133,15 @@ const InspectorTemplateSync = (() => {
       }
     } catch (e) { /* ignore */ }
     if (list) {
-      let html = '';
+      const opts: HTMLOptionElement[] = [];
       for (const [id, entry] of Object.entries(libData)) {
         const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
-        html += `<option value="${esc(id)}">${esc(label)}</option>`;
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = label;
+        opts.push(opt);
       }
-      list.innerHTML = html;
+      list.replaceChildren(...opts);
     }
     if (current && !input.value) input.value = current;
   }

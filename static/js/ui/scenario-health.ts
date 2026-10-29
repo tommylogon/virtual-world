@@ -41,42 +41,113 @@
 
     const totalIssues = list.reduce((acc: number, s: ScenarioSummary) => acc + ((s.health && s.health.issues) || 0), 0);
     const broken = list.filter((s: ScenarioSummary) => s.health && !s.health.ok).length;
-    let html = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🩺 Scenario health</h3>'
-      + '<button class="modal-close-btn" id="sh-close">✕</button></div>'
-      + '<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">' + list.length + ' scenarios · '
-      + (totalIssues === 0 ? '<span style="color:#3fb950;">all clean (file-level)</span>' : '<span style="color:#e3b341;">' + totalIssues + ' file-level issues</span>')
-      + (broken ? ' · <span style="color:#f85149;">' + broken + ' unparseable</span>' : '')
-      + '</div>';
 
-    html += '<div style="overflow-y:auto;flex:1;">';
+    const head = document.createElement('div');
+    head.className = 'modal-head';
+    const h3 = document.createElement('h3');
+    h3.style.cssText = 'margin:0;font-size:15px;';
+    h3.textContent = '🩺 Scenario health';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close-btn';
+    closeBtn.id = 'sh-close';
+    closeBtn.textContent = '✕';
+    head.append(h3, closeBtn);
+
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:10px;color:var(--text-dim);margin-bottom:8px;';
+    sub.append(`${list.length} scenarios · `);
+    const issueSpan = document.createElement('span');
+    if (totalIssues === 0) {
+      issueSpan.style.color = '#3fb950';
+      issueSpan.textContent = 'all clean (file-level)';
+    } else {
+      issueSpan.style.color = '#e3b341';
+      issueSpan.textContent = `${totalIssues} file-level issues`;
+    }
+    sub.appendChild(issueSpan);
+    if (broken) {
+      const brokenSpan = document.createElement('span');
+      brokenSpan.style.color = '#f85149';
+      brokenSpan.textContent = `${broken} unparseable`;
+      sub.append(' · ', brokenSpan);
+    }
+    box.append(head, sub);
+
+    const listDiv = document.createElement('div');
+    listDiv.style.cssText = 'overflow-y:auto;flex:1;';
+
     for (const s of list) {
       const h = s.health || {};
       const issues = h.issues || 0;
       const color = !h.ok ? '#f85149' : issues > 0 ? '#e3b341' : '#3fb950';
       const badge = !h.ok ? '⚠ unparseable' : issues > 0 ? `⚠ ${issues} issue${issues === 1 ? '' : 's'}` : '✓ clean';
       const age = s.modified ? ageStr(Number(s.modified)) : '';
-      html += '<div style="padding:6px 4px;border-bottom:1px solid var(--border);">'
-        + '<div style="display:flex;align-items:center;gap:6px;">'
-        + '<span style="flex-shrink:0;">📄</span>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(s.name) + '</div>'
-        + '<div style="font-size:9px;color:var(--text-muted);">' + (s.areas || 0) + ' rooms · ' + (s.players || 0) + ' players · ' + fmtSize(Number(s.size)) + (age ? ' · ' + age : '') + '</div>'
-        + (issues > 0 ? '<div style="font-size:9px;color:' + color + ';padding-top:1px;">'
-            + (h.dangling_trigger_targets ? '🔗 ' + h.dangling_trigger_targets + ' dangling trigger target(s) · ' : '')
-            + (h.ways_missing_description ? '🚪 ' + h.ways_missing_description + ' way(s) no description · ' : '')
-            + (h.areas_missing_description ? '🏠 ' + h.areas_missing_description + ' area(s) no description' : '')
-            + '</div>' : '')
-        + '</div>'
-        + '<span class="state-badge" style="font-size:9px;background:' + color + '22;color:' + color + ';border:1px solid ' + color + ';padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0;">' + badge + '</span>'
-        + '<button class="btn btn-sm btn-ghost" data-open="' + esc(s.name) + '" style="font-size:9px;flex-shrink:0;">Open</button>'
-        + '</div></div>';
-    }
-    html += '</div>';
-    html += '<div style="padding-top:8px;border-top:1px solid var(--border);margin-top:6px;display:flex;justify-content:space-between;align-items:center;">'
-      + '<span style="font-size:9px;color:var(--text-muted);">File-level scan only — open a scenario and run 🧩 Audit for deep trigger validation.</span>'
-      + '<button class="btn btn-sm btn-ghost" id="sh-refresh">🔄 Refresh</button></div>';
 
-    box.innerHTML = html;
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:6px 4px;border-bottom:1px solid var(--border);';
+
+      const innerRow = document.createElement('div');
+      innerRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+      const iconSpan = document.createElement('span');
+      iconSpan.style.cssText = 'flex-shrink:0;';
+      iconSpan.textContent = '📄';
+
+      const detailsCol = document.createElement('div');
+      detailsCol.style.cssText = 'flex:1;min-width:0;';
+
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      nameEl.textContent = s.name || '';
+
+      const metaEl = document.createElement('div');
+      metaEl.style.cssText = 'font-size:9px;color:var(--text-muted);';
+      metaEl.textContent = `${s.areas || 0} rooms · ${s.players || 0} players · ${fmtSize(Number(s.size))}${age ? ' · ' + age : ''}`;
+
+      detailsCol.append(nameEl, metaEl);
+
+      if (issues > 0) {
+        const issuesEl = document.createElement('div');
+        issuesEl.style.cssText = `font-size:9px;color:${color};padding-top:1px;`;
+        const bits: string[] = [];
+        if (h.dangling_trigger_targets) bits.push(`🔗 ${h.dangling_trigger_targets} dangling trigger target(s)`);
+        if (h.ways_missing_description) bits.push(`🚪 ${h.ways_missing_description} way(s) no description`);
+        if (h.areas_missing_description) bits.push(`🏠 ${h.areas_missing_description} area(s) no description`);
+        issuesEl.textContent = bits.join(' · ');
+        detailsCol.appendChild(issuesEl);
+      }
+
+      const badgeSpan = document.createElement('span');
+      badgeSpan.className = 'state-badge';
+      badgeSpan.style.cssText = `font-size:9px;background:${color}22;color:${color};border:1px solid ${color};padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0;`;
+      badgeSpan.textContent = badge;
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'btn btn-sm btn-ghost';
+      openBtn.dataset.open = s.name || '';
+      openBtn.style.cssText = 'font-size:9px;flex-shrink:0;';
+      openBtn.textContent = 'Open';
+
+      innerRow.append(iconSpan, detailsCol, badgeSpan, openBtn);
+      row.appendChild(innerRow);
+      listDiv.appendChild(row);
+    }
+    box.appendChild(listDiv);
+
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding-top:8px;border-top:1px solid var(--border);margin-top:6px;display:flex;justify-content:space-between;align-items:center;';
+
+    const footNote = document.createElement('span');
+    footNote.style.cssText = 'font-size:9px;color:var(--text-muted);';
+    footNote.textContent = 'File-level scan only - open a scenario and run 🧩 Audit for deep trigger validation.';
+
+    const refreshBtnEl = document.createElement('button');
+    refreshBtnEl.className = 'btn btn-sm btn-ghost';
+    refreshBtnEl.id = 'sh-refresh';
+    refreshBtnEl.textContent = '🔄 Refresh';
+
+    footer.append(footNote, refreshBtnEl);
+    box.appendChild(footer);
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -113,10 +184,6 @@
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
-  }
-
-  function esc(s: unknown) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   return { open };

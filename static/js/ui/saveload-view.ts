@@ -278,20 +278,39 @@ window.SaveLoadView = (() => {
 
         var counts = document.createElement('div');
         counts.style.cssText = 'font-size:12px;';
-        counts.innerHTML =
-            '🏠 <strong>' + info.rooms + '</strong> rooms · 📦 <strong>' + info.items +
-            '</strong> items · 🚪 <strong>' + info.ways + '</strong> ways · 🧍 <strong>' +
-            info.players.length + '</strong> characters<br>' +
-            '<span style="font-size:10px;color:var(--text-muted);">' +
-            (info.isTemplate ? 'format: authoring template' : 'format: world state') +
-            '  -  the current world will be replaced (↩ Undo restores it).</span>';
+
+        var strongRooms = document.createElement('strong');
+        strongRooms.textContent = String(info.rooms);
+        var strongItems = document.createElement('strong');
+        strongItems.textContent = String(info.items);
+        var strongWays = document.createElement('strong');
+        strongWays.textContent = String(info.ways);
+        var strongChars = document.createElement('strong');
+        strongChars.textContent = String(info.players.length);
+
+        var subDesc = document.createElement('span');
+        subDesc.style.cssText = 'font-size:10px;color:var(--text-muted);';
+        subDesc.textContent = (info.isTemplate ? 'format: authoring template' : 'format: world state') +
+            '  -  the current world will be replaced (↩ Undo restores it).';
+
+        counts.append(
+            '🏠 ', strongRooms, ' rooms · 📦 ', strongItems,
+            ' items · 🚪 ', strongWays, ' ways · 🧍 ', strongChars,
+            ' characters', document.createElement('br'), subDesc
+        );
         box.appendChild(counts);
 
         var issuesBox: HTMLElement | null = null;
         if (info.issues.length) {
             issuesBox = document.createElement('div');
             issuesBox.style.cssText = 'font-size:11px;color:#e3b341;background:rgba(227,179,65,0.08);border:1px solid rgba(227,179,65,0.3);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;';
-            issuesBox.innerHTML = '<strong>⚠ Notes:</strong><br>' + info.issues.map(function(i) { return i.replace(/^- /, ''); }).join('<br>');
+            var strongNotes = document.createElement('strong');
+            strongNotes.textContent = '⚠ Notes:';
+            issuesBox.append(strongNotes);
+            info.issues.forEach(function(i) {
+                issuesBox!.appendChild(document.createElement('br'));
+                issuesBox!.append(i.replace(/^- /, ''));
+            });
             box.appendChild(issuesBox);
         } else {
             issuesBox = document.createElement('div');
@@ -323,18 +342,38 @@ window.SaveLoadView = (() => {
                 audit.textContent = '🔬 Deep audit';
                 if (j.error) { toastError(j.error); return; }
                 var sev = j.severities || {};
-                var parts = [];
-                if (j.count === 0) parts.push('<span style="color:#3fb950;">✅ Full audit passed  -  no trigger/authoring issues.</span>');
+                var parts: string[] = [];
                 if (sev.error) parts.push(sev.error + ' error(s)');
                 if (sev.warning) parts.push(sev.warning + ' warning(s)');
                 if (sev.info) parts.push(sev.info + ' info note(s)');
-                var detail = (j.issues || []).slice(0, 6).map(function(i: any) {
-                    return (i.severity === 'error' ? '✕ ' : i.severity === 'warning' ? '⚠ ' : 'ℹ ') +
-                        String(i.message || '');
-                }).join('<br>');
-                issuesBox!.innerHTML = '<strong>🔬 Deep audit:</strong> ' + (j.count === 0 ? parts[0] : parts.join(' · ')) +
-                    (detail ? '<br>' + detail : '') +
-                    (j.count > 6 ? '<br><span style="color:var(--text-muted);">…and ' + (j.count - 6) + ' more (load the world to see them in Issues).</span>' : '');
+
+                issuesBox!.replaceChildren();
+                var strongDeep = document.createElement('strong');
+                strongDeep.textContent = '🔬 Deep audit: ';
+                issuesBox!.appendChild(strongDeep);
+
+                if (j.count === 0) {
+                    var passSpan = document.createElement('span');
+                    passSpan.style.color = '#3fb950';
+                    passSpan.textContent = '✅ Full audit passed  -  no trigger/authoring issues.';
+                    issuesBox!.appendChild(passSpan);
+                } else {
+                    issuesBox!.append(parts.join(' · '));
+                }
+
+                (j.issues || []).slice(0, 6).forEach(function(i: any) {
+                    issuesBox!.appendChild(document.createElement('br'));
+                    var prefix = i.severity === 'error' ? '✕ ' : i.severity === 'warning' ? '⚠ ' : 'ℹ ';
+                    issuesBox!.append(prefix + String(i.message || ''));
+                });
+
+                if (j.count > 6) {
+                    issuesBox!.appendChild(document.createElement('br'));
+                    var moreSpan = document.createElement('span');
+                    moreSpan.style.color = 'var(--text-muted)';
+                    moreSpan.textContent = '…and ' + (j.count - 6) + ' more (load the world to see them in Issues).';
+                    issuesBox!.appendChild(moreSpan);
+                }
             }).catch(function(e) {
                 audit.disabled = false;
                 audit.textContent = '🔬 Deep audit';

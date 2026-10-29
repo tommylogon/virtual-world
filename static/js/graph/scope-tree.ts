@@ -301,7 +301,7 @@
             ? selectedId
             : (gm && gm._scopeFilter) || WHOLE_WORLD;
         const rows = visibleRows(buildTree(list), state.collapsed, selected);
-        host.innerHTML = '';
+        host.replaceChildren();
 
         const whole = document.createElement('button');
         whole.type = 'button';

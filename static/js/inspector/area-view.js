@@ -483,7 +483,7 @@ window.InspectorAreaView = (() => {
             if (!live)
                 return;
             const scopes = (data && data.scopes) || [];
-            live.innerHTML = '';
+            live.replaceChildren();
             const none = document.createElement('option');
             none.value = '';
             none.textContent = ' -  no scope  - ';
@@ -539,8 +539,12 @@ window.InspectorAreaView = (() => {
                 }
             });
         }).catch(() => {
-            if (sel.isConnected)
-                sel.innerHTML = '<option value="">scopes unavailable</option>';
+            if (sel.isConnected) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'scopes unavailable';
+                sel.replaceChildren(opt);
+            }
         });
     };
     /** Open the WorldPainter on the grid cell this area is parked on (task-539). */

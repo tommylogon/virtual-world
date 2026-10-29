@@ -281,12 +281,35 @@ const HumanTurnComposerModule = (() => {
 
     function renderPips() {
         const s = turnSlots() || { major: 0, minor: 0, free: 0 };
-        const pips: string[] = [];
-        pips.push(`<span class="htc-pip major ${s.major ? '' : 'spent'}" title="major ${s.major || 0} left"></span>`);
-        pips.push(`<span class="htc-pip minor ${s.minor ? '' : 'spent'}" title="minor ${s.minor || 0} left"></span>`);
-        for (let i = 0; i < 3; i += 1) pips.push(`<span class="htc-pip free ${i < (s.free || 0) ? '' : 'spent'}" title="free ${s.free || 0} left"></span>`);
-        q('#htc-pips').innerHTML = pips.join('');
-        q('#htc-budgetlab').innerHTML = `<b>${s.major || 0}</b> major · <b>${s.minor || 0}</b> minor · <b>${s.free || 0}</b> free`;
+        const pipsEl = q('#htc-pips');
+        pipsEl.replaceChildren();
+
+        const majorPip = document.createElement('span');
+        majorPip.className = `htc-pip major ${s.major ? '' : 'spent'}`;
+        majorPip.title = `major ${s.major || 0} left`;
+        pipsEl.appendChild(majorPip);
+
+        const minorPip = document.createElement('span');
+        minorPip.className = `htc-pip minor ${s.minor ? '' : 'spent'}`;
+        minorPip.title = `minor ${s.minor || 0} left`;
+        pipsEl.appendChild(minorPip);
+
+        for (let i = 0; i < 3; i += 1) {
+            const freePip = document.createElement('span');
+            freePip.className = `htc-pip free ${i < (s.free || 0) ? '' : 'spent'}`;
+            freePip.title = `free ${s.free || 0} left`;
+            pipsEl.appendChild(freePip);
+        }
+
+        const budgetEl = q('#htc-budgetlab');
+        budgetEl.replaceChildren();
+        const bMajor = document.createElement('b');
+        bMajor.textContent = String(s.major || 0);
+        const bMinor = document.createElement('b');
+        bMinor.textContent = String(s.minor || 0);
+        const bFree = document.createElement('b');
+        bFree.textContent = String(s.free || 0);
+        budgetEl.append(bMajor, ' major · ', bMinor, ' minor · ', bFree, ' free');
     }
 
     function setPhase(phase: 'compose' | 'react') {
@@ -346,17 +369,32 @@ const HumanTurnComposerModule = (() => {
 
     function renderMeta() {
         const meta = q('#htc-meta');
-        const bits: string[] = [];
-        if (typeof worldState !== 'undefined' && worldState.tick) bits.push(`tick ${worldState.tick}`);
+        meta.replaceChildren();
+        const nodes: (Node | string)[] = [];
+        if (typeof worldState !== 'undefined' && worldState.tick) nodes.push(`tick ${worldState.tick}`);
         let nextUp = '';
         try {
             if (config.turnBased && typeof TurnQueue !== 'undefined') {
                 nextUp = TurnQueue.getCurrentCharacter?.() || '';
             }
         } catch { /* queue not initialized */ }
-        if (nextUp && nextUp !== _charName) bits.push(`next up: <b>${nextUp}</b>`);
-        else if (nextUp) bits.push('next up: <b>you</b>');
-        meta.innerHTML = bits.join(' · ');
+        if (nextUp && nextUp !== _charName) {
+            const b = document.createElement('b');
+            b.textContent = nextUp;
+            const span = document.createElement('span');
+            span.append('next up: ', b);
+            nodes.push(span);
+        } else if (nextUp) {
+            const b = document.createElement('b');
+            b.textContent = 'you';
+            const span = document.createElement('span');
+            span.append('next up: ', b);
+            nodes.push(span);
+        }
+        nodes.forEach((n, idx) => {
+            if (idx > 0) meta.append(' · ');
+            meta.append(n);
+        });
     }
 
     function renderDatalist() {

@@ -55,15 +55,28 @@
                 this.renderEstimate();
                 return;
             }
-            root.innerHTML = names.map(name => {
+            root.replaceChildren();
+            for (const name of names) {
                 const pace = config.getTalkativeness(name);
-                const escaped = escapeHtml(name);
-                return `<label class="sim-pacing-row">
-                    <span class="sim-pacing-name">${escaped}</span>
-                    <input type="range" min="5" max="120" step="1" value="${pace}" data-character="${escaped}" aria-label="${escaped} cooldown">
-                    <output data-pace-for="${escaped}">${pace}s</output>
-                </label>`;
-            }).join('');
+                const label = document.createElement('label');
+                label.className = 'sim-pacing-row';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'sim-pacing-name';
+                nameSpan.textContent = name;
+                const input = document.createElement('input');
+                input.type = 'range';
+                input.min = '5';
+                input.max = '120';
+                input.step = '1';
+                input.value = String(pace);
+                input.dataset.character = name;
+                input.setAttribute('aria-label', `${name} cooldown`);
+                const output = document.createElement('output');
+                output.dataset.paceFor = name;
+                output.textContent = `${pace}s`;
+                label.append(nameSpan, input, output);
+                root.appendChild(label);
+            }
             this.renderEstimate();
         }
         static renderEstimate() {
@@ -86,11 +99,6 @@
             estimate.hidden = false;
             estimate.textContent = `${active.length} autonomous character${active.length === 1 ? '' : 's'} · about ${scheduledPerMinute.toFixed(1)} scheduled agent turns/min. Actual API calls vary by turn.`;
         }
-    }
-    function escapeHtml(value) {
-        return String(value || '').replace(/[&<>"']/g, char => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[char] || char));
     }
     window.VWSimultaneousControls = VWSimultaneousControls;
 })();

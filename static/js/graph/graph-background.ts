@@ -2022,7 +2022,7 @@ interface BackgroundState {
                 <span data-act="remove" data-id="${layer.id}" title="Remove" style="cursor:pointer;color:#f85149;">🗑</span>
             </div>`;
         }).join('');
-        panel.innerHTML = `
+        panel.replaceChildren(document.createRange().createContextualFragment(`
             <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid var(--border,#444);">
                 <span style="flex:1;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim,#999);">🗺 Maps (${state.layers.length})</span>
                 <span data-act="add" title="Add another image" style="cursor:pointer;">➕</span>
@@ -2030,7 +2030,7 @@ interface BackgroundState {
                 <span data-act="removeAll" title="Remove all layers" style="cursor:pointer;color:#f85149;">🗑</span>
                 <span data-act="done" title="Done editing" style="cursor:pointer;">✔</span>
             </div>
-            ${rows}`;
+            ${rows}`));
     }
 
     /* ── keyboard nudges ───────────────────────────────────────────────── */
@@ -2075,17 +2075,17 @@ interface BackgroundState {
         }
         const layer = _active();
         if (state.zoneMove) {
-            chip.innerHTML = `<span>✥ drag to move the zone · Esc or the button to finish</span>
-                <button class="btn btn-sm" id="gbg-zone-done">✔ Done</button>`;
+            chip.replaceChildren(document.createRange().createContextualFragment(`<span>✥ drag to move the zone · Esc or the button to finish</span>
+                <button class="btn btn-sm" id="gbg-zone-done">✔ Done</button>`));
             chip.querySelector('#gbg-zone-done')?.addEventListener('click', () => setZoneMove(false));
             return;
         }
-        chip.innerHTML = `<span>${state.cropping
+        chip.replaceChildren(document.createRange().createContextualFragment(`<span>${state.cropping
             ? '✂ drag the amber edges to crop'
             : (layer ? '🖼 drag to move · corners resize · top dot rotates · alt-click cycles' : '🖼 add an image from the panel')}</span>
             <label style="display:flex;align-items:center;gap:4px;">🎚<input id="gbg-op" type="range" min="0" max="1" step="0.05" value="${layer ? layer.opacity : OPACITY_DEFAULT}" style="width:70px;"></label>
             <button class="btn btn-sm" id="gbg-crop">${state.cropping ? 'Done cropping' : '✂ Crop'}</button>
-            <button class="btn btn-sm" id="gbg-done">✔ Done</button>`;
+            <button class="btn btn-sm" id="gbg-done">✔ Done</button>`));
         const opacitySlider = chip.querySelector('#gbg-op') as HTMLInputElement | null;
         opacitySlider?.addEventListener('input', (inputEvent: Event) => setOpacity((inputEvent.target as HTMLInputElement).value));
         const cropButton = chip.querySelector('#gbg-crop');
@@ -2126,7 +2126,7 @@ interface BackgroundState {
         rows.push(separator);
         rows.push(item('lock', state.layoutLocked ? '🔓 Unlock nodes' : '🔒 Lock nodes', state.layoutLocked));
         rows.push(item('save', '💾 Save layout to world'));
-        menu.innerHTML = rows.join('');
+        menu.replaceChildren(document.createRange().createContextualFragment(rows.join('')));
         menu.style.display = 'block';
         menu.style.left = event.clientX + 'px';
         menu.style.top = event.clientY + 'px';

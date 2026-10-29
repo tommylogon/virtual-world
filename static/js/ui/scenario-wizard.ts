@@ -82,8 +82,6 @@ RULES:
 
     // ────────────────────────── helpers ──────────────────────────
 
-    const esc = (s: unknown): string => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
     function slugKey(s: unknown): string { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
 
     function opposite(dir: unknown): string {
@@ -277,7 +275,15 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.innerHTML = `<strong>${esc(c.name || '?')}</strong> <span style="color:var(--text-dim);">- starts in ${esc(c.area || '?')}</span><br><span style="color:var(--text-dim);">${esc((c.description || '').slice(0, 160))}</span>`;
+                const strongName = document.createElement('strong');
+                strongName.textContent = c.name || '?';
+                const areaSpan = document.createElement('span');
+                areaSpan.style.color = 'var(--text-dim)';
+                areaSpan.textContent = ` - starts in ${c.area || '?'}`;
+                const descSpan = document.createElement('span');
+                descSpan.style.color = 'var(--text-dim)';
+                descSpan.textContent = (c.description || '').slice(0, 160);
+                body.append(strongName, ' ', areaSpan, document.createElement('br'), descSpan);
                 el.appendChild(body);
                 return el;
             })));
@@ -292,7 +298,15 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.innerHTML = `<strong>${esc(l.title || 'untitled')}</strong> <span style="color:var(--text-dim);">[${esc(l.category || '')}]</span><br><span style="color:var(--text-dim);">${esc(String(l.content ?? '').slice(0, 180))}</span>`;
+                const strongTitle = document.createElement('strong');
+                strongTitle.textContent = l.title || 'untitled';
+                const catSpan = document.createElement('span');
+                catSpan.style.color = 'var(--text-dim)';
+                catSpan.textContent = ` [${l.category || ''}]`;
+                const contentSpan = document.createElement('span');
+                contentSpan.style.color = 'var(--text-dim)';
+                contentSpan.textContent = String(l.content ?? '').slice(0, 180);
+                body.append(strongTitle, ' ', catSpan, document.createElement('br'), contentSpan);
                 el.appendChild(body);
                 return el;
             })));
@@ -335,7 +349,14 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
             if (exits.length) {
                 const x = document.createElement('div');
                 x.style.cssText = 'font-size:10px;margin:4px 0;';
-                x.innerHTML = exits.map(([dir, data]: [string, DraftExit]) => `<span style="margin-right:6px;">🚪 ${esc(dir)} → <strong>${esc(data && data.target)}</strong></span>`).join('');
+                exits.forEach(([dir, data]: [string, DraftExit]) => {
+                    const span = document.createElement('span');
+                    span.style.marginRight = '6px';
+                    const targetStrong = document.createElement('strong');
+                    targetStrong.textContent = data && data.target ? data.target : '';
+                    span.append(`🚪 ${dir} → `, targetStrong);
+                    x.appendChild(span);
+                });
                 card.appendChild(x);
             }
 

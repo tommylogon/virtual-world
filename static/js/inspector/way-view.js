@@ -212,7 +212,7 @@ window.InspectorWayView = (() => {
         const params = node?.properties?.parameters || {};
         const text = descEl?.value ?? node?.properties?.description ?? '';
         const block = InspectorHelpers.renderParamPreviewBlock(text, params);
-        previewEl.innerHTML = block.replace(/^<div class="way-param-preview"[^>]*>/, '').replace(/<\/div>\s*$/, '');
+        previewEl.replaceChildren(document.createRange().createContextualFragment(block.replace(/^<div class="way-param-preview"[^>]*>/, '').replace(/<\/div>\s*$/, '')));
     };
     wayView._renderUnifiedPassage = function (nodeId, escapedId, graphNode, props, connInfo) {
         const { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir } = connInfo;

@@ -45,7 +45,7 @@ window.NLEditorUI = (() => {
             this.container = document.getElementById(containerId);
             if (!this.container)
                 return;
-            this.container.innerHTML = `
+            this.container.replaceChildren(document.createRange().createContextualFragment(`
                 <div class="nl-editor-root" style="display:flex;flex-direction:column;height:100%;font-size:12px;">
                     <style>@keyframes nl-activity-pulse{0%,100%{opacity:1}50%{opacity:.3}}</style>
                     <div class="nl-header" style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);">
@@ -105,7 +105,7 @@ window.NLEditorUI = (() => {
                         </div>
                     </div>
                 </div>
-            `;
+            `));
             this.chatList = document.getElementById('nl-chat-list');
             this.inputField = document.getElementById('nl-input');
             this.stagedTray = document.getElementById('nl-staged-tray');
@@ -275,7 +275,7 @@ window.NLEditorUI = (() => {
             if (content) {
                 html += `<div>${this._escapeHtml(content).replace(/\n/g, '<br>')}</div>`;
             }
-            bubble.innerHTML = html;
+            bubble.replaceChildren(document.createRange().createContextualFragment(html));
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
@@ -357,13 +357,13 @@ window.NLEditorUI = (() => {
             const optsEl = document.getElementById('nl-clarify-options');
             if (!tray || !qEl || !optsEl)
                 return;
-            qEl.innerHTML = `
+            qEl.replaceChildren(document.createRange().createContextualFragment(`
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                     <span>${this._escapeHtml(question)}</span>
                     <button class="btn btn-sm btn-ghost" id="nl-clarify-dismiss" style="padding:0 4px;font-size:12px;color:var(--text-muted);" title="Dismiss question">✕</button>
                 </div>
-            `;
-            optsEl.innerHTML = '';
+            `));
+            optsEl.replaceChildren();
             document.getElementById('nl-clarify-dismiss')?.addEventListener('click', () => {
                 this.hideClarification();
             });
@@ -414,7 +414,7 @@ window.NLEditorUI = (() => {
                 rejectBtn.style.display = 'inline-block';
             if (applySelectedBtn)
                 applySelectedBtn.style.display = 'inline-block';
-            listEl.innerHTML = '';
+            listEl.replaceChildren();
             ops.forEach((op) => listEl.appendChild(this._renderStagedRow(op)));
             this._updateApplySelectedCount(ops);
         }

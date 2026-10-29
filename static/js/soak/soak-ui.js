@@ -55,7 +55,7 @@
             window.Lit.render(template, container);
         }
         else if (typeof template === 'string') {
-            container.innerHTML = template;
+            container.replaceChildren(document.createRange().createContextualFragment(template));
         }
     };
     const unsafeSvg = (markup) => {

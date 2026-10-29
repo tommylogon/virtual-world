@@ -213,7 +213,7 @@
             const names = ['User', ...Object.keys(state.participants || {}).filter((name) => name !== 'User')];
             const signature = names.join('\0');
             if (select.dataset.signature !== signature) {
-                select.innerHTML = names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+                select.replaceChildren(document.createRange().createContextualFragment(names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')));
                 select.dataset.signature = signature;
             }
             select.value = state.perspective;
@@ -227,7 +227,7 @@
                 return;
             const state = window.CommonsState;
             const channels = state.channels || [];
-            list.innerHTML = channels.map((channel) => {
+            list.replaceChildren(document.createRange().createContextualFragment(channels.map((channel) => {
                 const townBoard = state.theme === 'town_board';
                 const icon = channel.kind === 'public'
                     ? (townBoard ? '▤' : '#')
@@ -249,7 +249,7 @@
                     <span class="commons-channel-preview">${escapeHtml(people || channel.kind)}</span></span>
                     ${unread ? `<span class="commons-unread-badge">${unread > 99 ? '99+' : unread}</span>` : ''}
                 </button>`;
-            }).join('') || '<div class="commons-empty-note">No conversations yet.</div>';
+            }).join('') || '<div class="commons-empty-note">No conversations yet.</div>'));
         }
         static renderConversation() {
             const state = window.CommonsState;
@@ -274,9 +274,9 @@
                 if (count)
                     count.textContent = '';
                 if (membersList)
-                    membersList.innerHTML = '';
+                    membersList.replaceChildren();
                 if (editor)
-                    editor.innerHTML = '';
+                    editor.replaceChildren();
                 if (send)
                     send.disabled = true;
                 if (input)
@@ -315,7 +315,7 @@
                     ? (channel.kind === 'public' ? 'Write a public notice…' : 'Write a private letter…')
                     : 'Write a message…';
             if (membersList) {
-                membersList.innerHTML = members.map((name, index) => `<span class="commons-member-chip commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`).join('') || '<div class="commons-empty-note">No members listed.</div>';
+                membersList.replaceChildren(document.createRange().createContextualFragment(members.map((name, index) => `<span class="commons-member-chip commons-char-trigger" data-character="${escapeHtml(name)}" title="Inspect ${escapeHtml(name)} inner world"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`).join('') || '<div class="commons-empty-note">No members listed.</div>'));
             }
             this.renderMemberEditor(channel);
             const allowed = channel.kind === 'public' || members.includes(state.perspective);
@@ -332,16 +332,16 @@
                 return;
             const state = window.CommonsState;
             if (channel.kind !== 'group' || channel.created_by !== state.perspective) {
-                editor.innerHTML = '';
+                editor.replaceChildren();
                 return;
             }
             const available = Object.keys(state.participants || {})
                 .filter((name) => !channel.members.includes(name));
-            editor.innerHTML = `<div class="commons-member-edit-title">Manage members</div>
+            editor.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-member-edit-title">Manage members</div>
                 <div class="commons-member-add-row"><select id="commons-member-to-add" class="commons-select" ${available.length ? '' : 'disabled'}>
                     ${available.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}
                 </select><button type="button" class="commons-small-btn" data-member-action="add" ${available.length ? '' : 'disabled'}>Add</button></div>
-                <div class="commons-member-remove-list">${channel.members.filter((name) => name !== channel.created_by).map((name) => `<button type="button" class="commons-remove-member" data-member-action="remove" data-name="${escapeHtml(name)}">Remove ${escapeHtml(name)}</button>`).join('')}</div>`;
+                <div class="commons-member-remove-list">${channel.members.filter((name) => name !== channel.created_by).map((name) => `<button type="button" class="commons-remove-member" data-member-action="remove" data-name="${escapeHtml(name)}">Remove ${escapeHtml(name)}</button>`).join('')}</div>`));
         }
         static renderMessages() {
             const feed = document.getElementById('commons-feed');
@@ -349,17 +349,14 @@
                 return;
             const wasNearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 90;
             const messages = window.CommonsState.messages || [];
-            feed.innerHTML = messages.map((message) => {
+            const feedHtml = messages.map((message) => {
                 const own = message.author === window.CommonsState.perspective;
                 const time = new Date(message.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return `<article class="chat-msg ${own ? 'own' : ''}">
-                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>
-                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time></div>
-                    <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>
-                </article>`;
+                return `<article class="chat-msg ${own ? 'own' : ''}">\n                    <div class="chat-msg-avatar avatar-${hash(message.author) % 6} commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(initials(message.author))}</div>\n                    <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author commons-char-trigger" data-character="${escapeHtml(message.author)}" title="Inspect ${escapeHtml(message.author)} inner world">${escapeHtml(message.author)}</span><time>${time}</time></div>\n                    <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>\n                </article>`;
             }).join('') || (window.CommonsState.theme === 'town_board'
                 ? `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Leave a notice or write a private letter.</p></div>`
                 : `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Send a note, ask a question, or let the conversation find its way.</p></div>`);
+            feed.replaceChildren(document.createRange().createContextualFragment(feedHtml));
             if (wasNearBottom)
                 feed.scrollTop = feed.scrollHeight;
         }
@@ -399,7 +396,7 @@
                 lit.render(lit.html `${itemsTmpl}`, list);
             }
             else {
-                list.innerHTML = names.map(name => {
+                list.replaceChildren(document.createRange().createContextualFragment(names.map(name => {
                     const participant = participants[name];
                     const pace = window.CommonsAgent.getTalkativeness(name);
                     const isActing = Boolean(window.CommonsAgent.controllers?.[name]);
@@ -416,7 +413,7 @@
                         <label><input type="checkbox" data-character="${escapeHtml(name)}" data-role="blocked" ${participant.blocked ? 'checked' : ''}> Block</label>
                     </div>${canUseLlm ? `<div class="talkativeness-control"><div class="talkativeness-label"><span>Turn pace</span><span class="talkativeness-value"><span data-pace-for="${escapeHtml(name)}">${pace}s</span><button type="button" class="commons-small-btn pace-random-btn" data-character="${escapeHtml(name)}" data-role="pace-random" title="Choose a random turn pace for ${escapeHtml(name)}" aria-label="Randomize ${escapeHtml(name)} turn pace">🎲</button></span></div>
                         <input type="range" class="talkativeness-slider" min="5" max="120" value="${pace}" data-character="${escapeHtml(name)}" data-role="pace" aria-label="${escapeHtml(name)} automatic turn cooldown"></div>` : `<div class="participant-control-note">${controlMode === 'human' ? 'Human-controlled: no LLM turn' : controlMode === 'npc' ? 'Simple NPC: no LLM turn' : 'Control mode unavailable'}</div>`}</div>`;
-                }).join('');
+                }).join('')));
             }
         }
         static renderGroupRoster() {
@@ -425,8 +422,8 @@
             if (!roster)
                 return;
             const names = Object.keys(state.participants || {}).filter((name) => name !== 'User' && name !== state.perspective);
-            roster.innerHTML = names.map((name) => `<label class="commons-roster-option">
-                <input type="checkbox" value="${escapeHtml(name)}"><span class="commons-member-avatar avatar-${hash(name) % 6}">${escapeHtml(initials(name))}</span><span>${escapeHtml(name)}</span></label>`).join('');
+            roster.replaceChildren(document.createRange().createContextualFragment(names.map((name) => `<label class="commons-roster-option">
+                <input type="checkbox" value="${escapeHtml(name)}"><span class="commons-member-avatar avatar-${hash(name) % 6}">${escapeHtml(initials(name))}</span><span>${escapeHtml(name)}</span></label>`).join('')));
             const error = document.getElementById('commons-group-error');
             if (error)
                 error.textContent = '';
@@ -445,10 +442,15 @@
                 eligibleNames = known.filter((name) => name !== 'User' && name !== state.perspective);
             }
             if (eligibleNames.length === 0) {
-                select.innerHTML = '<option value="" disabled selected>No known characters to contact</option>';
+                const optDis = document.createElement('option');
+                optDis.value = '';
+                optDis.disabled = true;
+                optDis.selected = true;
+                optDis.textContent = 'No known characters to contact';
+                select.replaceChildren(optDis);
             }
             else {
-                select.innerHTML = eligibleNames.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+                select.replaceChildren(document.createRange().createContextualFragment(eligibleNames.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')));
             }
             const error = document.getElementById('commons-dm-error');
             if (error)
@@ -633,7 +635,7 @@
                     window.Lit.render(window.Lit.html `${badges}`, traitsEl);
                 }
                 else {
-                    traitsEl.innerHTML = traitKeys.map((t) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('');
+                    traitsEl.replaceChildren(document.createRange().createContextualFragment(traitKeys.map((t) => `<span class="commons-trait-badge">${escapeHtml(t)}</span>`).join('')));
                 }
             }
             // Render turn history and monologue
@@ -641,30 +643,30 @@
             const latest = turns[0];
             if (monologueEl) {
                 if (latest?.inner) {
-                    monologueEl.innerHTML = `<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
-                    <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`;
+                    monologueEl.replaceChildren(document.createRange().createContextualFragment(`<blockquote class="commons-inner-quote">"${escapeHtml(latest.inner)}"</blockquote>
+                    <div class="commons-inner-time">${new Date(latest.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`));
                 }
                 else {
-                    monologueEl.innerHTML = `<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`;
+                    monologueEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No thoughts recorded yet for ${escapeHtml(charName)}. Trigger a turn with ▶ Act to observe their inner stream.</div>`));
                 }
             }
             if (decisionEl) {
                 if (latest) {
-                    decisionEl.innerHTML = `<div class="commons-decision-card">
+                    decisionEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-decision-card">
                         <div class="commons-decision-header">
                             <span class="commons-decision-action ${escapeHtml(latest.action)}">${escapeHtml(latest.action.replace('_', ' '))}</span>
                             <span class="commons-decision-summary">${escapeHtml(latest.summary)}</span>
                         </div>
                         ${latest.detail?.text ? `<div class="commons-decision-text">"${escapeHtml(latest.detail.text)}"</div>` : ''}
-                    </div>`;
+                    </div>`));
                 }
                 else {
-                    decisionEl.innerHTML = `<div class="commons-drawer-empty-state">No recent decisions.</div>`;
+                    decisionEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">No recent decisions.</div>`));
                 }
             }
             if (historyEl) {
                 if (turns.length > 1) {
-                    historyEl.innerHTML = turns.slice(1, 8).map((t) => `
+                    historyEl.replaceChildren(document.createRange().createContextualFragment(turns.slice(1, 8).map((t) => `
                         <div class="commons-history-row">
                             <div class="commons-history-header">
                                 <span class="commons-decision-action small ${escapeHtml(t.action)}">${escapeHtml(t.action.replace('_', ' '))}</span>
@@ -672,10 +674,10 @@
                             </div>
                             ${t.inner ? `<div class="commons-history-thought">"${escapeHtml(t.inner)}"</div>` : ''}
                         </div>
-                    `).join('');
+                    `).join('')));
                 }
                 else {
-                    historyEl.innerHTML = `<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`;
+                    historyEl.replaceChildren(document.createRange().createContextualFragment(`<div class="commons-drawer-empty-state">Earlier turns will appear here as the conversation continues.</div>`));
                 }
             }
         }

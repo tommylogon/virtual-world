@@ -79,24 +79,62 @@ interface SetupChecklistWindowSurface {
     box.style.cssText = 'width:520px;max-width:92vw;';
 
     const doneCount = STEPS.filter(s => done[s.key]).length;
-    let html = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🚀 Scenario setup checklist</h3>'
-      + '<button class="modal-close-btn" id="sc-close">✕</button></div>'
-      + '<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Scenario: <strong>' + esc(name) + '</strong> · ' + doneCount + '/' + STEPS.length + ' done</div>';
+
+    const head = document.createElement('div');
+    head.className = 'modal-head';
+    const h3 = document.createElement('h3');
+    h3.style.cssText = 'margin:0;font-size:15px;';
+    h3.textContent = '🚀 Scenario setup checklist';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close-btn';
+    closeBtn.id = 'sc-close';
+    closeBtn.textContent = '✕';
+    head.append(h3, closeBtn);
+
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:11px;color:var(--text-dim);margin-bottom:10px;';
+    const strongName = document.createElement('strong');
+    strongName.textContent = name;
+    sub.append('Scenario: ', strongName, ` · ${doneCount}/${STEPS.length} done`);
+
+    box.append(head, sub);
 
     for (const s of STEPS) {
-      const checked = done[s.key] ? 'checked' : '';
-      html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid var(--border);">'
-        + '<input type="checkbox" id="sc-step-' + s.key + '" ' + checked + ' style="margin-top:4px;">'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:13px;font-weight:600;">' + s.icon + ' ' + esc(s.title) + '</div>'
-        + '<div style="font-size:11px;color:var(--text-muted);">' + esc(s.desc) + '</div>'
-        + '<button class="btn btn-sm btn-ghost" id="sc-go-' + s.key + '" style="font-size:9px;margin-top:2px;color:var(--accent);">' + esc(s.toolLabel) + ' →</button>'
-        + '</div></div>';
+      const stepRow = document.createElement('div');
+      stepRow.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid var(--border);';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = 'sc-step-' + s.key;
+      cb.checked = !!done[s.key];
+      cb.style.cssText = 'margin-top:4px;';
+
+      const infoCol = document.createElement('div');
+      infoCol.style.cssText = 'flex:1;min-width:0;';
+
+      const titleEl = document.createElement('div');
+      titleEl.style.cssText = 'font-size:13px;font-weight:600;';
+      titleEl.textContent = `${s.icon} ${s.title}`;
+
+      const descEl = document.createElement('div');
+      descEl.style.cssText = 'font-size:11px;color:var(--text-muted);';
+      descEl.textContent = s.desc;
+
+      const goBtn = document.createElement('button');
+      goBtn.className = 'btn btn-sm btn-ghost';
+      goBtn.id = 'sc-go-' + s.key;
+      goBtn.style.cssText = 'font-size:9px;margin-top:2px;color:var(--accent);';
+      goBtn.textContent = `${s.toolLabel} →`;
+
+      infoCol.append(titleEl, descEl, goBtn);
+      stepRow.append(cb, infoCol);
+      box.appendChild(stepRow);
     }
 
-    html += '<div style="padding-top:10px;border-top:1px solid var(--border);margin-top:8px;font-size:10px;color:var(--text-muted);">Checklist state is per-scenario (session storage). Reset happens naturally when you open/commit a different scenario.</div>';
-
-    box.innerHTML = html;
+    const footerNote = document.createElement('div');
+    footerNote.style.cssText = 'padding-top:10px;border-top:1px solid var(--border);margin-top:8px;font-size:10px;color:var(--text-muted);';
+    footerNote.textContent = 'Checklist state is per-scenario (session storage). Reset happens naturally when you open/commit a different scenario.';
+    box.appendChild(footerNote);
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -112,10 +150,6 @@ interface SetupChecklistWindowSurface {
       const go = box.querySelector<HTMLButtonElement>('#sc-go-' + s.key);
       if (go) go.onclick = () => { close(); s.tool(); };
     }
-  }
-
-  function esc(s: unknown): string {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   return { open };

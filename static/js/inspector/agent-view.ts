@@ -137,8 +137,7 @@ type AVWin = { [key: string]: any };
         if (avWin.KnownBySection) {
             const slot = document.getElementById('known-by-slot');
             if (slot) {
-                slot.innerHTML = '';
-                slot.appendChild(avWin.KnownBySection.build('character', player.name, player.name));
+                slot.replaceChildren(avWin.KnownBySection.build('character', player.name, player.name));
             }
         }
 

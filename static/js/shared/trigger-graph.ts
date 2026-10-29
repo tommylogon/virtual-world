@@ -1236,7 +1236,7 @@ window.TriggerGraph = (() => {
         const fillDl = (id: string, values: (string | string[])[]) => {
             let dl = document.getElementById(id);
             if (!dl) { dl = document.createElement('datalist'); dl.id = id; document.body.appendChild(dl); }
-            dl.innerHTML = '';
+            dl.replaceChildren();
             (values || []).forEach(v => {
                 const o = document.createElement('option');
                 if (Array.isArray(v)) { o.value = v[0]; o.label = v[1]; o.textContent = v[1]; }

@@ -732,7 +732,23 @@ const _InspectorItemView = (() => {
                     results.style.display = 'none';
                     return;
                 }
-                results.innerHTML = items.map((r) => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
+                results.replaceChildren(...items.map((r) => {
+                    const div = document.createElement('div');
+                    div.className = 'tag-option';
+                    div.dataset.id = r.id;
+                    div.dataset.name = r.name || '';
+                    div.style.cssText = 'padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;';
+                    const icon = document.createElement('span');
+                    icon.textContent = r.icon || '';
+                    const name = document.createElement('span');
+                    name.style.fontWeight = '600';
+                    name.textContent = r.name || '';
+                    const type = document.createElement('span');
+                    type.style.cssText = 'color:var(--text-muted);font-size:9px;margin-left:auto;';
+                    type.textContent = r.type || '';
+                    div.append(icon, name, type);
+                    return div;
+                }));
                 results.style.display = 'block';
                 results.querySelectorAll('.tag-option').forEach(el => {
                     const row = el;

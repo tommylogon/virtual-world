@@ -190,7 +190,7 @@ const AutoDressModal = (() => {
                 window.Lit.render(modalTmpl, mountEl);
             }
             else {
-                mountEl.innerHTML = contentHtml;
+                mountEl.replaceChildren(document.createRange().createContextualFragment(contentHtml));
             }
             mountEl.querySelector('#ad-cancel')?.addEventListener('click', () => close(null));
             mountEl.querySelector('#ad-apply')?.addEventListener('click', () => {

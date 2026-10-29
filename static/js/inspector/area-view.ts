@@ -504,7 +504,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             const live = document.getElementById(`area-scope-${actualNodeId}`);
             if (!live) return;
             const scopes = (data && data.scopes) || [];
-            live.innerHTML = '';
+            live.replaceChildren();
             const none = document.createElement('option');
             none.value = '';
             none.textContent = ' -  no scope  - ';
@@ -556,7 +556,12 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 }
             });
         }).catch(() => {
-            if (sel.isConnected) sel.innerHTML = '<option value="">scopes unavailable</option>';
+            if (sel.isConnected) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'scopes unavailable';
+                sel.replaceChildren(opt);
+            }
         });
     };
 

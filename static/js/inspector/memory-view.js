@@ -627,14 +627,17 @@ window.InspectorMemory = (() => {
             const current = (existing?.contradicts || []).filter((id) => !contraRemoved().has(id));
             const all = current.concat(contraAdded());
             if (!all.length) {
-                contraEl.innerHTML = '<span style="font-size:10px;color:var(--text-muted);">no conflicts marked</span>';
+                const noConf = document.createElement('span');
+                noConf.style.cssText = 'font-size:10px;color:var(--text-muted);';
+                noConf.textContent = 'no conflicts marked';
+                contraEl.replaceChildren(noConf);
                 return;
             }
-            contraEl.innerHTML = all.map((id) => {
+            contraEl.replaceChildren(document.createRange().createContextualFragment(all.map((id) => {
                 const target = memories.find((m) => m.id === id);
                 const label = target ? String(target.text || '').slice(0, 40) : String(id);
                 return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#e05555;border:1px solid #6e2c2c;border-radius:8px;padding:1px 6px;" title="${esc(label)}">⚡ ${esc(id)} ${esc(label)}<button type="button" data-contra-id="${esc(id)}" style="background:none;border:none;color:#e05555;cursor:pointer;font-size:10px;padding:0;">×</button></span>`;
-            }).join('');
+            }).join('')));
             contraEl.querySelectorAll('button[data-contra-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-contra-id') || '';
@@ -830,7 +833,7 @@ window.InspectorMemory = (() => {
         }));
         const others = Object.keys(worldState.players || {}).filter(p => p !== charName);
         function render() {
-            container.innerHTML = '';
+            container.replaceChildren();
             if (!M._relDeltas || M._relDeltas.length === 0) {
                 const empty = document.createElement('div');
                 empty.style.cssText = 'font-size:10px;color:var(--text-muted);padding:4px 0;';
@@ -954,12 +957,12 @@ window.InspectorMemory = (() => {
                 const contras = Array.isArray(bundle.contradictions_preview) ? bundle.contradictions_preview : [];
                 if (contras.length > 0) {
                     contraBox.style.display = 'block';
-                    contraBox.innerHTML = `<b>⚡ Contradiction detected (${contras.length}):</b> saving will link this memory as conflicting with `
-                        + contras.map((c) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || '').slice(0, 65))}"</code>`).join(', ');
+                    contraBox.replaceChildren(document.createRange().createContextualFragment(`<b>⚡ Contradiction detected (${contras.length}):</b> saving will link this memory as conflicting with `
+                        + contras.map((c) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || '').slice(0, 65))}"</code>`).join(', ')));
                 }
                 else {
                     contraBox.style.display = 'none';
-                    contraBox.innerHTML = '';
+                    contraBox.replaceChildren();
                 }
             }
             // Render relationship before -> after preview
@@ -967,7 +970,7 @@ window.InspectorMemory = (() => {
             if (relPrevBox) {
                 const previews = Array.isArray(bundle.relationship_preview) ? bundle.relationship_preview : [];
                 if (previews.length > 0) {
-                    relPrevBox.innerHTML = previews.map((p) => {
+                    relPrevBox.replaceChildren(document.createRange().createContextualFragment(previews.map((p) => {
                         const b = p.before || {};
                         const a = p.after || {};
                         const shifts = [];
@@ -987,10 +990,10 @@ window.InspectorMemory = (() => {
                             ${shifts.length ? shifts.join(' · ') : '<span style="color:var(--text-muted);">no net shift</span>'}
                             <span>(${roleShift})</span>
                         </div>`;
-                    }).join('');
+                    }).join('')));
                 }
                 else {
-                    relPrevBox.innerHTML = '';
+                    relPrevBox.replaceChildren();
                 }
             }
         }, 220);
@@ -1015,7 +1018,7 @@ window.InspectorMemory = (() => {
                 opts.push({ id: cid, name: cname, type: 'character' });
         }
         opts.sort((a, b) => a.name.localeCompare(b.name));
-        container.innerHTML = '';
+        container.replaceChildren();
         container.classList.add('memedit-entitybox');
         const input = document.createElement('input');
         input.className = 'memedit-search';
@@ -1031,7 +1034,7 @@ window.InspectorMemory = (() => {
         }
         function ops() { return opts.filter(o => !input.value || o.name.toLowerCase().includes(input.value.toLowerCase())); }
         function render() {
-            list.innerHTML = '';
+            list.replaceChildren();
             const matches = ops();
             if (matches.length === 0) {
                 list.textContent = 'No matches.';
@@ -1568,7 +1571,7 @@ window.InspectorMemory = (() => {
      */
     M._attachEmotionSelector = function (container, initial) {
         M._emoSelected = (Array.isArray(initial) ? initial : []).filter(e => e && e.label);
-        container.innerHTML = '';
+        container.replaceChildren();
         container.classList.add('memedit-entitybox');
         const bar = document.createElement('div');
         bar.style.cssText = 'display:flex;gap:6px;align-items:center;padding:6px;border-bottom:1px solid var(--border);flex-wrap:wrap;';
@@ -1625,7 +1628,7 @@ window.InspectorMemory = (() => {
         const chips = document.createElement('div');
         chips.style.cssText = 'padding:6px;display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;';
         function render() {
-            chips.innerHTML = '';
+            chips.replaceChildren();
             if (M._emoSelected.length === 0) {
                 const none = document.createElement('div');
                 none.textContent = 'No emotions selected. Pick and add.';

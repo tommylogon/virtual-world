@@ -63,19 +63,49 @@
         _panel = document.createElement('div');
         _panel.id = 'llm-inspector-panel';
         _panel.style.cssText = 'position:fixed;right:14px;bottom:82px;z-index:12001;width:min(600px,94vw);max-height:72vh;overflow:auto;padding:10px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
-        _panel.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <strong>LLM Inspector</strong>
-                <span id="llm-inspector-count" style="color:var(--text-dim,#999);font-size:11px;"></span>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-                <input id="llm-inspector-label" placeholder="filter label" style="flex:1;min-width:80px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;">
-                <input id="llm-inspector-status" placeholder="status" style="width:56px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;">
-                <input id="llm-inspector-search" placeholder="search body" style="flex:1;min-width:80px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;">
-                <button id="llm-inspector-refresh">Refresh</button>
-                <button id="llm-inspector-clear" style="color:#f66;">Clear</button>
-            </div>
-            <div id="llm-inspector-list"></div>`;
+
+        const topRow = document.createElement('div');
+        topRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const titleStrong = document.createElement('strong');
+        titleStrong.textContent = 'LLM Inspector';
+        const countSpan = document.createElement('span');
+        countSpan.id = 'llm-inspector-count';
+        countSpan.style.cssText = 'color:var(--text-dim,#999);font-size:11px;';
+        topRow.append(titleStrong, countSpan);
+
+        const filterRow = document.createElement('div');
+        filterRow.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;';
+
+        const labelInput = document.createElement('input');
+        labelInput.id = 'llm-inspector-label';
+        labelInput.placeholder = 'filter label';
+        labelInput.style.cssText = 'flex:1;min-width:80px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;';
+
+        const statusInput = document.createElement('input');
+        statusInput.id = 'llm-inspector-status';
+        statusInput.placeholder = 'status';
+        statusInput.style.cssText = 'width:56px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;';
+
+        const searchInput = document.createElement('input');
+        searchInput.id = 'llm-inspector-search';
+        searchInput.placeholder = 'search body';
+        searchInput.style.cssText = 'flex:1;min-width:80px;font-size:11px;padding:4px;background:var(--bg-input,#111);color:inherit;border:1px solid var(--border,#444);border-radius:4px;';
+
+        const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'llm-inspector-refresh';
+        refreshBtn.textContent = 'Refresh';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.id = 'llm-inspector-clear';
+        clearBtn.style.color = '#f66';
+        clearBtn.textContent = 'Clear';
+
+        filterRow.append(labelInput, statusInput, searchInput, refreshBtn, clearBtn);
+
+        const listDiv = document.createElement('div');
+        listDiv.id = 'llm-inspector-list';
+
+        _panel.append(topRow, filterRow, listDiv);
         document.body.appendChild(_panel);
 
         const panel = _panel!;
@@ -140,18 +170,19 @@
 
         const list = panel.querySelector('#llm-inspector-list')!;
         if (!rows.length) {
-            list.innerHTML = '<div style="color:var(--text-dim,#999);">No exchanges captured. Enable “Show Raw LLM” in Settings and make a call.</div>';
+            const empty = document.createElement('div');
+            empty.style.color = 'var(--text-dim,#999)';
+            empty.textContent = 'No exchanges captured. Enable “Show Raw LLM” in Settings and make a call.';
+            list.replaceChildren(empty);
             return;
         }
-        list.innerHTML = rows.map((e: LlmInspectorRawExchange) => {
-            const status = e.response?.status ?? '—';
-            // `?? '—'` makes status `string | number`; the original code relied on
-            // JS coercing '—' to NaN so both comparisons were false. The typeof
-            // check is that same outcome, expressed type-safely.
+        const frag = document.createDocumentFragment();
+        for (const e of rows) {
+            const status = e.response?.status ?? '-';
             const color = (typeof status === 'number' && status >= 200 && status < 300) ? '#6c6' : '#f66';
             const dur = e.duration_ms != null ? ` · ${e.duration_ms}ms` : '';
             const preStyle = 'white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto;background:var(--bg-input,#111);padding:6px;border-radius:4px;margin:4px 0;';
-            return `<details style="margin-bottom:6px;border:1px solid var(--border,#333);border-radius:4px;padding:6px;">
+            const detailsHtml = `<details style="margin-bottom:6px;border:1px solid var(--border,#333);border-radius:4px;padding:6px;">
                 <summary style="cursor:pointer;"><span style="color:${color};">●</span> ${_esc(e.label)} · ${_esc(e.model)} · ${_esc(status)}${_esc(dur)}</summary>
                 ${_usageLine(e.response?.body)}
                 <div style="display:flex;gap:6px;margin:6px 0;">
@@ -163,7 +194,9 @@
                 <div style="color:var(--text-dim,#999);">Response: ${_esc(status)} ${_esc(e.response?.statusText)}</div>
                 <pre style="${preStyle}">${_json({ headers: e.response?.headers, body: e.response?.body })}</pre>
             </details>`;
-        }).join('');
+            frag.appendChild(document.createRange().createContextualFragment(detailsHtml));
+        }
+        list.replaceChildren(frag);
     }
 
     if (typeof window !== 'undefined') {

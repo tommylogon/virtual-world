@@ -702,13 +702,16 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
             });
         }
         if (!items.length) {
-            wrap.innerHTML = '<div style="font-size:11px;color:var(--text-muted);">No tiles yet.</div>';
+            const empty = document.createElement('div');
+            empty.style.cssText = 'font-size:11px;color:var(--text-muted);';
+            empty.textContent = 'No tiles yet.';
+            wrap.replaceChildren(empty);
             return;
         }
 
         const THUMB = 68;
         const src = s.src || s.img;
-        wrap.innerHTML = '';
+        wrap.replaceChildren();
         items.forEach((it, i) => {
             const scale = Math.min(THUMB / Math.max(1, it.w), THUMB / Math.max(1, it.h));
             const tw = Math.max(1, Math.round(it.w * scale));
@@ -934,16 +937,37 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         const list = document.getElementById('ss-box-list');
         if (!list) return;
         if (!s.boxes.length) {
-            list.innerHTML = '<div style="font-size:11px;color:var(--text-muted);">No boxes yet — drag on the image to box each panel. Click a box to move or resize it.</div>';
+            const empty = document.createElement('div');
+            empty.style.cssText = 'font-size:11px;color:var(--text-muted);';
+            empty.textContent = 'No boxes yet - drag on the image to box each panel. Click a box to move or resize it.';
+            list.replaceChildren(empty);
             return;
         }
-        list.innerHTML = s.boxes.map((b, i) => `
-            <div class="ss-box-row" data-i="${i}" style="display:flex;align-items:center;gap:6px;margin-bottom:3px;padding:2px 4px;border-radius:3px;${i === s.selected ? 'background:var(--bg-inset);' : ''}">
-                <span style="font-size:10px;color:var(--text-muted);width:34px;">#${i + 1}</span>
-                <input type="text" class="ss-box-name" data-i="${i}" value="${_escAttr(b.name)}" style="flex:1;font-size:11px;">
-                <span style="font-size:10px;color:var(--text-muted);">${b.w}×${b.h}</span>
-                <button class="btn btn-sm btn-danger" data-remove="${i}" title="Remove box">🗑</button>
-            </div>`).join('');
+        list.replaceChildren(...s.boxes.map((b, i) => {
+            const row = document.createElement('div');
+            row.className = 'ss-box-row';
+            row.dataset.i = String(i);
+            row.style.cssText = `display:flex;align-items:center;gap:6px;margin-bottom:3px;padding:2px 4px;border-radius:3px;${i === s.selected ? 'background:var(--bg-inset);' : ''}`;
+            const num = document.createElement('span');
+            num.style.cssText = 'font-size:10px;color:var(--text-muted);width:34px;';
+            num.textContent = `#${i + 1}`;
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'ss-box-name';
+            inp.dataset.i = String(i);
+            inp.value = b.name || '';
+            inp.style.cssText = 'flex:1;font-size:11px;';
+            const dims = document.createElement('span');
+            dims.style.cssText = 'font-size:10px;color:var(--text-muted);';
+            dims.textContent = `${b.w}×${b.h}`;
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-danger';
+            btn.dataset.remove = String(i);
+            btn.title = 'Remove box';
+            btn.textContent = '🗑';
+            row.append(num, inp, dims, btn);
+            return row;
+        }));
         list.querySelectorAll('.ss-box-row').forEach(el => {
             el.addEventListener('mousedown', (ev) => {
                 const t = ev.target as HTMLElement;
@@ -1016,10 +1040,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         };
     }
 
-    function _escAttr(v: unknown): string {
-        return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    /* _escAttr removed - DOM text/value assignment used directly */
 
     function _setStatus(text: unknown, isError?: boolean): void {
         const el = document.getElementById('ss-status');
@@ -1216,7 +1237,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         const root = document.createElement('div');
         root.id = 'sprite-sheet-modal';
         root.className = 'modal';
-        root.innerHTML = `
+        root.replaceChildren(document.createRange().createContextualFragment(`
             <div class="modal-content" style="width:min(1180px,96vw);">
                 <div class="modal-header">
                     <h3>✂️ Split sprite sheet</h3>
@@ -1243,7 +1264,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
                         <span style="font-size:11px;">Zoom<br>
                             <span>
                                 <button class="btn btn-sm btn-blue" id="ss-zoom-fit" type="button" title="Scale the sheet to fit the pane">Fit</button>
-                                <button class="btn btn-sm" id="ss-zoom-1" type="button" title="One image pixel per screen pixel — scroll to reach the whole sheet">100%</button>
+                                <button class="btn btn-sm" id="ss-zoom-1" type="button" title="One image pixel per screen pixel - scroll to reach the whole sheet">100%</button>
                             </span>
                         </span>
                     </div>
@@ -1256,7 +1277,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
                     </div>
                     <div id="ss-mode-hint" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;"></div>
                     <div id="ss-names-wrap" style="margin-bottom:6px;">
-                        <label style="font-size:11px;">Names (comma or newline, one per tile — blank = skip)<br>
+                        <label style="font-size:11px;">Names (comma or newline, one per tile - blank = skip)<br>
                             <textarea id="ss-names" rows="2" style="width:100%;font-size:11px;"></textarea>
                         </label>
                     </div>
@@ -1282,7 +1303,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
                     <button class="btn btn-secondary" id="ss-cancel" type="button">Cancel</button>
                     <button class="btn btn-green" id="ss-run" type="button" disabled>✂️ Slice &amp; upload</button>
                 </div>
-            </div>`;
+            </div>`));
         document.body.appendChild(root);
 
         _state = { nodeId, kind: startKind, img: null, file: null, boxes: [], draft: null,

@@ -605,7 +605,7 @@ const InspectorHelpersModule = (() => {
         const grid = document.getElementById(`expr-grid-${escId}`);
         if (grid) {
             grid.dataset.kind = kind;
-            grid.innerHTML = H._expressionCardsHtml(nodeId, props, kind);
+            grid.replaceChildren(document.createRange().createContextualFragment(H._expressionCardsHtml(nodeId, props, kind)));
         }
         document.querySelectorAll(`#expr-section-${escId} .expr-tab`).forEach((btn) => {
             btn.classList.toggle('btn-blue', btn.dataset.kind === kind);

@@ -1237,7 +1237,7 @@ window.TriggerGraph = (() => {
                 dl.id = id;
                 document.body.appendChild(dl);
             }
-            dl.innerHTML = '';
+            dl.replaceChildren();
             (values || []).forEach(v => {
                 const o = document.createElement('option');
                 if (Array.isArray(v)) {

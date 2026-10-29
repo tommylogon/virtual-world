@@ -5137,9 +5137,9 @@ _notify(true);
             parsedFloorEdits = edits;
 
             const climbCliffs = GM().climbGatedSteps(grid, floorMap, climbThreshold);
-            previewBox.innerHTML = `Metres: <b>${minM}m</b> to <b>${maxM}m</b><br>`
+            previewBox.replaceChildren(document.createRange().createContextualFragment(`Metres: <b>${minM}m</b> to <b>${maxM}m</b><br>`
                 + `Storeys: <b>${minStorey === Infinity ? 0 : minStorey}</b> to <b>${maxStorey === -Infinity ? 0 : maxStorey}</b><br>`
-                + `Climb-gated steps (> ${climbThreshold} storeys): <b>${climbCliffs}</b> cell pairs`;
+                + `Climb-gated steps (> ${climbThreshold} storeys): <b>${climbCliffs}</b> cell pairs`));
         };
 
         let loadedImage: HTMLImageElement | null = null;

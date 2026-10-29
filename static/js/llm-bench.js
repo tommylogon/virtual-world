@@ -44,7 +44,7 @@
         if (cls)
             e.className = cls;
         if (html !== undefined)
-            e.innerHTML = html;
+            e.replaceChildren(document.createRange().createContextualFragment(html));
         return e;
     }
     function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || '')); }
@@ -114,7 +114,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (panel)
             return panel;
         panel = el('div', 'llm-bench-panel hidden');
-        panel.innerHTML = `
+        panel.replaceChildren(document.createRange().createContextualFragment(`
 <div id="llm-bench-header">
     <span>LLM Bench</span>
     <button id="llm-bench-close" title="Close">×</button>
@@ -153,7 +153,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         <div class="canvas-wrap"><canvas id="llmb-chart" width="500" height="110"></canvas></div>
     </div>
     <div id="llmb-drill" class="drill hidden"></div>
-</div>`;
+</div>`));
         document.body.appendChild(panel);
         $('#llm-bench-close').onclick = () => hide();
         $('#llmb-run').onclick = () => runBenchmark();
@@ -235,7 +235,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         catch (e) { }
         renderRuns();
         $('#llmb-drill').classList.add('hidden');
-        $('#llmb-drill').innerHTML = '';
+        $('#llmb-drill').replaceChildren();
     }
     // ------------------------------------------------------------------ model list
     let abortCtrl = null;
@@ -259,7 +259,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         const container = $('#llmb-models');
         if (!container)
             return;
-        container.innerHTML = '';
+        container.replaceChildren();
         const models = await fetchModels();
         const def = (typeof config !== 'undefined' && config.model) ? String(config.model) : '';
         const selected = new Set(JSON.parse(localStorage.getItem('llmb_selected_models') || '[]'));
@@ -270,7 +270,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             shown.add(id);
             const checked = prechecked || selected.has(id) || (!selected.size && id === def);
             const wrap = el('label');
-            wrap.innerHTML = `<input type="checkbox" value="${esc(id)}" ${checked ? 'checked' : ''}> <span class="llmb-chip model ${checked ? 'active' : ''}">${esc(id)}</span>`;
+            wrap.replaceChildren(document.createRange().createContextualFragment(`<input type="checkbox" value="${esc(id)}" ${checked ? 'checked' : ''}> <span class="llmb-chip model ${checked ? 'active' : ''}">${esc(id)}</span>`));
             container.appendChild(wrap);
         };
         models.forEach((m) => add(m, true));
@@ -289,7 +289,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
             return;
         const sel = $('#llmb-models');
         const wrap = el('label');
-        wrap.innerHTML = `<input type="checkbox" value="${esc(id)}" checked> <span class="llmb-chip model active">${esc(id)}</span>`;
+        wrap.replaceChildren(document.createRange().createContextualFragment(`<input type="checkbox" value="${esc(id)}" checked> <span class="llmb-chip model active">${esc(id)}</span>`));
         sel.appendChild(wrap);
         input.value = '';
     }
@@ -299,7 +299,10 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (!sel)
             return;
         const players = (typeof worldState !== 'undefined' && worldState.data && worldState.data.players) ? worldState.data.players : {};
-        sel.innerHTML = '<option value="">-- select a character --</option>';
+        const opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = '-- select a character --';
+        sel.replaceChildren(opt0);
         Object.keys(players).sort().forEach(name => {
             const o = document.createElement('option');
             o.value = name;
@@ -554,20 +557,20 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         if (!tbody)
             return;
         countEl.textContent = runs.length.toString();
-        tbody.innerHTML = '';
+        tbody.replaceChildren();
         for (const r of runs) {
             const tr = document.createElement('tr');
             const f = r.format || {};
             const h = r.hallucinations || [];
             const m = r.metrics || {};
-            tr.innerHTML = `
+            tr.replaceChildren(document.createRange().createContextualFragment(`
 <td><span class="run-id">${esc(r.id.replace('bench_', ''))}</span> <span class="llmb-chip model">${esc(r.model)}</span> <div style="font-size:10px;color:#888;">${esc(r.charName)}</div> <div style="font-size:10px;color:#888;">${new Date(r.ts || 0).toLocaleTimeString()}</div></td>
 <td>${m.ttftMs != null ? m.ttftMs + ' ms' : '-'}</td>
 <td>${m.tps != null ? m.tps + ' tok/s' : '-'}</td>
 <td>${m.latencyMs != null ? m.latencyMs + ' ms' : '-'}</td>
 <td class="${f.pass ? 'ok' : 'bad'}">${f.pass ? 'PASS' : 'FAIL'}${f.reasons && f.reasons.length ? ' <span style="font-size:9px;opacity:.7;">(' + f.reasons.join('; ') + ')</span>' : ''}</td>
 <td class="${h.length ? 'bad' : 'ok'}">${h.length || 0}</td>
-`;
+`));
             tr.onclick = () => showDrill(r.id);
             tbody.appendChild(tr);
         }
@@ -610,11 +613,11 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
         const f = r.format || {};
         const h = r.hallucinations || [];
         const m = r.metrics || {};
-        d.innerHTML = `
+        d.replaceChildren(document.createRange().createContextualFragment(`
 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
     <span class="llmb-chip model">${esc(r.model)}</span>
     <span style="font-size:10px;color:#888;">${esc(r.charName)} · ${new Date(r.ts || 0).toLocaleString()}</span>
-    <button class="llmb-btn secondary" onclick="document.getElementById('llmb-drill').classList.add('hidden');document.getElementById('llmb-drill').innerHTML='';">Close</button>
+    <button class="llmb-btn secondary" onclick="document.getElementById('llmb-drill').classList.add('hidden');document.getElementById('llmb-drill').replaceChildren();">Close</button>
 </div>
 <div class="llmb-section"><div class="llmb-title">System prompt</div><div class="pre">${esc(r.systemPrompt || '')}</div></div>
 <div class="llmb-section"><div class="llmb-title">User prompt (turn)</div><div class="pre">${esc(r.prompt || '')}</div></div>
@@ -632,7 +635,7 @@ table.llmb-runs tr:hover { background: #1a1a1a; }
     </div>
     <div style="margin-top:6px;">Format: <span class="${f.pass ? 'ok' : 'bad'}">${f.pass ? 'PASS' : 'FAIL'}</span>${f.reasons && f.reasons.length ? ' - ' + esc(f.reasons.join('; ')) : ''}</div>
     <div>Hallucinations: <span class="${h.length ? 'bad' : 'ok'}">${h.length || 0}</span>${h.length ? '<ul style="margin:4px 0 0 16px;font-size:10px;color:#f87171;"><li>' + esc(h.join('</li><li>')) + '</li></ul>' : ''}</div>
-</div>`;
+</div>`));
     }
     async function exportRuns() {
         await loadRuns();

@@ -197,7 +197,7 @@
         root.style.cssText = 'position:fixed;inset:0;z-index:1450;background:rgba(0,0,0,0.82);'
             + 'display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
         const hasBoth = !!(full && profile && full !== profile);
-        root.innerHTML = `
+        root.replaceChildren(document.createRange().createContextualFragment(`
             <div style="max-width:96vw;max-height:96vh;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;">
                 <div style="color:#e6e8ee;font-size:14px;font-weight:600;">${_esc(name || 'portrait')}</div>
                 ${hasBoth ? `<div style="display:flex;gap:6px;">
@@ -207,7 +207,7 @@
                 <img id="cp-img" src="${_esc(big)}" alt="${_esc(name)}" loading="lazy" decoding="async"
                      style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:10px;border:1px solid #333a45;box-shadow:0 20px 70px rgba(0,0,0,.8);background:#141820;">
                 <div style="color:#78828e;font-size:11px;">${emoLabel(emotion)}${hasBoth ? ' · click a tab to switch' : ''} · click anywhere to close</div>
-            </div>`;
+            </div>`));
         root.addEventListener('click', close);
         document.body.appendChild(root);
         _overlay = root;

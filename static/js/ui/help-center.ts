@@ -621,14 +621,35 @@ window.HelpCenter = (() => {
         _card = document.createElement('div');
         _card.className = 'hc-card';
         const hasTarget = !!tip.target;
-        _card.innerHTML = `
-            <h4>💡 ${tip.title}</h4>
-            <div class="hc-body">${tip.body}</div>
-            <div class="hc-actions">
-                ${hasTarget ? '<button class="hc-showme">Show me</button>' : ''}
-                <button class="hc-gotit">${fromTour ? 'Next' : 'Got it'}</button>
-                <button class="hc-dismiss" title="Don\'t show this tip again">✕</button>
-            </div>`;
+
+        const h4 = document.createElement('h4');
+        h4.textContent = `💡 ${tip.title}`;
+
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'hc-body';
+        bodyEl.replaceChildren(document.createRange().createContextualFragment(tip.body));
+
+        const actionsEl = document.createElement('div');
+        actionsEl.className = 'hc-actions';
+
+        if (hasTarget) {
+            const showmeBtn = document.createElement('button');
+            showmeBtn.className = 'hc-showme';
+            showmeBtn.textContent = 'Show me';
+            actionsEl.appendChild(showmeBtn);
+        }
+
+        const gotitBtn = document.createElement('button');
+        gotitBtn.className = 'hc-gotit';
+        gotitBtn.textContent = fromTour ? 'Next' : 'Got it';
+
+        const dismissBtn = document.createElement('button');
+        dismissBtn.className = 'hc-dismiss';
+        dismissBtn.title = "Don't show this tip again";
+        dismissBtn.textContent = '✕';
+
+        actionsEl.append(gotitBtn, dismissBtn);
+        _card.append(h4, bodyEl, actionsEl);
         _card.addEventListener('click', (e) => {
             if ((e.target as Element).classList.contains('hc-showme')) {
                 spotlight(tip.target);
@@ -684,23 +705,89 @@ window.HelpCenter = (() => {
         const m = document.createElement('div');
         m.className = 'hc-modal';
         m.id = 'hc-modal';
-        const toursHtml = Object.entries(TOURS).map(([id, t]) => `
-            <div class="hc-tour"><b>${t.title}</b> <span style="color:#5b6570;">(${t.steps.length} steps)</span>
-                <button onclick="HelpCenter.startTour('${id}');HelpCenter._closeModal()">▶ Start</button>
-            </div>`).join('');
-        const tipsHtml = TIPS.map(t => `
-            <div class="hc-tiprow"><span>${t.group} — ${t.title} ${_isSeen(t.id) ? '<span class="done">✓</span>' : ''}</span>
-                <span><button onclick="HelpCenter._resetTip('${t.id}')">again</button></span>
-            </div>`).join('');
-        m.innerHTML = `<div class="hc-modal-inner">
-            <h3>❓ Help &amp; Guides</h3>
-            <div style="font-size:11px;color:#5b6570;margin-bottom:10px;">Coach tips appear as you touch things. F1 reopens this. Reset restores every tip.</div>
-            <b>Guided tours</b>
-            ${toursHtml}
-            <div style="margin:10px 0 4px;"><b>All tips</b> <button class="hc-reset" onclick="HelpCenter._resetAll()">Reset all</button></div>
-            ${tipsHtml}
-            <div style="margin-top:12px;text-align:right;"><button onclick="HelpCenter._closeModal()">Close</button></div>
-        </div>`;
+
+        const inner = document.createElement('div');
+        inner.className = 'hc-modal-inner';
+
+        const h3 = document.createElement('h3');
+        h3.textContent = '❓ Help & Guides';
+
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font-size:11px;color:#5b6570;margin-bottom:10px;';
+        sub.textContent = 'Coach tips appear as you touch things. F1 reopens this. Reset restores every tip.';
+
+        const toursTitle = document.createElement('b');
+        toursTitle.textContent = 'Guided tours';
+
+        inner.append(h3, sub, toursTitle);
+
+        for (const [id, t] of Object.entries(TOURS)) {
+            const tourRow = document.createElement('div');
+            tourRow.className = 'hc-tour';
+            const b = document.createElement('b');
+            b.textContent = t.title;
+            const span = document.createElement('span');
+            span.style.color = '#5b6570';
+            span.textContent = ` (${t.steps.length} steps)`;
+            const startBtn = document.createElement('button');
+            startBtn.textContent = '▶ Start';
+            startBtn.addEventListener('click', () => {
+                startTour(id);
+                _closeModal();
+            });
+            tourRow.append(b, ' ', span, startBtn);
+            inner.appendChild(tourRow);
+        }
+
+        const tipsHeader = document.createElement('div');
+        tipsHeader.style.cssText = 'margin:10px 0 4px;';
+        const allTipsB = document.createElement('b');
+        allTipsB.textContent = 'All tips ';
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'hc-reset';
+        resetBtn.textContent = 'Reset all';
+        resetBtn.addEventListener('click', () => {
+            _resetAll();
+        });
+        tipsHeader.append(allTipsB, resetBtn);
+        inner.appendChild(tipsHeader);
+
+        for (const t of TIPS) {
+            const tipRow = document.createElement('div');
+            tipRow.className = 'hc-tiprow';
+
+            const leftSpan = document.createElement('span');
+            leftSpan.append(`${t.group} - ${t.title} `);
+            if (_isSeen(t.id)) {
+                const doneSpan = document.createElement('span');
+                doneSpan.className = 'done';
+                doneSpan.textContent = '✓';
+                leftSpan.appendChild(doneSpan);
+            }
+
+            const rightSpan = document.createElement('span');
+            const againBtn = document.createElement('button');
+            againBtn.textContent = 'again';
+            againBtn.addEventListener('click', () => {
+                _resetTip(t.id);
+            });
+            rightSpan.appendChild(againBtn);
+
+            tipRow.append(leftSpan, rightSpan);
+            inner.appendChild(tipRow);
+        }
+
+        const footDiv = document.createElement('div');
+        footDiv.style.cssText = 'margin-top:12px;text-align:right;';
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Close';
+        closeBtn.addEventListener('click', () => {
+            _closeModal();
+        });
+        footDiv.appendChild(closeBtn);
+        inner.appendChild(footDiv);
+
+        m.appendChild(inner);
         document.body.appendChild(m);
         m.addEventListener('click', (e) => { if (e.target === m) _closeModal(); });
     }

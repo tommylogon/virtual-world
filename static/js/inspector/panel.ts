@@ -1,7 +1,7 @@
 /**
- * InspectorPanel — THE single render entrypoint for #inspector-panel (task-216 migration)
+ * InspectorPanel - THE single render entrypoint for #inspector-panel (task-216 migration)
  *
- * Every other file that once did `panel.innerHTML = ...` must instead call
+ * Every other file that once did `panel rendering` must instead call
  * `InspectorPanel.render(template)` with a lit-html TemplateResult. Mixing raw
  * innerHTML writes with lit's render() on the same container corrupts lit's
  * internal part tracking, so this module is the ONLY place allowed to touch
@@ -12,9 +12,9 @@
  * call time, so the deferred ES-module bootstrap never races with classic
  * script parse.
  *
- * @module inspector/panel — the single owner of #inspector-panel
+ * @module inspector/panel - the single owner of #inspector-panel
  * @contributes InspectorPanel.render(template): the only code allowed to write the panel element
- * @powers Node inspectors — all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
+ * @powers Node inspectors - all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
  * @relates every inspector view hands it a lit-html TemplateResult
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -42,7 +42,7 @@ const InspectorPanel = (() => {
         const panel = panelEl();
         if (!panel) return;
         if (!window.Lit) { console.warn('InspectorPanel.render: window.Lit not ready'); return; }
-        // lit-html never removes children it doesn't own — any pre-lit static
+        // lit-html never removes children it doesn't own - any pre-lit static
         // markup in the container would linger above every render. Clear it
         // once, before lit takes ownership (empty states are lit-rendered by
         // Inspector.showEmpty; index.html ships no static placeholder).
@@ -60,7 +60,7 @@ const InspectorPanel = (() => {
     /**
      * Render plain fallback HTML (empty states, "not found", orphan triggers).
      * These are static strings with no user data, so they are safe to inject
-     * directly — and doing it through the lit render path keeps lit's DOM
+     * directly - and doing it through the lit render path keeps lit's DOM
      * ownership intact. Values passed here MUST be trusted/static.
      * @param template - lit-html template
      */
@@ -74,7 +74,7 @@ const InspectorPanel = (() => {
     P.clear = function (): void {
         const panel = panelEl();
         if (!panel) return;
-        if (!window.Lit) { panel.innerHTML = ''; return; }
+        if (!window.Lit) { panel.replaceChildren(); return; }
         window.Lit.render(window.Lit.nothing, panel);
     };
 

@@ -52,11 +52,32 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
     function legend(): HTMLElement {
         const foot = el('div', 'tmn-foot');
-        foot.innerHTML = '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
-            + '<span><span class="tmn-sw" style="background:#2d5584"></span>in sight</span>'
-            + '<span><span class="tmn-sw" style="background:#1e293b"></span>charted</span>'
-            + '<span><span class="tmn-sw" style="background:#1f4a7d"></span>you are here</span>'
-            + '<span><span style="color:#f85149;font-weight:700">✖</span> way you know is blocked</span>';
+        const items: Array<{ swStyle?: string; text: string; mark?: boolean }> = [
+            { swStyle: 'background:#3b444f', text: 'been' },
+            { swStyle: 'background:#2d5584', text: 'in sight' },
+            { swStyle: 'background:#1e293b', text: 'charted' },
+            { swStyle: 'background:#1f4a7d', text: 'you are here' },
+            { mark: true, text: 'way you know is blocked' }
+        ];
+        for (const item of items) {
+            const span = el('span');
+            if (item.swStyle) {
+                const sw = el('span', 'tmn-sw');
+                sw.style.cssText = item.swStyle;
+                span.appendChild(sw);
+            } else if (item.mark) {
+                const markSpan = el('span');
+                markSpan.style.cssText = 'color:#f85149;font-weight:700';
+                markSpan.textContent = '✖ ';
+                span.appendChild(markSpan);
+            }
+            if (typeof document.createTextNode === 'function') {
+                span.appendChild(document.createTextNode(item.text));
+            } else {
+                span.textContent = (span.textContent || '') + item.text;
+            }
+            foot.appendChild(span);
+        }
         return foot;
     }
 
@@ -186,7 +207,16 @@ interface TurnMinimapWindowSurface { TurnMinimap: unknown }
 
     function showTip(html: string, ev: MouseEvent): void {
         const tip = tipEl();
-        tip.innerHTML = html;
+        tip.textContent = '';
+        if (typeof document.createRange === 'function') {
+            tip.appendChild(document.createRange().createContextualFragment(html));
+        } else {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            while (doc.body.firstChild) {
+                tip.appendChild(doc.body.firstChild);
+            }
+        }
         const walk = tip.querySelector('.tmn-walk');
         if (walk) {
             walk.addEventListener('click', function (e: Event) {

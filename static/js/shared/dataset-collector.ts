@@ -282,16 +282,38 @@
         _panel = document.createElement('div');
         _panel.id = 'dataset-collector-panel';
         _panel.style.cssText = 'position:fixed;right:14px;bottom:48px;z-index:12000;width:280px;padding:12px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
-        _panel.innerHTML = `
-            <div style="font-weight:bold;margin-bottom:8px;">LLM Dataset Collector</div>
-            <div id="dataset-count" style="margin-bottom:8px;color:var(--text-dim,#999);">loading…</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-                <button data-act="all">Export all (JSONL)</button>
-                <button data-act="ok">Export parsed-OK only</button>
-                <button data-act="fail">Export failures only</button>
-                <button data-act="clear" style="color:#f66;">Clear dataset</button>
-            </div>
-            <div id="dataset-status" style="margin-top:8px;font-size:10px;color:var(--text-dim,#999);"></div>`;
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = 'font-weight:bold;margin-bottom:8px;';
+        titleDiv.textContent = 'LLM Dataset Collector';
+
+        const countDiv = document.createElement('div');
+        countDiv.id = 'dataset-count';
+        countDiv.style.cssText = 'margin-bottom:8px;color:var(--text-dim,#999);';
+        countDiv.textContent = 'loading…';
+
+        const buttonGroup = document.createElement('div');
+        buttonGroup.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+        const actions: Array<{ act: string; label: string; color?: string }> = [
+            { act: 'all', label: 'Export all (JSONL)' },
+            { act: 'ok', label: 'Export parsed-OK only' },
+            { act: 'fail', label: 'Export failures only' },
+            { act: 'clear', label: 'Clear dataset', color: '#f66' }
+        ];
+        for (const item of actions) {
+            const b = document.createElement('button');
+            b.dataset.act = item.act;
+            b.textContent = item.label;
+            if (item.color) b.style.color = item.color;
+            buttonGroup.appendChild(b);
+        }
+
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'dataset-status';
+        statusDiv.style.cssText = 'margin-top:8px;font-size:10px;color:var(--text-dim,#999);';
+
+        _panel.append(titleDiv, countDiv, buttonGroup, statusDiv);
         document.body.appendChild(_panel);
         _panel.querySelectorAll<HTMLElement>('button').forEach(b => b.addEventListener('click', () => onAction(b.dataset.act)));
         refreshCount();

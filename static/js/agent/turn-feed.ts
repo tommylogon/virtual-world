@@ -472,10 +472,6 @@ const TurnFeedModule = (() => {
         document.head.appendChild(style);
     }
 
-    function escapeHtml(str: unknown): string {
-        return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
     /**
      * Resolve the controlled character's display name from the live state.
      *
@@ -556,7 +552,9 @@ const TurnFeedModule = (() => {
         if (narrative) {
             const sumEl = document.createElement('div');
             sumEl.className = 'tf-summary';
-            sumEl.innerHTML = '<b>Observed:</b> ' + escapeHtml(narrative);
+            const b = document.createElement('b');
+            b.textContent = 'Observed:';
+            sumEl.append(b, ' ' + narrative);
             host.appendChild(sumEl);
         }
 
@@ -677,7 +675,9 @@ const TurnFeedModule = (() => {
         if (summary) {
             const sumEl = document.createElement('div');
             sumEl.className = 'tf-summary';
-            sumEl.innerHTML = '<b>Since your turn:</b> ' + escapeHtml(summary);
+            const b = document.createElement('b');
+            b.textContent = 'Since your turn:';
+            sumEl.append(b, ' ' + summary);
             host.appendChild(sumEl);
         }
 

@@ -200,7 +200,7 @@ const AutoDressModal = (() => {
             if ((window as any).Lit?.render && modalTmpl) {
                 (window as any).Lit.render(modalTmpl, mountEl);
             } else {
-                mountEl.innerHTML = contentHtml;
+                mountEl.replaceChildren(document.createRange().createContextualFragment(contentHtml));
             }
 
             mountEl.querySelector<HTMLButtonElement>('#ad-cancel')?.addEventListener('click', () => close(null));

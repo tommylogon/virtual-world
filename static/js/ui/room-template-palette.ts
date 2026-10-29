@@ -49,10 +49,23 @@ function api() {
     box.className = 'modal-window';
     box.style.cssText = 'width:520px;max-width:92vw;max-height:80vh;display:flex;flex-direction:column;';
 
-    let html = '<div class="modal-head"><h3 style="margin:0;font-size:15px;">🏗️ New Room from Template</h3>'
-      + '<button class="modal-close-btn" id="rp-close">✕</button></div>'
-      + '<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">' + entries.length + ' library area templates. Pick one to spawn a fresh room (not wired to anything yet).</div>'
-      + '<div style="overflow-y:auto;flex:1;">';
+    const head = document.createElement('div');
+    head.className = 'modal-head';
+    const h3 = document.createElement('h3');
+    h3.style.cssText = 'margin:0;font-size:15px;';
+    h3.textContent = '🏗️ New Room from Template';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close-btn';
+    closeBtn.id = 'rp-close';
+    closeBtn.textContent = '✕';
+    head.append(h3, closeBtn);
+
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:10px;color:var(--text-dim);margin-bottom:8px;';
+    sub.textContent = `${entries.length} library area templates. Pick one to spawn a fresh room (not wired to anything yet).`;
+
+    const listDiv = document.createElement('div');
+    listDiv.style.cssText = 'overflow-y:auto;flex:1;';
 
     entries.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
     for (const [id, entry] of entries) {
@@ -60,20 +73,50 @@ function api() {
       const desc = (entry && entry.description) || '';
       const env = (entry && entry.environment) || {};
       const items = (entry && Array.isArray(entry.items) ? entry.items : []);
-      html += '<div style="padding:6px 4px;border-bottom:1px solid var(--border);">'
-        + '<div style="display:flex;align-items:center;gap:6px;">'
-        + '<span>🏠</span>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(name) + ' <span style="font-size:9px;color:var(--text-muted);">(' + esc(id) + ')</span></div>'
-        + '<div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(desc) + '">' + esc(desc) + '</div>'
-        + '<div style="font-size:9px;color:var(--text-dim);">' + items.length + ' items' + (env.light ? ' · light ' + env.light : '') + (env.temperature ? ' · ' + env.temperature + '°C' : '') + '</div>'
-        + '</div>'
-        + '<button class="btn btn-sm btn-blue" data-id="' + esc(id) + '" style="font-size:9px;padding:2px 10px;">➕ Spawn</button>'
-        + '</div></div>';
-    }
-    html += '</div>';
 
-    box.innerHTML = html;
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:6px 4px;border-bottom:1px solid var(--border);';
+
+      const innerRow = document.createElement('div');
+      innerRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '🏠';
+
+      const detailsCol = document.createElement('div');
+      detailsCol.style.cssText = 'flex:1;min-width:0;';
+
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      nameEl.append(name, ' ');
+      const idSpan = document.createElement('span');
+      idSpan.style.cssText = 'font-size:9px;color:var(--text-muted);';
+      idSpan.textContent = `(${id})`;
+      nameEl.appendChild(idSpan);
+
+      const descEl = document.createElement('div');
+      descEl.style.cssText = 'font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      descEl.title = desc;
+      descEl.textContent = desc;
+
+      const metaEl = document.createElement('div');
+      metaEl.style.cssText = 'font-size:9px;color:var(--text-dim);';
+      metaEl.textContent = `${items.length} items${env.light ? ' · light ' + env.light : ''}${env.temperature ? ' · ' + env.temperature + '°C' : ''}`;
+
+      detailsCol.append(nameEl, descEl, metaEl);
+
+      const spawnBtn = document.createElement('button');
+      spawnBtn.className = 'btn btn-sm btn-blue';
+      spawnBtn.dataset.id = id;
+      spawnBtn.style.cssText = 'font-size:9px;padding:2px 10px;';
+      spawnBtn.textContent = '➕ Spawn';
+
+      innerRow.append(iconSpan, detailsCol, spawnBtn);
+      row.appendChild(innerRow);
+      listDiv.appendChild(row);
+    }
+
+    box.append(head, sub, listDiv);
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -133,10 +176,6 @@ function api() {
         }
       };
     });
-  }
-
-  function esc(s: unknown) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   return { open };
