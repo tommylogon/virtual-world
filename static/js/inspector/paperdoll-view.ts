@@ -23,6 +23,48 @@
     // the paperdoll and the slot modal both render it; while it lived inside
     // renderPaperdollEquipmentHtml the showSlotModal call was out of scope (a
     // ReferenceError that a globals.d.ts `declare` was papering over).
+    /**
+     * Parse unified damage/damage_dice representation into [count, sides, flat_bonus].
+     * Accepts:
+     *   "2d6+3", "1d8", "d8" -> dice notation (count > 0; bare "d8" is 1d8)
+     *   [count, sides, flat]   -> tuple/array format
+     *   "8", 8               -> flat damage ([0, 0, flat])
+     */
+    function parseDamage(value: unknown): [number, number, number] {
+        if (value === null || value === undefined || value === '') return [0, 0, 0];
+        if (Array.isArray(value) && value.length >= 2) {
+            return [parseInt(value[0], 10) || 0, parseInt(value[1], 10) || 0, parseInt(value[2], 10) || 0];
+        }
+        if (typeof value === 'string' && value.toLowerCase().includes('d')) {
+            const m = value.trim().match(/^(\d*)\s*[dD]\s*(\d+)(?:\s*([+-])\s*(\d+))?$/);
+            if (m) {
+                const count = m[1] ? parseInt(m[1], 10) : 1;
+                const sides = parseInt(m[2], 10);
+                const bonus = m[3] ? parseInt(m[4], 10) * (m[3] === '+' ? 1 : -1) : 0;
+                return [count, sides, bonus];
+            }
+            return [0, 0, 0];
+        }
+        const flat = parseInt(String(value), 10);
+        return isNaN(flat) ? [0, 0, 0] : [0, 0, flat];
+    }
+
+    /**
+     * Format parsed damage dice and optional damage type into standard notation.
+     */
+    function formatDamage(dmg: unknown, dice: [number, number, number] | number[] | null, type?: unknown): string {
+        let text = '0';
+        if (dice && dice[0] > 0) {
+            const flat = dice[2] > 0 ? ('+' + dice[2]) : (dice[2] < 0 ? String(dice[2]) : '');
+            text = `${dice[0]}d${dice[1]}${flat}`;
+        } else if (dice && dice[2] > 0) {
+            text = String(dice[2]);
+        } else if (dmg) {
+            text = String(dmg);
+        }
+        return type ? `${text} ${type}` : text;
+    }
+
     function durabilityChip(props: any): string {
         const maxUses = parseInt(props?.max_uses, 10) || 0;
         const uses = parseInt(props?.uses ?? -1, 10);
@@ -188,15 +230,14 @@
                         }
                     }
                 }
-                if (isWeapon && props.damage) {
-                    const dice = props.damage_dice || null;
+                if (isWeapon && (props.damage || props.damage_dice)) {
+                    const thisDice = parseDamage(props.damage_dice || props.damage);
                     const current = totals.bestDamage || { damage: 0, dice: [0, 0, 0] };
-                    const thisDice = dice || [0, 0, parseInt(props.damage, 10) || 0];
                     const better = thisDice[0] > current.dice[0] ||
                         (thisDice[0] === current.dice[0] && thisDice[1] > current.dice[1]) ||
                         (thisDice[0] === current.dice[0] && thisDice[1] === current.dice[1] && thisDice[2] > current.dice[2]);
                     if (better) {
-                        totals.bestDamage = { damage: props.damage, dice: thisDice, type: props.damage_type || null };
+                        totals.bestDamage = { damage: props.damage || props.damage_dice, dice: thisDice, type: props.damage_type || null };
                         totals.contributors.damage = [name];
                     } else {
                         addContrib('damage', name);
@@ -231,10 +272,7 @@
         const t = P.computeEquipmentTotals(player);
         const fmtDmg = (d: any) => {
             if (!d) return null;
-            if (d.dice && d.dice[0] > 0) {
-                return `${d.dice[0]}d${d.dice[1]}${d.dice[2] ? `+${d.dice[2]}` : ''}${d.type ? ` ${d.type}` : ''}`;
-            }
-            return `${d.damage}${d.type ? ` ${d.type}` : ''}`;
+            return formatDamage(d.damage, d.dice, d.type);
         };
         const resChips = Object.entries(t.resistances)
             .map(([k, v]) => `<span class="paperdoll-stat" title="From: ${esc(t.contributors.resistances.join(', ') || '-')}">⚡ ${esc(k)} ${v}</span>`);
@@ -462,20 +500,12 @@
             return {
                 defense: isArmor ? (parseInt(nodeProps.defense) || 0) : 0,
                 insulation: parseInt(nodeProps.insulation) || 0,
-                damage: isWeapon ? (nodeProps.damage || 0) : 0,
-                damage_dice: isWeapon ? (nodeProps.damage_dice || null) : null,
+                damage: isWeapon ? (nodeProps.damage || nodeProps.damage_dice || 0) : 0,
+                damage_dice: isWeapon ? parseDamage(nodeProps.damage_dice || nodeProps.damage) : null,
                 damage_type: isWeapon ? (nodeProps.damage_type || null) : null,
                 resistances: isResistance ? (nodeProps.resistances || {}) : {},
                 weight: parseFloat(nodeProps.weight) || 0,
             };
-        };
-
-        const formatDamage = (dmg: any, dice: number[] | null) => {
-            if (dice && dice[0] > 0) {
-                const flat = dice[2] ? `+${dice[2]}` : '';
-                return `${dice[0]}d${dice[1]}${flat}`;
-            }
-            return dmg ? String(dmg) : '0';
         };
 
         const layers = realIds.map((id: string, idx: number) => {
@@ -495,8 +525,8 @@
             }
             if (layer.bonuses.damage) {
                 const currentBest = acc.bestDamage || { damage: 0, dice: [0, 0, 0] };
-                const thisDice = layer.bonuses.damage_dice || [0, 0, parseInt(layer.bonuses.damage) || 0];
-                if (thisDice[0] > currentBest.dice[0] || (thisDice[0] === currentBest.dice[0] && thisDice[1] > currentBest.dice[1])) {
+                const thisDice = layer.bonuses.damage_dice || parseDamage(layer.bonuses.damage);
+                if (thisDice[0] > currentBest.dice[0] || (thisDice[0] === currentBest.dice[0] && thisDice[1] > currentBest.dice[1]) || (thisDice[0] === currentBest.dice[0] && thisDice[1] === currentBest.dice[1] && thisDice[2] > currentBest.dice[2])) {
                     acc.bestDamage = { damage: layer.bonuses.damage, dice: thisDice, type: layer.bonuses.damage_type };
                 }
             }
@@ -743,6 +773,9 @@
             window.VW.inspector._showContextMenu(event, items);
         }
     };
+
+    P.parseDamage = parseDamage;
+    P.formatDamage = formatDamage;
 
     return P;
 })();

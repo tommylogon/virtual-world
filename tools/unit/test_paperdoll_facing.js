@@ -71,3 +71,51 @@ test('the selected area is marked selected, once, and announced', () => {
     assertTrue(/data-area="torso" role="button" aria-pressed="true"/.test(html), 'aria-pressed on the selection');
     assertTrue(/data-area="head" role="button" aria-pressed="false"/.test(html), 'others are not pressed');
 });
+
+test('paperdoll damage parsing handles strings, dice strings, and arrays without doubling d (task-655)', () => {
+    assertEq(PD.parseDamage('1d6'), [1, 6, 0], '1d6 standard dice');
+    assertEq(PD.parseDamage('1d8'), [1, 8, 0], '1d8 standard dice');
+    assertEq(PD.parseDamage('2d6+3'), [2, 6, 3], '2d6+3 bonus dice');
+    assertEq(PD.parseDamage('d8'), [1, 8, 0], 'bare d8');
+    assertEq(PD.parseDamage('1d4-1'), [1, 4, -1], 'negative bonus');
+    assertEq(PD.parseDamage([1, 6, 2]), [1, 6, 2], 'array notation');
+    assertEq(PD.parseDamage('8'), [0, 0, 8], 'flat damage string');
+    assertEq(PD.parseDamage(8), [0, 0, 8], 'flat damage number');
+    assertEq(PD.parseDamage(null), [0, 0, 0], 'null damage');
+});
+
+test('paperdoll formatDamage formats dice and type cleanly without doubling d (task-655)', () => {
+    assertEq(PD.formatDamage('1d6', [1, 6, 0], 'slashing'), '1d6 slashing', '1d6 slashing');
+    assertEq(PD.formatDamage('1d8', [1, 8, 0], 'piercing'), '1d8 piercing', '1d8 piercing - no 1dd+8');
+    assertEq(PD.formatDamage('2d6+3', [2, 6, 3], null), '2d6+3', '2d6+3 with no type');
+    assertEq(PD.formatDamage('8', [0, 0, 8], 'bludgeoning'), '8 bludgeoning', 'flat damage with type');
+});
+
+test('paperdoll computeEquipmentTotals parses string damage_dice correctly (task-655)', () => {
+    const fakePlayer = {
+        equipped: { hand_right: ['hatchet_1'] }
+    };
+    const savedGetNode = window.worldState.getNodeByIdentifier;
+    window.worldState.getNodeByIdentifier = (id) => {
+        if (id === 'hatchet_1') {
+            return {
+                id: 'hatchet_1',
+                name: 'Rusty Hatchet',
+                properties: {
+                    tags: ['weapon'],
+                    damage: '1d6',
+                    damage_dice: '1d6',
+                    damage_type: 'slashing'
+                }
+            };
+        }
+        return null;
+    };
+    try {
+        const totals = PD.computeEquipmentTotals(fakePlayer);
+        assertEq(totals.bestDamage.dice, [1, 6, 0], 'parsed dice array');
+        assertEq(PD.formatDamage(totals.bestDamage.damage, totals.bestDamage.dice, totals.bestDamage.type), '1d6 slashing', 'clean 1d6 slashing formatting');
+    } finally {
+        window.worldState.getNodeByIdentifier = savedGetNode;
+    }
+});
