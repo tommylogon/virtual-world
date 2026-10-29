@@ -595,6 +595,9 @@ class MovementSystem:
         if state == "blocked" and not phasing:
             self._learn_way_aspect(way_node, direction, "blocked")
             raise ValueError(f"The {direction} is blocked. There's no way through.")
+        if state == "broken" and not phasing:
+            self._learn_way_aspect(way_node, direction, "broken")
+            raise ValueError(f"The {direction} is broken. There's no way through.")
         if state == "closed" and not phasing:
             # Check needs_open door property (checkbox-managed)
             needs_open = way_node.properties.get("needs_open", {})

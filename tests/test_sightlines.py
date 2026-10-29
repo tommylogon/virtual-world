@@ -190,11 +190,11 @@ def test_a_locked_or_blocked_way_breaks_the_run():
     omission' here."""
     from engine.barriers import WAY_STATES
 
-    for state in ("closed", "locked", "blocked", "hidden"):
+    for state in ("closed", "locked", "broken", "blocked", "hidden"):
         graph = _line(WorldGraph(), ["a", "b", "c"],
                       way_overrides={0: {"current_state": state}})
         assert sightline_run(graph, "a", "east") == [], state
-    assert len(WAY_STATES) == 6
+    assert len(WAY_STATES) == 7
 
 
 def test_a_cycle_terminates_rather_than_looping():

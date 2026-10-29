@@ -34,7 +34,7 @@ from engine.runtime_config import config as _config
 #: shared contract: both tables are non-increasing along it, and a test asserts
 #: that, so a new state cannot be added to one system and forgotten in the other.
 WAY_STATES: Tuple[str, ...] = (
-    "open", "see_through", "closed", "locked", "blocked", "hidden",
+    "open", "see_through", "closed", "locked", "broken", "blocked", "hidden",
 )
 
 #: Default sound COST per state. Unchanged from `engine/sound.py`, which this
@@ -44,6 +44,7 @@ DEFAULT_SOUND_COSTS: Dict[str, float] = {
     "see_through": 0.75,
     "closed": 1.0,
     "locked": 1.0,
+    "broken": 1.0,
     "blocked": 1.0,
     "hidden": 2.0,
 }
@@ -62,6 +63,7 @@ DEFAULT_LIGHT_TRANSMISSION: Dict[str, float] = {
     "see_through": 0.75,
     "closed": 0.25,
     "locked": 0.1,
+    "broken": 0.0,
     "blocked": 0.0,
     "hidden": 0.0,
 }
@@ -77,7 +79,7 @@ UNKNOWN_STATE_FALLBACK = "open"
 #: ``see_through`` is not here even though a window is shut: sound has always
 #: let ``see_through`` outrank the state, and an override on an open window is
 #: meaningless anyway.
-SOLID_STATES = ("closed", "locked", "blocked")
+SOLID_STATES = ("closed", "locked", "broken", "blocked")
 
 _CONFIG_PREFIX = {"sound": "sound.way_", "light": "light.way_"}
 

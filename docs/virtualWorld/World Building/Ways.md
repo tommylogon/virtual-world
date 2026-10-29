@@ -45,19 +45,16 @@ offers six states:
 | `closed` | no, until opened | shut but not secured; walking through auto-opens it |
 | `locked` | no | secured; must be unlocked first |
 | `blocked` | no | something is in the way |
-| `broken` | see note | the way is ruined |
+| `broken` | no | the way is ruined; cannot be opened, walked through, or seen/heard through |
 | `hidden` | depends | not shown in the exit list until found |
 
 A state the engine does not recognise  -  or a missing one  -  is treated as
 **`open`**. That default is deliberate (a typo should not wall off a room), but
 it means a typo in `current_state` fails *open*, not closed.
 
-> **`broken` is half-implemented.** It is a real state, and `open` / `close`
-> correctly refuse it (`You can't  -  it's broken`). But the *passage* check does
-> not test for `broken`, and the light/sound tables fold it to `open`, so a
-> broken way can still be walked through and passes light and sound as if it were
-> open. Until that is reconciled, use `blocked` for a way nobody should pass, and
-> describe the damage in `description`.
+> **`broken` is fully blocking.** It refuses `open` / `close` ("The {direction} is broken"),
+> traversal ("The {direction} is broken. There's no way through."), and sits on the barrier
+> ladder between `locked` and `blocked` (sound cost 1.0, light transmission 0.0).
 
 ### `see_through` is a property
 
@@ -453,7 +450,7 @@ least three-eighths as bright.
 
 **Features**  -  [[way-authoring|Way authoring]] (#51)
 
-**Dev tasks**  -  [[task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[dev_tasks/todo/world/bug-547-broken-way-state-is-half-implemented|bug]]
+**Dev tasks**  -  [[task-446-id-first-node-identity|task]], [[dev_tasks/todo/docs/task-781-way-properties-py-omits-entry-phrase-and-requires-item-and-check-does-not-validate-values|task]], [[dev_tasks/todo/ui/task-780-expose-requires-item-refusal-message-and-entry-phrase-in-the-way-inspector|task]], [[bug-547-broken-way-state-is-half-implemented|bug]]
 
 **Neighbouring notes**  -  [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 

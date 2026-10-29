@@ -575,3 +575,33 @@ class TestRefusalMessage:
         # else in the game changed behaviour.
         world.move_to_area("in")
         assert world.player.current_area == "The Inn"
+
+class TestBrokenWayTraversal:
+    """A broken way refuses traversal and open/close (bug-547)."""
+
+    def test_broken_way_blocks_movement(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "First room.", []))
+        world.movement.add_area(Area("Room B", "Second room.", []))
+        world.movement.connect_areas("Room A", "Room B", "north", "south", state="broken")
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        player = world.player_manager.get_player(world.active_player)
+        player.vitals["Energy"] = 100
+
+        with pytest.raises(ValueError, match="The north is broken. There's no way through."):
+            world.move_to_area("north")
+        assert world.player.current_area == "Room A"
+
+    def test_broken_way_allows_phasing(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "First room.", []))
+        world.movement.add_area(Area("Room B", "Second room.", []))
+        world.movement.connect_areas("Room A", "Room B", "north", "south", state="broken")
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        player = world.player_manager.get_player(world.active_player)
+        player.vitals["Energy"] = 100
+        player.tags = ["ghost"]
+
+        out = world.move_to_area("north")
+        assert world.player.current_area == "Room B"
+

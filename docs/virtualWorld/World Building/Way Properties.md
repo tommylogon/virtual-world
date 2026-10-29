@@ -203,7 +203,6 @@ library spawn and refresh while a hand-authored save kept them (task-659).
 Declared or consumed somewhere, but not honored everywhere. Each needs a
 decision, not just a note.
 
-- **`current_state`** - `broken` is offered by the inspector's State dropdown but is NOT in engine/barriers.py WAY_STATES, and an unrecognised state resolves to UNKNOWN_STATE_FALLBACK = 'open'. If that holds, a broken door is more open than an open door. Verify, then either add it to both barrier tables in ladder order or remove it from the dropdown.
 - **`see_through`** - engine/world_compile.py _mint_way hardcodes see_through=True on EVERY way it mints, so every painted door is currently glazed. Separate task.
 - **`insulation`** - Was honored by engine/effect_handlers/ways.py alone; the library spawn, the refresh map and engine/sync.py omitted it, so a library-spawned way silently lost it. Fixed by task-659.
 

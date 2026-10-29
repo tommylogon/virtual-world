@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: world
 priority: medium
 wiki: "[[World Building/Ways]]"
@@ -102,14 +102,14 @@ Option 1 is the one that keeps the advertised state honest.
 
 ## Acceptance
 
-- [ ] `broken` is in `WAY_STATES` and has a rung in both
+- [x] `broken` is in `WAY_STATES` and has a rung in both
       `DEFAULT_SOUND_COSTS` and `DEFAULT_LIGHT_TRANSMISSION`, with the ladder
       ordering test extended to cover it.
-- [ ] The traversal gate in `move_to_area` refuses a `broken` way with a
+- [x] The traversal gate in `move_to_area` refuses a `broken` way with a
       message consistent with the open/close path.
-- [ ] A broken way blocks light and muffles sound per the barrier tables, not
+- [x] A broken way blocks light and muffles sound per the barrier tables, not
       per `UNKNOWN_STATE_FALLBACK`.
-- [ ] The `Ways.md` States section matches the implemented behaviour for every
+- [x] The `Ways.md` States section matches the implemented behaviour for every
       state the Inspector offers.
 
 ## Browser UI and intended live verification

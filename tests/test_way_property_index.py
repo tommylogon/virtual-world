@@ -65,14 +65,14 @@ def test_every_property_is_on_a_declared_axis():
 
 
 def test_declared_values_cover_every_value_the_inspector_offers():
-    """`broken` is offered by the State dropdown but is missing from WAY_STATES.
+    """`broken` is offered by the State dropdown and is in WAY_STATES.
 
-    Pinned here so the known gap cannot quietly become an undocumented behaviour, and
-    so adding it to one place without the other fails visibly.
+    Pinned here so adding it to one place without the other fails visibly.
     """
+    from engine.barriers import WAY_STATES
     current_state = next(p for p in PROPERTIES if p.name == "current_state")
     assert "broken" in current_state.values
-    assert current_state.caveat, "a known gap must carry a caveat explaining it"
+    assert "broken" in WAY_STATES
 
 
 def test_check_passes_on_the_current_tree():

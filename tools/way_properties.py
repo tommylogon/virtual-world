@@ -154,11 +154,6 @@ PROPERTIES: Tuple[WayProperty, ...] = (
             ("engine/barriers.py", 148, "outranked by see_through for light and sound"),
         ),
         notes="The passage ladder. Movement gates on THIS, never on see_through.",
-        caveat="`broken` is offered by the inspector's State dropdown but is NOT in "
-               "engine/barriers.py WAY_STATES, and an unrecognised state resolves to "
-               "UNKNOWN_STATE_FALLBACK = 'open'. If that holds, a broken door is more "
-               "open than an open door. Verify, then either add it to both barrier "
-               "tables in ladder order or remove it from the dropdown.",
     ),
     WayProperty(
         name="one_way",

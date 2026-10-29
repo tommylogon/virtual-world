@@ -295,6 +295,11 @@ def test_both_tables_run_along_the_same_ladder():
     assert DEFAULT_LIGHT_TRANSMISSION["open"] >= DEFAULT_LIGHT_TRANSMISSION["see_through"]
     assert DEFAULT_LIGHT_TRANSMISSION["see_through"] >= DEFAULT_LIGHT_TRANSMISSION["closed"]
     assert DEFAULT_LIGHT_TRANSMISSION["closed"] >= DEFAULT_LIGHT_TRANSMISSION["locked"]
+    assert DEFAULT_LIGHT_TRANSMISSION["locked"] >= DEFAULT_LIGHT_TRANSMISSION["broken"]
+    assert DEFAULT_LIGHT_TRANSMISSION["broken"] >= DEFAULT_LIGHT_TRANSMISSION["blocked"]
+    assert DEFAULT_SOUND_COSTS["locked"] <= DEFAULT_SOUND_COSTS["broken"]
+    assert DEFAULT_SOUND_COSTS["broken"] <= DEFAULT_SOUND_COSTS["blocked"]
+    assert order.index("locked") < order.index("broken") < order.index("blocked")
     assert order.index("open") < order.index("hidden")
 
 
