@@ -44,3 +44,19 @@ test('ApiClient._errorMessage returns generic status line for empty or null payl
     assertEq(fn(resp, null), 'Request failed (400 BAD REQUEST)', 'null data falls back');
     assertEq(fn(resp, {}), 'Request failed (400 BAD REQUEST)', 'empty data falls back');
 });
+
+test('ApiClient.getEquipSlots issues GET to /api/settings/equip_slots', async () => {
+    let requestedUrl = null;
+    const originalGet = window.ApiClient.get;
+    try {
+        window.ApiClient.get = async (url) => {
+            requestedUrl = url;
+            return { equip_slots: { head: { max_depth: 3 } } };
+        };
+        const result = await window.ApiClient.getEquipSlots();
+        assertEq(requestedUrl, '/api/settings/equip_slots', 'requests canonical equip slots endpoint');
+        assertEq(result.equip_slots.head.max_depth, 3, 'returns equipment slot config');
+    } finally {
+        window.ApiClient.get = originalGet;
+    }
+});

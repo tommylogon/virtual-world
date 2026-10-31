@@ -931,6 +931,12 @@ class ApiClientImpl {
         return this.post('/api/import/audit', data);
     }
 
+    // --- Equipment System ---
+
+    static async getEquipSlots(): Promise<ApiResult> {
+        return this.get('/api/settings/equip_slots');
+    }
+
     static async getEngineConfig(): Promise<ApiResult> {
         const resp = await fetch('/api/settings/engine_config');
         return resp.json();
