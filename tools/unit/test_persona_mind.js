@@ -57,3 +57,19 @@ test('persona narrative and overview fields render as multi-line textareas (task
     assertFalse(textareas.has('identity.pronouns'), 'identity.pronouns is not textarea');
     assertFalse(textareas.has('appearance.height_cm'), 'appearance.height_cm is not textarea');
 });
+
+test('InspectorPersonaView is exposed and wired (task-441)', () => {
+    const PV = window.InspectorPersonaView;
+    assertTrue(PV != null, 'InspectorPersonaView exists on window');
+    assertTrue(typeof PV.bind === 'function', 'PV.bind is a function');
+    assertTrue(typeof PV.unbind === 'function', 'PV.unbind is a function');
+    assertTrue(typeof PV.fetch === 'function', 'PV.fetch is a function');
+    assertTrue(typeof PV.html === 'function', 'PV.html is a function');
+    assertTrue(typeof PV.wire === 'function', 'PV.wire is a function');
+    assertTrue(typeof PV.syncFromForm === 'function', 'PV.syncFromForm is a function');
+    assertTrue(typeof PV.repaint === 'function', 'PV.repaint is a function');
+    assertEq(PV._parseMark('a::b').text, MV._parseMark('a::b').text, 'parseMark behavior preserved');
+    assertEq(PV._formatMark('a', 'b'), MV._formatMark('a', 'b'), 'formatMark behavior preserved');
+    assertEq(PV._PERSONA_TONES, MV._PERSONA_TONES, 'PERSONA_TONES identity preserved');
+    assertEq(PV._PERSONA_TEXTAREAS, MV._PERSONA_TEXTAREAS, 'PERSONA_TEXTAREAS identity preserved');
+});

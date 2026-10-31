@@ -190,6 +190,7 @@ load('static/js/inspector/components.js');
 // paperdoll-view.js only touches worldState/Lit at call time; its face filter
 // (areasForFacing) and navigate render are driven by tools/unit/test_paperdoll_facing.js.
 load('static/js/inspector/paperdoll-view.js');
+load('static/js/inspector/persona-view.js');
 load('static/js/inspector/mind-view.js');
 // agent-view.js reads InspectorHelpers.esc at eval time, so helpers.js must
 // come first. Its generators are plain async functions over injectable globals

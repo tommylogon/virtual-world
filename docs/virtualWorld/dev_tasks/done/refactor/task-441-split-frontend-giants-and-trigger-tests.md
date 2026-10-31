@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: refactor
 priority: low
 wiki: "[[Feature Map]]"
@@ -72,10 +72,17 @@ Priority 1 candidate: `mind-view.ts` (2,784 lines). The Persona sub-panel (schem
 
 ## Acceptance
 
-- [ ] High-priority host file (`mind-view.ts`) reduced in line count by extracting `persona-view.ts`.
-- [ ] No regressions in browser functionality; UI renders exactly as before.
-- [ ] TypeScript compiles cleanly (`npm run build:ts`) and module index checks pass.
-- [ ] Test monolith `test_trigger_system.py` split into cohesive sub-modules with identical total test coverage.
+- [x] High-priority host file (`mind-view.ts`) reduced in line count by extracting `persona-view.ts`. (Reduced from 2,784 to 1,647 lines; 1,137 lines extracted into `static/js/inspector/persona-view.ts`).
+- [x] No regressions in browser functionality; UI renders exactly as before. (Unit suite 899 passing, DOM bindings and legacy test helpers preserved).
+- [x] TypeScript compiles cleanly (`npm run build:ts`) and module index checks pass (`gate green`).
+- [x] Test monolith `test_trigger_system.py` split into cohesive sub-modules with identical total test coverage. (Split 3,129-line monolith into `test_trigger_conditions.py` [46 tests], `test_trigger_effects.py` [62 tests], and `test_trigger_system.py` [55 tests], all 163 tests passing).
+
+## Completed Resolution (2026-10-31)
+
+1. Extracted `static/js/inspector/persona-view.ts` (1,137 lines) from `static/js/inspector/mind-view.ts`. Encapsulated Persona schema forms, codex previews, import convert flows, doll body navigator, and compile hooks into `InspectorPersonaView`.
+2. Registered `persona-view.js` before `mind-view.js` in `templates/index.html` and `tools/unit/run.cjs`. Updated `globals.d.ts` and `eslint.config.js`.
+3. Split test monolith `tests/test_trigger_system.py` (3,129 lines) into three focused modules: `tests/test_trigger_conditions.py` (46 tests, 777 lines), `tests/test_trigger_effects.py` (62 tests, 1,137 lines), and `tests/test_trigger_system.py` (55 tests, 1,338 lines). All 163 tests passing standalone.
+4. Gate check completely green (`build:ts`, `typecheck`, `lint`, `module:check`, `unit` all green). Zero em-dashes introduced.
 
 ## Files
 

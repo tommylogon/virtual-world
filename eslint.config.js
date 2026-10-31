@@ -85,7 +85,7 @@ for (const name of [
     'GraphTreeView',
     'HumanTurnComposer', 'InspectorAgentView', 'InspectorAreaView',
     'InspectorBehaviors', 'InspectorComponents', 'InspectorItemView', 'InspectorLore',
-    'InspectorMemory', 'InspectorPanel', 'InspectorPaperdoll',
+    'InspectorMemory', 'InspectorMindView', 'InspectorPanel', 'InspectorPaperdoll', 'InspectorPersonaView',
     'InspectorTriggers', 'InspectorWayView', 'ItemLibraryContents',
     'ItemLibraryPlacement', 'NLEditorAgent', 'NLEditorDiff', 'NLEditorGhosts',
     'NLEditorStaging', 'NLEditorTools', 'NLEditorUI', 'NodeBadges',

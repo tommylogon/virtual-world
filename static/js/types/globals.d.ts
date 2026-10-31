@@ -482,8 +482,10 @@ interface Window {
     InspectorItemView: any;
     InspectorLore: any;
     InspectorMemory: any;
+    InspectorMindView: any;
     InspectorPanel: any;
     InspectorPaperdoll: any;
+    InspectorPersonaView: any;
     InspectorTemplateSync: any;
     InspectorTriggers: any;
     InspectorWayView: any;
