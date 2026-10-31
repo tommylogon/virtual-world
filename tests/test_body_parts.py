@@ -4,11 +4,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, WorldGraph
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, WorldGraph
 from player import Player
 from engine.body_parts import (
     BODY_REGIONS, resolve_region, injury_region, region_chain, coverage_slots,
-    is_exposed, default_body_state, region_injury_level, roll_hit_location,
+    is_exposed, effective_coverage, default_body_state, region_injury_level, roll_hit_location,
     HIT_LOCATION_TABLE,
     INJURY_DAMAGE_THRESHOLD, BLEEDING_DAMAGE_THRESHOLD,
 )
@@ -131,7 +131,7 @@ class TestBodyState:
         state = default_body_state()
         assert set(state.keys()) == set(BODY_REGIONS.keys())
         assert state["nipple_left"]["sensitivity"] == 0.9
-        # Injury is NOT stored in body_state — conditions are the source of truth.
+        # Injury is NOT stored in body_state - conditions are the source of truth.
         assert "injury" not in state["torso"]
 
     def test_player_inits_body_state(self):
@@ -159,6 +159,54 @@ class TestBodyState:
         harness.graph.add_node(shirt)
         harness.target.equipped.setdefault("torso", []).append(shirt.id)
         assert is_exposed(harness.target, "torso", harness.graph) is True
+
+    def test_effective_coverage_empty(self, harness):
+        assert effective_coverage(harness.target, "torso", harness.graph) == 0.0
+
+    def test_effective_coverage_layered_clothing(self, harness):
+        pid = harness.player_manager.get_player_node_id(harness.target.name)
+        shirt = Node(
+            id="item_linen_shirt", type="item", name="Linen Shirt",
+            properties={"coverage": 0.3, "equip_slots": ["torso"]},
+        )
+        armor = Node(
+            id="item_plate_armor", type="item", name="Plate Armor",
+            properties={"coverage": 0.9, "equip_slots": ["torso"], "tags": ["armor"]},
+        )
+        harness.graph.add_node(shirt)
+        harness.graph.add_node(armor)
+        harness.graph.add_edge(Edge(source=shirt.id, target=pid, type=EDGE_EQUIPPED, properties={"slot": "torso", "layer": 1}))
+        harness.graph.add_edge(Edge(source=armor.id, target=pid, type=EDGE_EQUIPPED, properties={"slot": "torso", "layer": 2}))
+        harness.target.equipped.setdefault("torso", []).extend([shirt.id, armor.id])
+
+        # 1 - (1 - 0.3) * (1 - 0.9) = 1 - 0.07 = 0.93
+        cov = effective_coverage(harness.target, "torso", harness.graph)
+        assert pytest.approx(cov, 0.001) == 0.93
+        assert is_exposed(harness.target, "torso", harness.graph, threshold=0.5) is False
+        assert is_exposed(harness.target, "torso", harness.graph, threshold=0.9) is False
+        assert is_exposed(harness.target, "torso", harness.graph, threshold=0.95) is True
+
+    def test_edge_layers_maintained_on_sync(self, harness):
+        pid = harness.player_manager.get_player_node_id(harness.target.name)
+        inner = Node(
+            id="item_undershirt", type="item", name="Undershirt",
+            properties={"coverage": 0.2, "equip_slots": ["torso"]},
+        )
+        outer = Node(
+            id="item_overcoat", type="item", name="Overcoat",
+            properties={"coverage": 0.6, "equip_slots": ["torso"]},
+        )
+        harness.graph.add_node(inner)
+        harness.graph.add_node(outer)
+        harness.graph.add_edge(Edge(source=inner.id, target=pid, type=EDGE_EQUIPPED, properties={"slot": "torso", "layer": 1}))
+        harness.graph.add_edge(Edge(source=outer.id, target=pid, type=EDGE_EQUIPPED, properties={"slot": "torso", "layer": 2}))
+
+        from engine.equipment import EquipmentSystem
+        eq_sys = EquipmentSystem(harness.graph, None, None, harness.player_manager)
+        eq_sys._sync_equipped_from_graph(harness.target, pid)
+
+        # Invariant: player.equipped reflects layer order derived from edge properties
+        assert harness.target.equipped["torso"] == [inner.id, outer.id]
 
     def test_injury_level_thresholds(self):
         assert region_injury_level(INJURY_DAMAGE_THRESHOLD - 1) == 0
@@ -235,7 +283,7 @@ class TestCombatRegionInjury:
         from unittest.mock import patch
         harness.target.vitals["HP"] = 100
         # All rolls land on 1: attack still hits (STR 14 vs DEX 1) but deals
-        # only 3 damage — below INJURY_DAMAGE_THRESHOLD, so no injury applies.
+        # only 3 damage - below INJURY_DAMAGE_THRESHOLD, so no injury applies.
         with patch("engine.skills.random.randint", return_value=1):
             result = harness.combat.player_attack("Attacker", "TargetDummy")
         assert "→ HIT" in result

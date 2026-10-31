@@ -241,37 +241,73 @@ def coverage_slots(region_id):
     return slots
 
 
-def is_exposed(player, region_id, graph, threshold=COVERAGE_EXPOSED_THRESHOLD):
-    """True if a region is NOT covered by high-coverage clothing/armor.
+def effective_coverage(player, region_id, graph) -> float:
+    """Calculate effective coverage [0.0, 1.0] for a body region (task-744).
 
-    Reads the OUTER layer of each covering equip slot: an item whose
-    ``coverage`` property is at/above *threshold* counts as covering the
-    region (blocks direct skin contact → no injury applied, no direct touch).
-    Outer layer = last item in ``player.equipped[slot]`` (stack order is
-    innermost → outermost). An unknown region or empty slots = exposed.
+    Composes coverage across all equipment slots covering this region,
+    evaluating items ordered by explicit edge layer or stack position.
+    Combined coverage = 1.0 - product(1.0 - item_coverage).
     """
+    from graph import EDGE_EQUIPPED
+
     slots = coverage_slots(region_id)
+    if not slots:
+        return 0.0
+
+    covering_nodes = []
+    player_id = getattr(player, "node_id", None) or getattr(player, "id", None)
+    if not player_id and hasattr(player, "name"):
+        try:
+            from player import Player
+            player_id = Player.node_id_for(player.name)
+        except Exception:
+            player_id = None
+
     for slot in slots:
-        stack = (player.equipped or {}).get(slot) or []
-        # bug-516: an equipped slot must hold node-id strings, but a refresh that
-        # wrote a raw template value used to put dicts here, and `get_node` then
-        # raised TypeError (unhashable dict) and took down GET /api/state. Skip
-        # anything that is not a string the same way the `__multi_slot_` markers
-        # are skipped -- the malformed entry is not a covering item, not a crash.
-        outer_ids = [
-            i for i in stack
-            if isinstance(i, str) and i and not i.startswith("__multi_slot")
-        ]
-        if not outer_ids:
-            continue
-        outer_id = outer_ids[-1]
-        node = graph.get_node(outer_id) if graph else None
-        if node is None:
-            continue
-        coverage = float(node.properties.get("coverage", 0.0) or 0.0)
-        if coverage >= threshold:
-            return False
-    return True
+        slot_items = []
+        if graph and player_id and graph.get_node(player_id):
+            edges = [
+                e for e in graph.get_edges_for_target(player_id, EDGE_EQUIPPED)
+                if e.properties.get("slot") == slot
+            ]
+            if edges:
+                edges.sort(key=lambda e: int(e.properties.get("layer", e.properties.get("order", 0))))
+                for e in edges:
+                    node = graph.get_node(e.source)
+                    if node:
+                        slot_items.append(node)
+
+        if not slot_items:
+            stack = (getattr(player, "equipped", None) or {}).get(slot) or []
+            for item_id in stack:
+                if not isinstance(item_id, str) or not item_id or item_id.startswith("__multi_slot"):
+                    continue
+                node = graph.get_node(item_id) if graph else None
+                if node:
+                    slot_items.append(node)
+
+        covering_nodes.extend(slot_items)
+
+    if not covering_nodes:
+        return 0.0
+
+    uncovered = 1.0
+    for node in covering_nodes:
+        cov = float(node.properties.get("coverage", 0.0) or 0.0)
+        cov = max(0.0, min(1.0, cov))
+        uncovered *= (1.0 - cov)
+
+    return round(1.0 - uncovered, 4)
+
+
+def is_exposed(player, region_id, graph, threshold=COVERAGE_EXPOSED_THRESHOLD):
+    """True if a region is NOT covered by high-coverage clothing/armor (task-744).
+
+    Composes coverage across declared layer stacks on EDGE_EQUIPPED edges.
+    An unknown region or empty slots = exposed (effective coverage 0.0).
+    """
+    cov = effective_coverage(player, region_id, graph)
+    return cov < threshold
 
 
 def default_body_state():

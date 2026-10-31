@@ -681,7 +681,8 @@ window.InspectorPaperdoll = (() => {
         realIds[fromIndex] = realIds[toIndex];
         realIds[toIndex] = temp;
         player.equipped[slot] = realIds;
-        worldState.fetch();
+        ApiClient.updateCharacter(charName, { equipped: player.equipped })
+            .then(() => worldState.fetch());
     };
     /**
      * Show a picker modal to equip an item from inventory to a slot

@@ -669,7 +669,8 @@
         realIds[fromIndex] = realIds[toIndex];
         realIds[toIndex] = temp;
         player.equipped[slot] = realIds;
-        worldState.fetch();
+        ApiClient.updateCharacter(charName, { equipped: player.equipped })
+            .then(() => worldState.fetch());
     };
 
     /**

@@ -222,11 +222,19 @@ class EquipmentSystem:
             player.equipped.setdefault(extra_slot, [])
             player.equipped[extra_slot].append(f"__multi_slot_{item_node.id}")
 
+        new_layer = stack.index(item_node.id) + 1
+        for idx, i_id in enumerate(stack):
+            if self._is_marker(i_id) or i_id == item_node.id:
+                continue
+            for e in self.graph.get_edges_for_source(i_id, EDGE_EQUIPPED):
+                if e.target == player_id and e.properties.get("slot") == slot:
+                    e.properties["layer"] = idx + 1
+
         self.graph.add_edge(Edge(
             source=item_node.id,
             target=player_id,
             type=EDGE_EQUIPPED,
-            properties={"slot": slot}
+            properties={"slot": slot, "layer": new_layer}
         ))
 
         # Equipping moves the item out of inventory state: remove the carrying
@@ -315,27 +323,29 @@ class EquipmentSystem:
         player_id = self.player_manager.get_player_node_id(
             player_name or getattr(player, "name", "")
         )
-        wanted = set()
+        wanted = []
         unresolved = []
 
         for slot, stack in (payload or {}).items():
             if not isinstance(stack, (list, tuple)):
                 continue
-            for item_id in stack:
+            for idx, item_id in enumerate(stack):
                 if not item_id or self._is_marker(item_id):
                     continue
                 node = self.graph.get_node(item_id)
                 if node is None or node.type != "item":
                     unresolved.append(item_id)
                     continue
-                wanted.add((item_id, str(slot)))
+                wanted.append((item_id, str(slot), idx + 1))
+
+        wanted_pairs = {(item_id, slot) for item_id, slot, _ in wanted}
 
         # Retire equipped edges this payload does not claim. An item that was
         # worn and is now merely carried keeps its carrying edge; equip_item
         # removes that edge on the way in, so the reverse is the symmetric
         # statement of the same fact.
         for edge in list(self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
-            if (edge.source, str(edge.properties.get("slot", ""))) in wanted:
+            if (edge.source, str(edge.properties.get("slot", ""))) in wanted_pairs:
                 continue
             self.graph.remove_edge(edge.source, player_id, EDGE_EQUIPPED)
             worn_elsewhere = self.graph.get_edges_for_source(edge.source, EDGE_EQUIPPED)
@@ -351,29 +361,25 @@ class EquipmentSystem:
                 if node is not None:
                     node.properties.pop("last_relation", None)
 
-        for item_id, slot in sorted(wanted):
-            if not any(e.source == item_id for e in
-                       self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
-                self.graph.add_edge(Edge(source=item_id, target=player_id,
-                                          type=EDGE_EQUIPPED, properties={"slot": slot}))
+        for item_id, slot, layer in wanted:
+            existing_edges = [
+                e for e in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)
+                if e.source == item_id and e.properties.get("slot") == slot
+            ]
+            if not existing_edges:
+                self.graph.add_edge(Edge(
+                    source=item_id,
+                    target=player_id,
+                    type=EDGE_EQUIPPED,
+                    properties={"slot": slot, "layer": layer}
+                ))
+            else:
+                for e in existing_edges:
+                    e.properties["layer"] = layer
             # Wearing something means not merely carrying it - the same edge swap
             # equip_item performs, so the two paths cannot drift.
             self.graph.remove_edge(item_id, player_id, EDGE_CARRYING)
             self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
-
-        if isinstance(payload, dict):
-            # Normalise against the canonical slot set. Every reader that walks
-            # `player.equipped` (get_visible_equipment, get_full_equipment,
-            # _sync_equipped_from_graph, the appearance prompts) assumes the full
-            # set is present, and a raw payload only names the slots it touches -
-            # so a partial write used to quietly remove the others. Unknown slot
-            # names are kept rather than dropped: they are still real state, and
-            # the graph edge carries them.
-            player.equipped = {slot: [] for slot in self.EQUIP_SLOTS}
-            for slot, stack in payload.items():
-                player.equipped[slot] = (
-                    list(stack) if isinstance(stack, (list, tuple)) else stack
-                )
         # Markers mirror an item that is *already* equipped somewhere else (a
         # two-handed axe fills both hands, a full-body suit covers every declared
         # slot). They have no edge of their own, so a sync from the edges drops
@@ -430,19 +436,31 @@ class EquipmentSystem:
         return pruned
 
     def _sync_equipped_from_graph(self, player, player_id):
-        """Rebuild player.equipped from graph EDGE_EQUIPPED edges to fix desyncs."""
+        """Rebuild player.equipped from graph EDGE_EQUIPPED edges to fix desyncs (task-744)."""
         from collections import defaultdict
         equipped_items = defaultdict(list)
         for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
             slot_name = edge.properties.get("slot", "")
             if slot_name:
                 equipped_items[slot_name].append(edge)
-        for slot_name in player.equipped:
+        if not hasattr(player, "equipped") or not isinstance(player.equipped, dict):
+            player.equipped = {slot: [] for slot in self.EQUIP_SLOTS}
+        for slot_name in self.EQUIP_SLOTS:
             if slot_name in equipped_items:
-                edges = sorted(equipped_items[slot_name], key=lambda e: e.properties.get("order", 0))
+                edges = sorted(
+                    equipped_items[slot_name],
+                    key=lambda e: int(e.properties.get("layer", e.properties.get("order", 0)))
+                )
                 player.equipped[slot_name] = [e.source for e in edges]
             else:
                 player.equipped[slot_name] = []
+        for slot_name, edges in equipped_items.items():
+            if slot_name not in self.EQUIP_SLOTS:
+                edges_sorted = sorted(
+                    edges,
+                    key=lambda e: int(e.properties.get("layer", e.properties.get("order", 0)))
+                )
+                player.equipped[slot_name] = [e.source for e in edges_sorted]
 
     def unequip_item(self, slot: str = None, item_name: str = None) -> str:
         """Unequip an item from a slot or by item name. Returns output message."""
@@ -500,6 +518,12 @@ class EquipmentSystem:
             self.graph.remove_edge(item_id, player_id, EDGE_EQUIPPED)
             self.graph.add_edge(Edge(source=item_id, target=player_id, type=EDGE_CARRYING))
             self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
+            for idx, rem_id in enumerate(player.equipped[slot]):
+                if self._is_marker(rem_id):
+                    continue
+                for e in self.graph.get_edges_for_source(rem_id, EDGE_EQUIPPED):
+                    if e.target == player_id and e.properties.get("slot") == slot:
+                        e.properties["layer"] = idx + 1
             item_node = self.graph.get_node(item_id)
             if item_node:
                 self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)
@@ -530,6 +554,12 @@ class EquipmentSystem:
                         self.graph.add_edge(Edge(source=removed, target=player_id, type=EDGE_CARRYING))
                         self.graph.remove_edges_for_node(removed, EDGE_CONNECTION)
                         _clean_multi_slot_markers(removed)
+                        for idx, rem_id in enumerate(stack):
+                            if self._is_marker(rem_id):
+                                continue
+                            for e in self.graph.get_edges_for_source(rem_id, EDGE_EQUIPPED):
+                                if e.target == player_id and e.properties.get("slot") == slot_name:
+                                    e.properties["layer"] = idx + 1
                         if item_node:
                             self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)
                             area_name = None

@@ -1098,7 +1098,7 @@ class WorldSerializer:
             elif p.current_area:
                 self.player_manager.set_player_area(pname, p.current_area)
             for slot_name, stack in (p.equipped or {}).items():
-                for item_id in stack:
+                for idx, item_id in enumerate(stack):
                     if isinstance(item_id, str) and not item_id.startswith("__"):
                         if self.graph.get_node(item_id):
                             # An `equipped` edge, not a `connection` one. A
@@ -1113,7 +1113,7 @@ class WorldSerializer:
                                 source=item_id,
                                 target=pnode_id,
                                 type=EDGE_EQUIPPED,
-                                properties={"slot": slot_name}
+                                properties={"slot": slot_name, "layer": idx + 1}
                             ))
 
         for pname, p in self.player_manager.players.items():
