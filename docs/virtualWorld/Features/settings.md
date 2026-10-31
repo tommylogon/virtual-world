@@ -8,7 +8,7 @@ tags: [status/wired, surface/in-editor, system/ui]
 
 # Settings
 
-**What you can do:** Engine config, every slider
+**What you can do:** Engine config, provider profiles, memory worker, embedding, and graph physics sliders.
 
 ## How it works
 
@@ -16,7 +16,8 @@ tags: [status/wired, surface/in-editor, system/ui]
 
 ## Where it lives
 
-_Not recorded yet — add the code paths when you next touch this feature._
+- Frontend: `static/js/config.ts`, `static/js/ui/settings-view.ts`, `templates/index.html`
+- Backend: `routes/settings.py`, `engine/runtime_config.py`
 
 ## Connected
 
@@ -24,6 +25,6 @@ _Not recorded yet — add the code paths when you next touch this feature._
 - Sibling features: [[graph-canvas]], [[map-layout]], [[levels-layout]], [[worldpainter]], [[grid-to-graph]], [[scopes]]
 - All features: [[Features Overview]]
 
-> [!note] Status — `wired`
+> [!note] Status - `wired`
 > Recorded from [[Feature Map|the Feature Map]] on 2026-10-05. This page is an entry point; the
 > deep documentation is linked under **How it works**.

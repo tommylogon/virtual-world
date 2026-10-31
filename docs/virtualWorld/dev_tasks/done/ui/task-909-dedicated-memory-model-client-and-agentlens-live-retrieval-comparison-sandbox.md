@@ -79,11 +79,12 @@ Live steps when available:
 
 ## Acceptance
 
-- [ ] Browser: Settings modal saves and loads custom Memory Model configuration cleanly.
-- [ ] Browser: `window.memoryLLMClient` initializes with the configured memory model and enforces `reasoning: "off"`.
-- [ ] Browser: Agent Lens stimulus input drives immediate retrieval preview update without mutating character state.
-- [ ] Browser: Agent Lens displays candidate score explanations and rejected runner-ups when expanded.
-- [ ] Unit: Open questions surface into Lane 4 when a matching entity or concept enters the situation context.
+- [x] Browser: Settings modal saves and loads custom Memory Model configuration cleanly, defaulting to localhost LM Studio (`http://localhost:1234/v1`, format `lmstudio`, model `lmstudio-community/lfm3-1.7b`).
+- [x] Browser: Settings modal provides a live diagnostic Test Connection button for the dedicated memory worker with latency reporting.
+- [x] Browser: `window.memoryLLMClient` initializes with the configured memory model and enforces `reasoning: "off"`.
+- [x] Browser: Agent Lens stimulus input drives immediate retrieval preview update without mutating character state.
+- [x] Browser: Agent Lens displays candidate score explanations and rejected runner-ups when expanded.
+- [x] Unit: Open questions surface into Lane 4 when a matching entity or concept enters the situation context.
 
 ## Files
 

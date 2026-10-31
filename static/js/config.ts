@@ -8,6 +8,7 @@
  * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const _configModuleInit = true;
 /**
  * Named `ConfigManagerImpl`, not `ConfigManager`, on purpose: this file is a
  * classic script, so a top-level `class ConfigManager` would merge with (and
@@ -15,13 +16,13 @@
  * exists so unconverted files can still read `config.controllingPlayer`. The
  * class is not referenced by name anywhere else; only `config` is.
  */
-export interface ConfigFieldDef<T = any> {
+interface ConfigFieldDef<T = any> {
     storageKey: string;
     type: 'string' | 'number' | 'boolean';
     default: T;
 }
 
-export const CONFIG_SCHEMA: Record<string, ConfigFieldDef> = {
+const CONFIG_SCHEMA: Record<string, ConfigFieldDef> = {
     apiKey: { storageKey: 'api_key', type: 'string', default: 'not-needed' },
     apiBase: { storageKey: 'api_base', type: 'string', default: 'http://localhost:1234/v1' },
     model: { storageKey: 'model', type: 'string', default: 'glm-4-9b-0414' },

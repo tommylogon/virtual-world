@@ -1,4 +1,16 @@
-export const CONFIG_SCHEMA = {
+"use strict";
+/**
+ * ConfigManager  -  Settings and profile management with IndexedDB persistence
+ *
+ * @module config  -  user settings, saved API profiles, and `toLLMConfig()`
+ * @contributes the `config` singleton: model/keys, thinking, graph physics, UI toggles
+ * @powers the Settings modal, profile switching, model picker, and every feature flag
+ * @relates persists via storage.js; read by llm-client, graph, agent, and the UI
+ * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const _configModuleInit = true;
+const CONFIG_SCHEMA = {
     apiKey: { storageKey: 'api_key', type: 'string', default: 'not-needed' },
     apiBase: { storageKey: 'api_base', type: 'string', default: 'http://localhost:1234/v1' },
     model: { storageKey: 'model', type: 'string', default: 'glm-4-9b-0414' },
