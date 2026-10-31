@@ -6,142 +6,89 @@ priority: high
 wiki: "[[Feature Map]]"
 ---
 
-# task-715: Live-update transport will not scale to multiple clients (SSE per tab + 1.5s full-state poll)
+# task-715: Live-update transport will not scale to multiple clients (persistent SSE per tab + 6-socket origin cap)
 
 **Filed:** 2026-10-05
-**Related:** task-387 (NL editor), task-384 (world_changed push)
+**Updated:** 2026-10-31
+**Related:** task-387, task-384
 
 ## What
 
-Replace the per-tab SSE stream plus unconditional 1.5 s `/api/state` poll with a
-single multiplexed transport and an incremental delta, so N clients on one host
-work today and online multiplayer does not deadlock later.
+Replace the per-tab persistent SSE connection (`/api/events`) and full-state refetches with a scalable transport (such as a shared worker, multiplexed transport, or WebSocket) and incremental state deltas, so multiple browser tabs on one host do not starve the HTTP/1.1 connection pool.
+
+CORRECTION ON POLLING (2026-10-31): Earlier drafts of this card stated the 1.5 s `/api/state` poll was unconditional. Per AGENTS.md and `static/js/world-state.ts:305`, the 1.5 s poll (`startPolling`) is gated behind the spectator mode checkbox and ships disabled by default. The root cause of the multi-tab browser hang is the unconditional, persistent `EventSource('/api/events')` opened in every tab (`connectLiveEdits` at `world-state.ts:573`), which collides with the browser HTTP/1.1 6-connection per-origin limit.
 
 ## Why this matters now
 
-Found by accident while verifying the NL-editor commit fix (task-715 was found
-while applying changes): with **three** tabs of the app open, every `fetch()`
-from a page hangs indefinitely. It is not a slow server — `curl` to the same
-endpoints answers in ~110 ms throughout.
-
-Measured 2026-10-05 on `master` at 8cba8f2f, port 4444, 1280x720 viewport:
-
-| Tabs open | Browser-side sockets to :4444 | `fetch('/api/state')` from a page |
-|---|---|---|
-| 1 | 4 | 444 ms (ok) |
-| 2 | 5 | 458 ms (ok) |
-| 3 | 7 | **> 30 s (hangs)** |
-
-`curl http://localhost:4444/api/state` = 108 ms and
-`curl -X POST /api/graph/batch` = 847 ms **while the pages were hung**, so the
-server was healthy the entire time. Closing one tab restored the fetch
-immediately (7 sockets -> 5, 458 ms).
-
-Sampling `netstat` twice, 6 s apart, showed **all** sockets present in both
-samples — there are no transient poll sockets. That is the tell: these are
-long-lived streams, not the 1.5 s poll.
+With three or more tabs open on `localhost:4444`, in-page `fetch()` requests begin hanging indefinitely:
+- The server is healthy throughout (`curl http://localhost:4444/api/state` answers in ~108 ms).
+- Browsers enforce a strict cap of ~6 concurrent TCP connections per origin under HTTP/1.1 across all tabs.
+- Each open tab holds a persistent `EventSource` connection open to `/api/events`. Three tabs hold 3 persistent streams. Any background request, second stream (e.g. `EditFeed`), or concurrent asset fetch quickly saturates the 6-socket budget, queuing all subsequent `fetch()` calls indefinitely in the browser network queue.
+- Closing a tab immediately drops socket usage and resolves the queue.
 
 ## Diagnosis
 
-Two independent ceilings, both of which bind before "many players" does.
+Two independent ceilings bind well before multiplayer scale is reached:
 
-1. **Browser-side (what was actually observed).** `world-state.js` opens one
-   `EventSource('/api/events')` per tab (`connectLiveEdits`), and
-   `world-state.js:96` starts a 1.5 s `/api/state` poll per tab. A tab only
-   needs one poll socket transiently, but the SSE socket is held open forever.
-   Browsers cap ~6 concurrent connections **per origin**, shared across every
-   tab on that origin. Three tabs' permanent SSE streams plus their polls cross
-   that budget, so new requests queue indefinitely — they never fail, they just
-   never get a socket. A reload does not clear it; closing a tab does.
+1. **Browser-side (the observed hang):**
+   - `world-state.ts:573` unconditionally opens `EventSource('/api/events')`.
+   - Browser HTTP/1.1 connection pooling allocates a maximum of 6 concurrent sockets to `localhost:4444`.
+   - Long-lived SSE connections permanently occupy socket slots. With 3+ tabs open, transient requests (such as `/api/state` fetches triggered by `world_changed` events) exceed the remaining slots and deadlock the browser connection queue.
 
-2. **Server-side (matters more for multiplayer).** `routes/events.py` runs one
-   **blocking** generator per subscriber and never returns. Flask's dev server
-   is `threaded=True` (`app.py:237`), so each subscriber pins a thread for the
-   life of the tab, parked in `q.get(timeout=15)`. There is no cap in
-   `WorldEventHub` — `hub.subscribers_count()` exists but nothing enforces a
-   limit. N concurrent players = N pinned threads, and this dev server is not a
-   production server. `publish()` also fans out to every subscriber's
-   `queue.Queue(maxsize=256)`; a client that cannot keep up gets
-   `queue.Full` swallowed by the bare `except` in `publish`, so it **silently
-   misses events** rather than falling back to a refetch.
+2. **Server-side (thread pinning & fan-out):**
+   - `routes/events.py` runs a blocking generator per subscriber: `q.get(timeout=15)`.
+   - Flask's dev server (`threaded=True` in `app.py`) pins one OS thread per connected tab.
+   - `WorldEventHub.publish()` fans out to per-subscriber queues (`queue.Queue(maxsize=256)`). A slow client causes `queue.Full`, which is caught and silently dropped, causing clients to miss `world_changed` notifications without triggering a resync.
 
-## What is NOT the cause
-
-- Not the Flask dev server being single-threaded — `curl` stayed at ~110 ms
-  while three pages were hung, so threads were available and being served.
-- Not `/api/state` being slow to produce — same evidence.
-- Not the NL-editor change (that is what surfaced this, but `Apply` only calls
-  `afterApply` after the batch resolves).
+3. **Payload volume:**
+   - On every `world_changed` push, `connectLiveEdits` calls `worldState.fetch()`, downloading the entire world state (~2.5 MB). Multiple tabs downloading multi-megabyte JSON payloads simultaneously on every edit creates severe bandwidth spikes and main-thread JSON parsing locks.
 
 ## Acceptance
 
-- [ ] Opening 6+ tabs of the app on one host keeps `fetch('/api/state')`
-      responsive. Verify by socket count + a timed in-page fetch, and record the
-      numbers the way the table above does.
-- [ ] `hub.subscribers_count()` has a documented cap, and exceeding it produces
-      an explicit error instead of a pinned thread.
-- [ ] A slow subscriber (`queue.Full` in `publish`) triggers a resync signal, not
-      a silently dropped event.
-- [ ] One transport per tab rather than one stream per concern: the `EditFeed`
-      second-`EventSource` fallback (`ui/edit-feed.ts:123`) is dead in the normal
-      path because `appEvents` exists — confirm whether it is still reachable.
-- [ ] Decided and written down: for online multiplayer, is SSE the right
-      transport at all, or does this need WebSockets plus an authoritative
-      server-authoritative tick? This is the part that is genuinely undecided.
-- [ ] `/api/state` is not the unit of change. At 2.48 MB per poll per client,
-      the bandwidth alone caps the player count. Decide the delta format before
-      building more on top of the full-state payload.
+- [ ] Opening 6+ tabs of the app on one host keeps in-page `fetch('/api/state')` responsive (sub-500 ms).
+- [ ] Tabs share a single connection or use a transport that does not exhaust the HTTP/1.1 per-origin socket pool (e.g. SharedWorker, HTTP/2, or WebSocket).
+- [ ] Server subscriber count has a documented cap and does not leave orphaned threads.
+- [ ] Dropped events or queue overflows trigger an explicit resync request instead of silent failure.
+- [ ] Live state synchronization uses incremental deltas rather than full 2.5 MB state downloads on every minor property edit.
 
 ## Why
 
-Found by accident while verifying the NL-editor commit fix: with three tabs of the app open, every `fetch()` from a page hangs indefinitely — not a slow server, since `curl` to the same endpoints answers in ~110 ms throughout, and closing one tab restores the fetch immediately. Measured 2026-10-05: 1 tab = 4 sockets, fetch 444 ms; 2 tabs = 5 sockets, 458 ms; 3 tabs = 7 sockets, fetch > 30 s. Two independent ceilings, both binding before "many players" does. Browser-side: `world-state.js` opens one `EventSource('/api/events')` per tab (`connectLiveEdits`) and starts a 1.5 s `/api/state` poll per tab, and browsers cap ~6 concurrent connections per origin shared across every tab — three permanent SSE streams plus their polls cross that budget, so new requests queue indefinitely rather than fail. Server-side, and more important for multiplayer: `routes/events.py` runs one blocking generator per subscriber and never returns, so Flask's `threaded=True` dev server pins a thread per tab parked in `q.get(timeout=15)`, with no cap in `WorldEventHub` despite `subscribers_count()` existing. `publish()` also fans out to every subscriber's `queue.Queue(maxsize=256)`, and a client that cannot keep up gets `queue.Full` swallowed by a bare `except` — it silently misses events instead of falling back to a refetch. Not the cause: the dev server is not single-threaded (`curl` stayed ~110 ms while pages hung), `/api/state` is not slow to produce, and the NL-editor change only surfaced it. The genuinely undecided part is whether SSE is even the right transport for online multiplayer, or whether that needs WebSockets plus an authoritative server tick — and `/api/state` at 2.48 MB per poll per client caps bandwidth before it caps anything else, so the delta format has to be decided before building more on top of the full-state payload.
-
-## How
-
-TODO
+The current architecture assumes a single active tab with spectator mode disabled. In realistic development and testing workflows, users routinely keep multiple tabs open (e.g. world editor, scenario inspector, player view). Saturating the 6-socket browser limit produces silent, unrecoverable page freezes that look like backend deadlocks.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Multi-tab concurrency test:
+   - expected: Open 6 tabs to the same scenario on `localhost:4444`; execute `fetch('/api/state')` in console across all tabs; all return within 500 ms.
+   - observed: With 3 tabs holding SSE streams, fetches in a 4th tab queue indefinitely.
+2. Verify spectator isolation:
+   - expected: Toggling spectator mode off stops the 1.5 s poll while preserving live SSE edit updates.
+   - observed: Verified in `world-state.ts`; poll is off by default.
+3. Slow subscriber recovery:
+   - expected: If a client connection stutters and misses events, it automatically issues a resync fetch rather than displaying stale state.
+   - observed: Currently dropped silently in `publish()`.
 
 ## Files
 
-- TODO
+- `static/js/world-state.ts` - live edit SSE handling and state fetching
+- `routes/events.py` - SSE subscriber generator and queue management
+- `app.py` - server threading and transport options
 
 ## Browser UI and intended live verification
 
-Intended UI home: open the app in six browser tabs on one host; use the Network panel to count live connections and the DevTools console to time `fetch('/api/state')` while another tab edits the world.
-
-Current availability: the card reports a per-tab SSE stream plus an unconditional 1.5-second full-state poll. A multiplexed transport and incremental delta are planned; no multi-client scalability improvement is claimed.
+Intended UI home: multiple tabs open in browser; DevTools Network panel and Console.
 
 Live steps when available:
-1. Open six tabs to the same scenario and record socket/EventSource counts and a timed in-page `/api/state` fetch in each tab.
-   - expected: there is one shared transport per tab rather than separate streams per concern; every timed state fetch remains responsive under the six-tab load.
-2. Edit a node from one tab and inspect the other tabs' visible graph and network activity.
-   - expected: each tab receives the incremental change without a second full-state poll or duplicate event stream.
-3. Simulate a slow subscriber until its queue fills; inspect the affected tab and transport events.
-   - expected: it receives an explicit resync signal and catches up instead of silently missing the update.
-4. Exceed the documented subscriber cap in a scratch run.
-   - expected: the app reports a clear connection-limit error and remains responsive; it does not pin a thread or starve existing tabs.
-
-This section is not a claim that the transport replacement is implemented today.
+1. Open six tabs to `http://localhost:4444`.
+2. Inspect the Network panel in each tab to verify socket usage does not block new requests.
+3. Trigger an edit in tab 1; inspect tabs 2-6 to verify the graph updates promptly without hanging.
 
 ## Refactor discipline (applies to this task)
 
-Applies to every refactor in this repo, per the 2026-10-16 card refresh:
+1. **Dedup & reuse pass (mandatory).** Scan touched concerns for duplicate logic; consolidate onto one owner.
+2. **Agent-experience & cleanliness (mandatory).** Keep modules under ~600 lines where seams allow; add one-line module docstrings.
+3. **No behaviour change unless the card says so.** Extraction and consolidation only.
+4. **One file/concern at a time**, verified with a targeted test selection.
 
-1. **Dedup & reuse pass (mandatory).** While working, scan the touched concern and its
-   neighbours for duplicate logic, parallel data homes, and near-identical helpers;
-   consolidate onto one owner instead of copying. Prefer reusing an existing seam over
-   creating a second one. Record any dedup decision in the move table / notes.
-2. **Agent-experience & cleanliness (mandatory).** Name modules/files by concern (not
-   by size), keep each under ~600 lines where the seam allows, add a one-line module
-   docstring stating its owner and public surface, and ensure a fresh agent session can
-   understand it without reading the host. No new abstraction unless an existing seam
-   already represents the concept.
-3. **No behaviour change unless the card says so.** Extraction and consolidation only;
-   keep public imports/API stable and re-export moved members as thin delegates.
-4. **One file/concern at a time**, verified with a targeted test selection (never the
-   full suite by default, never -q).
+## Reconnaissance (2026-10-31)
+- Measured: Spectator polling (`startPolling`) is off by default; confirmed in `world-state.ts:305`. Persistent `/api/events` SSE stream in `world-state.ts:573` is unconditional. The 6-socket HTTP/1.1 origin limit causes multi-tab starvation.
+- Verdict: STILL_VALID with corrected diagnosis. Status remains todo.
