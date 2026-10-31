@@ -1,5 +1,5 @@
 /**
- * llm-inspector.js — raw LLM request/response inspector (task-405).
+ * llm-inspector.js - raw LLM request/response inspector (task-405).
  *
  * Reads the `llm_raw_exchanges` store written by DatasetCollector.captureRaw
  * and shows the complete HTTP exchange: request headers + body, response
@@ -8,9 +8,9 @@
  *
  * Capture is opt-in via Settings → "Show Raw LLM" (config.showRawLLM).
  *
- * @module ui/llm-inspector — the raw LLM exchange inspector
+ * @module ui/llm-inspector - the raw LLM exchange inspector
  * @contributes the 🔬 floating panel: expand per entry, usage line, copy request/response, filters, clear
- * @powers LLM calls — debugging exactly what was sent to and returned by the provider (task-405)
+ * @powers LLM calls - debugging exactly what was sent to and returned by the provider (task-405)
  * @relates reads dataset-collector's llm_raw_exchanges store; gated by config.showRawLLM
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
@@ -34,19 +34,24 @@
         return _esc(text);
     }
 
-    function _usageLine(body: unknown): string {
-        const u = (body as LlmExchangeBody | null | undefined)?.usage;
-        if (!u) return '';
+    function _usageLine(body: unknown, headers?: Record<string, string>): string {
+        const b = body as Record<string, any> | null | undefined;
+        const u = b?.usage;
         const parts: string[] = [];
-        if (u.prompt_tokens != null) parts.push('prompt ' + u.prompt_tokens);
-        if (u.completion_tokens != null) parts.push('completion ' + u.completion_tokens);
-        if (u.input_tokens != null) parts.push('in ' + u.input_tokens);
-        if (u.output_tokens != null) parts.push('out ' + u.output_tokens);
-        if (u.output_tokens_details?.reasoning_tokens != null) parts.push('reasoning ' + u.output_tokens_details.reasoning_tokens);
-        if (u.total_tokens != null) parts.push('total ' + u.total_tokens);
-        if (u.cost != null) parts.push('$' + u.cost);
+        const provider = headers?.['x-openrouter-provider'] || b?.provider;
+        if (provider) parts.push('provider: ' + provider);
+        if (u) {
+            if (u.prompt_tokens != null) parts.push('prompt ' + u.prompt_tokens);
+            if (u.completion_tokens != null) parts.push('completion ' + u.completion_tokens);
+            if (u.input_tokens != null) parts.push('in ' + u.input_tokens);
+            if (u.output_tokens != null) parts.push('out ' + u.output_tokens);
+            if (u.output_tokens_details?.reasoning_tokens != null) parts.push('reasoning ' + u.output_tokens_details.reasoning_tokens);
+            if (u.total_tokens != null) parts.push('total ' + u.total_tokens);
+            const cost = u.total_cost != null ? u.total_cost : u.cost;
+            if (cost != null) parts.push('$' + Number(cost).toFixed(5));
+        }
         return parts.length
-            ? `<div style="color:var(--text-dim,#999);font-size:11px;">usage: ${_esc(parts.join(' · '))}</div>`
+            ? `<div style="color:var(--text-dim,#999);font-size:11px;">metadata: ${_esc(parts.join(' · '))}</div>`
             : '';
     }
 
@@ -182,9 +187,12 @@
             const color = (typeof status === 'number' && status >= 200 && status < 300) ? '#6c6' : '#f66';
             const dur = e.duration_ms != null ? ` · ${e.duration_ms}ms` : '';
             const preStyle = 'white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto;background:var(--bg-input,#111);padding:6px;border-radius:4px;margin:4px 0;';
+            const respHeaders = e.response?.headers as Record<string, string> | undefined;
+            const provHeader = respHeaders?.['x-openrouter-provider'] || (e.response?.body as any)?.provider;
+            const provBadge = provHeader ? ` · [${_esc(provHeader)}]` : '';
             const detailsHtml = `<details style="margin-bottom:6px;border:1px solid var(--border,#333);border-radius:4px;padding:6px;">
-                <summary style="cursor:pointer;"><span style="color:${color};">●</span> ${_esc(e.label)} · ${_esc(e.model)} · ${_esc(status)}${_esc(dur)}</summary>
-                ${_usageLine(e.response?.body)}
+                <summary style="cursor:pointer;"><span style="color:${color};">●</span> ${_esc(e.label)} · ${_esc(e.model)} · ${_esc(status)}${_esc(dur)}${provBadge}</summary>
+                ${_usageLine(e.response?.body, respHeaders)}
                 <div style="display:flex;gap:6px;margin:6px 0;">
                     <button data-copy="req" data-key="${_esc(e.key)}">Copy request</button>
                     <button data-copy="res" data-key="${_esc(e.key)}">Copy response</button>

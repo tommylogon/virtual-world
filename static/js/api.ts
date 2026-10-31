@@ -680,6 +680,15 @@ class ApiClientImpl {
 
     // --- World Lore API ---
 
+    static async getSceneContext(): Promise<ApiResult> {
+        const resp = await fetch('/api/world/scene_context');
+        return resp.json();
+    }
+
+    static async setSceneContext(context: unknown): Promise<ApiResult> {
+        return this.post('/api/world/scene_context', context);
+    }
+
     static async getWorldLore(): Promise<ApiResult> {
         const resp = await fetch('/api/world/lore');
         return resp.json();
@@ -738,11 +747,20 @@ class ApiClientImpl {
         return { ok: resp.ok, data };
     }
 
-    static async compilePlayerRecord(charName: string, options: { force?: boolean; record?: Record<string, unknown> } = {}): Promise<{ ok: boolean; data: any }> {
+    static async compilePlayerRecord(charName: string, options: { force?: boolean; sections?: string[]; record?: Record<string, unknown> } = {}): Promise<{ ok: boolean; data: any }> {
         const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/compile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(options)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+
+    static async revertPlayerCompile(charName: string): Promise<{ ok: boolean; data: any }> {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/revert_compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
         });
         const data = await resp.json().catch(() => ({}));
         return { ok: resp.ok, data };
@@ -820,7 +838,19 @@ class ApiClientImpl {
         return resp.json();
     }
 
-    static async retrievePlayerMemories(charName: string, payload: { query: string; max_results?: number; entity_boost?: boolean; reinforce?: boolean; current_area_id?: string }): Promise<ApiResult> {
+    static async retrievePlayerMemories(charName: string, payload: {
+        query?: string;
+        max_results?: number;
+        entity_boost?: boolean;
+        reinforce?: boolean;
+        current_area_id?: string;
+        strategy?: string;
+        cues?: Record<string, unknown>;
+        min_score?: number;
+        explain?: boolean;
+        structured?: boolean;
+        [key: string]: unknown;
+    }): Promise<ApiResult> {
         return this.post(`/api/players/${encodeURIComponent(charName)}/memories/retrieve`, payload);
     }
 
@@ -920,6 +950,23 @@ class ApiClientImpl {
 
     static async stopPlayMode(): Promise<ApiResult> {
         return this.post('/api/play_mode/stop', {});
+    }
+
+    static async getProfiles(): Promise<ApiResult> {
+        return this.get('/api/profiles');
+    }
+
+    static async saveProfile(name: string, data: unknown): Promise<ApiResult> {
+        return this.post('/api/profiles', { name, data });
+    }
+
+    static async deleteProfile(name: string): Promise<ApiResult> {
+        const resp = await fetch(`/api/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        return resp.json().catch(() => ({}));
+    }
+
+    static async setActiveProfile(name: string): Promise<ApiResult> {
+        return this.post('/api/profiles/active', { name });
     }
 
     static async getPlayModeStatus(): Promise<ApiResult> {

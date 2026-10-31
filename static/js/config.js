@@ -1,8 +1,8 @@
 "use strict";
 /**
- * ConfigManager — Settings and profile management with IndexedDB persistence
+ * ConfigManager  -  Settings and profile management with IndexedDB persistence
  *
- * @module config — user settings, saved API profiles, and `toLLMConfig()`
+ * @module config  -  user settings, saved API profiles, and `toLLMConfig()`
  * @contributes the `config` singleton: model/keys, thinking, graph physics, UI toggles
  * @powers the Settings modal, profile switching, model picker, and every feature flag
  * @relates persists via storage.js; read by llm-client, graph, agent, and the UI
@@ -39,7 +39,7 @@ class ConfigManagerImpl {
         this.model = await storage.getConfig('model') || 'glm-4-9b-0414';
         this.provider = await storage.getConfig('provider') || 'openai';
         this.temperature = await storage.getConfig('temperature') || '0.7';
-        this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 512;
+        this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 2048;
         this.softMaxTokens = parseInt(await storage.getConfig('soft_max_tokens')) || 0;
         this.showLogs = (await storage.getConfig('show_logs')) === 'true';
         this.streaming = (await storage.getConfig('streaming')) === 'true';
@@ -71,7 +71,7 @@ class ConfigManagerImpl {
         // Graph visualization settings. The spring/repulsion numbers are the
         // forceAtlas2Based balance measured with `centralGravity: 0`
         // (graph/network-manager.js): repulsion is then the only thing pushing,
-        // and the old -40 / 0.02 let the graph run away — a cold load of
+        // and the old -40 / 0.02 let the graph run away  -  a cold load of
         // kraktooth_goblin_camp (638 nodes) grew 4069px of width per 12s and left
         // contents a median 888px from the room holding them. -8 / 0.10 / 120 puts
         // them back beside their rooms (median 147px) and settles.
@@ -108,7 +108,7 @@ class ConfigManagerImpl {
         // so it has to be able to tell "the user has not chosen" from "the user
         // chose exactly this". An explicit flag settles it once the user has
         // touched the stepper; before that, a stored pitch that differs from the
-        // built-in 40 default *is* a choice — someone who dialled the map to
+        // built-in 40 default *is* a choice  -  someone who dialled the map to
         // 260px/cell by hand must not be re-derived over on their next load.
         const storedMapSpacingAuto = await storage.getConfig('graphMapSpacingAuto');
         this.graphMapSpacingAuto = storedMapSpacingAuto === '1'
@@ -132,7 +132,7 @@ class ConfigManagerImpl {
         // value so bigger nodes get correspondingly more room.
         this.graphNodeScale = parseFloat(await storage.getConfig('graph_node_scale')) || 1;
         // Camera zoom (vis.js scale) when a node is focused from a list, the
-        // outline or a search hit — the old hardcoded 1.15 (graph-manager).
+        // outline or a search hit  -  the old hardcoded 1.15 (graph-manager).
         this.graphFocusZoom = parseFloat(await storage.getConfig('graph_focus_zoom')) || 1.15;
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
@@ -165,6 +165,12 @@ class ConfigManagerImpl {
         this.embedModel = await storage.getConfig('embed_model') || 'text-embedding-nomic-embed-text-v1.5';
         this.embedDims = parseInt(await storage.getConfig('embed_dims')) || 0;
         this.embedApiKey = await storage.getConfig('embed_api_key') || '';
+        // Dedicated Memory Model settings (task-909)
+        this.memoryModelEnabled = (await storage.getConfig('memory_model_enabled')) === 'true';
+        this.memoryApiBase = await storage.getConfig('memory_api_base') || '';
+        this.memoryApiKey = await storage.getConfig('memory_api_key') || '';
+        this.memoryModel = await storage.getConfig('memory_model') || '';
+        this.memoryApiFormat = await storage.getConfig('memory_api_format') || 'lmstudio';
         // Thinking mode: sends reasoning_effort + thinking extra_body for reasoning models
         this.thinking = (await storage.getConfig('thinking')) === 'true';
         this.thinkingEffort = await storage.getConfig('thinking_effort') || 'high';
@@ -173,9 +179,9 @@ class ConfigManagerImpl {
         this.suppressLocalThinking = (await storage.getConfig('suppress_local_thinking')) !== 'false';
         // API format: auto | chat-completions | responses (auto resolves to chat-completions)
         this.apiFormat = await storage.getConfig('api_format') || 'auto';
-        // Rate limiter (requests per minute — 0 = disabled)
+        // Rate limiter (requests per minute  -  0 = disabled)
         this.rpmLimit = parseInt(await storage.getConfig('rpm_limit')) || 0;
-        // Token rate limiter (tokens per minute — 0 = disabled)
+        // Token rate limiter (tokens per minute  -  0 = disabled)
         this.tpmLimit = parseInt(await storage.getConfig('tpm_limit')) || 0;
         // Message filters: which types to show in event stream
         this.filterThoughts = (await storage.getConfig('filter_thoughts')) !== 'false';
@@ -300,6 +306,11 @@ class ConfigManagerImpl {
         await storage.setConfig('embed_model', this.embedModel);
         await storage.setConfig('embed_dims', String(this.embedDims));
         await storage.setConfig('embed_api_key', this.embedApiKey);
+        await storage.setConfig('memory_model_enabled', this.memoryModelEnabled ? 'true' : 'false');
+        await storage.setConfig('memory_api_base', this.memoryApiBase);
+        await storage.setConfig('memory_api_key', this.memoryApiKey);
+        await storage.setConfig('memory_model', this.memoryModel);
+        await storage.setConfig('memory_api_format', this.memoryApiFormat);
         await storage.setConfig('thinking', this.thinking ? 'true' : 'false');
         await storage.setConfig('thinking_effort', this.thinkingEffort);
         await storage.setConfig('suppress_local_thinking', this.suppressLocalThinking ? 'true' : 'false');
@@ -331,18 +342,16 @@ class ConfigManagerImpl {
             if (!profileSelect?.value)
                 return;
             const currentProfile = profileSelect.value;
-            const profileData = await storage.getProfile(currentProfile);
-            if (profileData) {
-                profileData.apiKey = this.apiKey;
-                profileData.apiBase = this.apiBase;
-                profileData.model = this.model;
-                profileData.streaming = this.streaming;
-                profileData.showLogs = this.showLogs;
-                profileData.turnBased = this.turnBased;
-                profileData.turnOrder = this.turnOrder;
-                profileData.apiFormat = this.apiFormat;
-                await storage.setProfile(currentProfile, profileData);
-            }
+            const profileData = ((await this.getProfile(currentProfile)) || {});
+            profileData.apiKey = this.apiKey;
+            profileData.apiBase = this.apiBase;
+            profileData.model = this.model;
+            profileData.streaming = this.streaming;
+            profileData.showLogs = this.showLogs;
+            profileData.turnBased = this.turnBased;
+            profileData.turnOrder = this.turnOrder;
+            profileData.apiFormat = this.apiFormat;
+            await this.saveProfile(currentProfile, profileData);
         }
         catch (e) {
             console.warn('Failed to save to current profile:', e);
@@ -379,6 +388,11 @@ class ConfigManagerImpl {
         this.embedModel = document.getElementById('embed-model')?.value.trim() || this.embedModel;
         this.embedDims = parseInt(document.getElementById('embed-dims')?.value) || 0;
         this.embedApiKey = document.getElementById('embed-api-key')?.value.trim() ?? this.embedApiKey;
+        this.memoryModelEnabled = document.getElementById('memory-model-enabled')?.checked ?? this.memoryModelEnabled;
+        this.memoryApiBase = document.getElementById('memory-api-base')?.value.trim() ?? this.memoryApiBase;
+        this.memoryApiKey = document.getElementById('memory-api-key')?.value.trim() ?? this.memoryApiKey;
+        this.memoryModel = document.getElementById('memory-model')?.value.trim() ?? this.memoryModel;
+        this.memoryApiFormat = document.getElementById('memory-api-format')?.value || this.memoryApiFormat;
         this.thinking = document.getElementById('agent-thinking')?.checked ?? this.thinking;
         this.thinkingEffort = document.getElementById('agent-thinking-effort')?.value || this.thinkingEffort;
         this.suppressLocalThinking = document.getElementById('agent-suppress-local-thinking')?.checked ?? this.suppressLocalThinking;
@@ -400,18 +414,16 @@ class ConfigManagerImpl {
         const profileSelect = document.getElementById('profile-select');
         const currentProfile = profileSelect?.value;
         if (currentProfile) {
-            const profileData = await storage.getProfile(currentProfile);
-            if (profileData) {
-                profileData.apiKey = this.apiKey;
-                profileData.apiBase = this.apiBase;
-                profileData.model = this.model;
-                profileData.streaming = this.streaming;
-                profileData.showLogs = this.showLogs;
-                profileData.turnBased = this.turnBased;
-                profileData.turnOrder = this.turnOrder;
-                profileData.apiFormat = this.apiFormat;
-                await storage.setProfile(currentProfile, profileData);
-            }
+            const profileData = ((await this.getProfile(currentProfile)) || {});
+            profileData.apiKey = this.apiKey;
+            profileData.apiBase = this.apiBase;
+            profileData.model = this.model;
+            profileData.streaming = this.streaming;
+            profileData.showLogs = this.showLogs;
+            profileData.turnBased = this.turnBased;
+            profileData.turnOrder = this.turnOrder;
+            profileData.apiFormat = this.apiFormat;
+            await this.saveProfile(currentProfile, profileData);
         }
         VW?.llm?.configure(this.toLLMConfig());
         events.log('Settings saved.', 'system-msg');
@@ -430,8 +442,52 @@ class ConfigManagerImpl {
             apiFormat: this.apiFormat
         };
     }
+    /**
+     * Get or initialize dedicated LLM client for memory extractions and reflections (task-909).
+     * Defaults to the main llmClient when dedicated memory model is disabled.
+     */
+    getMemoryLLMClient() {
+        if (!this.memoryModelEnabled || !this.memoryModel) {
+            return window.llmClient;
+        }
+        const win = window;
+        if (!win.memoryLLMClient || win._memoryLLMClientModel !== this.memoryModel || win._memoryLLMClientBase !== this.memoryApiBase || win._memoryLLMClientFormat !== this.memoryApiFormat) {
+            const LLMClientClass = win.LLMClient;
+            if (typeof LLMClientClass === 'function') {
+                win.memoryLLMClient = new LLMClientClass({
+                    apiKey: this.memoryApiKey || this.apiKey || 'not-needed',
+                    apiBase: this.memoryApiBase || this.apiBase || 'http://localhost:1234/v1',
+                    model: this.memoryModel,
+                    provider: 'local',
+                    streaming: false,
+                    showLogs: this.showLogs,
+                    apiFormat: this.memoryApiFormat || 'lmstudio',
+                    reasoning: 'off',
+                    thinking: false,
+                    thinkingEffort: 'none'
+                });
+                win._memoryLLMClientModel = this.memoryModel;
+                win._memoryLLMClientBase = this.memoryApiBase;
+                win._memoryLLMClientFormat = this.memoryApiFormat;
+            }
+        }
+        return win.memoryLLMClient || win.llmClient;
+    }
     // --- Profile Management ---
     async getProfiles() {
+        try {
+            const apiRes = await ApiClient.getProfiles();
+            if (apiRes && apiRes.profiles && Object.keys(apiRes.profiles).length > 0) {
+                this._serverProfiles = apiRes.profiles;
+                if (apiRes.lastProfile && !this.lastProfile) {
+                    this.lastProfile = apiRes.lastProfile;
+                }
+                return this._serverProfiles;
+            }
+        }
+        catch (e) {
+            console.warn('[config] Backend profiles unavailable, falling back to local storage', e);
+        }
         const profiles = await storage.getAllProfiles();
         if (Object.keys(profiles).length === 0) {
             const defaults = this._getDefaultProfiles();
@@ -440,11 +496,6 @@ class ConfigManagerImpl {
             }
             return defaults;
         }
-        // Bring an older install up to the current built-ins: add any default
-        // profile the seed no longer carries (so 'LM Studio (Local)' exists on a
-        // browser seeded before it did), and refresh the LM Studio model only
-        // while it still holds the previous default. A user's own profile and
-        // model edits are left untouched.
         const defaults = this._getDefaultProfiles();
         for (const [name, data] of Object.entries(defaults)) {
             if (!profiles[name]) {
@@ -452,24 +503,39 @@ class ConfigManagerImpl {
                 await storage.setProfile(name, data);
             }
         }
-        const lm = profiles['LM Studio (Local)'];
-        if (lm && lm.model === 'qwen/qwen3.5-9b') {
-            lm.model = 'glm-4-9b-0414';
-            await storage.setProfile('LM Studio (Local)', lm);
-        }
         return profiles;
     }
     async getProfile(name) {
+        if (this._serverProfiles && this._serverProfiles[name]) {
+            return this._serverProfiles[name];
+        }
         return storage.getProfile(name);
     }
     async saveProfile(name, data) {
+        try {
+            await ApiClient.saveProfile(name, data);
+        }
+        catch (e) {
+            console.warn('[config] Failed to save profile to server', e);
+        }
+        if (!this._serverProfiles)
+            this._serverProfiles = {};
+        this._serverProfiles[name] = data;
         await storage.setProfile(name, data);
     }
     async deleteProfile(name) {
+        try {
+            await ApiClient.deleteProfile(name);
+        }
+        catch (e) {
+            console.warn('[config] Failed to delete profile on server', e);
+        }
+        if (this._serverProfiles)
+            delete this._serverProfiles[name];
         await storage.deleteProfile(name);
     }
     async applyProfile(name) {
-        const profile = await storage.getProfile(name);
+        const profile = await this.getProfile(name);
         if (!profile)
             return;
         this.apiKey = profile.apiKey || 'not-needed';
@@ -538,7 +604,7 @@ class ConfigManagerImpl {
             this.saveProfileAsNew();
             return;
         }
-        await storage.setProfile(name, this.getCurrentSettingsObject());
+        await this.saveProfile(name, this.getCurrentSettingsObject());
         events.log(`Profile "${name}" updated.`, 'system-msg');
     }
     async saveProfileAsNew() {
@@ -549,7 +615,7 @@ class ConfigManagerImpl {
         const name = promptRes?.name;
         if (!name || !name.trim())
             return;
-        await storage.setProfile(name.trim(), this.getCurrentSettingsObject());
+        await this.saveProfile(name.trim(), this.getCurrentSettingsObject());
         await VW?.ui?.populateProfileSelect();
         const sel = document.getElementById('profile-select');
         if (sel)
@@ -568,49 +634,63 @@ class ConfigManagerImpl {
         });
         if (!ok)
             return;
-        await storage.deleteProfile(name);
+        await this.deleteProfile(name);
         await VW?.ui?.populateProfileSelect();
         events.log(`Profile "${name}" deleted.`, 'system-msg');
     }
     _getDefaultProfiles() {
         const liveKey = this.apiKey || '';
         return {
-            // LM Studio is first on purpose: it is the local default this app
-            // runs against (glm-4-9b-0414), and the profile list's first entry is
-            // the fallback when nothing has been chosen.
             'LM Studio (Local)': {
                 apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: 'glm-4-9b-0414',
-                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
-            },
-            'OpenAI (GPT-4.1-mini)': {
-                apiKey: liveKey, apiBase: 'https://api.openai.com/v1', model: 'gpt-4.1-mini',
-                streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
-            },
-            'OpenAI (GPT-4o)': {
-                apiKey: liveKey, apiBase: 'https://api.openai.com/v1', model: 'gpt-4o',
-                streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
-            },
-            // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
-            // also works (the /v1 suffix is what the OpenAI SDK-style calls here
-            // expect). Current model names are `deepseek-flash` and
-            // `deepseek-v4-pro` /
-            'DeepSeek': {
-                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash',
-                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
-            },
-            'DeepSeek (V4 Pro)': {
-                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-pro',
+                provider: 'openai', apiFormat: 'lmstudio',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Groq': {
-                apiKey: liveKey, apiBase: 'https://api.groq.com/openai/v1', model: 'llama3-70b-8192',
+                apiKey: liveKey, apiBase: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile',
+                provider: 'groq', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'Mistral': {
+                apiKey: liveKey, apiBase: 'https://api.mistral.ai/v1', model: 'mistral-large-latest',
+                provider: 'mistral', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'NVIDIA NIM': {
+                apiKey: liveKey, apiBase: 'https://integrate.api.nvidia.com/v1', model: 'llama-3.3-70b-instruct',
+                provider: 'nvidia', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'Google Gemini': {
+                apiKey: liveKey, apiBase: 'https://generativelanguage.googleapis.com/v1', model: 'gemini-1.5-flash',
+                provider: 'google', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'OpenRouter': {
+                apiKey: liveKey, apiBase: 'https://openrouter.ai/api/v1', model: 'deepseek/deepseek-r1',
+                provider: 'openrouter', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'OpenAI': {
+                apiKey: liveKey, apiBase: 'https://api.openai.com/v1', model: 'gpt-4o',
+                provider: 'openai', apiFormat: 'openai',
                 streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'DeepSeek': {
+                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-chat',
+                provider: 'openai', apiFormat: 'openai',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             }
         };
     }
     async switchProfile(profileName) {
         if (!profileName)
             return;
+        this.lastProfile = profileName;
+        try {
+            await ApiClient.setActiveProfile(profileName);
+        }
+        catch (e) { }
         await this.applyProfile(profileName);
     }
 }

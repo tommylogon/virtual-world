@@ -75,6 +75,7 @@ class LLMClient {
         const base = LLMClient.normalizeBase(this.apiBase);
         const format = this._resolveFormat();
         const isResponses = format === 'responses';
+        const isLMStudio = format === 'lmstudio';
         // Store last messages for clipboard export
         this._lastMessages = messages;
         // Trace metadata for this call: who it is for, and a correlation id
@@ -105,13 +106,18 @@ class LLMClient {
         // A truncated answer is worse than a slow one (a half-written JSON plan
         // silently becomes no plan), so a length stop re-requests with a larger
         // budget instead of returning the fragment.
-        let effectiveMaxTokens = options.max_tokens;
-        // The escalation base is the CALLER's cap, never the previously
-        // escalated one - feeding the raised budget back in compounds instead of
-        // doubling (300 -> 600 -> 2400 -> 19200), which on a local model means
-        // one very long doomed generation instead of three quick ones. Caught
-        // by a live browser run; the unit tests only checked the helper.
-        const baseMaxTokens = options.max_tokens;
+        // Centralized token budgeting:
+        const configuredMax = window?.config?.maxTokens
+            ? parseInt(String(window.config?.maxTokens), 10)
+            : 2048;
+        const requestedCap = options.max_tokens || configuredMax || 2048;
+        // Reasoning tokens count towards completion tokens in modern reasoning models.
+        // A tiny cap like 560 or 400 will starve the model before it emits any visible tokens.
+        // Guarantee a reasoning headroom floor of at least 4096 tokens when thinking is active.
+        const isThinkingActive = (!this.thinking ? false : (this.thinkingEffort !== 'none')) || (!!options.reasoningEffort && options.reasoningEffort !== 'none');
+        const minThinkingHeadroom = 4096;
+        const baseMaxTokens = (isThinkingActive && !options.max_tokens) ? Math.max(requestedCap, minThinkingHeadroom) : requestedCap;
+        let effectiveMaxTokens = baseMaxTokens;
         let truncationRetries = 0;
         // Transport retries and truncation retries are SEPARATE budgets. Sharing
         // one counter means three length stops exhaust the network budget and
@@ -130,53 +136,68 @@ class LLMClient {
                 this._structuredLogged.add(key);
             }
             try {
-                const requestBody = isResponses
-                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: effectiveMaxTokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
-                    : (() => {
-                        const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
-                        if (streaming)
-                            body.stream = true;
-                        if (effectiveMaxTokens)
-                            body.max_tokens = effectiveMaxTokens;
-                        if (responseFormat)
-                            body.response_format = responseFormat;
-                        if (options.tools && Array.isArray(options.tools)) {
-                            body.tools = options.tools;
-                            if (options.tool_choice)
-                                body.tool_choice = options.tool_choice;
-                        }
-                        // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
-                        // DeepSeek defaults thinking ON at effort `high`, so we must send an
-                        // explicit disable when it is off - omitting the parameter silently
-                        // re-enables high-effort reasoning on every call.
-                        // `effort: "none"` is the disable spelling for providers that key
-                        // thinking off the effort value, so treat it as OFF here too rather
-                        // than sending an invalid `reasoning_effort: "none"`.
-                        // OpenRouter/OpenAI's unified `reasoning.exclude` is supported on all
-                        // models, so it can't be rejected by a non-reasoning backend.
-                        // Qwen 3.5 in LM Studio ignores all disable flags; the only reliable
-                        // workaround is a trailing empty assistant message, which forces the
-                        // model to skip its reasoning block and emit content directly.
-                        // Gated by `suppressLocalThinking` so it only fires when opted in.
-                        const thinkingOff = !this.thinking || this.thinkingEffort === 'none';
-                        if (!thinkingOff) {
-                            body.reasoning_effort = this.thinkingEffort || 'high';
-                            body.extra_body = { thinking: { type: 'enabled' } };
-                        }
-                        else {
-                            body.extra_body = { thinking: { type: 'disabled' } };
-                            body.reasoning = { exclude: true };
-                            body.enable_thinking = false;
-                            if (this.suppressLocalThinking)
-                                body.messages.push({ role: 'assistant', content: ' ' });
-                        }
-                        return body;
-                    })();
+                const requestBody = isLMStudio
+                    ? this._buildLMStudioBody(messages, { model, temperature, maxTokens: effectiveMaxTokens })
+                    : (isResponses
+                        ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: effectiveMaxTokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
+                        : (() => {
+                            const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
+                            if (streaming) {
+                                body.stream = true;
+                                body.stream_options = { include_usage: true };
+                            }
+                            if (effectiveMaxTokens)
+                                body.max_tokens = effectiveMaxTokens;
+                            if (responseFormat)
+                                body.response_format = responseFormat;
+                            if (options.tools && Array.isArray(options.tools)) {
+                                body.tools = options.tools;
+                                if (options.tool_choice)
+                                    body.tool_choice = options.tool_choice;
+                            }
+                            // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
+                            // DeepSeek defaults thinking ON at effort `high`, so we must send an
+                            // explicit disable when it is off - omitting the parameter silently
+                            // re-enables high-effort reasoning on every call.
+                            // `effort: "none"` is the disable spelling for providers that key
+                            // thinking off the effort value, so treat it as OFF here too rather
+                            // than sending an invalid `reasoning_effort: "none"`.
+                            // OpenRouter/OpenAI's unified `reasoning.exclude` is supported on all
+                            // models, so it can't be rejected by a non-reasoning backend.
+                            // Qwen 3.5 in LM Studio ignores all disable flags; the only reliable
+                            // workaround is a trailing empty assistant message, which forces the
+                            // model to skip its reasoning block and emit content directly.
+                            // Gated by `suppressLocalThinking` so it only fires when opted in.
+                            const thinkingOff = (!this.thinking || this.thinkingEffort === 'none') && (!options.reasoningEffort || options.reasoningEffort === 'none');
+                            if (!thinkingOff) {
+                                // For mechanical or structured phases like 'plan', scale effort to 'low' unless caller explicitly asks for more.
+                                const phaseEffort = options.reasoningEffort || (options.label === 'plan' ? 'low' : (this.thinkingEffort || 'medium'));
+                                body.reasoning_effort = phaseEffort;
+                                body.extra_body = { thinking: { type: 'enabled' } };
+                                body.reasoning = {
+                                    effort: phaseEffort,
+                                    max_tokens: options.reasoningMaxTokens || (options.label === 'plan' ? 1024 : 2048)
+                                };
+                            }
+                            else {
+                                body.extra_body = { thinking: { type: 'disabled' } };
+                                body.reasoning = { exclude: true };
+                                body.enable_thinking = false;
+                                if (this.suppressLocalThinking)
+                                    body.messages.push({ role: 'assistant', content: ' ' });
+                            }
+                            return body;
+                        })());
                 const headers = { 'Content-Type': 'application/json' };
                 if (this.apiKey && this.apiKey !== 'not-needed' && this.apiKey !== 'none') {
                     headers['Authorization'] = 'Bearer ' + this.apiKey;
                 }
-                const resp = await fetch(base + (isResponses ? '/responses' : '/chat/completions'), {
+                let endpointUrl = base + (isResponses ? '/responses' : '/chat/completions');
+                if (isLMStudio) {
+                    const hostBase = base.replace(/\/v1\/?$/, '');
+                    endpointUrl = hostBase + '/api/v1/chat';
+                }
+                const resp = await fetch(endpointUrl, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(requestBody), signal
@@ -230,7 +251,7 @@ class LLMClient {
                     // text already on screen, so onChunk is suppressed once the
                     // retry budget is in play - the complete answer replaces it.
                     const chunkSink = truncationRetries > 0 ? undefined : options.onChunk;
-                    const streamed = await this._handleStream(resp, format, chunkSink, label, messages, options, streamInfo);
+                    const streamed = await this._handleStream(resp, format, chunkSink, label, messages, options, streamInfo, startedAt);
                     // A stream isn't reassembled into a provider envelope, so
                     // capture the request plus the assembled text (task-405).
                     this._captureRawExchange(label, requestBody, { streamed: true, content: streamed }, resp, startedAt, headers);
@@ -247,20 +268,22 @@ class LLMClient {
                 }
                 const completion = await resp.json();
                 this._captureRawExchange(label, requestBody, completion, resp, startedAt, headers);
-                if (this._truncationReason(completion, isResponses) && truncationRetries < MAX_TRUNCATION_RETRIES) {
+                if (this._truncationReason(completion, isResponses, isLMStudio) && truncationRetries < MAX_TRUNCATION_RETRIES) {
                     truncationRetries++;
                     effectiveMaxTokens = this._nextTokenBudget(baseMaxTokens, truncationRetries);
-                    VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap (${this._truncationReason(completion, isResponses)}) - retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
+                    VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap (${this._truncationReason(completion, isResponses, isLMStudio)}) - retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
                     continue;
                 }
-                if (this._truncationReason(completion, isResponses)) {
-                    this._warnTruncated(label, effectiveMaxTokens, this._extractChatCompletionContent(completion));
+                if (this._truncationReason(completion, isResponses, isLMStudio)) {
+                    this._warnTruncated(label, effectiveMaxTokens, isLMStudio ? this._extractLMStudioContent(completion) : this._extractChatCompletionContent(completion));
                 }
                 if (completion?.error)
                     throw new Error(completion.error.message || JSON.stringify(completion.error));
-                const content = isResponses
-                    ? this._extractResponsesContent(completion)
-                    : this._extractChatCompletionContent(completion);
+                const content = isLMStudio
+                    ? this._extractLMStudioContent(completion)
+                    : (isResponses
+                        ? this._extractResponsesContent(completion)
+                        : this._extractChatCompletionContent(completion));
                 this._checkSchemaEnforcement(content, responseFormat);
                 const tool_calls = isResponses
                     ? this._extractResponsesToolCalls(completion)
@@ -272,7 +295,21 @@ class LLMClient {
                         && completion.choices[0].message.tool_calls.length)
                         ? completion.choices[0].message.tool_calls
                         : null);
-                this._logAssistantResponse(label, content || (tool_calls && tool_calls.length ? `[tool_calls: ${tool_calls.length}]` : ''));
+                const durationMs = startedAt ? (Date.now() - startedAt) : 0;
+                const compTokens = completion?.usage?.completion_tokens || Math.round((content || '').length / 4);
+                const tokPerSec = durationMs > 0 && compTokens > 0 ? (compTokens / (durationMs / 1000)) : undefined;
+                const openrouterProvider = resp?.headers?.get?.('x-openrouter-provider') || (this.apiBase.includes('openrouter') ? 'OpenRouter' : '');
+                const cost = completion?.usage?.total_cost || undefined;
+                const responseMeta = {
+                    actor: options.actor,
+                    requestId: options.requestId,
+                    phase: options.phase,
+                    tokPerSec,
+                    provider: openrouterProvider,
+                    cost,
+                    durationMs
+                };
+                this._logAssistantResponse(label, content || (tool_calls && tool_calls.length ? `[tool_calls: ${tool_calls.length}]` : ''), responseMeta);
                 this._captureDataset(messages, content, label, options);
                 if (options.withTools || options.tools) {
                     return { content, tool_calls };
@@ -399,6 +436,8 @@ class LLMClient {
      * 'responses' activates the new path. Reserved for future smart routing.
      */
     _resolveFormat() {
+        if (this.apiFormat === 'lmstudio')
+            return 'lmstudio';
         if (this.apiFormat === 'responses')
             return 'responses';
         return 'chat-completions';
@@ -415,6 +454,18 @@ class LLMClient {
             return '';
         return this._normalizeAssistantText(msg.content || '');
     }
+    _extractLMStudioContent(completion) {
+        const outMsg = completion?.output?.find((o) => o.type === 'message') || completion?.output?.[0];
+        const text = outMsg?.content || '';
+        if (completion?.stats?.tokens_per_second) {
+            const tps = Math.round(completion.stats.tokens_per_second * 10) / 10;
+            const ttft = completion.stats.time_to_first_token_seconds ? ` · TTFT ${(completion.stats.time_to_first_token_seconds * 1000).toFixed(0)}ms` : '';
+            if (VW?.events?.log && (typeof config === 'undefined' || config.showLogs)) {
+                VW.events.log(`⚡ [LM Studio Native] ${tps} t/s${ttft}`, 'system-msg');
+            }
+        }
+        return this._normalizeAssistantText(text);
+    }
     /**
      * The provider's own signal that generation stopped AT the token cap.
      * Chat Completions reports `finish_reason: 'length'`; the Responses API
@@ -422,9 +473,18 @@ class LLMClient {
      * finished on its own ('stop' / 'tool_calls' / no signal at all), so a
      * provider that omits the field never triggers a spurious retry.
      */
-    _truncationReason(completion, isResponses) {
+    _truncationReason(completion, isResponses, isLMStudio = false) {
         if (!completion || typeof completion !== 'object')
             return null;
+        if (isLMStudio) {
+            const reason = completion?.incomplete_details?.reason;
+            if (reason === 'max_output_tokens' || reason === 'max_tokens')
+                return reason;
+            const total = completion?.stats?.total_output_tokens;
+            if (total && completion?.max_output_tokens && total >= completion.max_output_tokens)
+                return 'max_tokens';
+            return null;
+        }
         if (isResponses) {
             const reason = completion?.incomplete_details?.reason;
             if (reason === 'max_output_tokens' || reason === 'max_tokens')
@@ -543,6 +603,37 @@ class LLMClient {
         body.reasoning = { effort: thinkingOff ? 'none' : (this.thinkingEffort || 'high') };
         return body;
     }
+    /** Build an LM Studio Native API (/api/v1/chat) request body. */
+    _buildLMStudioBody(messages, opts) {
+        const systemMessage = messages.find(m => m.role === 'system');
+        const inputMsgs = [];
+        for (const m of messages) {
+            if (m === systemMessage)
+                continue;
+            if (m.content) {
+                if (m.role === 'user') {
+                    inputMsgs.push(m.content);
+                }
+                else {
+                    inputMsgs.push(`[${m.role}]: ${m.content}`);
+                }
+            }
+        }
+        const thinkingOff = !this.thinking || this.thinkingEffort === 'none';
+        const body = {
+            model: opts.model,
+            input: inputMsgs.join('\n\n'),
+            temperature: parseFloat(opts.temperature) || 0.7,
+            reasoning: thinkingOff ? 'off' : 'on'
+        };
+        if (systemMessage?.content) {
+            body.system_prompt = systemMessage.content;
+        }
+        if (opts.maxTokens) {
+            body.max_output_tokens = opts.maxTokens;
+        }
+        return body;
+    }
     /** Extract tool_calls from a Responses API completion (output[] entries of type 'function_call'). */
     _extractResponsesToolCalls(completion) {
         const output = Array.isArray(completion?.output) ? completion.output : [];
@@ -574,12 +665,32 @@ class LLMClient {
         return '';
     }
     /** Handle streaming response - OpenAI SSE + LM Studio formats (chat-completions and responses) */
-    async _handleStream(resp, format, onChunk, label, messages, options, info) {
+    async _handleStream(resp, format, onChunk, label, messages, options, info, startedAt) {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '', fullContent = '', currentEvent = '';
+        let streamUsage = null;
+        let streamProvider = resp?.headers?.get?.('x-openrouter-provider') || (this.apiBase.includes('openrouter') ? 'OpenRouter' : '');
+        let firstTokenAt = null;
         const isResponses = format === 'responses';
         const yieldToBrowser = () => new Promise(r => setTimeout(r, 0));
+        const getStreamMeta = () => {
+            const streamDur = startedAt ? (Date.now() - startedAt) : 0;
+            const compTokens = streamUsage?.completion_tokens || Math.round(fullContent.length / 4);
+            const tokPerSec = streamDur > 0 && compTokens > 0 ? (compTokens / (streamDur / 1000)) : undefined;
+            const ttftMs = (firstTokenAt && startedAt) ? (firstTokenAt - startedAt) : undefined;
+            const cost = streamUsage?.total_cost != null ? streamUsage.total_cost : streamUsage?.cost;
+            return {
+                actor: options?.actor,
+                requestId: options?.requestId,
+                phase: options?.phase,
+                tokPerSec,
+                ttftMs,
+                provider: streamProvider || (this.apiBase.includes('openrouter') ? 'OpenRouter' : ''),
+                cost,
+                durationMs: streamDur
+            };
+        };
         while (true) {
             const { done, value } = await reader.read();
             if (done)
@@ -620,13 +731,17 @@ class LLMClient {
                     catch (e) { }
                     fullContent = this._normalizeAssistantText(fullContent);
                     if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
-                        this._logAssistantResponse(label, fullContent);
+                        this._logAssistantResponse(label, fullContent, getStreamMeta());
                     }
                     this._captureDataset(messages, fullContent, label, options);
                     return fullContent;
                 }
                 try {
                     const parsed = JSON.parse(data);
+                    if (parsed?.usage)
+                        streamUsage = parsed.usage;
+                    if (parsed?.provider)
+                        streamProvider = parsed.provider;
                     // A length stop arrives on the LAST chunk before [DONE], so
                     // the stream is only known to be cut off once it has ended.
                     if (info && this._truncationReason(parsed, isResponses))
@@ -641,7 +756,7 @@ class LLMClient {
                             }
                             fullContent = this._normalizeAssistantText(fullContent);
                             if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
-                                this._logAssistantResponse(label, fullContent);
+                                this._logAssistantResponse(label, fullContent, getStreamMeta());
                             }
                             this._captureDataset(messages, fullContent, label, options);
                             return fullContent;
@@ -656,6 +771,8 @@ class LLMClient {
                             || '';
                     }
                     if (content) {
+                        if (!firstTokenAt && startedAt)
+                            firstTokenAt = Date.now();
                         fullContent += content;
                         if (onChunk)
                             onChunk(content);
@@ -667,7 +784,7 @@ class LLMClient {
         }
         fullContent = this._normalizeAssistantText(fullContent);
         if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
-            this._logAssistantResponse(label, fullContent);
+            this._logAssistantResponse(label, fullContent, getStreamMeta());
         }
         this._captureDataset(messages, fullContent, label, options);
         return fullContent;
@@ -694,6 +811,18 @@ class LLMClient {
                     return data.data.map((m) => m.id || m.name || m).filter(Boolean).sort();
                 if (Array.isArray(data))
                     return data.map((m) => m.id || m.name || m).filter(Boolean).sort();
+            }
+            if (isLocal) {
+                try {
+                    const hostBase = base.replace(/\/v1\/?$/, '');
+                    const nativeResp = await fetch(hostBase + '/api/v0/models', { headers, signal: AbortSignal.timeout(3000) });
+                    if (nativeResp.ok) {
+                        const data = await nativeResp.json();
+                        if (data.data && Array.isArray(data.data))
+                            return data.data.map((m) => m.id || m.name || m).filter(Boolean).sort();
+                    }
+                }
+                catch (e) { }
             }
         }
         catch (e) { }

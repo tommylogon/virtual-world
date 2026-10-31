@@ -344,8 +344,10 @@ def register_routes(app):
     from routes.bug_reports import register_bug_reports_routes
     from routes.commons import register_commons_routes
     from routes.benchmark import register_benchmark_routes
+    from routes.profiles import register_profiles_routes
 
     register_benchmark_routes(app)
+    register_profiles_routes(app)
     register_commons_routes(app)
     register_health_routes(app)
     register_events_routes(app)

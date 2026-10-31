@@ -597,6 +597,13 @@ class ApiClientImpl {
         return this.post('/api/settings/auto_generate_descriptions', { auto_generate_descriptions: enabled });
     }
     // --- World Lore API ---
+    static async getSceneContext() {
+        const resp = await fetch('/api/world/scene_context');
+        return resp.json();
+    }
+    static async setSceneContext(context) {
+        return this.post('/api/world/scene_context', context);
+    }
     static async getWorldLore() {
         const resp = await fetch('/api/world/lore');
         return resp.json();
@@ -654,6 +661,14 @@ class ApiClientImpl {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(options)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, data };
+    }
+    static async revertPlayerCompile(charName) {
+        const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/record/revert_compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
         });
         const data = await resp.json().catch(() => ({}));
         return { ok: resp.ok, data };
@@ -795,6 +810,19 @@ class ApiClientImpl {
     }
     static async stopPlayMode() {
         return this.post('/api/play_mode/stop', {});
+    }
+    static async getProfiles() {
+        return this.get('/api/profiles');
+    }
+    static async saveProfile(name, data) {
+        return this.post('/api/profiles', { name, data });
+    }
+    static async deleteProfile(name) {
+        const resp = await fetch(`/api/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        return resp.json().catch(() => ({}));
+    }
+    static async setActiveProfile(name) {
+        return this.post('/api/profiles/active', { name });
     }
     static async getPlayModeStatus() {
         const resp = await fetch('/api/play_mode/status');

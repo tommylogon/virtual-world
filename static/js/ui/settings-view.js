@@ -49,6 +49,7 @@ const SettingsView = (() => {
             if (el)
                 el.checked = !!val;
         };
+        window?.VW?.ui?.populateProfileSelect?.();
         setVal('api-base-input', config.apiBase);
         setVal('api-key-input', config.apiKey);
         setVal('agent-api-base', config.apiBase);
@@ -149,6 +150,14 @@ const SettingsView = (() => {
             etr.textContent = '🧬 ' + config.embedModel + ' · ' + config.embedDims + ' dims';
             etr.style.color = 'var(--text-muted)';
         }
+        // Dedicated Memory Model (task-909)
+        setChecked('memory-model-enabled', !!config.memoryModelEnabled);
+        setVal('memory-api-base', config.memoryApiBase || '');
+        setVal('memory-model', config.memoryModel || '');
+        setVal('memory-api-format', config.memoryApiFormat || 'lmstudio');
+        var mmFields = document.getElementById('memory-model-fields');
+        if (mmFields)
+            mmFields.style.display = config.memoryModelEnabled ? 'block' : 'none';
         // Load time per tick from backend
         (async function () {
             try {
