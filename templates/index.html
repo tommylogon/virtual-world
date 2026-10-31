@@ -51,13 +51,13 @@
                     <button class="dropdown-item" onclick="saveGame();closeTopMenus()" role="menuitem">💾 Save Game</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('load-game-modal').style.display='flex'; loadGameList()" role="menuitem">📂 Load Game…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('file-upload').click()" role="menuitem">📂 Load JSON…</button>
-                <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">�-� Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/bench'" role="menuitem">📊 Benchmark Lab…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/commons'" role="menuitem">💬 The Commons…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
-                <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">�-️ New Room from Template…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();ScenarioStatus.commit()" role="menuitem">💾 Commit Scenario</button>
@@ -105,7 +105,7 @@
             </div>
             <div id="left-tabs" class="left-tabs" role="tablist" aria-label="Left panel views">
                 <button class="left-tab active" data-tab="agents" role="tab" onclick="ui.switchLeftTab('agents')">🧍 Agents</button>
-                <button class="left-tab" data-tab="outline" role="tab" onclick="ui.switchLeftTab('outline')">🗺️ Outline</button>
+                <button class="left-tab" data-tab="outline" role="tab" onclick="ui.switchLeftTab('outline')">�-�️ Outline</button>
                 <button class="left-tab" data-tab="lens" role="tab" onclick="ui.switchLeftTab('lens')">👁 Lens</button>
                 <button class="left-tab" data-tab="issues" role="tab" onclick="ui.switchLeftTab('issues')">🛠 Issues</button>
                 <button class="left-tab" data-tab="nl-editor" role="tab" onclick="ui.switchLeftTab('nl-editor')">✨ NL Editor</button>
@@ -207,7 +207,7 @@
                             <div class="menu-sep" role="separator"></div>
                             <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();openLibraryBrowser()">📚 Library</button>
                             <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();VW.structures.openBrowseDialog()">📦 Structures</button>
-                            <button class="dropdown-item" data-help="worldpainter" role="menuitem" onclick="closeTopMenus();VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">🗺️ WorldPainter</button>
+                            <button class="dropdown-item" data-help="worldpainter" role="menuitem" onclick="closeTopMenus();VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">�-�️ WorldPainter</button>
                         </div>
                     </div>
                     <span class="toolbar-divider"></span>
@@ -240,7 +240,7 @@
                 <div class="toolbar-zone" aria-label="Look">
                     <div class="toolbar-segment" id="layout-segment" role="tablist" aria-label="Layout mode">
                         <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout  -  nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
-                        <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
+                        <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">�-�️ Map</button>
                         <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout  -  nodes sit by relation level, physics off">🌳 Hierarchical</button>
                     </div>
                     <div class="toolbar-dropdown menu-anchor">
@@ -287,7 +287,7 @@
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
                                     <button id="map-spacing-auto" class="stepper-btn" aria-pressed="true" onclick="graphManager.setAutoMapSpacing(this.getAttribute('aria-pressed') !== 'true')" aria-label="Derive the map pitch from the canvas size">A</button>
                                 </span>
-                                <span class="menu-note">Only used by the 🗺️ Map layout.</span>
+                                <span class="menu-note">Only used by the �-�️ Map layout.</span>
                             </div>
                         </div>
                     </div>
@@ -366,7 +366,7 @@
                         <button class="btn-icon" onclick="WorldExport.showRangeExport()" title="Export a range of turns (copy or file)" style="background:transparent;border:none;cursor:pointer;font-size:14px;">⏩</button>
                         <button class="btn-icon" onclick="copyEventLogToClipboard()" title="Copy event stream to clipboard" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📋</button>
                         <button id="stream-auto-scroll" class="btn-icon" title="Auto-scroll (on)" style="background:transparent;border:none;cursor:pointer;font-size:16px;">📌</button>
-                        <button class="btn-icon" onclick="events.clearStream()" title="Clear event stream" style="background:transparent;border:none;cursor:pointer;font-size:14px;">🗑️</button>
+                        <button class="btn-icon" onclick="events.clearStream()" title="Clear event stream" style="background:transparent;border:none;cursor:pointer;font-size:14px;">�-�️</button>
                         <select id="stream-style" onchange="events.setStyle(this.value); config.save()" title="Stream visual style" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
                             <option value="dark">Dark</option>
                             <option value="disco">Disco Elysium</option>
@@ -424,7 +424,7 @@
                     <span style="font-size:12px;font-weight:600;color:var(--text-dim);">📁 Profile:</span>
                     <select id="profile-select" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="switchProfile(this.value)"></select>
                     <button class="btn btn-sm btn-blue" onclick="saveProfileFromCurrent()" title="Save current settings">💾</button>
-                    <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">🗑</button>
+                    <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">�-�</button>
                     <button class="btn btn-sm btn-green" onclick="saveProfileAsNew()" title="Save as new profile">➕</button>
                     <button class="btn btn-sm btn-ghost" onclick="syncBackendProfiles()" title="Sync profiles from server / .env">🔄</button>
                 </div>
@@ -441,8 +441,8 @@
                 <div id="tab-connection" class="tab-pane active">
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">🌐</span> API Connection</div>
-                        <div class="settings-field"><label for="api-base-input">API Base URL</label><input type="text" id="api-base-input" placeholder="https://api.openai.com/v1" onchange="document.getElementById('agent-api-base').value=this.value;config.apiBase=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig()); VW?.ui?.populateModelSelect();"><div class="field-hint">DeepSeek: https://api.deepseek.com · Groq: https://api.groq.com/openai · OpenRouter: https://openrouter.ai/api · LM Studio: http://localhost:1234/v1 · Ollama: http://localhost:11434/v1</div><input type="hidden" id="agent-api-base"></div>
-                        <div class="settings-field"><label for="api-key-input">API Key</label><input type="password" id="api-key-input" placeholder="sk-..." onchange="document.getElementById('agent-api-key').value=this.value;config.apiKey=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig());"><input type="hidden" id="agent-api-key"><div class="field-hint">Your key stays in your browser.</div></div>
+                        <div class="settings-field"><label for="api-base-input">API Base URL</label><input type="text" id="api-base-input" data-config="apiBase" placeholder="https://api.openai.com/v1" onchange="document.getElementById('agent-api-base').value=this.value;config.apiBase=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig()); VW?.ui?.populateModelSelect();"><div class="field-hint">DeepSeek: https://api.deepseek.com · Groq: https://api.groq.com/openai · OpenRouter: https://openrouter.ai/api · LM Studio: http://localhost:1234/v1 · Ollama: http://localhost:11434/v1</div><input type="hidden" id="agent-api-base"></div>
+                        <div class="settings-field"><label for="api-key-input">API Key</label><input type="password" id="api-key-input" data-config="apiKey" placeholder="sk-..." onchange="document.getElementById('agent-api-key').value=this.value;config.apiKey=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig());"><input type="hidden" id="agent-api-key"><div class="field-hint">Your key stays in your browser.</div></div>
                         <div class="settings-field">
                             <label for="agent-model">Model</label>
                             <div class="model-selector-wrap">
@@ -465,7 +465,7 @@
                                     <div class="model-list-empty">Click 🔄 to load models</div>
                                 </div>
                                 <div class="model-custom-row">
-                                    <input type="text" id="agent-model" placeholder="gpt-4o-mini" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.model=this.value;config.save();VW?.llm?.configure(config.toLLMConfig());">
+                                    <input type="text" id="agent-model" data-config="model" placeholder="gpt-4o-mini" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.model=this.value;config.save();VW?.llm?.configure(config.toLLMConfig());">
                                     <button class="btn btn-sm btn-ghost" onclick="VW?.ui?.populateModelSelect()" title="Refresh model list from API">🔄</button>
                                 </div>
                             </div>
@@ -473,57 +473,61 @@
                             <div class="field-hint">Click a model to select, or type a custom name</div>
                         </div>
                         <div style="margin-top:8px;"><button class="btn-test-connection" id="test-connection-btn" onclick="testAgentConnection()">🔌 Test Connection</button><div id="connection-result" class="connection-result"></div></div>
-                        <div class="settings-group" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
-                            <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
-                                <span><span class="group-icon">🧠</span> Dedicated Memory Model (Task-909)</span>
-                                <label class="toggle-label" style="font-size:11px;cursor:pointer;">
-                                    <input type="checkbox" id="memory-model-enabled" checked onchange="config.memoryModelEnabled=this.checked;document.getElementById('memory-model-fields').style.display=this.checked?'block':'none';config.save();">
-                                    Enable Dedicated Worker
-                                </label>
+                    </div>
+                    <div class="settings-group" style="margin-top:14px;">
+                        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+                            <span><span class="group-icon">🧠</span> Dedicated Memory Model (Task-909)</span>
+                            <label class="toggle-label" style="font-size:11px;cursor:pointer;">
+                                <input type="checkbox" id="memory-model-enabled" data-config="memoryModelEnabled" checked onchange="config.memoryModelEnabled=this.checked;document.getElementById('memory-model-fields').style.display=this.checked?'block':'none';config.save();">
+                                Enable Dedicated Worker
+                            </label>
+                        </div>
+                        <div class="field-hint" style="margin-bottom:8px;">Offload memory reflections and extractions to a fast local model (1.7B-3B at 200 t/s) so character turns never wait on memory overhead. Defaults to localhost LM Studio.</div>
+                        <div id="memory-model-fields" style="display:block;">
+                            <div class="settings-field">
+                                <label for="memory-api-base">Memory API Base URL</label>
+                                <input type="text" id="memory-api-base" data-config="memoryApiBase" value="http://localhost:1234/v1" placeholder="http://localhost:1234/v1" onchange="config.memoryApiBase=this.value;config.save();">
                             </div>
-                            <div class="field-hint" style="margin-bottom:8px;">Offload memory reflections and extractions to a fast local model (1.7B-3B at 200 t/s) so character turns never wait on memory overhead. Defaults to localhost LM Studio.</div>
-                            <div id="memory-model-fields" style="display:block;">
-                                <div class="settings-field">
-                                    <label for="memory-api-base">Memory API Base URL</label>
-                                    <input type="text" id="memory-api-base" value="http://localhost:1234/v1" placeholder="http://localhost:1234/v1" onchange="config.memoryApiBase=this.value;config.save();">
-                                </div>
-                                <div class="settings-field">
-                                    <label for="memory-model">Memory Model</label>
-                                    <div style="display:flex;gap:6px;">
-                                        <input type="text" id="memory-model" value="lmstudio-community/lfm3-1.7b" placeholder="lmstudio-community/lfm3-1.7b" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.memoryModel=this.value;config.save();">
-                                        <select id="memory-model-quick" style="max-width:140px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="if(this.value){document.getElementById('memory-model').value=this.value;config.memoryModel=this.value;config.save();}">
-                                            <option value="">-- Quick Pick --</option>
-                                            <option value="lmstudio-community/lfm3-1.7b" selected>⚡ LFM 1.7B (213 t/s)</option>
-                                            <option value="ministral-3b">⚡ Ministral 3B (147 t/s)</option>
-                                            <option value="ling-3.0-tiny">⚡ Ling 3.0 (175 t/s)</option>
-                                            <option value="spark-x2.6-1.7b">⚡ Spark 1.7B (60 t/s)</option>
-                                        </select>
-                                    </div>
-                                    <div class="field-hint">Select a fast 1-3B model for maximum memory extraction speed.</div>
-                                </div>
-                                <div class="settings-field">
-                                    <label for="memory-api-format">Memory API Format</label>
-                                    <select id="memory-api-format" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.memoryApiFormat=this.value;config.save();">
-                                        <option value="lmstudio" selected>LM Studio Native (/api/v1/chat)</option>
-                                        <option value="chat-completions">Chat Completions (/v1/chat/completions)</option>
+                            <div class="settings-field">
+                                <label for="memory-model">Memory Model</label>
+                                <div style="display:flex;gap:6px;">
+                                    <input type="text" id="memory-model" data-config="memoryModel" value="lmstudio-community/lfm3-1.7b" placeholder="lmstudio-community/lfm3-1.7b" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.memoryModel=this.value;config.save();">
+                                    <select id="memory-model-quick" style="max-width:140px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="if(this.value){document.getElementById('memory-model').value=this.value;config.memoryModel=this.value;config.save();}">
+                                        <option value="">-- Quick Pick --</option>
+                                        <option value="lmstudio-community/lfm3-1.7b" selected>⚡ LFM 1.7B (213 t/s)</option>
+                                        <option value="ministral-3b">⚡ Ministral 3B (147 t/s)</option>
+                                        <option value="ling-3.0-tiny">⚡ Ling 3.0 (175 t/s)</option>
+                                        <option value="spark-x2.6-1.7b">⚡ Spark 1.7B (60 t/s)</option>
                                     </select>
-                                    <div class="field-hint">LM Studio Native forces reasoning: "off" natively for zero token waste.</div>
                                 </div>
+                                <div class="field-hint">Select a fast 1-3B model for maximum memory extraction speed.</div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="memory-api-format">Memory API Format</label>
+                                <select id="memory-api-format" data-config="memoryApiFormat" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.memoryApiFormat=this.value;config.save();">
+                                    <option value="lmstudio" selected>LM Studio Native (/api/v1/chat)</option>
+                                    <option value="chat-completions">Chat Completions (/v1/chat/completions)</option>
+                                </select>
+                                <div class="field-hint">LM Studio Native forces reasoning: "off" natively for zero token waste.</div>
+                            </div>
+                            <div class="toggle-row" style="align-items:center;margin-top:8px;">
+                                <button type="button" class="btn btn-sm" id="test-memory-btn" onclick="SettingsView.testMemoryConnection()">🔌 Test Connection</button>
+                                <span id="memory-test-result" style="font-size:10px;margin-left:6px;color:var(--text-muted);"></span>
                             </div>
                         </div>
-                        <div class="settings-group" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
-                            <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
-                            <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled - keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
-                            <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI...). Called directly from the browser.</div></div>
-                            <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
-                            <div class="settings-field" style="display:flex;gap:8px;">
-                                <div style="flex:1;"><label for="embed-dims">Dimensions</label><input type="number" id="embed-dims" min="0" placeholder="auto" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedDims=parseInt(this.value)||0;config.save();"><div class="field-hint">Blank/0 = detect from first response</div></div>
-                                <div style="flex:1;"><label for="embed-api-key">API Key (optional)</label><input type="password" id="embed-api-key" placeholder="for cloud providers" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedApiKey=this.value.trim();config.save();"><div class="field-hint">Never sent to the backend</div></div>
-                            </div>
-                            <div class="toggle-row" style="align-items:center;">
-                                <button class="btn btn-sm" onclick="EmbeddingClient.test().then(r => { const el = document.getElementById('embed-test-result'); el.textContent = r.ok ? '✅ ' + r.dims + ' dims' : '❌ ' + r.error; el.style.color = r.ok ? '#3fb950' : '#f85149'; })">🔌 Test Connection</button>
-                                <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
-                            </div>
+                    </div>
+                    <div class="settings-group" style="margin-top:14px;">
+                        <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" data-config="embedEnabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled - keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
+                        <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" data-config="embedUrl" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI...). Called directly from the browser.</div></div>
+                        <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" data-config="embedModel" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
+                        <div class="settings-field" style="display:flex;gap:8px;">
+                            <div style="flex:1;"><label for="embed-dims">Dimensions</label><input type="number" id="embed-dims" data-config="embedDims" min="0" placeholder="auto" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedDims=parseInt(this.value)||0;config.save();"><div class="field-hint">Blank/0 = detect from first response</div></div>
+                            <div style="flex:1;"><label for="embed-api-key">API Key (optional)</label><input type="password" id="embed-api-key" data-config="embedApiKey" placeholder="for cloud providers" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedApiKey=this.value.trim();config.save();"><div class="field-hint">Never sent to the backend</div></div>
+                        </div>
+                        <div class="toggle-row" style="align-items:center;">
+                            <button class="btn btn-sm" onclick="EmbeddingClient.test().then(r => { const el = document.getElementById('embed-test-result'); el.textContent = r.ok ? '✅ ' + r.dims + ' dims' : '❌ ' + r.error; el.style.color = r.ok ? '#3fb950' : '#f85149'; })">🔌 Test Connection</button>
+                            <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
                         </div>
                     </div>
                 </div>
@@ -964,7 +968,7 @@
                 <div style="margin-bottom:12px;display:flex;gap:6px;align-items:center;">
                     <input type="text" id="save-game-name-input" placeholder="Save name  -  creates a new save..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
                     <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save as New</button>
-                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">🗑 All</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">�-� All</button>
                 </div>
                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">
                     🔄 Autosave is always current (pinned top). Click a save to load it; 💾 overwrites that slot;
@@ -1015,13 +1019,13 @@
                 <div>
                     <div style="font-weight:600;margin-bottom:6px;">Resolution</div>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="1"> 1× (screen)
+                        <input type="radio" name="gexport-scale" value="1"> 1�- (screen)
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="2" checked> 2× (recommended)
+                        <input type="radio" name="gexport-scale" value="2" checked> 2�- (recommended)
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="3"> 3× (print)
+                        <input type="radio" name="gexport-scale" value="3"> 3�- (print)
                     </label>
                 </div>
                 <div id="gexport-status" style="color:var(--text-muted);min-height:14px;"></div>
