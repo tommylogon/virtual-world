@@ -1,1048 +1,1083 @@
-import random
-import time
-import uuid
-import logging
-from typing import Optional
-
-from graph import EDGE_CONNECTION, EDGE_EQUIPPED, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
-from player import Player
-from area import Area
-from engine.conditions import perceived_conditions
-from engine.abilities import normalize_stat_block
-from engine.vitals import (
-    DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
-)
-from engine.item_actions import get_carry_load_ratio, sum_carry_weight, normalize_item_actions
-from engine.beyond_visibility import normalize_visible_items
-from engine.character_spatial import get_character_at_way, get_spatial_position_data
-from engine.serialization_template import TemplateLoader
-from engine.serialization_legacy import LegacyLoader
-from engine.character_identity import collapse_character_identity, rewrite_known
-from engine.character_store import apply_node_properties, sync_player_to_node
-from version import SCHEMA_VERSION
-
-logger = logging.getLogger(__name__)
-
-
-from engine.serialization_helpers import (
-    _body_region_catalog, _VITAL_KEY_ALIASES, canonical_vitals,
-    _region_exposure_map, _goals_payload, _mosiac_payload, _trait_behavior,
-    normalize_dials, _disposition_payload,
-)
-
-# Backward-compat re-exports: keep names in this module's namespace so existing
-# ``from engine.serialization import X`` and ``mock.patch`` targets keep working.
-globals().update({
-    "_body_region_catalog": _body_region_catalog,
-    "_VITAL_KEY_ALIASES": _VITAL_KEY_ALIASES,
-    "canonical_vitals": canonical_vitals,
-    "_region_exposure_map": _region_exposure_map,
-    "_goals_payload": _goals_payload,
-    "_mosiac_payload": _mosiac_payload,
-    "_trait_behavior": _trait_behavior,
-    "normalize_dials": normalize_dials,
-    "_disposition_payload": _disposition_payload,
-})
-
-
-class WorldSerializer:
-    """Facade that delegates serialization to format-specific loaders."""
-
-    def __init__(self, graph, player_manager, legacy_compat):
-        self.graph = graph
-        self.player_manager = player_manager
-        self.legacy = legacy_compat
-        self._template_loader = TemplateLoader(graph, player_manager, legacy_compat)
-        self._legacy_loader = LegacyLoader(graph, player_manager, legacy_compat)
-
-    def _compute_feels_like(self, player) -> int:
-        """Compute equipment-adjusted feels_like temperature for a player.
-
-        task-439: resolve ``current_area`` by id first, then unambiguously by
-        display name (``engine.room_perception.resolve_area``), instead of the
-        first name match in iteration order. Two areas sharing a display name
-        used to give a character the wrong area's temperature silently.
-        """
-        from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
-        from engine.room_perception import resolve_area_node
-        if not player or not player.current_area:
-            return 21
-        node = resolve_area_node(self.graph, player.current_area)
-        if node is None:
-            return 21
-        env = node.properties.get("environment", {})
-        equip_bonuses = aggregate_bonuses(player, self.graph)
-        return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
-                                         wind_level=env.get("wind", "none"),
-                                         humidity=env.get("humidity", "dry")))
-
-    def _grappled_by(self, player_name: str) -> Optional[str]:
-        """Resolve who holds *player_name* from the grappled edge (if any)."""
-        pnode = self.player_manager.player_node_id(player_name)
-        for edge in self.graph.get_edges_for_target(pnode, "grappled"):
-            node = self.graph.get_node(edge.source)
-            if node and node.type == "character":
-                return node.name
-        return None
-
-    def _normalize_item_node_actions(self):
-        """Expire action inverses on loaded item nodes."""
-        for node in self.graph.nodes.values():
-            if node.type != "item":
-                continue
-            raw = node.properties.get("actions")
-            if raw is None:
-                continue
-            node.properties["actions"] = normalize_item_actions(raw)
-
-    def _migrate_triggers_from_nodes_to_properties(self):
-        """task-886: Migrate legacy logic_trigger nodes and triggers edges to node.properties['triggers']."""
-        from graph import EDGE_TRIGGERS
-        from engine.triggers.effect_resolution import (
-            _effects_list_from_properties,
-            normalize_trigger_entry,
-            normalize_trigger_list,
-        )
-
-        # bug-566: normalise the property store on every load, not only when a
-        # triggers edge exists. A wrapped definition ({"item": {...}}) used to
-        # reach setdefault(...).append(...) and raise AttributeError, which
-        # failed the whole scenario load.
-        for node in list(self.graph.nodes.values()):
-            props = node.properties
-            if not isinstance(props, dict) or "triggers" not in props:
-                continue
-            props["triggers"] = normalize_trigger_list(props.get("triggers"))
-
-        trigger_edges = [e for e in list(self.graph.edges) if e.type == EDGE_TRIGGERS]
-        if not trigger_edges:
-            return
-
-        to_remove_edges = []
-        to_remove_nodes = set()
-
-        for edge in trigger_edges:
-            owner = self.graph.get_node(edge.source)
-            if not owner:
-                to_remove_edges.append(edge)
-                continue
-
-            trig_node = self.graph.get_node(edge.target)
-            if trig_node and trig_node.type == "logic_trigger":
-                to_remove_nodes.add(trig_node.id)
-
-            props = dict(trig_node.properties if trig_node else {})
-            props.update(edge.properties or {})
-            props = normalize_trigger_entry(props) or props
-
-            if "id" not in props:
-                props["id"] = trig_node.id if trig_node else f"trigger_{owner.id}_{props.get('trigger_type', 'trig')}"
-
-            resolved_effects = _effects_list_from_properties(props)
-            if resolved_effects:
-                props["effects"] = resolved_effects
-
-            existing = owner.properties.get("triggers")
-            if not isinstance(existing, list):
-                existing = normalize_trigger_list(existing)
-                owner.properties["triggers"] = existing
-            if not any(isinstance(t, dict) and t.get("id") == props["id"] for t in existing):
-                existing.append(props)
-
-            to_remove_edges.append(edge)
-
-        for edge in to_remove_edges:
-            try:
-                self.graph.remove_edge(edge.source, edge.target, EDGE_TRIGGERS)
-            except Exception:
-                pass
-
-        for nid in to_remove_nodes:
-            self.graph.nodes.pop(nid, None)
-
-    def _serialize_area(self, area_id):
-        node = self.graph.get_node(area_id)
-        if node is None or node.type != "area":
-            return None
-        env = node.properties.get("environment", {})
-        ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
-        return {
-            "id": node.id,
-            "name": node.name,
-            "description": node.properties.get("description", ""),
-            "environment": env,
-            "ambient_light": ambient,
-            "light_description": self.player_manager.lighting.light_to_level(ambient),
-            "exits": self.player_manager.build_exits_for_area(node.id),
-            "exits_authoring": self.player_manager.build_exits_for_area(
-                node.id, include_hidden=True),
-            "items": [],
-            "floor": node.properties.get("floor", 0),
-            "surface": node.properties.get("surface", ""),
-            "properties": node.properties,
-        }
-
-    def _serialize_player(self, pname, p, lite=False):
-        # Character *definition* (personality, appearance prose) lives on the
-        # character node's `properties` - the single persisted home. The Player
-        # is runtime state. Publish the definition here so the live read payload
-        # (the frontend and the LLM prompt read the Player shape) carries it;
-        # `to_scenario_dict` strips it so a saved file keeps it only on the node.
-        # `description` prefers the Player value when set, so an equipment-derived
-        # or manually overridden current description still wins over the authored
-        # node copy.
-        _node = self.graph.get_node(self.player_manager._player_node_id(pname))
-        _props = _node.properties if _node is not None else {}
-        base = {
-            "name": p.name,
-            "id": getattr(p, 'id', ''),
-            # Worn gear is authoritative on the EDGE_EQUIPPED edges (task-654);
-            # this map is their read projection and the live payload has to
-            # publish it. The paperdoll, the inventory list, the equip picker
-            # and the equipment narrative all read `player.equipped` - drop the
-            # key and every slot renders empty while worn items are counted as
-            # carried, which is what the inspector showed for months.
-            "equipped": dict(getattr(p, 'equipped', {}) or {}),
-            "skills": dict(getattr(p, 'skills', {}) or {}),
-            "stats": p.stats,
-            "vitals": p.vitals,
-            "state": p.state,
-            "perceived_conditions": perceived_conditions(p),
-            "conditions": {
-                cid: [dict(inst) for inst in instances]
-                for cid, instances in (getattr(p, 'conditions', {}) or {}).items()
-            },
-            "grappled_by": self._grappled_by(pname),
-            "state_timer": getattr(p, 'state_timer', 0),
-            "traits": getattr(p, 'traits', {}),
-            "trait_behavior": _trait_behavior(p),
-            "personality": _props.get("personality") or getattr(p, 'personality', ''),
-            "personality_dials": dict(getattr(p, 'personality_dials', {}) or {}),
-            "disposition": _disposition_payload(p),
-            "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
-            "description": getattr(p, 'description', '') or _props.get("description", ''),
-            "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
-            # task-784: a dash burst is armed and waiting for its finish hop; the
-            # composer reads this to offer the finish (and only the finish).
-            "burst_pending": int(getattr(p, 'burst_pending', 0) or 0),
-            "size": getattr(p, 'size', None),
-            "species": getattr(p, 'species', None),
-            "tags": getattr(p, 'tags', []),
-            "flags": dict(getattr(p, 'flags', {})),
-            "hidden": bool(getattr(p, 'hidden', False)),
-            "soak": (
-                {"intent": (getattr(p, "soak_order", None) or {}).get("intent"),
-                 "remaining_minutes": round(float(
-                     (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
-                if getattr(p, "soak_order", None) else None
-            ),
-            "simulation_mode": getattr(p, "simulation_mode", "active"),
-            "manifested": bool(getattr(p, 'manifested', False)),
-            "known": list(getattr(p, 'known', []) or []),
-            "crafting_known": list(getattr(p, 'crafting_known', []) or []),
-            "birth_tick": getattr(p, 'birth_tick', None),
-            "life_stage": getattr(p, 'life_stage', None),
-            "last_mortality_year": getattr(p, 'last_mortality_year', None),
-            "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
-            "interest_tags": getattr(p, 'interest_tags', []),
-            "fear_tags": getattr(p, 'fear_tags', []),
-            "carcass_item": getattr(p, 'carcass_item', None),
-            "decay_rates": getattr(p, 'decay_rates', {}),
-            "body_state": getattr(p, 'body_state', {}),
-            "body_region_names": {
-                rid: meta["name"] for rid, meta in _body_region_catalog().items()
-            },
-            "region_exposed": _region_exposure_map(p, self.graph),
-            "current_area": p.current_area,
-            "current_area_id": self.graph.area_of(
-                self.player_manager._player_node_id(pname)),
-            "recent_hearing": getattr(p, 'recent_hearing', []),
-            "emotion": {
-                "current": getattr(p, 'emotion', 'neutral'),
-                "intensity": getattr(p, 'emotion_intensity', 0.0),
-                "expression": (
-                    p.dominant_expression() if hasattr(p, 'dominant_expression') else "neutral"
-                ),
-                "description": p.get_emotion_nl() if hasattr(p, 'get_emotion_nl') else ""
-            },
-            "emotions": p.emotions_map() if hasattr(p, 'emotions_map') else {},
-            "emotions_description": (
-                p.emotions_description()
-                if hasattr(p, 'emotions_description') else ""
-            ),
-            "relationships": getattr(p, 'relationships', {}),
-            "activity": getattr(p, 'activity', None),
-            "lived_log": [dict(e) for e in (getattr(p, 'lived_log', []) or [])],
-            "lived_log_memorized_through": int(
-                getattr(p, 'lived_log_memorized_through', 0) or 0),
-            "memories": getattr(p, 'memories', []),
-            "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
-            "charted_cells": {
-                sid: sorted([list(c) for c in (cells or [])])
-                for sid, cells in (getattr(p, "charted_cells", {}) or {}).items()
-            },
-            "schedule": list(getattr(p, 'schedule', []) or []),
-            "goals": _goals_payload(self.graph, self.player_manager, p, pname),
-            "goal_log": [dict(e) for e in (getattr(p, 'goal_log', []) or [])],
-            "obligations": [dict(o) for o in (getattr(p, 'obligations', []) or [])],
-            "mosiac": _mosiac_payload(self.legacy, p),
-            "active_pursuit": getattr(p, 'active_pursuit', None),
-            "plan": getattr(p, 'plan', None),
-            "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
-            "controller": getattr(p, 'controller', 'llm'),
-            "simple_npc": getattr(p, 'simple_npc', False),
-            "autonomy": getattr(p, 'autonomy', True),
-            "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
-            "npc_action_interval": getattr(p, 'npc_action_interval', 3),
-            "npc_state": getattr(p, 'npc_state', 'idle'),
-            "state_enter_tick": getattr(p, 'state_enter_tick', 0),
-            "behaviors": getattr(p, 'behaviors', []),
-            "patrol_route": getattr(p, 'patrol_route', []),
-            "patrol_index": getattr(p, 'patrol_index', 0),
-            "feels_like": self._compute_feels_like(p),
-            "current_carry_weight": sum_carry_weight(self.graph, self.player_manager._player_node_id(pname)),
-            "max_carry_capacity": get_carry_load_ratio(self.graph, self.player_manager, player_name=pname)["capacity"],
-            "at_way_id": get_character_at_way(self.graph, self.player_manager.player_node_id(pname)),
-            "facing": getattr(p, "facing", None),
-            "entered_from_way": getattr(p, "entered_from_way", None),
-            "spatial_position": get_spatial_position_data(
-                self.graph,
-                self.player_manager.player_node_id(pname),
-                self.player_manager,
-                self.player_manager.active_player or "",
-            ),
-        }
-        if lite:
-            # Strip heavy fields that the initial render does not need.
-            # The UI can fetch full player state on demand.
-            base.pop("memories", None)
-            base.pop("memory_index", None)
-            base.pop("lived_log", None)
-            base.pop("relationships", None)
-            base.pop("behaviors", None)
-            base.pop("patrol_route", None)
-            base.pop("schedule", None)
-            base.pop("goals", None)
-            base.pop("goal_log", None)
-            base.pop("obligations", None)
-            base.pop("spatial_position", None)
-            base.pop("perceived_conditions", None)
-            base.pop("region_exposed", None)
-            base.pop("body_region_names", None)
-            base.pop("completed_pursuits", None)
-            base.pop("known", None)
-            base.pop("crafting_known", None)
-            base.pop("birth_tick", None)
-            base.pop("life_stage", None)
-            base.pop("last_mortality_year", None)
-            base.pop("discovered_exits", None)
-            base.pop("interest_tags", None)
-            base.pop("fear_tags", None)
-            base.pop("conditions", None)
-            base.pop("traits", None)
-            base.pop("personality_dials", None)
-            base.pop("disposition", None)
-            base.pop("flags", None)
-            base.pop("soak", None)
-            base.pop("state_timer", None)
-            base.pop("grappled_by", None)
-            base.pop("current_carry_weight", None)
-            base.pop("max_carry_capacity", None)
-            base.pop("at_way_id", None)
-            base.pop("emotions", None)
-            base.pop("emotions_description", None)
-            base.pop("activity", None)
-            base.pop("active_pursuit", None)
-            base.pop("plan", None)
-            base.pop("npc_state", None)
-            base.pop("state_enter_tick", None)
-            base.pop("recent_hearing", None)
-            base.pop("body_state", None)
-            base.pop("decay_rates", None)
-            base.pop("carcass_item", None)
-        return base
-
-    def _serialize_world(self, lite=False):
-        players_serialized = {}
-        for pname, p in self.player_manager.players.items():
-            players_serialized[pname] = self._serialize_player(pname, p, lite=lite)
-
-        rooms_serialized = {}
-        areas_by_id = {}
-        if not lite:
-            # task-439: the canonical, id-keyed area projection. The id is the
-            # stable handle; a display name may repeat (Deep Forest has many
-            # "Hollow"s), and a name-keyed map silently collapses them. Every
-            # consumer that can address an area by id should read this map.
-            for node in self.graph.nodes.values():
-                if node.type == "area":
-                    record = self._serialize_area(node.id)
-                    areas_by_id[node.id] = record
-                    # The name-keyed map stays because the live frontend reads
-                    # worldState.areas[<area name>] / [player.current_area] (40+
-                    # sites) and `player.current_area` is still a display name - the
-                    # string→id refactor is task-581. It is a convenience view, not
-                    # the canonical one: on a duplicate name the *last* writer wins
-                    # here, while areas_by_id keeps both.
-                    rooms_serialized[node.name] = record
-
-        return {
-            "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
-            "players_in_area": self.player_manager.get_players_in_area(),
-            "area_presence": getattr(self.legacy, 'area_presence', {}) or {},
-            "players": players_serialized,
-            "active_player": self.player_manager.active_player,
-            "game_log": [] if lite else self.legacy.game_log,
-            "log_revision": self.legacy.log_revision,
-            "game_time": self.legacy.get_current_time(),
-            "time_ticks": self.legacy.time_ticks,
-            "time_per_tick_minutes": self.legacy.time_per_tick_minutes,
-            "clock_start_hour": self.legacy.clock_start_hour,
-            "clock_start_minute": self.legacy.clock_start_minute,
-            "game_day": getattr(self.legacy, "game_day", 1),
-            "game_month": getattr(self.legacy, "game_month", 1),
-            "game_year": getattr(self.legacy, "game_year", 1),
-            "season": self.legacy.current_season() if hasattr(self.legacy, "current_season") else None,
-            # Lite mode: derived projections are dropped. The graph itself is
-            # always present - it is the world, not a projection. Consumers that
-            # need area detail (area inspector, look, exits) fetch it on demand.
-            "areas": {} if lite else rooms_serialized,
-            "rooms": {} if lite else rooms_serialized,
-            "areas_by_id": {} if lite else areas_by_id,
-            "graph": self.graph.to_dict(),
-            # Legacy collections, never needed for rendering and heavy to
-            # serialize: stripped in lite mode.
-            "ways": {} if lite else getattr(self.legacy, 'ways', {}),
-            "item_registry": {} if lite else getattr(self.legacy, 'item_registry', {}),
-            "turn_events": [] if lite else self.legacy.turn_events,
-            "turn_number": self.legacy.turn_number,
-            "narration_mode": self.legacy.narration_mode,
-            "ghost_mode": self.legacy.ghost_mode,
-            "mature_content": getattr(self.legacy, "mature_content", False),
-            # The scenario's own name. Without this a saved file cannot be
-            # identified on reload (routes fall back to "unnamed"), and the
-            # frontend's _scenarioIdentity() - which gates the local
-            # background-map cache - always sees null.
-            "_scenario_name": getattr(self.legacy, "_scenario_name", None),
-            # Stable local storage identity keeps evicted scope chunks
-            # addressable when a savegame is adopted without its scenario path.
-            "_scope_store_id": getattr(self.legacy, "_scope_store_id", None),
-            "world_lore": [] if lite else self.legacy.world_lore,
-            "scene_context": getattr(self.legacy, "scene_context", None),
-            # task-397: hierarchy manifest (authored), not a projection. Optional.
-            "world_scopes": {} if lite else (getattr(self.legacy, "world_scopes", {}) or {}),
-            # task-583: the resident scope index (ownership, location, gateways,
-            # due work). A derived cache of the loaded graph, but saved so an
-            # unloaded scope's ownership and gateways survive a round trip.
-            "world_index": (
-                {} if lite else
-                (self.legacy.world_index.to_dict()
-                 if getattr(self.legacy, "world_index", None) is not None else {})
-            ),
-            "calendar_config": getattr(self.legacy, "calendar_config", None),
-            "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
-            "forecast_override": getattr(self.legacy, "forecast_override", None),
-            "graph_background": getattr(self.legacy, "graph_background", None),
-            "commons_theme": getattr(self.legacy, "commons_theme", "live_social"),
-            "delayed_events": self.legacy.delayed_events.to_dict(),
-            "commons": (
-                {} if lite else
-                (self.legacy.commons.to_dict()
-                 if getattr(self.legacy, "commons", None) is not None else {})
-            )
-        }
-
-    def _deserialize_player(self, pname, pdata):
-        p = Player(pname)
-        # task-446: the registry key may be an id (duplicate display names), so
-        # the authoritative display name comes from the payload.
-        if pdata.get("name"):
-            p.name = pdata["name"]
-        # task-316: restore the stable identity (fall back to a fresh id for
-        # legacy saves that never had one).
-        p.id = pdata.get("id") or p.id
-        p.personality = pdata.get("personality", "")
-        p.description = pdata.get("description", "")
-        p.base_description = pdata.get("base_description", "")
-        p.equipped = pdata.get("equipped", dict(p.equipped))
-        # task-606: fold either stat-key case, so a lowercase block does not
-        # silently leave the character with no readable STR/CON.
-        p.stats = normalize_stat_block(pdata.get("stats", {}))
-        # task-549: species is optional. Absent (every pre-existing save) leaves
-        # it None, which means "unspecified" and permits every service - the
-        # backward-compatible default that makes adding the field safe.
-        p.species = pdata.get("species")
-        # task-874: `size` is a property (task-605), not a `size_*` trait.
-        # `_serialize_player` writes it and `to_scenario_dict` keeps it, so the
-        # key is in the file - but nothing read it back, so a save silently reset
-        # the tier to None on the next load. None must stay None: that is what
-        # lets an un-authored character fall through to its `size_*` trait
-        # (engine/size.py). An unrecognised value (a hand-edited or legacy save)
-        # is dropped rather than kept, so the six tiers stay the whole model.
-        from engine.size import SIZE_TIERS as _SIZE_TIERS
-        _raw_size = pdata.get("size")
-        _size = str(_raw_size).strip().lower() if _raw_size is not None else ""
-        p.size = _size if _size in _SIZE_TIERS else None
-        p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
-        # task-538: `hit_dice` derives Max_HP when the save does not carry one
-        # explicitly; an authored Max_HP always wins. Then clamp to *this*
-        # character's ceiling rather than to a literal.
-        apply_hit_dice(p.vitals, {**pdata, **pdata.get("vitals", {})})
-        p.vitals.setdefault("Max_HP", DEFAULT_MAX_HP)
-        if "HP" in p.vitals:
-            p.vitals["HP"] = clamp_to_ceiling(p.vitals, "HP", p.vitals["HP"])
-        if "Energy" in p.vitals:
-            p.vitals["Energy"] = max(0, min(DEFAULT_VITAL_MAX,
-                                           p.vitals["Energy"]))
-        p.decay_rates = pdata.get("decay_rates", p.decay_rates)
-        from engine.lived_log import load as _lived_log_load
-        # Task-542 renamed the save key "trace" -> "lived_log". Both are read, in
-        # this order, so a save written before the rename still loads; engine/
-        # lived_log.load() likewise accepts the old per-entry "t" tick key.
-        _lived_log_load(p, pdata.get("lived_log", pdata.get("trace")))
-        p.simulation_mode = pdata.get("simulation_mode", "active")
-        try:
-            p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
-        except (TypeError, ValueError):
-            p.next_due_tick = 0
-        try:
-            p.last_offload_tick = int(pdata.get("last_offload_tick", 0) or 0)
-        except (TypeError, ValueError):
-            p.last_offload_tick = 0
-        try:
-            p.background_consolidated_through = int(
-                pdata.get("background_consolidated_through", 0) or 0)
-        except (TypeError, ValueError):
-            p.background_consolidated_through = 0
-        try:
-            p.lived_log_memorized_through = int(
-                pdata.get("lived_log_memorized_through", 0) or 0)
-        except (TypeError, ValueError):
-            p.lived_log_memorized_through = 0
-        p.body_state = pdata.get("body_state", p.body_state)
-        # Merge over the defaults so a save from before the full skill list
-        # (task-474) still ends up with every skill on the sheet.
-        _skills = dict(p.skills or {})
-        _skills.update(pdata.get("skills", {}) or {})
-        p.skills = _skills
-        try:
-            p.proficiency = int(pdata.get("proficiency", 0) or 0)
-        except (TypeError, ValueError):
-            p.proficiency = 0
-        p.skill_progress = dict(pdata.get("skill_progress", {}) or {})
-        p.state = pdata.get("state", "awake")
-        p.load_conditions(pdata.get("conditions"))
-        legacy_timer = pdata.get("state_timer") or 0
-        if legacy_timer > 0:
-            from player import CONDITION_DEFAULT_TIMERS
-            timed = [c for c in p.conditions if c in CONDITION_DEFAULT_TIMERS]
-            for c in (timed or [p.state]):
-                instances = p.conditions.setdefault(c, [])
-                if not instances:
-                    instances.append({"duration": None, "source": None, "level": 0})
-                instances[0]["duration"] = legacy_timer
-        p.traits = pdata.get("traits", {})
-        p.personality_dials = normalize_dials(pdata.get("personality_dials", {}))
-        p.tags = list(pdata.get("tags", []))
-        p.sync_vitals_with_tags()
-        p.flags = dict(pdata.get("flags", {}))
-        p.hidden = bool(pdata.get("hidden", False))
-        p.manifested = bool(pdata.get("manifested", False))
-        p.known = list(pdata.get("known", []) or [])
-        p.crafting_known = list(pdata.get("crafting_known", []) or [])
-        # task-735: lifecycle clock survives save/load; absent in old
-        # saves means ageless until an authored age resolves it.
-        p.birth_tick = pdata.get("birth_tick")
-        p.life_stage = pdata.get("life_stage")
-        p.last_mortality_year = pdata.get("last_mortality_year")
-        p.discovered_exits = {
-            tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
-        }
-        p.charted_cells = {
-            sid: {tuple(c) for c in (cells or []) if isinstance(c, (list, tuple)) and len(c) == 2}
-            for sid, cells in (pdata.get("charted_cells", {}) or {}).items()
-            if isinstance(cells, list)
-        }
-        p.interest_tags = list(pdata.get("interest_tags", []))
-        p.fear_tags = list(pdata.get("fear_tags", []))
-        p.carcass_item = pdata.get("carcass_item")
-        p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
-        # task-313 facing. Old saves and scenarios predate the field, so both
-        # keys are read with a None default: a character loaded from one simply
-        # has no facing and the relative words explain that, rather than the
-        # load inventing a heading nobody travelled.
-        p.facing = pdata.get("facing") or None
-        p.entered_from_way = pdata.get("entered_from_way") or None
-        p.recent_hearing = pdata.get("recent_hearing", [])
-        pdata_memory = pdata.get("memory", {})
-        if pdata_memory:
-            pass
-        emotion_data = pdata.get("emotion", {})
-        if isinstance(pdata.get("emotions"), dict) and pdata["emotions"]:
-            p.load_emotions(pdata["emotions"])
-        elif isinstance(emotion_data, dict):
-            # **One-time migration for a save written before the affect map was
-            # the state** (task-652). The legacy `{current, intensity}` pair is
-            # folded into the map here and nowhere else, so a world saved by any
-            # earlier build comes back feeling what it was saved feeling rather
-            # than blank. Once a save carries `emotions`, the legacy pair is
-            # ignored on load - it is a cache of the map now, not a second
-            # opinion, and letting it win would be the duplication this task
-            # exists to remove.
-            p.emotion = emotion_data.get("current", "neutral")
-            try:
-                p.emotion_intensity = emotion_data.get("intensity", 0.0)
-            except (TypeError, ValueError):
-                pass
-        rel_data = pdata.get("relationships", {})
-        if isinstance(rel_data, dict):
-            p.relationships = dict(rel_data)
-        # Authored daily schedule (task-409). Normalised on load so a
-        # hand-edited or legacy file cannot put a malformed step into the day.
-        from engine.schedule import normalize as _normalize_schedule
-        p.schedule = _normalize_schedule(pdata.get("schedule"))
-        # Character-private goals (task-807). Normalised on load so a hand-edited
-        # or legacy file cannot put a malformed goal into the character's mind.
-        from engine.goals import normalize as _normalize_goals, history as _goal_history
-        p.goals = _normalize_goals(pdata.get("goals"))
-        p.goal_log = _goal_history(pdata.get("goal_log"))
-        from engine.goals import normalize_obligations as _normalize_obligations
-        p.obligations = _normalize_obligations(pdata.get("obligations"))
-        pursuit_data = pdata.get("active_pursuit")
-        p.active_pursuit = dict(pursuit_data) if isinstance(pursuit_data, dict) else None
-        # The active pursuit is the longer-lived intention; Player.plan is its
-        # current approach and is resumed as-is. Completed assignment ids stop
-        # a one-shot pursuit from restarting.
-        p.plan = pdata.get("plan") or None
-        p.completed_pursuits = list(pdata.get("completed_pursuits", []) or [])
-
-        mem_data = pdata.get("memories", [])
-        if isinstance(mem_data, list):
-            for m in mem_data:
-                if not m.get("id"):
-                    m["id"] = str(uuid.uuid4())[:8]
-                if "entity_ids" not in m:
-                    m["entity_ids"] = []
-                if "source" not in m:
-                    m["source"] = "auto"
-                m.setdefault("location", "")
-            p.memories = list(mem_data)
-        # The observation index is derived, so rebuild it from the memories
-        # rather than trusting a stored copy: an older save has no index at all,
-        # and a hand-edited one could point at a memory that no longer exists.
-        p.memory_index = {}
-        stored_index = pdata.get("memory_index")
-        if isinstance(stored_index, dict):
-            p.memory_index = {str(k): str(v) for k, v in stored_index.items()}
-        by_id = {m.get("id"): m for m in p.memories}
-        for subject, entry_id in list(p.memory_index.items()):
-            entry = by_id.get(entry_id)
-            if entry is None or entry.get("superseded_by"):
-                p.memory_index.pop(subject, None)
-        if "controller" in pdata:
-            p.controller = pdata["controller"]
-        elif "control_mode" in pdata:
-            p.controller = pdata["control_mode"]
-        else:
-            p.simple_npc = pdata.get("simple_npc", False)
-            p.autonomy = pdata.get("autonomy", True)
-        p.npc_behavior = pdata.get("npc_behavior", "wander")
-        p.npc_action_interval = pdata.get("npc_action_interval", 3)
-        p.npc_state = pdata.get("npc_state", "idle")
-        p.state_enter_tick = pdata.get("state_enter_tick", 0)
-        p.behaviors = pdata.get("behaviors", [])
-        p.patrol_route = pdata.get("patrol_route", [])
-        p.patrol_index = pdata.get("patrol_index", 0)
-        p.activity = pdata.get("activity", None) or None
-        p.exhaustion_count = pdata.get("exhaustion_count", 0)
-        # task-403: authored starting knowledge. Idempotent by memory text, so a
-        # re-loaded save never duplicates it, and absent keys mean a no-op.
-        if (pdata.get("preconceived_knowledge") or pdata.get("known_areas")
-                or pdata.get("known_ways")):
-            from engine.agent_memory import AgentMind
-            AgentMind(p, self.graph).load_preconceived(pdata)
-
-        # task-430: tolerant legacy migration for retired visited_areas and
-        # discovered_items. Populate observation memories so known-route blocks
-        # and item recall remain non-empty.
-        legacy_visited = pdata.get("visited_areas")
-        if legacy_visited and isinstance(legacy_visited, (list, set, tuple)):
-            for aname in legacy_visited:
-                aname_str = str(aname).strip()
-                if not aname_str:
-                    continue
-                node = None
-                if aname_str in self.graph.nodes:
-                    node = self.graph.nodes[aname_str]
-                else:
-                    for n in self.graph.nodes.values():
-                        if getattr(n, "type", "") == "area" and n.name == aname_str:
-                            node = n
-                            break
-                aid = node.id if node else aname_str
-                aname_disp = node.name if node else aname_str
-                if not p.has_seen(aid):
-                    p.record_observation(
-                        aid,
-                        f"You have been to {aname_disp}.",
-                        0,
-                        kind="area",
-                        location=aname_disp,
-                    )
-
-        legacy_items = pdata.get("discovered_items")
-        if legacy_items and isinstance(legacy_items, (list, set, tuple)):
-            for iname in legacy_items:
-                iname_str = str(iname).strip()
-                if not iname_str:
-                    continue
-                node = None
-                if iname_str in self.graph.nodes:
-                    node = self.graph.nodes[iname_str]
-                else:
-                    for n in self.graph.nodes.values():
-                        if getattr(n, "type", "") == "item" and n.name == iname_str:
-                            node = n
-                            break
-                iid = node.id if node else iname_str
-                iname_disp = node.name if node else iname_str
-                if not p.has_seen(iid):
-                    p.record_observation(
-                        iid,
-                        f"You have seen {iname_disp}.",
-                        0,
-                        kind="item",
-                    )
-
-        return p
-
-    def to_dict(self, lite=False):
-        return self._serialize_world(lite=lite)
-
-    def to_scenario_dict(self):
-        # task-724: sync any direct Player changes to the single authoritative homes before serializing
-        if hasattr(self, "player_manager") and hasattr(self.player_manager, "players"):
-            for pname, p in self.player_manager.players.items():
-                pnode_id = self.player_manager.player_node_id(pname)
-                node = self.graph.get_node(pnode_id)
-                if node is not None:
-                    sync_player_to_node(p, node)
-                # Ensure the authoritative graph 'in' edge is present for current_area
-                if getattr(p, "current_area", None):
-                    edge_area_id = self.graph.area_of(pnode_id)
-                    if not edge_area_id and hasattr(self.player_manager, "_set_player_area"):
-                        self.player_manager._set_player_area(pname, p.current_area)
-        data = self._serialize_world()
-        data.pop("game_log", None)
-        data.pop("turn_events", None)
-        data.pop("log_revision", None)
-        data.pop("delayed_events", None)
-        # The Commons is runtime communication state, not scenario authoring data.
-        data.pop("commons", None)
-        data.pop("game_day", None)
-        data.pop("game_month", None)
-        data.pop("game_year", None)
-        data.pop("season", None)
-        for pdata in data.get("players", {}).values():
-            pdata.pop("recent_hearing", None)
-            pdata.pop("charted_cells", None)
-            # A character does not *author* their lived history, so it is runtime
-            # state in the same way recent_hearing is (task-542). Keeping it would
-            # grow a scenario file by 200 entries per character on the first save.
-            pdata.pop("lived_log", None)
-            # task-403/425: a scenario is authored content, so it carries no
-            # runtime *perception*. Merely loading a scenario observes every
-            # character's starting area (engine/observation.py), and saving it
-            # back would otherwise bake that into the file - 23 characters'
-            # worth of "you have been in Blackmarsh" written into the scenario
-            # and growing it by ~60KB on the first save, for state the loader
-            # regenerates anyway. `memory_index` is derived and goes with them;
-            # authored memories (`source: manual`, i.e. preconceived knowledge)
-            # stay. A savegame uses `to_dict()` and keeps everything.
-            pdata["memories"] = [
-                m for m in (pdata.get("memories") or [])
-                if m.get("source") != "observation"
-            ]
-            pdata.pop("memory_index", None)
-            # task-724: Definition lives on the character node (`graph.nodes`), so a saved
-            # file must not carry a second copy in the players block. The live
-            # payload publishes it for the UI/prompt (`_serialize_player`); the
-            # node is the one persisted home.
-            pdata.pop("personality", None)
-            pdata.pop("base_description", None)
-            pdata.pop("description", None)
-            pdata.pop("tags", None)
-            pdata.pop("traits", None)
-            # task-654: worn gear is authoritative on the EDGE_EQUIPPED edges
-            # (each edge carries its slot). The live payload publishes the map
-            # for the UI; a saved file must not carry a second copy of it in
-            # the players block, or the loader would rebuild the edges from it
-            # and the file would hold two records of one fact.
-            pdata.pop("equipped", None)
-            # Location is authoritative on the graph 'in' edge; current_area and
-            # current_area_id are derived and recomputed on load.
-            pdata.pop("current_area", None)
-            pdata.pop("current_area_id", None)
-            # task-352: a slot does not survive a turn, so it is never persisted.
-            pdata.pop("turn_slots", None)
-            # task-784: nor does an armed dash burst.
-            pdata.pop("burst_pending", None)
-        # task-222, continued: a saved world is graph-only, so nothing here is
-        # a second copy of data already carried by `graph.nodes`:
-        #   - `areas` / `rooms` are projections the loader never reads
-        #     (LegacyCompat rebuilds them from the graph), and `rooms` was the
-        #     same dict written twice - 13% of the file, byte for byte.
-        #   - `ways` / `item_registry` were legacy attrs only the loader
-        #     populated and nothing consumed.
-        # Every field of an `areas` entry that mattered already lives on the
-        # node (`name`, `description`, `environment`, `floor`, `surface`,
-        # `properties`); `ambient_light`/`light_description` are recomputed each
-        # tick and `items` was always empty (placement is the graph's `in` edges).
-        #
-        # The LIVE payload (to_dict) keeps all of them: the frontend reads
-        # worldState.areas / .ways (agent-engine, agent-lens, inspector,
-        # item-library/placement, graph/layout-engine).
-        data.pop("areas", None)
-        data.pop("rooms", None)
-        data.pop("areas_by_id", None)
-        # The scope index is derived from the authored graph + manifest, so a
-        # scenario re-derives it on load rather than carrying a second copy.
-        data.pop("world_index", None)
-        data.pop("_scope_store_id", None)
-        data.pop("ways", None)
-        data.pop("item_registry", None)
-        # Omit an empty name rather than writing "": the load path tests
-        # `data.get('_scenario_name') or data.get('name')`, so an empty string
-        # reads as "unnamed" and silently outranks a real name.
-        if not data.get("_scenario_name"):
-            data.pop("_scenario_name", None)
-        # task-453: scenario payloads carry the format schema version too, so a
-        # later breaking change can migrate or refuse them on load.
-        data["schema_version"] = SCHEMA_VERSION
-        # task-920: strip precompile snapshot so it does not leak into saved files
-        graph_data = data.get("graph") or {}
-        for n in (graph_data.get("nodes") or {}).values():
-            if isinstance(n, dict) and isinstance(n.get("properties"), dict):
-                n["properties"].pop("_last_precompile_snapshot", None)
-        self.strip_redundant_exits(data)
-        return data
-
-    @staticmethod
-    def strip_redundant_exits(data):
-        """task-222: saved worlds are graph-only - the per-room ``exits`` /
-        ``exits_authoring`` copies are always recomputed at runtime
-        (build_exits_for_area), so writing them is redundant data that can
-        drift. Keep the live /api/state payload intact (to_dict is separate);
-        only FILE payloads pass through here.
-        """
-        for key in ("areas", "rooms"):
-            rooms = data.get(key, {}) or {}
-            for room in rooms.values():
-                if isinstance(room, dict):
-                    room.pop("exits", None)
-                    room.pop("exits_authoring", None)
-
-    def load_from_dict(self, data):
-        if "player" in data and "players" not in data:
-            self._template_loader.load(data)
-            return
-
-        # task-463: collapse the authored character_<slug> node and the runtime
-        # player_<Name> anchor into one canonical node before the graph is built,
-        # and keep every retired id resolvable through the alias index.
-        aliases = {}
-        if "graph" in data:
-            report = collapse_character_identity(data["graph"], data.get("players") or {})
-            aliases = report.get("aliases") or {}
-            self.graph.load_from_dict(data["graph"])
-            self.graph.register_aliases(aliases)
-            self._normalize_item_node_actions()
-            self._migrate_triggers_from_nodes_to_properties()
-        else:
-            self._legacy_loader.load(data)
-
-# task-439: a duplicate area display name is legal (ids are the identity)
-        # but makes a name-only lookup ambiguous, so surface it at load rather
-        # than let the first iteration-order match silently win.
-        from engine.room_perception import duplicate_area_names
-        duplicate_areas = duplicate_area_names(self.graph)
-        if duplicate_areas:
-            logger.warning(
-                "[load] duplicate area display name(s) - resolve these by id: %s",
-                duplicate_areas)
-        # task-450: repair any item that ended up both carried and equipped. The
-        # modern branch already does this inside graph.load_from_dict; the legacy
-        # branch builds the graph directly, so the boundary call lives here too.
-        self.graph.normalize_item_hold_state()
-
-        self.legacy.time_ticks = data.get("time_ticks", 0)
-        self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)
-        self.legacy.clock_start_hour = data.get("clock_start_hour", 8)
-        self.legacy.clock_start_minute = data.get("clock_start_minute", 0)
-        self.legacy.turn_number = data.get("turn_number", 0)
-        self.legacy.turn_events = list(data.get("turn_events", []))
-        self.legacy.game_log = list(data.get("game_log", []))
-        # task-360 presence ledger (per-area {char: entry_tick}) - restore as-is.
-        try:
-            raw_presence = data.get("area_presence", {}) or {}
-            self.legacy.area_presence = {
-                str(aid): {str(c): int(t) for c, t in (list(present.items()) if isinstance(present, dict) else [])}
-                for aid, present in raw_presence.items()
-            }
-        except Exception:
-            self.legacy.area_presence = {}
-        self.legacy.log_revision = data.get("log_revision", 0)
-        self.legacy.narration_mode = data.get("narration_mode", "none")
-        # Round-trip the scenario's name so a saved file stays identifiable
-        # without the load route having to re-derive it.
-        self.legacy._scenario_name = (
-            data.get("_scenario_name")
-            or data.get("name")
-            or ""
-        )
-        self.legacy._scope_store_id = data.get("_scope_store_id") or None
-        self.legacy.ghost_mode = data.get("ghost_mode", False)
-        self.legacy.mature_content = data.get("mature_content", False)
-        self.legacy.speech_log.clear()
-
-        temp_players = {}
-        for pname, pdata in data.get("players", {}).items():
-            p = self._deserialize_player(pname, pdata)
-            temp_players[pname] = p
-
-        # task-914: hydrate players from character nodes in the graph if omitted from players block
-        for node in self.graph.nodes.values():
-            if node.type == "character":
-                pname = node.name or node.id
-                if pname not in temp_players:
-                    p = self._deserialize_player(pname, node.properties or {})
-                    temp_players[pname] = p
-
-        self.player_manager.players = temp_players
-        # task-463: an authored `known` list may name a retired character id
-        # ("character_arix"); move it onto the surviving identity.
-        if aliases:
-            for p in temp_players.values():
-                if getattr(p, "known", None):
-                    known, changed = rewrite_known(p.known, aliases)
-                    if changed:
-                        p.known = known
-        # task-446: rebuild the id→key index and give duplicate-keyed players a
-        # unique anchor after a bulk load. (self.player_manager here is the
-        # world; the real manager hangs off it.)
-        _pm = getattr(self.player_manager, "player_manager", None)
-        if _pm is not None and hasattr(_pm, "reindex"):
-            _pm.reindex()
-        self.player_manager.active_player = data.get("active_player") or (next(iter(temp_players.keys())) if temp_players else None)
-
-        for pname, p in self.player_manager.players.items():
-            pnode_id = self.player_manager.player_node_id(pname)
-            if not self.graph.get_node(pnode_id):
-                self.graph.add_node(Node(id=pnode_id, type="character", name=pname))
-            # task-549: the character *definition* lives on the node (the
-            # single persisted home); hydrate the live Player from it, falling
-            # back to the players block for legacy saves. Without this the
-            # loaded Player is blank even though the node carries the prose.
-            _node = self.graph.get_node(pnode_id)
-            _props = _node.properties if _node is not None else {}
-            _pdata = data.get("players", {}).get(pname, {}) or {}
-            # Node properties win; fall back to players block for legacy saves (task-457/task-914)
-            apply_node_properties(p, _props, _pdata)
-            if _node is not None:
-                sync_player_to_node(p, _node)
-            # task-581: the character's `in` edge is the authoritative location
-            # record; the saved `current_area` display name is a resolution layer
-            # over it. Prefer the edge, so a hand-edit to the string that
-            # disagrees with the graph cannot re-home a character on load.
-            edge_area_id = self.graph.area_of(pnode_id)
-            edge_area = self.graph.get_node(edge_area_id) if edge_area_id else None
-            if edge_area is not None:
-                p.current_area = edge_area.name
-            elif p.current_area:
-                self.player_manager.set_player_area(pname, p.current_area)
-            for slot_name, stack in (p.equipped or {}).items():
-                for item_id in stack:
-                    if isinstance(item_id, str) and not item_id.startswith("__"):
-                        if self.graph.get_node(item_id):
-                            # An `equipped` edge, not a `connection` one. A
-                            # connection is a way between two areas; an item
-                            # worn by a character is the EDGE_EQUIPPED record
-                            # every equipment reader looks for. Writing the
-                            # wrong type here (the slip that shipped in
-                            # task-7's refactor) left worn gear invisible to
-                            # those readers and littered the graph with
-                            # item->character ways.
-                            self.graph.add_edge(Edge(
-                                source=item_id,
-                                target=pnode_id,
-                                type=EDGE_EQUIPPED,
-                                properties={"slot": slot_name}
-                            ))
-
-        for pname, p in self.player_manager.players.items():
-            pnode_id = self.player_manager.player_node_id(pname)
-            self.legacy.equipment._sync_equipped_from_graph(p, pnode_id)
-
-        # task-450: an item holds at most one of carrying/equipped per
-        # character. The equipped edges just built (or loaded) make the
-        # carrying edge for the same item a second, contradictory record.
-        self.graph.normalize_item_hold_state()
-
-        self.legacy.ways = data.get("ways", {})
-        self.legacy.item_registry = data.get("item_registry", {})
-        self.legacy.world_lore = data.get("world_lore", [])
-        self.legacy.scene_context = data.get("scene_context", None)
-        # task-397: optional hierarchy manifest; absent in legacy scenarios.
-        raw_scopes = data.get("world_scopes")
-        self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}
-        # task-583: restore the resident scope index. A save may carry entries
-        # for scopes it did not load (ownership, gateways, due work); when it
-        # does not, derive them from the graph so a legacy world gets an index.
-        index = getattr(self.legacy, "world_index", None)
-        if index is not None:
-            from engine.world.index import GlobalScopeIndex
-            raw_index = data.get("world_index")
-            if isinstance(raw_index, dict) and raw_index:
-                restored = GlobalScopeIndex.from_dict(raw_index)
-                self.legacy.world_index = restored
-                restored.augment_from_graph(self.graph, self.legacy.world_scopes)
-            else:
-                index.reindex(self.graph, self.legacy.world_scopes)
-        # Graph background map: image path + transform (presentation only).
-        background = data.get("graph_background")
-        self.legacy.graph_background = background if isinstance(background, dict) else {}
-        # task-228/227: calendar + forecast persist through saves.
-        if isinstance(data.get("calendar_config"), dict):
-            defaults = getattr(self.legacy, "calendar_config", None) or {}
-            combined = dict(defaults)
-            combined.update(data["calendar_config"])
-            self.legacy.calendar_config = combined
-        if isinstance(data.get("forecast_schedule"), dict):
-            self.legacy.forecast_schedule = data["forecast_schedule"]
-        self.legacy.forecast_override = data.get("forecast_override")
-        self.legacy._forecast_sched_obj = None
-        from engine.commons import COMMONS_THEMES
-        theme = data.get("commons_theme", "live_social")
-        self.legacy.commons_theme = (
-            theme if isinstance(theme, str) and theme in COMMONS_THEMES else "live_social"
-        )
-        from engine.event_queue import DelayedEventQueue
-        self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
-        if getattr(self.legacy, "commons", None) is not None:
-            # Older saves used the former top-level stage_chat key.
-            saved_commons = data.get("commons")
-            if saved_commons is None:
-                saved_commons = data.get("stage_chat")
-            self.legacy.commons.from_dict(saved_commons)
-
-        # Perception at load (task-403): a character knows the room it is
-        # standing in from the moment it is there. Observations are otherwise
-        # written on arrival, so without this pass the one area a character
-        # could never remember would be the one it started in - and task-425's
-        # novelty would pay for it again on the first re-entry.
-        try:
-            from engine.observation import observe_area
-            for p in self.player_manager.players.values():
-                observe_area(p, self.legacy)
-        except Exception as e:
-            logger.warning("[observation] initial pass failed: %s", e)
+import random
+import time
+import uuid
+import logging
+from typing import Optional
+
+from graph import EDGE_CONNECTION, EDGE_EQUIPPED, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
+from player import Player
+from area import Area
+from engine.conditions import perceived_conditions
+from engine.abilities import normalize_stat_block
+from engine.vitals import (
+    DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
+)
+from engine.item_actions import get_carry_load_ratio, sum_carry_weight, normalize_item_actions
+from engine.beyond_visibility import normalize_visible_items
+from engine.character_spatial import get_character_at_way, get_spatial_position_data
+from engine.serialization_template import TemplateLoader
+from engine.serialization_legacy import LegacyLoader
+from engine.character_identity import collapse_character_identity, rewrite_known
+from engine.character_store import apply_node_properties, sync_player_to_node
+from version import SCHEMA_VERSION
+
+logger = logging.getLogger(__name__)
+
+
+from engine.serialization_helpers import (
+    _body_region_catalog, _VITAL_KEY_ALIASES, canonical_vitals,
+    _region_exposure_map, _goals_payload, _mosiac_payload, _trait_behavior,
+    normalize_dials, _disposition_payload,
+)
+
+# Backward-compat re-exports: keep names in this module's namespace so existing
+# ``from engine.serialization import X`` and ``mock.patch`` targets keep working.
+globals().update({
+    "_body_region_catalog": _body_region_catalog,
+    "_VITAL_KEY_ALIASES": _VITAL_KEY_ALIASES,
+    "canonical_vitals": canonical_vitals,
+    "_region_exposure_map": _region_exposure_map,
+    "_goals_payload": _goals_payload,
+    "_mosiac_payload": _mosiac_payload,
+    "_trait_behavior": _trait_behavior,
+    "normalize_dials": normalize_dials,
+    "_disposition_payload": _disposition_payload,
+})
+
+
+class WorldSerializer:
+    """Facade that delegates serialization to format-specific loaders."""
+
+    def __init__(self, graph, player_manager, legacy_compat):
+        self.graph = graph
+        self.player_manager = player_manager
+        self.legacy = legacy_compat
+        self._template_loader = TemplateLoader(graph, player_manager, legacy_compat)
+        self._legacy_loader = LegacyLoader(graph, player_manager, legacy_compat)
+
+    def _compute_feels_like(self, player) -> int:
+        """Compute equipment-adjusted feels_like temperature for a player.
+
+        task-439: resolve ``current_area`` by id first, then unambiguously by
+        display name (``engine.room_perception.resolve_area``), instead of the
+        first name match in iteration order. Two areas sharing a display name
+        used to give a character the wrong area's temperature silently.
+        """
+        from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
+        from engine.room_perception import resolve_area_node
+        if not player or not player.current_area:
+            return 21
+        node = resolve_area_node(self.graph, player.current_area)
+        if node is None:
+            return 21
+        env = node.properties.get("environment", {})
+        equip_bonuses = aggregate_bonuses(player, self.graph)
+        return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
+                                         wind_level=env.get("wind", "none"),
+                                         humidity=env.get("humidity", "dry")))
+
+    def _grappled_by(self, player_name: str) -> Optional[str]:
+        """Resolve who holds *player_name* from the grappled edge (if any)."""
+        pnode = self.player_manager.player_node_id(player_name)
+        for edge in self.graph.get_edges_for_target(pnode, "grappled"):
+            node = self.graph.get_node(edge.source)
+            if node and node.type == "character":
+                return node.name
+        return None
+
+    def _normalize_item_node_actions(self):
+        """Expire action inverses on loaded item nodes."""
+        for node in self.graph.nodes.values():
+            if node.type != "item":
+                continue
+            raw = node.properties.get("actions")
+            if raw is None:
+                continue
+            node.properties["actions"] = normalize_item_actions(raw)
+
+    def _migrate_triggers_from_nodes_to_properties(self):
+        """task-886: Migrate legacy logic_trigger nodes and triggers edges to node.properties['triggers']."""
+        from graph import EDGE_TRIGGERS
+        from engine.triggers.effect_resolution import (
+            _effects_list_from_properties,
+            normalize_trigger_entry,
+            normalize_trigger_list,
+        )
+
+        # bug-566: normalise the property store on every load, not only when a
+        # triggers edge exists. A wrapped definition ({"item": {...}}) used to
+        # reach setdefault(...).append(...) and raise AttributeError, which
+        # failed the whole scenario load.
+        for node in list(self.graph.nodes.values()):
+            props = node.properties
+            if not isinstance(props, dict) or "triggers" not in props:
+                continue
+            props["triggers"] = normalize_trigger_list(props.get("triggers"))
+
+        trigger_edges = [e for e in list(self.graph.edges) if e.type == EDGE_TRIGGERS]
+        if not trigger_edges:
+            return
+
+        to_remove_edges = []
+        to_remove_nodes = set()
+
+        for edge in trigger_edges:
+            owner = self.graph.get_node(edge.source)
+            if not owner:
+                to_remove_edges.append(edge)
+                continue
+
+            trig_node = self.graph.get_node(edge.target)
+            if trig_node and trig_node.type == "logic_trigger":
+                to_remove_nodes.add(trig_node.id)
+
+            props = dict(trig_node.properties if trig_node else {})
+            props.update(edge.properties or {})
+            props = normalize_trigger_entry(props) or props
+
+            if "id" not in props:
+                props["id"] = trig_node.id if trig_node else f"trigger_{owner.id}_{props.get('trigger_type', 'trig')}"
+
+            resolved_effects = _effects_list_from_properties(props)
+            if resolved_effects:
+                props["effects"] = resolved_effects
+
+            existing = owner.properties.get("triggers")
+            if not isinstance(existing, list):
+                existing = normalize_trigger_list(existing)
+                owner.properties["triggers"] = existing
+            if not any(isinstance(t, dict) and t.get("id") == props["id"] for t in existing):
+                existing.append(props)
+
+            to_remove_edges.append(edge)
+
+        for edge in to_remove_edges:
+            try:
+                self.graph.remove_edge(edge.source, edge.target, EDGE_TRIGGERS)
+            except Exception:
+                pass
+
+        for nid in to_remove_nodes:
+            self.graph.nodes.pop(nid, None)
+
+    def _migrate_unlocks_edges_to_triggers(self):
+        """task-895: Migrate legacy unlocks edges to on_use_on triggers with unlock_way effect."""
+        from graph import EDGE_UNLOCKS
+        unlock_edges = [e for e in list(self.graph.edges) if e.type == EDGE_UNLOCKS]
+        if not unlock_edges:
+            return
+
+        for edge in unlock_edges:
+            item_node = self.graph.get_node(edge.source)
+            way_node = self.graph.get_node(edge.target)
+            if item_node and way_node and way_node.type == "way":
+                existing = item_node.properties.get("triggers")
+                if not isinstance(existing, list):
+                    existing = []
+                    item_node.properties["triggers"] = existing
+                trigger_id = f"trigger_{item_node.id}_unlock_{way_node.id}"
+                if not any(isinstance(t, dict) and t.get("id") == trigger_id for t in existing):
+                    existing.append({
+                        "id": trigger_id,
+                        "trigger_type": "on_use_on",
+                        "target_name": way_node.name or way_node.id,
+                        "effects": [{
+                            "type": "unlock_way",
+                            "params": {
+                                "way_id": way_node.id,
+                                "message": f"You use the {item_node.name} on the {way_node.name}. The lock clicks open!"
+                            }
+                        }]
+                    })
+            try:
+                self.graph.remove_edge(edge.source, edge.target, EDGE_UNLOCKS)
+            except Exception:
+                pass
+
+    def _serialize_area(self, area_id):
+        node = self.graph.get_node(area_id)
+        if node is None or node.type != "area":
+            return None
+        env = node.properties.get("environment", {})
+        ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
+        return {
+            "id": node.id,
+            "name": node.name,
+            "description": node.properties.get("description", ""),
+            "environment": env,
+            "ambient_light": ambient,
+            "light_description": self.player_manager.lighting.light_to_level(ambient),
+            "exits": self.player_manager.build_exits_for_area(node.id),
+            "exits_authoring": self.player_manager.build_exits_for_area(
+                node.id, include_hidden=True),
+            "items": [],
+            "floor": node.properties.get("floor", 0),
+            "surface": node.properties.get("surface", ""),
+            "properties": node.properties,
+        }
+
+    def _serialize_player(self, pname, p, lite=False):
+        # Character *definition* (personality, appearance prose) lives on the
+        # character node's `properties` - the single persisted home. The Player
+        # is runtime state. Publish the definition here so the live read payload
+        # (the frontend and the LLM prompt read the Player shape) carries it;
+        # `to_scenario_dict` strips it so a saved file keeps it only on the node.
+        # `description` prefers the Player value when set, so an equipment-derived
+        # or manually overridden current description still wins over the authored
+        # node copy.
+        _node = self.graph.get_node(self.player_manager._player_node_id(pname))
+        _props = _node.properties if _node is not None else {}
+        base = {
+            "name": p.name,
+            "id": getattr(p, 'id', ''),
+            # Worn gear is authoritative on the EDGE_EQUIPPED edges (task-654);
+            # this map is their read projection and the live payload has to
+            # publish it. The paperdoll, the inventory list, the equip picker
+            # and the equipment narrative all read `player.equipped` - drop the
+            # key and every slot renders empty while worn items are counted as
+            # carried, which is what the inspector showed for months.
+            "equipped": dict(getattr(p, 'equipped', {}) or {}),
+            "skills": dict(getattr(p, 'skills', {}) or {}),
+            "stats": p.stats,
+            "vitals": p.vitals,
+            "state": p.state,
+            "perceived_conditions": perceived_conditions(p),
+            "conditions": {
+                cid: [dict(inst) for inst in instances]
+                for cid, instances in (getattr(p, 'conditions', {}) or {}).items()
+            },
+            "grappled_by": self._grappled_by(pname),
+            "state_timer": getattr(p, 'state_timer', 0),
+            "traits": getattr(p, 'traits', {}),
+            "trait_behavior": _trait_behavior(p),
+            "personality": _props.get("personality") or getattr(p, 'personality', ''),
+            "personality_dials": dict(getattr(p, 'personality_dials', {}) or {}),
+            "disposition": _disposition_payload(p),
+            "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
+            "description": getattr(p, 'description', '') or _props.get("description", ''),
+            "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
+            # task-784: a dash burst is armed and waiting for its finish hop; the
+            # composer reads this to offer the finish (and only the finish).
+            "burst_pending": int(getattr(p, 'burst_pending', 0) or 0),
+            "size": getattr(p, 'size', None),
+            "species": getattr(p, 'species', None),
+            "tags": getattr(p, 'tags', []),
+            "flags": dict(getattr(p, 'flags', {})),
+            "hidden": bool(getattr(p, 'hidden', False)),
+            "soak": (
+                {"intent": (getattr(p, "soak_order", None) or {}).get("intent"),
+                 "remaining_minutes": round(float(
+                     (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
+                if getattr(p, "soak_order", None) else None
+            ),
+            "simulation_mode": getattr(p, "simulation_mode", "active"),
+            "manifested": bool(getattr(p, 'manifested', False)),
+            "known": list(getattr(p, 'known', []) or []),
+            "crafting_known": list(getattr(p, 'crafting_known', []) or []),
+            "birth_tick": getattr(p, 'birth_tick', None),
+            "life_stage": getattr(p, 'life_stage', None),
+            "last_mortality_year": getattr(p, 'last_mortality_year', None),
+            "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
+            "interest_tags": getattr(p, 'interest_tags', []),
+            "fear_tags": getattr(p, 'fear_tags', []),
+            "carcass_item": getattr(p, 'carcass_item', None),
+            "decay_rates": getattr(p, 'decay_rates', {}),
+            "body_state": getattr(p, 'body_state', {}),
+            "body_region_names": {
+                rid: meta["name"] for rid, meta in _body_region_catalog().items()
+            },
+            "region_exposed": _region_exposure_map(p, self.graph),
+            "current_area": p.current_area,
+            "current_area_id": self.graph.area_of(
+                self.player_manager._player_node_id(pname)),
+            "recent_hearing": getattr(p, 'recent_hearing', []),
+            "emotion": {
+                "current": getattr(p, 'emotion', 'neutral'),
+                "intensity": getattr(p, 'emotion_intensity', 0.0),
+                "expression": (
+                    p.dominant_expression() if hasattr(p, 'dominant_expression') else "neutral"
+                ),
+                "description": p.get_emotion_nl() if hasattr(p, 'get_emotion_nl') else ""
+            },
+            "emotions": p.emotions_map() if hasattr(p, 'emotions_map') else {},
+            "emotions_description": (
+                p.emotions_description()
+                if hasattr(p, 'emotions_description') else ""
+            ),
+            "relationships": getattr(p, 'relationships', {}),
+            "activity": getattr(p, 'activity', None),
+            "lived_log": [dict(e) for e in (getattr(p, 'lived_log', []) or [])],
+            "lived_log_memorized_through": int(
+                getattr(p, 'lived_log_memorized_through', 0) or 0),
+            "memories": getattr(p, 'memories', []),
+            "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
+            "charted_cells": {
+                sid: sorted([list(c) for c in (cells or [])])
+                for sid, cells in (getattr(p, "charted_cells", {}) or {}).items()
+            },
+            "schedule": list(getattr(p, 'schedule', []) or []),
+            "goals": _goals_payload(self.graph, self.player_manager, p, pname),
+            "goal_log": [dict(e) for e in (getattr(p, 'goal_log', []) or [])],
+            "obligations": [dict(o) for o in (getattr(p, 'obligations', []) or [])],
+            "mosiac": _mosiac_payload(self.legacy, p),
+            "active_pursuit": getattr(p, 'active_pursuit', None),
+            "plan": getattr(p, 'plan', None),
+            "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
+            "controller": getattr(p, 'controller', 'llm'),
+            "simple_npc": getattr(p, 'simple_npc', False),
+            "autonomy": getattr(p, 'autonomy', True),
+            "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
+            "npc_action_interval": getattr(p, 'npc_action_interval', 3),
+            "npc_state": getattr(p, 'npc_state', 'idle'),
+            "state_enter_tick": getattr(p, 'state_enter_tick', 0),
+            "behaviors": getattr(p, 'behaviors', []),
+            "patrol_route": getattr(p, 'patrol_route', []),
+            "patrol_index": getattr(p, 'patrol_index', 0),
+            "feels_like": self._compute_feels_like(p),
+            "current_carry_weight": sum_carry_weight(self.graph, self.player_manager._player_node_id(pname)),
+            "max_carry_capacity": get_carry_load_ratio(self.graph, self.player_manager, player_name=pname)["capacity"],
+            "at_way_id": get_character_at_way(self.graph, self.player_manager.player_node_id(pname)),
+            "facing": getattr(p, "facing", None),
+            "entered_from_way": getattr(p, "entered_from_way", None),
+            "spatial_position": get_spatial_position_data(
+                self.graph,
+                self.player_manager.player_node_id(pname),
+                self.player_manager,
+                self.player_manager.active_player or "",
+            ),
+        }
+        if lite:
+            # Strip heavy fields that the initial render does not need.
+            # The UI can fetch full player state on demand.
+            base.pop("memories", None)
+            base.pop("memory_index", None)
+            base.pop("lived_log", None)
+            base.pop("relationships", None)
+            base.pop("behaviors", None)
+            base.pop("patrol_route", None)
+            base.pop("schedule", None)
+            base.pop("goals", None)
+            base.pop("goal_log", None)
+            base.pop("obligations", None)
+            base.pop("spatial_position", None)
+            base.pop("perceived_conditions", None)
+            base.pop("region_exposed", None)
+            base.pop("body_region_names", None)
+            base.pop("completed_pursuits", None)
+            base.pop("known", None)
+            base.pop("crafting_known", None)
+            base.pop("birth_tick", None)
+            base.pop("life_stage", None)
+            base.pop("last_mortality_year", None)
+            base.pop("discovered_exits", None)
+            base.pop("interest_tags", None)
+            base.pop("fear_tags", None)
+            base.pop("conditions", None)
+            base.pop("traits", None)
+            base.pop("personality_dials", None)
+            base.pop("disposition", None)
+            base.pop("flags", None)
+            base.pop("soak", None)
+            base.pop("state_timer", None)
+            base.pop("grappled_by", None)
+            base.pop("current_carry_weight", None)
+            base.pop("max_carry_capacity", None)
+            base.pop("at_way_id", None)
+            base.pop("emotions", None)
+            base.pop("emotions_description", None)
+            base.pop("activity", None)
+            base.pop("active_pursuit", None)
+            base.pop("plan", None)
+            base.pop("npc_state", None)
+            base.pop("state_enter_tick", None)
+            base.pop("recent_hearing", None)
+            base.pop("body_state", None)
+            base.pop("decay_rates", None)
+            base.pop("carcass_item", None)
+        return base
+
+    def _serialize_world(self, lite=False):
+        players_serialized = {}
+        for pname, p in self.player_manager.players.items():
+            players_serialized[pname] = self._serialize_player(pname, p, lite=lite)
+
+        rooms_serialized = {}
+        areas_by_id = {}
+        if not lite:
+            # task-439: the canonical, id-keyed area projection. The id is the
+            # stable handle; a display name may repeat (Deep Forest has many
+            # "Hollow"s), and a name-keyed map silently collapses them. Every
+            # consumer that can address an area by id should read this map.
+            for node in self.graph.nodes.values():
+                if node.type == "area":
+                    record = self._serialize_area(node.id)
+                    areas_by_id[node.id] = record
+                    # The name-keyed map stays because the live frontend reads
+                    # worldState.areas[<area name>] / [player.current_area] (40+
+                    # sites) and `player.current_area` is still a display name - the
+                    # string→id refactor is task-581. It is a convenience view, not
+                    # the canonical one: on a duplicate name the *last* writer wins
+                    # here, while areas_by_id keeps both.
+                    rooms_serialized[node.name] = record
+
+        return {
+            "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
+            "players_in_area": self.player_manager.get_players_in_area(),
+            "area_presence": getattr(self.legacy, 'area_presence', {}) or {},
+            "players": players_serialized,
+            "active_player": self.player_manager.active_player,
+            "game_log": [] if lite else self.legacy.game_log,
+            "log_revision": self.legacy.log_revision,
+            "game_time": self.legacy.get_current_time(),
+            "time_ticks": self.legacy.time_ticks,
+            "time_per_tick_minutes": self.legacy.time_per_tick_minutes,
+            "clock_start_hour": self.legacy.clock_start_hour,
+            "clock_start_minute": self.legacy.clock_start_minute,
+            "game_day": getattr(self.legacy, "game_day", 1),
+            "game_month": getattr(self.legacy, "game_month", 1),
+            "game_year": getattr(self.legacy, "game_year", 1),
+            "season": self.legacy.current_season() if hasattr(self.legacy, "current_season") else None,
+            # Lite mode: derived projections are dropped. The graph itself is
+            # always present - it is the world, not a projection. Consumers that
+            # need area detail (area inspector, look, exits) fetch it on demand.
+            "areas": {} if lite else rooms_serialized,
+            "rooms": {} if lite else rooms_serialized,
+            "areas_by_id": {} if lite else areas_by_id,
+            "graph": self.graph.to_dict(),
+            # Legacy collections, never needed for rendering and heavy to
+            # serialize: stripped in lite mode.
+            "ways": {} if lite else getattr(self.legacy, 'ways', {}),
+            "item_registry": {} if lite else getattr(self.legacy, 'item_registry', {}),
+            "turn_events": [] if lite else self.legacy.turn_events,
+            "turn_number": self.legacy.turn_number,
+            "narration_mode": self.legacy.narration_mode,
+            "ghost_mode": self.legacy.ghost_mode,
+            "mature_content": getattr(self.legacy, "mature_content", False),
+            # The scenario's own name. Without this a saved file cannot be
+            # identified on reload (routes fall back to "unnamed"), and the
+            # frontend's _scenarioIdentity() - which gates the local
+            # background-map cache - always sees null.
+            "_scenario_name": getattr(self.legacy, "_scenario_name", None),
+            # Stable local storage identity keeps evicted scope chunks
+            # addressable when a savegame is adopted without its scenario path.
+            "_scope_store_id": getattr(self.legacy, "_scope_store_id", None),
+            "world_lore": [] if lite else self.legacy.world_lore,
+            "scene_context": getattr(self.legacy, "scene_context", None),
+            # task-397: hierarchy manifest (authored), not a projection. Optional.
+            "world_scopes": {} if lite else (getattr(self.legacy, "world_scopes", {}) or {}),
+            # task-583: the resident scope index (ownership, location, gateways,
+            # due work). A derived cache of the loaded graph, but saved so an
+            # unloaded scope's ownership and gateways survive a round trip.
+            "world_index": (
+                {} if lite else
+                (self.legacy.world_index.to_dict()
+                 if getattr(self.legacy, "world_index", None) is not None else {})
+            ),
+            "calendar_config": getattr(self.legacy, "calendar_config", None),
+            "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
+            "forecast_override": getattr(self.legacy, "forecast_override", None),
+            "graph_background": getattr(self.legacy, "graph_background", None),
+            "commons_theme": getattr(self.legacy, "commons_theme", "live_social"),
+            "delayed_events": self.legacy.delayed_events.to_dict(),
+            "commons": (
+                {} if lite else
+                (self.legacy.commons.to_dict()
+                 if getattr(self.legacy, "commons", None) is not None else {})
+            )
+        }
+
+    def _deserialize_player(self, pname, pdata):
+        p = Player(pname)
+        # task-446: the registry key may be an id (duplicate display names), so
+        # the authoritative display name comes from the payload.
+        if pdata.get("name"):
+            p.name = pdata["name"]
+        # task-316: restore the stable identity (fall back to a fresh id for
+        # legacy saves that never had one).
+        p.id = pdata.get("id") or p.id
+        p.personality = pdata.get("personality", "")
+        p.description = pdata.get("description", "")
+        p.base_description = pdata.get("base_description", "")
+        p.equipped = pdata.get("equipped", dict(p.equipped))
+        # task-606: fold either stat-key case, so a lowercase block does not
+        # silently leave the character with no readable STR/CON.
+        p.stats = normalize_stat_block(pdata.get("stats", {}))
+        # task-549: species is optional. Absent (every pre-existing save) leaves
+        # it None, which means "unspecified" and permits every service - the
+        # backward-compatible default that makes adding the field safe.
+        p.species = pdata.get("species")
+        # task-874: `size` is a property (task-605), not a `size_*` trait.
+        # `_serialize_player` writes it and `to_scenario_dict` keeps it, so the
+        # key is in the file - but nothing read it back, so a save silently reset
+        # the tier to None on the next load. None must stay None: that is what
+        # lets an un-authored character fall through to its `size_*` trait
+        # (engine/size.py). An unrecognised value (a hand-edited or legacy save)
+        # is dropped rather than kept, so the six tiers stay the whole model.
+        from engine.size import SIZE_TIERS as _SIZE_TIERS
+        _raw_size = pdata.get("size")
+        _size = str(_raw_size).strip().lower() if _raw_size is not None else ""
+        p.size = _size if _size in _SIZE_TIERS else None
+        p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
+        # task-538: `hit_dice` derives Max_HP when the save does not carry one
+        # explicitly; an authored Max_HP always wins. Then clamp to *this*
+        # character's ceiling rather than to a literal.
+        apply_hit_dice(p.vitals, {**pdata, **pdata.get("vitals", {})})
+        p.vitals.setdefault("Max_HP", DEFAULT_MAX_HP)
+        if "HP" in p.vitals:
+            p.vitals["HP"] = clamp_to_ceiling(p.vitals, "HP", p.vitals["HP"])
+        if "Energy" in p.vitals:
+            p.vitals["Energy"] = max(0, min(DEFAULT_VITAL_MAX,
+                                           p.vitals["Energy"]))
+        p.decay_rates = pdata.get("decay_rates", p.decay_rates)
+        from engine.lived_log import load as _lived_log_load
+        # Task-542 renamed the save key "trace" -> "lived_log". Both are read, in
+        # this order, so a save written before the rename still loads; engine/
+        # lived_log.load() likewise accepts the old per-entry "t" tick key.
+        _lived_log_load(p, pdata.get("lived_log", pdata.get("trace")))
+        p.simulation_mode = pdata.get("simulation_mode", "active")
+        try:
+            p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
+        except (TypeError, ValueError):
+            p.next_due_tick = 0
+        try:
+            p.last_offload_tick = int(pdata.get("last_offload_tick", 0) or 0)
+        except (TypeError, ValueError):
+            p.last_offload_tick = 0
+        try:
+            p.background_consolidated_through = int(
+                pdata.get("background_consolidated_through", 0) or 0)
+        except (TypeError, ValueError):
+            p.background_consolidated_through = 0
+        try:
+            p.lived_log_memorized_through = int(
+                pdata.get("lived_log_memorized_through", 0) or 0)
+        except (TypeError, ValueError):
+            p.lived_log_memorized_through = 0
+        p.body_state = pdata.get("body_state", p.body_state)
+        # Merge over the defaults so a save from before the full skill list
+        # (task-474) still ends up with every skill on the sheet.
+        _skills = dict(p.skills or {})
+        _skills.update(pdata.get("skills", {}) or {})
+        p.skills = _skills
+        try:
+            p.proficiency = int(pdata.get("proficiency", 0) or 0)
+        except (TypeError, ValueError):
+            p.proficiency = 0
+        p.skill_progress = dict(pdata.get("skill_progress", {}) or {})
+        p.state = pdata.get("state", "awake")
+        p.load_conditions(pdata.get("conditions"))
+        legacy_timer = pdata.get("state_timer") or 0
+        if legacy_timer > 0:
+            from player import CONDITION_DEFAULT_TIMERS
+            timed = [c for c in p.conditions if c in CONDITION_DEFAULT_TIMERS]
+            for c in (timed or [p.state]):
+                instances = p.conditions.setdefault(c, [])
+                if not instances:
+                    instances.append({"duration": None, "source": None, "level": 0})
+                instances[0]["duration"] = legacy_timer
+        p.traits = pdata.get("traits", {})
+        p.personality_dials = normalize_dials(pdata.get("personality_dials", {}))
+        p.tags = list(pdata.get("tags", []))
+        p.sync_vitals_with_tags()
+        p.flags = dict(pdata.get("flags", {}))
+        p.hidden = bool(pdata.get("hidden", False))
+        p.manifested = bool(pdata.get("manifested", False))
+        p.known = list(pdata.get("known", []) or [])
+        p.crafting_known = list(pdata.get("crafting_known", []) or [])
+        # task-735: lifecycle clock survives save/load; absent in old
+        # saves means ageless until an authored age resolves it.
+        p.birth_tick = pdata.get("birth_tick")
+        p.life_stage = pdata.get("life_stage")
+        p.last_mortality_year = pdata.get("last_mortality_year")
+        p.discovered_exits = {
+            tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
+        }
+        p.charted_cells = {
+            sid: {tuple(c) for c in (cells or []) if isinstance(c, (list, tuple)) and len(c) == 2}
+            for sid, cells in (pdata.get("charted_cells", {}) or {}).items()
+            if isinstance(cells, list)
+        }
+        p.interest_tags = list(pdata.get("interest_tags", []))
+        p.fear_tags = list(pdata.get("fear_tags", []))
+        p.carcass_item = pdata.get("carcass_item")
+        p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
+        # task-313 facing. Old saves and scenarios predate the field, so both
+        # keys are read with a None default: a character loaded from one simply
+        # has no facing and the relative words explain that, rather than the
+        # load inventing a heading nobody travelled.
+        p.facing = pdata.get("facing") or None
+        p.entered_from_way = pdata.get("entered_from_way") or None
+        p.recent_hearing = pdata.get("recent_hearing", [])
+        pdata_memory = pdata.get("memory", {})
+        if pdata_memory:
+            pass
+        emotion_data = pdata.get("emotion", {})
+        if isinstance(pdata.get("emotions"), dict) and pdata["emotions"]:
+            p.load_emotions(pdata["emotions"])
+        elif isinstance(emotion_data, dict):
+            # **One-time migration for a save written before the affect map was
+            # the state** (task-652). The legacy `{current, intensity}` pair is
+            # folded into the map here and nowhere else, so a world saved by any
+            # earlier build comes back feeling what it was saved feeling rather
+            # than blank. Once a save carries `emotions`, the legacy pair is
+            # ignored on load - it is a cache of the map now, not a second
+            # opinion, and letting it win would be the duplication this task
+            # exists to remove.
+            p.emotion = emotion_data.get("current", "neutral")
+            try:
+                p.emotion_intensity = emotion_data.get("intensity", 0.0)
+            except (TypeError, ValueError):
+                pass
+        rel_data = pdata.get("relationships", {})
+        if isinstance(rel_data, dict):
+            p.relationships = dict(rel_data)
+        # Authored daily schedule (task-409). Normalised on load so a
+        # hand-edited or legacy file cannot put a malformed step into the day.
+        from engine.schedule import normalize as _normalize_schedule
+        p.schedule = _normalize_schedule(pdata.get("schedule"))
+        # Character-private goals (task-807). Normalised on load so a hand-edited
+        # or legacy file cannot put a malformed goal into the character's mind.
+        from engine.goals import normalize as _normalize_goals, history as _goal_history
+        p.goals = _normalize_goals(pdata.get("goals"))
+        p.goal_log = _goal_history(pdata.get("goal_log"))
+        from engine.goals import normalize_obligations as _normalize_obligations
+        p.obligations = _normalize_obligations(pdata.get("obligations"))
+        pursuit_data = pdata.get("active_pursuit")
+        p.active_pursuit = dict(pursuit_data) if isinstance(pursuit_data, dict) else None
+        # The active pursuit is the longer-lived intention; Player.plan is its
+        # current approach and is resumed as-is. Completed assignment ids stop
+        # a one-shot pursuit from restarting.
+        p.plan = pdata.get("plan") or None
+        p.completed_pursuits = list(pdata.get("completed_pursuits", []) or [])
+
+        mem_data = pdata.get("memories", [])
+        if isinstance(mem_data, list):
+            for m in mem_data:
+                if not m.get("id"):
+                    m["id"] = str(uuid.uuid4())[:8]
+                if "entity_ids" not in m:
+                    m["entity_ids"] = []
+                if "source" not in m:
+                    m["source"] = "auto"
+                m.setdefault("location", "")
+            p.memories = list(mem_data)
+        # The observation index is derived, so rebuild it from the memories
+        # rather than trusting a stored copy: an older save has no index at all,
+        # and a hand-edited one could point at a memory that no longer exists.
+        p.memory_index = {}
+        stored_index = pdata.get("memory_index")
+        if isinstance(stored_index, dict):
+            p.memory_index = {str(k): str(v) for k, v in stored_index.items()}
+        by_id = {m.get("id"): m for m in p.memories}
+        for subject, entry_id in list(p.memory_index.items()):
+            entry = by_id.get(entry_id)
+            if entry is None or entry.get("superseded_by"):
+                p.memory_index.pop(subject, None)
+        if "controller" in pdata:
+            p.controller = pdata["controller"]
+        elif "control_mode" in pdata:
+            p.controller = pdata["control_mode"]
+        else:
+            p.simple_npc = pdata.get("simple_npc", False)
+            p.autonomy = pdata.get("autonomy", True)
+        p.npc_behavior = pdata.get("npc_behavior", "wander")
+        p.npc_action_interval = pdata.get("npc_action_interval", 3)
+        p.npc_state = pdata.get("npc_state", "idle")
+        p.state_enter_tick = pdata.get("state_enter_tick", 0)
+        p.behaviors = pdata.get("behaviors", [])
+        p.patrol_route = pdata.get("patrol_route", [])
+        p.patrol_index = pdata.get("patrol_index", 0)
+        p.activity = pdata.get("activity", None) or None
+        p.exhaustion_count = pdata.get("exhaustion_count", 0)
+        # task-403: authored starting knowledge. Idempotent by memory text, so a
+        # re-loaded save never duplicates it, and absent keys mean a no-op.
+        if (pdata.get("preconceived_knowledge") or pdata.get("known_areas")
+                or pdata.get("known_ways")):
+            from engine.agent_memory import AgentMind
+            AgentMind(p, self.graph).load_preconceived(pdata)
+
+        # task-430: tolerant legacy migration for retired visited_areas and
+        # discovered_items. Populate observation memories so known-route blocks
+        # and item recall remain non-empty.
+        legacy_visited = pdata.get("visited_areas")
+        if legacy_visited and isinstance(legacy_visited, (list, set, tuple)):
+            for aname in legacy_visited:
+                aname_str = str(aname).strip()
+                if not aname_str:
+                    continue
+                node = None
+                if aname_str in self.graph.nodes:
+                    node = self.graph.nodes[aname_str]
+                else:
+                    for n in self.graph.nodes.values():
+                        if getattr(n, "type", "") == "area" and n.name == aname_str:
+                            node = n
+                            break
+                aid = node.id if node else aname_str
+                aname_disp = node.name if node else aname_str
+                if not p.has_seen(aid):
+                    p.record_observation(
+                        aid,
+                        f"You have been to {aname_disp}.",
+                        0,
+                        kind="area",
+                        location=aname_disp,
+                    )
+
+        legacy_items = pdata.get("discovered_items")
+        if legacy_items and isinstance(legacy_items, (list, set, tuple)):
+            for iname in legacy_items:
+                iname_str = str(iname).strip()
+                if not iname_str:
+                    continue
+                node = None
+                if iname_str in self.graph.nodes:
+                    node = self.graph.nodes[iname_str]
+                else:
+                    for n in self.graph.nodes.values():
+                        if getattr(n, "type", "") == "item" and n.name == iname_str:
+                            node = n
+                            break
+                iid = node.id if node else iname_str
+                iname_disp = node.name if node else iname_str
+                if not p.has_seen(iid):
+                    p.record_observation(
+                        iid,
+                        f"You have seen {iname_disp}.",
+                        0,
+                        kind="item",
+                    )
+
+        return p
+
+    def to_dict(self, lite=False):
+        return self._serialize_world(lite=lite)
+
+    def to_scenario_dict(self):
+        # task-724: sync any direct Player changes to the single authoritative homes before serializing
+        if hasattr(self, "player_manager") and hasattr(self.player_manager, "players"):
+            for pname, p in self.player_manager.players.items():
+                pnode_id = self.player_manager.player_node_id(pname)
+                node = self.graph.get_node(pnode_id)
+                if node is not None:
+                    sync_player_to_node(p, node)
+                # Ensure the authoritative graph 'in' edge is present for current_area
+                if getattr(p, "current_area", None):
+                    edge_area_id = self.graph.area_of(pnode_id)
+                    if not edge_area_id and hasattr(self.player_manager, "_set_player_area"):
+                        self.player_manager._set_player_area(pname, p.current_area)
+        data = self._serialize_world()
+        data.pop("game_log", None)
+        data.pop("turn_events", None)
+        data.pop("log_revision", None)
+        data.pop("delayed_events", None)
+        # The Commons is runtime communication state, not scenario authoring data.
+        data.pop("commons", None)
+        data.pop("game_day", None)
+        data.pop("game_month", None)
+        data.pop("game_year", None)
+        data.pop("season", None)
+        for pdata in data.get("players", {}).values():
+            pdata.pop("recent_hearing", None)
+            pdata.pop("charted_cells", None)
+            # A character does not *author* their lived history, so it is runtime
+            # state in the same way recent_hearing is (task-542). Keeping it would
+            # grow a scenario file by 200 entries per character on the first save.
+            pdata.pop("lived_log", None)
+            # task-403/425: a scenario is authored content, so it carries no
+            # runtime *perception*. Merely loading a scenario observes every
+            # character's starting area (engine/observation.py), and saving it
+            # back would otherwise bake that into the file - 23 characters'
+            # worth of "you have been in Blackmarsh" written into the scenario
+            # and growing it by ~60KB on the first save, for state the loader
+            # regenerates anyway. `memory_index` is derived and goes with them;
+            # authored memories (`source: manual`, i.e. preconceived knowledge)
+            # stay. A savegame uses `to_dict()` and keeps everything.
+            pdata["memories"] = [
+                m for m in (pdata.get("memories") or [])
+                if m.get("source") != "observation"
+            ]
+            pdata.pop("memory_index", None)
+            # task-724: Definition lives on the character node (`graph.nodes`), so a saved
+            # file must not carry a second copy in the players block. The live
+            # payload publishes it for the UI/prompt (`_serialize_player`); the
+            # node is the one persisted home.
+            pdata.pop("personality", None)
+            pdata.pop("base_description", None)
+            pdata.pop("description", None)
+            pdata.pop("tags", None)
+            pdata.pop("traits", None)
+            # task-654: worn gear is authoritative on the EDGE_EQUIPPED edges
+            # (each edge carries its slot). The live payload publishes the map
+            # for the UI; a saved file must not carry a second copy of it in
+            # the players block, or the loader would rebuild the edges from it
+            # and the file would hold two records of one fact.
+            pdata.pop("equipped", None)
+            # Location is authoritative on the graph 'in' edge; current_area and
+            # current_area_id are derived and recomputed on load.
+            pdata.pop("current_area", None)
+            pdata.pop("current_area_id", None)
+            # task-352: a slot does not survive a turn, so it is never persisted.
+            pdata.pop("turn_slots", None)
+            # task-784: nor does an armed dash burst.
+            pdata.pop("burst_pending", None)
+        # task-222, continued: a saved world is graph-only, so nothing here is
+        # a second copy of data already carried by `graph.nodes`:
+        #   - `areas` / `rooms` are projections the loader never reads
+        #     (LegacyCompat rebuilds them from the graph), and `rooms` was the
+        #     same dict written twice - 13% of the file, byte for byte.
+        #   - `ways` / `item_registry` were legacy attrs only the loader
+        #     populated and nothing consumed.
+        # Every field of an `areas` entry that mattered already lives on the
+        # node (`name`, `description`, `environment`, `floor`, `surface`,
+        # `properties`); `ambient_light`/`light_description` are recomputed each
+        # tick and `items` was always empty (placement is the graph's `in` edges).
+        #
+        # The LIVE payload (to_dict) keeps all of them: the frontend reads
+        # worldState.areas / .ways (agent-engine, agent-lens, inspector,
+        # item-library/placement, graph/layout-engine).
+        data.pop("areas", None)
+        data.pop("rooms", None)
+        data.pop("areas_by_id", None)
+        # The scope index is derived from the authored graph + manifest, so a
+        # scenario re-derives it on load rather than carrying a second copy.
+        data.pop("world_index", None)
+        data.pop("_scope_store_id", None)
+        data.pop("ways", None)
+        data.pop("item_registry", None)
+        # Omit an empty name rather than writing "": the load path tests
+        # `data.get('_scenario_name') or data.get('name')`, so an empty string
+        # reads as "unnamed" and silently outranks a real name.
+        if not data.get("_scenario_name"):
+            data.pop("_scenario_name", None)
+        # task-453: scenario payloads carry the format schema version too, so a
+        # later breaking change can migrate or refuse them on load.
+        data["schema_version"] = SCHEMA_VERSION
+        # task-920: strip precompile snapshot so it does not leak into saved files
+        graph_data = data.get("graph") or {}
+        for n in (graph_data.get("nodes") or {}).values():
+            if isinstance(n, dict) and isinstance(n.get("properties"), dict):
+                n["properties"].pop("_last_precompile_snapshot", None)
+        self.strip_redundant_exits(data)
+        return data
+
+    @staticmethod
+    def strip_redundant_exits(data):
+        """task-222: saved worlds are graph-only - the per-room ``exits`` /
+        ``exits_authoring`` copies are always recomputed at runtime
+        (build_exits_for_area), so writing them is redundant data that can
+        drift. Keep the live /api/state payload intact (to_dict is separate);
+        only FILE payloads pass through here.
+        """
+        for key in ("areas", "rooms"):
+            rooms = data.get(key, {}) or {}
+            for room in rooms.values():
+                if isinstance(room, dict):
+                    room.pop("exits", None)
+                    room.pop("exits_authoring", None)
+
+    def load_from_dict(self, data):
+        if "player" in data and "players" not in data:
+            self._template_loader.load(data)
+            return
+
+        # task-463: collapse the authored character_<slug> node and the runtime
+        # player_<Name> anchor into one canonical node before the graph is built,
+        # and keep every retired id resolvable through the alias index.
+        aliases = {}
+        if "graph" in data:
+            report = collapse_character_identity(data["graph"], data.get("players") or {})
+            aliases = report.get("aliases") or {}
+            self.graph.load_from_dict(data["graph"])
+            self.graph.register_aliases(aliases)
+            self._normalize_item_node_actions()
+            self._migrate_triggers_from_nodes_to_properties()
+            self._migrate_unlocks_edges_to_triggers()
+        else:
+            self._legacy_loader.load(data)
+
+# task-439: a duplicate area display name is legal (ids are the identity)
+        # but makes a name-only lookup ambiguous, so surface it at load rather
+        # than let the first iteration-order match silently win.
+        from engine.room_perception import duplicate_area_names
+        duplicate_areas = duplicate_area_names(self.graph)
+        if duplicate_areas:
+            logger.warning(
+                "[load] duplicate area display name(s) - resolve these by id: %s",
+                duplicate_areas)
+        # task-450: repair any item that ended up both carried and equipped. The
+        # modern branch already does this inside graph.load_from_dict; the legacy
+        # branch builds the graph directly, so the boundary call lives here too.
+        self.graph.normalize_item_hold_state()
+
+        self.legacy.time_ticks = data.get("time_ticks", 0)
+        self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)
+        self.legacy.clock_start_hour = data.get("clock_start_hour", 8)
+        self.legacy.clock_start_minute = data.get("clock_start_minute", 0)
+        self.legacy.turn_number = data.get("turn_number", 0)
+        self.legacy.turn_events = list(data.get("turn_events", []))
+        self.legacy.game_log = list(data.get("game_log", []))
+        # task-360 presence ledger (per-area {char: entry_tick}) - restore as-is.
+        try:
+            raw_presence = data.get("area_presence", {}) or {}
+            self.legacy.area_presence = {
+                str(aid): {str(c): int(t) for c, t in (list(present.items()) if isinstance(present, dict) else [])}
+                for aid, present in raw_presence.items()
+            }
+        except Exception:
+            self.legacy.area_presence = {}
+        self.legacy.log_revision = data.get("log_revision", 0)
+        self.legacy.narration_mode = data.get("narration_mode", "none")
+        # Round-trip the scenario's name so a saved file stays identifiable
+        # without the load route having to re-derive it.
+        self.legacy._scenario_name = (
+            data.get("_scenario_name")
+            or data.get("name")
+            or ""
+        )
+        self.legacy._scope_store_id = data.get("_scope_store_id") or None
+        self.legacy.ghost_mode = data.get("ghost_mode", False)
+        self.legacy.mature_content = data.get("mature_content", False)
+        self.legacy.speech_log.clear()
+
+        temp_players = {}
+        for pname, pdata in data.get("players", {}).items():
+            p = self._deserialize_player(pname, pdata)
+            temp_players[pname] = p
+
+        # task-914: hydrate players from character nodes in the graph if omitted from players block
+        for node in self.graph.nodes.values():
+            if node.type == "character":
+                pname = node.name or node.id
+                if pname not in temp_players:
+                    p = self._deserialize_player(pname, node.properties or {})
+                    temp_players[pname] = p
+
+        self.player_manager.players = temp_players
+        # task-463: an authored `known` list may name a retired character id
+        # ("character_arix"); move it onto the surviving identity.
+        if aliases:
+            for p in temp_players.values():
+                if getattr(p, "known", None):
+                    known, changed = rewrite_known(p.known, aliases)
+                    if changed:
+                        p.known = known
+        # task-446: rebuild the id→key index and give duplicate-keyed players a
+        # unique anchor after a bulk load. (self.player_manager here is the
+        # world; the real manager hangs off it.)
+        _pm = getattr(self.player_manager, "player_manager", None)
+        if _pm is not None and hasattr(_pm, "reindex"):
+            _pm.reindex()
+        self.player_manager.active_player = data.get("active_player") or (next(iter(temp_players.keys())) if temp_players else None)
+
+        for pname, p in self.player_manager.players.items():
+            pnode_id = self.player_manager.player_node_id(pname)
+            if not self.graph.get_node(pnode_id):
+                self.graph.add_node(Node(id=pnode_id, type="character", name=pname))
+            # task-549: the character *definition* lives on the node (the
+            # single persisted home); hydrate the live Player from it, falling
+            # back to the players block for legacy saves. Without this the
+            # loaded Player is blank even though the node carries the prose.
+            _node = self.graph.get_node(pnode_id)
+            _props = _node.properties if _node is not None else {}
+            _pdata = data.get("players", {}).get(pname, {}) or {}
+            # Node properties win; fall back to players block for legacy saves (task-457/task-914)
+            apply_node_properties(p, _props, _pdata)
+            if _node is not None:
+                sync_player_to_node(p, _node)
+            # task-581: the character's `in` edge is the authoritative location
+            # record; the saved `current_area` display name is a resolution layer
+            # over it. Prefer the edge, so a hand-edit to the string that
+            # disagrees with the graph cannot re-home a character on load.
+            edge_area_id = self.graph.area_of(pnode_id)
+            edge_area = self.graph.get_node(edge_area_id) if edge_area_id else None
+            if edge_area is not None:
+                p.current_area = edge_area.name
+            elif p.current_area:
+                self.player_manager.set_player_area(pname, p.current_area)
+            for slot_name, stack in (p.equipped or {}).items():
+                for item_id in stack:
+                    if isinstance(item_id, str) and not item_id.startswith("__"):
+                        if self.graph.get_node(item_id):
+                            # An `equipped` edge, not a `connection` one. A
+                            # connection is a way between two areas; an item
+                            # worn by a character is the EDGE_EQUIPPED record
+                            # every equipment reader looks for. Writing the
+                            # wrong type here (the slip that shipped in
+                            # task-7's refactor) left worn gear invisible to
+                            # those readers and littered the graph with
+                            # item->character ways.
+                            self.graph.add_edge(Edge(
+                                source=item_id,
+                                target=pnode_id,
+                                type=EDGE_EQUIPPED,
+                                properties={"slot": slot_name}
+                            ))
+
+        for pname, p in self.player_manager.players.items():
+            pnode_id = self.player_manager.player_node_id(pname)
+            self.legacy.equipment._sync_equipped_from_graph(p, pnode_id)
+
+        # task-450: an item holds at most one of carrying/equipped per
+        # character. The equipped edges just built (or loaded) make the
+        # carrying edge for the same item a second, contradictory record.
+        self.graph.normalize_item_hold_state()
+
+        self.legacy.ways = data.get("ways", {})
+        self.legacy.item_registry = data.get("item_registry", {})
+        self.legacy.world_lore = data.get("world_lore", [])
+        self.legacy.scene_context = data.get("scene_context", None)
+        # task-397: optional hierarchy manifest; absent in legacy scenarios.
+        raw_scopes = data.get("world_scopes")
+        self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}
+        # task-583: restore the resident scope index. A save may carry entries
+        # for scopes it did not load (ownership, gateways, due work); when it
+        # does not, derive them from the graph so a legacy world gets an index.
+        index = getattr(self.legacy, "world_index", None)
+        if index is not None:
+            from engine.world.index import GlobalScopeIndex
+            raw_index = data.get("world_index")
+            if isinstance(raw_index, dict) and raw_index:
+                restored = GlobalScopeIndex.from_dict(raw_index)
+                self.legacy.world_index = restored
+                restored.augment_from_graph(self.graph, self.legacy.world_scopes)
+            else:
+                index.reindex(self.graph, self.legacy.world_scopes)
+        # Graph background map: image path + transform (presentation only).
+        background = data.get("graph_background")
+        self.legacy.graph_background = background if isinstance(background, dict) else {}
+        # task-228/227: calendar + forecast persist through saves.
+        if isinstance(data.get("calendar_config"), dict):
+            defaults = getattr(self.legacy, "calendar_config", None) or {}
+            combined = dict(defaults)
+            combined.update(data["calendar_config"])
+            self.legacy.calendar_config = combined
+        if isinstance(data.get("forecast_schedule"), dict):
+            self.legacy.forecast_schedule = data["forecast_schedule"]
+        self.legacy.forecast_override = data.get("forecast_override")
+        self.legacy._forecast_sched_obj = None
+        from engine.commons import COMMONS_THEMES
+        theme = data.get("commons_theme", "live_social")
+        self.legacy.commons_theme = (
+            theme if isinstance(theme, str) and theme in COMMONS_THEMES else "live_social"
+        )
+        from engine.event_queue import DelayedEventQueue
+        self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
+        if getattr(self.legacy, "commons", None) is not None:
+            # Older saves used the former top-level stage_chat key.
+            saved_commons = data.get("commons")
+            if saved_commons is None:
+                saved_commons = data.get("stage_chat")
+            self.legacy.commons.from_dict(saved_commons)
+
+        # Perception at load (task-403): a character knows the room it is
+        # standing in from the moment it is there. Observations are otherwise
+        # written on arrival, so without this pass the one area a character
+        # could never remember would be the one it started in - and task-425's
+        # novelty would pay for it again on the first re-entry.
+        try:
+            from engine.observation import observe_area
+            for p in self.player_manager.players.values():
+                observe_area(p, self.legacy)
+        except Exception as e:
+            logger.warning("[observation] initial pass failed: %s", e)

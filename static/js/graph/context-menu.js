@@ -1,14 +1,24 @@
 "use strict";
 /**
- * GraphContextMenu — context menu for graph nodes and edges
+
+ * GraphContextMenu  -  context menu for graph nodes and edges
+
  * Provides right-click context menus with actions tailored to node types.
+
  * Extracted from graph-manager.js. References the global graphManager singleton.
+
  *
- * @module graph/context-menu — right-click menus for graph nodes and edges
+
+ * @module graph/context-menu  -  right-click menus for graph nodes and edges
+
  * @contributes GraphContextMenu: per-type items (inspect/edit/duplicate/delete, add item/character/trigger, place on map)
- * @powers Graph canvas — the graph's right-click actions on areas, items, ways, and characters
+
+ * @powers Graph canvas  -  the graph's right-click actions on areas, items, ways, and characters
+
  * @relates driven by GraphEventHandlers.onContext; delegates to GraphNodeOps + the inspector
+
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
+
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const contextMenuHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
@@ -16,12 +26,19 @@ const contextMenuHtmlTag = (strings, ...values) => window.Lit.html(strings, ...v
 // (EdgeTypes, filterItemLibrary) are not in globals.d.ts; reached through casts.
 window.GraphContextMenu = {
     /**
+
      * Shows a context menu at the given event position for a graph node.
+
      * Builds a menu string with actions appropriate to the node type (area, item, way, character).
+
      *
+
      * @param {MouseEvent} event - The right-click mouse event
+
      * @param {Object} nodeData - The node data object from the graph
+
      * @param {string} nodeId - The node identifier
+
      */
     showContextMenu(event, nodeData, nodeId) {
         graphManager._contextTarget = { nodeData, nodeId, nodeType: nodeData?.type };
@@ -40,8 +57,6 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
         }
         else if (nodeData?.type === 'item') {
@@ -50,8 +65,6 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_to_lib')}>📚 Save to Library</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Item</div>`);
         }
         else if (nodeData?.type === 'way') {
@@ -59,8 +72,6 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Way</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Way</div>`);
         }
         else if (nodeData?.type === 'character') {
@@ -68,8 +79,6 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Character</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
             items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
         }
         items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
         items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('duplicate')}>📋 Duplicate</div>`);
@@ -82,10 +91,15 @@ window.GraphContextMenu = {
         setTimeout(() => document.addEventListener('click', () => menu.style.display = 'none', { once: true }), 0);
     },
     /**
+
      * Handles a context menu action based on the action name.
+
      * Dispatches to the appropriate graphManager method or VW module.
+
      *
+
      * @param {string} action - The action identifier (e.g. 'inspect', 'delete', 'duplicate')
+
      */
     async ctxAction(action) {
         const menu = document.getElementById('context-menu');
@@ -201,9 +215,6 @@ window.GraphContextMenu = {
                 });
                 break;
             }
-            case 'create_trigger':
-                graphManager._createSpecialEdge(target.nodeId, 'triggers', '⚡');
-                break;
             case 'connect_to': {
                 const fromNodeId = target.nodeId;
                 const fromNode = graphManager.nodes.get(fromNodeId);
@@ -213,13 +224,10 @@ window.GraphContextMenu = {
                 graphManager.startPendingConnection(fromNodeId, edgeTypes[0]);
                 break;
             }
-            case 'connect_trigger':
-                graphManager.startPendingConnection(target.nodeId, 'triggers');
-                break;
             case 'place_on_map': {
                 // task-528: hand this area to the WorldPainter's place tool. The
                 // scope to open is the area's own, or the world root when it has
-                // none yet — the author can switch scope in the painter.
+                // none yet  -  the author can switch scope in the painter.
                 const props = target.nodeData?.properties || {};
                 const scopeId = props.world_scope_id || 'world';
                 if (window.VW && VW.worldPainter && typeof VW.worldPainter.open === 'function') {
@@ -245,11 +253,17 @@ window.GraphContextMenu = {
         }
     },
     /**
+
      * Shows a context menu for a graph edge (connection between nodes).
+
      * Provides Inspect Edge and Delete Edge options.
+
      *
+
      * @param {MouseEvent} event - The right-click mouse event
+
      * @param {Object} edgeData - The edge data object from the graph
+
      */
     showEdgeContextMenu(event, edgeData) {
         graphManager._contextTarget = { edgeData, isEdge: true };
@@ -257,9 +271,13 @@ window.GraphContextMenu = {
         if (!menu)
             return;
         window.Lit.render(contextMenuHtmlTag `
+
             <div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('inspect')}>🔍 Inspect Edge</div>
+
             <div class="context-menu-separator"></div>
+
             <div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('flip_edge')}>🔀 Flip Edge</div>
+
             <div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete_edge')} style="color:var(--red);">🗑️ Delete Edge</div>`, menu);
         menu.style.display = 'block';
         menu.style.left = event.clientX + 'px';

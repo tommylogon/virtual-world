@@ -1,14 +1,24 @@
 "use strict";
 /**
+
  * EdgeTypes  -  shared edge type configuration for the graph
+
  * Central place for edge type names, colors, icons, and valid source/target combos.
+
  * Load this before graph-manager.js in index.html.
+
  *
+
  * @module graph/edge-types  -  the edge type registry
+
  * @contributes EdgeTypes: type names, colors, icons, valid source/target combos, resolve()/getConfig()
+
  * @powers Graph canvas  -  consistent styling and validation of every edge in the graph
+
  * @relates loaded before graph-manager.js; used by network-manager, node-operations, edge-inspector
+
  * @docs docs/virtualWorld/World Building/Graph System.md
+
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
@@ -28,8 +38,6 @@ const EdgeTypes = {
         'carrying': { label: 'Carrying', icon: '🎒', color: '#6e7681', desc: 'Item in a character\'s inventory' },
         'equipped': { label: 'Equipped', icon: '⚔️', color: '#d29922', desc: 'Worn or held by a character' },
         'grappled': { label: 'Grappled', icon: '⛓️', color: '#d50000', desc: 'Character holds another (grappler → target)' },
-        'unlocks': { label: 'Unlocks', icon: '🔓', color: '#3fb950', desc: 'Item unlocks a door' },
-        'triggers': { label: 'Triggers', icon: '⚡', color: '#e3b341', desc: 'Node triggers an action' },
         'requires': { label: 'Requires', icon: '🔒', color: '#f85149', desc: 'Door requires a condition' },
         'known': { label: 'Known', icon: '🧠', color: '#a371f7', desc: 'Character knows this ability/spell/power' },
     },
@@ -52,18 +60,12 @@ const EdgeTypes = {
     /** Get edge types valid for creating a new edge from a given node type */
     validForSource(nodeType) {
         if (nodeType === 'item') {
-            return ['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'unlocks', 'triggers'];
+            return ['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped'];
         }
         if (nodeType === 'character') {
-            return ['triggers', 'known'];
+            return ['known'];
         }
-        if (nodeType === 'area') {
-            return ['triggers'];
-        }
-        if (nodeType === 'way') {
-            return ['triggers'];
-        }
-        return ['triggers'];
+        return [];
     },
     /** Get valid target node types for a given edge type */
     validTargets(edgeType) {
@@ -78,8 +80,6 @@ const EdgeTypes = {
             case 'carrying': return ['character'];
             case 'equipped': return ['character'];
             case 'known': return ['character'];
-            case 'unlocks': return ['way'];
-            case 'triggers': return ['area', 'item', 'way', 'character'];
             case 'requires': return ['area', 'item', 'way', 'character'];
             default: return ['area', 'item', 'way', 'character'];
         }

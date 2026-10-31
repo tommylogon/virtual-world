@@ -76,6 +76,8 @@ class WorldGraph:
         # task-406: trigger event/type → set of source node ids, so turn/time
         # sweeps visit only nodes that actually carry that trigger.
         self._trigger_index: Dict[str, set] = {}
+        # task-886 / task-895: index triggers defined on node.properties['triggers']
+        self._node_trigger_index: Dict[str, set] = {}
         # Number of edges the indexes were built from. A few effect handlers
         # mutate ``self.edges`` directly; the length check forces a lazy rebuild.
         self._indexed_edge_count = 0
@@ -154,16 +156,33 @@ class WorldGraph:
         if self._indexed_edge_count != len(self.edges):
             self._rebuild_indexes()
 
-    def get_trigger_sources(self, trigger_type: str) -> List[str]:
-        """Ids of nodes owning a trigger of *trigger_type* (task-406).
+    def _index_node_triggers(self, node: Node):
+        trigs = (node.properties or {}).get("triggers")
+        if isinstance(trigs, list):
+            for t in trigs:
+                if isinstance(t, dict):
+                    tt = t.get("trigger_type")
+                    if tt:
+                        for item in (tt if isinstance(tt, (list, tuple, set)) else [tt]):
+                            if item:
+                                self._node_trigger_index.setdefault(str(item), set()).add(str(node.id))
 
-        Faithful to ``_execute_triggers``: an edge qualifies only when it is a
-        ``triggers`` edge carrying a non-empty ``trigger_type`` in its own
-        properties (the runtime shape). Legacy shapes that never matched are
-        still not matched - no behaviour change, just no wasted sweep.
+    def _unindex_node_triggers(self, node_id: str):
+        nid = str(node_id)
+        for s in self._node_trigger_index.values():
+            s.discard(nid)
+
+    def get_trigger_sources(self, trigger_type: str) -> List[str]:
+        """Ids of nodes owning a trigger of *trigger_type* (task-406, task-895).
+
+        Returns node ids carrying matching triggers either in their
+        ``properties['triggers']`` array or via legacy ``triggers`` edges.
         """
         self._ensure_indexes()
-        return list(self._trigger_index.get(str(trigger_type), ()))
+        tt = str(trigger_type)
+        edge_sources = self._trigger_index.get(tt, set())
+        node_sources = self._node_trigger_index.get(tt, set())
+        return list(edge_sources | node_sources)
 
     def get_revision(self) -> int:
         return self._revision
@@ -238,6 +257,7 @@ class WorldGraph:
         self._id_index[node.id.lower()] = node.id
         self._set_node_scope_index(node, self._declared_scope(node))
         self._set_way_endpoint_index(node)
+        self._index_node_triggers(node)
         self._revision += 1
 
     def replace_node(self, node: Node):
@@ -259,6 +279,8 @@ class WorldGraph:
         existing.updated = time.time()
         self._set_node_scope_index(existing, self._declared_scope(existing))
         self._set_way_endpoint_index(existing)
+        self._unindex_node_triggers(stored_id)
+        self._index_node_triggers(existing)
         self._revision += 1
 
     def remove_node(self, node_id: str):
@@ -270,6 +292,7 @@ class WorldGraph:
         if node is not None:
             self._set_node_scope_index(node, None)
             self._set_way_endpoint_index(node)
+            self._unindex_node_triggers(stored_id)
         self._id_index.pop(stored_id.lower(), None)
         for alias, target in list(self._id_aliases.items()):
             if target.lower() == stored_id.lower():
@@ -571,6 +594,7 @@ class WorldGraph:
         self._edges_by_target.clear()
         self._spatial_edges.clear()
         self._trigger_index.clear()
+        self._node_trigger_index.clear()
         self._indexed_edge_count = 0
         self._revision += 1
 
@@ -582,8 +606,11 @@ class WorldGraph:
         self._scope_by_node.clear()
         self._ways_by_endpoint.clear()
         self._way_endpoints_by_node.clear()
+        self._node_trigger_index.clear()
         for node_id, ndata in data.get("nodes", {}).items():
-            self.nodes[node_id] = Node(**ndata)
+            n = Node(**ndata)
+            self.nodes[node_id] = n
+            self._index_node_triggers(n)
         for edata in data.get("edges", []):
             self.edges.append(Edge(**edata))
         self._rebuild_id_index()
@@ -931,8 +958,6 @@ EDGE_CARRYING = "carrying"  # item → character (in inventory; was: carried_by,
 EDGE_EQUIPPED = "equipped"  # item → character (worn/held, slot in edge props)
 EDGE_GRAPPLED = "grappled"  # character → character (grappler holds target)
 EDGE_CONNECTION = "connection"  # area ↔ area (via door/way nodes)
-EDGE_UNLOCKS = "unlocks"    # item → door
-EDGE_TRIGGERS = "triggers"  # node → logic/action
 EDGE_KNOWN = "known"        # ability/spell/power item → character
 
 # Spatial placement types - items positioned relative to a surface/area rather
@@ -940,6 +965,8 @@ EDGE_KNOWN = "known"        # ability/spell/power item → character
 SPATIAL_EDGE_TYPES = {EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT}
 
 # ── Legacy constants (kept for migration compat) ──
+EDGE_UNLOCKS = "unlocks"        # legacy: item -> door (migrated to on_use_on trigger)
+EDGE_TRIGGERS = "triggers"      # legacy: node -> logic (migrated to node.properties['triggers'])
 EDGE_LOCATION = "location"     # → in or carrying depending on target
 EDGE_CONTAINS = "contains"     # → in (direction reversed)
 EDGE_CARRIED_BY = "carried_by" # -> carrying
