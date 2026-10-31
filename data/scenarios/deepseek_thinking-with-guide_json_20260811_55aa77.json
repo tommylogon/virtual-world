@@ -3,7 +3,7 @@
   "areas": {
     "Millwood_Public_School": {
       "ambient_light": 80,
-      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee-a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
       "environment": {
         "air": "still",
         "light": "bright",
@@ -30,7 +30,7 @@
       "light_description": "bright",
       "name": "Millwood Public Schools",
       "properties": {
-        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee-a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
         "environment": {
           "air": "still",
           "light": "bright",
@@ -199,7 +199,7 @@
     },
     "Parr_House": {
       "ambient_light": 85,
-      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place-the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
       "environment": {
         "air": "clean, still",
         "light": "bright",
@@ -226,7 +226,7 @@
       "light_description": "bright",
       "name": "The Parr House",
       "properties": {
-        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place-the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
         "environment": {
           "air": "clean, still",
           "light": "bright",
@@ -250,7 +250,7 @@
         "id": "area_Millwood_Public_School",
         "name": "Millwood Public Schools",
         "properties": {
-          "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+          "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee-a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
           "environment": {
             "air": "still",
             "light": "bright",
@@ -322,7 +322,7 @@
         "id": "area_Parr_House",
         "name": "The Parr House",
         "properties": {
-          "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+          "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place-the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
           "environment": {
             "air": "clean, still",
             "light": "bright",
@@ -449,7 +449,7 @@
             "take",
             "read"
           ],
-          "description": "A well-worn textbook, its pages soft and yellowed. Someone has drawn a small, crude doodle in the margin—a circle with a lightning bolt through it, next to the initials 'JH.'",
+          "description": "A well-worn textbook, its pages soft and yellowed. Someone has drawn a small, crude doodle in the margin-a circle with a lightning bolt through it, next to the initials 'JH.'",
           "current_state": "normal",
           "uses": -1,
           "weight": 0.8,
@@ -465,9 +465,6 @@
             }
           },
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -510,9 +507,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -555,9 +549,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -600,9 +591,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -646,9 +634,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -691,9 +676,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -738,9 +720,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -772,7 +751,7 @@
             "examine",
             "take"
           ],
-          "description": "A silver-framed photo of a smiling family of five. A tall, massive man, a slender woman, and three children—two boys and a girl. The girl in the photo seems distant, her smile not quite reaching her eyes.",
+          "description": "A silver-framed photo of a smiling family of five. A tall, massive man, a slender woman, and three children-two boys and a girl. The girl in the photo seems distant, her smile not quite reaching her eyes.",
           "current_state": "normal",
           "uses": -1,
           "weight": 0.5,
@@ -783,9 +762,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [],
@@ -829,9 +805,6 @@
           ],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "contents": [],
           "aliases": [],
           "equip_slots": [
@@ -861,7 +834,7 @@
         "id": "player_Violet_Parr",
         "name": "Violet Parr",
         "properties": {
-          "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self—your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
+          "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self-your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
           "description": "A striking young woman with long black hair and fierce, intelligent blue-violet eyes. She wears a simple black dress that falls just above her knees, and her stance is one of careful, practiced poise. There's a quiet intensity to her, a sense that she's always holding something back.",
           "base_description": "An 18-year-old with long, sleek black hair and striking blue-violet eyes. Her waifish frame is deceptively strong, and her white skin is unblemished. She moves with a careful, deliberate grace, as if always aware of the space she occupies. She likes hairbands, skimpy dresses, and high heels.",
           "stats": {
@@ -965,7 +938,7 @@
         "id": "player_Jake_Halloway",
         "name": "Jake Halloway",
         "properties": {
-          "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret—your electromagnetism—and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
+          "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret-your electromagnetism-and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
           "description": "A lanky young man in a faded hoodie and jeans, with a smudge of grease on his cheek. His seagreen eyes are bright and intelligent, darting around as if seeing the electrical currents in the air. He has an easy, slouched posture, but his hands are always moving, fidgeting with a loose thread or a pen cap.",
           "base_description": "An 18-year-old with chaotic energy barely contained in a slim, utilitarian frame. He has seagreen eyes with golden flecks and short, stiff hair that always sticks up. He wears well-worn hoodies and jeans, and his glasses are rarely seen. He's smart, unfiltered, and oscillates between shy and hyperactively silly.",
           "stats": {
@@ -1942,7 +1915,7 @@
             {
               "type": "message",
               "params": {
-                "message": "The textbook is well-used, with many dog-eared pages. The doodle of the lightning bolt is definitely Jake's—you recognize his handwriting."
+                "message": "The textbook is well-used, with many dog-eared pages. The doodle of the lightning bolt is definitely Jake's-you recognize his handwriting."
               }
             }
           ],
@@ -1990,7 +1963,7 @@
             {
               "type": "message",
               "params": {
-                "message": "You look at the photograph. The girl—Violet—seems to be staring out of the frame with a distant, almost pleading look. The frame is heavy, and the glass is spotless."
+                "message": "You look at the photograph. The girl-Violet-seems to be staring out of the frame with a distant, almost pleading look. The frame is heavy, and the glass is spotless."
               }
             }
           ],
@@ -2331,7 +2304,7 @@
   "players": {
     "Violet_Parr": {
       "name": "Violet Parr",
-      "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self—your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
+      "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self-your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
       "description": "A striking young woman with long black hair and fierce, intelligent blue-violet eyes. She wears a simple black dress that falls just above her knees, and her stance is one of careful, practiced poise. There's a quiet intensity to her, a sense that she's always holding something back.",
       "base_description": "An 18-year-old with long, sleek black hair and striking blue-violet eyes. Her waifish frame is deceptively strong, and her white skin is unblemished. She moves with a careful, deliberate grace, as if always aware of the space she occupies. She likes hairbands, skimpy dresses, and high heels.",
       "stats": {
@@ -2430,7 +2403,7 @@
     },
     "Jake_Halloway": {
       "name": "Jake Halloway",
-      "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret—your electromagnetism—and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
+      "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret-your electromagnetism-and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
       "description": "A lanky young man in a faded hoodie and jeans, with a smudge of grease on his cheek. His seagreen eyes are bright and intelligent, darting around as if seeing the electrical currents in the air. He has an easy, slouched posture, but his hands are always moving, fidgeting with a loose thread or a pen cap.",
       "base_description": "An 18-year-old with chaotic energy barely contained in a slim, utilitarian frame. He has seagreen eyes with golden flecks and short, stiff hair that always sticks up. He wears well-worn hoodies and jeans, and his glasses are rarely seen. He's smart, unfiltered, and oscillates between shy and hyperactively silly.",
       "stats": {
@@ -2532,7 +2505,7 @@
   "rooms": {
     "Millwood_Public_School": {
       "ambient_light": 80,
-      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee-a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
       "environment": {
         "air": "still",
         "light": "bright",
@@ -2559,7 +2532,7 @@
       "light_description": "bright",
       "name": "Millwood Public Schools",
       "properties": {
-        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee-a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
         "environment": {
           "air": "still",
           "light": "bright",
@@ -2728,7 +2701,7 @@
     },
     "Parr_House": {
       "ambient_light": 85,
-      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place-the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
       "environment": {
         "air": "clean, still",
         "light": "bright",
@@ -2755,7 +2728,7 @@
       "light_description": "bright",
       "name": "The Parr House",
       "properties": {
-        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place-the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
         "environment": {
           "air": "clean, still",
           "light": "bright",

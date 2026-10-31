@@ -168,7 +168,7 @@ All nodes share this shape:
 
 **Key fields:**
 - `actions`: `examine`, `take`, `drop`, `use`, `use_on`, `eat`, `drink`, `read`, `light`, `toggle`, `open`, `close`, `break`, `throw`, `equip`, `unequip`, `inspect`, `search`, `activate`
-- **DEPRECATED - do not author:** `effect_target`/`effect_stat`/`effect_amount`. Legacy consumable shortcut; give food/drink an `on_eat`/`on_drink` trigger with `adjust_vital` instead (see §20.6; task-329 removes engine support).
+- **RETIRED - do not author:** `effect_target`/`effect_stat`/`effect_amount` (retired in task-332). Legacy consumable shortcut; give food/drink an `on_eat`/`on_drink` trigger in `properties.triggers` with `adjust_vital` instead (see §20.6).
 - `current_state`: `"normal"`, `"lit"`, `"on"`, `"broken"`, `"hidden"`, `"locked"`, `"unlocked"`, `"empty"`, `"depleted"`, `"extinguished"`, `"unlit"`, `"open"`, `"closed"`, `"jammed"`, `"frozen"`, `"wet"`, `"melted"`
 - `uses`: `-1` = unlimited
 - `tags`: `flammable`, `light_source`, `container`, `food`, `drink`, `weapon`, `readable`, `portable`, `sharp`, `metal`, `cloth`, `glass`, `organic`, `magic`, `cursed`, `electronic`, `document`, `tool`, `key`, `poison`, `medicine`, `explosive`, `ranged`, `armor`, `shield`
@@ -2159,11 +2159,11 @@ prefer noun phrases ("the grin of someone with a secret").
 
 ### 20.6 Consumables use triggers, not legacy props
 
-`effect_stat`/`effect_amount`/`effect_target` are deprecated legacy (task-329 removes
-engine support). Author an `on_eat`/`on_drink` logic_trigger with `adjust_vital`
-(+ `consume_item` for single-use food) and a `triggers` edge from the item. Verb coverage
+`effect_stat`/`effect_amount`/`effect_target` are retired legacy (task-332 removed
+engine support). Author an `on_eat`/`on_drink` trigger in `properties.triggers` with `adjust_vital`
+(+ `consume_item` for single-use food). Verb coverage
 is automatic: `eat` fires `on_eat`, and `use` falls back to `on_drink`/`on_eat` when no
-`on_use` trigger exists (`item_actions.py:1508–1516`).
+`on_use` trigger exists.
 
 ### 20.7 Library reuse pattern
 

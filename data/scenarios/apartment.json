@@ -94,14 +94,17 @@
           "actions": [
             "examine",
             "use",
-            "take"
+            "take",
+            "toggle"
           ],
           "description": "A heavy-duty flashlight.",
-          "effect_amount": 50,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "flashlight",
-          "uses": 5
+          "uses": 5,
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 50,
+          "current_state": "unlit"
         }
       ]
     },
@@ -132,11 +135,24 @@
             "use"
           ],
           "description": "A crisp, red apple.",
-          "effect_amount": 25,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "name": "apple",
-          "uses": 1
+          "uses": 1,
+          "triggers": [
+            {
+              "id": "trigger_apple_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "actions": [
@@ -144,11 +160,24 @@
             "use"
           ],
           "description": "A cold can of blue energy drink.",
-          "effect_amount": 40,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "name": "energy_drink",
-          "uses": 1
+          "uses": 1,
+          "triggers": [
+            {
+              "id": "trigger_energy_drink_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 40,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -179,22 +208,38 @@
             "use"
           ],
           "description": "A comfortable bed. Taking a nap will restore energy.",
-          "effect_amount": 50,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "name": "bed",
-          "uses": -1
+          "uses": -1,
+          "triggers": [
+            {
+              "id": "trigger_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 50,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "actions": [
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A bedside lamp.",
-          "effect_amount": 80,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "lamp",
-          "uses": -1
+          "uses": -1,
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 80,
+          "current_state": "unlit"
         }
       ]
     },
@@ -225,11 +270,24 @@
             "use"
           ],
           "description": "A bar of floral-scented soap.",
-          "effect_amount": 60,
-          "effect_stat": "Hygiene",
-          "effect_target": "player",
           "name": "soap",
-          "uses": 3
+          "uses": 3,
+          "triggers": [
+            {
+              "id": "trigger_soap_vital_hygiene",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hygiene",
+                    "amount": 60,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "actions": [
@@ -237,11 +295,24 @@
             "use"
           ],
           "description": "A minor healing potion left in the cabinet.",
-          "effect_amount": 50,
-          "effect_stat": "HP",
-          "effect_target": "player",
           "name": "medicine",
-          "uses": 1
+          "uses": 1,
+          "triggers": [
+            {
+              "id": "trigger_medicine_vital_hp",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "HP",
+                    "amount": 50,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     }

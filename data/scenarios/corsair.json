@@ -38,15 +38,28 @@
         ],
         "uses": 2,
         "weight": 0.2,
-        "effect_target": "player",
-        "effect_stat": "Hunger",
-        "effect_amount": 30,
         "action_costs": {
           "use": {
             "time": 1,
             "energy": 0
           }
-        }
+        },
+        "triggers": [
+          {
+            "id": "trigger_protein_pouch_vital_hunger",
+            "trigger_type": "on_use",
+            "effects": [
+              {
+                "type": "adjust_vital",
+                "params": {
+                  "stat": "Hunger",
+                  "amount": 30,
+                  "target": "self"
+                }
+              }
+            ]
+          }
+        ]
       },
       {
         "name": "water_pouch",
@@ -57,34 +70,50 @@
         ],
         "uses": 2,
         "weight": 0.3,
-        "effect_target": "player",
-        "effect_stat": "Thirst",
-        "effect_amount": 25,
         "action_costs": {
           "use": {
             "time": 1,
             "energy": 0
           }
-        }
+        },
+        "triggers": [
+          {
+            "id": "trigger_water_pouch_vital_thirst",
+            "trigger_type": "on_use",
+            "effects": [
+              {
+                "type": "adjust_vital",
+                "params": {
+                  "stat": "Thirst",
+                  "amount": 25,
+                  "target": "self"
+                }
+              }
+            ]
+          }
+        ]
       },
       {
         "name": "multitool",
         "description": "A Drake-issue multitool with flashlight mode.",
         "actions": [
           "examine",
-          "use"
+          "use",
+          "toggle"
         ],
         "uses": -1,
         "weight": 0.2,
-        "effect_target": "room",
-        "effect_stat": "light",
-        "effect_amount": 40,
         "action_costs": {
           "use": {
             "time": 0,
             "energy": 0
           }
-        }
+        },
+        "tags": [
+          "light_source"
+        ],
+        "light_level": 40,
+        "current_state": "unlit"
       },
       {
         "name": "data_pad",
@@ -97,7 +126,7 @@
       }
     ],
     "state": "awake",
-    "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump — the ship dropped out of quantum mid-travel and the crew hasn't been heard from in days. Your job is to figure out what happened and get the ship running again."
+    "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump - the ship dropped out of quantum mid-travel and the crew hasn't been heard from in days. Your job is to figure out what happened and get the ship running again."
   },
   "players": {
     "Crew": {
@@ -137,15 +166,28 @@
           ],
           "uses": 2,
           "weight": 0.2,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 30,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_protein_pouch_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "water_pouch",
@@ -156,34 +198,50 @@
           ],
           "uses": 2,
           "weight": 0.3,
-          "effect_target": "player",
-          "effect_stat": "Thirst",
-          "effect_amount": 25,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_water_pouch_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "multitool",
           "description": "A Drake-issue multitool with flashlight mode.",
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "uses": -1,
           "weight": 0.2,
-          "effect_target": "room",
-          "effect_stat": "light",
-          "effect_amount": 40,
           "action_costs": {
             "use": {
               "time": 0,
               "energy": 0
             }
-          }
+          },
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 40,
+          "current_state": "unlit"
         },
         {
           "name": "data_pad",
@@ -230,19 +288,22 @@
           "description": "Miki's smartphone with flashlight and voice recorder. Battery at 52%.",
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "uses": -1,
           "weight": 0.3,
-          "effect_target": "room",
-          "effect_stat": "light",
-          "effect_amount": 35,
           "action_costs": {
             "use": {
               "time": 0,
               "energy": 0
             }
-          }
+          },
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 35,
+          "current_state": "unlit"
         },
         {
           "name": "energy_drink",
@@ -253,15 +314,28 @@
           ],
           "uses": 1,
           "weight": 0.3,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 20,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_energy_drink_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "protein_bar",
@@ -272,15 +346,28 @@
           ],
           "uses": 1,
           "weight": 0.15,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 25,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_protein_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "water_bottle",
@@ -291,15 +378,28 @@
           ],
           "uses": 3,
           "weight": 0.4,
-          "effect_target": "player",
-          "effect_stat": "Thirst",
-          "effect_amount": 20,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "earbuds",
@@ -322,7 +422,7 @@
         }
       ],
       "state": "awake",
-      "personality": "You are Miki, an ASMR artist who got hired as 'audio specialist' on this ship by fudging your resume a little. You're way out of your depth, anxious about space, and terrified of the creepy ship. But you're trying your best to be useful and brave — especially after that cute programmer showed you this world. You ramble when nervous, notice sounds others don't, and your hands are always shaking. You're here to document everything for 'content' but also because you genuinely want to help."
+      "personality": "You are Miki, an ASMR artist who got hired as 'audio specialist' on this ship by fudging your resume a little. You're way out of your depth, anxious about space, and terrified of the creepy ship. But you're trying your best to be useful and brave - especially after that cute programmer showed you this world. You ramble when nervous, notice sounds others don't, and your hands are always shaking. You're here to document everything for 'content' but also because you genuinely want to help."
     }
   },
   "active_player": "Crew",
@@ -335,7 +435,7 @@
   "areas": {
     "Cargo Bay": {
       "name": "Cargo Bay",
-      "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls, and cargo netting bolted overhead. The massive cargo ramp is at the rear — currently sealed. To port, a door leads to the Scanning Station. To starboard, the Component Bay. Ahead, a reinforced door opens into the Main Habitation area. The air smells of engine coolant and old grease.",
+      "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls, and cargo netting bolted overhead. The massive cargo ramp is at the rear - currently sealed. To port, a door leads to the Scanning Station. To starboard, the Component Bay. Ahead, a reinforced door opens into the Main Habitation area. The air smells of engine coolant and old grease.",
       "environment": {
         "light": 40,
         "temperature": 15,
@@ -413,7 +513,7 @@
         },
         {
           "name": "fuel_canister",
-          "description": "A sealed fuel canister. Label: 'DRIVE FUEL — CLASS A'.",
+          "description": "A sealed fuel canister. Label: 'DRIVE FUEL - CLASS A'.",
           "actions": [
             "examine",
             "take"
@@ -423,7 +523,7 @@
         },
         {
           "name": "cargo_manifest",
-          "description": "A datapad showing cargo contents: medical supplies, food stores, ammunition, and one 'CLASSIFIED — RESEARCH' container.",
+          "description": "A datapad showing cargo contents: medical supplies, food stores, ammunition, and one 'CLASSIFIED - RESEARCH' container.",
           "actions": [
             "examine"
           ],
@@ -442,7 +542,7 @@
         },
         {
           "name": "hidden_keycard",
-          "description": "A keycard wedged in the floor grating. Label: 'COMPONENT ACCESS — LEVEL 3'.",
+          "description": "A keycard wedged in the floor grating. Label: 'COMPONENT ACCESS - LEVEL 3'.",
           "actions": [
             "examine",
             "take"
@@ -460,7 +560,7 @@
     },
     "Scanning Station": {
       "name": "Scanning Station",
-      "description": "A small room with a large curved console showing sensor readouts. A holographic display in the centre shows a 3D wireframe of the ship. The scanning array controls are here — currently showing 'NO SIGNAL'. A swivel chair sits in front of the main console. There's an empty mug on the desk.",
+      "description": "A small room with a large curved console showing sensor readouts. A holographic display in the centre shows a 3D wireframe of the ship. The scanning array controls are here - currently showing 'NO SIGNAL'. A swivel chair sits in front of the main console. There's an empty mug on the desk.",
       "environment": {
         "light": 55,
         "temperature": 18,
@@ -527,21 +627,34 @@
           ],
           "uses": 1,
           "weight": 0.1,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 15,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_energy_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     "Component Bay": {
       "name": "Component Bay",
-      "description": "The ship's component housing. Thick bundles of cable snake along the walls. Ship components are slotted into rack mounts — power plant, shield generator, quantum drive, coolers. Most status lights are amber or red. The quantum drive in the centre dominates the room, humming faintly. It smells hot.",
+      "description": "The ship's component housing. Thick bundles of cable snake along the walls. Ship components are slotted into rack mounts - power plant, shield generator, quantum drive, coolers. Most status lights are amber or red. The quantum drive in the centre dominates the room, humming faintly. It smells hot.",
       "environment": {
         "light": 35,
         "temperature": 26,
@@ -563,7 +676,7 @@
       "items": [
         {
           "name": "quantum_drive",
-          "description": "The quantum drive. A large cylindrical device with glowing conduits. Status: 'OFFLINE — EMERGENCY STOP TRIGGERED. RESTART REQUIRED.' A manual restart panel is on the side.",
+          "description": "The quantum drive. A large cylindrical device with glowing conduits. Status: 'OFFLINE - EMERGENCY STOP TRIGGERED. RESTART REQUIRED.' A manual restart panel is on the side.",
           "actions": [
             "examine",
             "use"
@@ -582,7 +695,7 @@
         },
         {
           "name": "shield_generator",
-          "description": "The shield generator. Status: 'OFFLINE — NO POWER.'",
+          "description": "The shield generator. Status: 'OFFLINE - NO POWER.'",
           "actions": [
             "examine"
           ],
@@ -741,15 +854,28 @@
           ],
           "uses": 1,
           "weight": 0.2,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 15,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_half_eaten_meal_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "coffee_maker",
@@ -770,15 +896,28 @@
           ],
           "uses": 5,
           "weight": 0.2,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 10,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_instant_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "ration_box",
@@ -790,15 +929,28 @@
           ],
           "uses": 6,
           "weight": 0.3,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 20,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_ration_box_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "water_dispenser",
@@ -812,7 +964,7 @@
         },
         {
           "name": "crew_board",
-          "description": "A whiteboard with shift schedules and notes. One note in red marker: 'DO NOT TOUCH QUANTUM DRIVE. — VASQUEZ'",
+          "description": "A whiteboard with shift schedules and notes. One note in red marker: 'DO NOT TOUCH QUANTUM DRIVE. - VASQUEZ'",
           "actions": [
             "examine"
           ],
@@ -823,7 +975,7 @@
     },
     "Bunk Area 1": {
       "name": "Bunk Area 1",
-      "description": "A tiny cabin labeled 'TORRES — CAPTAIN'. A narrow bunk with thin sheets, a small fold-out desk, and a locker. A framed photo sits on the desk. Someone left in a hurry — a jacket is draped over the chair.",
+      "description": "A tiny cabin labeled 'TORRES - CAPTAIN'. A narrow bunk with thin sheets, a small fold-out desk, and a locker. A framed photo sits on the desk. Someone left in a hurry - a jacket is draped over the chair.",
       "environment": {
         "light": 25,
         "temperature": 17,
@@ -852,15 +1004,28 @@
           ],
           "uses": -1,
           "weight": 20,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 40,
           "action_costs": {
             "rest": {
               "time": 1,
               "energy": -3
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_bunk_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 40,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "jacket",
@@ -874,7 +1039,7 @@
         },
         {
           "name": "photo",
-          "description": "A photo of Captain Torres — a sharp-eyed woman — with a golden retriever. Back reads: 'For luck — M.T.'",
+          "description": "A photo of Captain Torres - a sharp-eyed woman - with a golden retriever. Back reads: 'For luck - M.T.'",
           "actions": [
             "examine"
           ],
@@ -901,21 +1066,34 @@
           ],
           "uses": 1,
           "weight": 0.15,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 20,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_protein_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     "Bunk Area 2": {
       "name": "Bunk Area 2",
-      "description": "A tiny cabin labeled 'CHEN — PILOT'. A narrow bunk, a desk covered in navigation charts, and a locker. A flight helmet sits on the desk. The room smells faintly of engine oil — Chen was always tinkering.",
+      "description": "A tiny cabin labeled 'CHEN - PILOT'. A narrow bunk, a desk covered in navigation charts, and a locker. A flight helmet sits on the desk. The room smells faintly of engine oil - Chen was always tinkering.",
       "environment": {
         "light": 25,
         "temperature": 17,
@@ -937,22 +1115,35 @@
       "items": [
         {
           "name": "bunk",
-          "description": "Chen's bunk. Neatly made — the pilot was meticulous.",
+          "description": "Chen's bunk. Neatly made - the pilot was meticulous.",
           "actions": [
             "examine",
             "use"
           ],
           "uses": -1,
           "weight": 20,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 40,
           "action_costs": {
             "rest": {
               "time": 1,
               "energy": -3
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_bunk_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 40,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "flight_helmet",
@@ -975,7 +1166,7 @@
         },
         {
           "name": "emergency_codes",
-          "description": "A small card: 'QUANTUM EMERGENCY STOP — ALT+DEL+Q. FORCED RESTART — HOLD PWR+Q FOR 5 SEC.'",
+          "description": "A small card: 'QUANTUM EMERGENCY STOP - ALT+DEL+Q. FORCED RESTART - HOLD PWR+Q FOR 5 SEC.'",
           "actions": [
             "examine",
             "take"
@@ -993,21 +1184,34 @@
           ],
           "uses": 2,
           "weight": 0.4,
-          "effect_target": "player",
-          "effect_stat": "Thirst",
-          "effect_amount": 20,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     "Bunk Area 3": {
       "name": "Bunk Area 3",
-      "description": "A tiny cabin labeled 'OKAFOR — SYSTEMS'. A narrow bunk, a desk buried in technical manuals, and a locker. The walls are covered in sticky notes and hand-drawn diagrams. An engineer's tool belt is draped over the chair.",
+      "description": "A tiny cabin labeled 'OKAFOR - SYSTEMS'. A narrow bunk, a desk buried in technical manuals, and a locker. The walls are covered in sticky notes and hand-drawn diagrams. An engineer's tool belt is draped over the chair.",
       "environment": {
         "light": 25,
         "temperature": 17,
@@ -1036,15 +1240,28 @@
           ],
           "uses": -1,
           "weight": 20,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 40,
           "action_costs": {
             "rest": {
               "time": 1,
               "energy": -3
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_bunk_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 40,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "tool_belt",
@@ -1068,7 +1285,7 @@
         },
         {
           "name": "diagnosis_notes",
-          "description": "Sticky notes: 'QUANTUM CAPACITOR UNSTABLE — DO NOT ENGAGE', 'COOLANT LEAK IN SECTOR 7', 'SOMETHING IS IN THE WAKE — NOT A GHOST'",
+          "description": "Sticky notes: 'QUANTUM CAPACITOR UNSTABLE - DO NOT ENGAGE', 'COOLANT LEAK IN SECTOR 7', 'SOMETHING IS IN THE WAKE - NOT A GHOST'",
           "actions": [
             "examine"
           ],
@@ -1085,15 +1302,28 @@
           ],
           "uses": 3,
           "weight": 0.2,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 15,
           "action_costs": {
             "use": {
               "time": 1,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_beef_jerky_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -1121,7 +1351,7 @@
       "items": [
         {
           "name": "sink",
-          "description": "A small sink with a motion-activated faucet. The water works — it's recycled but clean.",
+          "description": "A small sink with a motion-activated faucet. The water works - it's recycled but clean.",
           "actions": [
             "examine",
             "use"
@@ -1157,15 +1387,28 @@
           ],
           "uses": 3,
           "weight": 0.5,
-          "effect_target": "player",
-          "effect_stat": "HP",
-          "effect_amount": 15,
           "action_costs": {
             "use": {
               "time": 2,
               "energy": 0
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_first_aid_vital_hp",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "HP",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -1288,7 +1531,7 @@
     },
     "Cockpit": {
       "name": "Cockpit",
-      "description": "The nerve centre of the Corsair. Two seats — pilot and co-pilot — face a wraparound console with navigation, flight controls, and system monitors. The main viewport shows the moonscape and distant mountains. Most screens are amber or red. A door to port leads to the Captain's Quarters. The pilot's seat has a worn cushion.",
+      "description": "The nerve centre of the Corsair. Two seats - pilot and co-pilot - face a wraparound console with navigation, flight controls, and system monitors. The main viewport shows the moonscape and distant mountains. Most screens are amber or red. A door to port leads to the Captain's Quarters. The pilot's seat has a worn cushion.",
       "environment": {
         "light": 55,
         "temperature": 18,
@@ -1377,7 +1620,7 @@
     },
     "Captain's Quarters": {
       "name": "Captain's Quarters",
-      "description": "A small private cabin off the cockpit — slightly larger than the crew bunks. A narrow bed, a personal desk with a locked drawer, and a small wardrobe. A window looks out to the side of the ship. It's tidy but lived-in.",
+      "description": "A small private cabin off the cockpit - slightly larger than the crew bunks. A narrow bed, a personal desk with a locked drawer, and a small wardrobe. A window looks out to the side of the ship. It's tidy but lived-in.",
       "environment": {
         "light": 30,
         "temperature": 17,
@@ -1406,15 +1649,28 @@
           ],
           "uses": -1,
           "weight": 20,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 50,
           "action_costs": {
             "rest": {
               "time": 1,
               "energy": -4
             }
-          }
+          },
+          "triggers": [
+            {
+              "id": "trigger_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 50,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "desk",
@@ -1473,7 +1729,7 @@
     },
     "Exterior Landing Pad": {
       "name": "Exterior Landing Pad",
-      "description": "The dusty surface of the moon, viewed from beneath the Corsair's hull. The ship's massive landing struts tower above. The cargo ramp is sealed. In the distance, your small shuttle sits on its own landing gear. The sky is purple-grey, stars visible. There is no atmosphere — you'd need a suit.",
+      "description": "The dusty surface of the moon, viewed from beneath the Corsair's hull. The ship's massive landing struts tower above. The cargo ramp is sealed. In the distance, your small shuttle sits on its own landing gear. The sky is purple-grey, stars visible. There is no atmosphere - you'd need a suit.",
       "environment": {
         "light": 85,
         "temperature": 2,
@@ -1514,7 +1770,7 @@
         },
         {
           "name": "comm_array",
-          "description": "The ship's external comm array. The dish is bent — damage sustained during the emergency stop.",
+          "description": "The ship's external comm array. The dish is bent - damage sustained during the emergency stop.",
           "actions": [
             "examine"
           ],

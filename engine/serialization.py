@@ -193,6 +193,100 @@ class WorldSerializer:
                 self.graph.remove_edge(edge.source, edge.target, EDGE_UNLOCKS)
             except Exception:
                 pass
+    def _migrate_legacy_item_effects(self):
+        """task-332: Migrate legacy effect_stat/effect_amount/effect_target props to triggers."""
+        vital_canonical = {
+            "hunger": "Hunger",
+            "energy": "Energy",
+            "thirst": "Thirst",
+            "hygiene": "Hygiene",
+            "hp": "HP",
+        }
+        for node in list(self.graph.nodes.values()):
+            if getattr(node, "type", None) != "item":
+                continue
+            props = getattr(node, "properties", None)
+            if not isinstance(props, dict):
+                continue
+            if not ("effect_stat" in props or "effect_amount" in props or "effect_target" in props):
+                continue
+
+            stat = props.pop("effect_stat", None)
+            amt = props.pop("effect_amount", None)
+            tgt = props.pop("effect_target", None)
+
+            if not stat:
+                continue
+
+            stat_str = str(stat).strip()
+            stat_lower = stat_str.lower()
+
+            if stat_lower in vital_canonical:
+                canon = vital_canonical[stat_lower]
+                try:
+                    amt_num = int(amt) if amt is not None else 0
+                except (ValueError, TypeError):
+                    amt_num = 0
+                triggers = props.setdefault("triggers", [])
+                if not isinstance(triggers, list):
+                    triggers = []
+                    props["triggers"] = triggers
+                triggers.append({
+                    "id": f"trigger_{node.id}_use_vital_{canon.lower()}",
+                    "trigger_type": "on_use",
+                    "conditions": [],
+                    "effects": [{
+                        "type": "adjust_vital",
+                        "params": {
+                            "vital": canon,
+                            "amount": amt_num,
+                            "stat": canon,
+                        }
+                    }]
+                })
+            elif stat_lower == "light":
+                tags = props.setdefault("tags", [])
+                if isinstance(tags, list):
+                    if "light_source" not in tags:
+                        tags.append("light_source")
+                elif isinstance(tags, str):
+                    tlist = [t.strip() for t in tags.split(",") if t.strip()]
+                    if "light_source" not in tlist:
+                        tlist.append("light_source")
+                    props["tags"] = tlist
+                if "light_level" not in props:
+                    props["light_level"] = "normal"
+                actions = props.setdefault("actions", [])
+                if isinstance(actions, list):
+                    if "toggle" not in actions:
+                        actions.append("toggle")
+                elif isinstance(actions, str):
+                    alist = [a.strip() for a in actions.split(",") if a.strip()]
+                    if "toggle" not in alist:
+                        alist.append("toggle")
+                    props["actions"] = alist
+                if "current_state" not in props:
+                    props["current_state"] = "unlit"
+            elif tgt == "connection":
+                triggers = props.setdefault("triggers", [])
+                if not isinstance(triggers, list):
+                    triggers = []
+                    props["triggers"] = triggers
+                triggers.append({
+                    "id": f"trigger_{node.id}_use_on_way",
+                    "trigger_type": "on_use_on",
+                    "conditions": [],
+                    "effects": [{
+                        "type": "set_state",
+                        "params": {
+                            "state": stat_str,
+                        }
+                    }]
+                })
+
+            if hasattr(self.graph, "_index_node_triggers"):
+                self.graph._index_node_triggers(node)
+
 
     def _serialize_area(self, area_id):
         node = self.graph.get_node(area_id)
@@ -879,6 +973,7 @@ class WorldSerializer:
     def load_from_dict(self, data):
         if "player" in data and "players" not in data:
             self._template_loader.load(data)
+            self._migrate_legacy_item_effects()
             return
 
         # task-463: collapse the authored character_<slug> node and the runtime
@@ -893,8 +988,10 @@ class WorldSerializer:
             self._normalize_item_node_actions()
             self._migrate_triggers_from_nodes_to_properties()
             self._migrate_unlocks_edges_to_triggers()
+            self._migrate_legacy_item_effects()
         else:
             self._legacy_loader.load(data)
+            self._migrate_legacy_item_effects()
 
 # task-439: a duplicate area display name is legal (ids are the identity)
         # but makes a name-only lookup ambiguous, so surface it at load rather

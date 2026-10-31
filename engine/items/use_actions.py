@@ -225,26 +225,6 @@ class UseActionsMixin:
             item_cost = item_node.properties.get("action_costs", {}).get("use", {})
             player_manager.apply_action("use", item_cost, player=player_manager.player)
 
-        effect_target = item_node.properties.get("effect_target")
-        effect_stat = item_node.properties.get("effect_stat")
-        effect_amount = item_node.properties.get("effect_amount")
-        if effect_target and effect_stat:
-            try:
-                amt = int(effect_amount)
-            except (ValueError, TypeError):
-                amt = 0
-            if effect_target == "self":
-                if effect_stat in player_manager.player.vitals:
-                    old = player_manager.player.vitals[effect_stat]
-                    new_val = max(0, min(100, old + amt))
-                    player_manager.player.vitals[effect_stat] = new_val
-                    result += f" Your {effect_stat} changes to {new_val}."
-            elif effect_target == "player" and effect_stat in player_manager.player.vitals:
-                old = player_manager.player.vitals[effect_stat]
-                new_val = max(0, min(100, old + amt))
-                player_manager.player.vitals[effect_stat] = new_val
-                result += f" Your {effect_stat} changes to {new_val}%."
-
         uses = item_node.properties.get("uses", -1)
         if uses > 0:
             uses -= 1
@@ -480,15 +460,6 @@ class UseActionsMixin:
             )
             if way_use_outputs:
                 return "\n".join(way_use_outputs)
-
-            effect_target = item_node.properties.get("effect_target")
-            if effect_target == "connection":
-                new_state = item_node.properties.get("effect_stat", "open")
-                way_node.properties["current_state"] = new_state
-                self.graph.nodes[way_node.id] = way_node
-                area_name = player_manager.current_area.name if player_manager.current_area else None
-                player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name} on the {target_name} - changed to {new_state}", area_name=area_name)
-                return f"You use the {item_name} on the {target_name}. It changes to {new_state}."
 
             raise ValueError(f"You try using the {item_name} on the {target_name}, but nothing happens.")
 

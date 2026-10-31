@@ -10631,9 +10631,6 @@
           "contents": [],
           "current_state": "normal",
           "description": " a single dusty overcoat.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "equip_slots": [
             "torso"
           ],

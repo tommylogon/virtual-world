@@ -3500,12 +3500,25 @@
             "use"
           ],
           "description": "quick hospital cafeteria snack.",
-          "effect_amount": 15,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "protein_bar",
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_inv_carmen_protein_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.673621
@@ -3536,12 +3549,25 @@
             "use"
           ],
           "description": "black coffee. he drinks it constantly.",
-          "effect_amount": 15,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_david_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6722226
@@ -3556,12 +3582,25 @@
             "use"
           ],
           "description": "last night's dinner, reheated.",
-          "effect_amount": 25,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "leftovers",
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_david_leftovers_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6723773
@@ -3608,12 +3647,25 @@
             "use"
           ],
           "description": "morning coffee, now cold.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_diego_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6739337
@@ -3661,12 +3713,25 @@
             "use"
           ],
           "description": "a dented metal flask. cheap whiskey inside.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "flask",
           "uses": 3,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_erin_flask_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.667077
@@ -3732,12 +3797,25 @@
             "use"
           ],
           "description": "the same turkey sandwich he has every day.",
-          "effect_amount": 20,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "sandwich",
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_greg_sandwich_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6701481
@@ -3752,12 +3830,25 @@
             "use"
           ],
           "description": "reusable water bottle for volunteering.",
-          "effect_amount": 20,
-          "effect_stat": "thirst",
-          "effect_target": "player",
           "name": "water_bottle",
           "uses": 3,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "id": "trigger_inv_haruka_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6706827
@@ -3855,12 +3946,25 @@
             "use"
           ],
           "description": "quick snack.",
-          "effect_amount": 15,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "energy_bar",
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_inv_jordan_energy_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6717033
@@ -3875,12 +3979,25 @@
             "use"
           ],
           "description": "a cup of instant ramen. dinner.",
-          "effect_amount": 20,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "instant_ramen",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_kaito_instant_ramen_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6705306
@@ -3911,12 +4028,25 @@
             "use"
           ],
           "description": "quick snack between classes.",
-          "effect_amount": 15,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "granola_bar",
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_inv_keisha_granola_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.669061
@@ -3979,12 +4109,25 @@
             "use"
           ],
           "description": "leftover eggs and bacon she made this morning.",
-          "effect_amount": 30,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "breakfast",
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_lera_breakfast_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6685867
@@ -4016,12 +4159,25 @@
             "use"
           ],
           "description": "a morning latte from the daily grind.",
-          "effect_amount": 15,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_lera_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6683638
@@ -4036,12 +4192,25 @@
             "use"
           ],
           "description": "a thermos of chai tea. always warm.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "chai_tea",
           "uses": 3,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_inv_mateo_chai_tea_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6751826
@@ -4089,12 +4258,25 @@
             "use"
           ],
           "description": "cup of noodles. perfect dinner.",
-          "effect_amount": 20,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "instant_noodles",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_maya_instant_noodles_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6729507
@@ -4125,12 +4307,25 @@
             "use"
           ],
           "description": "a can of monster energy. miki's fuel.",
-          "effect_amount": 20,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "monster_energy",
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_miki_monster_energy_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6634126
@@ -4142,15 +4337,18 @@
         "properties": {
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "miki's smartphone with flashlight and voice recorder. battery at 52%.",
-          "effect_amount": 35,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "phone",
           "uses": -1,
-          "weight": 0.3
+          "weight": 0.3,
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 35,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1787214266.6632924
@@ -4168,9 +4366,6 @@
             "drop"
           ],
           "description": "a squished chocolate protein bar.",
-          "effect_amount": 25,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "library_id": "protein_bar",
           "name": "protein_bar",
           "tags": [
@@ -4179,7 +4374,23 @@
             "supplies"
           ],
           "uses": 1,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "id": "trigger_inv_miki_protein_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6635346
@@ -4194,12 +4405,25 @@
             "use"
           ],
           "description": "a cat-themed water bottle. mostly full.",
-          "effect_amount": 20,
-          "effect_stat": "thirst",
-          "effect_target": "player",
           "name": "water_bottle",
           "uses": 3,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "id": "trigger_inv_miki_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.663659
@@ -4230,12 +4454,25 @@
             "use"
           ],
           "description": "a bottle of cheap red wine. her nightly companion.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "wine",
           "uses": 3,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_inv_mila_wine_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6697536
@@ -4266,12 +4503,25 @@
             "use"
           ],
           "description": "a takeaway cup from the daily grind.",
-          "effect_amount": 15,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_rose_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6680965
@@ -4302,12 +4552,25 @@
             "use"
           ],
           "description": "a granola bar in her bag.",
-          "effect_amount": 15,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "name": "snack",
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_inv_rose_snack_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6682343
@@ -4338,12 +4601,25 @@
             "use"
           ],
           "description": "chamomile tea. calms the nerves.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "tea",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_taylor_tea_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6720574
@@ -4374,12 +4650,25 @@
             "use"
           ],
           "description": "post-workout protein shake.",
-          "effect_amount": 25,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "protein_shake",
           "uses": 1,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_inv_valkyrie_protein_shake_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.67099
@@ -4411,12 +4700,25 @@
             "use"
           ],
           "description": "a cup from work. she steals them.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_victoria_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.668822
@@ -4434,9 +4736,6 @@
           ],
           "current_state": "normal",
           "description": "a copy of 'the nightingale' by kristin hannah, left on the gazebo bench. someone's going to miss this.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4456,9 +4755,6 @@
           ],
           "current_state": "normal",
           "description": "taylor's drawing setup. a tablet, stylus, and prints of digital artwork on the wall. the art is beautiful but melancholy.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4478,9 +4774,6 @@
           ],
           "current_state": "normal",
           "description": "an overflowing ashtray. erin smokes too much.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4500,9 +4793,6 @@
           ],
           "current_state": "normal",
           "description": "posters for the cure, siouxsie and the banshees, and bauhaus. victoria's taste.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4522,9 +4812,6 @@
           ],
           "current_state": "normal",
           "description": "jordan's lucky basketball. scuffed from years of use.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4545,9 +4832,6 @@
           ],
           "current_state": "normal",
           "description": "a bench facing the fountain. a good place to think.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4567,9 +4851,6 @@
           ],
           "current_state": "normal",
           "description": "greg's gray briefcase. inside: spreadsheets, tax forms, and a granola bar.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4589,9 +4870,6 @@
           ],
           "current_state": "normal",
           "description": "a cork bulletin board covered in flyers: 'lost cat', 'piano lessons', 'tuesday bible study - cancelled', and a sticky note that just says 'gary was here' in shaky handwriting.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4611,9 +4889,6 @@
           ],
           "current_state": "normal",
           "description": "framed it certifications on kaito's wall. he's proud of these.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4636,13 +4911,26 @@
           ],
           "current_state": "normal",
           "description": "a thermos of chai tea. always warm, always ready.",
-          "effect_amount": 15,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 3,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_item_chai_thermos_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6576304
@@ -4658,9 +4946,6 @@
           ],
           "current_state": "normal",
           "description": "a small tin of collected cigarette butts. someone's art project? or just a habit.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4683,13 +4968,26 @@
           ],
           "current_state": "normal",
           "description": "erin's backup pack. you could take one if you're desperate.",
-          "effect_amount": 5,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 20,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_item_cigarettes_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 5,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6558414
@@ -4707,9 +5005,6 @@
           ],
           "current_state": "normal",
           "description": "a pack of djarum blacks on the coffee table. victoria's brand.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": 8,
@@ -4730,9 +5025,6 @@
           ],
           "current_state": "normal",
           "description": "a standard coffee maker with a pot of half-drunk coffee. lera's handiwork.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4752,9 +5044,6 @@
           ],
           "current_state": "normal",
           "description": "a photo of three little girls - amy, anna, and riley - smiling on a beach. erin's entire world.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4774,9 +5063,6 @@
           ],
           "current_state": "normal",
           "description": "a 'welcome' mat with 'come back with snacks' written in marker underneath.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4796,9 +5082,6 @@
           ],
           "current_state": "hidden",
           "description": "a single dress, still in the shopping bag, shoved in the back of the closet. she's never worn it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 12,
             "grants_knowledge": "found_valkyrie_secret",
@@ -4822,9 +5105,6 @@
           ],
           "current_state": "normal",
           "description": "a set of dumbbells under the bed. she does curls while watching wrestling.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4844,9 +5124,6 @@
           ],
           "current_state": "normal",
           "description": "circuit boards, soldering iron, and tiny screws. kevin's side hobby - fixing things.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4868,13 +5145,26 @@
           ],
           "current_state": "normal",
           "description": "a small pyramid of monster energy cans. miki's fuel source.",
-          "effect_amount": 20,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_item_energy_cans_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6505022
@@ -4892,13 +5182,26 @@
           ],
           "current_state": "normal",
           "description": "a monster energy can - miki left it here last movie night.",
-          "effect_amount": 20,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_item_energy_drink_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6496153
@@ -4914,9 +5217,6 @@
           ],
           "current_state": "normal",
           "description": "a commercial espresso machine. victoria and rose operate this every day.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4936,9 +5236,6 @@
           ],
           "current_state": "normal",
           "description": "a small shrine with a candle and a photo of a man in construction gear - mateo's father, who died when he was 12.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4958,9 +5255,6 @@
           ],
           "current_state": "normal",
           "description": "several small vases with fresh flowers. lera brings them home from work.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -4980,9 +5274,6 @@
           ],
           "current_state": "normal",
           "description": "a small flower wreath on 1a's door. fresh flowers - lera must have made it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5004,9 +5295,6 @@
           ],
           "current_state": "hidden",
           "description": "someone's lost wallet, tucked behind the mailboxes. contains $47 and a library card for 'j. halloway'.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 12,
             "grants_knowledge": "found_wallet",
@@ -5030,9 +5318,6 @@
           ],
           "current_state": "normal",
           "description": "a small fountain in the town square. someone threw coins in for wishes.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5052,9 +5337,6 @@
           ],
           "current_state": "normal",
           "description": "a shelf of games: elden ring, baldur's gate 3, stardew valley. his escape.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5074,9 +5356,6 @@
           ],
           "current_state": "normal",
           "description": "miki's gaming rig. a monitor, headset, mechanical keyboard, and a collection of plushies watching over it like guardians.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5096,9 +5375,6 @@
           ],
           "current_state": "normal",
           "description": "a white gazebo. someone left a book on the bench inside.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5118,9 +5394,6 @@
           ],
           "current_state": "normal",
           "description": "'the pines sucks' with a smiley face. probably victoria's work.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5143,13 +5416,26 @@
           ],
           "current_state": "normal",
           "description": "keisha's emergency snack stash. she always has food for 'just in case.'",
-          "effect_amount": 15,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 4,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_item_granola_bars_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6522746
@@ -5166,9 +5452,6 @@
           ],
           "current_state": "normal",
           "description": "a classical acoustic guitar. the finish is worn from years of playing. it sounds like heartbreak.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5188,9 +5471,6 @@
           ],
           "current_state": "normal",
           "description": "faint guitar music drifting down from the attic above. mateo is practicing again.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5210,9 +5490,6 @@
           ],
           "current_state": "hidden",
           "description": "a note tucked under the couch cushion: 'i know what you are. - a friend.' carmen doesn't know it's here.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 14,
             "grants_knowledge": "found_mysterious_note",
@@ -5236,9 +5513,6 @@
           ],
           "current_state": "normal",
           "description": "a knife block on the kitchen counter. erin knows how to use every one.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5259,9 +5533,6 @@
           ],
           "current_state": "normal",
           "description": "two stolen lawn chairs. this is where everyone comes to smoke, talk, and watch the stars.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5281,9 +5552,6 @@
           ],
           "current_state": "hidden",
           "description": "a locked folder on the laptop. if opened, it contains songs written about a radio voice at 2 am. each one is signed '- m.s.r.' with a small drawn heart.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 15,
             "grants_knowledge": "found_mateo_secret",
@@ -5307,9 +5575,6 @@
           ],
           "current_state": "normal",
           "description": "a single black glove on the floor. probably haruka's - she's always losing things.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5329,9 +5594,6 @@
           ],
           "current_state": "normal",
           "description": "a single black sock on the floor. the eternal mystery.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5351,9 +5613,6 @@
           ],
           "current_state": "hidden",
           "description": "a shoebox of unsent letters, all addressed to lera hayes. the handwriting gets more desperate further in. the most recent one reads: 'i don't know how to say this without sounding crazy, but i think about you every day.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 12,
             "grants_knowledge": "found_kevin_letters",
@@ -5377,9 +5636,6 @@
           ],
           "current_state": "normal",
           "description": "a copy of 'better homes' with a coffee ring on the cover. the employee's reading material.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5399,9 +5655,6 @@
           ],
           "current_state": "normal",
           "description": "a row of brass mailboxes. most are stuffed with junk mail. 2b has a letter sticking out.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5421,9 +5674,6 @@
           ],
           "current_state": "normal",
           "description": "a stack of manga: spy x family, kaguya-sama, chainsaw man. some... questionable titles are hidden under the couch.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5443,9 +5693,6 @@
           ],
           "current_state": "normal",
           "description": "an old mattress someone dumped up here. rumor is a homeless kid sometimes sleeps here on warm nights. karin?",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5468,13 +5715,26 @@
           ],
           "current_state": "normal",
           "description": "carmen's meal-prep containers. labelled by day. she's organized even when exhausted.",
-          "effect_amount": 25,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 5,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_item_meal_prep_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6560323
@@ -5491,9 +5751,6 @@
           ],
           "current_state": "normal",
           "description": "deshawn's small midi keyboard. he practices late at night with headphones.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5513,9 +5770,6 @@
           ],
           "current_state": "normal",
           "description": "a hand-written 'no parking - i will tow you' sign. the handwriting is definitely erin's.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5538,13 +5792,26 @@
           ],
           "current_state": "normal",
           "description": "a cabinet full of instant noodle cups. chicken, beef, shrimp - maya's entire food pyramid.",
-          "effect_amount": 20,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 6,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_item_noodle_cupboard_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6526878
@@ -5560,9 +5827,6 @@
           ],
           "current_state": "normal",
           "description": "a framed photo of david and maya when she was 8. they're both smiling - she's on his shoulders. it's the only happy photo in the apartment.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5582,9 +5846,6 @@
           ],
           "current_state": "normal",
           "description": "your car, parked on the street. you forgot your keys - that's why you're here.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5607,13 +5868,26 @@
           ],
           "current_state": "normal",
           "description": "a box of protein bars in the pantry. emergency food.",
-          "effect_amount": 20,
-          "effect_stat": "hunger",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 5,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_item_protein_bars_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6512406
@@ -5632,13 +5906,26 @@
           ],
           "current_state": "normal",
           "description": "a tub of chocolate protein powder. half empty.",
-          "effect_amount": 25,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 10,
-          "weight": 1
+          "weight": 1,
+          "triggers": [
+            {
+              "id": "trigger_item_protein_powder_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.6548138
@@ -5654,9 +5941,6 @@
           ],
           "current_state": "normal",
           "description": "deshawn's notes for his late-night radio show. a song list, some personal reflections, and at the bottom of one page: 'who keeps requesting that song? i wish i knew who was listening at 2am.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5677,9 +5961,6 @@
           ],
           "current_state": "normal",
           "description": "a rice cooker with fresh rice inside. kaito always keeps it ready.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5701,9 +5982,6 @@
           ],
           "current_state": "hidden",
           "description": "a romance novel with a shirtless man on the cover, hidden inside a tax law book. mila's secret.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 10,
             "grants_knowledge": "found_mila_secret",
@@ -5727,9 +6005,6 @@
           ],
           "current_state": "normal",
           "description": "rose's artwork pinned to the board. anime-style portraits of customers. there's one that looks suspiciously like marcus chen.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5749,9 +6024,6 @@
           ],
           "current_state": "hidden",
           "description": "rose's sketchbook. the pages are filled with anime-style portraits and... several drawings of a boy with dark hair and glasses. his name 'marcus' is written in the margins.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {
             "dc": 10,
             "grants_knowledge": "found_rose_secret",
@@ -5775,9 +6047,6 @@
           ],
           "current_state": "normal",
           "description": "scattered sheets of handwritten music. one is titled '2 am (for no one)'. another is 'radio silence.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5797,9 +6066,6 @@
           ],
           "current_state": "normal",
           "description": "cracked concrete. someone drew a chalk star on it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5819,9 +6085,6 @@
           ],
           "current_state": "normal",
           "description": "diego's spanish textbook, dog-eared and annotated.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5841,9 +6104,6 @@
           ],
           "current_state": "normal",
           "description": "a small monitor showing four camera angles. one shows the front desk. another shows the back entrance. the quality is grainy.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5866,13 +6126,26 @@
           ],
           "current_state": "normal",
           "description": "a box of chamomile tea. taylor's stress relief.",
-          "effect_amount": 10,
-          "effect_stat": "energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 8,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_item_tea_box_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1787214266.652586
@@ -5888,9 +6161,6 @@
           ],
           "current_state": "normal",
           "description": "graduate-level social work textbooks. keisha's world.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5910,9 +6180,6 @@
           ],
           "current_state": "normal",
           "description": "'vacant' notices on most ways. the pines is half-empty.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5933,9 +6200,6 @@
           ],
           "current_state": "normal",
           "description": "a vending machine with stale snickers and flat sprite.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5956,9 +6220,6 @@
           ],
           "current_state": "normal",
           "description": "a vending machine with protein bars and energy drinks.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -5978,9 +6239,6 @@
           ],
           "current_state": "normal",
           "description": "haruka's volunteer schedule at the community center. every tuesday and thursday. 'ren's shift' is circled in pink.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -6000,9 +6258,6 @@
           ],
           "current_state": "normal",
           "description": "washer #3. has a permanent stain that no one can explain.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -6023,9 +6278,6 @@
           ],
           "current_state": "normal",
           "description": "a brita water filter on the counter. david makes sure it's always full.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -6045,9 +6297,6 @@
           ],
           "current_state": "normal",
           "description": "a worn welcome mat. it says 'come back with a warrant' - someone crossed out 'warrant' and wrote 'snacks'.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -6069,9 +6318,6 @@
           ],
           "current_state": "normal",
           "description": "a collection of cheap whiskey bottles. some empty, some not.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -6091,9 +6337,6 @@
           ],
           "current_state": "normal",
           "description": "two wine glasses hidden behind cereal boxes. mila's secret stash.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,

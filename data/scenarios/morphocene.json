@@ -1138,12 +1138,25 @@
             "use"
           ],
           "description": "A heavy glass jar of honey, half gone.",
-          "effect_amount": 20,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "name": "jar_of_honey",
           "uses": 2,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_inv_Bjorn_jar_of_honey_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1786022089.7584982
@@ -1158,12 +1171,25 @@
             "use"
           ],
           "description": "A strip of ethically-sourced synthetic-natural jerky. Chewy, smoky, good.",
-          "effect_amount": 15,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "name": "jerky_sample",
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_inv_Brenda_jerky_sample_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1786022089.7584763
@@ -1246,12 +1272,25 @@
             "use"
           ],
           "description": "A paper cup of black coffee, mostly untouched, going cold.",
-          "effect_amount": 10,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "name": "coffee",
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_inv_Mira_coffee_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1786022089.7585182
@@ -1283,9 +1322,6 @@
           ],
           "current_state": "normal",
           "description": "A box of the expensive salad mix with arugula and chicory, sitting on the high top shelf. The good kind.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1306,13 +1342,26 @@
           ],
           "current_state": "normal",
           "description": "A rumpled single bed with a soft grey blanket.",
-          "effect_amount": 30,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 30
+          "weight": 30,
+          "triggers": [
+            {
+              "id": "trigger_item_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1786022089.7581787
@@ -1328,9 +1377,6 @@
           ],
           "current_state": "normal",
           "description": "A wooden bus-stop bench. Someone has scratched a small rabbit into one corner.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1351,9 +1397,6 @@
           ],
           "current_state": "normal",
           "description": "A bent paperclip that gleams. Kest's crows brought it as tribute.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1375,13 +1418,26 @@
           ],
           "current_state": "normal",
           "description": "A soft cardamom bun, still warm.",
-          "effect_amount": 20,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_item_cardamom_bun_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1786022089.7582862
@@ -1397,9 +1453,6 @@
           ],
           "current_state": "normal",
           "description": "A worn stone memorial: 'To all who were made persons, and to the patience of those who waited seventy years for it to be law.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1419,9 +1472,6 @@
           ],
           "current_state": "normal",
           "description": "Carchar's stand, with a stack of wrapped fish sandwiches.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1441,9 +1491,6 @@
           ],
           "current_state": "normal",
           "description": "Brenda's stand piled with jerky strips and sundries.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1463,9 +1510,6 @@
           ],
           "current_state": "normal",
           "description": "A weighing scale in the produce section.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,
@@ -1485,9 +1529,6 @@
           ],
           "current_state": "normal",
           "description": "A half-open sketchbook on the desk, filled with quick portraits of the neighborhood demis.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "skill_check": {},
           "tags": [],
           "uses": -1,

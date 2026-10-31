@@ -3732,9 +3732,6 @@
             "use"
           ],
           "description": "A handheld EMF meter. It can detect electromagnetic fields. Currently sitting at a steady 0.5 mG.",
-          "effect_amount": -5,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "emf_reader",
           "skill_check": {
             "dc": 10,
@@ -3760,15 +3757,14 @@
           },
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A heavy-duty LED flashlight. Battery is at about 60%. Has a strobe mode.",
-          "effect_amount": 50,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "flashlight",
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "triggers": [
             {
@@ -3780,7 +3776,9 @@
             }
           ],
           "uses": 25,
-          "weight": 0.3
+          "weight": 0.3,
+          "light_level": 50,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3798,18 +3796,19 @@
           },
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A Zippo-style lighter. Windproof and reliable.",
-          "effect_amount": 20,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "lighter",
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": 50,
-          "weight": 0.1
+          "weight": 0.1,
+          "light_level": 20,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3846,12 +3845,25 @@
             "use"
           ],
           "description": "A wrapped protein bar from Elena's emergency kit. Dry and chalky but filling.",
-          "effect_amount": 35,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "name": "protein_bar",
           "uses": 1,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_Elena Vance_protein_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 35,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3872,12 +3884,25 @@
             "use"
           ],
           "description": "A half-full plastic water bottle with a paranormal investigation logo. Lukewarm but clean.",
-          "effect_amount": 30,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "name": "water_bottle",
           "uses": 2,
-          "weight": 0.5
+          "weight": 0.5,
+          "triggers": [
+            {
+              "id": "trigger_inv_Elena Vance_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3914,12 +3939,25 @@
             "use"
           ],
           "description": "A slightly crushed granola bar from her bag. Chocolate chip - her favorite.",
-          "effect_amount": 30,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "name": "granola_bar",
           "uses": 1,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "id": "trigger_inv_Miki_granola_bar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3937,18 +3975,19 @@
           },
           "actions": [
             "examine",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "Miki's smartphone with a flashlight app and voice recorder. Battery at 47%.",
-          "effect_amount": 35,
-          "effect_stat": "light",
-          "effect_target": "room",
           "name": "phone",
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": -1,
-          "weight": 0.3
+          "weight": 0.3,
+          "light_level": 35,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -3969,12 +4008,25 @@
             "use"
           ],
           "description": "A small power bank for her phone. About 30% charged.",
-          "effect_amount": 5,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "name": "portable_charger",
           "uses": 3,
-          "weight": 0.2
+          "weight": 0.2,
+          "triggers": [
+            {
+              "id": "trigger_inv_Miki_portable_charger_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 5,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -4011,12 +4063,25 @@
             "use"
           ],
           "description": "A cute reusable water bottle with cat stickers. Mostly full.",
-          "effect_amount": 25,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "name": "water_bottle",
           "uses": 3,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "id": "trigger_inv_Miki_water_bottle_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.327297
@@ -4079,9 +4144,6 @@
             "examine"
           ],
           "description": "A stone altar draped in dusty black cloth. A shallow depression in the shape of a skull sits at its center, lined with faded runes. This is where the crystal skull belongs - the altar in the crypt, just as the journal said. When placed here, it might break the curse... or seal it forever.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4101,9 +4163,6 @@
             "examine"
           ],
           "description": "A dried apple core someone left here decades ago. Brown and shriveled, not edible.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4124,9 +4183,6 @@
             "take"
           ],
           "description": "A small apple tree with a few shriveled but edible apples on the lower branches. The tree looks ancient but stubbornly clings to life.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4147,9 +4203,6 @@
             "take"
           ],
           "description": "A folded letter from inside the sarcophagus: 'If you're reading this, the curse has taken me as it took the others. I write this in the dark, trapped in my own tomb, waiting for the end. I should never have brought the skull here. It whispers constantly now. It wants Eleanor - the real Eleanor, my little girl. It wants to use her body. I thought I was protecting my family. I've doomed us all. If you carry the skull, know this: placing it on the altar will free Eleanor's spirit. But something else will be released too. Choose wisely. - Augustus Blackwood, October 31st, 1891, 3:17 AM'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -4169,9 +4222,6 @@
             "examine"
           ],
           "description": "A large oak barrel. It smells strongly of vinegar - whatever wine was in here has long since turned. But the barrel itself is solid, and the iron bands are intact.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4197,14 +4247,27 @@
             "use"
           ],
           "description": "A grand four-poster bed with moth-eaten velvet curtains. The mattress is surprisingly comfortable despite its age - the feathers have settled into a perfect contour.",
-          "effect_amount": 100,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 100
+          "weight": 100,
+          "triggers": [
+            {
+              "id": "trigger_item_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 100,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3222942
@@ -4225,14 +4288,27 @@
             "use"
           ],
           "description": "A narrow iron bed with a thin, stained mattress. The sheets are yellowed with age. Someone slept here recently - the pillow is dented.",
-          "effect_amount": 20,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 30
+          "weight": 30,
+          "triggers": [
+            {
+              "id": "trigger_item_bed_g1_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3232946
@@ -4247,9 +4323,6 @@
             "examine"
           ],
           "description": "Dark, ancient blood stains cover the floor and walls. Some are recent.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4270,9 +4343,6 @@
             "take"
           ],
           "description": "A faded blue silk ribbon tied in a lover's knot. It has been here for over a century, yet the silk is still soft and untorn.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -4292,9 +4362,6 @@
             "examine"
           ],
           "description": "The window is boarded from the outside - someone didn't want anyone looking in. Or didn't want anyone climbing out.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4315,9 +4382,6 @@
             "take"
           ],
           "description": "A human femur bone lying on the floor near a shattered sarcophagus lid. It's old and brittle.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4337,9 +4401,6 @@
             "examine"
           ],
           "description": "Scattered bones on the floor - some animal, some human. One skull has a neat hole drilled through the crown.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4359,9 +4420,6 @@
             "examine"
           ],
           "description": "One shelf contains a series of identical books: 'Arcane Heraldry: Volumes I through XIV.' They're all the same book republished with different covers. The shelf behind them is hollow - it's a door.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4382,9 +4440,6 @@
             "take"
           ],
           "description": "A small brass key hidden under a loose stone near Eleanor's grave. The stone was recently disturbed.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 12,
@@ -4409,9 +4464,6 @@
             "take"
           ],
           "description": "A small brass key on the floor near the table, half-hidden in shadow. It's identical to the one from the graveyard.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 10,
@@ -4435,9 +4487,6 @@
             "examine"
           ],
           "description": "A loaf of bread on the counter, now rock-hard and covered in green mold. It's been here for 130 years.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4464,14 +4513,27 @@
             "use"
           ],
           "description": "A dusty plate with the dried remains of bread rolls, now rock-hard. Not appetizing, but technically edible if you're desperate enough.",
-          "effect_amount": 15,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_item_bread_plate_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -4486,9 +4548,6 @@
             "examine"
           ],
           "description": "A brass key that has been ritually broken in half and bound with an occult heat-seal. The two halves, when joined, form a complete key. The tag reads: 'Eleanor's Hope Chest - never to be opened.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -4508,9 +4567,6 @@
             "examine"
           ],
           "description": "A small silver tray on the entrance table. Several yellowed calling cards sit on it: 'Augustus Blackwood, Esq.', 'Mrs. Cordelia Blackwood', and three smaller ones for the children. A family frozen in time.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4534,19 +4590,20 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "An unmarked black candle on a small table. It's unused but has been carved with tiny runes along its length.",
-          "effect_amount": 35,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": 10,
-          "weight": 0.3
+          "weight": 0.3,
+          "light_level": 35,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -4565,17 +4622,19 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A short, unused tallow candle on the table. It has never been lit.",
-          "effect_amount": 30,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
-          "tags": [],
+          "tags": [
+            "light_source"
+          ],
           "uses": 8,
-          "weight": 0.2
+          "weight": 0.2,
+          "light_level": 30,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3222942
@@ -4594,19 +4653,20 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A half-melted candle on a crate. The wax has formed a small pool around its base.",
-          "effect_amount": 25,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": 5,
-          "weight": 0.2
+          "weight": 0.2,
+          "light_level": 25,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3252974
@@ -4622,9 +4682,6 @@
             "take"
           ],
           "description": "A brass wall sconce with a half-melted candle. The wax has dripped down in frozen rivulets. The candle was extinguished recently - the wick is still slightly warm.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4647,17 +4704,19 @@
           },
           "actions": [
             "examine",
-            "take"
+            "take",
+            "toggle"
           ],
           "description": "A candle stub on the bedside table, burned down to almost nothing. The wax is still slightly warm.",
-          "effect_amount": 15,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
-          "tags": [],
+          "tags": [
+            "light_source"
+          ],
           "uses": 1,
-          "weight": 0.05
+          "weight": 0.05,
+          "light_level": 15,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3252974
@@ -4673,9 +4732,6 @@
             "take"
           ],
           "description": "A heavy silver candlestick, one of a set of eight. This one is slightly bent, as if it was used to strike something. There's a dark stain near the base.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4702,14 +4758,27 @@
             "use"
           ],
           "description": "A dusty jar of old hard candies on the dresser. They've crystallized over the decades but are still technically edible. The jar is shaped like a teddy bear.",
-          "effect_amount": 10,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 3,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "id": "trigger_item_candy_jar_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3232946
@@ -4731,14 +4800,27 @@
             "use"
           ],
           "description": "A jar of preserved peaches. The seal looks intact. The liquid inside is cloudy but the peaches themselves look surprisingly edible.",
-          "effect_amount": 30,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.8
+          "weight": 0.8,
+          "triggers": [
+            {
+              "id": "trigger_item_canned_peaches_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -4753,9 +4835,6 @@
             "examine"
           ],
           "description": "A crystal chandelier thick with cobwebs. It creaks ominously above you, swaying slightly despite no draft.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4781,14 +4860,27 @@
             "use"
           ],
           "description": "A small wooden bed with a faded quilt patterned with stars and moons. The pillow is dented. The sheets are cold, but they smell faintly of lavender soap.",
-          "effect_amount": 30,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 20
+          "weight": 20,
+          "triggers": [
+            {
+              "id": "trigger_item_child_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3252974
@@ -4804,9 +4896,6 @@
             "take"
           ],
           "description": "A child's leather diary, the pages yellowed and crumbly. The recurring phrase, written over and over in different colors of ink: 'The skull watches. The skull waits. Eleanor is lonely. She wants me to play with her but she's not real anymore. Mother says don't go near the study. But the skull calls me at night.' The final entry: 'Tonight she's going to show me how to fly.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4827,9 +4916,6 @@
             "take"
           ],
           "description": "Several children's drawings pinned to the wall, yellowed and faded. Most show a happy family. But one drawing stands out: a stick-figure family of eight, with one figure - the smallest - drawn in heavy black crayon and crossed out violently. Beneath it, in a child's unsteady handwriting: 'Eleanor is lonely. She wants a friend. I don't want to go with her.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4850,9 +4936,6 @@
             "take"
           ],
           "description": "A small white child's dress, size for a three-year-old. The hem is stained with something dark that has long since dried to brown. No dress this small belongs in the master bedroom.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -4872,9 +4955,6 @@
             "examine"
           ],
           "description": "A box of old Christmas decorations: tinsel, glass ornaments, and a small wooden angel with chipped paint. The angel's face has been worn smooth, but beneath the base, someone carved: 'Save us.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4894,9 +4974,6 @@
             "examine"
           ],
           "description": "An empty rack that once held butcher's tools. Only one remains - and it's in The Butcher's hand.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4916,9 +4993,6 @@
             "examine"
           ],
           "description": "A tall mahogany coat rack holding a single dusty overcoat. The coat has a strange shape - something is in the pocket.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4938,9 +5012,6 @@
             "examine"
           ],
           "description": "An old hand-crank coffee grinder on the counter. There are still coffee beans inside - they've carbonized over the decades but might still produce something drinkable.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -4966,14 +5037,27 @@
             "use"
           ],
           "description": "A narrow cot with a thin, stained mattress. A rough wool blanket is folded at the foot. The pillow has a deep impression, as if someone slept here very recently.",
-          "effect_amount": 30,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 15
+          "weight": 15,
+          "triggers": [
+            {
+              "id": "trigger_item_cot_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 30,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3252974
@@ -4995,14 +5079,27 @@
             "use"
           ],
           "description": "A tin of stale crackers, now soft from humidity. Disgusting, but technically edible and filling.",
-          "effect_amount": 20,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 2,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_item_crackers_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -5017,9 +5114,6 @@
             "examine"
           ],
           "description": "A wooden crate stamped 'PROVISIONS - 1889'. Nailed shut. The wood is swollen with moisture. You'd need a tool to open it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5039,9 +5133,6 @@
             "examine"
           ],
           "description": "An old wooden crib with a threadbare blanket. A worn stuffed rabbit lies inside, one button eye missing. The crib rocks slightly on its own.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5062,9 +5153,6 @@
             "take"
           ],
           "description": "A perfectly carved skull made of clear crystal, slightly larger than a human skull. It pulses with an eerie inner light. Touching it sends a chill through your entire body. Tiny fractures spiderweb through its surface, as if it's been dropped. When you hold it, you hear a faint, distorted whisper.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5085,9 +5173,6 @@
             "take"
           ],
           "description": "A skull carved from a single piece of crystal. It pulses with a faint, internal light, and when you hold it, you hear a child's voice whisper 'Mama?' in your mind. This is the source of the curse - the key to breaking it lies in the crypt.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5107,9 +5192,6 @@
             "examine"
           ],
           "description": "A wooden cupboard. Inside, dusty plates and a few intact glasses. A jar of what looks like pickled vegetables sits on the top shelf - the seal is still intact.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5129,9 +5211,6 @@
             "examine"
           ],
           "description": "A thick, dead vine that has grown through a broken window. It's woody and brown, but when you touch it, it feels... warm. Alive.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5151,9 +5230,6 @@
             "examine"
           ],
           "description": "An old oak desk with several drawers. One drawer is slightly open, as if left in haste. Papers and maps are scattered across the surface.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5174,9 +5250,6 @@
             "take"
           ],
           "description": "A leather diary with the initials 'C.B.' - Cordelia Blackwood's diary. The final entry reads: 'The skull must never be moved. It holds the spirit of the firstborn, little Eleanor. Augustus refuses to listen. The spirit in the study grows stronger each night. Tonight it spoke to me - it said we would all be together forever. I'm so frightened.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5196,9 +5269,6 @@
             "examine"
           ],
           "description": "The dirt path leading from the garden gate to the mausoleum is well-worn. Despite the overgrown garden, this path has been used recently. Footprints in the damp earth - a woman's shoes, narrow heels, size six or seven.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5219,9 +5289,6 @@
             "take"
           ],
           "description": "A porcelain doll with cracked, vacant eyes that seem to stare directly through you. Its dress is old-fashioned, lace-trimmed. One arm is broken, revealing the hollow porcelain interior. Something is stuffed inside.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5241,9 +5308,6 @@
             "examine"
           ],
           "description": "A small drawer containing a diary, a silver letter opener, and a strange compass that doesn't point north.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5263,9 +5327,6 @@
             "examine"
           ],
           "description": "A thick layer of dust covers everything. No one has been here in months - except the fresh footprints leading from the door toward the library. They're small, like a child's, but there are no children here.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5285,9 +5346,6 @@
             "examine"
           ],
           "description": "The floor of the secret study is covered in a fine layer of dust - except for a single set of footprints leading to the pedestal and back. Small footprints, like a child's bare feet.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5307,9 +5365,6 @@
             "examine"
           ],
           "description": "A daguerreotype on the sideboard showing the Blackwood family: Augustus, Eleanor, and five children ranging from a teenager to a baby. The youngest child - a girl of about three - has a blank, blurred face, as if she moved during the exposure. But photography in 1891 required sitting still for minutes.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5329,9 +5384,6 @@
             "examine"
           ],
           "description": "A cluster of smaller headstones bearing the Blackwood name. The children: 'Thomas, age 12. - Elizabeth, age 10. - James, age 8. - Margaret, age 6. - Eleanor the Younger, age 3.' But these graves are empty - they were never buried here. The stones were placed as memorials.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5351,9 +5403,6 @@
             "examine"
           ],
           "description": "A cold marble fireplace with a soot-stained interior. The ash has been disturbed - something was hidden here and recently removed. The strange compass points here for a reason.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5373,9 +5422,6 @@
             "examine"
           ],
           "description": "A burlap sack of flour, half full. Tiny holes suggest mice have been at it. The flour has clumped but is still usable.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5395,9 +5441,6 @@
             "examine"
           ],
           "description": "A patch of wilted roses, their petals brown and curling. But one bush defies the decay - a single red rose bush blooms vibrantly, as if it's June instead of October.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5418,9 +5461,6 @@
             "use"
           ],
           "description": "A stone fountain with a weeping angel statue, its face worn smooth by time and weather. The basin holds dark water, leaves, and a surprising amount of moss. Something glints at the bottom.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5440,9 +5480,6 @@
             "examine"
           ],
           "description": "A stone bench under a gnarled oak, overlooking the garden. Someone left a thermos here long ago. The oak's roots have grown around the bench's legs.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5463,9 +5500,6 @@
             "take"
           ],
           "description": "A delicate gold ring set with a small garnet. Inside: 'Forever, A.B.' - Augustus Blackwood's gift to someone who wasn't his wife.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5485,9 +5519,6 @@
             "examine"
           ],
           "description": "At the far end of the hall, near the portrait, you catch a glimpse of something in your peripheral vision. A young girl in a white nightgown, standing perfectly still. When you turn to look directly, she's gone.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5508,9 +5539,6 @@
             "take"
           ],
           "description": "A leather case containing reading glasses. The prescription might still work. A small brass plate reads: 'Property of Professor Aldridge - University of London, Occult Studies Department.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5531,9 +5559,6 @@
             "take"
           ],
           "description": "A silver hairbrush with long strands of gray hair tangled in the bristles. Not Eleanor's hair - this is darker, coarser. A servant's?",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5553,9 +5578,6 @@
             "examine"
           ],
           "description": "A weathered headstone, older than the others: 'Eleanor Blackwood, 1847-1891. May her soul find peace. Forgive us, Eleanor.' The date is unusual - she died the same year the family vanished. Fresh lilies lie at its base.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5576,9 +5598,6 @@
             "take"
           ],
           "description": "A tiny scrap of paper that was hidden inside the broken doll: 'The skull is in the study. Take it to Mother's grave. She'll know what to do. - E.' The handwriting is a child's, but the message is clear.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5598,9 +5617,6 @@
             "examine"
           ],
           "description": "One of the wine racks is shallower than the others. Behind it, a small recess holds a single leather-bound book. The title: 'Rituals of Binding and Release.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5620,9 +5636,6 @@
             "examine"
           ],
           "description": "A brass incense burner on a small shelf. The ashes inside are cold but smell of frankincense and something unfamiliar - something acrid.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5643,9 +5656,6 @@
             "take"
           ],
           "description": "A heavy iron key with a skull-shaped bow. Hidden behind some papers on the desk under a map of the mansion grounds.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 14,
@@ -5676,14 +5686,27 @@
             "use"
           ],
           "description": "A glass jar of crystallized honey. Honey never spoils. It's still perfectly edible, though you'll need to scrape it out.",
-          "effect_amount": 15,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.6
+          "weight": 0.6,
+          "triggers": [
+            {
+              "id": "trigger_item_jar_of_honey_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -5705,9 +5728,6 @@
             "use"
           ],
           "description": "A strip of dried meat hanging from a hook above the hearth. It's old but well-preserved by the dry air. Still edible, if you're not squeamish.",
-          "effect_amount": 20,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": true,
           "skill_check": {
             "dc": 8,
@@ -5716,7 +5736,23 @@
           },
           "tags": [],
           "uses": 1,
-          "weight": 0.1
+          "weight": 0.1,
+          "triggers": [
+            {
+              "id": "trigger_item_jerky_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -5731,9 +5767,6 @@
             "examine"
           ],
           "description": "A small wooden box inlaid with mother-of-pearl. It's locked with a tiny brass lock - the kind that takes a very small key.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5754,9 +5787,6 @@
             "take"
           ],
           "description": "A leather-bound journal. The final entry, written in shaky handwriting: 'The skull is the key. Take it to the altar in the crypt beneath the graveyard. But be warned - the ways will seal behind those who dare disturb the firstborn's rest. I have seen what happens to those who try to leave. God forgive me, I cannot stay. - Augustus Blackwood, October 30th, 1891'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5776,9 +5806,6 @@
             "examine"
           ],
           "description": "An old kettle. It's empty but the spout still whistles faintly when you touch it, as if echoing a sound from another time.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5799,9 +5826,6 @@
             "take"
           ],
           "description": "Half of a broken brass key. The teeth are intricate and finely crafted. Someone deliberately broke this key in half. The other half must be somewhere in the mansion.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5822,9 +5846,6 @@
             "take"
           ],
           "description": "The other half of a broken brass key. The break is clean, matching the fragment you found in the watering can. Together, they would form a complete key.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5845,9 +5866,6 @@
             "take"
           ],
           "description": "A large butcher knife on the counter, still sharp after all these years. The blade is pristine - recently cleaned.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5868,9 +5886,6 @@
             "take"
           ],
           "description": "An old oil lantern hanging from a nail by the stairs. Empty, but the wick is intact. If you had oil, it would work perfectly.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5891,9 +5906,6 @@
             "take"
           ],
           "description": "A silver letter opener with an ornate serpent handle. It's surprisingly sharp. The serpent's eyes are tiny rubies.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5914,9 +5926,6 @@
             "take"
           ],
           "description": "A crumpled but legible letter: 'To whoever finds this - I, James Blackwood, Head of Staff at Blackwood Manor, write this in desperation. The skull in the study whispers to me at night. It knows my name. It calls me when no one else is around. I saw it move of its own accord. The master is obsessed. The missus weeps constantly. The children are afraid. Something terrible is going to happen. I'm leaving tonight. God have mercy on whoever reads this. - J. Blackwood, October 30th, 1891'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5936,9 +5945,6 @@
             "examine"
           ],
           "description": "A small metal locker. Inside: a neatly folded servant's uniform and a crumpled letter. A silver crucifix hangs from a nail inside - identical to the one from the garden fountain.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -5959,9 +5965,6 @@
             "take"
           ],
           "description": "A tarnished silver locket containing a miniature portrait of a young woman and a lock of dark hair. The initials 'E.B.' are engraved on the inside. Not Eleanor Blackwood the elder - Eleanor the younger.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -5982,9 +5985,6 @@
             "take"
           ],
           "description": "A bundle of letters tied with a faded silk ribbon. The handwriting is elegant and desperate. 'My dearest Augustus, I cannot bear another night in that cold house while she lies in the next room. The child we made deserves more than this secret. - M.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -6010,14 +6010,27 @@
             "use"
           ],
           "description": "A small music box with a dancing ballerina. When opened, it plays a haunting, beautiful lullaby. The tune is strangely soothing, and as it plays, the whispers in the walls seem to harmonize with it.",
-          "effect_amount": 10,
-          "effect_stat": "Energy",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": -1,
-          "weight": 0.4
+          "weight": 0.4,
+          "triggers": [
+            {
+              "id": "trigger_item_lullaby_box_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3242953
@@ -6033,9 +6046,6 @@
             "take"
           ],
           "description": "A bundle of love letters between Margaret Holloway and James Blackwood (the head of staff, not the patriarch). Their story was forbidden - a servant and a woman who was Augustus's mistress. The letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -6059,21 +6069,23 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A small box of matches has fallen from the coat pocket - a matchbox with a faded illustration of a raven. It rattles - there are several inside.",
-          "effect_amount": 40,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": true,
           "skill_check": {
             "dc": 8,
             "grants_knowledge": "found_matches",
             "skill": "Perception"
           },
-          "tags": [],
+          "tags": [
+            "light_source"
+          ],
           "uses": 8,
-          "weight": 0.1
+          "weight": 0.1,
+          "light_level": 40,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.318297
@@ -6092,17 +6104,19 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A box of matches on a shelf near the stairs, somehow still dry. About a dozen inside.",
-          "effect_amount": 40,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
-          "tags": [],
+          "tags": [
+            "light_source"
+          ],
           "uses": 12,
-          "weight": 0.1
+          "weight": 0.1,
+          "light_level": 40,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3212945
@@ -6117,9 +6131,6 @@
             "examine"
           ],
           "description": "Rows of rusted meat hooks hanging from the ceiling. They clink together softly, though there's no breeze.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6139,9 +6150,6 @@
             "examine"
           ],
           "description": "A rusted medicine cabinet with a mirrored door. Inside: a bottle of aspirin (expired 1890), rolls of bandages, a bottle of antiseptic that still smells potent, and a small glass vial of dark liquid with no label.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6161,9 +6169,6 @@
             "examine"
           ],
           "description": "A cracked mirror hanging crookedly. Your reflection fractures into unsettling, fragmented versions of yourself. One fragment doesn't move when you do.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6183,9 +6188,6 @@
             "examine"
           ],
           "description": "A forgotten sandwich on a small table. It's green and fuzzy with age. Definitely do not eat this.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6205,9 +6207,6 @@
             "examine"
           ],
           "description": "A small nest of shredded cloth and dried grass in the corner of a shelf. Tiny bones are scattered around it - mouse bones, thankfully.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6229,9 +6228,6 @@
             "use"
           ],
           "description": "A small, dented music box. When wound, it plays a hauntingly beautiful but sad lullaby. The melody fills you with a strange sense of peace - and loss.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -6251,9 +6247,6 @@
             "examine"
           ],
           "description": "A small table with a broken lamp and a single drawer. The drawer contains a Bible and a pair of reading glasses.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6274,9 +6267,6 @@
             "take"
           ],
           "description": "A water-damaged gardener's notebook. The last entry: 'October 30th - Strange lights in the study again tonight. The missus says it's nothing, but I've worked here 20 years. I know what I saw. The skull. I found a sketch of it in the master's private papers. And I found where it goes - the altar in the crypt below the graveyard. Tomorrow I'm leaving. I don't care if they dock my pay.' The notebook ends there.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6296,9 +6286,6 @@
             "examine"
           ],
           "description": "A massive, ancient oak tree, its branches spreading like protective arms over the garden. The bark is gnarled and covered in moss. At eye level, someone has carved a small heart with the initials 'A.B.' and 'M.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6319,9 +6306,6 @@
             "take"
           ],
           "description": "A small can of lamp oil tucked behind a barrel, nearly hidden in the shadows. It's about half full.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 8,
@@ -6349,12 +6333,10 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "An old oil lamp under the sink. Still has some oil in it, and the wick is intact. It would provide good light.",
-          "effect_amount": 45,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {
             "dc": 10,
@@ -6362,10 +6344,13 @@
             "skill": "Perception"
           },
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": 20,
-          "weight": 0.8
+          "weight": 0.8,
+          "light_level": 45,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -6381,9 +6366,6 @@
             "take"
           ],
           "description": "A crumbling newspaper from 1891. Headline: 'BLACKWOOD FAMILY VANISHES - No Trace Found. Entire household of seven disappears overnight. The door was barred from the inside. Police baffled.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6404,9 +6386,6 @@
             "take"
           ],
           "description": "A leather photo album filled with faded photographs of the Blackwood family through the generations. The last few pages are empty, except for one photograph tucked loose: a baby's handprint in dark ink, with the date 'October 31st, 1891' written beneath.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6426,9 +6405,6 @@
             "examine"
           ],
           "description": "The other headstones mark the graves of servants and distant relatives. The most recent is dated 1889. One grave catches your eye - a small, simple stone with no name, only a date: 'October 31st, 1891.' The same day the family vanished.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6448,9 +6424,6 @@
             "examine"
           ],
           "description": "A portrait of a young woman with sad, knowing eyes, propped against the wall. The nameplate is missing. There's writing on the back: 'Margaret Holloway, 1850-1891. Beloved. Forgotten.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6470,9 +6443,6 @@
             "examine"
           ],
           "description": "A stone pedestal covered in runes that glow with residual energy. In the center, a skull-shaped depression. The symbols are a warning: 'Who bears the skull bears the burden. Who returns it finds peace.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6499,9 +6469,6 @@
             "use"
           ],
           "description": "A sealed jar of pickled vegetables from 1891. The seal is intact - technically still preserved and edible. They smell strongly of vinegar and herbs.",
-          "effect_amount": 25,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": true,
           "skill_check": {
             "dc": 12,
@@ -6510,7 +6477,23 @@
           },
           "tags": [],
           "uses": 2,
-          "weight": 0.8
+          "weight": 0.8,
+          "triggers": [
+            {
+              "id": "trigger_item_pickled_vegetables_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -6525,9 +6508,6 @@
             "examine"
           ],
           "description": "A withered fern in a clay pot. It crumbles to dust when touched. Beneath the dust, something glints in the soil.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6548,9 +6528,6 @@
             "take"
           ],
           "description": "A silver pocket watch from the wardrobe, wrapped in a handkerchief. Engraved: 'Property of J. Blackwood, Head of Staff.' The watch has stopped at 3:17 AM - the exact same time as the pocket watch in Guest Area 2.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 10,
@@ -6574,9 +6551,6 @@
             "examine"
           ],
           "description": "The wide wooden porch creaks under your feet. A broken rocking chair sits near the door, swaying slightly in the breeze. The night sky is clear, stars visible above the tree line.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6596,9 +6570,6 @@
             "examine"
           ],
           "description": "Above the mantel hangs a portrait of Augustus Blackwood - a stern man with cold, calculating eyes. The nameplate reads 'Augustus Blackwood, 1835-1891'. But the paint seems... fresher than 130 years old.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6618,9 +6589,6 @@
             "examine"
           ],
           "description": "A portrait of Eleanor Blackwood - the matriarch, not the child. Her eyes are sharp and calculating. A small plaque reads: 'Eleanor Blackwood, 1847-1891. May her soul find peace.' There's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6640,9 +6608,6 @@
             "examine"
           ],
           "description": "A painting of Augustus Blackwood in his prime. His cold, calculating eyes follow you around the room. The nameplate reads: 'Augustus Blackwood, 1835-1891, Patriarch of Blackwood Manor.' There's a crack in the canvas - deliberate, not from age.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6662,9 +6627,6 @@
             "examine"
           ],
           "description": "A rusted iron railing that creaks ominously when you lean on it. It's not safe, but it's held for 130 years. One section is wrapped with a faded ribbon - a woman's hair ribbon, blue silk.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6685,9 +6647,6 @@
             "use"
           ],
           "description": "A barrel catching rainwater through a broken pane. The water is murky with leaf litter but could be filtered through cloth.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6707,9 +6666,6 @@
             "examine"
           ],
           "description": "Tattered clothing and personal effects of previous victims. A faded driver's license from 1978. A child's shoe. A wedding ring.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6730,9 +6686,6 @@
             "take"
           ],
           "description": "A leather-bound grimoire titled 'Rituals of Binding and Release'. The marked page describes how to release a spirit bound to a crystal skull: return the skull to the place of death (the altar in the crypt), speak the name of the bound spirit at midnight, and break the skull. 'But be warned - the spirit released may not be the one you intended to free.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -6752,9 +6705,6 @@
             "examine"
           ],
           "description": "A small wooden rocking chair, old and worn. It rocks gently on its own, though the air is still. The wood is warm to the touch, as if someone just stood up.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6774,9 +6724,6 @@
             "examine"
           ],
           "description": "A wooden rocking horse with a faded red leather saddle. It rocks gently as you pass, though no one touched it. One of its painted eyes seems to follow you. The rockers creak rhythmically, slowly coming to a stop.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6796,9 +6743,6 @@
             "examine"
           ],
           "description": "A thick, pale root has pushed through the cellar wall and snakes across the floor. It's warm to the touch, and when you press your ear to it, you can hear a faint, rhythmic pulsing - like a heartbeat far beneath the earth.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6818,9 +6762,6 @@
             "examine"
           ],
           "description": "A faded Persian rug covering most of the floor. One marble tile beneath it shifts when pressed - it's been disturbed recently. There's a faint scraping sound when you step on it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6840,9 +6781,6 @@
             "examine"
           ],
           "description": "A stone sarcophagus bearing the name 'Augustus Blackwood (1835-1891)'. The lid is heavy but slightly ajar. Scratch marks - long, desperate scratch marks - cover the inside of the lid. He was buried alive.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6862,9 +6800,6 @@
             "examine"
           ],
           "description": "Beneath the cot, a floorboard is loose. Lifting it reveals a small hollow containing a bundle of letters tied with string, a small pouch of coins, and a faded photograph of a woman.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6884,9 +6819,6 @@
             "examine"
           ],
           "description": "Rows of wooden shelves lined with glass jars. Most contain preserved fruits and vegetables - peaches, green beans, pickles. But a few jars hold things that make you look away: a human heart, floating in amber fluid. A row of fingers, each labeled with a name. And one jar, larger than the rest, containing a crystal skull that seems to glow faintly in the dim light.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6907,9 +6839,6 @@
             "take"
           ],
           "description": "A rusty shovel leaning against a gnarled, ancient oak tree. The blade is caked with dried earth that crumbles when you touch it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6929,9 +6858,6 @@
             "examine"
           ],
           "description": "A mahogany sideboard with crystal decanters. One decanter contains a dark, syrupy liquid. On a platter beside it, the desiccated remains of a roast meal - from 1891.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -6955,19 +6881,20 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "toggle"
           ],
           "description": "A thick candle in a silver holder on the sideboard, untouched. The wax is pristine, as if placed here yesterday.",
-          "effect_amount": 50,
-          "effect_stat": "light",
-          "effect_target": "room",
           "hidden": false,
           "skill_check": {},
           "tags": [
-            "toggleable"
+            "toggleable",
+            "light_source"
           ],
           "uses": 15,
-          "weight": 0.8
+          "weight": 0.8,
+          "light_level": 50,
+          "current_state": "unlit"
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -6983,9 +6910,6 @@
             "take"
           ],
           "description": "A small silver crucifix, tarnished by years underwater. It's still intact. The back is engraved: 'Sanctuary - 1889.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -7006,9 +6930,6 @@
             "take"
           ],
           "description": "A small silver key hidden under the pillow. It's cold to the touch and hums faintly.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 10,
@@ -7033,9 +6954,6 @@
             "take"
           ],
           "description": "A tarnished silver ring on the altar. Inscription: 'For my beloved Eleanor, forever in death as in life. - A.B.' It's identical to the garnet ring found in the conservatory, except this one holds a small diamond.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7056,9 +6974,6 @@
             "use"
           ],
           "description": "A deep stone sink with a dripping faucet. The tap still works - water flows, brown with rust at first, then clear. The water is cold and clean. When the water runs, the dripping sound continues from elsewhere.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7079,9 +6994,6 @@
             "use"
           ],
           "description": "A porcelain pedestal sink. The tap still works - the water runs brown at first, then clear. The water is ice cold.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7102,9 +7014,6 @@
             "take"
           ],
           "description": "A small brass key hidden behind a loose floorboard near Margaret's portrait. It's old and caked with dust.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {
             "dc": 12,
@@ -7129,9 +7038,6 @@
             "take"
           ],
           "description": "A dried-out bar of soap on the edge of the tub. It still smells faintly of lavender.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7151,9 +7057,6 @@
             "examine"
           ],
           "description": "A rack of dried herbs and spices. Most are faded and useless. But a jar labeled 'Rosemary' still has a faint, pleasant scent.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7180,14 +7083,27 @@
             "use"
           ],
           "description": "A half-eaten pack of crackers on the bedside table. Stale but still edible. A bite has been taken from one.",
-          "effect_amount": 10,
-          "effect_stat": "Hunger",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.15
+          "weight": 0.15,
+          "triggers": [
+            {
+              "id": "trigger_item_stale_crackers_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3252974
@@ -7202,9 +7118,6 @@
             "examine"
           ],
           "description": "A small stone statue of a cherub hidden among the overgrown bushes, its face chipped away. Someone deliberately defaced it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7224,9 +7137,6 @@
             "examine"
           ],
           "description": "A cast-iron stove, still faintly warm to the touch. Impossible - there's no fuel, no fire. A kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7247,9 +7157,6 @@
             "take"
           ],
           "description": "A brass compass in the desk drawer. The needle doesn't point north - it points toward the fireplace, no matter where you stand. There must be something magnetic behind it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7270,9 +7177,6 @@
             "take"
           ],
           "description": "A worn stuffed rabbit with one button eye missing. It feels unnaturally cold, and when you hold it, you hear a faint child's whisper: 'Don't leave me here alone.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7292,9 +7196,6 @@
             "examine"
           ],
           "description": "A long table set for a meal that never came. Seven place settings - one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7314,9 +7215,6 @@
             "examine"
           ],
           "description": "A wrought-iron table with a cracked glass top. A water-damaged notebook lies on it, pages bloated with moisture.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7343,9 +7241,6 @@
             "use"
           ],
           "description": "A dusty bottle of wine hidden behind the fireplace. The label reads 'Blackwood Reserve 1887'. The liquid inside is dark and smells vinegary - but also metallic, like blood.",
-          "effect_amount": -15,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": true,
           "skill_check": {
             "dc": 12,
@@ -7354,7 +7249,23 @@
           },
           "tags": [],
           "uses": 1,
-          "weight": 1
+          "weight": 1,
+          "triggers": [
+            {
+              "id": "trigger_item_tainted_wine_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": -15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -7369,9 +7280,6 @@
             "examine"
           ],
           "description": "A cold cup of tea, long abandoned. The liquid inside has turned black with age, and a dark ring stains the porcelain. There's lipstick on the rim.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7398,14 +7306,27 @@
             "use"
           ],
           "description": "An old thermos on the bench wedged between the roots. Inside: cold but still drinkable tea, though it tastes of oak and earth now.",
-          "effect_amount": 20,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 2,
-          "weight": 0.8
+          "weight": 0.8,
+          "triggers": [
+            {
+              "id": "trigger_item_thermos_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3212945
@@ -7421,9 +7342,6 @@
             "take"
           ],
           "description": "A tiny brass key barely larger than your thumb. It was hidden inside the cracked vase - taped to the inner wall.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -7443,9 +7361,6 @@
             "examine"
           ],
           "description": "A damp, musty towel hanging from a rack. It's gray with age but still has some absorbency.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7465,9 +7380,6 @@
             "examine"
           ],
           "description": "A small wooden toy box in the corner, painted with fading circus animals. The lid is heavy. Inside: a collection of old toys, all broken or damaged. A doll with no head. A horse with no legs. A jack-in-the-box that won't open.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7488,9 +7400,6 @@
             "take"
           ],
           "description": "Lead toy soldiers arranged in a battle formation around a tiny replica of a crystal skull, made from painted glass. The soldiers point their rifles at the tiny skull, as if trying to protect something from it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7510,9 +7419,6 @@
             "examine"
           ],
           "description": "A large steamer trunk with a rusty latch and reinforced corners. It's locked with a heavy padlock. The nameplate reads: 'E. Blackwood - Personal Effects.' Something inside is tapping against the lid.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7532,9 +7438,6 @@
             "examine"
           ],
           "description": "A claw-foot tub with an inch of grimy water at the bottom. The water is dark and still. A ring of scum marks the high-water line - someone took a bath here, and recently. The water isn't cold enough.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7555,9 +7458,6 @@
             "take"
           ],
           "description": "A small glass vial of dark, oily liquid. It smells of herbs and something metallic. There's no label, but a piece of paper is tucked under the string around its neck: 'For the pain. Three drops only.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -7577,9 +7477,6 @@
             "examine"
           ],
           "description": "A wooden vanity with a cracked, spotted mirror. A silver hairbrush and jewelry box sit on it, exactly as they were left. The mirror reflects strangely - your image seems to move a split second after you do.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7599,9 +7496,6 @@
             "examine"
           ],
           "description": "A cracked porcelain vase on a side table. It's empty and smells faintly of old flowers. A hairline fracture runs down its side.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7621,9 +7515,6 @@
             "examine"
           ],
           "description": "The walls of the crypt are carved with scenes of angels and demons in battle. One panel shows a figure holding a skull aloft while a family cowers. The message beneath: 'The firstborn's spirit guards the threshold. Take her, and the door closes forever.'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7643,9 +7534,6 @@
             "examine"
           ],
           "description": "A tall, ornate wardrobe with a cracked mirror. Inside: moth-eaten fur coats, a wedding dress yellowed with age, and a small box containing a child's christening gown and a lock of baby hair.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7665,9 +7553,6 @@
             "examine"
           ],
           "description": "A tall wooden wardrobe containing moth-eaten coats and a single man's suit. In the pocket of the suit: a train ticket stub, dated October 31st, 1891. The return portion is unused.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7687,9 +7572,6 @@
             "examine"
           ],
           "description": "A massive armoire filled with Victorian-era clothing: suits, dresses, and a single child's dress that doesn't belong. The dress is small, white, and stained with something dark at the hem.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7716,14 +7598,27 @@
             "use"
           ],
           "description": "A large glass carboy of drinking water, half full. The glass stopper is still sealed with wax. The water inside is perfectly clear.",
-          "effect_amount": 35,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 5,
-          "weight": 5
+          "weight": 5,
+          "triggers": [
+            {
+              "id": "trigger_item_water_carboy_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 35,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3222942
@@ -7744,14 +7639,27 @@
             "use"
           ],
           "description": "A nightstand glass with stale but drinkable water. A ring of sediment circles the bottom.",
-          "effect_amount": 15,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 0.3
+          "weight": 0.3,
+          "triggers": [
+            {
+              "id": "trigger_item_water_glass_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3222942
@@ -7773,14 +7681,27 @@
             "use"
           ],
           "description": "A ceramic jug filled with stale but drinkable water. The clay keeps it cool.",
-          "effect_amount": 25,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 3,
-          "weight": 2
+          "weight": 2,
+          "triggers": [
+            {
+              "id": "trigger_item_water_jug_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 25,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3202963
@@ -7802,14 +7723,27 @@
             "use"
           ],
           "description": "A dusty crystal water pitcher on the mantelpiece. About a quarter full of stale but drinkable water. A dead moth floats on the surface.",
-          "effect_amount": 20,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 4,
-          "weight": 1.5
+          "weight": 1.5,
+          "triggers": [
+            {
+              "id": "trigger_item_water_pitcher_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -7825,9 +7759,6 @@
             "take"
           ],
           "description": "A rusty watering can. Empty. When you pick it up, something rattles inside - a small object.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7848,9 +7779,6 @@
             "take"
           ],
           "description": "A single white feather, impossibly clean and fresh in this dusty old mansion. It's warm to the touch.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": true,
           "skill_check": {},
           "tags": [],
@@ -7870,9 +7798,6 @@
             "examine"
           ],
           "description": "Fresh lilies at Eleanor's grave. They can't be more than a day old. But no one has been here in 130 years. Who left them?",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7899,14 +7824,27 @@
             "use"
           ],
           "description": "A crystal decanter filled with what looks like wine. It smells vinegary and medicinal.",
-          "effect_amount": -10,
-          "effect_stat": "Thirst",
-          "effect_target": "player",
           "hidden": false,
           "skill_check": {},
           "tags": [],
           "uses": 1,
-          "weight": 1.5
+          "weight": 1.5,
+          "triggers": [
+            {
+              "id": "trigger_item_wine_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": -10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         "type": "item",
         "updated": 1784318436.3192942
@@ -7922,9 +7860,6 @@
             "take"
           ],
           "description": "A dusty bottle of vintage wine. The label reads 'Blackwood Reserve 1882'. It might still be drinkable. The cork is intact.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],
@@ -7944,9 +7879,6 @@
             "examine"
           ],
           "description": "A wooden case containing six bottles of rare port, all intact. Worth a fortune to a collector.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "tags": [],

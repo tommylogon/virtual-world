@@ -4,7 +4,7 @@
   "players": {
     "Kaelen Voss": {
       "name": "Kaelen Voss",
-      "personality": "Identity: Kaelen Voss\nSpecies: Human\nOccupation: Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\nRevised Character Description\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break [42, Conversation History]. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
+      "personality": "Identity: Kaelen Voss\nSpecies: Human\nOccupation: Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\nRevised Character Description\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally-your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break [42, Conversation History]. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
       "description": "",
       "stats": {
         "CHA": 10,
@@ -146,7 +146,10 @@
           "interval": 1,
           "conditions": {},
           "actions": [
-            {"type": "message", "text": "The rat twitches its whiskers and regards you with bright little eyes, then goes back to whatever it was doing."}
+            {
+              "type": "message",
+              "text": "The rat twitches its whiskers and regards you with bright little eyes, then goes back to whatever it was doing."
+            }
           ]
         },
         {
@@ -156,13 +159,25 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "proximity", "max_areas": 0},
-              {"type": "random_chance", "chance": 0.35}
+              {
+                "type": "proximity",
+                "max_areas": 0
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.35
+              }
             ]
           },
           "actions": [
-            {"type": "set_npc_state", "state": "fleeing"},
-            {"type": "message", "text": "The rat squeaks and darts under the nearest furniture, not wanting to be near you."}
+            {
+              "type": "set_npc_state",
+              "state": "fleeing"
+            },
+            {
+              "type": "message",
+              "text": "The rat squeaks and darts under the nearest furniture, not wanting to be near you."
+            }
           ]
         },
         {
@@ -172,14 +187,30 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "fleeing"},
-              {"type": "random_chance", "chance": 0.4}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "fleeing"
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.4
+              }
             ]
           },
           "actions": [
-            {"type": "go", "area": "Kitchen"},
-            {"type": "set_npc_state", "state": "hiding"},
-            {"type": "message", "text": "The rat vanishes through a crack beneath the kitchen door."}
+            {
+              "type": "go",
+              "area": "Kitchen"
+            },
+            {
+              "type": "set_npc_state",
+              "state": "hiding"
+            },
+            {
+              "type": "message",
+              "text": "The rat vanishes through a crack beneath the kitchen door."
+            }
           ]
         },
         {
@@ -189,14 +220,30 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "hiding"},
-              {"type": "tick_since_state", "min_ticks": 5},
-              {"type": "random_chance", "chance": 0.4}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "hiding"
+              },
+              {
+                "type": "tick_since_state",
+                "min_ticks": 5
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.4
+              }
             ]
           },
           "actions": [
-            {"type": "set_npc_state", "state": "scavenging"},
-            {"type": "message", "text": "After a moment of silence, the rat cautiously creeps back out, sniffing the air."}
+            {
+              "type": "set_npc_state",
+              "state": "scavenging"
+            },
+            {
+              "type": "message",
+              "text": "After a moment of silence, the rat cautiously creeps back out, sniffing the air."
+            }
           ]
         },
         {
@@ -206,14 +253,31 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "scavenging"},
-              {"type": "random_chance", "chance": 0.35}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "scavenging"
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.35
+              }
             ]
           },
           "actions": [
-            {"type": "set_npc_state", "state": "eating"},
-            {"type": "heal", "amount": 15, "stat": "Hunger"},
-            {"type": "message", "text": "The rat finds a stray crumb and nibbles it quickly, watching the room."}
+            {
+              "type": "set_npc_state",
+              "state": "eating"
+            },
+            {
+              "type": "heal",
+              "amount": 15,
+              "stat": "Hunger"
+            },
+            {
+              "type": "message",
+              "text": "The rat finds a stray crumb and nibbles it quickly, watching the room."
+            }
           ]
         },
         {
@@ -223,13 +287,26 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "eating"},
-              {"type": "random_chance", "chance": 0.3}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "eating"
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.3
+              }
             ]
           },
           "actions": [
-            {"type": "set_npc_state", "state": "scavenging"},
-            {"type": "message", "text": "The rat licks its whiskers clean."}
+            {
+              "type": "set_npc_state",
+              "state": "scavenging"
+            },
+            {
+              "type": "message",
+              "text": "The rat licks its whiskers clean."
+            }
           ]
         },
         {
@@ -239,13 +316,26 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "scavenging"},
-              {"type": "random_chance", "chance": 0.3}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "scavenging"
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.3
+              }
             ]
           },
           "actions": [
-            {"type": "go", "area": "Cellar"},
-            {"type": "message", "text": "The rat noses around the cellar, sniffing at jars and crumbs."}
+            {
+              "type": "go",
+              "area": "Cellar"
+            },
+            {
+              "type": "message",
+              "text": "The rat noses around the cellar, sniffing at jars and crumbs."
+            }
           ]
         },
         {
@@ -255,13 +345,26 @@
           "conditions": {
             "operator": "and",
             "conditions": [
-              {"type": "eq", "target": "npc_state", "value": "scavenging"},
-              {"type": "random_chance", "chance": 0.3}
+              {
+                "type": "eq",
+                "target": "npc_state",
+                "value": "scavenging"
+              },
+              {
+                "type": "random_chance",
+                "chance": 0.3
+              }
             ]
           },
           "actions": [
-            {"type": "go", "area": "Kitchen"},
-            {"type": "message", "text": "The rat scurries back to the kitchen."}
+            {
+              "type": "go",
+              "area": "Kitchen"
+            },
+            {
+              "type": "message",
+              "text": "The rat scurries back to the kitchen."
+            }
           ]
         }
       ]
@@ -389,7 +492,7 @@
     },
     "Guest Bedroom": {
       "name": "Guest Bedroom",
-      "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+      "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years - a thin layer of dust covers everything.",
       "environment": {
         "air": "stale",
         "light": "dim",
@@ -416,7 +519,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+        "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years - a thin layer of dust covers everything.",
         "environment": {
           "air": "stale",
           "light": "dim",
@@ -940,9 +1043,6 @@
             "use"
           ],
           "description": "A floorboard that protrudes slightly from the rest, as if it can be pressed down or pried up.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -964,9 +1064,6 @@
           ],
           "contents": [],
           "description": "A wooden torch wrapped with cloth, ready to be lit but currently unlit.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -994,9 +1091,6 @@
             "use"
           ],
           "description": "A faded leather armchair sits before the cold hearth, its cracked surface bearing the dark stains of countless restless nights. The cushion sinks slightly as if still warm from an absent occupant.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -1020,9 +1114,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -1046,9 +1137,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A fresh loaf of crusty bread wrapped in a cloth. Still warm.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 2,
@@ -1070,9 +1158,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A heavy oak desk with a locked drawer on the right side. The lock is small and ornate â€” a brass key might fit it.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1094,9 +1179,6 @@
           "contents": [],
           "current_state": "unlit",
           "description": "A stone fireplace, cold and dark. A pile of ash sits in the hearth. A poker rests against the hearth, waiting to stir the embers.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1122,9 +1204,6 @@
           ],
           "current_state": "normal",
           "description": "An old grandfather clock ticks steadily in the corner. It is tall  with an intricately carved wooden face. The pendulum swings steadily. The glass door is slightly ajar.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1147,9 +1226,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A small bundle of dry twigs, perfect for starting a fire.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -1171,9 +1247,6 @@
           "contents": [],
           "current_state": "unlit",
           "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1196,9 +1269,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A yellowed, handwritten letter, the ink faded with age.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1229,9 +1299,6 @@
           ],
           "current_state": "normal",
           "description": "A small wooden cabinet mounted on the wall near the stove. Inside: a vial of antiseptic and some bandages.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 1,
@@ -1253,9 +1320,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "An old Remington typewriter. A half-finished page is still rolled in: 'The old house keeps its secrets well. Only those who look closely will find what lies beneath...'",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1278,9 +1342,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A clay pitcher filled with cool, clear water. Condensation beads on the surface.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": 3,
@@ -1361,7 +1422,7 @@
         "type": "area",
         "name": "Guest Bedroom",
         "properties": {
-          "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+          "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years - a thin layer of dust covers everything.",
           "environment": {
             "air": "stale",
             "light": "dim",
@@ -1513,7 +1574,7 @@
         "name": "on_examine → message",
         "properties": {
           "effect_params": {
-            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+            "message": "The desk is covered in papers - shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
           },
           "effect_type": "message",
           "target_name": "",
@@ -1612,7 +1673,7 @@
         "name": "on_examine → message",
         "properties": {
           "effect_params": {
-            "message": "You unfold the delicate paper and read: \"To whoever finds this — I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. — E.\""
+            "message": "You unfold the delicate paper and read: \"To whoever finds this - I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. - E.\""
           },
           "effect_type": "message",
           "target_name": "",
@@ -1683,7 +1744,7 @@
         "name": "on_use → message",
         "properties": {
           "effect_params": {
-            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry - this machine hasn't been used in decades."
           },
           "effect_type": "message",
           "target_name": "",
@@ -1738,9 +1799,6 @@
           ],
           "uses": 1,
           "weight": 0.5,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "action_costs": {},
           "hidden": true,
           "skill_check": {},
@@ -1762,9 +1820,6 @@
           "contents": [],
           "current_state": "normal",
           "description": "A painting hang above the mantlepiece.   in a silver frame. A family stands in front of this very house, smiling. ",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
           "hidden": false,
           "skill_check": {},
           "uses": -1,
@@ -1792,9 +1847,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": "container",
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Container"
           ],
@@ -1824,9 +1876,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Knowledge"
           ]
@@ -1852,9 +1901,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Communication",
             "Social",
@@ -1883,9 +1929,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Communication",
             "Social",
@@ -1915,17 +1958,16 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": "room",
-          "effect_stat": "light",
-          "effect_amount": 60,
           "tags": [
             "Utility",
-            "Light"
+            "Light",
+            "light_source"
           ],
           "equip_slots": [
             "hand_left",
             "hand_right"
-          ]
+          ],
+          "light_level": 60
         },
         "created": 1784203090.9516723,
         "updated": 1784203090.9516723
@@ -1949,9 +1991,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 5,
           "tags": [
             "Damage",
             "Utility",
@@ -1979,9 +2018,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Communication",
             "Social",
@@ -2010,9 +2046,6 @@
           "contents": [],
           "action_costs": {},
           "skill_check": {},
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
           "tags": [
             "Utility",
             "Exploration"
@@ -2317,7 +2350,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+            "message": "The desk is covered in papers - shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
           },
           "effect_type": "message",
           "target_name": "",
@@ -2336,7 +2369,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "You unfold the delicate paper and read: \"To whoever finds this — I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. — E.\""
+            "message": "You unfold the delicate paper and read: \"To whoever finds this - I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. - E.\""
           },
           "effect_type": "message",
           "target_name": "",
@@ -2355,7 +2388,7 @@
         "type": "triggers",
         "properties": {
           "effect_params": {
-            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry - this machine hasn't been used in decades."
           },
           "effect_type": "message",
           "target_name": "",
@@ -2776,7 +2809,7 @@
   "world_lore": [
     {
       "category": "general",
-      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron — but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
+      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron - but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
       "id": "lore_valerious_case",
       "importance": 3,
       "source": "manual",
@@ -2786,7 +2819,7 @@
     },
     {
       "category": "general",
-      "content": "Two months ago, you were hired by a wealthy merchant in Borrim to find the Valerius family—scholars who were reportedly researching the \"Black Book\" and the Lightbringer prophecy\n. They vanished from their homestead in the northern woods just as the \"chilling death\" began to settle in.\nThe journey has been grueling:\nMonth 1: You navigated the Teldorian Range, avoiding a blue dragon sighting and surviving a rockslide triggered by mountain harpies\n.\nMonth 2: You pushed through the encroaching \"walking forests\" near the border of Vald, where the trees seemed to groan in the freezing wind as if they wanted to swing back at the cold",
+      "content": "Two months ago, you were hired by a wealthy merchant in Borrim to find the Valerius family-scholars who were reportedly researching the \"Black Book\" and the Lightbringer prophecy\n. They vanished from their homestead in the northern woods just as the \"chilling death\" began to settle in.\nThe journey has been grueling:\nMonth 1: You navigated the Teldorian Range, avoiding a blue dragon sighting and surviving a rockslide triggered by mountain harpies\n.\nMonth 2: You pushed through the encroaching \"walking forests\" near the border of Vald, where the trees seemed to groan in the freezing wind as if they wanted to swing back at the cold",
       "id": "lore_1784194216610_400",
       "importance": 3,
       "source": "manual",

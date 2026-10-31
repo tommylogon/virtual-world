@@ -1,6 +1,6 @@
 {
   "activity": null,
-  "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
+  "base_description": "A gaunt man in his late thirties with sharp, weathered features - high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry - the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles - old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
   "behaviors": [],
   "conditions": {
     "awake": [
@@ -87,9 +87,6 @@
         "contents": [],
         "current_state": "closed",
         "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
-        "effect_amount": 0,
-        "effect_stat": null,
-        "effect_target": "container",
         "equip_slots": [
           "back"
         ],
@@ -318,7 +315,7 @@
         ],
         "current_state": "normal",
         "defense": 3,
-        "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
+        "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric-currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
         "equip_slots": [
           "torso",
           "arms"
@@ -359,7 +356,7 @@
           "drop"
         ],
         "current_state": "normal",
-        "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice—a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
+        "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice-a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
         "equip_slots": [
           "neck"
         ],
@@ -387,7 +384,7 @@
       "location": "",
       "source": "auto",
       "tags": [],
-      "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
+      "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family-scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
       "tick": 20,
       "timestamp": 1785853798.512617,
       "type": "observation"
@@ -410,7 +407,7 @@
   "npc_action_interval": 3,
   "npc_behavior": "wander",
   "npc_state": "idle",
-  "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat\n\n</think>",
+  "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally-your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat\n\n</think>",
   "recent_hearing": [
     {
       "area": "Blizzard Forest Clearing",

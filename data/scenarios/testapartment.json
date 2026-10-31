@@ -47,45 +47,45 @@
           "state": "open",
           "description": "A short passage leading into the living room, cluttered with more boxes.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         }
       },
       "items": [
         {
           "name": "coat_rack",
           "description": "A wooden coat rack with a single worn jacket. The jacket has a hole in the pocket.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "jacket",
           "description": "An old denim jacket with a broken zipper. The pocket contains a crumpled bus ticket.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "bus_ticket",
           "description": "A used bus ticket from Millbrook Transit, dated last week.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "box_books",
           "description": "A cardboard box overflowing with paperback novels and conspiracy theory pamphlets. The top book is 'The Turner Diaries'.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         }
       ]
     },
@@ -106,7 +106,9 @@
           "state": "open",
           "description": "Back to the entrance hallway.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         },
         "east": {
           "target": "Kitchen",
@@ -114,7 +116,9 @@
           "state": "open",
           "description": "A doorway into the kitchen, visible through a bead curtain.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         },
         "north": {
           "target": "Bedroom",
@@ -122,7 +126,9 @@
           "state": "closed",
           "description": "A door leading to the bedroom, slightly ajar.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         },
         "west": {
           "target": "Study",
@@ -130,75 +136,139 @@
           "state": "open",
           "description": "A narrow doorway to a small study crammed with books and papers.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         }
       },
       "items": [
         {
           "name": "sofa",
           "description": "A threadbare sofa with a suspicious stain. It might be comfortable for a short rest.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 10,
-          "action_costs": { "rest": { "time": 1, "energy": -2 } }
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -2
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_sofa_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "coffee_table",
           "description": "A low table covered in magazines, empty cups, and a half-eaten bag of chips.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "chips",
           "description": "A crinkled bag of barbecue chips, still half full.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 3,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 10,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_chips_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "magazine",
           "description": "A conspiracy theory magazine with articles about the New World Order and chemtrails. The pages are dog-eared.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "bookshelf",
           "description": "A floor-to-ceiling bookshelf crammed with books on history, politics, and white supremacist literature. A few volumes on Norse mythology as well.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "survival_box",
           "description": "A large cardboard box labeled 'SURVIVAL GEAR'. It contains some camping equipment and a first aid kit.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "first_aid_kit",
           "description": "A small plastic case with bandages, antiseptic wipes, and painkillers.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 3,
-          "effect_target": "player",
-          "effect_stat": "HP",
-          "effect_amount": 20,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_first_aid_kit_vital_hp",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "HP",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -219,7 +289,9 @@
           "state": "open",
           "description": "Through the bead curtain back to the living room.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         },
         "down": {
           "target": "Cellar",
@@ -227,76 +299,164 @@
           "state": "closed",
           "description": "A trapdoor in the floor, probably leading to a small cellar.",
           "locked_with": "",
-          "cost": { "time": 2, "energy": 2 }
+          "cost": {
+            "time": 2,
+            "energy": 2
+          }
         }
       },
       "items": [
         {
           "name": "refrigerator",
           "description": "An old white refrigerator. It's humming loudly. Inside, there are some condiments, a half-empty carton of milk, and a few cans of soda.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "milk",
           "description": "A carton of milk with an expiration date two days from now. It's still cold.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 3,
-          "effect_target": "player",
-          "effect_stat": "Thirst",
-          "effect_amount": 15,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_milk_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "soda",
           "description": "A can of generic cola. It's warm now, but still fizzy.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 1,
-          "effect_target": "player",
-          "effect_stat": "Thirst",
-          "effect_amount": 10,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_soda_vital_thirst",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Thirst",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "canned_food",
           "description": "A stack of canned beans, soup, and vegetables. Some are rusted.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 6,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 20,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_canned_food_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "instant_noodles",
           "description": "Several boxes of instant ramen noodles. The cheap kind.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 5,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 15,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_instant_noodles_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "dirty_dishes",
           "description": "A pile of crusty plates and bowls in the sink. They need washing.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "calendar",
           "description": "A wall calendar showing a beautiful mountain scene. The current month is circled in red ink.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         }
       ]
     },
@@ -317,7 +477,9 @@
           "state": "closed",
           "description": "The door back to the living room.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         },
         "east": {
           "target": "Bathroom",
@@ -325,83 +487,115 @@
           "state": "closed",
           "description": "A door leading to a small bathroom.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         }
       },
       "items": [
         {
           "name": "bed",
           "description": "A modest single bed with rumpled sheets and a flat pillow. Looks comfortable enough for a good rest.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 40,
-          "action_costs": { "rest": { "time": 2, "energy": -6 } }
+          "action_costs": {
+            "rest": {
+              "time": 2,
+              "energy": -6
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_bed_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 40,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "nightstand",
           "description": "A small wooden nightstand with a drawer. On top sits a lamp and a pile of books.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "lamp",
           "description": "A small reading lamp with a dusty shade. It works when plugged in.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use",
+            "toggle"
+          ],
           "uses": -1,
-          "effect_target": "room",
-          "effect_stat": "light",
-          "effect_amount": 30,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "tags": [
+            "light_source"
+          ],
+          "light_level": 30,
+          "current_state": "unlit"
         },
         {
           "name": "book_pile",
           "description": "A stack of books including 'Moby Dick', 'The Art of the Deal', and several romance novels.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "closet",
           "description": "A small closet stuffed with clothes, a few empty hangers, and a shoebox on the top shelf.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "shoebox",
           "description": "A shoebox hidden on the top shelf. Inside are some old photographs and a letter.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "photograph",
           "description": "A faded photo of a young couple at a fair. On the back, written in pencil: 'Mom & Dad, 1995'.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "letter",
           "description": "A handwritten letter from someone named 'Grandma', talking about family and hoping Imani is doing well.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         }
       ]
     },
@@ -422,85 +616,171 @@
           "state": "closed",
           "description": "Way back to the bedroom.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         }
       },
       "items": [
         {
           "name": "toilet",
           "description": "A standard white toilet. It flushes, though the handle sticks a little.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "sink",
           "description": "A small sink with a dripping faucet. A half-used bar of soap rests on the edge.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "soap",
           "description": "A worn bar of soap, faintly smelling of lavender.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 5,
-          "effect_target": "player",
-          "effect_stat": "Hygiene",
-          "effect_amount": 20,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_soap_vital_hygiene",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hygiene",
+                    "amount": 20,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "towel",
           "description": "A damp towel hanging on the rack. It's thin but usable.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "medicine_cabinet",
           "description": "A small mirrored cabinet above the sink. Inside: a toothbrush, toothpaste, pain relievers, and some band-aids.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "toothbrush",
           "description": "A worn toothbrush with frayed bristles.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 10,
-          "effect_target": "player",
-          "effect_stat": "Hygiene",
-          "effect_amount": 5,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_toothbrush_vital_hygiene",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hygiene",
+                    "amount": 5,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "painkillers",
           "description": "A bottle of ibuprofen with a few pills left.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 5,
-          "effect_target": "player",
-          "effect_stat": "HP",
-          "effect_amount": 10,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_painkillers_vital_hp",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "HP",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "shower",
           "description": "A cramped shower stall with a plastic curtain. The water pressure is weak but warm.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
-          "effect_target": "player",
-          "effect_stat": "Hygiene",
-          "effect_amount": 80,
-          "action_costs": { "use": { "time": 2, "energy": -5 } }
+          "action_costs": {
+            "use": {
+              "time": 2,
+              "energy": -5
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_shower_vital_hygiene",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hygiene",
+                    "amount": 80,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -521,83 +801,108 @@
           "state": "open",
           "description": "Doorway back to the living room.",
           "locked_with": "",
-          "cost": { "time": 1 }
+          "cost": {
+            "time": 1
+          }
         }
       },
       "items": [
         {
           "name": "desk",
           "description": "A large wooden desk cluttered with papers, a lamp, and a computer monitor. Drawers are stuffed with notebooks.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "computer",
           "description": "An old desktop computer with a bulky monitor. It's connected but without internet, it's just a word processor. There might be some files saved locally.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
         },
         {
           "name": "notebook",
           "description": "A spiral notebook filled with Imani's handwriting: poems, conspiracy theories, and rants about race. Some pages are torn.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "corkboard",
           "description": "A corkboard covered in newspaper clippings, printed articles, and photos linked by red string. It's a classic conspiracy theorist's wall.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "printer",
           "description": "A dusty inkjet printer. It's out of ink and paper.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "books_stack",
           "description": "A stack of books on history and political theory, including 'The Protocols of the Elders of Zion' and 'Mein Kampf'.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "coffee_mug",
           "description": "A chipped mug with a faded logo. It has old coffee residue at the bottom.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "chair",
           "description": "An old swivel chair with worn padding. It's not comfortable for long periods.",
-          "actions": ["examine", "use"],
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
-          "effect_target": "player",
-          "effect_stat": "Energy",
-          "effect_amount": 5,
-          "action_costs": { "rest": { "time": 1, "energy": -1 } }
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -1
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_chair_vital_energy",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Energy",
+                    "amount": 5,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -618,57 +923,109 @@
           "state": "closed",
           "description": "The trapdoor leading back up to the kitchen.",
           "locked_with": "",
-          "cost": { "time": 2, "energy": 2 }
+          "cost": {
+            "time": 2,
+            "energy": 2
+          }
         }
       },
       "items": [
         {
           "name": "shelves",
           "description": "Wooden shelves lined with mason jars of pickles, jams, and canned vegetables. Also some paint cans and old tools.",
-          "actions": ["examine"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine"
+          ],
+          "uses": -1
         },
         {
           "name": "pickles",
           "description": "A jar of homemade pickles. The brine looks murky but probably edible.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 5,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 10,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_pickles_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 10,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "jam",
           "description": "A jar of strawberry jam, sealed. It's probably still good.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 5,
-          "effect_target": "player",
-          "effect_stat": "Hunger",
-          "effect_amount": 15,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          },
+          "triggers": [
+            {
+              "id": "trigger_jam_vital_hunger",
+              "trigger_type": "on_use",
+              "effects": [
+                {
+                  "type": "adjust_vital",
+                  "params": {
+                    "stat": "Hunger",
+                    "amount": 15,
+                    "target": "self"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
           "name": "flashlight_old",
           "description": "A rusty flashlight. It might work if it had batteries.",
-          "actions": ["examine", "take"],
-          "uses": -1,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1
         },
         {
           "name": "batteries",
           "description": "A pack of AA batteries, still sealed. There are four.",
-          "actions": ["examine", "take", "use"],
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
           "uses": 4,
-          "effect_target": null,
-          "effect_stat": null,
-          "effect_amount": 0,
-          "action_costs": { "use": { "time": 1, "energy": 0 } }
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
         }
       ]
     }

@@ -6,9 +6,6 @@
   "weight": 15,
   "action_costs": {},
   "skill_check": {},
-  "effect_target": null,
-  "effect_stat": null,
-  "effect_amount": 0,
   "tags": [
     "furniture",
     "metal",

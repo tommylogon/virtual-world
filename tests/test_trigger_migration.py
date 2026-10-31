@@ -180,3 +180,91 @@ def test_get_trigger_sources_indexes_property_triggers():
     assert set(graph.get_trigger_sources("on_turn_start")) == {"item_candle"}
     assert set(graph.get_trigger_sources("on_turn_end")) == {"item_candle"}
     assert graph.get_trigger_sources("on_take") == []
+
+
+def test_migrate_legacy_item_effect_props():
+    """task-332: Legacy effect_stat/effect_amount/effect_target props migrated to triggers on load."""
+    graph = WorldGraph()
+    apple = Node(
+        id="item_apple",
+        type="item",
+        name="Juicy Apple",
+        properties={
+            "effect_stat": "Hunger",
+            "effect_amount": 20,
+            "effect_target": "player",
+            "actions": ["use"],
+            "uses": 1,
+        }
+    )
+    lamp = Node(
+        id="item_lamp",
+        type="item",
+        name="Brass Lantern",
+        properties={
+            "effect_stat": "light",
+            "effect_amount": 0,
+            "effect_target": "room",
+            "actions": ["use"],
+        }
+    )
+    c4 = Node(
+        id="item_c4",
+        type="item",
+        name="C4 Explosive",
+        properties={
+            "effect_stat": "broken",
+            "effect_amount": 0,
+            "effect_target": "connection",
+            "actions": ["use"],
+        }
+    )
+    null_item = Node(
+        id="item_stick",
+        type="item",
+        name="Stick",
+        properties={
+            "effect_stat": None,
+            "effect_amount": 0,
+            "effect_target": None,
+        }
+    )
+    graph.add_node(apple)
+    graph.add_node(lamp)
+    graph.add_node(c4)
+    graph.add_node(null_item)
+
+    serializer = WorldSerializer(graph, None, None)
+    serializer._migrate_legacy_item_effects()
+
+    # 1. Vital conversion
+    assert "effect_stat" not in apple.properties
+    assert "effect_amount" not in apple.properties
+    assert "effect_target" not in apple.properties
+    apple_triggers = apple.properties.get("triggers", [])
+    assert len(apple_triggers) == 1
+    assert apple_triggers[0]["trigger_type"] == "on_use"
+    assert apple_triggers[0]["effects"][0]["type"] == "adjust_vital"
+    assert apple_triggers[0]["effects"][0]["params"]["vital"] == "Hunger"
+    assert apple_triggers[0]["effects"][0]["params"]["amount"] == 20
+
+    # 2. Light conversion
+    assert "effect_stat" not in lamp.properties
+    assert "light_source" in lamp.properties["tags"]
+    assert "toggle" in lamp.properties["actions"]
+    assert lamp.properties["light_level"] == "normal"
+    assert lamp.properties["current_state"] == "unlit"
+
+    # 3. Connection conversion
+    assert "effect_stat" not in c4.properties
+    c4_triggers = c4.properties.get("triggers", [])
+    assert len(c4_triggers) == 1
+    assert c4_triggers[0]["trigger_type"] == "on_use_on"
+    assert c4_triggers[0]["effects"][0]["type"] == "set_state"
+    assert c4_triggers[0]["effects"][0]["params"]["state"] == "broken"
+
+    # 4. Null stripping
+    assert "effect_stat" not in null_item.properties
+    assert "effect_amount" not in null_item.properties
+    assert "effect_target" not in null_item.properties
+    assert "triggers" not in null_item.properties
