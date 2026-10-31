@@ -160,7 +160,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             return '';
         const preview = !!opts.preview;
         const player = worldState.data?.players?.[charName];
-        const currentArea = player?.current_area;
+        const currentArea = opts.area || player?.current_area;
         const parts = [];
         // 1. Spatial context from backend (KNOWN ROUTES FROM HERE)
         try {
@@ -169,26 +169,89 @@ window.PromptBuilder = window.PromptBuilder || {};
                 parts.push(data.spatial);
         }
         catch (e) {
-            // Spatial context is best-effort  -  ignore failures
+            // Spatial context is best-effort - ignore failures
         }
         // 1b. "What I've already done" - repeat-loop guard. Fed from the
         // observation memories (kind === 'item') + the live browser actionHistory.
         const alreadyKnown = buildAlreadyKnownContext(charName);
         if (alreadyKnown)
             parts.push(alreadyKnown);
-        // 2. Build query from current area + last thought + what was just heard
-        // (the retrieval trigger should be explainable: area + own latest
-        // thought + the last lines spoken around the character).
+        // 2. Resolve true area node ID
+        function resolveAreaId(areaName) {
+            if (!areaName)
+                return '';
+            const nodes = worldState.graph?.nodes || {};
+            for (const [nodeId, node] of Object.entries(nodes)) {
+                if (node.type === 'area' && (node.name === areaName || nodeId === areaName || (node.name && node.name.toLowerCase() === areaName.toLowerCase()))) {
+                    return nodeId;
+                }
+            }
+            return `area_${areaName.toLowerCase().replace(/\s+/g, '_')}`;
+        }
+        const currentAreaId = resolveAreaId(currentArea || '');
+        // 3. Multi-facet perceptual cues
         const characterState = VW?.events?.getCharacterState?.(charName);
         const lastThought = (characterState?.lastThought || '');
         const heardLines = (player?.recent_hearing || [])
             .filter((h) => h.type !== 'sound_source' && h.speaker !== charName && h.text)
             .slice(-2)
             .map((h) => String(h.text).trim()).filter(Boolean);
-        const queryParts = [currentArea || '', lastThought, ...heardLines];
+        const dialogueLines = [];
+        if (opts.stimulus) {
+            dialogueLines.push(String(opts.stimulus).trim());
+        }
+        for (const line of heardLines) {
+            dialogueLines.push(line);
+        }
+        const sceneActors = [];
+        const allPlayers = worldState.data?.players || {};
+        for (const [pname, pdata] of Object.entries(allPlayers)) {
+            if (pname !== charName && pdata?.current_area && currentArea && pdata.current_area.toLowerCase() === currentArea.toLowerCase()) {
+                sceneActors.push(pname);
+            }
+        }
+        const sceneItems = [];
+        if (currentArea) {
+            const items = (typeof worldState.getItemsInArea === 'function') ? (worldState.getItemsInArea(currentArea) || []) : [];
+            for (const it of items) {
+                const iname = typeof it === 'string' ? it : (it.name || '');
+                if (iname)
+                    sceneItems.push(String(iname));
+            }
+        }
+        const inventoryItems = [];
+        for (const it of (player?.inventory || [])) {
+            const iname = typeof it === 'string' ? it : (it.name || '');
+            if (iname)
+                inventoryItems.push(String(iname));
+        }
+        const needs = [];
+        const vitals = player?.vitals || {};
+        if ((Number(vitals.Hunger) || 0) > 50)
+            needs.push('need:food');
+        if ((Number(vitals.Thirst) || 0) > 50)
+            needs.push('need:drink');
+        if ((Number(vitals.Energy) || 100) < 30 || (Number(vitals.Exhaustion) || 0) > 50)
+            needs.push('need:rest');
+        if (opts.needStimulus) {
+            const n = String(opts.needStimulus).trim();
+            if (n && !needs.includes(n))
+                needs.push(n.startsWith('need:') ? n : `need:${n}`);
+        }
+        const currentEmotion = player?.emotion?.label || player?.current_emotion || '';
+        const cues = {
+            actors: sceneActors,
+            items: sceneItems,
+            inventory: inventoryItems,
+            dialogue: dialogueLines,
+            needs: needs,
+            emotion: currentEmotion,
+            area_id: currentAreaId
+        };
+        const queryParts = [currentArea || '', lastThought, ...dialogueLines];
         const query = queryParts.join(' ').trim() || (currentArea || '');
         const queryWords = new Set(query.toLowerCase().split(/\s+/).filter(Boolean));
-        // 3. Collect and score memories from both sources
+        // 4. Collect and score memories from both sources
         const MEM_ICONS = { observation: '👁️', discovery: '💡', conversation: '💬', item: '📦', combat: '⚔️', exploration: '🗺️', failure: '⚠️', success: '✅', reflection: '🔄', action: '▶️', speech: '💬', thought: '🤔', reaction: '💭', location: '📍' };
         const memIcon = (memoryType) => MEM_ICONS[String(memoryType)] || '📝';
         // Helper: infer type from text for old-format memories
@@ -207,106 +270,114 @@ window.PromptBuilder = window.PromptBuilder || {};
             return '📝';
         };
         let scored = [];
+        const strategy = opts.strategy || 'associative';
+        let openQuestions = [];
+        let retrievalExplanation = null;
         // Score memories from the unified backend store. `reinforce: !preview`
         // (task-686): retrieval reinforces what it recalls, but a preview must
         // never mutate the character.
         try {
             const data = await ApiClient.retrievePlayerMemories(charName, {
+                strategy,
                 query,
+                cues,
                 max_results: 10,
                 entity_boost: true,
                 reinforce: !preview,
-                current_area_id: currentArea ? `area_${currentArea.toLowerCase().replace(/\s+/g, '_')}` : ''
+                current_area_id: currentAreaId,
+                min_score: 1.0,
+                explain: true
             });
+            retrievalExplanation = data?.cues_extracted || null;
+            if (Array.isArray(data?.questions)) {
+                openQuestions = data.questions;
+            }
+            else if (Array.isArray(data?.open_questions)) {
+                openQuestions = data.open_questions;
+            }
             for (const mem of (data?.memories || [])) {
-                // A5: never render "undefined"  -  skip textless entries
                 const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
                 if (!memText)
                     continue;
-                // Backend now includes score directly on the memory object.
                 const backendScore = typeof mem.score === 'number' ? mem.score : null;
                 const icon = memIcon(mem.type);
-                scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved', category: mem.category, type: mem.type, confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined, contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [] });
+                scored.push({
+                    text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`,
+                    score: backendScore !== null ? backendScore : 1.0,
+                    tick: mem.tick,
+                    emotion: mem.emotion || null,
+                    source: 'retrieved',
+                    category: mem.category,
+                    type: mem.type,
+                    confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined,
+                    contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [],
+                    details: mem.details || null,
+                    facets_hit: mem.facets_hit || []
+                });
             }
         }
         catch (e) {
-            // Retrieval is best-effort  -  fall through to player.memories scoring
+            // Retrieval is best-effort - fall through
         }
-        // Score player.memories[] entries
         const rawMemories = player?.memories || [];
-        for (const raw of rawMemories) {
-            const textContent = typeof raw === 'string' ? raw : raw.text || '';
-            const tickValue = typeof raw === 'object' ? raw.tick || 0 : 0;
-            if (!textContent)
-                continue;
-            const textLower = textContent.toLowerCase();
-            let overlap = 0;
-            for (const word of queryWords) {
-                if (textLower.includes(word))
-                    overlap++;
-            }
-            const keywordScore = queryWords.size > 0 ? overlap / queryWords.size : 0;
-            const icon = memIcon(inferIcon(textContent));
-            // A8: stopwords never explain a match ("keyword match on (in,i,a)")
-            const STOPWORDS = new Set(['a', 'an', 'the', 'in', 'on', 'of', 'to', 'for', 'and', 'or', 'but', 'if', 'so', 'then', 'there', 'their', 'them', 'they', 'this', 'that', 'with', 'from', 'just', 'now', 'really', 'about', 'when', 'what', 'where', 'how', 'why', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'its', 'at', 'as', 'by', 'my', 'me', 'i', 'we', 'you', 'your', 'not', 'no', 'yes', 'oh', 'well', 'much', 'nice', 'very', 'too', 'will', 'would', 'can', 'could', 'shall', 'should', 'am', 'get', 'got', 'go', 'one', 'two', 'three', 'after', 'before']);
-            const matchedWords = [];
-            for (const word of queryWords) {
-                if (STOPWORDS.has(word))
+        if (strategy === 'legacy') {
+            for (const raw of rawMemories) {
+                const textContent = typeof raw === 'string' ? raw : raw.text || '';
+                const tickValue = typeof raw === 'object' ? raw.tick || 0 : 0;
+                if (!textContent)
                     continue;
-                if (textLower.includes(word))
-                    matchedWords.push(word);
-            }
-            // Include if it has keyword overlap OR we haven't collected enough candidates yet
-            if (keywordScore > 0 || scored.length < 8) {
-                scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw.emotion) || null, source: 'keyword', kb: keywordScore, matchedWords, memTags: ((typeof raw === 'object' && Array.isArray(raw.tags)) ? raw.tags : []) });
-            }
-        }
-        // Semantic recall (task-91): embed the query, ask the backend vector
-        // store for this character's top-k memories, and merge them into the
-        // candidate pool scored by cosine similarity. Silent no-op when the
-        // embedding settings are off or the call fails. Skipped entirely in
-        // preview mode (Agent Lens)  -  previews must not hit the embedding
-        // server on every state poll.
-        if (!preview && window.EmbeddingClient?.configured()) {
-            try {
-                const queryVector = await EmbeddingClient.embed(query);
-                if (queryVector) {
-                    const data = await ApiClient.searchMemoryEmbeddings({ character: charName, vector: queryVector, k: 5 });
-                    const hitIds = [];
-                    for (const hit of (data?.results || [])) {
-                        if (hit.score < 0.35)
-                            continue;
-                        const memEntry = rawMemories.find((m) => (typeof m === 'object' && m.id === hit.memory_id));
-                        const textContent = typeof memEntry === 'object' ? (memEntry?.text || '') : '';
-                        if (!textContent)
-                            continue;
-                        hitIds.push(String(hit.memory_id));
-                        const tickValue = memEntry.tick || 0;
-                        const icon = memIcon(memEntry.type);
-                        scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null, source: 'vector', kb: hit.score, category: memEntry.category, type: memEntry.type, confidence: typeof memEntry.confidence === 'number' ? memEntry.confidence : undefined, contradicts: Array.isArray(memEntry.contradicts) ? memEntry.contradicts : [] });
-                    }
-                    // task-686: semantic hits were recalled, so they reinforce
-                    //  -  the scoring endpoint can't stamp them (it never saw
-                    // them). Fire-and-forget; previews skip entirely.
-                    if (hitIds.length > 0) {
-                        ApiClient.reinforcePlayerMemories(charName, { ids: hitIds, tick: worldState?.data?.time_ticks || 0 }).catch(() => { });
-                    }
+                const textLower = textContent.toLowerCase();
+                let overlap = 0;
+                for (const word of queryWords) {
+                    if (textLower.includes(word))
+                        overlap++;
+                }
+                const keywordScore = queryWords.size > 0 ? overlap / queryWords.size : 0;
+                const icon = memIcon(inferIcon(textContent));
+                const STOPWORDS = new Set(['a', 'an', 'the', 'in', 'on', 'of', 'to', 'for', 'and', 'or', 'but', 'if', 'so', 'then', 'there', 'their', 'them', 'they', 'this', 'that', 'with', 'from', 'just', 'now', 'really', 'about', 'when', 'what', 'where', 'how', 'why', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'its', 'at', 'as', 'by', 'my', 'me', 'i', 'we', 'you', 'your', 'not', 'no', 'yes', 'oh', 'well', 'much', 'nice', 'very', 'too', 'will', 'would', 'can', 'could', 'shall', 'should', 'am', 'get', 'got', 'go', 'one', 'two', 'three', 'after', 'before']);
+                const matchedWords = [];
+                for (const word of queryWords) {
+                    if (STOPWORDS.has(word))
+                        continue;
+                    if (textLower.includes(word))
+                        matchedWords.push(word);
+                }
+                if (keywordScore > 0 || scored.length < 8) {
+                    scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw.emotion) || null, source: 'keyword', kb: keywordScore, matchedWords, memTags: ((typeof raw === 'object' && Array.isArray(raw.tags)) ? raw.tags : []) });
                 }
             }
-            catch (e) {
-                // Semantic recall is best-effort  -  keyword scoring already ran.
+            if (!preview && window.EmbeddingClient?.configured()) {
+                try {
+                    const queryVector = await EmbeddingClient.embed(query);
+                    if (queryVector) {
+                        const data = await ApiClient.searchMemoryEmbeddings({ character: charName, vector: queryVector, k: 5 });
+                        const hitIds = [];
+                        for (const hit of (data?.results || [])) {
+                            if (hit.score < 0.35)
+                                continue;
+                            const memEntry = rawMemories.find((m) => (typeof m === 'object' && m.id === hit.memory_id));
+                            const textContent = typeof memEntry === 'object' ? (memEntry?.text || '') : '';
+                            if (!textContent)
+                                continue;
+                            hitIds.push(String(hit.memory_id));
+                            const tickValue = memEntry.tick || 0;
+                            const icon = memIcon(memEntry.type);
+                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null, source: 'vector', kb: hit.score, category: memEntry.category, type: memEntry.type, confidence: typeof memEntry.confidence === 'number' ? memEntry.confidence : undefined, contradicts: Array.isArray(memEntry.contradicts) ? memEntry.contradicts : [] });
+                        }
+                        if (hitIds.length > 0) {
+                            ApiClient.reinforcePlayerMemories(charName, { ids: hitIds, tick: worldState?.data?.time_ticks || 0 }).catch(() => { });
+                        }
+                    }
+                }
+                catch (e) {
+                    // Semantic recall is best-effort
+                }
             }
         }
-        // Dedup by normalized text BEFORE picking the top-k. The three
-        // retrieval pipelines (backend /retrieve, player.memories keyword, and
-        // vector recall) can each return the SAME memory, so without this a
-        // single memory showed 2-3x in "I REMEMBER" (task-350/. task-339 debug).
+        // Dedup by normalized text BEFORE picking the top-k
         const seenText = new Set();
         const deduped = [];
         for (const entry of scored) {
-            // A7: dedupe on the TEXT with the [timestamp] AND the leading icon
-            // stripped  -  the same memory carries a different icon per pipeline
-            // (🗺️ vector vs 📝 keyword), which used to defeat the dedupe.
             const bare = String(entry.text || '')
                 .replace(/^\s*\[[^\]]*\]\s*/, '')
                 .replace(/^[^A-Za-z0-9]+\s*/, '');
@@ -321,22 +392,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         scored.sort((entryA, entryB) => entryB.score - entryA.score || (entryB.tick || 0) - (entryA.tick || 0));
         const MAX_RECALL = 10;
         const MIN_RECALL_SCORE = 0.3;
-        // Keep the top 3 always, then extend toward 10 for any memory within a
-        // relevance floor, so recall is richer but never drops in noise.
+        // Zero-padding eliminated for Associative 3.0:
+        // Legacy keeps top 3 always (i < 3). Associative ONLY keeps score >= 1.0.
         const topMemories = scored.slice(0, MAX_RECALL)
-            .filter((m, i) => i < 3 || (m.score || 0) >= MIN_RECALL_SCORE);
-        // N8: score picks WHAT is remembered; the ordering shown/injected is
-        // recency-first so the prompt reads newest-first instead of interleaved.
+            .filter((m, i) => (strategy === 'legacy' ? (i < 3 || (m.score || 0) >= MIN_RECALL_SCORE) : (m.score || 0) >= 1.0));
         topMemories.sort((a, b) => (b.tick || 0) - (a.tick || 0));
-        // Feed the EXISTING recall pipe (stream-raw-llm reads `_lastRecallStats`
-        // to show \"recalled: N\" on the LLM request chip). We set it here so the
-        // header note appears AND the expanded chip body can list WHAT + WHY.
+        // Feed recall pipe for UI inspection
         try {
             window._lastRecallStats = {
                 at: Date.now(),
+                strategy,
                 count: topMemories.length,
+                questionsCount: openQuestions.length,
                 semantic: topMemories.filter((m) => m.source === 'vector').length,
                 query: String(query || '').slice(0, 120),
+                cues,
+                explanation: retrievalExplanation,
                 memories: topMemories.map((m) => ({
                     text: String(m.text || '').replace(/^\[[^\]]*\]\s*/, ''),
                     source: m.source,
@@ -344,14 +415,14 @@ window.PromptBuilder = window.PromptBuilder || {};
                     matchedWords: m.matchedWords || [],
                     memTags: m.memTags || [],
                     kb: m.kb || 0,
+                    facets_hit: m.facets_hit || [],
+                    details: m.details || null
                 })),
+                questions: openQuestions
             };
         }
         catch (e) { /* feedback is best-effort */ }
-        // Turn-only recall feedback (opts.report): one stream line (no per-memory
-        // ticks), showing WHAT was retrieved and WHY (incl. the query context).
-        // Never runs from the inspector/agent-lens (which also calls this builder),
-        // and never enters the LLM prompt.
+        // Turn-only recall feedback (opts.report)
         try {
             if (opts.report && typeof events?.log === 'function' && topMemories.length) {
                 const lines = topMemories.map((m) => {
@@ -365,28 +436,24 @@ window.PromptBuilder = window.PromptBuilder || {};
                         why = `semantic ${Math.round((m.kb || 0) * 100) / 100}`;
                     }
                     else {
-                        // backend /retrieve  -  real score rides the entry (default 1.0 is a floor)
                         const score = (m.score || 0) > 1 ? ` (score ${Math.round(m.score * 100) / 100})` : '';
-                        why = `recent${score}`;
+                        why = `associative${score}`;
                     }
                     const short = String(m.text || '').replace(/^\[[^\]]*\]\s*/, '');
-                    return `  • ${short}  -  ${why}`;
+                    return `  • ${short} - ${why}`;
                 });
                 const n = topMemories.length;
                 const kw = topMemories.filter((m) => m.source === 'keyword').length;
                 const vec = topMemories.filter((m) => m.source === 'vector').length;
                 const rec = n - kw - vec;
                 const queryShort = String(query || '').replace(/\s+/g, ' ');
-                events.log(`🧠 recalled ${n} memor${n === 1 ? 'y' : 'ies'} · query "${queryShort}" (${kw} keyword · ${vec} semantic · ${rec} recent): \n${lines.join('\n')}`, 'system-msg', null, charName);
+                events.log(`🧠 recalled ${n} memor${n === 1 ? 'y' : 'ies'} · query "${queryShort}" (${kw} keyword · ${vec} semantic · ${rec} associative): \n${lines.join('\n')}`, 'system-msg', null, charName);
             }
         }
         catch (e) { /* feedback is best-effort */ }
         if (topMemories.length > 0) {
             parts.push('');
             parts.push('=== I REMEMBER ===');
-            // task-690: the recall block is a character model, not event soup.
-            // Sectioned when any conclusion-type memory is present; a character
-            // with only episodes gets the plain list it always had.
             const categoryOf = (m) => {
                 const cat = m.category ? String(m.category) : '';
                 if (cat)
@@ -409,14 +476,20 @@ window.PromptBuilder = window.PromptBuilder || {};
                 return flags.length > 0 ? ` (${flags.join('; ')})` : '';
             };
             const sections = [
-                ['EVENTS  -  what happened', []],
+                ['EVENTS - what happened', []],
                 ['WHAT I BELIEVE', []],
                 ['HOW I SEE PEOPLE', []],
                 ['WHAT I EXPECT', []]
             ];
             for (const memoryEntry of topMemories) {
                 const cat = categoryOf(memoryEntry);
-                if (cat === 'belief' || cat === 'semantic')
+                if (cat === 'question') {
+                    const text = String(memoryEntry.text || '').replace(/^\s*\[[^\]]*\]\s*/, '').replace(/^[^A-Za-z0-9]+\s*/, '');
+                    if (!openQuestions.some(q => q.question === text)) {
+                        openQuestions.push({ question: text });
+                    }
+                }
+                else if (cat === 'belief' || cat === 'semantic')
                     sections[1][1].push(memoryEntry);
                 else if (cat === 'social')
                     sections[2][1].push(memoryEntry);
@@ -442,6 +515,14 @@ window.PromptBuilder = window.PromptBuilder || {};
             parts.push('');
             parts.push('=== I REMEMBER ===');
             parts.push("You don't remember anything relevant right now.");
+        }
+        if (openQuestions.length > 0) {
+            parts.push('');
+            parts.push('=== OPEN QUESTIONS / SUSPICIONS ===');
+            for (const q of openQuestions.slice(0, 2)) {
+                const hyp = q.hypothesis ? ` (Hypothesis: ${q.hypothesis})` : '';
+                parts.push(`- ${q.question}${hyp}`);
+            }
         }
         // ── Parse action memories into investigation notes ──
         const actionInfo = [];

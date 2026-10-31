@@ -40,6 +40,7 @@ SEMANTIC = "semantic"      # generalized knowledge / consolidation traces
 PROCEDURAL = "procedural"  # how to behave; expectations of oneself
 SOCIAL = "social"          # about a person (rel:<name> tag convention)
 BELIEF = "belief"          # a conclusion the character holds; may be wrong
+QUESTION = "question"      # an open mystery, curiosity, or suspicion (task-908)
 
 #: Surface ``type`` -> memory ``category``. Types not listed are episodic.
 CATEGORY_FOR_TYPE: Dict[str, str] = {
@@ -47,6 +48,7 @@ CATEGORY_FOR_TYPE: Dict[str, str] = {
     "belief": BELIEF,
     "expectation": PROCEDURAL,
     "procedure": PROCEDURAL,
+    "question": QUESTION,
 }
 
 #: Sources whose memories never decay (authored knowledge the character

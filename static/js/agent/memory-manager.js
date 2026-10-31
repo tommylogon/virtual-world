@@ -1,20 +1,20 @@
 "use strict";
 /**
- * memory-manager.js — Memory storage and reflection
+ * memory-manager.js - Memory storage and reflection
  *
  * Handles all memory-related operations for character agents, backed by
  * the unified backend `Player.memories[]` store:
- *   - `storeMemory()` — POST a memory to the character's backend memories
- *   - `reflect()` — LLM-driven summarization into reflection memories
+ *   - `storeMemory()` - POST a memory to the character's backend memories
+ *   - `reflect()` - LLM-driven summarization into reflection memories
  *
  * Usage: AgentMemory.reflect(charName)
  *        AgentMemory.storeMemory(charName, text, importance, type, tick, entity_ids)
  *
  * Load this AFTER agent-engine.js in index.html (references VW.agent and globals).
  *
- * @module agent/memory-manager — the agent memory write path
+ * @module agent/memory-manager - the agent memory write path
  * @contributes AgentMemory.storeMemory() + reflect() (LLM summarization into reflection memories)
- * @powers Memory — what characters remember, and when they reflect on it
+ * @powers Memory - what characters remember, and when they reflect on it
  * @relates writes the backend Player.memories[]; read back by prompt-builder/memory-context.js
  * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
@@ -25,7 +25,7 @@ const AgentMemory = (() => {
      * Perform memory reflection for a character (task-688).
      *
      * Queries raw-experience memories (importance ≥ 6 or reinforced ≥ 2,
-     * reflection_depth 0 only — the client half of the recursion guard),
+     * reflection_depth 0 only - the client half of the recursion guard),
      * asks the LLM for structured conclusions that change the character
      * (belief + confidence + optional emotional association, behaviour
      * expectation and relationship delta), and POSTs them to the reflect
@@ -47,27 +47,30 @@ const AgentMemory = (() => {
             const memoryText = candidates.map((m) => `- [memory_id: ${m.id}] [${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
             const prompt = [
                 `You are the memory of the character "${charName}". Below are things they experienced.`,
-                'Form 1-3 conclusions that CHANGE how the character sees the world or acts — not a summary of the events.',
+                'Form 1-3 conclusions that CHANGE how the character sees the world or acts - not a summary of the events.',
                 'For each insight provide:',
                 '- belief: one first-person sentence the character now holds (e.g. "Anna is probably lying about the cellar.")',
                 '- about: names of people/places/things the belief is about (empty array if none)',
                 '- confidence: 0-1, how sure the character is (lower it when the memories conflict)',
-                '- emotional: optional {label, intensity 1-10} — the feeling attached to this conclusion',
+                '- emotional: optional {label, intensity 1-10} - the feeling attached to this conclusion',
                 '- behavior: optional one-sentence change to future behaviour (e.g. "Verify Anna\'s claims independently.")',
-                '- relationship: optional {who, dim, delta} — dim is one of trust|fear|attraction|disgust|respect|familiarity, delta -5..+5',
+                '- relationship: optional {who, dim, delta} - dim is one of trust|fear|attraction|disgust|respect|familiarity, delta -5..+5',
                 'Use null for fields that do not apply. Respond ONLY with a JSON object: {"insights": [...]}',
                 '',
                 'MEMORIES:',
                 memoryText
             ].join('\n');
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 400, streaming: false, label: 'reflect', responseFormat: window.StructuredFormats?.insights });
+            const memClient = (typeof config?.getMemoryLLMClient === 'function')
+                ? config.getMemoryLLMClient()
+                : llmClient;
+            const response = await memClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, streaming: false, label: 'reflect', reasoningEffort: 'low', responseFormat: window.StructuredFormats?.insights });
             if (!response)
                 return;
             let cleaned = response.trim();
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
             if (codeBlockMatch)
                 cleaned = codeBlockMatch[1].trim();
-            // Safer JSON parsing — LLMs often add text around the array or trailing commas
+            // Safer JSON parsing - LLMs often add text around the array or trailing commas
             let parsed;
             try {
                 parsed = JSON.parse(cleaned);
@@ -107,7 +110,7 @@ const AgentMemory = (() => {
             }
         }
         catch (error) {
-            // Reflection errors are non-critical — swallow silently
+            // Reflection errors are non-critical - swallow silently
         }
     }
     /**
@@ -128,7 +131,7 @@ const AgentMemory = (() => {
      * Sanitize LLM-generated memory tags down to single-word conceptual ones.
      *
      * Memory tags are meant to be categories/themes for later retrieval (fear,
-     * trust, amnesia, danger) — NOT specifics. So we drop:
+     * trust, amnesia, danger) - NOT specifics. So we drop:
      *   - multi-word / hyphenated tags ("silent-stranger", "sealed-room")
      *   - names of people, items, or areas (real entities the world tracks)
      * Keeps only lowercase single words that aren't an entity name.
@@ -165,22 +168,30 @@ const AgentMemory = (() => {
         }
         return out;
     }
-    function storeMemory(charName, text, importance, type, tick = null, entity_ids = [], tags = [], emotion = null, emotions = null) {
+    function storeMemory(charName, text, importance, type, tick = null, entity_ids = [], tags = [], emotion = null, emotions = null, location = '', extraProps = {}) {
         try {
             if (!text)
                 return;
             const memoryTick = (tick !== null && tick !== undefined) ? tick : (worldState.data?.time_ticks || 0);
             const cleanTags = _sanitizeTags(tags);
+            const playerArea = worldState.players?.[charName]?.current_area
+                || worldState.data?.players?.[charName]?.current_area
+                || '';
+            const resolvedLocation = location || playerArea;
             const payload = {
                 text,
                 tick: memoryTick,
                 importance: Math.max(1, Math.min(10, importance || 5)),
                 type: type || 'observation',
-                entity_ids: entity_ids || [],
+                entity_ids: Array.isArray(entity_ids) ? entity_ids : [],
                 source: 'auto',
                 tags: cleanTags,
                 emotion: (emotion && typeof emotion === 'object') ? { label: emotion.label, intensity: emotion.intensity } : null,
-                emotions: (emotions && typeof emotions === 'object') ? emotions : null
+                emotions: (emotions && typeof emotions === 'object') ? emotions : null,
+                location: resolvedLocation,
+                valid_at: (extraProps && extraProps.valid_at !== undefined) ? extraProps.valid_at : memoryTick,
+                invalid_at: (extraProps && extraProps.invalid_at !== undefined) ? extraProps.invalid_at : null,
+                ...extraProps
             };
             ApiClient.addPlayerMemory(charName, payload).then((data) => {
                 _embedAndStoreVector(charName, data?.entry?.id, text);
@@ -196,7 +207,7 @@ const AgentMemory = (() => {
     }
     /**
      * Fire-and-forget: embed a stored memory's text and upsert the vector into
-     * the backend store (task-91). Any failure is silent — semantic recall just
+     * the backend store (task-91). Any failure is silent - semantic recall just
      * degrades to keyword-only for that memory.
      */
     function _embedAndStoreVector(charName, memoryId, text) {
@@ -216,7 +227,7 @@ const AgentMemory = (() => {
      * Fire-and-forget register a single-word tag in the library ONLY if it doesn't
      * already exist. The library is id-keyed, but re-posting an existing tag would
      * OVERWRITE a curated entry (description/color/examples) with the generic
-     * auto-generated blob — so check the library first and never clobber existing tags.
+     * auto-generated blob - so check the library first and never clobber existing tags.
      */
     const _checkedTagIds = new Set();
     function _ensureLibraryTag(tagId) {

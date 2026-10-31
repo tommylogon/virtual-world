@@ -886,6 +886,163 @@ const InspectorMindView = (() => {
             <div style="max-height:300px;overflow-y:auto;font-size:11px;">${body}</div>
         </div>`;
     }
+    // ── task-862: character lived-log history surface ─────────────────────
+    /**
+     * Group runs of identical routine entries (kind + why + area + what)
+     * following lived_log.rollup semantics. Salient entries are never rolled up.
+     */
+    function _rollupLivedLog(rawLog) {
+        const rolled = [];
+        let i = 0;
+        while (i < rawLog.length) {
+            const cur = rawLog[i];
+            if (!cur || typeof cur !== 'object') {
+                i++;
+                continue;
+            }
+            let j = i + 1;
+            while (j < rawLog.length) {
+                const next = rawLog[j];
+                if (!next || typeof next !== 'object')
+                    break;
+                if (cur.salient || next.salient)
+                    break;
+                if (cur.kind === next.kind && cur.why === next.why && cur.area === next.area && cur.what === next.what) {
+                    j++;
+                }
+                else {
+                    break;
+                }
+            }
+            const count = j - i;
+            if (count >= 3) {
+                rolled.push({
+                    ...cur,
+                    count,
+                    what: `${cur.what} (x${count})`,
+                });
+            }
+            else {
+                for (let k = i; k < j; k++) {
+                    rolled.push(rawLog[k]);
+                }
+            }
+            i = j;
+        }
+        return rolled;
+    }
+    /**
+     * Render the character's lived_log, newest first, with kind chips, why tags,
+     * area badges, tick/clock, and a scoped/windowed view.
+     */
+    function _historyHtml(charName) {
+        const cname = charName || (_state ? _state.charName : '');
+        if (!cname)
+            return '';
+        const p = worldState.players?.[cname];
+        const rawLog = Array.isArray(p?.lived_log) ? p.lived_log : [];
+        if (!rawLog.length) {
+            return `<div style="flex:1;padding:32px 16px;text-align:center;color:var(--text-muted);font-size:12px;">
+                No lived-log entries recorded for this character yet.
+                <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Background turns, decisions, needs, and movement will stream here as the simulation advances.</div>
+            </div>`;
+        }
+        const rolled = _rollupLivedLog(rawLog);
+        const reversed = rolled.slice().reverse();
+        const filter = (_state ? _state.historyFilter : null) || 'all';
+        const query = (_state ? _state.historyQuery : '')?.trim().toLowerCase() || '';
+        const filtered = reversed.filter((e) => {
+            const kind = String(e.kind || '').toLowerCase();
+            if (filter === 'act' && kind !== 'act')
+                return false;
+            if (filter === 'move' && kind !== 'move')
+                return false;
+            if (filter === 'need' && kind !== 'need')
+                return false;
+            if (filter === 'social' && !['social', 'relationship', 'encounter'].includes(kind))
+                return false;
+            if (filter === 'other' && ['act', 'move', 'need', 'social', 'relationship', 'encounter'].includes(kind))
+                return false;
+            if (query) {
+                const text = `${e.what || ''} ${e.why || ''} ${e.area || ''} ${e.kind || ''}`.toLowerCase();
+                if (!text.includes(query))
+                    return false;
+            }
+            return true;
+        });
+        const limit = (_state ? _state.historyLimit : null) || 50;
+        const page = filtered.slice(0, limit);
+        const KIND_COLORS = {
+            act: { bg: 'rgba(56, 139, 253, 0.15)', text: '#58a6ff', border: 'rgba(56, 139, 253, 0.4)' },
+            move: { bg: 'rgba(46, 160, 67, 0.15)', text: '#3fb950', border: 'rgba(46, 160, 67, 0.4)' },
+            need: { bg: 'rgba(210, 153, 34, 0.15)', text: '#d29922', border: 'rgba(210, 153, 34, 0.4)' },
+            social: { bg: 'rgba(240, 136, 62, 0.15)', text: '#f0883e', border: 'rgba(240, 136, 62, 0.4)' },
+            relationship: { bg: 'rgba(240, 136, 62, 0.15)', text: '#f0883e', border: 'rgba(240, 136, 62, 0.4)' },
+            condition: { bg: 'rgba(188, 140, 255, 0.15)', text: '#bc8cff', border: 'rgba(188, 140, 255, 0.4)' },
+            death: { bg: 'rgba(248, 81, 73, 0.15)', text: '#f85149', border: 'rgba(248, 81, 73, 0.4)' },
+            threat: { bg: 'rgba(248, 81, 73, 0.15)', text: '#f85149', border: 'rgba(248, 81, 73, 0.4)' },
+            plan: { bg: 'rgba(121, 192, 255, 0.15)', text: '#79c0ff', border: 'rgba(121, 192, 255, 0.4)' },
+            pursuit: { bg: 'rgba(121, 192, 255, 0.15)', text: '#79c0ff', border: 'rgba(121, 192, 255, 0.4)' },
+            traversal: { bg: 'rgba(46, 160, 67, 0.15)', text: '#3fb950', border: 'rgba(46, 160, 67, 0.4)' },
+        };
+        const rows = page.map((e) => {
+            const tick = Number(e.tick ?? 0);
+            const timeStr = (typeof events !== 'undefined' && events && typeof events.tickToTime === 'function')
+                ? String(events.tickToTime(tick) || '')
+                : '';
+            const kindKey = String(e.kind || 'act').toLowerCase();
+            const color = KIND_COLORS[kindKey] || { bg: 'rgba(139, 148, 158, 0.15)', text: '#8b949e', border: 'rgba(139, 148, 158, 0.4)' };
+            const whyBadge = e.why
+                ? `<span style="background:var(--bg-inset);border:1px solid var(--border-light);border-radius:4px;padding:1px 6px;font-size:9.5px;color:var(--text-muted);font-family:monospace;white-space:nowrap;">why: ${esc(e.why)}</span>`
+                : '';
+            const areaBadge = e.area
+                ? `<span style="font-size:10px;color:var(--text-muted);white-space:nowrap;">📍 ${esc(e.area)}</span>`
+                : '';
+            const countBadge = e.count
+                ? `<span style="background:var(--badge-bg);border:1px solid var(--border);border-radius:10px;padding:0 5px;font-size:9px;color:var(--text-muted);font-weight:600;">×${e.count}</span>`
+                : '';
+            return `<div class="mind-history-row" style="display:flex;align-items:baseline;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border-light);font-size:11px;line-height:1.4;">
+                <span style="font-family:monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;min-width:65px;">
+                    [t${tick}]${timeStr ? ` <span style="font-size:9px;color:var(--text-dim);">${esc(timeStr)}</span>` : ''}
+                </span>
+                <span style="background:${color.bg};color:${color.text};border:1px solid ${color.border};border-radius:4px;padding:1px 6px;font-size:9.5px;font-weight:600;text-transform:uppercase;white-space:nowrap;">
+                    ${esc(e.kind || 'act')}
+                </span>
+                <span style="color:var(--text);flex:1;word-break:break-word;">
+                    ${esc(e.what || '')} ${countBadge}
+                </span>
+                ${whyBadge}
+                ${areaBadge}
+            </div>`;
+        }).join('');
+        const filterBtn = (key, label) => {
+            const active = filter === key;
+            return `<button class="btn btn-xs mind-history-filter" data-hfilter="${key}" style="font-size:10px;padding:2px 8px;border:1px solid ${active ? '#1f6feb' : 'var(--border)'};background:${active ? 'rgba(31, 111, 235, 0.2)' : 'transparent'};color:${active ? '#58a6ff' : 'var(--text-muted)'};border-radius:4px;cursor:pointer;">${label}</button>`;
+        };
+        const loadMoreBtn = filtered.length > limit
+            ? `<div style="text-align:center;padding:12px 0;">
+                <button class="btn btn-sm mind-history-more" style="font-size:11px;padding:4px 16px;">
+                    Showing ${limit} of ${filtered.length} entries - Load more
+                </button>
+               </div>`
+            : '';
+        return `<div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px;">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+                <span style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Lived Log (${rawLog.length} recorded)</span>
+                ${filterBtn('all', 'All')}
+                ${filterBtn('act', 'Acts')}
+                ${filterBtn('move', 'Moves')}
+                ${filterBtn('need', 'Needs')}
+                ${filterBtn('social', 'Social')}
+                ${filterBtn('other', 'Other')}
+                <input id="mind-history-search" placeholder="Filter history..." value="${esc((_state ? _state.historyQuery : '') || '')}" style="margin-left:auto;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;width:160px;">
+            </div>
+            <div style="flex:1;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px 0;">
+                ${rows.length ? rows : `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:11px;">No entries match this filter.</div>`}
+                ${loadMoreBtn}
+            </div>
+        </div>`;
+    }
     // ── task-729: the editing half ────────────────────────────────────────
     // The relationship store, the emotional state and the memory editor move
     // here so reading why a character feels and pursues is also where a
@@ -975,20 +1132,22 @@ const InspectorMindView = (() => {
         if (_subscribed)
             return;
         _subscribed = true;
-        worldState.on('update', () => {
-            if (!_state || !_container)
-                return;
-            // Never wipe an in-progress persona edit: a background state
-            // push while typing would destroy unsaved form input. Any
-            // focused field counts - including chip inputs, which carry
-            // no data-path until their pill is committed.
-            const active = document.activeElement;
-            if (_state.tab === 'persona' && active
-                && active.closest('#mind-persona')
-                && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'))
-                return;
-            _render();
-        });
+        if (typeof worldState?.on === 'function') {
+            worldState.on('update', () => {
+                if (!_state || !_container)
+                    return;
+                // Never wipe an in-progress persona edit: a background state
+                // push while typing would destroy unsaved form input. Any
+                // focused field counts - including chip inputs, which carry
+                // no data-path until their pill is committed.
+                const active = document.activeElement;
+                if (_state.tab === 'persona' && active
+                    && active.closest('#mind-persona')
+                    && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'))
+                    return;
+                _render();
+            });
+        }
     }
     function _mosiac() {
         if (!_state)
@@ -1116,6 +1275,35 @@ const InspectorMindView = (() => {
     // The full 828 schema, editable, with one explicit Compile. Reads
     // GET /record (block + schema + consumer hints), writes PUT /record,
     // projects via POST /record/compile (preview before clobber).
+    const _PERSONA_ID_LISTS = new Set([
+        'likes', 'dislikes', 'fears', 'interests', 'kinks', 'turn_ons',
+        'turn_offs', 'traumas', 'boundaries', 'traits', 'aspirations',
+        'quirks', 'habits', 'hard_limits', 'soft_limits',
+    ]);
+    function _normalizeSlug(val) {
+        return (val || '')
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/-+/g, '-')
+            .replace(/^[-_]+|[-_]+$/g, '');
+    }
+    let _knownTagsCache = null;
+    function _ensureKnownTags() {
+        if (_knownTagsCache !== null)
+            return;
+        _knownTagsCache = new Set();
+        fetch('/api/tags/search?q=')
+            .then((r) => r.json())
+            .then((list) => {
+            _knownTagsCache = new Set((list || []).map((t) => String(t.id || t.name || '').toLowerCase()));
+            if (_state?.tab === 'persona')
+                _personaRepaint(false);
+        })
+            .catch(() => { });
+    }
     const _PERSONA_SECTIONS = [
         ['identity', 'Identity'], ['appearance', 'Appearance'],
         ['personality', 'Personality'], ['narrative', 'Narrative'],
@@ -1160,7 +1348,7 @@ const InspectorMindView = (() => {
         #mind-persona fieldset.pf-group{border:1px solid var(--border);border-radius:6px;padding:7px 9px;margin:0;}
         #mind-persona fieldset.pf-group>legend{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:0 4px;}
         #mind-persona .pf-sub{font-size:11px;color:var(--text-muted);margin-bottom:2px;}
-        #mind-persona .pf-chips{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:5px 7px;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
+        #mind-persona .pf-chip.pf-chip-free{border-style:dashed;}\n        #mind-persona .pf-warnings{background:rgba(210,153,34,0.15);border:1px solid #d29922;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#d29922;}\n        #mind-persona .pf-chips{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:5px 7px;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
         #mind-persona .pf-chips:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.18);}
         #mind-persona .pf-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:2px 6px 2px 10px;}
         #mind-persona .pf-chip.danger{border-color:#8a3a42;color:#e08a92;}
@@ -1266,6 +1454,39 @@ const InspectorMindView = (() => {
         const label = `<div class="pf-label"><span>${esc(field)}${_sparkle(path)}</span>${hintIco}</div>`;
         const val = _personaVal(path);
         const tone = _PERSONA_TONES[field] || '';
+        if (path === 'personality.experience') {
+            if (typeof val === 'object' && val !== null) {
+                const exp = val;
+                const lvl = exp.intimacy_level || '';
+                const partners = Array.isArray(exp.significant_partners) ? exp.significant_partners : [];
+                const hardLims = Array.isArray(exp.hard_limits) ? exp.hard_limits : [];
+                const softLims = Array.isArray(exp.soft_limits) ? exp.soft_limits : [];
+                const inner = `
+                    <div style="margin-bottom:6px;">
+                        <div class="pf-sub">Intimacy Level</div>
+                        <input class="pf-in" data-persona-path="personality.experience.intimacy_level" value="${esc(lvl)}" placeholder="e.g. none, romantic_only, experienced, veteran">
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <div class="pf-sub">Significant Partners</div>
+                        ${_personaChipBox('personality.experience.significant_partners', partners, 'info')}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <div class="pf-sub">Hard Limits (Strict boundaries)</div>
+                        ${_personaChipBox('personality.experience.hard_limits', hardLims, 'danger')}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <div class="pf-sub">Soft Limits (Open with trust)</div>
+                        ${_personaChipBox('personality.experience.soft_limits', softLims, 'danger')}
+                    </div>
+                    <button type="button" class="btn btn-sm" id="mind-persona-toggle-exp" style="font-size:10px;margin-top:4px;">Switch to free-text experience</button>
+                `;
+                return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>experience${hintIco}</legend>${inner}</fieldset></div>`, wide: true };
+            }
+            else {
+                const str = val === undefined || val === null ? '' : String(val);
+                return { html: `<div class="pf-span">${label}<textarea class="pf-in" data-persona-path="${esc(path)}" rows="3">${esc(str)}</textarea><button type="button" class="btn btn-sm" id="mind-persona-toggle-exp" style="font-size:10px;margin-top:4px;">Switch to structured experience</button></div>`, wide: true };
+            }
+        }
         if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
             const numeric = decl?.type === 'number' || _PERSONA_NUMBERS.has(path);
             const str = val === undefined || val === null ? '' : String(val);
@@ -1702,6 +1923,7 @@ const InspectorMindView = (() => {
                 <div class="pf-actions">
                     <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
                     <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
+                    ${_state?.persona?.has_undo ? `<button class="btn btn-sm" id="mind-persona-revert" style="font-size:11px;" title="Revert compiled prose to pre-compile snapshot">↺ revert compile</button>` : ''}
                     <button class="btn btn-sm" id="mind-persona-save" style="font-size:11px;">💾 save block</button>
                     <button class="btn btn-sm btn-blue" id="mind-persona-compile" style="font-size:11px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
                 </div>
@@ -1759,20 +1981,42 @@ const InspectorMindView = (() => {
         }).join('');
         const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
                 <div style="font-weight:600;margin-bottom:6px;">Compile preview - hand prose differs</div>
-                <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:11px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
-                <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">BASE COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div></div>
-                <div style="margin-bottom:8px;"><div style="color:var(--text-muted);font-size:11px;">PERSONALITY NOW</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
-                <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">PERSONALITY COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div></div>
-                <button class="btn btn-sm" id="mind-persona-confirm" style="font-size:11px;">✓ replace with compiled</button>
-                <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:11px;">keep mine</button>
+                <div style="margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer;">
+                        <input type="checkbox" id="mind-persona-apply-base" checked> Apply Base Description
+                    </label>
+                    <div style="margin-left:20px;margin-top:4px;">
+                        <div style="color:var(--text-muted);font-size:11px;">CURRENT</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
+                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div>
+                    </div>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer;">
+                        <input type="checkbox" id="mind-persona-apply-pers" checked> Apply Personality Prose
+                    </label>
+                    <div style="margin-left:20px;margin-top:4px;">
+                        <div style="color:var(--text-muted);font-size:11px;">CURRENT</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
+                        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:10px;">
+                    <button class="btn btn-sm btn-blue" id="mind-persona-apply-selected" style="font-size:11px;">✓ Apply selected</button>
+                    <button class="btn btn-sm" id="mind-persona-confirm" style="font-size:11px;">✓ Apply all</button>
+                    <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:11px;">keep mine</button>
+                </div>
             </div>` : '';
+        const warningsBox = p.warnings && p.warnings.length ? `<div class="pf-warnings">
+                <div style="font-weight:600;margin-bottom:4px;">Preference Contradictions (Non-blocking):</div>
+                ${p.warnings.map((w) => `<div>• ${esc(w)}</div>`).join('')}
+            </div>` : '';
+        const tagDatalist = `<datalist id="mind-persona-tag-suggestions">${[...(_knownTagsCache || [])].map((t) => `<option value="${esc(t)}"></option>`).join('')}</datalist>`;
         const msg = p.msg ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
         return `${_personaCss()}
             ${_personaHeaderHtml()}
             <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry - live preview</summary>
                 <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type - the compiled entry appears here without storing anything.</div></div>
             </details>
-            ${preview}
+            ${warningsBox}${tagDatalist}${preview}
             <div class="pf-workspace">
                 <div class="pf-doll-col">${_bodyNavHtml()}</div>
                 <div class="pf-sheet-col">${sections}${msg}</div>
@@ -1801,6 +2045,7 @@ const InspectorMindView = (() => {
     function _fetchPersona() {
         if (!_state)
             return;
+        _ensureKnownTags();
         if (!_state.persona) {
             _state.persona = {
                 status: 'loading', record: {}, schema: null, hints: {},
@@ -1825,6 +2070,8 @@ const InspectorMindView = (() => {
                 suggestions: data.suggestions || {},
                 lifecycle: data.lifecycle || null,
                 stale: !!data.prose_stale, dirty: false, preview: null, msg: '',
+                has_undo: !!data.has_undo,
+                warnings: data.warnings || [],
                 openSections: keepOpen, bodyNav: keepNav, dollFacing: keepFacing,
             };
             _personaRepaint();
@@ -1905,14 +2152,19 @@ const InspectorMindView = (() => {
             return 'unknown error';
         }
     }
-    function _compilePersona(force) {
+    function _compilePersona(force, sections) {
         if (!_state)
             return;
         if (!force && _state.persona?.dirty) {
             _personaMsg('unsaved edits: save the block first. Compile reads the saved block, not the sheet.');
             return;
         }
-        ApiClient.compilePlayerRecord(_state.charName, force ? { force: true } : {})
+        const opts = {};
+        if (force)
+            opts.force = true;
+        if (sections && sections.length)
+            opts.sections = sections;
+        ApiClient.compilePlayerRecord(_state.charName, opts)
             .then(({ ok, data }) => {
             if (!ok || !_state?.persona) {
                 _personaMsg(`compile rejected: ${data.error || _shortErr(data)}`);
@@ -2085,6 +2337,54 @@ const InspectorMindView = (() => {
         }
         on('#mind-persona-compile', () => _compilePersona(false));
         on('#mind-persona-confirm', () => _compilePersona(true));
+        on('#mind-persona-apply-selected', () => {
+            const applyBase = _container?.querySelector('#mind-persona-apply-base')?.checked;
+            const applyPers = _container?.querySelector('#mind-persona-apply-pers')?.checked;
+            const sections = ['tags'];
+            if (applyBase)
+                sections.push('base_description');
+            if (applyPers)
+                sections.push('personality');
+            _compilePersona(true, sections);
+        });
+        on('#mind-persona-revert', () => {
+            if (!_state)
+                return;
+            ApiClient.revertPlayerCompile(_state.charName)
+                .then(({ ok, data }) => {
+                if (!ok) {
+                    _personaMsg(`revert failed: ${data.error || _shortErr(data)}`);
+                    return;
+                }
+                _personaMsg('reverted to pre-compile snapshot.');
+                _fetchPersona();
+                worldState.fetch();
+            })
+                .catch((e) => _personaMsg(`revert failed: ${String(e)}`));
+        });
+        on('#mind-persona-toggle-exp', () => {
+            if (!_state?.persona)
+                return;
+            const rec = _state.persona.record;
+            if (!rec.personality)
+                rec.personality = {};
+            const cur = rec.personality.experience;
+            if (typeof cur === 'object' && cur !== null) {
+                // convert to string
+                rec.personality.experience = cur.intimacy_level || '';
+            }
+            else {
+                // convert to object
+                rec.personality.experience = {
+                    intimacy_level: cur ? String(cur) : '',
+                    significant_partners: [],
+                    hard_limits: [],
+                    soft_limits: [],
+                };
+            }
+            _personaDirty();
+            _personaRepaint(false);
+        });
         on('#mind-persona-cancel', () => {
             if (_state?.persona) {
                 _state.persona.preview = null;
@@ -2121,8 +2421,13 @@ const InspectorMindView = (() => {
                 const box = el.closest('.pf-chips');
                 if (!box)
                     return;
-                const v = el.value.trim().replace(/,+$/, '');
+                const path = el.dataset.chipNew || '';
+                const lastPart = path.split('.').pop() || '';
+                const raw = el.value.trim().replace(/,+$/, '');
                 el.value = '';
+                if (!raw)
+                    return;
+                const v = _PERSONA_ID_LISTS.has(lastPart) ? _normalizeSlug(raw) : raw;
                 if (!v)
                     return;
                 const cur = _chipValues(box);
@@ -2194,7 +2499,7 @@ const InspectorMindView = (() => {
         const tabs = [
             ['mind', 'Mind'], ['persona', 'Persona'],
             ['perception', 'Perception'],
-            ['memories', 'Memories'], ['people', 'People'],
+            ['memories', 'Memories'], ['history', 'History'], ['people', 'People'],
         ];
         const tabBar = tabs.map(([key, label]) => {
             const active = tab === key;
@@ -2234,10 +2539,13 @@ const InspectorMindView = (() => {
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
         const personaPane = `<div style="flex:1;padding:16px 20px;overflow-y:auto;">
             <div id="mind-persona">${_personaHtml()}</div></div>`;
+        const historyPane = `<div style="flex:1;display:flex;overflow:hidden;">
+            ${_historyHtml()}</div>`;
         const tabBody = tab === 'perception' ? perceptionPane
             : tab === 'memories' ? memoriesPane
-                : tab === 'people' ? peoplePane
-                    : tab === 'persona' ? personaPane : mindPane;
+                : tab === 'history' ? historyPane
+                    : tab === 'people' ? peoplePane
+                        : tab === 'persona' ? personaPane : mindPane;
         const modalContent = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
         <div style="position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;">
@@ -2434,6 +2742,30 @@ const InspectorMindView = (() => {
                 }
             });
         }
+        _container.querySelectorAll('.mind-history-filter').forEach(el => el.addEventListener('click', () => {
+            if (_state) {
+                _state.historyFilter = el.dataset.hfilter || 'all';
+                _render();
+            }
+        }));
+        const historyMore = _container.querySelector('.mind-history-more');
+        if (historyMore) {
+            historyMore.addEventListener('click', () => {
+                if (_state) {
+                    _state.historyLimit = (_state.historyLimit || 50) + 50;
+                    _render();
+                }
+            });
+        }
+        const historySearch = _container.querySelector('#mind-history-search');
+        if (historySearch) {
+            historySearch.addEventListener('input', () => {
+                if (_state) {
+                    _state.historyQuery = historySearch.value;
+                    _render();
+                }
+            });
+        }
     }
     function _wireList() {
         if (!_container)
@@ -2491,6 +2823,9 @@ const InspectorMindView = (() => {
                 people: [],
                 peopleStatus: 'loading',
                 persona: null,
+                historyFilter: 'all',
+                historyQuery: '',
+                historyLimit: 50,
             };
             _render();
             _fetchPeople();
@@ -2511,6 +2846,8 @@ const InspectorMindView = (() => {
         _PERSONA_TONES,
         _recordAndEvidenceHtml,
         _detailHtml,
+        _rollupLivedLog,
+        _historyHtml,
     });
     return M;
 })();

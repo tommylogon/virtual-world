@@ -958,7 +958,7 @@ window.InspectorMemory = (() => {
                 if (contras.length > 0) {
                     contraBox.style.display = 'block';
                     contraBox.replaceChildren(document.createRange().createContextualFragment(`<b>⚡ Contradiction detected (${contras.length}):</b> saving will link this memory as conflicting with `
-                        + contras.map((c) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || '').slice(0, 65))}"</code>`).join(', ')));
+                        + contras.map((c) => `<code>[${InspectorHelpers.esc(String(c.tick ?? 0))}] "${InspectorHelpers.esc(String(c.text || ''))}"</code>`).join(', ')));
                 }
                 else {
                     contraBox.style.display = 'none';
