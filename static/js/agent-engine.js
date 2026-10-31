@@ -270,7 +270,7 @@ class AgentEngine {
             events.log(`Emote error: ${emoteErr instanceof Error ? emoteErr.message : String(emoteErr)}`, 'error-msg');
         }
     }
-    _storeReactionMemory(charName, memory, feltEmotion = null, actionSucceeded = true, actionResult = '') {
+    _storeReactionMemory(charName, memory, feltEmotion = null, actionSucceeded = true, actionResult = '', actionString = '') {
         if (!memory?.text)
             return;
         // Fix #7: reject memories that claim success for a failed action.
@@ -293,7 +293,61 @@ class AgentEngine {
         });
         if (duplicate)
             return;
-        window.AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, entityId ? [entityId] : [], memory.tags, feltEmotion, memory.emotions || null);
+        const entityIdsSet = new Set();
+        if (entityId)
+            entityIdsSet.add(entityId);
+        if (Array.isArray(memory.entity_ids)) {
+            for (const id of memory.entity_ids)
+                if (id)
+                    entityIdsSet.add(String(id));
+        }
+        if (Array.isArray(memory.entities)) {
+            for (const e of memory.entities)
+                if (e)
+                    entityIdsSet.add(String(e));
+        }
+        if (actionString) {
+            const actWords = actionString.toLowerCase().split(/\s+/).slice(1);
+            const joinedTarget = actWords.join(' ');
+            const allPlayers = worldState.data?.players || {};
+            for (const pname of Object.keys(allPlayers)) {
+                if (pname !== charName && (pname.toLowerCase() === joinedTarget || actWords.includes(pname.toLowerCase()))) {
+                    entityIdsSet.add('player_' + pname.toLowerCase());
+                }
+            }
+            const roomItems = (typeof worldState.getItemsInArea === 'function' && player?.current_area)
+                ? (worldState.getItemsInArea(player.current_area) || []) : [];
+            const allItems = [...roomItems, ...(player?.inventory || [])];
+            for (const item of allItems) {
+                const iid = typeof item === 'object' && item?.id ? String(item.id) : null;
+                const iname = typeof item === 'object' && item?.name ? String(item.name).toLowerCase() : (typeof item === 'string' ? item.toLowerCase() : '');
+                if (iname && (joinedTarget.includes(iname) || actWords.includes(iname))) {
+                    if (iid)
+                        entityIdsSet.add(iid);
+                    else
+                        entityIdsSet.add('item_' + iname.replace(/\s+/g, '_'));
+                }
+            }
+        }
+        const location = player?.current_area || entityId || '';
+        const extraProps = {};
+        if (memory.category)
+            extraProps.category = memory.category;
+        if (memory.confidence !== undefined)
+            extraProps.confidence = memory.confidence;
+        if (memory.about)
+            extraProps.about = memory.about;
+        if (memory.hypotheses)
+            extraProps.hypotheses = memory.hypotheses;
+        if (memory.status)
+            extraProps.status = memory.status;
+        if (memory.watch_refs)
+            extraProps.watch_refs = memory.watch_refs;
+        if (memory.valid_at !== undefined)
+            extraProps.valid_at = memory.valid_at;
+        if (memory.invalid_at !== undefined)
+            extraProps.invalid_at = memory.invalid_at;
+        window.AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, Array.from(entityIdsSet), memory.tags, feltEmotion, memory.emotions || null, location, extraProps);
     }
     /**
      * Fire-and-forget spike of the character's affect map from an LLM-declared
@@ -391,7 +445,7 @@ class AgentEngine {
                 if (currentArea)
                     agentConfig.lastRoom[charName] = currentArea;
                 if (step.memory?.text)
-                    this._storeReactionMemory(charName, { text: step.memory.text, ...(step.memory || {}) });
+                    this._storeReactionMemory(charName, { text: step.memory.text, ...(step.memory || {}) }, null, true, '', step.action || '');
                 // Deterministic auto-memory: one instant, LLM-free line per action.
                 const areaName = worldState.runtimePlayer(charName)?.current_area || '';
                 const memoryBits = [
@@ -807,7 +861,7 @@ class AgentEngine {
                         history[0], // system prompt (persistent rules)
                         { role: 'user', content: combinedPrompt }
                     ];
-                    const combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
+                    let combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
                     // Do NOT replay the assistant output into persistent history.
                     // The react phase uses its own fresh messages; the next turn
                     // restarts with a clean [system, user] context.
@@ -824,6 +878,57 @@ class AgentEngine {
                         parsedDecide = await this._retryOnceOnParseError(charName, decideHistory, 'think-decide', ResponseParser.parseReaction, parsedDecide);
                     if (parsedDecide.parseError) {
                         events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
+                    }
+                    if (events.getControlMode(charName) === 'directed') {
+                        events.logPhase(charName, 'directed', 'awaiting director review');
+                        VW?.ui?.setStatus('Directed: ' + charName, 'info');
+                        let reviewResult = null;
+                        while (true) {
+                            reviewResult = await HumanTurnComposer.request(charName, {
+                                prefill: {
+                                    action: parsedDecide.action,
+                                    speech: parsedDecide.speech,
+                                    speechVolume: parsedDecide.speechVolume,
+                                    emote: parsedDecide.emote,
+                                    memory: parsedDecide.memory,
+                                    emotion: parsedDecide.emotion,
+                                    inner: parsedDecide.inner,
+                                    target: parsedDecide.target,
+                                },
+                                canReroll: true
+                            });
+                            if (this._checkCancel())
+                                return;
+                            if (reviewResult && reviewResult.reroll) {
+                                events.log('🎬 ' + charName + ' (directed): rerolling draft...', 'system-msg');
+                                VW?.ui?.setStatus('Rerolling: ' + charName, 'info');
+                                combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
+                                parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+                                continue;
+                            }
+                            break;
+                        }
+                        HumanTurnComposer.closeTurn();
+                        if (this._checkCancel())
+                            return;
+                        if (reviewResult && reviewResult.endTurn) {
+                            events.log('🎬 ' + charName + ' (directed): turn skipped by director', 'system-msg');
+                            return this._endTurnEarly(null);
+                        }
+                        if (reviewResult && reviewResult.step) {
+                            parsedDecide.action = reviewResult.step.action || '';
+                            parsedDecide.speech = reviewResult.step.speech || null;
+                            parsedDecide.speechVolume = reviewResult.step.speechVolume || 'say';
+                            parsedDecide.emote = reviewResult.step.emote || null;
+                            parsedDecide.target = reviewResult.step.target || null;
+                            if (reviewResult.step.memory !== undefined)
+                                parsedDecide.memory = reviewResult.step.memory;
+                            if (reviewResult.step.emotion)
+                                parsedDecide.emotion = reviewResult.step.emotion;
+                            if (reviewResult.step.inner)
+                                parsedDecide.inner = reviewResult.step.inner;
+                            events.log('🎬 ' + charName + ' (directed): director approved turn', 'system-msg');
+                        }
                     }
                     let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
                     this._applyFeltEmotion(charName, parsedDecide.emotion);
@@ -1064,7 +1169,7 @@ class AgentEngine {
                             if (reactionEmote) {
                                 await this._performEmote(charName, reactionEmote);
                             }
-                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion, actionSucceeded, actionResult);
+                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion, actionSucceeded, actionResult, finalAction);
                             events.trackAction(charName, reactionInner, reactionSpeech, null, '');
                         }
                         else {
@@ -1103,16 +1208,67 @@ class AgentEngine {
                     history[0],
                     { role: 'user', content: reactionPrompt }
                 ];
-                const reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
+                let reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
                 if (reactionResponse === null) {
                     events.log(`❌ LLM call failed for ${charName} - stopping agent`, 'error-msg');
                     VW?.ui?.setStatus("LLM Error - Stopped", "error");
                     config.running = false;
                     return;
                 }
-                const parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+                let parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
                 if (parsedNonReactive.parseError) {
                     events.logParseError(charName, 'combined', parsedNonReactive.parseError, reactionResponse);
+                }
+                if (events.getControlMode(charName) === 'directed') {
+                    events.logPhase(charName, 'directed', 'awaiting director review');
+                    VW?.ui?.setStatus('Directed: ' + charName, 'info');
+                    let reviewResult = null;
+                    while (true) {
+                        reviewResult = await HumanTurnComposer.request(charName, {
+                            prefill: {
+                                action: parsedNonReactive.action,
+                                speech: parsedNonReactive.speech,
+                                speechVolume: parsedNonReactive.speechVolume,
+                                emote: parsedNonReactive.emote,
+                                memory: parsedNonReactive.memory,
+                                emotion: parsedNonReactive.emotion,
+                                inner: parsedNonReactive.inner,
+                                target: parsedNonReactive.target,
+                            },
+                            canReroll: true
+                        });
+                        if (this._checkCancel())
+                            return;
+                        if (reviewResult && reviewResult.reroll) {
+                            events.log('🎬 ' + charName + ' (directed): rerolling draft...', 'system-msg');
+                            VW?.ui?.setStatus('Rerolling: ' + charName, 'info');
+                            reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
+                            parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+                            continue;
+                        }
+                        break;
+                    }
+                    HumanTurnComposer.closeTurn();
+                    if (this._checkCancel())
+                        return;
+                    if (reviewResult && reviewResult.endTurn) {
+                        events.log('🎬 ' + charName + ' (directed): turn skipped by director', 'system-msg');
+                        return this._endTurnEarly(null);
+                    }
+                    if (reviewResult && reviewResult.step) {
+                        parsedNonReactive.action = reviewResult.step.action || '';
+                        parsedNonReactive.speech = reviewResult.step.speech || null;
+                        parsedNonReactive.speechVolume = reviewResult.step.speechVolume || 'say';
+                        parsedNonReactive.emote = reviewResult.step.emote || null;
+                        parsedNonReactive.target = reviewResult.step.target || null;
+                        if (reviewResult.step.memory !== undefined)
+                            parsedNonReactive.memory = reviewResult.step.memory;
+                        if (reviewResult.step.emotion)
+                            parsedNonReactive.emotion = reviewResult.step.emotion;
+                        if (reviewResult.step.inner)
+                            parsedNonReactive.inner = reviewResult.step.inner;
+                        events.log('🎬 ' + charName + ' (directed): director approved turn', 'system-msg');
+                    }
                 }
                 let { inner, speech, speechVolume, action, emote: reactionEmote, memory: reactionMemory, target: speechTarget } = parsedNonReactive;
                 if (inner) {
@@ -1123,7 +1279,7 @@ class AgentEngine {
                 if (speech) {
                     await this._speakLine(charName, player, speech, speechVolume, speechTarget);
                 }
-                this._storeReactionMemory(charName, reactionMemory, parsedNonReactive.emotion);
+                this._storeReactionMemory(charName, reactionMemory, parsedNonReactive.emotion, true, '', action);
                 events.trackAction(charName, inner, speech, null, '');
                 if (!agentConfig.lastRoom[charName] && player.current_area)
                     agentConfig.lastRoom[charName] = player.current_area;

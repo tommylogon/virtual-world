@@ -43,9 +43,9 @@ def _first_sentence(text: str, fallback: str = "") -> str:
         return fallback
     for sep in (". ", ".\n", "! ", "? "):
         idx = text.find(sep)
-        if 0 < idx < 220:
+        if idx > 0:
             return text[: idx + 1]
-    return text[:220]
+    return text
 
 
 def _identity_tags(tags: List[str]) -> List[str]:

@@ -975,6 +975,13 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         const availableActions = PromptBuilder.buildAvailableActionsBlock(state, charName, player, currentArea, turnSlots(player));
         const itemsBlock = items ? `${itemHeader}\n` + items : noItemsLine;
         const roomBody = `${bodyDesc}${warn ? `\n${warn}` : ''}`;
+        const sceneCtx = state?.scene_context || window.worldState?.data?.scene_context;
+        const sceneEnabled = window.config?.sceneContext !== false && sceneCtx?.enabled !== false;
+        let extraNote = '';
+        if (sceneEnabled && sceneCtx && sceneCtx.premise) {
+            const title = sceneCtx.title ? ` (${sceneCtx.title})` : '';
+            extraNote = `=== CURRENT SITUATION${title} ===\n${String(sceneCtx.premise).trim()}`;
+        }
         return {
             agentFraming: true,
             tickHead: `[Tick ${tickNum}]`,
@@ -991,6 +998,7 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
             witnessed: witnessedEvents || '',
             conversation: PromptBuilder.buildConversationInstinct(player, charName),
             plan: includePlan ? PromptBuilder.buildPlanContext(charName) : '',
+            extraNote,
         };
     }
     /**
@@ -1016,6 +1024,7 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         const blocks = [
             parts.tickHead,
             parts.preamble,
+            parts.extraNote,
             parts.appearance,
             parts.carrying,
             parts.leadIn,

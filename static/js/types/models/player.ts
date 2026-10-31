@@ -170,6 +170,8 @@ export interface PlayerRuntimeModel {
     traits?: Record<string, unknown>;
     tags?: string[];
     current_area?: string | null;
-    autonomy?: boolean;
+    autonomy?: boolean | string;
+    controller?: 'human' | 'directed' | 'llm' | 'npc' | 'inert';
+    simple_npc?: boolean;
     [key: string]: unknown;
 }

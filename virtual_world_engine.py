@@ -102,6 +102,8 @@ class VirtualWorld:
             "Arousal": 1, "Stimulation": 2, "Pleasure": 3
         }
         self.game_logger = GameLogger()
+        from engine import lived_log
+        lived_log.set_turn_event_sink(self.record_turn_event)
         self.turn_active = False  # True when a turn cycle is in progress
 
         self.add_log_entry("[System] Welcome to VirtualWorld. Available Actions:")
@@ -137,6 +139,9 @@ class VirtualWorld:
 
         # World lore: shared list of structured lore entries
         self.world_lore = []
+
+        # Current scene context (title, premise, tick_started)
+        self.scene_context = None
 
         # task-397: hierarchy manifest over the flat area/way/item graph.
         # {scope_id: {id, kind, name, parent_id, children, area_ids, state, generation}}
@@ -1183,8 +1188,9 @@ class VirtualWorld:
     def add_log_entry(self, text):
         return self.game_logger.add_log_entry(text)
 
-    def record_turn_event(self, actor_name, action_type, description, area_name=None):
-        return self.game_logger.record_turn_event(actor_name, action_type, description, area_name, tick=self.time_ticks)
+    def record_turn_event(self, actor_name, action_type, description, area_name=None, tick=None):
+        actual_tick = tick if tick is not None else getattr(self, "time_ticks", 0)
+        return self.game_logger.record_turn_event(actor_name, action_type, description, area_name, tick=actual_tick)
 
     def clear_turn_events(self):
         """Delegate to game_logger."""
@@ -1210,9 +1216,20 @@ class VirtualWorld:
     # ─────────────────────── Calendar (task-228) ───────────────────────
 
     @property
+    def _base_calendar_day(self) -> int:
+        cfg = getattr(self, "calendar_config", None) or {}
+        start_year = int(cfg.get("start_year", 1) or 1)
+        start_month = int(cfg.get("start_month", 1) or 1)
+        start_day = int(cfg.get("start_day", 1) or 1)
+        dpm = max(1, int(cfg.get("days_per_month", 30)))
+        mpy = max(1, int(cfg.get("months_per_year", 12)))
+        return (start_year - 1) * dpm * mpy + (start_month - 1) * dpm + (start_day - 1)
+
+    @property
     def game_day(self) -> int:
         """Day of the scenario's calendar (1-based, derived from time_ticks)."""
-        return int(self.total_game_minutes() // 1440) + 1
+        elapsed_days = int(self.total_game_minutes() // 1440)
+        return self._base_calendar_day + elapsed_days + 1
 
     @property
     def game_month(self) -> int:
@@ -1239,7 +1256,11 @@ class VirtualWorld:
         so crossing a boundary changes the season with no save and no reload.
         """
         from engine.weather_forecast import resolve_season
-        return resolve_season(getattr(self, "world_state", None) or {})
+        state = getattr(self, "world_state", None) or {}
+        if not state.get("game_month"):
+            state = dict(state)
+            state["game_month"] = self.game_month
+        return resolve_season(state)
 
     def set_game_time(self, hour=None, minute=None):
         """task-234 set_time: rotate the clock-start offset so the displayed
@@ -1276,7 +1297,8 @@ class VirtualWorld:
         new_day = (year_idx - 1) * days_per_month * months_per_year \
             + (month_idx - 1) * days_per_month + day_idx
         cur_hour_min = int(self.total_game_minutes()) % 1440
-        desired_total = (new_day - 1) * 1440 + cur_hour_min
+        desired_elapsed_days = new_day - self._base_calendar_day - 1
+        desired_total = desired_elapsed_days * 1440 + cur_hour_min
         start = int(getattr(self, "clock_start_hour", 8)) * 60 \
             + int(getattr(self, "clock_start_minute", 0))
         per_tick = abs(float(getattr(self, "time_per_tick_minutes", 1)) or 1)

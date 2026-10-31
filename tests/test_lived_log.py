@@ -1,4 +1,4 @@
-"""Objective per-character record of what was lived (engine.lived_log) —
+"""Objective per-character record of what was lived (engine.lived_log) -
 see docs/design/lived-log-format.md. Renamed from `trace` by task-542."""
 import sys
 from pathlib import Path
@@ -116,3 +116,48 @@ def test_player_to_dict_includes_lived_log():
     assert "lived_log" in d
     assert d["lived_log"][0]["why"] == "needs:thirst"
     assert d["lived_log"][0]["tick"] == 3
+
+
+def test_witnessable_lived_log_fans_out_to_turn_events():
+    """Bug-556: witnessable background acts project to the area turn-events sink."""
+    captured = []
+
+    def fake_sink(actor_name, action_type, description, area_name, tick):
+        captured.append({
+            "actor": actor_name,
+            "action": action_type,
+            "description": description,
+            "area": area_name,
+            "tick": tick,
+        })
+
+    prev_sink = T.get_turn_event_sink()
+    try:
+        T.set_turn_event_sink(fake_sink)
+        p = Player("Rikka")
+        p.current_area = "Food Storage"
+
+        # Witnessable: act with explicit area
+        T.record(p, 10, "act", "ate an apple", why="needs:hunger", area="Kitchen")
+        assert len(captured) == 1
+        assert captured[0]["actor"] == "Rikka"
+        assert captured[0]["action"] == "needs:hunger"
+        assert captured[0]["description"] == "ate an apple"
+        assert captured[0]["area"] == "Kitchen"
+        assert captured[0]["tick"] == 10
+
+        # Witnessable: act with empty area resolves from player.current_area
+        T.record(p, 11, "need", "drank water", why="needs:thirst", area="")
+        assert len(captured) == 2
+        assert captured[1]["area"] == "Food Storage"
+        assert captured[1]["action"] == "needs:thirst"
+
+        # Internal: plan stays out of the area ledger
+        T.record(p, 12, "plan", "seek rations in pantry", why="goal:eat", area="Food Storage")
+        assert len(captured) == 2, "plan events must stay internal to the character"
+
+        # Internal: pursuit stays out of the area ledger
+        T.record(p, 13, "pursuit", "chasing intruder", why="goal:defend", area="Food Storage")
+        assert len(captured) == 2, "pursuit events must stay internal to the character"
+    finally:
+        T.set_turn_event_sink(prev_sink)

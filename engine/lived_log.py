@@ -36,6 +36,27 @@ KINDS = (
     "observe", "plan", "death", "promote", "demote",
 )
 
+#: Kinds that an onlooker in the same area could witness (bug-556).
+#: Plans and pursuits stay internal to the character and are never witnessed.
+WITNESSABLE_KINDS = frozenset({
+    "act", "move", "need", "condition", "death", "social", "threat", "encounter", "traversal",
+})
+
+_turn_event_sink = None
+
+
+def set_turn_event_sink(sink_fn) -> None:
+    """Register a callback for witnessable lived-log events (bug-556).
+
+    Signature: sink(actor_name: str, action_type: str, description: str, area_name: str, tick: int)
+    """
+    global _turn_event_sink
+    _turn_event_sink = sink_fn
+
+
+def get_turn_event_sink():
+    return _turn_event_sink
+
 
 def ensure(player) -> list:
     """Guarantee ``player.lived_log`` exists (older saves won't have it)."""
@@ -55,12 +76,13 @@ def record(player, tick, kind, what, why="", area="", tags=None,
     explainable long after it happened.
     """
     log = ensure(player)
+    resolved_area = str(area or getattr(player, "current_area", "") or "")
     entry = {
         "tick": int(tick),
         "kind": kind,
         "what": str(what),
         "why": str(why or ""),
-        "area": str(area or ""),
+        "area": resolved_area,
         "tags": list(tags or []),
         "salient": bool(salient),
     }
@@ -88,6 +110,19 @@ def _tap(character, tick, kind, what, why, area) -> None:
         from engine.soak_telemetry import active_recorder
     except Exception:  # noqa: BLE001 - telemetry must never break a game turn
         return
+    if _turn_event_sink is not None and kind in WITNESSABLE_KINDS and area:
+        try:
+            action_type = why if (why and not why.startswith("http")) else kind
+            _turn_event_sink(
+                actor_name=character,
+                action_type=action_type,
+                description=what,
+                area_name=area,
+                tick=tick,
+            )
+        except Exception:  # noqa: BLE001 - logging must never crash game logic
+            pass
+
     recorder = active_recorder()
     if recorder is None:
         return

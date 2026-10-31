@@ -446,3 +446,27 @@ def test_legacy_visited_areas_and_discovered_items_migrate_to_observations():
     serialized = rp.to_dict()
     assert "visited_areas" not in serialized
     assert "discovered_items" not in serialized
+
+
+def test_scene_context_and_directed_autonomy_roundtrip():
+    """Verify scene_context and player autonomy='directed' survive scenario round-trip."""
+    world = _world_with_an_area()
+    world.scene_context = {
+        "title": "Homeroom Chaos",
+        "premise": "The mystery letter was slipped into Jake's locker before first period.",
+        "active_threads": ["Find the author", "Avoid Marcus"],
+        "enabled": True,
+    }
+    pname = world.active_player
+    player = world.player_manager.get_player(pname)
+    player.autonomy = "directed"
+
+    payload = world.to_scenario_dict()
+    assert payload.get("scene_context", {}).get("title") == "Homeroom Chaos"
+    assert payload["players"][pname]["autonomy"] == "directed"
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(payload)
+    assert reloaded.scene_context.get("title") == "Homeroom Chaos"
+    assert reloaded.scene_context.get("premise") == "The mystery letter was slipped into Jake's locker before first period."
+    assert reloaded.player_manager.get_player(pname).autonomy == "directed"

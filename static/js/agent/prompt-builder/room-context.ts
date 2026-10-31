@@ -915,6 +915,14 @@ ${peopleStr}${exitsStr}${facingStr}${horizonStr}${witnessedEvents ? `${witnessed
         const itemsBlock = items ? `${itemHeader}\n` + items : noItemsLine;
         const roomBody = `${bodyDesc}${warn ? `\n${warn}` : ''}`;
 
+        const sceneCtx = (state as Record<string, any>)?.scene_context || (window as any).worldState?.data?.scene_context;
+        const sceneEnabled = (window as any).config?.sceneContext !== false && sceneCtx?.enabled !== false;
+        let extraNote = '';
+        if (sceneEnabled && sceneCtx && sceneCtx.premise) {
+            const title = sceneCtx.title ? ` (${sceneCtx.title})` : '';
+            extraNote = `=== CURRENT SITUATION${title} ===\n${String(sceneCtx.premise).trim()}`;
+        }
+
 return {
             agentFraming: true,
             tickHead: `[Tick ${tickNum}]`,
@@ -931,6 +939,7 @@ return {
             witnessed: witnessedEvents || '',
             conversation: PromptBuilder.buildConversationInstinct(player, charName),
             plan: includePlan ? PromptBuilder.buildPlanContext(charName) : '',
+            extraNote,
         };
     }
 
@@ -957,6 +966,7 @@ return {
         const blocks: Array<unknown> = [
             parts.tickHead,
             parts.preamble,
+            parts.extraNote,
             parts.appearance,
             parts.carrying,
             parts.leadIn,
@@ -1189,6 +1199,7 @@ type RoomContextParts =
         witnessed: string;
         conversation: unknown;
         plan: string;
+        extraNote?: string;
       };
 
 

@@ -1,10 +1,10 @@
 "use strict";
 /**
- * human-turn-composer.js — the human turn PANEL (task-333; continuous multi-action v4, task-352)
+ * human-turn-composer.js - the human turn PANEL (task-333; continuous multi-action v4, task-352)
  *
- * @module agent/human-turn-composer — the panel you play a character from
+ * @module agent/human-turn-composer - the panel you play a character from
  * @contributes HumanTurnComposer: scene view, feed/digest, You strip, step composer, budget pips, react beat
- * @powers The human turn, Turn queue — actually taking a turn as a character
+ * @powers The human turn, Turn queue - actually taking a turn as a character
  * @relates uses turn-feed + turn-scene-view + api (action submit) + agent-engine state + action-tiers
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *
@@ -31,7 +31,7 @@
  * Contract with agent-engine.js:
  *   request(charName, opts?) → Promise<{ step: NormalizedReply } | {endTurn:true}>
  *       Opens the panel on the first call; subsequent calls refresh it and arm
- *       the next step. Never hides — the turn is one continuous panel.
+ *       the next step. Never hides - the turn is one continuous panel.
  *   react(charName, results) → Promise<{speech, volume, emote, memory, target} | {endTurn:true}>
  *       The single closing beat after the turn ran (task-334 lane 1).
  *   closeTurn()              → hides the panel (call once the turn is done).
@@ -54,6 +54,7 @@ const HumanTurnComposerModule = (() => {
     let _pendingSpeechTarget = null;
     let _advanced = false;
     let _scene = null;
+    let _currentPrefill = null;
     const q = (sel) => _modal.querySelector(sel);
     const qa = (sel) => Array.from(_modal.querySelectorAll(sel));
     const STYLE_ID = 'htc-styles';
@@ -145,6 +146,7 @@ const HumanTurnComposerModule = (() => {
         'wake', 'meditate', 'bathe', 'stand', 'release', 'escape', 'struggle', 'lead',
         'fear', 'interest', 'eat', 'drink',
         'teach', 'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
+        'text', 'message',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
     /** Typed input → draft parts. Unknown verbs become speech. */
@@ -271,7 +273,7 @@ const HumanTurnComposerModule = (() => {
         const slots = player?.turn_slots;
         if (!slots || typeof slots !== 'object')
             return null;
-        // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" —
+        // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" -
         // player.py), and the engine's `_slot_gate` lazily fills an empty budget.
         // So an EMPTY object means "no budget published", NOT "all slots spent".
         // Reading `{}` as spent refused the first action of a fresh turn.
@@ -310,18 +312,26 @@ const HumanTurnComposerModule = (() => {
         const react = phase === 'react';
         q('#htc-do-row').style.display = react ? 'none' : 'flex';
         q('#htc-act').style.display = react ? 'none' : '';
+        const rerollBtn = q('#htc-reroll-btn');
+        if (rerollBtn && react)
+            rerollBtn.style.display = 'none';
         q('#htc-react-btn').style.display = react ? '' : 'none';
         q('#htc-end').style.display = react ? 'none' : '';
-        q('#htc-title').textContent = react ? `${_charName}'s reaction` : `${_charName}'s turn`;
+        const isDirected = window.events?.getControlMode?.(_charName) === 'directed';
+        q('#htc-title').textContent = react
+            ? `${_charName}'s reaction`
+            : (isDirected ? `🎬 Directed: ${_charName}'s draft` : `${_charName}'s turn`);
         q('#htc-phase-note').textContent = react
-            ? 'say / emote / memory — the turn already ran'
-            : 'act · say · emote · memory are all free — only actions spend pips';
+            ? 'say / emote / memory - the turn already ran'
+            : (isDirected
+                ? 'Review and edit the drafted turn, then press Act to commit'
+                : 'act · say · emote · memory are all free - only actions spend pips');
         q('#htc-do').placeholder = react
             ? 'react to what happened…'
-            : 'action — click a thing above, or type "eat berries", "open door"…';
+            : 'action - click a thing above, or type "eat berries", "open door"…';
         q('#htc-speech').placeholder = react
             ? 'what they say back…'
-            : 'what they say — free, stacks with the action';
+            : 'what they say - free, stacks with the action';
     }
     function setBusy(on) {
         q('#htc-act').disabled = on;
@@ -489,38 +499,40 @@ const HumanTurnComposerModule = (() => {
               <span id="htc-phase-note"></span>
             </div>
             <div id="htc-result" style="display:none"></div>
+            <div id="htc-thought-row" style="display:none;font-style:italic;color:#a0b8cc;background:#222630;border-left:3px solid #7c8cf8;padding:6px 12px;margin-bottom:8px;border-radius:4px;font-size:12px;"></div>
             <div class="htc-crow" id="htc-do-row">
               <span class="lbl">⚙ do</span>
-              <input id="htc-do" type="text" list="htc-names" placeholder='action — click a thing above, or type "eat berries", "open door"…' autocomplete="off">
+              <input id="htc-do" type="text" list="htc-names" placeholder='action - click a thing above, or type "eat berries", "open door"…' autocomplete="off">
               <button type="button" id="htc-clear-do" title="clear">✕</button>
             </div>
             <div id="htc-do-hint" style="display:none;font-size:11px;color:#c96;margin:-4px 0 6px 54px;line-height:1.3;"></div>
             <div class="htc-crow">
               <span class="lbl">🗨 say</span>
-              <input id="htc-speech" type="text" placeholder="what they say — free, stacks with the action" autocomplete="off">
+              <input id="htc-speech" type="text" placeholder="what they say - free, stacks with the action" autocomplete="off">
               <div class="htc-volseg" id="htc-volseg"></div>
             </div>
             <div class="htc-crow">
               <span class="lbl">🎭 emote</span>
-              <input id="htc-emote" type="text" placeholder='body language — "sneaks closer to the door"' autocomplete="off">
+              <input id="htc-emote" type="text" placeholder='body language - "sneaks closer to the door"' autocomplete="off">
               <button type="button" id="htc-emote-toggle" class="htc-chiptoggle" title="emote quick-pick">🎭</button>
             </div>
             <div id="htc-emote-palette" class="htc-emote-palette"></div>
             <div class="htc-crow">
               <span class="lbl">🧠 memory</span>
-              <input id="htc-memory" type="text" placeholder="optional — what you'll personally remember from this" autocomplete="off">
+              <input id="htc-memory" type="text" placeholder="optional - what you'll personally remember from this" autocomplete="off">
+              <button type="button" id="htc-reroll-btn" class="htc-btn-primary" style="display:none;background:#6a4fb8;margin-right:6px;" title="Reroll this character's draft turn with the AI">🎲 Reroll</button>
               <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
             </div>
             <div class="htc-footer-row">
               <button type="button" id="htc-react-btn" class="htc-btn-primary gold" style="display:none">close turn</button>
               <span id="htc-flash" class="htc-flash"></span>
               <button type="button" id="htc-advanced-toggle" class="htc-linkbtn muted">▸ advanced</button>
-              <button type="button" id="htc-timeskip" class="htc-linkbtn" title="Wait, mingle, search, explore or travel for a span — your character runs on a policy while everyone else soaks">⏩ timeskip</button>
+              <button type="button" id="htc-timeskip" class="htc-linkbtn" title="Wait, mingle, search, explore or travel for a span - your character runs on a policy while everyone else soaks">⏩ timeskip</button>
               <button type="button" id="htc-end" class="htc-linkbtn endturn">⏭ end turn</button>
             </div>
             <div id="htc-advanced" style="display:none">
-              <select id="htc-relation"><option value="">relation: —</option><option value="on">on</option><option value="under">under</option><option value="beside">beside</option><option value="behind">behind</option><option value="at">at</option><option value="in">in</option></select>
-              <select id="htc-where" disabled title="reserved — region targeting lands with task-211">
+              <select id="htc-relation"><option value="">relation: -</option><option value="on">on</option><option value="under">under</option><option value="beside">beside</option><option value="behind">behind</option><option value="at">at</option><option value="in">in</option></select>
+              <select id="htc-where" disabled title="reserved - region targeting lands with task-211">
                 <option>where: body region (task-211)</option>
               </select>
             </div>
@@ -544,6 +556,10 @@ const HumanTurnComposerModule = (() => {
         }
         syncVolumeButtons();
         q('#htc-act').addEventListener('click', commitStep);
+        q('#htc-reroll-btn').addEventListener('click', () => {
+            EmotePicker.close(q('#htc-emote-palette'));
+            finishAct({ reroll: true });
+        });
         q('#htc-react-btn').addEventListener('click', () => finishReact(false));
         q('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
         q('#htc-close').addEventListener('click', () => onOverlayDismiss());
@@ -626,7 +642,7 @@ const HumanTurnComposerModule = (() => {
                 ? !s || (s.activity || 0) > 0
                 : !s || order.slice(Math.max(0, order.indexOf(tier))).some((t) => (s[t] || 0) > 0);
             if (!affordable) {
-                setFlash(`no ${tier} action left this turn — say / emote / memory are still free`);
+                setFlash(`no ${tier} action left this turn - say / emote / memory are still free`);
                 return;
             }
         }
@@ -638,12 +654,19 @@ const HumanTurnComposerModule = (() => {
         q('#htc-relation').value = '';
         _pendingSpeechTarget = null;
         setBusy(true);
+        const stepResult = {
+            ...norm,
+            inner: _currentPrefill?.inner || null,
+            emotion: _currentPrefill?.emotion || null,
+        };
+        _currentPrefill = null;
         if (resolve)
-            resolve({ step: norm });
+            resolve({ step: stepResult });
     }
     function finishAct(reply) {
         const resolve = _activeResolve;
         _activeResolve = null;
+        _currentPrefill = null;
         TurnFeed.markTurnEnd();
         hidePanel();
         if (resolve)
@@ -654,6 +677,7 @@ const HumanTurnComposerModule = (() => {
             return;
         const resolve = _reactResolve;
         _reactResolve = null;
+        _currentPrefill = null;
         let reply;
         if (endTurn) {
             reply = { endTurn: true };
@@ -667,6 +691,7 @@ const HumanTurnComposerModule = (() => {
         resolve(reply);
     }
     function onOverlayDismiss() {
+        _currentPrefill = null;
         if (_phase === 'react') {
             finishReact(true);
             return;
@@ -697,6 +722,46 @@ const HumanTurnComposerModule = (() => {
             hintEl.textContent = '';
             hintEl.style.display = 'none';
         }
+        const thoughtEl = q('#htc-thought-row');
+        if (thoughtEl) {
+            thoughtEl.textContent = '';
+            thoughtEl.style.display = 'none';
+        }
+    }
+    function applyPrefill(prefill) {
+        if (prefill.action) {
+            q('#htc-do').value = prefill.action;
+        }
+        if (prefill.speech) {
+            q('#htc-speech').value = prefill.speech;
+        }
+        if (prefill.speechVolume) {
+            _volume = prefill.speechVolume;
+            syncVolumeButtons();
+        }
+        if (prefill.target) {
+            _pendingSpeechTarget = prefill.target;
+        }
+        if (prefill.emote) {
+            q('#htc-emote').value = prefill.emote;
+        }
+        if (prefill.memory) {
+            const mem = prefill.memory;
+            q('#htc-memory').value = typeof mem === 'string'
+                ? mem
+                : (mem?.text || JSON.stringify(mem));
+        }
+        const thoughtEl = q('#htc-thought-row');
+        if (thoughtEl) {
+            if (prefill.inner) {
+                thoughtEl.textContent = `💭 Thought: "${prefill.inner}"`;
+                thoughtEl.style.display = 'block';
+            }
+            else {
+                thoughtEl.textContent = '';
+                thoughtEl.style.display = 'none';
+            }
+        }
     }
     function applyDraft(parts) {
         if (!parts || _phase === 'react')
@@ -719,22 +784,35 @@ const HumanTurnComposerModule = (() => {
         showResult(opts.lastResult || '');
         refreshScene(charName);
         TurnFeed.render(q('#htc-feed-lines'));
+        const rerollEl = q('#htc-reroll-btn');
+        if (rerollEl) {
+            rerollEl.style.display = (opts.canReroll || opts.prefill) ? 'inline-block' : 'none';
+        }
         renderMeta();
         renderPips();
         setBusy(false);
         q('#htc-flash').textContent = '';
         _overlay.style.display = 'flex';
+        _currentPrefill = opts.prefill || null;
+        if (opts.prefill) {
+            applyPrefill(opts.prefill);
+        }
         q('#htc-do').focus();
     }
     /** Subsequent step: refresh the open panel with the last result + budget. */
-    function refreshStep(charName, lastResult) {
+    function refreshStep(charName, lastResult, prefill) {
         _charName = charName;
+        resetRows();
         setPhase('compose');
         showResult(lastResult || '');
         refreshScene(charName);
         renderMeta();
         renderPips();
         setBusy(false);
+        _currentPrefill = prefill || null;
+        if (prefill) {
+            applyPrefill(prefill);
+        }
         q('#htc-do').focus();
     }
     /**
@@ -749,7 +827,7 @@ const HumanTurnComposerModule = (() => {
         if (!_overlay || _overlay.style.display === 'none')
             openPanel(charName, opts);
         else
-            refreshStep(charName, opts.lastResult || '');
+            refreshStep(charName, opts.lastResult || '', opts.prefill);
         return new Promise((resolve) => { _activeResolve = resolve; });
     }
     /**

@@ -113,6 +113,8 @@ VERB_TIERS: dict[str, str] = {
     "shout": FREE,
     "scream": FREE,
     "sing": FREE,
+    "text": FREE,
+    "message": FREE,
     "do": FREE,
     "fear": FREE,
     "interest": FREE,

@@ -421,6 +421,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     if intent == "travel" and target and (heading or (belief_info and belief_info.get("belief"))):
         _record_belief_arrival(gs, who, target, belief_info)
     _write_memory(gs, who, result, intent, target)
+    _sync_scene_context_and_cast_memories(gs, who, result, intent, target, start_tick)
     return result
 
 
@@ -894,3 +895,56 @@ def _write_memory(gs, player, result, intent, target):
                           source="timeskip", location=area)
     except Exception as e:
         logger.warning("[timeskip] memory: %s", e)
+
+
+
+def _sync_scene_context_and_cast_memories(gs, player, result, intent, target, start_tick):
+    """Update scene_context premise and record timeskip memories across cast."""
+    if result.elapsed_minutes <= 0:
+        return
+    area = getattr(player, "current_area", "") or "somewhere"
+    minutes = result.elapsed_minutes
+    pname = getattr(player, "name", "Someone")
+
+    # 1. Update scene_context if present
+    scene_context = getattr(gs, "scene_context", None)
+    if isinstance(scene_context, dict):
+        action_desc = f"{minutes} minutes elapsed while {pname} spent time {intent} in {area}."
+        if result.interrupted and result.interrupt:
+            detail = str(result.interrupt.get("detail", "")).strip()
+            if detail:
+                action_desc = f"{action_desc} Interrupted: {detail}"
+        elif result.lines:
+            action_desc = f"{action_desc} {' '.join(result.lines[:2])}"
+        scene_context["premise"] = action_desc.strip()
+        scene_context["tick_started"] = getattr(gs, "time_ticks", 0)
+
+    # 2. Record timeskip episodic memory for other players in the world
+    player_mgr = getattr(gs, "player_manager", None)
+    all_players = []
+    if player_mgr and hasattr(player_mgr, "players"):
+        all_players = list(player_mgr.players.values())
+    elif hasattr(gs, "players") and isinstance(gs.players, dict):
+        all_players = list(gs.players.values())
+
+    curr_tick = getattr(gs, "time_ticks", 0)
+    for p in all_players:
+        if p is player:
+            continue
+        p_area = getattr(p, "current_area", "")
+        if p_area == area:
+            mem_text = f"{minutes} minutes passed in {area} while {pname} was {intent}."
+        else:
+            mem_text = f"{minutes} minutes passed in the world while you were in {p_area}."
+        try:
+            p.add_memory(
+                mem_text,
+                tick=curr_tick,
+                importance=3,
+                memory_type="observation",
+                tags=["timeskip"],
+                source="timeskip",
+                location=p_area or area
+            )
+        except Exception as e:
+            logger.warning("[timeskip] cast memory: %s", e)

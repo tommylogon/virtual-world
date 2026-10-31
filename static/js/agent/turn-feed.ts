@@ -235,7 +235,7 @@ const TurnFeedModule = (() => {
             let actor = structuralActor;
             let content = text;
             let volume = 'say';
-            const quoted = text.match(/^\[([^\]]+)\]\s*(?:whispers?:\s*|says?:\s*|shouts?:\s*|screams?:\s*)?["“](.+?)["”]/i);
+            const quoted = text.match(/^\[([^\]]+)\]\s*(?:whispers?[:,\s]+|says?[:,\s]+|shouts?[:,\s]+|screams?[:,\s]+)?["“](.+?)["”]/i);
             if (quoted) {
                 if (!actor) actor = quoted[1];
                 content = quoted[2];
@@ -244,7 +244,7 @@ const TurnFeedModule = (() => {
                 else if (/scream/i.test(text)) volume = 'scream';
             } else {
                 if (!actor) actor = _parseActor(text);
-                content = text.replace(/^\[[^\]]+\]\s*/, '').replace(/^["“]|["”]$/g, '');
+                content = text.replace(/^\[[^\]]+\]\s*(?:whispers?[:,\s]+|says?[:,\s]+|shouts?[:,\s]+|screams?[:,\s]+)?/, '').replace(/^["“]|["”]$/g, '');
             }
             return { type: isWhisper ? 'whisper' : 'speech', actor, content, volume };
         }
@@ -352,9 +352,8 @@ const TurnFeedModule = (() => {
         return true;
     }
 
-    function truncateResult(text: string, max = 220): string {
-        if (!text || text.length <= max) return text;
-        return text.slice(0, max - 3).trimEnd() + '...';
+    function truncateResult(text: string, _max = 220): string {
+        return text || '';
     }
 
     function observerName(actorName: string | null): string {
@@ -393,7 +392,7 @@ const TurnFeedModule = (() => {
         }
 
         const text = sentences.join('. ') + (sentences.length ? '.' : '');
-        return text.length > 260 ? text.slice(0, 257) + '...' : text;
+        return text;
     }
 
     /* ── summary builder ───────────────────────────────────────────── */
@@ -419,7 +418,7 @@ const TurnFeedModule = (() => {
             const list = byActor.get(actor) || [];
             const speech = list.filter((e: ParsedEntry) => e.type === 'speech' || e.type === 'whisper').map((e: ParsedEntry) => '"' + e.content + '"').join(', ');
             const actions = list.filter((e: ParsedEntry) => e.type === 'action').map((e: ParsedEntry) => e.content).join(', ');
-            const emotes = list.filter((e: ParsedEntry) => e.type === 'emote').slice(0, 1).map((e: ParsedEntry) => e.content).join(', ');
+            const emotes = list.filter((e: ParsedEntry) => e.type === 'emote').map((e: ParsedEntry) => e.content).join(', ');
             const bits: string[] = [];
             if (speech) bits.push('said ' + speech);
             if (emotes) bits.push(emotes);
@@ -431,7 +430,7 @@ const TurnFeedModule = (() => {
         if (playerBits) parts.push('You ' + playerBits);
 
         const text = parts.join('. ') + (parts.length ? '.' : '');
-        return text.length > 220 ? text + '...' : text;
+        return text;
     }
 
     /* ── rendering ─────────────────────────────────────────────────── */
@@ -549,14 +548,15 @@ const TurnFeedModule = (() => {
         ensureFeedStyles();
 
         const narrative = buildConciseNarrative(rawEntries);
-        if (narrative) {
-            const sumEl = document.createElement('div');
-            sumEl.className = 'tf-summary';
-            const b = document.createElement('b');
-            b.textContent = 'Observed:';
-            sumEl.append(b, ' ' + narrative);
-            host.appendChild(sumEl);
-        }
+        const sumEl = document.createElement('div');
+        sumEl.className = 'tf-summary';
+        const b = document.createElement('b');
+        b.textContent = 'Observed:';
+        sumEl.appendChild(b);
+        const textSpan = document.createElement('span');
+        textSpan.textContent = ' ' + (narrative || 'No other characters acted.');
+        sumEl.appendChild(textSpan);
+        host.appendChild(sumEl);
 
         let currentTick = null;
         let lastActor = null;
@@ -672,14 +672,15 @@ const TurnFeedModule = (() => {
         ensureFeedStyles();
 
         const summary = buildSummary(tail);
-        if (summary) {
-            const sumEl = document.createElement('div');
-            sumEl.className = 'tf-summary';
-            const b = document.createElement('b');
-            b.textContent = 'Since your turn:';
-            sumEl.append(b, ' ' + summary);
-            host.appendChild(sumEl);
-        }
+        const sumEl = document.createElement('div');
+        sumEl.className = 'tf-summary';
+        const b = document.createElement('b');
+        b.textContent = 'Since your turn:';
+        sumEl.appendChild(b);
+        const textSpan = document.createElement('span');
+        textSpan.textContent = ' ' + (summary || 'No other characters acted.');
+        sumEl.appendChild(textSpan);
+        host.appendChild(sumEl);
 
         let currentTick = null;
         let lastActor = null;
