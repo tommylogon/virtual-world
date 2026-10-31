@@ -51,13 +51,13 @@
                     <button class="dropdown-item" onclick="saveGame();closeTopMenus()" role="menuitem">💾 Save Game</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('load-game-modal').style.display='flex'; loadGameList()" role="menuitem">📂 Load Game…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('file-upload').click()" role="menuitem">📂 Load JSON…</button>
-                <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">�-� Scenario Manager…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/bench'" role="menuitem">📊 Benchmark Lab…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/commons'" role="menuitem">💬 The Commons…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
-                <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">�-️ New Room from Template…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();ScenarioStatus.commit()" role="menuitem">💾 Commit Scenario</button>
@@ -105,7 +105,7 @@
             </div>
             <div id="left-tabs" class="left-tabs" role="tablist" aria-label="Left panel views">
                 <button class="left-tab active" data-tab="agents" role="tab" onclick="ui.switchLeftTab('agents')">🧍 Agents</button>
-                <button class="left-tab" data-tab="outline" role="tab" onclick="ui.switchLeftTab('outline')">�-�️ Outline</button>
+                <button class="left-tab" data-tab="outline" role="tab" onclick="ui.switchLeftTab('outline')">🗺️ Outline</button>
                 <button class="left-tab" data-tab="lens" role="tab" onclick="ui.switchLeftTab('lens')">👁 Lens</button>
                 <button class="left-tab" data-tab="issues" role="tab" onclick="ui.switchLeftTab('issues')">🛠 Issues</button>
                 <button class="left-tab" data-tab="nl-editor" role="tab" onclick="ui.switchLeftTab('nl-editor')">✨ NL Editor</button>
@@ -207,7 +207,7 @@
                             <div class="menu-sep" role="separator"></div>
                             <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();openLibraryBrowser()">📚 Library</button>
                             <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();VW.structures.openBrowseDialog()">📦 Structures</button>
-                            <button class="dropdown-item" data-help="worldpainter" role="menuitem" onclick="closeTopMenus();VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">�-�️ WorldPainter</button>
+                            <button class="dropdown-item" data-help="worldpainter" role="menuitem" onclick="closeTopMenus();VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">🗺️ WorldPainter</button>
                         </div>
                     </div>
                     <span class="toolbar-divider"></span>
@@ -240,7 +240,7 @@
                 <div class="toolbar-zone" aria-label="Look">
                     <div class="toolbar-segment" id="layout-segment" role="tablist" aria-label="Layout mode">
                         <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout  -  nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
-                        <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">�-�️ Map</button>
+                        <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
                         <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout  -  nodes sit by relation level, physics off">🌳 Hierarchical</button>
                     </div>
                     <div class="toolbar-dropdown menu-anchor">
@@ -287,7 +287,7 @@
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
                                     <button id="map-spacing-auto" class="stepper-btn" aria-pressed="true" onclick="graphManager.setAutoMapSpacing(this.getAttribute('aria-pressed') !== 'true')" aria-label="Derive the map pitch from the canvas size">A</button>
                                 </span>
-                                <span class="menu-note">Only used by the �-�️ Map layout.</span>
+                                <span class="menu-note">Only used by the 🗺️ Map layout.</span>
                             </div>
                         </div>
                     </div>
@@ -366,7 +366,7 @@
                         <button class="btn-icon" onclick="WorldExport.showRangeExport()" title="Export a range of turns (copy or file)" style="background:transparent;border:none;cursor:pointer;font-size:14px;">⏩</button>
                         <button class="btn-icon" onclick="copyEventLogToClipboard()" title="Copy event stream to clipboard" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📋</button>
                         <button id="stream-auto-scroll" class="btn-icon" title="Auto-scroll (on)" style="background:transparent;border:none;cursor:pointer;font-size:16px;">📌</button>
-                        <button class="btn-icon" onclick="events.clearStream()" title="Clear event stream" style="background:transparent;border:none;cursor:pointer;font-size:14px;">�-�️</button>
+                        <button class="btn-icon" onclick="events.clearStream()" title="Clear event stream" style="background:transparent;border:none;cursor:pointer;font-size:14px;">🗑️</button>
                         <select id="stream-style" onchange="events.setStyle(this.value); config.save()" title="Stream visual style" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
                             <option value="dark">Dark</option>
                             <option value="disco">Disco Elysium</option>
@@ -424,7 +424,7 @@
                     <span style="font-size:12px;font-weight:600;color:var(--text-dim);">📁 Profile:</span>
                     <select id="profile-select" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="switchProfile(this.value)"></select>
                     <button class="btn btn-sm btn-blue" onclick="saveProfileFromCurrent()" title="Save current settings">💾</button>
-                    <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">�-�</button>
+                    <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">🗑</button>
                     <button class="btn btn-sm btn-green" onclick="saveProfileAsNew()" title="Save as new profile">➕</button>
                     <button class="btn btn-sm btn-ghost" onclick="syncBackendProfiles()" title="Sync profiles from server / .env">🔄</button>
                 </div>
@@ -968,7 +968,7 @@
                 <div style="margin-bottom:12px;display:flex;gap:6px;align-items:center;">
                     <input type="text" id="save-game-name-input" placeholder="Save name  -  creates a new save..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
                     <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save as New</button>
-                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">�-� All</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">🗑 All</button>
                 </div>
                 <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">
                     🔄 Autosave is always current (pinned top). Click a save to load it; 💾 overwrites that slot;
@@ -1019,13 +1019,13 @@
                 <div>
                     <div style="font-weight:600;margin-bottom:6px;">Resolution</div>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="1"> 1�- (screen)
+                        <input type="radio" name="gexport-scale" value="1"> 1× (screen)
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="2" checked> 2�- (recommended)
+                        <input type="radio" name="gexport-scale" value="2" checked> 2× (recommended)
                     </label>
                     <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
-                        <input type="radio" name="gexport-scale" value="3"> 3�- (print)
+                        <input type="radio" name="gexport-scale" value="3"> 3× (print)
                     </label>
                 </div>
                 <div id="gexport-status" style="color:var(--text-muted);min-height:14px;"></div>
