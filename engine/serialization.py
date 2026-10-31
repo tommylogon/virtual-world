@@ -861,6 +861,11 @@ class WorldSerializer:
                     if not edge_area_id and hasattr(self.player_manager, "_set_player_area"):
                         self.player_manager._set_player_area(pname, p.current_area)
         data = self._serialize_world()
+        bg = data.get("graph_background")
+        if isinstance(bg, dict) and "positions" in bg:
+            bg = dict(bg)
+            bg.pop("positions", None)
+            data["graph_background"] = bg
         data.pop("game_log", None)
         data.pop("turn_events", None)
         data.pop("log_revision", None)
@@ -1142,6 +1147,9 @@ class WorldSerializer:
                 index.reindex(self.graph, self.legacy.world_scopes)
         # Graph background map: image path + transform (presentation only).
         background = data.get("graph_background")
+        if isinstance(background, dict) and "positions" in background:
+            background = dict(background)
+            background.pop("positions", None)
         self.legacy.graph_background = background if isinstance(background, dict) else {}
         # task-228/227: calendar + forecast persist through saves.
         if isinstance(data.get("calendar_config"), dict):

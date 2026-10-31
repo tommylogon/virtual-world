@@ -56,7 +56,7 @@ const CONFIG_SCHEMA = {
     graphEdgeWidth: { storageKey: 'graph_edge_width', type: 'number', default: 1 },
     graphArrows: { storageKey: 'graph_arrows', type: 'boolean', default: true },
     graphImprovedLayout: { storageKey: 'graph_improved_layout', type: 'boolean', default: false },
-    graphLayoutMode: { storageKey: 'graph_layout_mode', type: 'string', default: 'free' },
+    graphLayoutMode: { storageKey: 'graph_layout_mode', type: 'string', default: 'graph' },
     graphCardinalLayout: { storageKey: 'graph_cardinal_layout', type: 'boolean', default: false },
     graphRepelEnabled: { storageKey: 'graph_repel_enabled', type: 'boolean', default: true },
     graphRepelMin: { storageKey: 'graph_repel_min', type: 'number', default: 55 },
@@ -138,17 +138,21 @@ class ConfigManagerImpl {
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
         this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
-        // Graph layout mode (task-485): 'free' = force physics, with a room's
-        // contents seeded onto a ring around it and then simulated; 'levels' =
-        // vis hierarchical layout, where the layout engine places every node by
-        // relation level (physics off).
-        this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
-        // Map layout on/off (bug-510). The Map tab used to live only on
-        // `graphManager._cardinalLayout`, which nothing persisted, so picking
-        // Map and reloading dropped straight back to Graph. Stored separately
-        // from graphLayoutMode ('levels') because the two are independent axes
-        // in `activeLayout()`, but both persist so a reload restores either.
-        this.graphCardinalLayout = (await storage.getConfig('graph_cardinal_layout')) === 'true';
+        // Graph layout mode (task-625): unified 'graph' | 'map' | 'levels'.
+        const rawLayout = await storage.getConfig('graph_layout_mode');
+        const rawCardinal = (await storage.getConfig('graph_cardinal_layout')) === 'true';
+        if (rawLayout === 'levels') {
+            this.graphLayoutMode = 'levels';
+            this.graphCardinalLayout = false;
+        }
+        else if (rawLayout === 'map' || rawCardinal) {
+            this.graphLayoutMode = 'map';
+            this.graphCardinalLayout = true;
+        }
+        else {
+            this.graphLayoutMode = 'graph';
+            this.graphCardinalLayout = false;
+        }
         // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
         // padding between areas in Map mode. 40px = an area every 40px with the
         // way at the midpoint; raise it to de-clutter a dense painted grid.
@@ -377,8 +381,8 @@ class ConfigManagerImpl {
         await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
-        await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'free');
-        await storage.setConfig('graph_cardinal_layout', this.graphCardinalLayout ? 'true' : 'false');
+        await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'graph');
+        await storage.setConfig('graph_cardinal_layout', this.graphLayoutMode === 'map' ? 'true' : 'false');
         await storage.setConfig('graph_repel_enabled', this.graphRepelEnabled ? 'true' : 'false');
         await storage.setConfig('graph_repel_min', String(this.graphRepelMin));
         await storage.setConfig('graph_repel_max', String(this.graphRepelMax));

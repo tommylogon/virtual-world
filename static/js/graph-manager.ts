@@ -202,10 +202,10 @@ class GraphManagerImpl {
         this._legendEl = null;
         this._searchQuery = '';
         this._viewMode = 'graph';
-        // bug-510: the Map tab's on/off choice persists (config.graphCardinalLayout).
-        // Re-read in init() too, after config's load promise resolves.
-        this._cardinalLayout = (typeof config !== 'undefined' && config)
-            ? config.graphCardinalLayout === true : false;
+        // bug-510/task-625: Map choice reflects unified layout mode (config.graphLayoutMode).
+        const initialLayout = (typeof config !== 'undefined' && config && config.graphLayoutMode) || null;
+        this._cardinalLayout = initialLayout === 'map' || ((typeof config !== 'undefined' && config)
+            ? config.graphCardinalLayout === true : false);
         // task-530: set by the load path when the painted grid laid the nodes out.
         // The painted lattice owns positions, so physics must be disabled — and
         // the toolbar shows that instead of pretending the toggle still works.
@@ -250,11 +250,13 @@ class GraphManagerImpl {
         await this._applyEngineConfigDefaults();
         await GraphNetwork.init();
         if (window.GraphBackground) await window.GraphBackground.init();
-        // bug-510: config._initPromise resolved before init() runs (main.js), so
-        // the persisted Map choice is available here even if the constructor saw
-        // a pre-load default.
-        if (typeof config !== 'undefined' && config && config.graphCardinalLayout === true) {
+        // bug-510/task-625: config._initPromise resolved before init() runs (main.js), so
+        // the persisted layout mode is available here.
+        const initLayout = (typeof config !== 'undefined' && config && config.graphLayoutMode) || null;
+        if (initLayout === 'map' || (typeof config !== 'undefined' && config && config.graphCardinalLayout === true)) {
             this._cardinalLayout = true;
+        } else if (initLayout === 'levels') {
+            this._cardinalLayout = false;
         }
         this._syncMapSpacingButton();
         this._watchScopeChanges();
@@ -684,35 +686,72 @@ class GraphManagerImpl {
      * labels; the segmented control and every disabled rule read this instead.
      * @returns {'graph'|'map'|'levels'}
      */
-    activeLayout() {
+    /**
+     * Which layout the graph is in, as one of GraphToolbar.LAYOUTS (task-625).
+     * @returns {'graph'|'map'|'levels'}
+     */
+    activeLayout(): 'graph' | 'map' | 'levels' {
         if (this._levelsMode()) return 'levels';
         return this._cardinalLayout ? 'map' : 'graph';
     }
 
     /**
+     * Unify layout selection (task-625) onto a single setting.
+     * @param {'graph'|'map'|'levels'} layout
+     * @returns {boolean} whether layout changed
+     */
+    setLayout(layout: 'graph' | 'map' | 'levels'): boolean {
+        const current = this.activeLayout();
+        if (layout === current) return true;
+
+        if (layout === 'levels') {
+            this._cardinalLayout = false;
+            if (typeof config !== 'undefined' && config) {
+                config.graphLayoutMode = 'levels';
+                config.graphCardinalLayout = false;
+                if (typeof config.save === 'function') {
+                    try { config.save(); } catch (e) { /* ignore */ }
+                }
+            }
+        } else if (layout === 'map') {
+            this._cardinalLayout = true;
+            if (typeof config !== 'undefined' && config) {
+                config.graphLayoutMode = 'map';
+                config.graphCardinalLayout = true;
+                if (typeof config.save === 'function') {
+                    try { config.save(); } catch (e) { /* ignore */ }
+                }
+            }
+        } else {
+            this._cardinalLayout = false;
+            if (typeof config !== 'undefined' && config) {
+                config.graphLayoutMode = 'graph';
+                config.graphCardinalLayout = false;
+                if (typeof config.save === 'function') {
+                    try { config.save(); } catch (e) { /* ignore */ }
+                }
+            }
+        }
+
+        if (window.GraphToolbar) GraphToolbar.syncAll();
+        this._lastSig = '';
+        this.loadGraphData();
+        return true;
+    }
+
+    /**
      * Turn the Map layout on/off. Returns false when the toggle is refused
-     * because another layout owns positions (Levels) — the Map tab is disabled
-     * in that state, this is the programmatic guard behind it (bug-48).
+     * because another layout owns positions (Levels).
      * @returns {boolean} whether the layout changed
      */
     toggleCardinalLayout() {
         if (this._levelsMode()) {
             if (typeof toastError === 'function') {
-                toastError('Map is unavailable while Hierarchical owns the layout — pick Graph first, then Map.');
+                toastError('Map is unavailable while Hierarchical owns the layout - pick Graph first, then Map.');
             }
             return false;
         }
-        this._cardinalLayout = !this._cardinalLayout;
-        this._persistCardinalLayout();   // bug-510: survive a reload
-        if (window.GraphToolbar) GraphToolbar.syncAll();
-        // The painted lattice owns positions in Map mode, but physics stays on
-        // by default so edges don't get pushed around. An explicit toolbar toggle
-        // still wins, and only that explicit choice is persisted — so a
-        // reload always starts the graph view with the user's own preference.
-        // Clear signature so loadGraphData doesn't skip the reload
-        this._lastSig = '';
-        this.loadGraphData();
-        return true;
+        return this.setLayout(this._cardinalLayout ? 'graph' : 'map');
     }
 
     async loadGraphData() {
@@ -1507,7 +1546,7 @@ class GraphManagerImpl {
     }
 
     /** Free physics layout <-> vis hierarchical levels (task-485). */
-    toggleLayoutMode() { return GraphNetwork.toggleLayoutMode(); }
+    toggleLayoutMode() { return this.setLayout(this.activeLayout() === 'levels' ? 'graph' : 'levels'); }
 
     /** True when the hierarchical (level) layout owns node positions. */
     _levelsMode() {

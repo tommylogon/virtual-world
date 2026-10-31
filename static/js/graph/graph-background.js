@@ -218,7 +218,7 @@
                 locked: layer.locked,
                 visible: layer.visible,
             })),
-            positions: state.positions,
+            positions: {},
             layoutLocked: state.layoutLocked,
         };
     }
@@ -1658,6 +1658,21 @@
         const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
         if (engine && typeof engine.hasPaintedCoords === 'function') {
             isPainted = (id) => engine.hasPaintedCoords((nodesObj[id] || {}).properties || {});
+        }
+        if (!Object.keys(state.positions || {}).length) {
+            for (const id of live) {
+                if (isPainted && isPainted(id))
+                    continue;
+                const node = nodesObj[id];
+                const props = node?.properties;
+                if (props && typeof props.x === 'number' && typeof props.y === 'number') {
+                    try {
+                        network.moveNode(id, props.x, props.y);
+                    }
+                    catch (error) { /* node gone */ }
+                }
+            }
+            return;
         }
         for (const id of Object.keys(state.positions)) {
             const position = state.positions[id];

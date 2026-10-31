@@ -207,17 +207,20 @@ window.GraphToolbar = {
         if (!gm) return;
         const s = GraphToolbar.state();
         if (layout === s.layout) { GraphToolbar.closeAll(); GraphToolbar.syncAll(); return; }
-        if (layout === 'levels') {
-            if (s.layout === 'map') gm.toggleCardinalLayout(); // Map off first
-            gm.toggleLayoutMode();                             // Levels on
-        } else if (layout === 'map') {
-            if (s.layout === 'levels') gm.toggleLayoutMode();  // Levels off first
-            gm.toggleCardinalLayout();                         // Map on
+        if (typeof gm.setLayout === 'function') {
+            gm.setLayout(layout);
         } else {
-            // Graph is the off state for both.
-            if (s.layout === 'levels') gm.toggleLayoutMode();
-            if (s.layout === 'map') gm.toggleCardinalLayout();
-            gm.setViewMode('graph');
+            if (layout === 'levels') {
+                if (s.layout === 'map') gm.toggleCardinalLayout();
+                gm.toggleLayoutMode();
+            } else if (layout === 'map') {
+                if (s.layout === 'levels') gm.toggleLayoutMode();
+                gm.toggleCardinalLayout();
+            } else {
+                if (s.layout === 'levels') gm.toggleLayoutMode();
+                if (s.layout === 'map') gm.toggleCardinalLayout();
+                gm.setViewMode('graph');
+            }
         }
         GraphToolbar.closeAll();
         GraphToolbar.syncAll();

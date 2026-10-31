@@ -206,23 +206,27 @@ window.GraphToolbar = {
             GraphToolbar.syncAll();
             return;
         }
-        if (layout === 'levels') {
-            if (s.layout === 'map')
-                gm.toggleCardinalLayout(); // Map off first
-            gm.toggleLayoutMode(); // Levels on
-        }
-        else if (layout === 'map') {
-            if (s.layout === 'levels')
-                gm.toggleLayoutMode(); // Levels off first
-            gm.toggleCardinalLayout(); // Map on
+        if (typeof gm.setLayout === 'function') {
+            gm.setLayout(layout);
         }
         else {
-            // Graph is the off state for both.
-            if (s.layout === 'levels')
+            if (layout === 'levels') {
+                if (s.layout === 'map')
+                    gm.toggleCardinalLayout();
                 gm.toggleLayoutMode();
-            if (s.layout === 'map')
+            }
+            else if (layout === 'map') {
+                if (s.layout === 'levels')
+                    gm.toggleLayoutMode();
                 gm.toggleCardinalLayout();
-            gm.setViewMode('graph');
+            }
+            else {
+                if (s.layout === 'levels')
+                    gm.toggleLayoutMode();
+                if (s.layout === 'map')
+                    gm.toggleCardinalLayout();
+                gm.setViewMode('graph');
+            }
         }
         GraphToolbar.closeAll();
         GraphToolbar.syncAll();
