@@ -92,6 +92,14 @@ const win = {
         setItem(k, val) { this._v.set(k, String(val)); },
         removeItem(k) { this._v.delete(k); },
     },
+    storage: {
+        _map: new Map(),
+        async getConfig(k) { return this._map.has(k) ? this._map.get(k) : null; },
+        async setConfig(k, v) { this._map.set(k, String(v)); },
+        async getProfile() { return null; },
+        async saveProfile() {},
+        async getProfiles() { return []; },
+    },
     document: {
         readyState: 'complete',
         addEventListener: () => {},
@@ -261,6 +269,7 @@ load('static/js/inspector/item-view.js');
 load('static/js/inspector/way-view.js');
 load('static/js/inspector/memory-view.js');
 load('static/js/inspector/behaviors-view.js');
+load('static/js/ui/settings-view.js');
 
 // ── discover + run test files ──
 const filterArg = process.argv[2] ? path.basename(process.argv[2]) : null;

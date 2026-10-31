@@ -68,6 +68,9 @@ const CONFIG_SCHEMA = {
 };
 window.CONFIG_SCHEMA = CONFIG_SCHEMA;
 class ConfigManagerImpl {
+    _savePromise = null;
+    _saveRequested = false;
+    _saveTimer = null;
     constructor() {
         this._ready = false;
         this._initPromise = this._init();
@@ -302,7 +305,7 @@ class ConfigManagerImpl {
         else if (TurnQueue && this.turnBased) {
             TurnQueue.initialize();
         }
-        await this.save();
+        await this.save(true);
         // The "End round" control only exists in a simultaneous mode (task-533),
         // so switching modes has to re-evaluate the toolbar.
         VW?.ui?.updateButtons?.();
@@ -325,7 +328,43 @@ class ConfigManagerImpl {
         };
         desc.textContent = DESCRIPTIONS[this.turnOrder] || `Turn mode: ${this.turnOrder}`;
     }
-    async save() {
+    async save(immediate = false) {
+        if (!immediate) {
+            if (this._saveTimer) {
+                clearTimeout(this._saveTimer);
+            }
+            return new Promise((resolve) => {
+                this._saveTimer = setTimeout(async () => {
+                    this._saveTimer = null;
+                    await this._executeSave();
+                    resolve();
+                }, 150);
+            });
+        }
+        if (this._saveTimer) {
+            clearTimeout(this._saveTimer);
+            this._saveTimer = null;
+        }
+        return this._executeSave();
+    }
+    async _executeSave() {
+        if (this._savePromise) {
+            this._saveRequested = true;
+            return this._savePromise;
+        }
+        this._savePromise = this._persistStorage();
+        try {
+            await this._savePromise;
+        }
+        finally {
+            this._savePromise = null;
+            if (this._saveRequested) {
+                this._saveRequested = false;
+                await this._executeSave();
+            }
+        }
+    }
+    async _persistStorage() {
         await storage.setConfig('api_key', this.apiKey);
         await storage.setConfig('api_base', this.apiBase);
         await storage.setConfig('model', this.model);
@@ -470,7 +509,7 @@ class ConfigManagerImpl {
             if (tpmInput)
                 this.tpmLimit = parseInt(tpmInput.value) || 0;
         }
-        await this.save();
+        await this.save(true);
         VW.llm._manualMode = !!this.manualMode;
         if (!VW.llm._manualMode)
             VW.llm._manualResponse = null;
@@ -619,7 +658,7 @@ class ConfigManagerImpl {
             this.turnBased = false;
         this.apiFormat = profile.apiFormat || 'auto';
         this.lastProfile = name;
-        await this.save();
+        await this.save(true);
         VW?.llm?.configure(this.toLLMConfig());
         if (VW?.llm) {
             VW.llm._manualMode = !!this.manualMode;
