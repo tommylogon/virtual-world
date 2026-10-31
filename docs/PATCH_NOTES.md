@@ -3,8 +3,10 @@
 Authoring and release notes for VirtualWorld live in four places, deliberately:
 
 - **[`CHANGELOG.md`](CHANGELOG.md)** - the canonical, version-by-version history. Start here.
+- **[`docs/virtualWorld/Patch Notes 2026-10-31.md`](docs/virtualWorld/Patch%20Notes%202026-10-31.md)**
+  - the current shareable release note, covering Associative Memory 3.0, Directed Mode, and Provider Profiles.
 - **[`docs/virtualWorld/Patch Notes 2026-10-26.md`](docs/virtualWorld/Patch%20Notes%202026-10-26.md)**
-  - the current shareable release note, written for someone who does not know the codebase.
+  - covering Living Voices in The Commons and The Proving Ground model benchmarks.
 - **[`docs/virtualWorld/Patch Notes 2026-10-22.md`](docs/virtualWorld/Patch%20Notes%202026-10-22.md)**
   - covering Play Mode sandboxing, raycast sightlines, worn gear, and aliases.
 - **[`docs/virtualWorld/Patch Notes 2026-10-15.md`](docs/virtualWorld/Patch%20Notes%202026-10-15.md)**
