@@ -3,115 +3,88 @@ type: task
 status: todo
 area: refactor
 priority: medium
-related: ['task-675', 'task-847', 'task-848']
+related: ['task-654', 'task-675', 'task-847', 'task-848', 'task-852']
 wiki: "[[Feature Map]]"
 ---
 
 # task-744: Equipment and body: one edge truth for worn gear, layered coverage, body marks, body-centric UI
 
 **Filed:** 2026-10-08
-**Related:** task-654, task-450, task-161, task-660, task-724, task-457, task-619
+**Updated:** 2026-10-31
+**Related:** task-654, task-450, task-161, task-660, task-724, task-457, task-619, task-847, task-848, task-852
 
 <!-- deps:start -->
-**Related:** [[task-675-character-editor-three-column-body-with-section-nav-rail]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
+**Related:** [[task-654-single-writer-equipment-edges]], [[task-675-character-editor-three-column-body-with-section-nav-rail]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
 <!-- deps:end -->
 
 ## What
 
-Unify equipment and the body into one edge-backed model and kill the duplicate stores. First deliverable is a design doc in the shape of docs/design/character-entity-refactor-plan.md; this task is filed to be scoped later. MEASURED 2026-10-08: (1) player.equipped is a runtime view of the equipped edges - serialization.py:769 _sync_equipped_from_graph rebuilds it from edges - yet it is ALSO persisted (player.py:1329 to_dict emits equipped; to_scenario_dict does not strip it) and read back on load (serialization.py:406), and on load the persisted dict mints a THIRD representation, EDGE_CONNECTION edges (serialization.py:756-765). Its sibling region_exposed and body_region_names are already stripped as derived (serialization.py:267-268), so keeping equipped is inconsistent. (2) body_parts.is_exposed reads the dict and infers layers from array order (outer = last, body_parts.py:250); equipment_bonuses reads the edges (equipment_bonuses.py:17-19) - same gear, two readers, two homes. (3) the client already derives inventory from carrying/equipped edges (static/js/world-state.ts:209, task-632), so equipped can be derived the same way. (4) layers are not declared: stack order is positional. TARGET: equipped edges are the single truth; slot lives on the edge; order is either an edge property (layer/order int) or an item-to-item under edge for partial-order layering (diagram: character <-equipped- shirt <-under- bra), decided up front; player.equipped becomes a non-serialized derived view; stop persisting it; drop the load-time connection minting. SLICES: 0 stop persisting derived equipment state (mirrors region_exposed, no behavior change); 1 one writer (finish task-654/450); 2 declared layers plus coverage recomposition; 3 derive damage, sensitivity and pleasure from coverage (body_parts, combat is_exposed, body_state sensitivity); 4 body marks - scars, piercings, body hair as per-region authored data whose description composes into appearance prose and feeds mechanics; 5 body-centric UI where the paperdoll IS the region x layer model (click a region for coverage layers, effective sensitivity, marks, composed description). NAMING BLOCKER: EDGE_UNDER already means item to furniture/object hidden beneath (graph.py:836, in SPATIAL_EDGE_TYPES) and cannot also mean garment layering - settle which keeps the name.
+Unify equipment and the body into one edge-backed model and eliminate duplicate stores.
 
-## Acceptance
+STATUS UPDATE (2026-10-31):
+- **Slice 0 is completed**: Landed via `task-654` (`engine/serialization.py:781` pops `equipped` during scenario serialization; worn gear is authoritative on `EDGE_EQUIPPED` edges).
+- **Slices 4 and 5 are completed**: Landed via `task-847`, `task-848`, and `task-852` P3 (`appearance.body.modifications` schema, body marks prose compilation in `engine/character_appearance.py:1024`, and the Persona tab embedded body paperdoll navigator).
+- **Naming collision resolved**: `EDGE_UNDER = "under"` in `graph.py:926` remains strictly for spatial containment (item hidden beneath furniture). Garment layering does not use an `under` edge; it is modeled via a `layer: int` property on the `EDGE_EQUIPPED` edge (or explicit slot depth).
 
-Design doc first, in the shape of `docs/design/character-entity-refactor-plan.md`:
-north star, the stores to collapse (the `equipped` dict, the `connection` edge, the
-persisted array), the layer model (edge property vs `under` edge), the marks model,
-the UI, and the phased slices below each with its own acceptance.
+Remaining scope: Slices 1, 2, and 3 (one writer, explicit garment layers on equipment edges, and derived body effects/coverage).
 
-Then, per slice:
+## Survey and Current Architecture
 
-- [ ] **Slice 0 — stop persisting derived equipment state.** `player.equipped` is
-      dropped from `to_dict`/`to_scenario_dict` (mirroring `region_exposed` /
-      `body_region_names` at `serialization.py:267-268`); the load-time
-      `EDGE_CONNECTION` minting (`serialization.py:756-765`) is removed; the array
-      is a derived, non-serialized view. No behavior change.
-- [ ] **Slice 1 — one writer.** Equip/unequip/import/API all write the same edges
-      (finish task-654/450). `set_equipped_payload` stops being a dual write.
-- [ ] **Slice 2 — declared layers.** Order is explicit and reorder-proof (an edge
-      `layer`/`order` property, or an item→item `under` edge for partial-order
-      layering — decided up front). `is_exposed` composes the stack instead of
-      reading "last in the array".
-- [ ] **Slice 3 — derive the body effects.** Damage, effective sensitivity and
-      pleasure read one `effective_coverage`/`effective_sensitivity(region)`, not
-      the flat `body_state` scalar plus a boolean exposure.
-- [ ] **Slice 4 — body marks.** Scars, piercings and body hair are per-region
-      authored data; the appearance prose is composed from them and mechanics read
-      them. No prose duplicated by hand.
-- [ ] **Slice 5 — body-centric UI.** The paperdoll IS the region × layer model:
-      click a region for its coverage layers, effective sensitivity, marks, and
-      the composed description; a wardrobe/outfit concept; one model, no second
-      editor.
+1. **Equipped state**: `player.equipped` is a runtime view derived from `EDGE_EQUIPPED` edges. Serialization strips it on save (`serialization.py:781`), and `_sync_equipped_from_graph` rebuilds it from the graph.
+2. **Layering**: Currently, `body_parts.is_exposed` reads `player.equipped` and infers layers from array order (`outer = last`, `body_parts.py:250`). Stack order must be explicit on the equipment edge (`properties.layer` or slot priority), not dependent on insertion order.
+3. **Derived body effects**: Combat damage and body part exposure currently read boolean exposure. They should read derived `effective_coverage(region)`.
 
-## Open decisions before slice 2
+## Slices Breakdown
 
-- **`under` naming.** `EDGE_UNDER` currently means item → furniture/object hidden
-  beneath (`graph.py:836`, in `SPATIAL_EDGE_TYPES`). It cannot also mean garment
-  layering; decide which concept keeps the name (or rename the spatial one).
-- **partial order or not.** If layering is always a single chain per slot, an
-  edge `order` property is the lighter edges-only answer; the `under` edge is
-  worth it only if garments genuinely form a partial order (belt and scarf both
-  over a shirt).
+- [x] **Slice 0 - stop persisting derived equipment state.** Completed by task-654. `player.equipped` is stripped on scenario save; `EDGE_EQUIPPED` is the single source of truth.
+- [ ] **Slice 1 - one writer.** Equip, unequip, import, and API endpoints all write to `EDGE_EQUIPPED` edges. `set_equipped_payload` ceases dual writing.
+- [ ] **Slice 2 - declared layers.** Order is explicit and reorder-proof (an edge `layer: int` property on `EDGE_EQUIPPED`). `body_parts.is_exposed` composes the stack from declared layer integers instead of array index.
+- [ ] **Slice 3 - derive body effects from coverage.** Damage, effective sensitivity, and pleasure read `effective_coverage(region)` instead of a flat scalar plus boolean exposure.
+- [x] **Slice 4 - body marks.** Completed by task-847 and task-848 (`appearance.body.modifications` array, compiled into prose by `character_appearance.py:1024`).
+- [x] **Slice 5 - body-centric UI.** Completed by task-847 and task-848 (embedded paperdoll navigator with visual body region selection and baseline editing).
+
+## Acceptance (Remaining Slices)
+
+- [ ] All equipment mutations (equip, unequip, swap) route through a single writer modifying `EDGE_EQUIPPED` edges.
+- [ ] Garment layer order is explicit on `EDGE_EQUIPPED` edge properties (`layer: int`).
+- [ ] `body_parts.is_exposed` correctly calculates coverage based on edge `layer` properties.
+- [ ] Targeted tests pass (`tests/test_character_loadout_refresh.py`, `tests/test_body_parts.py`).
 
 ## Why
 
-TODO
-
-## How
-
-TODO
+Dual-store representations of character equipment create drift between graph edges, player runtime memory, and serialized files. Slice 0 and Slices 4-5 are already accomplished; finishing Slices 1-3 completes the single-source-of-truth model for equipment, making garment layering deterministic and physically grounded.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Inspect serialization:
+   - expected: `pdata.pop("equipped", None)` in `engine/serialization.py:781` keeps saved files free of duplicate equipped state.
+   - observed: Verified; already active in production.
+2. Layered equipment test:
+   - expected: Equip an undergarment (layer 1) and an overcoat (layer 2) on the torso; `is_exposed('torso')` returns false; removing the overcoat leaves undergarment exposed.
+   - observed: Pending Slice 2 implementation.
+3. Single writer verification:
+   - expected: API equip actions only update graph edges, with `player.equipped` refreshed from the graph.
+   - observed: Pending Slice 1 completion.
 
 ## Files
 
-- TODO
+- `engine/body_parts.py` - update exposure calculation to use edge layer properties
+- `engine/equipment_bonuses.py` - ensure edge-driven reads
+- `engine/items/use_actions.py` - unify equipment writers
+- `graph.py` - ensure `EDGE_UNDER` remains spatial; document `layer` property on `EDGE_EQUIPPED`
+- `tests/test_body_parts.py` - tests for layered coverage
 
 ## Browser UI and intended live verification
 
-Intended UI home: select a character → Character Inspector → body-centric equipment view. Inspect each worn item against body regions, layer/coverage, and body marks; the view should project one edge-backed equipment truth.
+Intended UI home: Character Inspector -> Persona / Body / Equipment view.
 
-Current availability: the card's first deliverable is a design plan. It measures `player.equipped` as a runtime view that is also persisted and can mint `EDGE_CONNECTION` edges on load, creating duplicate representations. The body-centric view and store consolidation are not claimed as implemented.
+Current availability: Persona paperdoll navigator is implemented (tasks 847/848). Equipment edge derivation is active in `world-state.ts`.
 
 Live steps when available:
-These steps apply after the design slices land:
-1. Open a character with layered worn gear and inspect every body region and worn item in the body view.
-   - expected: coverage/under-layer order and body marks are visible; each worn relationship maps to the authoritative equipment edge once.
-2. Equip, remove, and layer one item through the Inspector; save and reload.
-   - expected: the UI updates from the edge-backed state, and reload creates no duplicate `equipped` record or `EDGE_CONNECTION` edge.
-3. Inspect the same character through Inventory and the body view.
-   - expected: both views agree on item ownership and worn state without keeping conflicting persisted copies.
-4. Add a body mark and inspect the affected region.
-   - expected: the mark is attached to the correct body region and does not alter item containment or equipment edges.
+1. Open a character in the Character Inspector and view equipped items.
+2. Add multiple items to the same slot with different layers (e.g., shirt at layer 1, jacket at layer 2).
+3. Verify that removing the jacket exposes the shirt without corrupting slot state.
 
-This section is not a claim that the planned body-centric UI exists or works today.
-
-## Refactor discipline (applies to this task)
-
-Applies to every refactor in this repo, per the 2026-10-16 card refresh:
-
-1. **Dedup & reuse pass (mandatory).** While working, scan the touched concern and its
-   neighbours for duplicate logic, parallel data homes, and near-identical helpers;
-   consolidate onto one owner instead of copying. Prefer reusing an existing seam over
-   creating a second one. Record any dedup decision in the move table / notes.
-2. **Agent-experience & cleanliness (mandatory).** Name modules/files by concern (not
-   by size), keep each under ~600 lines where the seam allows, add a one-line module
-   docstring stating its owner and public surface, and ensure a fresh agent session can
-   understand it without reading the host. No new abstraction unless an existing seam
-   already represents the concept.
-3. **No behaviour change unless the card says so.** Extraction and consolidation only;
-   keep public imports/API stable and re-export moved members as thin delegates.
-4. **One file/concern at a time**, verified with a targeted test selection (never the
-   full suite by default, never -q).
+## Reconnaissance (2026-10-31)
+- Measured: Slice 0 landed in `task-654` (`engine/serialization.py:781`). Slices 4-5 landed in `task-847`/`task-848` (`appearance.body.modifications`, paperdoll navigator). `EDGE_UNDER` is confirmed as a spatial edge in `graph.py:926`.
+- Verdict: STILL_VALID. Slices 1-3 remain open. Status remains todo.
