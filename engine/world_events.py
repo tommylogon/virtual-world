@@ -18,6 +18,8 @@ class WorldEventHub:
     reloads) can see the most recent events instead of missing them entirely.
     """
 
+    MAX_SUBSCRIBERS = 32
+
     def __init__(self, buffer_size=200):
         self._subscribers = []          # list of queue.Queue
         self._buffer = deque(maxlen=buffer_size)
@@ -38,15 +40,31 @@ class WorldEventHub:
         for q in subs:
             try:
                 q.put_nowait(event)
+            except queue.Full:
+                try:
+                    q.get_nowait()
+                except Exception:
+                    pass
+                try:
+                    q.put_nowait({
+                        'type': 'resync_required',
+                        'reason': 'queue_overflow',
+                        'seq': self._seq,
+                        'ts': event['ts'],
+                    })
+                except Exception:
+                    pass
             except Exception:
                 pass
 
     def subscribe(self):
-        """Return a fresh queue for one SSE client."""
-        q = queue.Queue(maxsize=256)
+        """Return a fresh queue for one SSE client, or None if cap reached."""
         with self._lock:
+            if len(self._subscribers) >= self.MAX_SUBSCRIBERS:
+                return None
+            q = queue.Queue(maxsize=256)
             self._subscribers.append(q)
-        return q
+            return q
 
     def unsubscribe(self, q):
         with self._lock:
@@ -57,6 +75,20 @@ class WorldEventHub:
         with self._lock:
             buf = list(self._buffer)
         return buf[-count:] if count > 0 else buf
+
+    def since(self, seq: int):
+        """Return events occurring strictly after sequence number `seq`.
+
+        If `seq` is older than the oldest buffered event, returns None to
+        signal that events were lost and a full resync is needed.
+        """
+        with self._lock:
+            if not self._buffer:
+                return []
+            oldest_seq = self._buffer[0]['seq']
+            if seq < oldest_seq - 1:
+                return None
+            return [e for e in self._buffer if e['seq'] > seq]
 
     def subscribers_count(self):
         with self._lock:

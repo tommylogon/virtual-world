@@ -222,3 +222,51 @@ test('a focused response arriving after focus clears cannot reinstall stale runt
         else window.fetch = originalFetch;
     }
 });
+
+test('applyNodeDelta updates cached node in place without refetching', () => {
+    const state = new WorldState();
+    state.data = {
+        graph: {
+            nodes: {
+                item_sword: { id: 'item_sword', name: 'Iron Sword', properties: { damage: '1d6' } }
+            },
+            edges: []
+        }
+    };
+    let emitted = null;
+    state.on('update', (data) => { emitted = data; });
+
+    const updatedNode = { id: 'item_sword', name: 'Flaming Sword', properties: { damage: '2d6' } };
+    const success = state.applyNodeDelta('item_sword', updatedNode);
+
+    assertTrue(success, 'delta was applied');
+    assertEq(state.data.graph.nodes.item_sword.name, 'Flaming Sword', 'node name updated');
+    assertEq(state.data.graph.nodes.item_sword.properties.damage, '2d6', 'properties updated');
+    assertEq(emitted, state.data, 'state update event fired');
+});
+
+test('state fetch with 304 Not Modified preserves cached state', async () => {
+    const state = new WorldState();
+    state.data = { players: { Hero: { HP: 100 } } };
+    state._lastEtag = '"rev-42"';
+
+    const originalFetch = window.fetch;
+    let sentHeaders = null;
+    window.fetch = (url, options) => {
+        sentHeaders = options?.headers;
+        return Promise.resolve({
+            status: 304,
+            headers: { get: () => '"rev-42"' }
+        });
+    };
+
+    try {
+        const result = await state.fetch();
+        assertEq(sentHeaders['If-None-Match'], '"rev-42"', 'If-None-Match header was sent');
+        assertEq(result, state.data, 'returns cached data on 304');
+        assertEq(result.players.Hero.HP, 100, 'cached state is preserved');
+    } finally {
+        if (originalFetch === undefined) delete window.fetch;
+        else window.fetch = originalFetch;
+    }
+});

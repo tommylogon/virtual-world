@@ -33,6 +33,8 @@ class WorldState {
     declare _inflight: Promise<any> | null;
     /** A fetch was requested while one was in flight; run one more before resolving callers. */
     declare _refetchRequested: boolean;
+    /** Cached ETag header from the last /api/state response for 304 conditional fetches. */
+    declare _lastEtag: string | null;
 
     constructor() {
         this.data = null; // raw state from /api/state
@@ -47,6 +49,7 @@ class WorldState {
         this._equipSlots = null;
         this._inflight = null;
         this._refetchRequested = false;
+        this._lastEtag = null;
     }
 
     /** Subscribe to state changes */
@@ -261,11 +264,35 @@ class WorldState {
         return true;
     }
 
+    /**
+     * Apply an incremental node update in place without refetching the full state.
+     * task-715: avoids downloading 2.5 MB of state on minor property edits.
+     */
+    applyNodeDelta(nodeId: string, nodeData: any): boolean {
+        if (!this.data || !this.data.graph || !this.data.graph.nodes) return false;
+        this.data.graph.nodes[nodeId] = nodeData;
+        this._emit('update', this.data);
+        const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+        if (bus) bus.emit('state:updated', this.data);
+        return true;
+    }
+
     async _fetchNow(lite: boolean) {
         try {
             const url = lite ? '/api/state?lite=1' : '/api/state';
-            const resp = await fetch(url);
-            const state = await resp.json();
+            const headers: Record<string, string> = {};
+            if (this._lastEtag) {
+                headers['If-None-Match'] = this._lastEtag;
+            }
+            const resp = await fetch(url, { headers });
+            if (resp && resp.status === 304 && this.data) {
+                return this.data;
+            }
+            const etag = typeof resp?.headers?.get === 'function' ? resp.headers.get('ETag') : null;
+            if (etag) {
+                this._lastEtag = etag;
+            }
+            const state = typeof resp?.json === 'function' ? await resp.json() : resp;
             this.data = state;
             if (state && typeof state === 'object') {
                 const scName = (typeof state._scenario_name === 'string' && state._scenario_name.trim()) ? state._scenario_name.trim() : '';
@@ -572,7 +599,7 @@ class WorldState {
 // path an external editor / MCP edit takes into the GUI.
 (function connectLiveEdits() {
   if (typeof EventSource === 'undefined') return;
-  let es = null;
+
   function refresh() {
     if (!window.worldState) return;
     if (window.worldState._runtimeFocus?.length) {
@@ -613,29 +640,106 @@ class WorldState {
     }
   }
 
-  try {
-    es = new EventSource('/api/events');
-    es.onmessage = function (msg) {
-      let ev;
-      try { ev = JSON.parse(msg.data); } catch (e) { return; }
-      if (!ev) return;
-      if (ev.type === 'world_tick') { onWorldTick(ev); return; }
-      if (ev.type !== 'world_changed') return;
-      if (streaming) {
-        streaming = false;
-        if (typeof events !== 'undefined') events.log('⏩ Fast-forward complete.', 'system-msg');
-      }
+  function handleEvent(ev: any): void {
+    if (!ev) return;
+    if (ev.type === 'resync_required') {
       refresh();
-      // task-384: re-emit on the event bus so the per-edit undo feed
-      // (EditFeed) can render without opening its own EventSource.
-      const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
-      if (bus) bus.emit('world:changed', ev);
-      const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
-      if (editor && typeof events !== 'undefined') {
-        events.log('World edited by ' + editor + ' - ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
+      return;
+    }
+    if (ev.type === 'world_tick') {
+      onWorldTick(ev);
+      return;
+    }
+    if (ev.type !== 'world_changed') return;
+    if (streaming) {
+      streaming = false;
+      if (typeof events !== 'undefined') events.log('⏩ Fast-forward complete.', 'system-msg');
+    }
+
+    // task-715: Incremental delta application on minor property edits.
+    // If the edit is a single node update, apply directly into cached graph and notify vis.js
+    // without downloading the full 2.5 MB state payload.
+    if (ev.delta && ev.delta.kind === 'node_update' && ev.delta.node_id && ev.delta.node) {
+      if (window.worldState && typeof window.worldState.applyNodeDelta === 'function') {
+        const applied = window.worldState.applyNodeDelta(ev.delta.node_id, ev.delta.node);
+        if (applied) {
+          emitAppEvents(ev);
+          return;
+        }
       }
+    }
+
+    refresh();
+    emitAppEvents(ev);
+  }
+
+  function emitAppEvents(ev: any): void {
+    // task-384: re-emit on the event bus so the per-edit undo feed
+    // (EditFeed) can render without opening its own EventSource.
+    const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+    if (bus) bus.emit('world:changed', ev);
+    const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
+    if (editor && typeof events !== 'undefined') {
+      events.log('World edited by ' + editor + ' - ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
+    }
+  }
+
+  // task-715: Multi-tab connection pooling.
+  // Browsers enforce a 6-socket per-origin limit under HTTP/1.1.
+  // When multiple tabs each hold an open EventSource('/api/events'), they exhaust
+  // the socket pool and deadlock in-page fetch() requests.
+  // We use BroadcastChannel + Web Locks API (navigator.locks) so all open tabs on
+  // the origin elect a single leader tab to hold the SSE stream, broadcasting
+  // received events to sibling tabs over BroadcastChannel.
+  const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('world_events') : null;
+  if (channel) {
+    channel.onmessage = function (e: MessageEvent) {
+      if (e.data) handleEvent(e.data);
     };
-    // Do not close on error - the browser reconnects the EventSource itself.
-    es.onerror = function () { /* auto-reconnect */ };
-  } catch (e) { /* keep the GUI safe if the stream is unavailable */ }
+  }
+
+  function startDirectStream() {
+    try {
+      const es = new EventSource('/api/events');
+      es.onmessage = function (msg) {
+        let ev: any;
+        try { ev = JSON.parse(msg.data); } catch { return; }
+        handleEvent(ev);
+      };
+      es.onerror = function () { /* auto-reconnect */ };
+    } catch { /* keep GUI safe */ }
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.locks && channel) {
+    navigator.locks.request('world_events_sse_leader', { mode: 'exclusive' }, async () => {
+      return new Promise<void>((resolve) => {
+        let es: EventSource | null = null;
+        try {
+          es = new EventSource('/api/events');
+          es.onmessage = function (msg) {
+            let ev: any;
+            try { ev = JSON.parse(msg.data); } catch { return; }
+            if (!ev) return;
+            try { channel.postMessage(ev); } catch {}
+            handleEvent(ev);
+          };
+          es.onerror = function () { /* auto-reconnect */ };
+        } catch {
+          resolve();
+          return;
+        }
+
+        if (typeof window !== 'undefined') {
+          window.addEventListener('beforeunload', () => {
+            try { if (es) es.close(); } catch {}
+            resolve();
+          }, { once: true });
+        }
+      });
+    }).catch(() => {
+      startDirectStream();
+    });
+  } else {
+    startDirectStream();
+  }
 })();

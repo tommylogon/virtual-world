@@ -270,13 +270,18 @@ def create_app(config=None):
                 # very form being previewed.
                 and not g.get('no_broadcast')):
             editor = request.headers.get('X-WV-Editor', 'app')
+            delta = g.get('_event_delta')
             from engine.world_events import hub
-            hub.publish({
+            ev_payload = {
                 'type': 'world_changed',
                 'method': method,
                 'path': path,
                 'editor': editor,
-            })
+                'rev': getattr(app, '_state_revision', 0),
+            }
+            if delta is not None:
+                ev_payload['delta'] = delta
+            hub.publish(ev_payload)
 
         # Static images have timestamped, never-edited filenames but were served
         # with Flask's default `no-cache`, so the browser revalidated all ~780

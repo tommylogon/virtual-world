@@ -171,12 +171,20 @@ def handle_get_state(app):
         # Disabled under TESTING so a test that mutates the world directly cannot
         # read a stale cache.
         rev = getattr(app, "_state_revision", None)
+        if rev is not None:
+            etag = f'"{rev}"'
+            if_none_match = request.headers.get("If-None-Match")
+            if if_none_match and if_none_match.strip() == etag:
+                return Response(status=304, headers={"ETag": etag, "Cache-Control": "no-cache"})
+
         cache = None if app.config.get("TESTING") else getattr(app, "_state_cache", None)
         variant = ("lite" if lite else "std") + ("+full" if full else "")
         if cache is not None and rev is not None:
             entry = cache.get(variant)
             if entry is not None and entry[0] == rev:
-                return Response(entry[1], mimetype="application/json")
+                resp = Response(entry[1], mimetype="application/json")
+                resp.headers["ETag"] = f'"{rev}"'
+                return resp
         state = app.world.to_dict(lite=lite)
         # Conversation privacy is enforced by the The Commons endpoints. Never
         # publish private channel state through the world-wide state payload.
@@ -215,6 +223,8 @@ def handle_get_state(app):
         except Exception:
             pass
         resp = jsonify(state)
+        if rev is not None:
+            resp.headers["ETag"] = f'"{rev}"'
         if cache is not None and rev is not None:
             cache[variant] = (rev, resp.get_data())
         return resp

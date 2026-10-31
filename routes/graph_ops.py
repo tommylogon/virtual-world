@@ -10,7 +10,7 @@ import time
 import random
 import difflib
 import os
-from flask import request, jsonify
+from flask import request, jsonify, g
 from werkzeug.utils import secure_filename
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, EDGE_TRIGGERS, EDGE_CONNECTION
 from engine.item_actions import normalize_item_actions
@@ -389,6 +389,11 @@ def handle_update_node(app, node_id):
     if 'properties' in data and 'tags' in data['properties']:
         from routes.helpers import validate_tags_on_save
         warnings = validate_tags_on_save(data['properties']['tags'], app.config.get('DATA_DIR'))
+    g._event_delta = {
+        'kind': 'node_update',
+        'node_id': node_id,
+        'node': node.to_dict(),
+    }
     return jsonify({"status": "success", "tag_warnings": warnings})
 
 

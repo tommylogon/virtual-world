@@ -99,3 +99,90 @@ def test_apply_entry_selection_dict():
     assert out['jake']['closeness'] == 5
     assert out['miki']['closeness'] == 9
     assert 'other' not in out
+
+
+def test_hub_subscriber_cap_and_overflow(tmp_path):
+    client, app, _ = _fresh_app(tmp_path)
+    initial_subs = hub.subscribers_count()
+    created = []
+    try:
+        while len(created) + initial_subs < hub.MAX_SUBSCRIBERS:
+            sub = hub.subscribe()
+            assert sub is not None
+            created.append(sub)
+
+        assert hub.subscribe() is None
+
+        r = client.get('/api/events')
+        assert r.status_code == 429
+        data = r.get_json()
+        assert data.get('cap') == hub.MAX_SUBSCRIBERS
+    finally:
+        for sub in created:
+            hub.unsubscribe(sub)
+
+
+def test_hub_queue_overflow_enqueues_resync():
+    import queue
+    q = queue.Queue(maxsize=2)
+    with hub._lock:
+        hub._subscribers.append(q)
+    try:
+        hub.publish({'type': 'test_ev_1'})
+        hub.publish({'type': 'test_ev_2'})
+        hub.publish({'type': 'test_ev_3'})
+
+        items = []
+        while not q.empty():
+            items.append(q.get_nowait())
+
+        resync = next((item for item in items if item.get('type') == 'resync_required'), None)
+        assert resync is not None, 'resync_required event was not enqueued on overflow'
+        assert resync.get('reason') == 'queue_overflow'
+    finally:
+        hub.unsubscribe(q)
+
+
+def test_hub_since_and_reconnect():
+    hub.publish({'type': 'reconnect_1'})
+    hub.publish({'type': 'reconnect_2'})
+    rec = hub.recent(2)
+    s1 = rec[-2]['seq']
+    s2 = rec[-1]['seq']
+
+    since_s1 = hub.since(s1)
+    assert since_s1 is not None
+    assert len(since_s1) >= 1
+    assert any(e['seq'] == s2 for e in since_s1)
+
+    assert hub.since(-999999) is None
+
+
+def test_state_etag_and_304(tmp_path):
+    client, app, _ = _fresh_app(tmp_path)
+    r = client.get('/api/state')
+    assert r.status_code == 200
+    etag = r.headers.get('ETag')
+    assert etag is not None, 'ETag header is missing on /api/state'
+
+    r_cached = client.get('/api/state', headers={'If-None-Match': etag})
+    assert r_cached.status_code == 304
+
+    client.post('/api/build/area', json={'name': 'ETag Area', 'description': 'desc'})
+    r_after = client.get('/api/state', headers={'If-None-Match': etag})
+    assert r_after.status_code == 200
+    assert r_after.headers.get('ETag') != etag
+
+
+def test_node_update_broadcasts_delta(tmp_path):
+    client, app, _ = _fresh_app(tmp_path)
+    client.post('/api/graph/node', json={'id': 'test_gem', 'type': 'item', 'name': 'Ruby Gem'})
+    r = client.patch('/api/graph/node/test_gem', json={'properties': {'value': 500}})
+    assert r.status_code == 200
+
+    rec = hub.recent(10)
+    matching = [e for e in rec if e.get('delta', {}).get('node_id') == 'test_gem']
+    assert len(matching) > 0, 'delta event for test_gem not broadcast'
+    delta = matching[-1]['delta']
+    assert delta['kind'] == 'node_update'
+    assert delta['node']['properties']['value'] == 500
