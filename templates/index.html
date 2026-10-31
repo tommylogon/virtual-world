@@ -435,7 +435,6 @@
                 <button class="tab-btn" data-tab="tab-agent" onclick="switchSettingsTab('tab-agent')"><span class="tab-icon">🧠</span> Agent Settings</button>
                 <button class="tab-btn" data-tab="tab-automation" onclick="switchSettingsTab('tab-automation')"><span class="tab-icon">🎮</span> Behavior &amp; Automation</button>
                 <button class="tab-btn" data-tab="tab-graph" onclick="switchSettingsTab('tab-graph')"><span class="tab-icon">📊</span> Graph</button>
-                <button class="tab-btn" data-tab="tab-embedding" onclick="switchSettingsTab('tab-embedding')"><span class="tab-icon">🧬</span> Embedding</button>
                 <button class="tab-btn" data-tab="tab-engine-config" onclick="EngineConfigView.load();switchSettingsTab('tab-engine-config')"><span class="tab-icon">⚙️</span> Engine Config</button>
             </div>
             <div class="settings-modal-inner" style="padding:16px 20px;">
@@ -478,23 +477,23 @@
                             <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
                                 <span><span class="group-icon">🧠</span> Dedicated Memory Model (Task-909)</span>
                                 <label class="toggle-label" style="font-size:11px;cursor:pointer;">
-                                    <input type="checkbox" id="memory-model-enabled" onchange="config.memoryModelEnabled=this.checked;document.getElementById('memory-model-fields').style.display=this.checked?'block':'none';config.save();">
+                                    <input type="checkbox" id="memory-model-enabled" checked onchange="config.memoryModelEnabled=this.checked;document.getElementById('memory-model-fields').style.display=this.checked?'block':'none';config.save();">
                                     Enable Dedicated Worker
                                 </label>
                             </div>
-                            <div class="field-hint" style="margin-bottom:8px;">Offload memory reflections and extractions to a fast local model (1.7B-3B at 200 t/s) so character turns never wait on memory overhead. Defaults to Agent Model when off.</div>
-                            <div id="memory-model-fields" style="display:none;">
+                            <div class="field-hint" style="margin-bottom:8px;">Offload memory reflections and extractions to a fast local model (1.7B-3B at 200 t/s) so character turns never wait on memory overhead. Defaults to localhost LM Studio.</div>
+                            <div id="memory-model-fields" style="display:block;">
                                 <div class="settings-field">
                                     <label for="memory-api-base">Memory API Base URL</label>
-                                    <input type="text" id="memory-api-base" placeholder="http://localhost:1234/v1" onchange="config.memoryApiBase=this.value;config.save();">
+                                    <input type="text" id="memory-api-base" value="http://localhost:1234/v1" placeholder="http://localhost:1234/v1" onchange="config.memoryApiBase=this.value;config.save();">
                                 </div>
                                 <div class="settings-field">
                                     <label for="memory-model">Memory Model</label>
                                     <div style="display:flex;gap:6px;">
-                                        <input type="text" id="memory-model" placeholder="lmstudio-community/lfm3-1.7b" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.memoryModel=this.value;config.save();">
+                                        <input type="text" id="memory-model" value="lmstudio-community/lfm3-1.7b" placeholder="lmstudio-community/lfm3-1.7b" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.memoryModel=this.value;config.save();">
                                         <select id="memory-model-quick" style="max-width:140px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="if(this.value){document.getElementById('memory-model').value=this.value;config.memoryModel=this.value;config.save();}">
                                             <option value="">-- Quick Pick --</option>
-                                            <option value="lmstudio-community/lfm3-1.7b">⚡ LFM 1.7B (213 t/s)</option>
+                                            <option value="lmstudio-community/lfm3-1.7b" selected>⚡ LFM 1.7B (213 t/s)</option>
                                             <option value="ministral-3b">⚡ Ministral 3B (147 t/s)</option>
                                             <option value="ling-3.0-tiny">⚡ Ling 3.0 (175 t/s)</option>
                                             <option value="spark-x2.6-1.7b">⚡ Spark 1.7B (60 t/s)</option>
@@ -505,11 +504,25 @@
                                 <div class="settings-field">
                                     <label for="memory-api-format">Memory API Format</label>
                                     <select id="memory-api-format" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.memoryApiFormat=this.value;config.save();">
-                                        <option value="lmstudio">LM Studio Native (/api/v1/chat)</option>
+                                        <option value="lmstudio" selected>LM Studio Native (/api/v1/chat)</option>
                                         <option value="chat-completions">Chat Completions (/v1/chat/completions)</option>
                                     </select>
                                     <div class="field-hint">LM Studio Native forces reasoning: "off" natively for zero token waste.</div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="settings-group" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+                            <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
+                            <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled - keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
+                            <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI...). Called directly from the browser.</div></div>
+                            <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
+                            <div class="settings-field" style="display:flex;gap:8px;">
+                                <div style="flex:1;"><label for="embed-dims">Dimensions</label><input type="number" id="embed-dims" min="0" placeholder="auto" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedDims=parseInt(this.value)||0;config.save();"><div class="field-hint">Blank/0 = detect from first response</div></div>
+                                <div style="flex:1;"><label for="embed-api-key">API Key (optional)</label><input type="password" id="embed-api-key" placeholder="for cloud providers" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedApiKey=this.value.trim();config.save();"><div class="field-hint">Never sent to the backend</div></div>
+                            </div>
+                            <div class="toggle-row" style="align-items:center;">
+                                <button class="btn btn-sm" onclick="EmbeddingClient.test().then(r => { const el = document.getElementById('embed-test-result'); el.textContent = r.ok ? '✅ ' + r.dims + ' dims' : '❌ ' + r.error; el.style.color = r.ok ? '#3fb950' : '#f85149'; })">🔌 Test Connection</button>
+                                <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
                             </div>
                         </div>
                     </div>
@@ -561,22 +574,6 @@
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">🎥</span> Camera</div>
                         <div class="settings-field"><label for="graph-focus-zoom">Focus zoom <span id="graph-focus-zoom-val" class="range-value">1.15</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Far</span><input type="range" id="graph-focus-zoom" min="0.5" max="3" step="0.05" value="1.15" style="flex:1;" oninput="config.graphFocusZoom=parseFloat(this.value);document.getElementById('graph-focus-zoom-val').textContent=parseFloat(this.value).toFixed(2);config.save();"><span style="font-size:10px;color:var(--text-muted);">Close</span></div><div class="field-hint">How close the camera zooms when a node is focused from a list, the outline or a search hit (1 = 100%)</div></div>
-                    </div>
-                </div>
-                <div id="tab-embedding" class="tab-pane">
-                    <div class="settings-group">
-                        <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled  -  keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
-                        <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI…). Called directly from the browser.</div></div>
-                        <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
-                        <div class="settings-field" style="display:flex;gap:8px;">
-                            <div style="flex:1;"><label for="embed-dims">Dimensions</label><input type="number" id="embed-dims" min="0" placeholder="auto" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedDims=parseInt(this.value)||0;config.save();"><div class="field-hint">Blank/0 = detect from first response</div></div>
-                            <div style="flex:1;"><label for="embed-api-key">API Key (optional)</label><input type="password" id="embed-api-key" placeholder="for cloud providers" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedApiKey=this.value.trim();config.save();"><div class="field-hint">Never sent to the backend</div></div>
-                        </div>
-                        <div class="toggle-row" style="align-items:center;">
-                            <button class="btn btn-sm" onclick="EmbeddingClient.test().then(r => { const el = document.getElementById('embed-test-result'); el.textContent = r.ok ? '✅ ' + r.dims + ' dims' : '❌ ' + r.error; el.style.color = r.ok ? '#3fb950' : '#f85149'; })">🔌 Test Connection</button>
-                            <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
-                        </div>
                     </div>
                 </div>
                 <div id="tab-engine-config" class="tab-pane">

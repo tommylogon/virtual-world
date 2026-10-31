@@ -41,7 +41,7 @@ test('the rebuild path is opt-in and still refetches, reseeds and restabilizes',
 
 test('settings handlers call the in-place path: no rebuild argument', () => {
     const html = __readFile('templates/index.html');
-    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-embedding"'));
+    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-engine-config"'));
     const calls = [...tab.matchAll(/GraphNetwork\.applyGraphSettings\(([^)]*)\)/g)].map(m => m[1].trim());
     assertEq(calls.length, 14, 'modal Graph-tab handlers');
     assertTrue(calls.every(c => c === ''), 'every settings handler uses the default in-place path');
@@ -117,7 +117,7 @@ test('the dead global edge-length knob is gone from both surfaces', () => {
     const spec = GraphToolbar.TUNING_GROUPS.flatMap(g => g.fields).map(f => f.key);
     assertFalse(spec.includes('graphSpringLength'), 'not in the Tune popover');
     const html = __readFile('templates/index.html');
-    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-embedding"'));
+    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-engine-config"'));
     assertFalse(tab.includes('id="graph-spring-length"'), 'not in the modal');
     // It stays an engine fallback (rare edges carry no length of their own).
     const nm = __readFile('static/js/graph/network-manager.ts');

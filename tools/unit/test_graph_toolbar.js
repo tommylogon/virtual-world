@@ -150,7 +150,7 @@ test('the Tune popover covers exactly the Settings modal Graph tab, control for 
     const spec = tuningSpec();
     const html = __readFile('templates/index.html');
     const start = html.indexOf('id="tab-graph"');
-    const end = html.indexOf('id="tab-embedding"');
+    const end = html.indexOf('id="tab-engine-config"');
     assertTrue(start !== -1 && end !== -1 && end > start, 'the modal Graph tab is where the test expects it');
     const tab = html.slice(start, end);
     // Every config key the modal's Graph tab writes...
@@ -163,7 +163,7 @@ test('the Tune popover covers exactly the Settings modal Graph tab, control for 
 test('the Tune popover has one control per modal control, with matching bounds', () => {
     const spec = tuningSpec();
     const html = __readFile('templates/index.html');
-    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-embedding"'));
+    const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-engine-config"'));
     // 16 controls like the modal: 12 ranges, 1 select, 3 checks — counted, not assumed.
     assertEq(spec.length, 15, 'field count');
     assertEq(spec.filter(f => f.type === 'range').length, 11, 'range count');

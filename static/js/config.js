@@ -165,11 +165,12 @@ class ConfigManagerImpl {
         this.embedModel = await storage.getConfig('embed_model') || 'text-embedding-nomic-embed-text-v1.5';
         this.embedDims = parseInt(await storage.getConfig('embed_dims')) || 0;
         this.embedApiKey = await storage.getConfig('embed_api_key') || '';
-        // Dedicated Memory Model settings (task-909)
-        this.memoryModelEnabled = (await storage.getConfig('memory_model_enabled')) === 'true';
-        this.memoryApiBase = await storage.getConfig('memory_api_base') || '';
-        this.memoryApiKey = await storage.getConfig('memory_api_key') || '';
-        this.memoryModel = await storage.getConfig('memory_model') || '';
+        // Dedicated Memory Model settings (task-909) - default to localhost LM Studio
+        const storedMmEnabled = await storage.getConfig('memory_model_enabled');
+        this.memoryModelEnabled = storedMmEnabled !== null ? storedMmEnabled === 'true' : true;
+        this.memoryApiBase = await storage.getConfig('memory_api_base') || 'http://localhost:1234/v1';
+        this.memoryApiKey = await storage.getConfig('memory_api_key') || 'not-needed';
+        this.memoryModel = await storage.getConfig('memory_model') || 'lmstudio-community/lfm3-1.7b';
         this.memoryApiFormat = await storage.getConfig('memory_api_format') || 'lmstudio';
         // Thinking mode: sends reasoning_effort + thinking extra_body for reasoning models
         this.thinking = (await storage.getConfig('thinking')) === 'true';
@@ -389,10 +390,10 @@ class ConfigManagerImpl {
         this.embedDims = parseInt(document.getElementById('embed-dims')?.value) || 0;
         this.embedApiKey = document.getElementById('embed-api-key')?.value.trim() ?? this.embedApiKey;
         this.memoryModelEnabled = document.getElementById('memory-model-enabled')?.checked ?? this.memoryModelEnabled;
-        this.memoryApiBase = document.getElementById('memory-api-base')?.value.trim() ?? this.memoryApiBase;
-        this.memoryApiKey = document.getElementById('memory-api-key')?.value.trim() ?? this.memoryApiKey;
-        this.memoryModel = document.getElementById('memory-model')?.value.trim() ?? this.memoryModel;
-        this.memoryApiFormat = document.getElementById('memory-api-format')?.value || this.memoryApiFormat;
+        this.memoryApiBase = document.getElementById('memory-api-base')?.value.trim() || this.memoryApiBase || 'http://localhost:1234/v1';
+        this.memoryApiKey = document.getElementById('memory-api-key')?.value.trim() || this.memoryApiKey || 'not-needed';
+        this.memoryModel = document.getElementById('memory-model')?.value.trim() || this.memoryModel || 'lmstudio-community/lfm3-1.7b';
+        this.memoryApiFormat = document.getElementById('memory-api-format')?.value || this.memoryApiFormat || 'lmstudio';
         this.thinking = document.getElementById('agent-thinking')?.checked ?? this.thinking;
         this.thinkingEffort = document.getElementById('agent-thinking-effort')?.value || this.thinkingEffort;
         this.suppressLocalThinking = document.getElementById('agent-suppress-local-thinking')?.checked ?? this.suppressLocalThinking;
@@ -447,28 +448,31 @@ class ConfigManagerImpl {
      * Defaults to the main llmClient when dedicated memory model is disabled.
      */
     getMemoryLLMClient() {
-        if (!this.memoryModelEnabled || !this.memoryModel) {
+        if (!this.memoryModelEnabled) {
             return window.llmClient;
         }
+        const model = this.memoryModel || 'lmstudio-community/lfm3-1.7b';
+        const base = this.memoryApiBase || 'http://localhost:1234/v1';
+        const format = this.memoryApiFormat || 'lmstudio';
         const win = window;
-        if (!win.memoryLLMClient || win._memoryLLMClientModel !== this.memoryModel || win._memoryLLMClientBase !== this.memoryApiBase || win._memoryLLMClientFormat !== this.memoryApiFormat) {
+        if (!win.memoryLLMClient || win._memoryLLMClientModel !== model || win._memoryLLMClientBase !== base || win._memoryLLMClientFormat !== format) {
             const LLMClientClass = win.LLMClient;
             if (typeof LLMClientClass === 'function') {
                 win.memoryLLMClient = new LLMClientClass({
                     apiKey: this.memoryApiKey || this.apiKey || 'not-needed',
-                    apiBase: this.memoryApiBase || this.apiBase || 'http://localhost:1234/v1',
-                    model: this.memoryModel,
+                    apiBase: base,
+                    model: model,
                     provider: 'local',
                     streaming: false,
                     showLogs: this.showLogs,
-                    apiFormat: this.memoryApiFormat || 'lmstudio',
+                    apiFormat: format,
                     reasoning: 'off',
                     thinking: false,
                     thinkingEffort: 'none'
                 });
-                win._memoryLLMClientModel = this.memoryModel;
-                win._memoryLLMClientBase = this.memoryApiBase;
-                win._memoryLLMClientFormat = this.memoryApiFormat;
+                win._memoryLLMClientModel = model;
+                win._memoryLLMClientBase = base;
+                win._memoryLLMClientFormat = format;
             }
         }
         return win.memoryLLMClient || win.llmClient;
@@ -644,6 +648,11 @@ class ConfigManagerImpl {
             'LM Studio (Local)': {
                 apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: 'glm-4-9b-0414',
                 provider: 'openai', apiFormat: 'lmstudio',
+                memoryModelEnabled: true,
+                memoryApiBase: 'http://localhost:1234/v1',
+                memoryApiKey: 'not-needed',
+                memoryModel: 'lmstudio-community/lfm3-1.7b',
+                memoryApiFormat: 'lmstudio',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Groq': {

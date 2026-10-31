@@ -25,6 +25,8 @@ const SettingsView = (() => {
      * @param {string} tabId - The DOM ID of the tab pane (e.g. 'tab-connection')
      */
     function switchTab(tabId) {
+        if (tabId === 'tab-embedding')
+            tabId = 'tab-connection';
         document.querySelectorAll('.tab-pane').forEach(function (el) { el.classList.remove('active'); });
         document.querySelectorAll('.tab-btn').forEach(function (el) { el.classList.remove('active'); });
         var pane = document.getElementById(tabId);
@@ -150,14 +152,14 @@ const SettingsView = (() => {
             etr.textContent = '🧬 ' + config.embedModel + ' · ' + config.embedDims + ' dims';
             etr.style.color = 'var(--text-muted)';
         }
-        // Dedicated Memory Model (task-909)
-        setChecked('memory-model-enabled', !!config.memoryModelEnabled);
-        setVal('memory-api-base', config.memoryApiBase || '');
-        setVal('memory-model', config.memoryModel || '');
+        // Dedicated Memory Model (task-909) - default to localhost LM Studio
+        setChecked('memory-model-enabled', config.memoryModelEnabled !== undefined ? !!config.memoryModelEnabled : true);
+        setVal('memory-api-base', config.memoryApiBase || 'http://localhost:1234/v1');
+        setVal('memory-model', config.memoryModel || 'lmstudio-community/lfm3-1.7b');
         setVal('memory-api-format', config.memoryApiFormat || 'lmstudio');
         var mmFields = document.getElementById('memory-model-fields');
         if (mmFields)
-            mmFields.style.display = config.memoryModelEnabled ? 'block' : 'none';
+            mmFields.style.display = (config.memoryModelEnabled !== false) ? 'block' : 'none';
         // Load time per tick from backend
         (async function () {
             try {
