@@ -168,7 +168,7 @@ class TestMatching:
         assert result is None
 
     def test_stove_does_not_match_stovepipe_boots(self, matcher, graph):
-        """'stove' must not match 'Stovepipe Leather Boots (Pair)' — word-boundary."""
+        """'stove' must not match 'Stovepipe Leather Boots (Pair)' - word-boundary."""
         boots = Node(id="item_stovepipe_boots", type="item",
                      name="Stovepipe Leather Boots (Pair)",
                      properties={"description": "Tall leather boots."})
@@ -515,7 +515,7 @@ class TestCharacterMatching:
 @pytest.fixture
 def graph_with_named_exits():
     """Area with a named door (label 'Door 4', cardinal 'north') that has a
-    rich description and leads to a named room — mirrors the Task 18 layout."""
+    rich description and leads to a named room - mirrors the Task 18 layout."""
     from graph import WorldGraph
     g = WorldGraph()
     area = Node(id="area_task_18", type="area", name="Task 18", properties={})
@@ -575,7 +575,7 @@ class TestExitMatchingTiers:
         assert exit_matcher._match_exit_direction("area_task_18", "keycard") == "Door 4"
 
     def test_state_word_matches_locked_door(self, exit_matcher):
-        """'locked' resolves the locked door via its state word — the door
+        """'locked' resolves the locked door via its state word - the door
         that is locked is the one you're pointing at."""
         assert exit_matcher._match_exit_direction("area_task_18", "locked") == "Door 4"
 
@@ -680,6 +680,15 @@ class TestItemDescriptionMatching:
         graph.add_node(lamp)
         graph.add_edge(Edge(source=lamp.id, target="area_Test_Room", type=EDGE_IN))
         result = matcher._match_item_name("ceramic vase")
+        assert result is None
+
+    def test_multiword_input_partial_description_does_not_match(self, matcher, graph):
+        """A multi-word query where only one word appears in description does not match."""
+        milk = Node(id="item_milk_test", type="item", name="Carton of Chocolate Milk",
+                    properties={"description": "A classic half-pint carton of milk from the school cafeteria."})
+        graph.add_node(milk)
+        graph.add_edge(Edge(source=milk.id, target="area_Test_Room", type=EDGE_IN))
+        result = matcher._match_item_name("cafeteria table")
         assert result is None
 
 
@@ -788,7 +797,7 @@ class TestAliasMatching:
 
 class TestInventoryScopedItemMatching:
     """bug-35: give/steal need tiered item matching scoped to one character's
-    carried + equipped items — never the surrounding area."""
+    carried + equipped items - never the surrounding area."""
 
     def test_misspelled_carried_item_fuzzy_resolves(self, matcher, graph):
         jumpsuit = Node(id="item_jumpsuit_scoped", type="item", name="Jumpsuit",
@@ -802,7 +811,7 @@ class TestInventoryScopedItemMatching:
         assert "fuzzy match" in matcher._fuzzy_match_note
 
     def test_area_item_is_out_of_scope(self, matcher, graph):
-        """Rusty Key sits in the area, not on TestPlayer — give must not see it."""
+        """Rusty Key sits in the area, not on TestPlayer - give must not see it."""
         assert matcher.match_item_name_in_inventory("rusty key", "player_TestPlayer") is None
 
     def test_alias_resolves_for_worn_item(self, matcher, graph):

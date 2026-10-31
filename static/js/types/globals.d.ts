@@ -139,6 +139,10 @@ declare const PromptBuilder: any;
 
 /** ApiClient (api.js): the HTTP surface. Only the calls converted code makes. */
 declare const ApiClient: {
+    getProfiles(): Promise<any>;
+    saveProfile(name: string, data: unknown): Promise<any>;
+    deleteProfile(name: string): Promise<any>;
+    setActiveProfile(name: string): Promise<any>;
     saveGraphBackground(background: unknown): Promise<unknown>;
     uploadBackgroundImage(file: File): Promise<{ image?: string } | null>;
     batchGraph(ops: unknown[]): Promise<{ errors?: unknown[] } | null>;
@@ -174,7 +178,8 @@ declare const ApiClient: {
     updatePlayerBody(charName: string, sensitivity: Record<string, number>): Promise<any>;
     getPlayerRecord(charName: string): Promise<any>;
     savePlayerRecord(charName: string, record: Record<string, unknown>, render?: boolean): Promise<any>;
-    compilePlayerRecord(charName: string, options?: { force?: boolean; record?: Record<string, unknown> }): Promise<any>;
+    compilePlayerRecord(charName: string, options?: { force?: boolean; sections?: string[]; record?: Record<string, unknown> }): Promise<any>;
+    revertPlayerCompile(charName: string): Promise<any>;
     getPlayerMemoriesPeople(charName: string): Promise<any>;
     saveLibraryTag(tagData: unknown): Promise<any>;
     saveLibraryBehaviour(id: string, data: unknown): Promise<any>;
@@ -191,7 +196,19 @@ declare const ApiClient: {
     searchMemoryEmbeddings(payload: { character: string; vector: number[]; k?: number }): Promise<any>;
     mapPlayerEmotions(charName: string, payload: { mapped: unknown; reason?: string }): Promise<any>;
     getPlayerSpatialMemories(charName: string): Promise<any>;
-    retrievePlayerMemories(charName: string, payload: { query: string; max_results?: number; entity_boost?: boolean; reinforce?: boolean; current_area_id?: string }): Promise<any>;
+    retrievePlayerMemories(charName: string, payload: {
+        query?: string;
+        max_results?: number;
+        entity_boost?: boolean;
+        reinforce?: boolean;
+        current_area_id?: string;
+        strategy?: string;
+        cues?: Record<string, unknown>;
+        min_score?: number;
+        explain?: boolean;
+        structured?: boolean;
+        [key: string]: unknown;
+    }): Promise<any>;
     reinforcePlayerMemories(charName: string, payload: { ids: string[]; tick: number }): Promise<any>;
     getPlayerMemories(name: string): Promise<any>;
     addPlayerMemory(name: string, entry: unknown): Promise<any>;
@@ -512,6 +529,7 @@ interface Window {
     TagMultiselect: any;
     ThreatDetector: any;
     Timeskip: any;
+    TriggerDef: any;
     TriggerGraph: any;
     TriggerSuggestAI: any;
     TriggerSuggestDiff: any;
@@ -685,6 +703,28 @@ declare const TriggerGraph: {
     triggerDefFromProperty(entry: unknown): Record<string, any> | null;
     normalizeTriggerEntry(entry: unknown): Record<string, any> | null;
     normalizeTriggerList(value: unknown): Array<Record<string, any>>;
+    triggersFromGraphEdges(...args: unknown[]): unknown[];
+};
+
+// TriggerDef  -  owner: shared/trigger-def.ts
+declare const TriggerDef: {
+    normalizeConditions(raw: unknown, defaultLogic?: string): Record<string, any>;
+    treeIsFlat(tree: unknown): boolean;
+    flattenConditions(tree: unknown): unknown[];
+    conditionToGraphProps(cond: unknown): Record<string, any>;
+    buildConditionFromNode(node: unknown): Record<string, any>;
+    traceGroupCondition(nodeId: string, wires: any[], nodes: any[], seen?: Set<string>): any;
+    compileRoot(triggerNode: unknown, graph: unknown): Record<string, any>;
+    compileToTriggers(graph: unknown): Array<Record<string, any>>;
+    compileToEngine(graph: unknown): Record<string, any> | null;
+    compileError(compiled: unknown): string;
+    triggerToGraph(triggerData: unknown, opts?: Record<string, unknown>): unknown;
+    triggersToGraph(triggerData: unknown[]): unknown;
+    engineToFormData(compiled: unknown): Record<string, any>;
+    normalizeTriggerEntry(entry: unknown): Record<string, any> | null;
+    normalizeTriggerList(value: unknown): Array<Record<string, any>>;
+    triggerDefFromEdge(edge: unknown, nodes: unknown): Record<string, any>;
+    triggerDefFromProperty(entry: unknown): Record<string, any> | null;
     triggersFromGraphEdges(...args: unknown[]): unknown[];
 };
 

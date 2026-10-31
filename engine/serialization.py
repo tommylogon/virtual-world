@@ -18,6 +18,7 @@ from engine.character_spatial import get_character_at_way, get_spatial_position_
 from engine.serialization_template import TemplateLoader
 from engine.serialization_legacy import LegacyLoader
 from engine.character_identity import collapse_character_identity, rewrite_known
+from engine.character_store import apply_node_properties, sync_player_to_node
 from version import SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
@@ -288,6 +289,7 @@ class WorldSerializer:
             "active_pursuit": getattr(p, 'active_pursuit', None),
             "plan": getattr(p, 'plan', None),
             "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
+            "controller": getattr(p, 'controller', 'llm'),
             "simple_npc": getattr(p, 'simple_npc', False),
             "autonomy": getattr(p, 'autonomy', True),
             "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
@@ -397,6 +399,10 @@ class WorldSerializer:
             "time_per_tick_minutes": self.legacy.time_per_tick_minutes,
             "clock_start_hour": self.legacy.clock_start_hour,
             "clock_start_minute": self.legacy.clock_start_minute,
+            "game_day": getattr(self.legacy, "game_day", 1),
+            "game_month": getattr(self.legacy, "game_month", 1),
+            "game_year": getattr(self.legacy, "game_year", 1),
+            "season": self.legacy.current_season() if hasattr(self.legacy, "current_season") else None,
             # Lite mode: derived projections are dropped. The graph itself is
             # always present - it is the world, not a projection. Consumers that
             # need area detail (area inspector, look, exits) fetch it on demand.
@@ -422,6 +428,7 @@ class WorldSerializer:
             # addressable when a savegame is adopted without its scenario path.
             "_scope_store_id": getattr(self.legacy, "_scope_store_id", None),
             "world_lore": [] if lite else self.legacy.world_lore,
+            "scene_context": getattr(self.legacy, "scene_context", None),
             # task-397: hierarchy manifest (authored), not a projection. Optional.
             "world_scopes": {} if lite else (getattr(self.legacy, "world_scopes", {}) or {}),
             # task-583: the resident scope index (ownership, location, gateways,
@@ -632,8 +639,13 @@ class WorldSerializer:
             entry = by_id.get(entry_id)
             if entry is None or entry.get("superseded_by"):
                 p.memory_index.pop(subject, None)
-        p.simple_npc = pdata.get("simple_npc", False)
-        p.autonomy = pdata.get("autonomy", True)
+        if "controller" in pdata:
+            p.controller = pdata["controller"]
+        elif "control_mode" in pdata:
+            p.controller = pdata["control_mode"]
+        else:
+            p.simple_npc = pdata.get("simple_npc", False)
+            p.autonomy = pdata.get("autonomy", True)
         p.npc_behavior = pdata.get("npc_behavior", "wander")
         p.npc_action_interval = pdata.get("npc_action_interval", 3)
         p.npc_state = pdata.get("npc_state", "idle")
@@ -714,14 +726,7 @@ class WorldSerializer:
                 pnode_id = self.player_manager.player_node_id(pname)
                 node = self.graph.get_node(pnode_id)
                 if node is not None:
-                    if hasattr(p, "tags") and p.tags is not None:
-                        node.properties["tags"] = list(p.tags)
-                    if hasattr(p, "traits") and p.traits is not None:
-                        node.properties["traits"] = dict(p.traits)
-                    if getattr(p, "personality", None) and not node.properties.get("personality"):
-                        node.properties["personality"] = p.personality
-                    if getattr(p, "base_description", None) and not node.properties.get("base_description"):
-                        node.properties["base_description"] = p.base_description
+                    sync_player_to_node(p, node)
                 # Ensure the authoritative graph 'in' edge is present for current_area
                 if getattr(p, "current_area", None):
                     edge_area_id = self.graph.area_of(pnode_id)
@@ -734,6 +739,10 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         # The Commons is runtime communication state, not scenario authoring data.
         data.pop("commons", None)
+        data.pop("game_day", None)
+        data.pop("game_month", None)
+        data.pop("game_year", None)
+        data.pop("season", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
             pdata.pop("charted_cells", None)
@@ -810,6 +819,11 @@ class WorldSerializer:
         # task-453: scenario payloads carry the format schema version too, so a
         # later breaking change can migrate or refuse them on load.
         data["schema_version"] = SCHEMA_VERSION
+        # task-920: strip precompile snapshot so it does not leak into saved files
+        graph_data = data.get("graph") or {}
+        for n in (graph_data.get("nodes") or {}).values():
+            if isinstance(n, dict) and isinstance(n.get("properties"), dict):
+                n["properties"].pop("_last_precompile_snapshot", None)
         self.strip_redundant_exits(data)
         return data
 
@@ -896,6 +910,14 @@ class WorldSerializer:
             p = self._deserialize_player(pname, pdata)
             temp_players[pname] = p
 
+        # task-914: hydrate players from character nodes in the graph if omitted from players block
+        for node in self.graph.nodes.values():
+            if node.type == "character":
+                pname = node.name or node.id
+                if pname not in temp_players:
+                    p = self._deserialize_player(pname, node.properties or {})
+                    temp_players[pname] = p
+
         self.player_manager.players = temp_players
         # task-463: an authored `known` list may name a retired character id
         # ("character_arix"); move it onto the surviving identity.
@@ -924,33 +946,10 @@ class WorldSerializer:
             _node = self.graph.get_node(pnode_id)
             _props = _node.properties if _node is not None else {}
             _pdata = data.get("players", {}).get(pname, {}) or {}
-            # Node properties win; fall back to players block for legacy saves
-            p.personality = _props.get("personality") or _pdata.get("personality", "") or p.personality
-            p.base_description = _props.get("base_description") or _pdata.get("base_description", "") or p.base_description
-            p.description = _pdata.get("description", "") or _props.get("description", "") or p.description
-            if _props.get("traits"):
-                p.traits = dict(_props["traits"])
-            elif _pdata.get("traits") and _node is not None:
-                _node.properties["traits"] = dict(_pdata["traits"])
-            if _props.get("tags") is not None:
-                p.tags = list(_props["tags"])
-                p.sync_vitals_with_tags()
-            elif _pdata.get("tags") and _node is not None:
-                _node.properties["tags"] = list(_pdata["tags"])
-                p.tags = list(_pdata["tags"])
-                p.sync_vitals_with_tags()
-            if _props.get("interest_tags"):
-                p.interest_tags = list(_props["interest_tags"])
-            elif _pdata.get("interest_tags") and _node is not None:
-                _node.properties["interest_tags"] = list(_pdata["interest_tags"])
-            if _props.get("fear_tags"):
-                p.fear_tags = list(_props["fear_tags"])
-            elif _pdata.get("fear_tags") and _node is not None:
-                _node.properties["fear_tags"] = list(_pdata["fear_tags"])
-            if _node is not None and "personality" not in _node.properties and p.personality:
-                _node.properties["personality"] = p.personality
-            if _node is not None and "base_description" not in _node.properties and p.base_description:
-                _node.properties["base_description"] = p.base_description
+            # Node properties win; fall back to players block for legacy saves (task-457/task-914)
+            apply_node_properties(p, _props, _pdata)
+            if _node is not None:
+                sync_player_to_node(p, _node)
             # task-581: the character's `in` edge is the authoritative location
             # record; the saved `current_area` display name is a resolution layer
             # over it. Prefer the edge, so a hand-edit to the string that
@@ -992,6 +991,7 @@ class WorldSerializer:
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})
         self.legacy.world_lore = data.get("world_lore", [])
+        self.legacy.scene_context = data.get("scene_context", None)
         # task-397: optional hierarchy manifest; absent in legacy scenarios.
         raw_scopes = data.get("world_scopes")
         self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}

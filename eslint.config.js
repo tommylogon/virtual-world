@@ -84,7 +84,7 @@ for (const name of [
     'GraphNodeOps', 'GraphOverlays', 'GraphPhysics', 'GraphRelativeLayout', 'GraphTooltips',
     'GraphTreeView',
     'HumanTurnComposer', 'InspectorAgentView', 'InspectorAreaView',
-    'InspectorBehaviors', 'InspectorItemView', 'InspectorLore',
+    'InspectorBehaviors', 'InspectorComponents', 'InspectorItemView', 'InspectorLore',
     'InspectorMemory', 'InspectorPanel', 'InspectorPaperdoll',
     'InspectorTriggers', 'InspectorWayView', 'ItemLibraryContents',
     'ItemLibraryPlacement', 'NLEditorAgent', 'NLEditorDiff', 'NLEditorGhosts',
@@ -94,7 +94,7 @@ for (const name of [
     'ScenarioWizard', 'SettingsView', 'SkyScape', 'StreamControlMode',
     'StreamFilters', 'StreamPersistence', 'StreamRawLLM', 'StreamSandbox',
     'StreamScrubber',
-    'StreamTurnCards', 'ThreatDetector', 'TriggerGraph', 'TriggerTypes',
+    'StreamTurnCards', 'ThreatDetector', 'TriggerDef', 'TriggerGraph', 'TriggerTypes',
     'DatasetCollector',
     'TurnFeed', 'TurnQueue', 'VitalThresholds', 'WayAuthoring',
     'WorldExport', 'agent', 'agentLens', 'connectSummary', 'copyPromptToClipboard',
@@ -105,13 +105,13 @@ for (const name of [
     'restartScenario', 'runAction', 'saveGame', 'saveScenarioToFile',
     'selectAgent', 'startAgent', 'stopAgent', 'storage', 'tippy',
     'toastWarning', 'toggleDoorState', 'toggleSpectator', 'ui',
-    'viewerExitMap', 'vis', 'worldSync',
+    'viewerExitMap', 'vis', 'worldSync', 'module',
 ]) {
     GLOBALS[name] = 'readonly';
 }
 
 export default [
-    { ignores: ['**/node_modules/**', '**/.git/**', 'tests/**', 'static/js/vendor/**'] },
+    { ignores: ['**/node_modules/**', '**/.git/**', 'tests/**', 'static/js/vendor/**', 'static/js/types/**'] },
     {
         files: ['static/js/**/*.js'],
         languageOptions: {

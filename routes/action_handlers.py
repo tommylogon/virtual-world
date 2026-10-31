@@ -1793,6 +1793,124 @@ def handle_take_action(app):
                 else:
                     add_output("You try to speak, but nothing comes out.")
 
+        elif cmd.startswith(("text ", "message ")):
+            prefix = "text " if cmd.startswith("text ") else "message "
+            raw_cmd_unlowered = data.get('command', '').strip()
+            raw_body = raw_cmd_unlowered[len(prefix):].strip() if raw_cmd_unlowered.lower().startswith(prefix) else original_cmd[len(prefix):].strip()
+            if not raw_body or " " not in raw_body:
+                add_output("Use: text <contact|#channel> <message>")
+                failed = True
+            else:
+                actor_name = world.active_player
+                # Check device requirement
+                p_id = world.player_manager._player_node_id(actor_name)
+                has_device = False
+                if p_id:
+                    from graph import EDGE_CARRYING
+                    for edge in world.graph.get_edges_for_target(p_id, EDGE_CARRYING) + world.graph.get_edges_for_target(p_id, EDGE_IN):
+                        node = world.graph.get_node(edge.source)
+                        if node and node.type == "item":
+                            tags = node.properties.get("tags", [])
+                            name = (node.name or "").lower()
+                            if "phone" in tags or "device" in tags or "communication" in tags or "phone" in name:
+                                has_device = True
+                                break
+                actor_player = world.player_manager.get_player(actor_name)
+                if not has_device and actor_player and actor_player.current_area:
+                    area_node_id = world._area_node_id(actor_player.current_area)
+                    if area_node_id:
+                        for edge in world.graph.get_edges_for_target(area_node_id, EDGE_IN):
+                            node = world.graph.get_node(edge.source)
+                            if node and node.type == "item":
+                                name = (node.name or "").lower()
+                                tags = node.properties.get("tags", [])
+                                if ("phone" in tags or "phone" in name) and (actor_name.lower() in name or node.properties.get("owner") == actor_name):
+                                    has_device = True
+                                    break
+                if not has_device:
+                    add_output("You don't have a phone or communication device to send a message.")
+                    failed = True
+                else:
+                    target_token, msg_text = raw_body.split(" ", 1)
+                    target_token = target_token.strip()
+                    msg_text = msg_text.strip()
+                    if len(msg_text) >= 2 and ((msg_text[0] == '"' and msg_text[-1] == '"') or (msg_text[0] == "'" and msg_text[-1] == "'")):
+                        msg_text = msg_text[1:-1].strip()
+
+                    commons = getattr(world, "commons", None)
+                    if not commons:
+                        from engine.commons import Commons
+                        world.commons = Commons()
+                        commons = world.commons
+
+                    if target_token.startswith("#"):
+                        channel_name = target_token[1:]
+                        channel_id = None
+                        for cid, ch in commons.channels.items():
+                            if ch.get("name", "").lower() == channel_name.lower() or cid.lower() == channel_name.lower():
+                                channel_id = cid
+                                break
+                        if not channel_id:
+                            other_members = [p for p in world.player_manager.players.keys() if p != actor_name]
+                            new_ch = commons.create_group(actor_name, channel_name, other_members or ["Everyone"])
+                            channel_id = new_ch["id"]
+                        commons.post_message(author=actor_name, text=msg_text, tick=getattr(world, "time_ticks", 0), channel_id=channel_id)
+                        add_output(f'You posted to #{channel_name}: "{msg_text}"')
+                        if actor_player:
+                            actor_player.add_memory(
+                                f'Posted to #{channel_name}: "{msg_text}"',
+                                tick=getattr(world, "time_ticks", 0),
+                                importance=3,
+                                tags=["text", "commons", channel_name],
+                                source="commons",
+                                location=getattr(actor_player, "current_area", "")
+                            )
+                        for member in commons.channels.get(channel_id, {}).get("members", []):
+                            if member != actor_name:
+                                recipient = world.player_manager.get_player(member)
+                                if recipient:
+                                    recipient.add_memory(
+                                        f'Saw message from {actor_name} in #{channel_name}: "{msg_text}"',
+                                        tick=getattr(world, "time_ticks", 0),
+                                        importance=4,
+                                        tags=["text", "commons", channel_name],
+                                        source="commons",
+                                        location=getattr(recipient, "current_area", "")
+                                    )
+                    else:
+                        matched_name, candidates = world._match_character_name(target_token, exclude_self=True)
+                        if not matched_name:
+                            for p_name in world.player_manager.players:
+                                if target_token.lower() in p_name.lower():
+                                    matched_name = p_name
+                                    break
+                        if not matched_name:
+                            add_output(f"You cannot find contact '{target_token}'.")
+                            failed = True
+                        else:
+                            dm_ch = commons.create_dm(actor_name, matched_name)
+                            commons.post_message(author=actor_name, text=msg_text, tick=getattr(world, "time_ticks", 0), channel_id=dm_ch["id"])
+                            add_output(f'You texted {matched_name}: "{msg_text}"')
+                            recipient_player = world.player_manager.get_player(matched_name)
+                            if actor_player:
+                                actor_player.add_memory(
+                                    f'Texted {matched_name}: "{msg_text}"',
+                                    tick=getattr(world, "time_ticks", 0),
+                                    importance=3,
+                                    tags=["text", "commons", f"rel:{matched_name}"],
+                                    source="commons",
+                                    location=getattr(actor_player, "current_area", "")
+                                )
+                            if recipient_player:
+                                recipient_player.add_memory(
+                                    f'Received text from {actor_name}: "{msg_text}"',
+                                    tick=getattr(world, "time_ticks", 0),
+                                    importance=5,
+                                    tags=["text", "commons", f"rel:{actor_name}"],
+                                    source="commons",
+                                    location=getattr(recipient_player, "current_area", "")
+                                )
+
         elif cmd.startswith("do "):
             emote_text = cmd[3:].strip()
             if not emote_text:

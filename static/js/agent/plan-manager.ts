@@ -1,5 +1,5 @@
 /**
- * plan-manager.js — Plan generation and status checking for character agents
+ * plan-manager.js - Plan generation and status checking for character agents
  *
  * Handles LLM-driven multi-step plan generation for characters and
  * plan existence checks. Plans guide character behavior over multiple turns.
@@ -9,12 +9,12 @@
  *
  * Load this AFTER agent-engine.js in index.html (references VW.agent).
  *
- * @module agent/plan-manager — LLM plan generation
+ * @module agent/plan-manager - LLM plan generation
  * @contributes PlanManager.generate() (multi-step plan via the LLM) + hasPlan()
- * @powers NPC behaviour — the plan an agent follows across turns
+ * @powers NPC behaviour - the plan an agent follows across turns
  * @relates stores into PlanTracker; the plan text feeds the decide prompt's PLAN FOLLOW
  * @relates task-700: steps are TYPED and grounded through PlanGrounding before
- *       acceptance — prose steps referencing flavor text ("use hanging meat")
+ *       acceptance - prose steps referencing flavor text ("use hanging meat")
  *       are rejected at plan time, not burned as failed actions in the world.
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
@@ -38,7 +38,7 @@ const PlanManager = (() => {
         return fn ? fn(text) : text;
     }
 
-    /** PlanGrounding (agent/plan-grounding.js) — task-700's grounding validator. */
+    /** PlanGrounding (agent/plan-grounding.js) - task-700's grounding validator. */
     interface PlanGroundingApi {
         ACTS: Set<string>;
         collectFacts(charName: string, state: any, player: any, areaName: string): {
@@ -69,7 +69,7 @@ const PlanManager = (() => {
     /**
      * One-line summary of the previous action result (N7). The full result can
      * be a move dump (room prose + exits) that duplicates the observation the
-     * plan prompt already contains — first line only carries the outcome.
+     * plan prompt already contains - first line only carries the outcome.
      */
     function _summaryLine(text: unknown): string {
         const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -218,7 +218,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             const lastActionResults = (config.lastActionResult || {}) as Record<string, string>;
             const lastResult = lastActionResults[charName] || '';
 
-            // Threat detection — check for hostile actors in the same room
+            // Threat detection - check for hostile actors in the same room
             const allPlyrs = state?.players || {};
             const areaPlayers = state?.players_in_area || [];
             const threatsInRoom = [];
@@ -233,7 +233,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
                 }
             }
             const threatNote = threatsInRoom.length > 0
-                ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first — flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
+                ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first - flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
                 : '';
 
             // task-92: critical vitals force the plan to address them first.
@@ -244,7 +244,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
             // the character is starving is wrong, however interesting the
             // search is.
             const criticalNeedsList = PlanTracker.criticalNeeds(player?.vitals);
-            // BUT a slasher/undead character doesn't have physiological needs —
+            // BUT a slasher/undead character doesn't have physiological needs -
             // the engine skips their vital decay entirely, so telling the
             // Butcher to "eat your food" first is a distraction from the
             // murder. Filter those needs out for horror/undead traits.
@@ -259,7 +259,7 @@ Respond ONLY with the corrected {"steps": [...]} array.`;
                 ? criticalNeedsList.filter((n: string) => !/^hunger|thirst|sleep/i.test(n))
                 : criticalNeedsList;
             const maslowNote = filteredNeeds.length > 0
-                ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${filteredNeeds.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
+                ? `\n\n=== CRITICAL NEEDS (MASLOW - address these FIRST) ===\nYou are suffering from: ${filteredNeeds.join('; ')}.\n\nThese are PHYSIOLOGICAL needs - the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
 
             const grounding = _planGrounding();
@@ -283,17 +283,17 @@ Create a practical 3-5 step plan based only on the information above.
   * ITEMS (the "Items that catch your attention" list) are the target of take, use, eat, drink, search, examine, drop.
   * PEOPLE (the "People here" list) are the target of speak, give, attack, grab, steal.
   * AREAS you know are the target of go.
-- CRITICAL: "take" is ONLY for items on the ground/in the room — NOT for items you already carry. If you already carry an item, use "use", "examine", or "drop" instead. Do not plan "take" for carried items.
+- CRITICAL: "take" is ONLY for items on the ground/in the room - NOT for items you already carry. If you already carry an item, use "use", "examine", or "drop" instead. Do not plan "take" for carried items.
 - Room-description scenery is NOT an interactable. A dining table you can see described is not an item you can search - only things on the Items list are. To look in another room, "go" there first, then "look" to see what that room actually lists, then act on those.
 - "speak" steps carry the line in "text". "perform" steps describe a sustained activity in "note" (cook, mine, drill) and may carry "until" (e.g. "ore x5", "dusk") and "duration" (game minutes).
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
-- Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
+- Plans are suggestions - if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
 Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"}, {"act": "go", "target": "west passage"}]}`;
 
             if (!grounding || !facts) {
-                // Grounding module unavailable — legacy prose contract as fallback.
-                const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
+                // Grounding module unavailable - legacy prose contract as fallback.
+                const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, streaming: false, label: 'plan', max_tokens: Math.max((window as any).config?.maxTokens || 2048, 4096), reasoningEffort: 'low', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
                 return _legacySteps(response);
             }
 
@@ -307,7 +307,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
             for (let attempt = 0; attempt < 2; attempt++) {
                 // max_tokens 560: a live run truncated a typed re-composition
                 // mid-JSON at 300 and the turn ran planless.
-                const response = await llmClient.chat([{ role: 'user', content: prompt + groundingBlock }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-repair-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
+                const response = await llmClient.chat([{ role: 'user', content: prompt + groundingBlock }], { temperature: 0.7, streaming: false, label: 'plan', max_tokens: Math.max((window as any).config?.maxTokens || 2048, 4096), reasoningEffort: 'low', responseFormat: _structuredFormats()?.plan, actor: charName, requestId: `plan-repair-${charName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` });
                 if (!response) return [];
                 let cleaned = _repairJSON(response);
                 const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -330,7 +330,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                         : (Array.isArray(parsed?.steps) ? parsed.steps : null));
                 if (!Array.isArray(rawSteps) || !rawSteps.length) return [];
 
-                // Legacy prose contract ({"steps": ["..."]}) — accepted as fallback.
+                // Legacy prose contract ({"steps": ["..."]}) - accepted as fallback.
                 const legacy = rawSteps.filter((s: unknown) => typeof s === 'string') as string[];
                 const typed = rawSteps.filter((s: unknown) => s && typeof s === 'object') as any[];
                 if (legacy.length && !typed.length) return legacy.slice(0, 5);
@@ -346,7 +346,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                         return result.grounded.map((g: { text: string }) => g.text);
                     }
                     for (const r of result.rejections) {
-                        events.log(`🧭 ${charName} plan step ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
+                        events.log(`🧭 ${charName} plan step ungrounded: "${grounding.render(r.step)}" - ${r.reason}`, 'system-msg');
                     }
                     groundingBlock = _buildRepairPrompt(grounding, steps, result.grounded, result.rejections, facts);
                     continue;
@@ -356,7 +356,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                 // already grounded so a repair can never throw away a
                 // verified step, and revalidate the whole plan.
                 for (const r of result.rejections) {
-                    events.log(`🧭 ${charName} repaired plan step still ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
+                    events.log(`🧭 ${charName} repaired plan step still ungrounded: "${grounding.render(r.step)}" - ${r.reason}`, 'system-msg');
                 }
                 const merged = _mergeWithPreserved(
                     result.grounded, originalSteps, originalGrounded, grounding, facts, areaName,
@@ -420,7 +420,7 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
                     for (const s of obj.steps) if (s && typeof s === 'object' && s.act) out.push(s);
                 }
             } catch {
-                // incomplete trailing object — skip it
+                // incomplete trailing object - skip it
             }
         }
         return out.slice(0, 5);
@@ -448,11 +448,11 @@ Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"
             const areaMatch = stepText.toLowerCase();
             const isStaleLocation = currentArea && areaMatch.length > 0 && !areaMatch.includes(currentArea.toLowerCase()) && (areaMatch.includes('go') || areaMatch.includes('approach') || areaMatch.includes('enter'));
             if (stepFails >= 3) {
-                parts.push(`"${stepText}" (FAILED ${stepFails} times — discarded; find an alternative)`);
+                parts.push(`"${stepText}" (FAILED ${stepFails} times - discarded; find an alternative)`);
             } else if (i < progress) {
                 parts.push(`"${stepText}" (done)`);
             } else if (isStaleLocation && i >= progress) {
-                parts.push(`"${stepText}" (stale — current area is ${currentArea}; discard or replace)`);
+                parts.push(`"${stepText}" (stale - current area is ${currentArea}; discard or replace)`);
             } else {
                 parts.push(`"${stepText}" (available)`);
             }

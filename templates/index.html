@@ -426,8 +426,9 @@
                     <button class="btn btn-sm btn-blue" onclick="saveProfileFromCurrent()" title="Save current settings">💾</button>
                     <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">🗑</button>
                     <button class="btn btn-sm btn-green" onclick="saveProfileAsNew()" title="Save as new profile">➕</button>
+                    <button class="btn btn-sm btn-ghost" onclick="syncBackendProfiles()" title="Sync profiles from server / .env">🔄</button>
                 </div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Saved profiles persist in your browser.</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Profiles sync with server backend (.env) and persist across sessions.</div>
             </div>
             <div class="modal-tabs">
                 <button class="tab-btn active" data-tab="tab-connection" onclick="switchSettingsTab('tab-connection')"><span class="tab-icon">🔌</span> Connection</button>
@@ -448,10 +449,18 @@
                             <div class="model-selector-wrap">
                                 <div class="model-search-row">
                                     <input type="text" id="model-search" placeholder="Search models..." autocomplete="off">
-                                    <select id="model-sort" style="width:90px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                                    <select id="model-sort" style="width:105px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
                                         <option value="name-asc">A-Z</option>
                                         <option value="name-desc">Z-A</option>
+                                        <option value="fast-first">⚡ Fast First</option>
                                     </select>
+                                </div>
+                                <div class="model-filter-chips" id="model-filter-chips" style="display:flex;gap:4px;margin:4px 0;flex-wrap:wrap;">
+                                    <button type="button" class="model-filter-chip active" data-filter="all">All</button>
+                                    <button type="button" class="model-filter-chip" data-filter="fast" title="1-3B fast models (~150-200 t/s, best for memory)">⚡ Fast (&lt;3B)</button>
+                                    <button type="button" class="model-filter-chip" data-filter="mid" title="7-14B models">7-14B</button>
+                                    <button type="button" class="model-filter-chip" data-filter="heavy" title="20B+ models">20B+</button>
+                                    <button type="button" class="model-filter-chip" data-filter="embed" title="Embedding models">🧬 Embeddings</button>
                                 </div>
                                 <div class="model-list" id="model-list">
                                     <div class="model-list-empty">Click 🔄 to load models</div>
@@ -465,6 +474,44 @@
                             <div class="field-hint">Click a model to select, or type a custom name</div>
                         </div>
                         <div style="margin-top:8px;"><button class="btn-test-connection" id="test-connection-btn" onclick="testAgentConnection()">🔌 Test Connection</button><div id="connection-result" class="connection-result"></div></div>
+                        <div class="settings-group" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+                            <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+                                <span><span class="group-icon">🧠</span> Dedicated Memory Model (Task-909)</span>
+                                <label class="toggle-label" style="font-size:11px;cursor:pointer;">
+                                    <input type="checkbox" id="memory-model-enabled" onchange="config.memoryModelEnabled=this.checked;document.getElementById('memory-model-fields').style.display=this.checked?'block':'none';config.save();">
+                                    Enable Dedicated Worker
+                                </label>
+                            </div>
+                            <div class="field-hint" style="margin-bottom:8px;">Offload memory reflections and extractions to a fast local model (1.7B-3B at 200 t/s) so character turns never wait on memory overhead. Defaults to Agent Model when off.</div>
+                            <div id="memory-model-fields" style="display:none;">
+                                <div class="settings-field">
+                                    <label for="memory-api-base">Memory API Base URL</label>
+                                    <input type="text" id="memory-api-base" placeholder="http://localhost:1234/v1" onchange="config.memoryApiBase=this.value;config.save();">
+                                </div>
+                                <div class="settings-field">
+                                    <label for="memory-model">Memory Model</label>
+                                    <div style="display:flex;gap:6px;">
+                                        <input type="text" id="memory-model" placeholder="lmstudio-community/lfm3-1.7b" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.memoryModel=this.value;config.save();">
+                                        <select id="memory-model-quick" style="max-width:140px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="if(this.value){document.getElementById('memory-model').value=this.value;config.memoryModel=this.value;config.save();}">
+                                            <option value="">-- Quick Pick --</option>
+                                            <option value="lmstudio-community/lfm3-1.7b">⚡ LFM 1.7B (213 t/s)</option>
+                                            <option value="ministral-3b">⚡ Ministral 3B (147 t/s)</option>
+                                            <option value="ling-3.0-tiny">⚡ Ling 3.0 (175 t/s)</option>
+                                            <option value="spark-x2.6-1.7b">⚡ Spark 1.7B (60 t/s)</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-hint">Select a fast 1-3B model for maximum memory extraction speed.</div>
+                                </div>
+                                <div class="settings-field">
+                                    <label for="memory-api-format">Memory API Format</label>
+                                    <select id="memory-api-format" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.memoryApiFormat=this.value;config.save();">
+                                        <option value="lmstudio">LM Studio Native (/api/v1/chat)</option>
+                                        <option value="chat-completions">Chat Completions (/v1/chat/completions)</option>
+                                    </select>
+                                    <div class="field-hint">LM Studio Native forces reasoning: "off" natively for zero token waste.</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="tab-agent" class="tab-pane">
@@ -472,8 +519,8 @@
                         <div class="settings-group-title"><span class="group-icon">🔧</span> LLM Parameters</div>
                         <div class="settings-field" style="display:flex;gap:8px;align-items:flex-start;">
                             <div style="flex:1;"><label for="agent-temperature">Temperature <span id="agent-temperature-val" class="range-value">0.70</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Precise</span><input type="range" id="agent-temperature" min="0" max="2" step="0.05" value="0.7" style="flex:1;" oninput="config.temperature=parseFloat(this.value);document.getElementById('agent-temperature-val').textContent=parseFloat(this.value).toFixed(2);config.save();"><span style="font-size:10px;color:var(--text-muted);">Creative</span></div><div class="field-hint">Lower = more predictable</div></div>
-                            <div style="flex:1;"><label for="max-tokens-input">Max Tokens (hard)</label><input type="number" id="max-tokens-input" value="512" min="64" max="4096" step="64" onchange="config.maxTokens=parseInt(this.value);config.save();"><div class="field-hint">Hard API cap  -  LM Studio stops here</div></div>
-                            <div style="flex:1;"><label for="soft-max-tokens-input">Max Tokens (soft)</label><input type="number" id="soft-max-tokens-input" value="0" min="0" max="4096" step="64" onchange="config.softMaxTokens=parseInt(this.value);config.save();"><div class="field-hint">System prompt instruction  -  0 = use hard limit</div></div>
+                            <div style="flex:1;"><label for="max-tokens-input">Max Tokens (hard)</label><input type="number" id="max-tokens-input" value="2048" min="64" max="32768" step="64" onchange="config.maxTokens=parseInt(this.value);config.save();"><div class="field-hint">Hard API cap - LM Studio stops here</div></div>
+                            <div style="flex:1;"><label for="soft-max-tokens-input">Max Tokens (soft)</label><input type="number" id="soft-max-tokens-input" value="0" min="0" max="32768" step="64" onchange="config.softMaxTokens=parseInt(this.value);config.save();"><div class="field-hint">System prompt instruction - 0 = use hard limit</div></div>
                         </div>
                     </div>
                     <div class="settings-group">
@@ -545,7 +592,7 @@
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-suppress-local-thinking" onchange="config.suppressLocalThinking=this.checked;config.save();"> 🚫 Suppress Local Thinking</label><span class="toggle-desc">Inject empty assistant message to bypass Qwen 3.5 reasoning in LM Studio (API ignores disable flags)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-raw-llm" onchange="config.showRawLLM=this.checked;config.save();events.log('🔬 Raw LLM capture '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔬 Show Raw LLM</label><span class="toggle-desc">Capture the full request/response JSON (status, headers, usage, reasoning tokens, error bodies) for the 🔬 LLM inspector. Authorization is redacted.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" onchange="config.endOfTurnMemory=this.checked;config.save();events.log('🧠 End-of-turn memory '+(this.checked?'enabled':'disabled'),'system-msg');"> 🧠 End-of-turn Memory</label><span class="toggle-desc">Ask the character to write a memory after its action resolves. Off by default  -  memories are normally written at the <b>start</b> of a turn.</span></div>
-                        <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions</option><option value="responses">Responses API</option></select> API Format</label><span class="toggle-desc">Responses API: /v1/responses for LM Studio / DeepSeek reasoning models (stateful chat &amp; MCP not supported)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions (/v1/chat/completions)</option><option value="responses">Responses API (/v1/responses)</option><option value="lmstudio">LM Studio Native (/api/v1/chat)</option></select> API Format</label><span class="toggle-desc">LM Studio Native: /api/v1/chat with native reasoning: "off" and live speed telemetry</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();if(window.GraphToolbar)GraphToolbar.syncAll();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in the graph toolbar under ⋯ More.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
@@ -1411,6 +1458,7 @@
     <script src="/static/js/shared/env-presets.js"></script>
     <script src="/static/js/shared/trigger-editor.js"></script>
     <script src="/static/js/shared/dialog.js"></script>
+    <script src="/static/js/shared/trigger-def.js"></script>
     <script src="/static/js/shared/trigger-graph.js"></script>
     <script src="/static/js/shared/ai-generator.js"></script>
     <script src="/static/js/shared/trigger-suggest-ai.js"></script>

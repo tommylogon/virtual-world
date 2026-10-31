@@ -7,20 +7,20 @@ tags: [system/gameplay, topic/turns]
 
 ## What you can do
 
-In turn-based mode, you act when your character's turn comes up in the queue. The queue orders characters by sequential (alphabetical), random (reshuffled each cycle), or initiative (d20 + DEX). When it's your turn, the human turn panel opens — you compose actions in three zones (do / say / emote / memory) and commit them with Act (hover = free look, click = context menu to fill draft). One turn = do + say + emote together. A successful dash grants one extra action. The always-available command line is a director override that bypasses the queue entirely. You can also "Speak as guest" to broadcast speech without a character. If you never answer, the simulation waits indefinitely — no timeout, no auto-pass.
+In turn-based mode, you act when your character's turn comes up in the queue. The queue orders characters by sequential (alphabetical), random (reshuffled each cycle), or initiative (d20 + DEX). When it's your turn, the human turn panel opens - you compose actions in three zones (do / say / emote / memory) and commit them with Act (hover = free look, click = context menu to fill draft). One turn = do + say + emote together. A successful dash grants one extra action. The always-available command line is a director override that bypasses the queue entirely. You can also "Speak as guest" to broadcast speech without a character. If you never answer, the simulation waits indefinitely - no timeout, no auto-pass.
 
 ## Where it lives
 
-- `static/js/agent/turn-queue.js` — `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
-- `static/js/agent/human-turn-composer.js` — `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
-- `static/js/agent/agent-engine.js` — `_humanTurn` gate, run loop suspension
-- `static/js/event-stream.js` — `renderQueueStrip` (up-next strip)
-- `static/js/graph/toolbar.js` — Turn Order panel (whole round, rolls, per-slot status)
-- `routes/action_handlers.py` — `/api/action` endpoint for composed turns
-- `routes/player_ops.py` — `handle_player_speak` (guest speech)
-- `engine/speech.py` — `broadcast_speech`, sound propagation through ways
-- `engine/sound.py` — penetration, barriers, ambient noise damping
-- `config.js` / IndexedDB — `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
+- `static/js/agent/turn-queue.js` - `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
+- `static/js/agent/human-turn-composer.js` - `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
+- `static/js/agent/agent-engine.js` - `_humanTurn` gate, run loop suspension
+- `static/js/event-stream.js` - `renderQueueStrip` (up-next strip)
+- `static/js/graph/toolbar.js` - Turn Order panel (whole round, rolls, per-slot status)
+- `routes/action_handlers.py` - `/api/action` endpoint for composed turns
+- `routes/player_ops.py` - `handle_player_speak` (guest speech)
+- `engine/speech.py` - `broadcast_speech`, sound propagation through ways
+- `engine/sound.py` - penetration, barriers, ambient noise damping
+- `config.js` / IndexedDB - `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
 
 How turn order works, how the human turn panel knows it's someone's turn,
 and why the always-available command line is not a bug.
@@ -47,12 +47,12 @@ Config flags come from browser settings (`config.js`, IndexedDB):
 ## Advancing
 
 - `TurnQueue.advance()` steps `currentTurnIndex` forward (wrapping) and
-  sets `config.controllingPlayer` to the character whose turn it now is —
+  sets `config.controllingPlayer` to the character whose turn it now is -
   this is what the human turn panel keys off.
 - When the index wraps past the last actor, **one full turn cycle ends**:
   `endTurn()` increments `turnNumber` and calls `ApiClient.applyTurn()`,
   which advances the clock and applies decay/tick effects ONCE per cycle
-  (never inside individual commands — see AGENTS.md activity gotcha).
+  (never inside individual commands - see AGENTS.md activity gotcha).
   World state is refetched afterward so fresh turn_events render before
   the backend clears them.
 - `random` order reshuffles each cycle (`reshuffleRandom`, task-310);
@@ -69,12 +69,12 @@ Two separate input paths, both intentional:
    action, end turn, advance passes control to the next actor.
 2. **The always-available command line / guest-speaker path** writes into
    the event stream from outside any queue slot. This is a deliberate
-   godmode-level override for director-style input — it does NOT wait for
+   godmode-level override for director-style input - it does NOT wait for
    turns and does NOT consume the typing character's queued slot unless a
    feature explicitly ties them together.
 
 Don't "fix" the command line being available out-of-turn, and don't make
-the panel appear outside the controlled character's slot — both behaviors
+the panel appear outside the controlled character's slot - both behaviors
 are the design.
 
 ## Guest speech ("Speak as guest…")
@@ -89,7 +89,7 @@ character is required and none is created.
 - **Not a secret / not per-character.** It has no recipient. It is a
   normal-volume **area broadcast**, anchored to the active character's
   current area (fallback: world current area → first area). Characters in
-  other rooms hear it only via sound propagation — "normal" penetration 1
+  other rooms hear it only via sound propagation - "normal" penetration 1
   reaches adjacent areas through **open** (barrier 0.5) or **see-through**
   (0.75) ways; a closed door (1.0) blocks it; ambient noise dampens it
   (`engine/sound.py`).
@@ -100,13 +100,13 @@ character is required and none is created.
   a player, so the speaker gets no Social gain and name-learning from the
   line is skipped. The speaker name is anonymized in prompts
   ("the stranger" / "a voice").
-- **How long agents see it:** via `turn_events` — same area, current turn
+- **How long agents see it:** via `turn_events` - same area, current turn
   only, wiped when the turn cycle wraps (`/api/turn/apply` then
-  `/api/turn/clear`); via `recent_hearing` — per listener until 20 newer
+  `/api/turn/clear`); via `recent_hearing` - per listener until 20 newer
   hearing entries push it out (the WITNESSED block renders the last 5
   speech entries, so it can persist several turns in a quiet room, and is
   saved in world saves but stripped from scenario exports); via
-  `game_log` — until 50 newer lines, visible to anyone reading
+  `game_log` - until 50 newer lines, visible to anyone reading
   `/api/state` (agent prompts don't use it); the GUI event stream copy is
   client-side only (lost on reload).
 - The human turn panel's **interject** input is a different path: it posts
@@ -118,17 +118,17 @@ character is required and none is created.
 The human turn panel is the mockup's three-zone layout: scene grid
 (clickable area/people/things/ways chips) beside a "What happened" feed,
 the You strip (vitals, conditions, carrying/wearing chips, activity,
-"what you know"), and a composer of four always-visible rows —
+"what you know"), and a composer of four always-visible rows -
 ⚙ do / 🗨 say (+volume) / 🎭 emote / 🧠 memory. **One turn = do + say +
 emote together** in a single structured payload. Hover = free look (no
-turn cost); click = a context menu that only FILLS the draft — nothing
+turn cost); click = a context menu that only FILLS the draft - nothing
 fires until Act (compose-then-commit, with a toggleable confirm screen).
 Raw JSON mode and an advanced expander (relation, reserved where-picker,
 confirm toggle) live under the composer.
 
 Turn shape mirrors the agents' think→act→react (task-334): compose →
 Act → (a successful dash grants ONE more action slot) → deterministic
-auto-memory line → react phase (say/emote/memory bound to the result —
+auto-memory line → react phase (say/emote/memory bound to the result -
 no second world interaction) → pass. A "since your turn" digest with an
 interject input (guest speech, doesn't consume the turn) greets the next
 panel open.
@@ -142,17 +142,17 @@ panel open.
 - **Hidden way state is per-player knowledge**: locks/blocked/needs-force
   are only reported after this character examined the way or failed to go
   through it (`Player.known_way_aspects`, set in movement + examine).
-  Until then a locked door reads as plain closed — to the panel AND to
+  Until then a locked door reads as plain closed - to the panel AND to
   the room description.
 - **Names are learned by HEARING them spoken** (task-339): a name said
-  aloud in earshot — self-intro, direct address, third-party mention —
+  aloud in earshot - self-intro, direct address, third-party mention -
   teaches it to everyone present who doesn't know it yet. Seeing someone
   is recognition only (stable masked label); re-looking never reveals a
   name. Examine masks unmet names unless the character wears a
   `nametag`-tagged item.
 - Way rules reflected by menus: doors auto-open on go/dash unless locked,
   blocked, or needing force (`needs_open` = the on-go skill check); there
-  are no lock/unlock verbs (task-336 cancelled) — unlocking rides
+  are no lock/unlock verbs (task-336 cancelled) - unlocking rides
   use-on keycards.
 - Darkness degrades the scene client-side when
   `scene.area.dark` (ambient light < 40).
@@ -177,14 +177,14 @@ if (charName && !events.isAutonomous(charName)) {
 `_humanTurn` calls `HumanTurnComposer.request(charName)`
 (`agent-engine.js:319`) and **awaits it**. That pending promise *is* the pause:
 the run loop is suspended mid-step, no ticks fire, no NPC acts, and the header
-keeps showing whatever turn it last reached — typically `Turn: 0`.
+keeps showing whatever turn it last reached - typically `Turn: 0`.
 
 - **There is no timeout.** The sim waits indefinitely until the human commits
   via **Act** (a compose-then-commit, with a confirm screen) or skips with
   **end turn**. Skipping logs `🔜 <name> passed their turn.` and the queue
   moves on. Nothing times out and nothing auto-passes.
 - `finally` clears `config.busy` and resets the status line to `Waiting...` /
-  `Idle.` — that `finally` is load-bearing: without it `busy` stays true and
+  `Idle.` - that `finally` is load-bearing: without it `busy` stays true and
   every later Step/Run reports "Already running."
 - A successful **dash** grants one extra burst turn
   (`request(charName, { burst: true, lastResult })`) before the react step.
@@ -193,10 +193,10 @@ keeps showing whatever turn it last reached — typically `Turn: 0`.
   → stop, or auto-restart when a trigger set `_restart_requested`.
 
 So `Turn: 0` plus an open modal is the queue working. Take a screenshot before
-calling the loop dead — the frozen header and the waiting modal are the same
+calling the loop dead - the frozen header and the waiting modal are the same
 fact, seen from two angles.
 
-## "Next up" — TWO indicators, same source, different breadth
+## "Next up" - TWO indicators, same source, different breadth
 
 There are two places that answer "whose turn is it", and it is easy to assume
 they are one control with two renderings. They are separate renderings of the
@@ -205,62 +205,62 @@ they are one control with two renderings. They are separate renderings of the
 1. **Turn modal header** (`agent/human-turn-composer.js:519` `renderMeta()` →
    `#htc-meta`) renders `tick N · next up: <name>`, or `next up: you` when the
    current slot is the character the modal is for. Source is
-   `TurnQueue.getCurrentCharacter()` — the **current** slot only — and the line
+   `TurnQueue.getCurrentCharacter()` - the **current** slot only - and the line
    is **gated on `config.turnBased`**: with turn-based mode off, `nextUp` stays
    `''` and no next-up chip renders at all.
 2. **Event-stream strip** (`event-stream.js:119` `renderQueueStrip()`) renders
    the `⏭ up next:` row above the stream. Source is
    `VW.agent.turnQueue` + `VW.agent.currentTurnIndex` (overridable via a
-   `names` argument), and it shows **`queue.slice(idx, idx + 5)`** — the current
+   `names` argument), and it shows **`queue.slice(idx, idx + 5)`** - the current
    slot plus the next four, the first emphasised via `.q-next`. A slot counts
    as human when `!simple_npc && autonomy === false`, rendered as
    `🎤 YOU (<name>)`. The strip removes itself when the queue is empty.
 3. **The Turn Order panel** (Agents tab, visible in turn-based mode) is the
    third view: the whole round with per-slot initiative rolls, the sort mode
-   ("Init + DEX"), and a per-slot status — `done` / `ACTING…`.
+   ("Init + DEX"), and a per-slot status - `done` / `ACTING…`.
 
 Measured side by side with a human-controlled slot in the queue, all three
-agreed on the head of the order — the modal read `tick 2 · next up:
+agreed on the head of the order - the modal read `tick 2 · next up:
 Silver-Talon` while the strip read `⏭ up next: Silver-Talon → Leslie → Tusker →
 Vekka → Gribba`. So the difference is **width and gating**, not meaning: the
 modal names one slot and disappears entirely when turn-based mode is off, the
 strip shows five and marks which are yours, the panel shows the whole round
 with its dice.
 
-Neither reads from the backend — all three are client-side projections of the
+Neither reads from the backend - all three are client-side projections of the
 `AgentEngine` queue state. Don't "fix" one into another, and don't read a
 disagreement between them as a bug without checking
 `TurnQueue.getCurrentCharacter()` first.
 
 ## Related
 
-- [[AI & Narration/Turn-Based System]] — the order modes, initiative rolls, and the per-room simultaneous switch
+- [[AI & Narration/Turn-Based System]] - the order modes, initiative rolls, and the per-room simultaneous switch
 - task-310 random reshuffle · task-322 R5 vital thresholds consumed per
   turn · task-334 react phase design · task-241 non-turn-based stepping ·
   task-333 scene panel (mockup: `docs/design/human-turn-panel-v2-mockup.html`)
 
 ## Where it lives
 
-- `static/js/agent/turn-queue.js` — `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
-- `static/js/agent/human-turn-composer.js` — `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
-- `static/js/agent/agent-engine.js` — `_humanTurn` gate, run loop suspension
-- `static/js/event-stream.js` — `renderQueueStrip` (up-next strip)
-- `static/js/graph/toolbar.js` — Turn Order panel (whole round, rolls, per-slot status)
-- `routes/action_handlers.py` — `/api/action` endpoint for composed turns
-- `routes/player_ops.py` — `handle_player_speak` (guest speech)
-- `engine/speech.py` — `broadcast_speech`, sound propagation through ways
-- `engine/sound.py` — penetration, barriers, ambient noise damping
-- `config.js` / IndexedDB — `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
+- `static/js/agent/turn-queue.js` - `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
+- `static/js/agent/human-turn-composer.js` - `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
+- `static/js/agent/agent-engine.js` - `_humanTurn` gate, run loop suspension
+- `static/js/event-stream.js` - `renderQueueStrip` (up-next strip)
+- `static/js/graph/toolbar.js` - Turn Order panel (whole round, rolls, per-slot status)
+- `routes/action_handlers.py` - `/api/action` endpoint for composed turns
+- `routes/player_ops.py` - `handle_player_speak` (guest speech)
+- `engine/speech.py` - `broadcast_speech`, sound propagation through ways
+- `engine/sound.py` - penetration, barriers, ambient noise damping
+- `config.js` / IndexedDB - `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
 
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Features** — [[timeskip|Timeskip]] (#15), [[turn-queue|Turn queue]] (#30), [[the-human-turn|The human turn]] (#31), [[where-you-ve-been|Where you've been]] (#43), [[the-human-turn-composer|The human turn composer]] (#67), [[turn-based-modes|Turn-based modes]] (#68)
+**Features** - [[timeskip|Timeskip]] (#15), [[turn-queue|Turn queue]] (#30), [[the-human-turn|The human turn]] (#31), [[where-you-ve-been|Where you've been]] (#43), [[the-human-turn-composer|The human turn composer]] (#67), [[turn-based-modes|Turn-based modes]] (#68)
 
-**Dev tasks** — [[dev_tasks/todo/gameplay/task-728-directed-control-mode-a-director-reviews-and-edits-an-llm-character-s-turn-before-it-acts|task]], [[dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness|task]], [[dev_tasks/todo/ui/task-679-react-phase-result-is-one-wall-of-text-ending-in-a-raw-way-listing|task]]
+**Dev tasks** - [[task-728-directed-control-mode-a-director-reviews-and-edits-an-llm-character-s-turn-before-it-acts|task]], [[dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness|task]], [[dev_tasks/todo/ui/task-679-react-phase-result-is-one-wall-of-text-ending-in-a-raw-way-listing|task]]
 
-**Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[The Commons]]
+**Neighbouring notes** - [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[The Commons]]
 
 <!-- connected:end -->

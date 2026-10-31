@@ -9,6 +9,7 @@ from player import Player
 from area import Area
 from graph import WorldGraph, Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_KNOWN, EDGE_AT
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
+from engine.character_store import to_node_properties, sync_player_to_node
 
 
 class PlayerManager:
@@ -249,16 +250,7 @@ class PlayerManager:
         player_node_id = self.get_player_node_id(key)
         char_node = self.graph.get_node(player_node_id)
         if not char_node:
-            props = {
-                "personality": getattr(player_obj, "personality", "") or "",
-                "base_description": getattr(player_obj, "base_description", "") or "",
-                "description": getattr(player_obj, "description", "") or "",
-                "traits": dict(getattr(player_obj, "traits", {}) or {}),
-                "tags": list(getattr(player_obj, "tags", []) or []),
-                "interest_tags": list(getattr(player_obj, "interest_tags", []) or []),
-                "fear_tags": list(getattr(player_obj, "fear_tags", []) or []),
-                "flags": dict(getattr(player_obj, "flags", {}) or {}),
-            }
+            props = to_node_properties(player_obj)
             char_node = Node(
                 id=player_node_id,
                 type="character",
@@ -267,19 +259,7 @@ class PlayerManager:
             )
             self.graph.add_node(char_node)
         else:
-            # Sync authored definition onto node properties if missing
-            if getattr(player_obj, "personality", None) and "personality" not in char_node.properties:
-                char_node.properties["personality"] = player_obj.personality
-            if getattr(player_obj, "base_description", None) and "base_description" not in char_node.properties:
-                char_node.properties["base_description"] = player_obj.base_description
-            if getattr(player_obj, "traits", None) and "traits" not in char_node.properties:
-                char_node.properties["traits"] = dict(player_obj.traits)
-            if getattr(player_obj, "tags", None) and "tags" not in char_node.properties:
-                char_node.properties["tags"] = list(player_obj.tags)
-            if getattr(player_obj, "interest_tags", None) and "interest_tags" not in char_node.properties:
-                char_node.properties["interest_tags"] = list(player_obj.interest_tags)
-            if getattr(player_obj, "fear_tags", None) and "fear_tags" not in char_node.properties:
-                char_node.properties["fear_tags"] = list(player_obj.fear_tags)
+            sync_player_to_node(player_obj, char_node)
         self._players_by_node_id[player_node_id] = key
         if player_obj.current_area:
             self._set_player_area(key, player_obj.current_area)

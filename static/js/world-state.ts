@@ -502,7 +502,7 @@ class WorldState {
         }
         if (!areaId) areaId = `area_${areaName.toLowerCase().replace(/\s+/g, '_')}`;
         const candidates = [areaId];
-        const areaEdgeTypes = ['in'];
+        const areaEdgeTypes = ['in', 'contained_in'];
         const pushItem = (edgeSource: string, node: any) => {
             if (node && node.type === 'item' && node.properties?.current_state !== 'hidden' && !items.some(item => item.id === edgeSource)) {
                 items.push({ id: edgeSource, name: node.name, properties: node.properties });

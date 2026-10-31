@@ -527,7 +527,7 @@ class BehaviorMixin:
                     if item_name:
                         try:
                             result = game_state.get_item_desc(item_name)
-                            outputs.append(f"[{char_name}] reads {item_name}: {result[:200]}")
+                            outputs.append(f"[{char_name}] reads {item_name}: {result}")
                         except Exception:
                             outputs.append(f"[{char_name}] can't read {item_name}.")
 
@@ -834,7 +834,7 @@ class BehaviorMixin:
                     if target_name:
                         try:
                             result = game_state.get_item_desc(target_name)
-                            outputs.append(f"[{char_name}] examines {target_name}: {result[:200]}")
+                            outputs.append(f"[{char_name}] examines {target_name}: {result}")
                         except Exception:
                             outputs.append(f"[{char_name}] can't examine {target_name}.")
 
@@ -907,7 +907,7 @@ class BehaviorMixin:
                     if hasattr(game_state, "get_inventory"):
                         try:
                             result = game_state.get_inventory()
-                            outputs.append(f"[{char_name}] checks inventory: {result[:200]}")
+                            outputs.append(f"[{char_name}] checks inventory: {result}")
                         except Exception:
                             outputs.append(f"[{char_name}] checks their inventory.")
 

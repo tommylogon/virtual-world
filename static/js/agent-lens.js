@@ -1,10 +1,10 @@
 "use strict";
 /**
- * agent-lens.js — Left-panel preview of area/agent prompt context (task-219).
+ * agent-lens.js - Left-panel preview of area/agent prompt context (task-219).
  *
- * @module agent-lens — prompt-context preview
+ * @module agent-lens - prompt-context preview
  * @contributes AgentLens: renders the exact area/agent prompt context an LLM would receive
- * @powers NPC behaviour — the preview used to debug what a character actually sees before it acts
+ * @powers NPC behaviour - the preview used to debug what a character actually sees before it acts
  * @relates reuses agent/prompt-builder; reads worldState
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  * Reuses PromptBuilder; preview-only way state overrides are not persisted.
@@ -17,6 +17,9 @@ class AgentLens {
     constructor() {
         this._viewAs = null;
         this._hypotheticalArea = null;
+        this._stimulusText = '';
+        this._needStimulus = '';
+        this._retrievalStrategy = 'associative';
         this._wayStateOverrides = {};
         this._debounceTimer = null;
         this._refreshing = false;
@@ -33,6 +36,7 @@ class AgentLens {
             'Room context': { icon: '🏠', accent: '#58a6ff' },
             'System prompt': { icon: '⚙️', accent: '#8b949e' },
             'Character context': { icon: '💭', accent: '#bc8cff' },
+            'Memory recall analysis': { icon: '🧠', accent: '#e3b341' },
             'Think / decide user message': { icon: '🧠', accent: '#58a6ff' },
             'React prompt': { icon: '💬', accent: '#f778ba' },
             'Combined reaction prompt': { icon: '⚡', accent: '#e3b341' },
@@ -47,13 +51,10 @@ class AgentLens {
             appEvents.on('inspector:view', () => this._scheduleRefresh());
         }
     }
-    _scheduleRefresh() {
-        // Throttle: buildMemoryContext drives the embed search vector store and is
-        // expensive. Debounce bursts, but never rebuild more than once per 2s so a
-        // fast state:updated stream (poll + agent loop) can't flood the backend.
+    _scheduleRefresh(customDelay) {
         clearTimeout(this._debounceTimer);
         const since = Date.now() - (this._lastRefreshAt || 0);
-        const delay = Math.max(300, 2000 - since);
+        const delay = customDelay !== undefined ? customDelay : Math.max(300, 2000 - since);
         this._debounceTimer = setTimeout(() => { this._lastRefreshAt = Date.now(); this.refresh(); }, delay);
     }
     _esc(text) {
@@ -252,7 +253,7 @@ class AgentLens {
         const sections = [];
         let rest = text;
         if (authoring) {
-            const envMatch = rest.match(/^([^\n]+ — [^\n]+)\n\n([\s\S]*?)(?=\nItems that catch your attention:|\nPeople here:|\n⚠️|\nFrom where you stand|\n\(no visible exits\)|\n\n=== WITNESSED ===|$)/);
+            const envMatch = rest.match(/^([^\n]+ - [^\n]+)\n\n([\s\S]*?)(?=\nItems that catch your attention:|\nPeople here:|\n⚠️|\nFrom where you stand|\n\(no visible exits\)|\n\n=== WITNESSED ===|$)/);
             if (envMatch) {
                 sections.push(['Environment', envMatch[1].trim()]);
                 if (envMatch[2].trim())
@@ -300,7 +301,7 @@ class AgentLens {
         const rawTemp = area.environment?.temperature;
         const temp = (rawTemp !== undefined && rawTemp !== null && !isNaN(Number(rawTemp)))
             ? String(Math.round(Number(rawTemp) * 10) / 10)
-            : '—';
+            : '-';
         const exits = Object.keys(area.exits || {}).length;
         return { items: items.length, people, light, temp, exits };
     }
@@ -379,7 +380,7 @@ class AgentLens {
             </div>`;
         });
         return agentLensHtmlTag `<div class="agent-lens-field">
-            <label>Way preview <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">— not saved</span></label>
+            <label>Way preview <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">- not saved</span></label>
             ${blocks}
             <button type="button" class="agent-lens-reset" @click=${() => this.clearWayOverrides()}>↺ Reset all way overrides</button>
         </div>`;
@@ -405,8 +406,28 @@ class AgentLens {
             fields.push(agentLensHtmlTag `<div class="agent-lens-field">
                 <label>Hypothetical location</label>
                 <select id="lens-hypo-area" @change=${(e) => this.setHypotheticalArea(e.target.value)}>
-                    <option value="">📍 Actual — ${areaName || 'unknown'}</option>
+                    <option value="">📍 Actual - ${areaName || 'unknown'}</option>
                     ${areaNames.map(name => agentLensHtmlTag `<option value=${name} ?selected=${this._hypotheticalArea === name}>${name}</option>`)}
+                </select>
+            </div>`);
+            fields.push(agentLensHtmlTag `<div class="agent-lens-field" style="flex:2;min-width:180px;">
+                <label>Stimulus dialogue / topic</label>
+                <input type="text" id="lens-stimulus-input" placeholder="e.g. want olives on that pizza?" .value=${this._stimulusText || ''} @input=${(e) => { this._stimulusText = e.target.value; this._scheduleRefresh(250); }} style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+            </div>`);
+            fields.push(agentLensHtmlTag `<div class="agent-lens-field" style="width:105px;">
+                <label>Need state</label>
+                <select id="lens-need-stimulus" @change=${(e) => { this._needStimulus = e.target.value; this._scheduleRefresh(50); }}>
+                    <option value="" ?selected=${!this._needStimulus}>None</option>
+                    <option value="food" ?selected=${this._needStimulus === 'food'}>🍖 Hunger</option>
+                    <option value="drink" ?selected=${this._needStimulus === 'drink'}>💧 Thirst</option>
+                    <option value="rest" ?selected=${this._needStimulus === 'rest'}>💤 Tired</option>
+                </select>
+            </div>`);
+            fields.push(agentLensHtmlTag `<div class="agent-lens-field" style="width:115px;">
+                <label>Recall Mode</label>
+                <select id="lens-strategy" @change=${(e) => { this._retrievalStrategy = e.target.value; this._scheduleRefresh(50); }}>
+                    <option value="associative" ?selected=${this._retrievalStrategy === 'associative'}>✨ Associative 3.0</option>
+                    <option value="legacy" ?selected=${this._retrievalStrategy === 'legacy'}>📜 Legacy Flat</option>
                 </select>
             </div>`);
         }
@@ -445,9 +466,9 @@ class AgentLens {
     _buildReactRoomContext(areaName, movedViaDash = false) {
         const tickNum = worldState.data?.time_ticks ?? 0;
         if (movedViaDash) {
-            return `[Tick ${tickNum}] You just sprinted and are now in ${areaName} — react to arriving here.`;
+            return `[Tick ${tickNum}] You just sprinted and are now in ${areaName} - react to arriving here.`;
         }
-        return `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged — see your observation above in this conversation.`;
+        return `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged - see your observation above in this conversation.`;
     }
     async _renderAreaLens(areaName, charName, { authoring = false, focusItem = null } = {}) {
         const lensState = this._buildLensState(areaName, charName);
@@ -467,7 +488,7 @@ class AgentLens {
             html += `<div class="agent-lens-focus-item">📦 Lens focus: <strong>${this._esc(focusItem)}</strong> in this area</div>`;
         }
         if (authoring) {
-            html += `<div class="agent-lens-authoring-note">Room view for <strong>${this._esc(charName)}</strong> — no tick, personality, or inventory (those appear in Agent lens only).</div>`;
+            html += `<div class="agent-lens-authoring-note">Room view for <strong>${this._esc(charName)}</strong> - no tick, personality, or inventory (those appear in Agent lens only).</div>`;
         }
         html += sections.map(([title, body]) => this._sectionHtml(title, body, title === 'Exits' || title === 'Items' || title === 'People' || title === 'Area description')).join('');
         return html;
@@ -485,7 +506,13 @@ class AgentLens {
         const vitalsNL = PromptBuilder.describeVitals?.(player) || '';
         const emotionNL = PromptBuilder.buildEmotionContext(player);
         const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-        const memoryNL = await PromptBuilder.buildMemoryContext(charName, { preview: true });
+        const memoryNL = await PromptBuilder.buildMemoryContext(charName, {
+            preview: true,
+            area: areaName,
+            stimulus: this._stimulusText,
+            needStimulus: this._needStimulus,
+            strategy: this._retrievalStrategy
+        });
         const turnCtx = this._getTurnContext(charName);
         const lastResult = turnCtx.lastResult;
         const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(charName, player);
@@ -500,6 +527,17 @@ class AgentLens {
         ].filter(Boolean).join('\n\n');
         if (ctxBlock)
             html += this._sectionHtml('Character context', ctxBlock, false);
+        const recallStats = window._lastRecallStats;
+        if (recallStats && Array.isArray(recallStats.memories)) {
+            const memoryChips = recallStats.memories.map((m) => {
+                const facets = (m.facets_hit || []).length ? ` [${m.facets_hit.join(' + ')}]` : '';
+                const details = m.details ? Object.entries(m.details).map(([k, v]) => `${k}:${typeof v === 'number' ? v.toFixed(1) : v}`).join(' ') : '';
+                return `• ${m.text}\n  Score: ${typeof m.score === 'number' ? m.score.toFixed(2) : m.score}${facets}${details ? ` (${details})` : ''}`;
+            }).join('\n\n');
+            const summary = `Strategy: ${recallStats.strategy || 'associative'} · Recalled: ${recallStats.count || 0} memories · Questions: ${recallStats.questionsCount || 0}`;
+            const breakdown = `${summary}\n\n${memoryChips || 'No memories surpassed the score threshold (0 padding active).'}`;
+            html += this._sectionHtml('Memory recall analysis', breakdown, false);
+        }
         if (reactive) {
             const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult);
             html += this._sectionHtml('Think / decide prompt', thinkDecidePrompt, true);
@@ -507,14 +545,14 @@ class AgentLens {
             const previewResult = lastResult
                 || 'You examine the door. A heavy oak door with an iron handle. It is currently closed.';
             const previewInner = turnCtx.inner
-                || '(Inner monologue from the think/decide response — run an agent step to populate)';
+                || '(Inner monologue from the think/decide response - run an agent step to populate)';
             const previewSpeech = turnCtx.lastSpeech || '';
             const movedViaDash = previewAction.split(/\s+/)[0]?.toLowerCase() === 'dash';
             const reactRoomContext = this._buildReactRoomContext(areaName, movedViaDash);
             const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, player, reactRoomContext, vitalsNL, emotionNL, relationshipNL, previewInner, previewAction, previewResult, memoryNL, previewSpeech);
             const reactNote = turnCtx.hasTurnData
                 ? '📎 Preview uses this character\'s last turn (action, speech, result).'
-                : '📎 Placeholder action/result — run an agent step to populate real turn data.';
+                : '📎 Placeholder action/result - run an agent step to populate real turn data.';
             html += this._sectionHtml('React prompt', `${reactNote}\n\n${reactPrompt}`, true);
         }
         else {
@@ -578,6 +616,9 @@ class AgentLens {
             sel: selection ? [selection.type, selection.type === 'agent' ? selection.name : selection.id] : null,
             viewAs: this._viewAs,
             hypo: this._hypotheticalArea || '',
+            stim: this._stimulusText || '',
+            need: this._needStimulus || '',
+            strat: this._retrievalStrategy || 'associative',
             ways: this._wayStateOverrides,
             tick: (worldState.data && worldState.data.time_ticks) || 0,
             live: live ? [live.current_area, live.state, JSON.stringify(live.vitals || {}), live.emotion && live.emotion.current] : null,
@@ -593,7 +634,7 @@ class AgentLens {
                 <div class="agent-lens-welcome">
                     <div class="agent-lens-welcome-icon">👁</div>
                     <h3>Agent Lens</h3>
-                    <p>See exactly what an agent gets in their prompt — live, no LLM or embedding calls.</p>
+                    <p>See exactly what an agent gets in their prompt - live, no LLM or embedding calls.</p>
                     <div class="agent-lens-welcome-hints"><span>🏠 Area</span><span>🧍 Agent</span><span>🚪 Way</span></div>
                     <p class="agent-lens-welcome-foot">Click something in the graph to start.</p>
                 </div>`, content);

@@ -1,17 +1,17 @@
 /**
- * EdgeTypes — shared edge type configuration for the graph
+ * EdgeTypes  -  shared edge type configuration for the graph
  * Central place for edge type names, colors, icons, and valid source/target combos.
  * Load this before graph-manager.js in index.html.
  *
- * @module graph/edge-types — the edge type registry
+ * @module graph/edge-types  -  the edge type registry
  * @contributes EdgeTypes: type names, colors, icons, valid source/target combos, resolve()/getConfig()
- * @powers Graph canvas — consistent styling and validation of every edge in the graph
+ * @powers Graph canvas  -  consistent styling and validation of every edge in the graph
  * @relates loaded before graph-manager.js; used by network-manager, node-operations, edge-inspector
  * @docs docs/virtualWorld/World Building/Graph System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-// NOTE: EdgeTypeConfig is declared *below* on purpose — a leading type-only
+// NOTE: EdgeTypeConfig is declared *below* on purpose  -  a leading type-only
 // statement makes tsc drop this file's leading JSDoc, and js_module_index.py
 // reads @module out of the emitted .js. Keep a value declaration first.
 const EdgeTypes = {
@@ -33,11 +33,12 @@ const EdgeTypes = {
         'known':       { label: 'Known', icon: '🧠', color: '#a371f7', desc: 'Character knows this ability/spell/power' },
     } as Record<string, EdgeTypeConfig>,
 
-    // Legacy aliases — map old names to new for display
+    // Legacy aliases  -  map old names to new for display
     LEGACY_MAP: {
         'location': 'in',
         'carried_by': 'carrying',
         'contains': 'in',
+        'contained_in': 'in',
     } as Record<string, string>,
 
     /** Resolve an edge type to its display config (handles legacy names) */

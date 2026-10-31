@@ -9,7 +9,7 @@
  * @contributes SoundManager (playClick, playHover, playTurnChime, playError, toggleMute)
  * @powers tactile procedural audio feedback for UI clicks, turn advance, and validation errors
  * @relates used by turn-queue and UI buttons; window.soundManager
- * @docs docs/virtualWorld/UI Reference/Rendering & UI Modules.md
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 
 class SoundManager {

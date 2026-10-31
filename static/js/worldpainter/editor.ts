@@ -1,5 +1,5 @@
 /**
- * editor.js — WorldPainter 3-mode grid editor (task-495).
+ * editor.js - WorldPainter 3-mode grid editor (task-495).
  *
  * A plain-DOM overlay (no Lit, no ordering constraints) that renders one world
  * scope's authoring grid at its own resolution and lets the author:
@@ -16,7 +16,7 @@
  * Overlap follows the documented rule (`engine/world_grid.py`): forbidden by
  * default, with an explicit "displace" confirmation.
  *
- * @module worldpainter/editor — WorldPainter grid editing overlay
+ * @module worldpainter/editor - WorldPainter grid editing overlay
  * @contributes the 3-mode scope grid editor UI: paint, feature place/move/remove, area placement, cell inspection, drill-down
  * @powers WorldPainter authored worlds (task-495) feeding the grid-to-graph compiler (task-496)
  * @relates static/js/worldpainter/grid-model.js; routes/world_grid_ops.py; engine/world_grid.py
@@ -31,7 +31,7 @@
     // Every name here is declared INSIDE the IIFE and prefixed with the file
     // stem on purpose. A top-level `interface`/`type` in a classic script is a
     // GLOBAL binding, so two files declaring the same name is a redeclaration
-    // error across the whole corpus — which is what happened the last time this
+    // error across the whole corpus - which is what happened the last time this
     // was converted. Function scope cannot collide.
     //
     // Cross-module globals stay ambient in `static/js/types/globals.d.ts`;
@@ -87,7 +87,7 @@
 
     /**
      * A scope as the chooser and the child list see it. The flat endpoint sends
-     * snake_case counts, the nested one camelCase — both are accepted (task-615).
+     * snake_case counts, the nested one camelCase - both are accepted (task-615).
      */
     interface WpScopeCard {
         id: string;
@@ -230,6 +230,7 @@
         w: number;
         h: number;
         offset: WpCell;
+        startOffset: WpCell;
         anchorScreen?: { x: number; y: number; w: number; h: number } | null;
         pxPerCell?: number | null;
     }
@@ -550,8 +551,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     /**
      * Hook a painter control into the HelpCenter (task-521). The launcher button
-     * was the only hinted control in this overlay, so every in-editor control —
-     * the ones you actually have to understand — was unhelpfully silent.
+     * was the only hinted control in this overlay, so every in-editor control -
+     * the ones you actually have to understand - was unhelpfully silent.
      */
     function _help<T extends HTMLElement>(el: T | null, key: string): T | null {
         if (el) el.setAttribute('data-help', key);
@@ -675,7 +676,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      *
      * `/api/world/promote` is the one WorldPainter endpoint that lives outside
      * the scopes prefix, so `_post('/promote', …)` asked for
-     * `/api/world/scopes/promote` — which matches the scope *read* route, so the
+     * `/api/world/scopes/promote` - which matches the scope *read* route, so the
      * server answered 405 and the painter said "Promote failed". Absolute path
      * or nothing.
      */
@@ -691,9 +692,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * instead of reporting "biome: wall" and leaving it at that.
      */
     const STRUCTURE_NOTES: Record<string, string> = {
-        solid: 'solid — nothing passes it',
+        solid: 'solid - nothing passes it',
         see_through: 'you can see through it, not walk through it',
-        passable: 'a threshold — you go through it',
+        passable: 'a threshold - you go through it',
     };
 
     // ───────────────────────────── open/close ──────────────────────────
@@ -1148,9 +1149,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     /**
      * Keys for the rail and the selection (task-536).
      *
-     * One handler, because the interesting cases are *combinations* — Escape with
+     * One handler, because the interesting cases are *combinations* - Escape with
      * a selection and a half-finished route, Ctrl+A while a route is being drawn
-     * — and two handlers deciding what each of them does is how a key ends up
+     * - and two handlers deciding what each of them does is how a key ends up
      * meaning two things. The order is deliberate: the selection is dropped before
      * the tool is reset, so Escape peels off the least-committed thing first.
      *
@@ -1193,7 +1194,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             // Space pans even when a toolbar <select> still holds focus (bug-511).
             // Choosing a biome used to leave the dropdown focused, and the next
             // space press was consumed by the browser as "open the focused
-            // dropdown" — the keydown was swallowed by the `typing` guard below,
+            // dropdown" - the keydown was swallowed by the `typing` guard below,
             // so the pan handler never saw it. All controls blur on change (see
             // `_valueControl`/`_layerSelect`), but the guard has to hold anyway:
             // a control focused by Tab must not silently disable panning.
@@ -1452,7 +1453,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // Studio row: Tool rail on left, Canvas in center, Palette dock on right (task-881).
         // Docking the palette beside the canvas means opening it never shoves the
         // canvas below the fold or forces vertical scrolling to paint.
-        const withRail = _el('div', 'display:flex;gap:10px;align-items:stretch;flex:1 1 auto;min-height:0;');
+        const withRail = _el('div', 'display:flex;gap:10px;align-items:stretch;flex:1 0 420px;min-height:420px;overflow:hidden;');
         withRail.setAttribute('data-role', 'wp-studio-row');
         withRail.appendChild(_toolRail(p));
         withRail.appendChild(_grid(p));
@@ -1488,7 +1489,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      *
      * Four tool buttons in a top row is a toolbar for four things; eight is a
      * toolbar for a spreadsheet. A rail keeps the active tool obvious, gives each
-     * one a key, and leaves the width for the map — which is the thing being
+     * one a key, and leaves the width for the map - which is the thing being
       * looked at. The layer/value controls stay in the top row; the brush moved
       * to the rail so it travels with the active tool (task-536).
       */
@@ -1711,8 +1712,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * Whether the canvas pans on a plain left-drag, re-decided on every tool
      * change (task-536).
      *
-     * A drag means a different thing per tool — pan, paint stroke, marquee, and now
-     * "nothing" under Move — and `draggable` is set once when the stage is wired.
+     * A drag means a different thing per tool - pan, paint stroke, marquee, and now
+     * "nothing" under Move - and `draggable` is set once when the stage is wired.
      * A tool switch therefore has to re-ask, or the author selects a tool and drags
      * the map across instead of moving their cells.
      */
@@ -1726,7 +1727,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     function _selectTool(id: string): void {
         state.tool = id;
+        const hadToolBar = Boolean(state.overlay && (state.overlay.querySelector('[data-role="wp-area"]') || state.overlay.querySelector('[data-role="wp-route-info"]')));
+        const needsFullRender = hadToolBar || id === 'area' || id === 'route';
         if (id !== 'area') state.selectedArea = null;
+        if (needsFullRender) { _syncDraggable(); _saveScopePrefs(); render(); return; }
         if (id !== 'move') state.nudged = null;
         state.marquee = null;
         state.brushHover = null;
@@ -1889,7 +1893,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         };
         const roads: WpChecklistStep = {
             title: 'Lay the roads.',
-            how: 'Road layer, value "road", with the 🧭 Route tool — click '
+            how: 'Road layer, value "road", with the 🧭 Route tool - click '
                 + 'waypoints, then ✓ Paint route.',
             done: roadCells.length > 0,
             tool: 'route',
@@ -1991,6 +1995,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         layerSel.addEventListener('change', () => {
             state.layer = layerSel.value;
             state.value = _defaultValueForLayer(state.layer);
+            _saveScopePrefs();
+            render();
+            return;
             _saveScopePrefs();
             softRender();
         });
@@ -2380,9 +2387,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 const notes = (r.notes || []).join('; ');
                 _status(`⚙ Generated ${r.node_count || 0} node(s), ` +
                     `${r.edge_count || 0} edge(s)` +
-                    (notes ? ` — ${notes}` : ''), false);
+                    (notes ? ` - ${notes}` : ''), false);
+                render();
             } catch (e) {
-                if (!allowRegenerate && /already materialized/.test(errText(e))) {
+                if (!allowRegenerate && /already materialized|not a regenerable generated node/.test(errText(e))) {
                     const ok = await (window as any).Dialog?.confirm?.({
                         title: 'Re-run Generation',
                         message: `${errText(e)}\n\nRe-run generation?`,
@@ -2412,7 +2420,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 state.payload = result;
                 state.selectedChild = null;
                 _notify(true);
-                _status(`🧹 Removed ${result.deleted_nodes || 0} generated node(s) — grid kept.`, false);
+                _status(`🧹 Removed ${result.deleted_nodes || 0} generated node(s) - grid kept.`, false);
             } catch (e) {
                 _status(`Ungenerate failed: ${errText(e)}`, true);
             }
@@ -2433,7 +2441,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Feature:'));
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
         sel.setAttribute('data-role', 'wp-feature');
-        const none = _el('option', null, '— none (click a placed feature) —');
+        const none = _el('option', null, '- none (click a placed feature) -');
         none.value = '';
         sel.appendChild(none);
         (p.children || []).forEach((c) => {
@@ -2470,14 +2478,14 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Area:'));
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:200px;');
         sel.setAttribute('data-role', 'wp-area');
-        const none = _el('option', null, '— pick an area to place —');
+        const none = _el('option', null, '- pick an area to place -');
         none.value = '';
         sel.appendChild(none);
         const groups = GM().areaGroups(p, state.selectedArea);
         groups.forEach((g: any) => {
             const og = _el('optgroup');
             og.label = g.key === 'elsewhere'
-                ? `${g.label} — picking one moves it here`
+                ? `${g.label} - picking one moves it here`
                 : g.label;
             g.areas.forEach((a: any) => {
                 const where = a.placedHere ? ` (${a.placedHere.x},${a.placedHere.y})` : '';
@@ -2495,7 +2503,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         wrap.appendChild(sel);
         if (!groups.length) {
             wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
-                `No areas available here — every area of “${p.scope.name}” already sits on a map.`));
+                `No areas available here - every area of “${p.scope.name}” already sits on a map.`));
         } else {
             wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
                 'Then click a cell. Click a placed 📍 to take it off the map again.'));
@@ -2512,7 +2520,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                     state.selectedArea = a.id;
                     render();
                 }, 'font-size:11px;padding:1px 7px;border-radius:10px;' +
-                    'border-color:#2f7d5a;color:#9fd8bd;', `Move "${a.name}" — click, then click a new cell`);
+                    'border-color:#2f7d5a;color:#9fd8bd;', `Move "${a.name}" - click, then click a new cell`);
                 list.appendChild(chip);
             });
             wrap.appendChild(list);
@@ -2523,7 +2531,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     // ───────────────────── grid surface (Konva canvas) ────────────────────
     //
     // Konva draws the grid on a canvas as a fixed number of shapes (background
-    // grid, paint, features, route) — a 160x100 world costs the same to render
+    // grid, paint, features, route) - a 160x100 world costs the same to render
     // as a 10x10, and work is proportional to *painted* cells, not grid area.
     // Pan/zoom and hit-testing are Konva's, so none of it is hand-rolled. The
     // same payload the DOM version used drives it, so the backend is unchanged.
@@ -2534,7 +2542,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // *column* flex box, where `align-items:stretch` gave it the full width for
         // free; as a flex item in a **row** it takes its content width instead, and
         // its only child is the absolutely-positioned holder, which contributes
-        // nothing — so without this the wrapper collapsed to 0px, the 900px canvas
+        // nothing - so without this the wrapper collapsed to 0px, the 900px canvas
         // overflowed a zero-width box, and the grid simply did not appear.
         // `min-width:0` is the other half: a flex item's default `min-width:auto`
         // refuses to shrink below its content, which fights the zoom buttons.
@@ -2569,7 +2577,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         hud.appendChild(zoomOut);
         hud.appendChild(_btn('⤢ Fit', () => _fitGrid(p), 'padding:1px 7px;'));
         _syncZoomButtons();   // a rebuild starts at the current scale
-        // task-717: the dims readout is also the exact-size control — clicking it
+        // task-717: the dims readout is also the exact-size control - clicking it
         // opens the ▦ Grid… dialog, so precise resize is discoverable from the
         // canvas instead of only from the toolbar.
         // task-597: the count is the *output* here, with the cell size beside it.
@@ -2584,7 +2592,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'Set the exact grid size…');
         state.dimsBtn = dimsBtn;
         hud.appendChild(dimsBtn);
-        // The scope's reference (map) image — pick an uploaded background, or
+        // The scope's reference (map) image - pick an uploaded background, or
         // upload/point at one. Its `appendChild` was dropped in 0dc60c48, which
         // left `_referenceControl` orphaned and the picker gone from the HUD.
         hud.appendChild(_referenceControl(p));
@@ -2643,7 +2651,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
         // The picker only lists images already on the server. A new one has to be
         // uploaded into static/images/backgrounds (the same endpoint the graph
-        // background uses), or referenced by URL — so offer both here instead of
+        // background uses), or referenced by URL - so offer both here instead of
         // making the author drop the file in by hand.
         const uploadInput = _el('input');
         uploadInput.type = 'file';
@@ -2790,14 +2798,14 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * ratio leaves empty bands and the painted cells and the art disagree about
      * where a place is. A shrink **prunes** out-of-bounds paint and placements
      * server-side (`world_grid.ensure_grid`), so the count is shown and confirmed
-     * first — losing a hand-placed area to a one-click convenience is not a trade
+     * first - losing a hand-placed area to a one-click convenience is not a trade
      * worth making silently.
      */
     async function _gridFromReference(p: WpPayload): Promise<void> {
         const img = state.refImage;
         if (!img || !img.naturalWidth) { _status('Load a reference image first.'); return; }
         const next = GM().gridForImageAspect(p.grid && p.grid.w, img.naturalWidth, img.naturalHeight);
-        if (!next) { _status('That image has no readable size — try another file.', true); return; }
+        if (!next) { _status('That image has no readable size - try another file.', true); return; }
         const stranded = GM().strandedCount(p, next.w, next.h);
         if (stranded > 0) {
             const go = await (window as any).Dialog?.confirm?.({
@@ -2851,7 +2859,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             height: holder.clientHeight || 480,
         });
         // The panel fills the viewport, so the canvas has to follow a window
-        // resize instead of keeping its mount size — Konva sizes a stage once
+        // resize instead of keeping its mount size - Konva sizes a stage once
         // and never tracks its container.
         const hadViewOnMount = Boolean(state.view);
         let fittedRealSize = holder.clientWidth > 0 && holder.clientHeight > 0;
@@ -3308,6 +3316,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             w: p.grid!.w,
             h: p.grid!.h,
             offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
+            startOffset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
             anchorScreen,
             pxPerCell: startPx,
         };
@@ -3420,8 +3429,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             // canvas: the grid stays put; map_offset moves every node of the
             // scope by this many cells.
             state.gridDrag!.offset = {
-                x: drag.offset.x + (cx - drag.start.x),
-                y: drag.offset.y + (cy - drag.start.y),
+                x: drag.startOffset.x + (cx - drag.start.x),
+                y: drag.startOffset.y + (cy - drag.start.y),
             };
         } else {
             const next = GM().gridHandleDrag(drag.w, drag.h, drag.key, { x: cx, y: cy });
@@ -4043,7 +4052,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             _redrawDecor();
         });
 
-        stage.on('click tap', () => {
+        stage.on('click tap', (e: any) => {
+            if (e && e.evt && typeof e.evt.button === 'number' && e.evt.button !== 0) return;
             if (state.refEdit || state.gridEdit) return;   // adjust modes own the pointer
             if (dragged) { dragged = false; return; }
             if (_isPaintTool()) return;   // already committed by the stroke
@@ -4246,7 +4256,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     /** One line describing a cell, for the HUD hover readout. */
     function _cellLine(info: WpCellInfo | null): string {
         if (!info) return '';
-        if (info.empty) return `(${info.x},${info.y}) — nothing here`;
+        if (info.empty) return `(${info.x},${info.y}) - nothing here`;
         const bits = [];
         // The author's name leads, because it is the thing they wrote (task-560);
         // the paint layers are the evidence for it.
@@ -4290,7 +4300,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (!at || !p.scope.has_grid) return null;
         const info = GM().cellInfo(p, at.x, at.y, state.vocab);
         const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
-            'padding:8px;margin-bottom:10px;font-size:12px;');
+            'padding:8px;margin-bottom:10px;font-size:12px;flex-shrink:0;position:relative;z-index:2;');
         wrap.setAttribute('data-role', 'wp-cellpanel');
         const head = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
         head.appendChild(_el('strong', null, `Cell (${info.x},${info.y})`));
@@ -4325,7 +4335,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // wall to your face, and the map edge is not an exit at all.
         const neighbours = GM().cellNeighbours(p, at.x, at.y, state.vocab);
         const label = (n: WpCellInfo | null): string => {
-            if (n === null) return 'map edge';
+            if (n == null) return 'map edge';
             const noun = String(n.road || n.biome || '').replace(/_/g, ' ');
             const solid = n.kind && n.kind !== 'place' ? ` (${n.kind})` : '';
             const what = noun ? `${noun}${solid}` : 'empty';
@@ -4343,7 +4353,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         const nameInput = _el('input', 'flex:1;min-width:0;padding:2px 6px;border-radius:5px;' +
             'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
         nameInput.value = info.name || '';
-        nameInput.placeholder = 'unnamed — compiles to a coordinate';
+        nameInput.placeholder = 'unnamed - compiles to a coordinate';
         nameInput.title = 'The name this place compiles to. Needed for a town: a building is not addressable until it has one.';
         nameInput.addEventListener('change', () => {
             setCellName(p, info.x, info.y, nameInput.value);
@@ -4381,7 +4391,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         }
         if (!actions.childNodes.length) {
             actions.appendChild(_el('span', 'color:var(--text-muted,#999);',
-                'Nothing to do here — paint it, or place an area/feature on it.'));
+                'Nothing to do here - paint it, or place an area/feature on it.'));
         }
         wrap.appendChild(actions);
         // The ways Generate minted out of the area placed on this cell, and what
@@ -4406,7 +4416,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * hand it back.
      *
      * Removing a seam here deletes the generated way *and* records the decision,
-     * so it does not come back on the next Generate — the record is the whole
+     * so it does not come back on the next Generate - the record is the whole
      * reason the two live in one request. A seam already handed over (a hand
      * written way of the author\'s own) is listed as such, with only "Restore".
      */
@@ -4423,7 +4433,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'var(--border,#3a3a44);display:flex;flex-direction:column;gap:3px;');
         box.setAttribute('data-role', 'wp-seams');
         box.appendChild(_el('div', 'color:var(--text-muted,#999);font-size:11px;',
-            'Ways out of this area — Generate made these, you decide'));
+            'Ways out of this area - Generate made these, you decide'));
 
         const line = (label: string, title: string, action: HTMLElement | null): void => {
             const r = _el('div', 'display:flex;gap:6px;align-items:center;');
@@ -4448,7 +4458,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         });
 
         // A seam the author removed (or replaced) has no node left to list, so it
-        // is read back from the record — otherwise restoring it would need a
+        // is read back from the record - otherwise restoring it would need a
         // remembered way id, which is exactly what an author should not have to do.
         taken.forEach((o) => {
             const restore = _btn('↺', () => setSeam(p, o.way_id, 'auto'),
@@ -4467,7 +4477,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 { way_id: wayId, action });
             _status(action === 'auto'
                 ? 'Generate will mint that way again.'
-                : 'Way removed — Generate will not put it back.');
+                : 'Way removed - Generate will not put it back.');
             _notify(true);
             render();
         } catch (e) {
@@ -4740,7 +4750,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * The cell it is on is the natural home for the scope: it is where the author
      * put the area, so the new scope's gateway opens from exactly the doorstep
      * they chose. If that cell already holds a hand-placed area, that area becomes
-     * the doorstep (the server's `gateway` overlap) — which is the goblin camp
+     * the doorstep (the server's `gateway` overlap) - which is the goblin camp
      * case: an entrance parked by the road, with the camp itself promoted behind
      * it.
      *
@@ -4783,7 +4793,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                 `/${encodeURIComponent(p.scope.id)}/grid/interior`, { building: pick });
             state.payload = res;
             const notes = (res.report && res.report.notes) || [];
-            _status(`Painted the ${pick} plan — edit the cells, then ⚙ Generate.`);
+            _status(`Painted the ${pick} plan - edit the cells, then ⚙ Generate.`);
             for (let i = 0; i < Math.min(notes.length, 2); i += 1) {
                 _status(notes[i]);
             }
@@ -4796,7 +4806,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     async function promoteArea(areaId: string): Promise<void> {
         const p = state.payload!;
-        // The area is a row of `area_placements` (id/name/x/y) — the payload
+        // The area is a row of `area_placements` (id/name/x/y) - the payload
         // carries no `areas` list, so looking there found nothing and returned
         // silently, leaving the button a no-op with no prompt and no request.
         const area = ((p.area_placements || []).find((a) => a.id === areaId))
@@ -4935,7 +4945,7 @@ _notify(true);
             await _post(`/${encodeURIComponent(scopeId)}/rename`, { name: clean });
             _notify(true);
             // A renamed *child* is a card in this scope's list, and the card's
-            // name lives in the payload — refetch it. `render()` alone redrew the
+            // name lives in the payload - refetch it. `render()` alone redrew the
             // stale list and the card kept its old label. Renaming the open scope
             // itself needs a full load (its title/breadcrumb changed).
             if (state.scopeId === scopeId) await load(scopeId);
@@ -4999,7 +5009,7 @@ _notify(true);
                 state.payload = await _req(
                     `${BASE}/${encodeURIComponent(parentId)}/grid`, { cache: 'no-store' });
                 render();
-                _status(`Created “${created.scope.name}” — pick Feature and click a cell to place it.`);
+                _status(`Created “${created.scope.name}” - pick Feature and click a cell to place it.`);
             } else {
                 load(created.scope.id);
             }

@@ -218,9 +218,9 @@ class SkillSystem:
         return
 
         actor = player_name or self.player_manager.active_player or "__system__"
-        message = f"[LLM {label}] Prompt: {prompt[:500]}"
+        message = f"[LLM {label}] Prompt: {prompt}"
         if response is not None:
-            message += f"\n[Response] {response[:500]}"
+            message += f"\n[Response] {response}"
 
         self.logging_events.record_turn_event(
             actor, "llm_log", message,

@@ -1,5 +1,5 @@
 /**
- * main.js — Bootstrap file that wires all modules together
+ * main.js - Bootstrap file that wires all modules together
  * This is the only entry point loaded from the HTML.
  * All modules are loaded in order via <script> tags in the HTML.
  * 
@@ -8,7 +8,7 @@
  *   Legacy globals →  kept as aliases for HTML onclick compatibility
  *   Modules       →  classes with singletons, initialized here
  *
- * @module main — bootstrap that wires every front-end module together
+ * @module main - bootstrap that wires every front-end module together
  * @contributes the `VW` namespace, legacy global aliases for HTML onclick, init order
  * @powers app startup, world save/load dialogs, and the run/step/cancel controls
  * @relates the only entry point in index.html; initialises agent-engine, graph, panels
@@ -55,7 +55,7 @@ interface PreviewModalEl extends HTMLDivElement {
 //   3. llm-client.js    → class LLMClient, const llmClient
 //   4. event-stream.js  → class EventBus, const events
 //      (loaded after its collaborators in static/js/stream/: turn-cards,
-//       filters, raw-llm, persistence, scrubber, control-mode — task-340)
+//       filters, raw-llm, persistence, scrubber, control-mode - task-340)
 //   5. world-state.js   → class WorldState, const worldState
 //   6. config.js        → class ConfigManager, const config
 //   7. api.js           → ApiClient (static), const api
@@ -99,10 +99,10 @@ VW.structures = (window as any).structures;
 // WINDOW SINGLETON PUBLICATION + BOOT GUARD (the top-level-const trap)
 //
 // `config`, `events`, `agent`, `api`, `llmClient`, `storage`, `worldSync`,
-// `agentLens` are top-level `const` declarations — lexical globals. They are
+// `agentLens` are top-level `const` declarations - lexical globals. They are
 // NOT window properties, so any module that tests `if (window.events)` or
 // reads `window.agent?.turnQueue` silently resolves `undefined` and takes the
-// dead-code branch — the exact bug class that made every graph slider a no-op
+// dead-code branch - the exact bug class that made every graph slider a no-op
 // (config was read as `window.config` in buildOptions(), always undefined).
 //
 // Publish every singleton explicitly so BOTH idioms (bare const and
@@ -123,19 +123,19 @@ VW.structures = (window as any).structures;
     for (const [name, value] of Object.entries(singletons)) {
         if (typeof value === 'undefined') {
             throw new Error(
-                `[boot-guard] Singleton "${name}" is undefined at publish time — ` +
+                `[boot-guard] Singleton "${name}" is undefined at publish time - ` +
                 'check script load order in index.html (see main.js header, items 1-13).'
             );
         }
         win[name] = value;
     }
     // Identity guard: the window property must be the very same instance the
-    // boot uses — a divergent copy means code is reading a different object.
+    // boot uses - a divergent copy means code is reading a different object.
     if (win.config !== config) {
-        throw new Error('[boot-guard] window.config does not reference the boot config — duplicate ConfigManager?');
+        throw new Error('[boot-guard] window.config does not reference the boot config - duplicate ConfigManager?');
     }
     if (win.events !== events) {
-        throw new Error('[boot-guard] window.events does not reference the boot EventBus — duplicate EventBus?');
+        throw new Error('[boot-guard] window.events does not reference the boot EventBus - duplicate EventBus?');
     }
 })();
 
@@ -239,7 +239,7 @@ function connectSummary(res: any, payload: any) {
     const to = res.area_to || payload.room2 || '?';
     const way = res.way_name || res.way_id || payload.way_id || 'way';
     if (res.created === false) {
-        return `Way '${way}' already existed — rewired "${from}" <-> "${to}" (no new way created)`;
+        return `Way '${way}' already existed - rewired "${from}" <-> "${to}" (no new way created)`;
     }
     return `Connected "${from}" <-> "${to}" via way '${way}'`;
 }
@@ -269,7 +269,7 @@ function connectRoomsViaGraph() {
         else { events.log(connectSummary(res, payload), 'system-msg'); worldState.fetch(); }
     });
 }
-// Legacy HTML onclick wrappers — used by templates/index.html
+// Legacy HTML onclick wrappers - used by templates/index.html
 function filterItemLibrary() { itemLib.filter(); }
 function addAllWorldItemsToLibrary() { itemLib.syncAllWorldItems(); }
 
@@ -279,17 +279,27 @@ function closeLibraryBrowser() { libraryBrowser.close(); }
 function openWorldSync() { VW.worldSync.open(); }
 function closeWorldSync() { VW.worldSync.close(); }
 
-// Settings/profile buttons — used by templates/index.html
+// Settings/profile buttons - used by templates/index.html
 function switchProfile(name: string) { (config as any).switchProfile(name); }
 function saveProfileFromCurrent() { (config as any).saveProfileFromCurrent(); }
 function saveProfileAsNew() { (config as any).saveProfileAsNew(); }
 function deleteProfile() { (config as any).deleteProfile_(); }
+async function syncBackendProfiles() {
+    try {
+        await (config as any).getProfiles();
+        await (window as any).VW?.ui?.populateProfileSelect();
+        (window as any).events?.log('Synced provider profiles from server.', 'system-msg');
+    } catch (e: any) {
+        (window as any).events?.log('Failed to sync profiles: ' + (e?.message || e), 'error-msg');
+    }
+}
+(window as any).syncBackendProfiles = syncBackendProfiles;
 function saveAgentSettings() { SettingsView.saveConfigToServer(); }
 
 // Graph editor toolbar
 const graphEditor = {
     // Undo/redo restore server state, which mutates the graph. Re-fetch state so
-    // the 'update' it emits routes to graphManager.syncGraphData() — one in-place
+    // the 'update' it emits routes to graphManager.syncGraphData() - one in-place
     // node update, not a full rebuild. (The server also broadcasts `world_changed`,
     // but fetching here keeps it deterministic rather than SSE-timing-dependent.)
     undo() { (ApiClient as any).undo().then((res: any) => { if (!res.error) { worldState.fetch(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Undo failed: ' + e.message, 'error-msg')); },
@@ -302,7 +312,7 @@ const graphEditor = {
 // Printer-friendly world summary
 function printWorld() { WorldExport.printWorld(); }
 
-// Legacy HTML onclick wrappers — used by templates/index.html
+// Legacy HTML onclick wrappers - used by templates/index.html
 function newLibraryItem() { itemLib.newItem(); }
 
 // Model select visibility
@@ -358,7 +368,7 @@ function generateWithAI(type: string) {
             const useContext = (document.getElementById('gen-use-context') as HTMLInputElement)?.checked !== false;
             let systemMsg = `You are a procedural content generator for a game. Generate a ${type} based on the user's prompt. Respond ONLY with raw JSON matching the form fields. No markdown.
 
-For connections, the 'description' is what the player sees when they look at the passage — be creative and contextually appropriate. The connection could be a way, gate, archway, stone portal, natural rock bridge, woven vine tunnel, frozen waterfall, narrow ravine, animal trail, fallen log, rope bridge, tunnel through roots, or any other passage that fits the two rooms. Use area descriptions to decide what makes sense. A forest path should NOT be described as a way with hinges and a handle — it should be a trail, a gap in the trees, a root arch, etc. The view_from_a and view_from_b describe what you see looking THROUGH the passage into the other area.
+For connections, the 'description' is what the player sees when they look at the passage - be creative and contextually appropriate. The connection could be a way, gate, archway, stone portal, natural rock bridge, woven vine tunnel, frozen waterfall, narrow ravine, animal trail, fallen log, rope bridge, tunnel through roots, or any other passage that fits the two rooms. Use area descriptions to decide what makes sense. A forest path should NOT be described as a way with hinges and a handle - it should be a trail, a gap in the trees, a root arch, etc. The view_from_a and view_from_b describe what you see looking THROUGH the passage into the other area.
 
 For items, generate appropriate triggers based on the item's purpose. Common patterns:
 - Food/drink → on_eat/on_drink with adjust_vital (Hunger/Thirst)
@@ -655,11 +665,11 @@ VW._sendPreviewPrompt = function() {
     generateWithAI(type!);
 }
 
-// Create modal — delegates to CreateModal module
+// Create modal - delegates to CreateModal module
 function openCreateModal(type: string, onSubmit: (data: any) => void) { CreateModal.open(type, onSubmit); }
 function closeCreateModal() { CreateModal.close(); }
 
-// Toggle way state (open/close) from area inspector — authoring path, so
+// Toggle way state (open/close) from area inspector - authoring path, so
 // designers can set any state even on open-passage ways (task-223). Goes
 // straight to the node PATCH like the way editor's State dropdown.
 function toggleDoorState(exitName: string, action: string, wayId?: string) {
@@ -839,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Show the inspector's lit empty-state on boot (index.html ships no
-    // static placeholder — lit never removes children it doesn't own, so a
+    // static placeholder - lit never removes children it doesn't own, so a
     // static one would linger above every subsequent render). Skip if the
     // user already selected something before Lit finished loading.
     const bootPanel = (document.getElementById('inspector-panel') as HTMLInputElement);
@@ -896,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // `state:updated` bus event (ui-controller.ts subscribes and calls
         // renderAll). world-state.fetch() emits BOTH `update` (this handler) and
         // `state:updated`, so calling renderAll in both places re-rendered every
-        // panel twice per fetch — four times per agent click, which did two
+        // panel twice per fetch - four times per agent click, which did two
         // fetches. Keep the one subscription.
         
         // Update play/pause buttons
@@ -904,7 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (window as any).VWSimultaneousControls?.render();
         
         // Reflect any graph change IN PLACE (task-764). This fires on every
-        // state update — the spectator poll and every `world_changed` edit — so
+        // state update - the spectator poll and every `world_changed` edit - so
         // it must not refetch or rebuild: syncGraphData() updates a changed node
         // in place and only falls back to a full load when the node/edge set
         // itself changed (add/remove). Graph reloads are reserved for scenario

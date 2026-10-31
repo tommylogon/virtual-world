@@ -1,9 +1,9 @@
 "use strict";
 /**
- * UIController — Renders left panel: agent list, vitals, alerts, turn info
+ * UIController - Renders left panel: agent list, vitals, alerts, turn info
  * Also handles initialization of form controls
  *
- * @module ui-controller — the left-hand roster panel
+ * @module ui-controller - the left-hand roster panel
  * @contributes UIController: agent list, per-agent vitals bars, alerts, turn info, form init
  * @powers the agent list you click to select/inspect a character, and its vitals readout
  * @relates reads worldState; drives agent selection used by the turn panel and inspector
@@ -86,12 +86,12 @@ class UIController {
             const vitalColor = lowestVital > 50 ? '#3fb950' : (lowestVital > 20 ? '#e3b341' : '#f85149');
             const isSimpleNpc = p.simple_npc;
             // Who is actually driving this character, in the one shared
-            // vocabulary (👾 NPC / 🤖 LLM / 👤 human — StreamControlMode
+            // vocabulary (👾 NPC / 🤖 LLM / 👤 human - StreamControlMode
             // .controlBadge), which is also what the graph badges, the inspector
             // header and the event-stream filter chips read.
             //
-            // This used to draw a SECOND glyph before the name — 🧍 for anything
-            // non-simple-NPC, 🐱 for a simple one — so every row carried two
+            // This used to draw a SECOND glyph before the name - 🧍 for anything
+            // non-simple-NPC, 🐱 for a simple one - so every row carried two
             // controller signals that could disagree ("🧍 elena vance" beside an
             // LLM badge, "🐱 ghost" beside an NPC badge), and neither 🧍 nor 🐱 is
             // a control-mode word anywhere else. There is now exactly one glyph,
@@ -115,14 +115,14 @@ class UIController {
                 const soakLabels = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
                 const left = Math.round(soak.remaining_minutes || 0);
                 const verb = soakLabels[soak.intent] || soak.intent;
-                soakText = uiControllerHtmlTag `<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
+                soakText = uiControllerHtmlTag `<span class="initiative-status" title="Soaking - ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
             }
             if (!window.Lit)
                 return; // startup race: first state:updated can arrive before Lit bootstrap
             rows.push(uiControllerHtmlTag `<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
                 <div class="agent-dot ${statusClass}" style="background:${color}"></div>
                 ${orderChips}
-                <span class="agent-ctrl" title="${badge.title} — click to change controller"
+                <span class="agent-ctrl" title="${badge.title} - click to change controller"
                       @click=${(e) => {
                 e.stopPropagation();
                 if (window.events?.cycleControlMode) {
@@ -143,7 +143,7 @@ class UIController {
             listTemplate = uiControllerHtmlTag `<div style="margin-bottom:4px;font-size:10px;color:var(--text-muted);display:flex;justify-content:space-between;"><span>Round ${agent.turnNumber + 1}</span>${config.turnOrder === 'initiative' ? uiControllerHtmlTag `<span>Init + DEX</span>` : ''}</div>${rows}`;
         }
         else {
-            listTemplate = uiControllerHtmlTag `${rows}<div style="padding:8px 12px;font-size:10px;color:var(--text-muted);">Turn-based mode is off — no initiative order. Toggle ⏭️ Turn-Based Mode below to show it.</div>`;
+            listTemplate = uiControllerHtmlTag `${rows}<div style="padding:8px 12px;font-size:10px;color:var(--text-muted);">Turn-based mode is off - no initiative order. Toggle ⏭️ Turn-Based Mode below to show it.</div>`;
         }
         window.Lit.render(listTemplate, listEl);
     }
@@ -270,7 +270,7 @@ class UIController {
                 stepEl.textContent = `Step: ${agent.currentTurnIndex + 1}/${agent.turnQueue.length}`;
         }
         const ctc = agent.getCurrentTurnCharacter();
-        const activeName = state?.active_player || ctc || '—';
+        const activeName = state?.active_player || ctc || '-';
         if (activeEl)
             activeEl.textContent = `Active: ${activeName}`;
     }
@@ -518,7 +518,7 @@ class UIController {
             const idx = window.agent?.currentTurnIndex ?? 0;
             if (config.turnBased && turnQueue.length > 0) {
                 const turnNum = window.agent?.turnNumber ?? 0;
-                el.textContent = `Turn ${turnNum + 1} — ${idx + 1}/${turnQueue.length}`;
+                el.textContent = `Turn ${turnNum + 1} - ${idx + 1}/${turnQueue.length}`;
             }
             else {
                 el.textContent = `Step: ${idx + 1}/${turnQueue.length}`;
@@ -552,7 +552,7 @@ class UIController {
         if (this._modelList.length === 0) {
             const msg = document.createElement('option');
             msg.value = '';
-            msg.textContent = '⚠️ Could not fetch models — type manually';
+            msg.textContent = '⚠️ Could not fetch models - type manually';
             msg.disabled = true;
             modelSelect.appendChild(msg);
         }
@@ -570,9 +570,10 @@ class UIController {
             });
         }
         this.renderModelList();
-        // Wire search + sort once
+        // Wire search + sort + category filter chips once
         const searchInput = document.getElementById('model-search');
         const sortSelect = document.getElementById('model-sort');
+        const filterContainer = document.getElementById('model-filter-chips');
         if (searchInput && !searchInput._wired) {
             searchInput._wired = true;
             searchInput.addEventListener('input', () => this.renderModelList());
@@ -581,6 +582,34 @@ class UIController {
             sortSelect._wired = true;
             sortSelect.addEventListener('change', () => this.renderModelList());
         }
+        if (filterContainer && !filterContainer._wired) {
+            filterContainer._wired = true;
+            filterContainer.querySelectorAll('.model-filter-chip').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterContainer.querySelectorAll('.model-filter-chip').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this._modelCategoryFilter = btn.dataset.filter || 'all';
+                    this.renderModelList();
+                });
+            });
+        }
+    }
+    _modelCategoryFilter = 'all';
+    _getModelTier(name) {
+        const lower = String(name || '').toLowerCase();
+        if (lower.includes('embed') || lower.includes('nomic')) {
+            return { category: 'embed', label: '🧬 embed', badgeClass: 'model-badge-embed', weight: 4 };
+        }
+        if (/\b(1\.7b|2b|3b|tiny|mini|nano)\b/i.test(lower) || lower.includes('lfm3') || lower.includes('ling-3.0') || lower.includes('spark-x2') || lower.includes('ministral')) {
+            return { category: 'fast', label: '⚡ fast 1-3B', badgeClass: 'model-badge-fast', weight: 1 };
+        }
+        if (/\b(7b|8b|9b|12b|14b)\b/i.test(lower)) {
+            return { category: 'mid', label: '7-14B', badgeClass: 'model-badge-mid', weight: 2 };
+        }
+        if (/\b(24b|27b|32b|35b|70b)\b/i.test(lower) || lower.includes('qwq')) {
+            return { category: 'heavy', label: '20B+', badgeClass: 'model-badge-heavy', weight: 3 };
+        }
+        return { category: 'other', label: '', badgeClass: '', weight: 5 };
     }
     renderModelList() {
         const listEl = document.getElementById('model-list');
@@ -594,7 +623,17 @@ class UIController {
         if (query) {
             models = models.filter(m => m.toLowerCase().includes(query));
         }
+        if (this._modelCategoryFilter && this._modelCategoryFilter !== 'all') {
+            models = models.filter(m => this._getModelTier(m).category === this._modelCategoryFilter);
+        }
         models.sort((a, b) => {
+            if (sort === 'fast-first') {
+                const wa = this._getModelTier(a).weight;
+                const wb = this._getModelTier(b).weight;
+                if (wa !== wb)
+                    return wa - wb;
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            }
             const cmp = a.toLowerCase().localeCompare(b.toLowerCase());
             return sort === 'name-asc' ? cmp : -cmp;
         });
@@ -615,7 +654,17 @@ class UIController {
         models.forEach(m => {
             const item = document.createElement('div');
             item.className = 'model-list-item' + (m === currentModel ? ' selected' : '');
-            item.textContent = m;
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'model-name';
+            nameSpan.textContent = m;
+            item.appendChild(nameSpan);
+            const tier = this._getModelTier(m);
+            if (tier.label) {
+                const badge = document.createElement('span');
+                badge.className = `model-list-badge ${tier.badgeClass}`;
+                badge.textContent = tier.label;
+                item.appendChild(badge);
+            }
             item.addEventListener('click', () => {
                 const modelInput = document.getElementById('agent-model');
                 if (modelInput)

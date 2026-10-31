@@ -1,13 +1,13 @@
 "use strict";
 /**
- * agent-loop.js — Multi-turn ReAct Agent Loop for Natural-Language Editor (task-387).
+ * agent-loop.js - Multi-turn ReAct Agent Loop for Natural-Language Editor (task-387).
  *
  * Runs tool-calling conversation turns against LLMClient, constructs system prompts
  * with library-first guidance, and handles clarifications and staging.
  *
- * @module nl-editor/agent-loop — the NL editor's multi-turn ReAct loop
+ * @module nl-editor/agent-loop - the NL editor's multi-turn ReAct loop
  * @contributes NLEditorAgent: tool-calling turns, library-first system prompts, clarification + staging
- * @powers NL editor — the natural-language editor conversation (task-387)
+ * @powers NL editor - the natural-language editor conversation (task-387)
  * @relates drives tools.js; results are buffered by staging.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
@@ -86,7 +86,7 @@ const NLEditorAgent = (() => {
         /**
          * Measure the array that is actually about to be sent. `getStats()` only
          * refreshes inside `prune()` when the window is OVER limit, so under the
-         * limit it reports 0 — the readout would sit at `context 0/60k` until
+         * limit it reports 0 - the readout would sit at `context 0/60k` until
          * overflow. This measures the pruned window directly.
          */
         _measureStats(messages) {
@@ -182,7 +182,7 @@ const NLEditorAgent = (() => {
             // Shape B: <tool_call>tool_name<parameter name="k">v</parameter>…</tool_call>
             // (also <function_call>). The tool name is the leading token OR a
             // <name>…</name> child. This is what several models actually emit, and
-            // the old parser silently dropped it — the call never ran.
+            // the old parser silently dropped it - the call never ran.
             const reB = /<(?:tool_call|function_call)\b[^>]*>([\s\S]*?)<\/(?:tool_call|function_call)>/g;
             while ((m = reB.exec(text)) !== null) {
                 const body = parseToolBody(m[1]);
@@ -289,7 +289,7 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
    - Every mutation (\`create_node\`, \`update_node\`, \`update_matching_nodes\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`spawn_library_item\`, \`populate_area\`, \`link_to_library\`) stages changes in a local buffer.
    - The user will inspect the staged changes before applying. Ghost previews show them on the map as dashed nodes.
    - Read tools (\`search_graph_nodes\`, \`list_nodes\`, \`get_node\`, \`list_world_summary\`, \`get_background_map\`) can see your newly staged entities immediately.
-3. **SELECTION AWARENESS**: when the user says "this room", "this node", "the selected area" etc., use the Selected node reported in LIVE WORLD CONTEXT — do not ask for its name.
+3. **SELECTION AWARENESS**: when the user says "this room", "this node", "the selected area" etc., use the Selected node reported in LIVE WORLD CONTEXT - do not ask for its name.
 4. **VALID TAGS & SCHEMAS**:
    - Use only valid mechanic tags: \`light_source\`, \`heat_source\`, \`sound_source\`, \`toggleable\`, \`insulation\`, \`armor\`, \`clothing\`, \`weapon\`, \`resistance\`, \`container\`, \`electric\`, \`two_handed\`.
    - Only use standard item actions: \`examine\`, \`take\`, \`use\`, \`open\`, \`close\`, \`eat\`, \`drink\`, \`read\`, \`light\`, \`activate\`, \`equip\`, \`unequip\`, \`throw\`, \`break\`.
@@ -297,17 +297,17 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
 5. **INTERACTIVE CLARIFICATION**:
    - When a request is ambiguous or multiple options exist, call \`request_clarification\` with clear multiple-choice options for the user.
 6. **STYLE & TONE**: write descriptions, names, and dialogue consistent with the scenario theme and world lore below. Reuse lore vocabulary; never invent naming that contradicts it.
-7. **CHARACTERS — THE NODE IS THE RECORD**: a character's defining data lives on its \`character\` graph node and is patched with \`update_node\` (the patch map is flat). Recognised fields: \`traits\`, \`tags\`, \`interest_tags\`, \`stats\`, \`skills\`, \`vitals\`, \`decay_rates\`, \`personality\`, \`description\`, \`base_description\`, \`simple_npc\`, \`npc_behavior\`, \`npc_action_interval\`, \`emotion\`. Trait/dict patches MERGE, so existing values are kept. Example — give one character darkvision: \`update_node {"node_id":"...","patch":{"traits":{"dark_vision":true}}}\`. To RENAME a character use \`rename_character {"character":"Jake Halloway","new_name":"Cullen Rutherford"}\` — it moves the players key, the Player name, the node display name AND every character's relationship key. Do NOT rename via \`update_node {name}\`; that only changes the node and leaves the roster/inspector/relationships on the old name.
+7. **CHARACTERS - THE NODE IS THE RECORD**: a character's defining data lives on its \`character\` graph node and is patched with \`update_node\` (the patch map is flat). Recognised fields: \`traits\`, \`tags\`, \`interest_tags\`, \`stats\`, \`skills\`, \`vitals\`, \`decay_rates\`, \`personality\`, \`description\`, \`base_description\`, \`simple_npc\`, \`npc_behavior\`, \`npc_action_interval\`, \`emotion\`. Trait/dict patches MERGE, so existing values are kept. Example - give one character darkvision: \`update_node {"node_id":"...","patch":{"traits":{"dark_vision":true}}}\`. To RENAME a character use \`rename_character {"character":"Jake Halloway","new_name":"Cullen Rutherford"}\` - it moves the players key, the Player name, the node display name AND every character's relationship key. Do NOT rename via \`update_node {name}\`; that only changes the node and leaves the roster/inspector/relationships on the old name.
    - For a GROUP ("all goblins", "every character in the camp"), do NOT loop \`update_node\`: call \`update_matching_nodes {"selector":{"kind":"character","tags":["goblin"]},"patch":{...}}\`. The affected entities are resolved and listed for review before Apply.
-8. **TRAITS**: \`traits\` maps a registered trait id to \`true\` (or a parameter string). Call \`list_library_traits\` first — never invent trait ids. \`dark_vision\` and \`darkvision\` are both valid aliases.
-9. **FINDING THE CAST & CONTENTS**: \`list_nodes\` is the roster read — filter by \`kind\`, \`tags\`/\`tag\`, \`area\` (nodes with an \`in\` edge to it, i.e. "who is here"), or \`name_contains\`; it counts and pages. Use it before a bulk selector so the affected set is explicit. \`search_graph_nodes\` stays for fuzzy name/description search. Node ids are the storage keys; display names resolve at read time.
-10. **ARCHETYPES & LIBRARY**: use \`upsert_library_entry\` / \`delete_library_entry\` for archetype-level changes ("all goblins have darkvision" as a template). They stage like every other op and are validated before Apply (id slug, known fields, mature gate). Library changes do NOT touch already-spawned nodes — \`link_to_library\` and refresh push a template to the world. \`list_library_traits\` / \`search_library_*\` first to reuse real ids.
-11. **VALIDATION GATE**: Apply validates every staged op (node/endpoint existence, known trait ids, id slugs, bulk selectors). Errors block the whole Apply and are shown with the offending op index — fix the op (don't re-issue blind) and re-Apply.
-12. **WORLD ISSUES**: \`list_world_issues\` reads the Issues tab's validator (empty triggers, orphan/dangling trigger edges, missing way cardinals, library drift, orphaned nodes). When asked to "fix the issues" or "clean up", call it first, work highest severity first, and stage fixes with the normal tools (\`update_node\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`create_node\`). Apply re-validates; re-run \`list_world_issues\` after to confirm a fix cleared. You cannot dismiss an issue from here — fix it or leave it for the tab.
-13. **TRIGGER AUTHORING**: call \`get_trigger_schema\` FIRST and use only real values. To ADD a trigger, use \`create_trigger\` with \`owner_id\` (the item/area/character that fires it) and \`trigger\` = \`{trigger_type, effects: [{type, params}], conditions?}\` — it writes the node AND the \`triggers\` edge via the engine materialiser (a bare \`create_node\` of a \`logic_trigger\` makes a node the engine never fires). To EDIT an existing trigger, \`update_node\` its properties. \`conditions\` is either a tree \`{operator: "and"|"or"|"not", conditions: [...]}\` or a leaf \`{type, ...}\`. Unknown trigger types, effect types and malformed condition trees are rejected by the validation gate (task-739).
-14. **PLAYER STATE vs EDGES**: items/locations and worn gear are graph edges (\`attach\`/\`detach\`). A character's memories, relationships and emotions are Player state — use \`update_player\` with a patch (\`memories\`, \`relationship\`, \`remove_relationship\`, \`emotion\`, \`behaviors\`); do not try to model them as edges (task-738/739).
+8. **TRAITS**: \`traits\` maps a registered trait id to \`true\` (or a parameter string). Call \`list_library_traits\` first - never invent trait ids. \`dark_vision\` and \`darkvision\` are both valid aliases.
+9. **FINDING THE CAST & CONTENTS**: \`list_nodes\` is the roster read - filter by \`kind\`, \`tags\`/\`tag\`, \`area\` (nodes with an \`in\` edge to it, i.e. "who is here"), or \`name_contains\`; it counts and pages. Use it before a bulk selector so the affected set is explicit. \`search_graph_nodes\` stays for fuzzy name/description search. Node ids are the storage keys; display names resolve at read time.
+10. **ARCHETYPES & LIBRARY**: use \`upsert_library_entry\` / \`delete_library_entry\` for archetype-level changes ("all goblins have darkvision" as a template). They stage like every other op and are validated before Apply (id slug, known fields, mature gate). Library changes do NOT touch already-spawned nodes - \`link_to_library\` and refresh push a template to the world. \`list_library_traits\` / \`search_library_*\` first to reuse real ids.
+11. **VALIDATION GATE**: Apply validates every staged op (node/endpoint existence, known trait ids, id slugs, bulk selectors). Errors block the whole Apply and are shown with the offending op index - fix the op (don't re-issue blind) and re-Apply.
+12. **WORLD ISSUES**: \`list_world_issues\` reads the Issues tab's validator (empty triggers, orphan/dangling trigger edges, missing way cardinals, library drift, orphaned nodes). When asked to "fix the issues" or "clean up", call it first, work highest severity first, and stage fixes with the normal tools (\`update_node\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`create_node\`). Apply re-validates; re-run \`list_world_issues\` after to confirm a fix cleared. You cannot dismiss an issue from here - fix it or leave it for the tab.
+13. **TRIGGER AUTHORING**: call \`get_trigger_schema\` FIRST and use only real values. To ADD a trigger, use \`create_trigger\` with \`owner_id\` (the item/area/character that fires it) and \`trigger\` = \`{trigger_type, effects: [{type, params}], conditions?}\` - it writes the node AND the \`triggers\` edge via the engine materialiser (a bare \`create_node\` of a \`logic_trigger\` makes a node the engine never fires). To EDIT an existing trigger, \`update_node\` its properties. \`conditions\` is either a tree \`{operator: "and"|"or"|"not", conditions: [...]}\` or a leaf \`{type, ...}\`. Unknown trigger types, effect types and malformed condition trees are rejected by the validation gate (task-739).
+14. **PLAYER STATE vs EDGES**: items/locations and worn gear are graph edges (\`attach\`/\`detach\`). A character's memories, relationships and emotions are Player state - use \`update_player\` with a patch (\`memories\`, \`relationship\`, \`remove_relationship\`, \`emotion\`, \`behaviors\`); do not try to model them as edges (task-738/739).
 15. **BEHAVIOURS**: a character's behaviours are a compiled array (\`{trigger, interval, conditions, actions, priority}\`). Read the current set with \`get_behaviours\`, VALIDATE a behaviour-mode graph with \`compile_behaviours\` (it returns \`behaviors\` + \`compile_error\`), then write the compiled array with \`update_player\` \`behaviors\`. Each entry needs a non-empty \`actions\` list of \`{type, ...}\` (task-739).
-16. **ACT, DON'T NARRATE**: if answering needs a tool, call it in the SAME response. Never end a turn with only a description of what you are about to do (e.g. "let me check…", "I'll read their arrays"). Prose with no tool call is only for your FINAL answer, after the tools have returned. If you are unsure which character or node is meant, call the read tool or \`request_clarification\` — do not narrate a plan and stop.
+16. **ACT, DON'T NARRATE**: if answering needs a tool, call it in the SAME response. Never end a turn with only a description of what you are about to do (e.g. "let me check…", "I'll read their arrays"). Prose with no tool call is only for your FINAL answer, after the tools have returned. If you are unsure which character or node is meant, call the read tool or \`request_clarification\` - do not narrate a plan and stop.
 
 ${this._buildWorldContext()}
 ${worldSummary}
@@ -325,32 +325,32 @@ ${worldSummary}
                 }
                 const lore = data.world_lore || [];
                 if (lore.length > 0) {
-                    out += `- World lore (${lore.length} entries) — match style & vocabulary:\n`;
+                    out += `- World lore (${lore.length} entries) - match style & vocabulary:\n`;
                     for (const entry of lore.slice(0, 6)) {
                         const title = entry.title ? `${entry.title}: ` : '';
-                        out += `  · [${entry.category || 'general'}] ${title}${String(entry.content || '').slice(0, 220)}\n`;
+                        out += `  · [${entry.category || 'general'}] ${title}${String(entry.content || '')}\n`;
                     }
                 }
                 else {
-                    out += '- World lore: none yet — create flavor consistent with the theme.\n';
+                    out += '- World lore: none yet - create flavor consistent with the theme.\n';
                 }
                 const view = (typeof VW !== 'undefined' && VW?.inspector) ? VW.inspector._currentView : null;
                 if (view && view.type === 'node' && view.id && typeof worldState?.getNode === 'function') {
                     const n = worldState.getNode(view.id);
                     if (n)
-                        out += `- Selected node (user's current graph selection — their default "this room/node"): ${n.name} (id: ${n.id}) [${n.type}]\n`;
+                        out += `- Selected node (user's current graph selection - their default "this room/node"): ${n.name} (id: ${n.id}) [${n.type}]\n`;
                     else
-                        out += '- Selected node: (stale — verify with search_graph_nodes)\n';
+                        out += '- Selected node: (stale - verify with search_graph_nodes)\n';
                 }
                 else {
-                    out += '- Selected node: none — when a target is ambiguous, use search_graph_nodes or request_clarification.\n';
+                    out += '- Selected node: none - when a target is ambiguous, use search_graph_nodes or request_clarification.\n';
                 }
                 const bg = (typeof window !== 'undefined' && _graphBackground()?._state) || null;
                 if (bg && bg.imagePath) {
                     const r = bg.rect
                         ? ` placed at ${Math.round(bg.rect.x)},${Math.round(bg.rect.y)} spanning ${Math.round(bg.rect.width)}×${Math.round(bg.rect.height)} graph units`
                         : '';
-                    out += `- Background map image: ${bg.imagePath}${r}${bg.locked ? ' (layout locked)' : ''}. You know this image exists but cannot see its pixels — call get_background_map for its transform.\n`;
+                    out += `- Background map image: ${bg.imagePath}${r}${bg.locked ? ' (layout locked)' : ''}. You know this image exists but cannot see its pixels - call get_background_map for its transform.\n`;
                 }
                 else {
                     out += '- Background map image: none set for this scenario.\n';
@@ -390,7 +390,7 @@ ${worldSummary}
                 : '';
             const note = {
                 role: 'system',
-                content: `[Applied: ${appliedCount} staged change(s) are now committed to the live world.${pending} Earlier "staged" tool results in this conversation have landed — read the world (search_graph_nodes / list_nodes) instead of re-issuing them.]`
+                content: `[Applied: ${appliedCount} staged change(s) are now committed to the live world.${pending} Earlier "staged" tool results in this conversation have landed - read the world (search_graph_nodes / list_nodes) instead of re-issuing them.]`
             };
             this.messages.push(note);
             this.contextManager.addMessage(note, { importance: 2 });
@@ -446,7 +446,7 @@ ${worldSummary}
                     let effectiveToolCalls = (Array.isArray(tool_calls) && tool_calls.length) ? tool_calls : null;
                     // Fallback: some providers/models write tool calls as XML-ish prose
                     // (e.g. "<search_library_items>\n<query>lantern</query>\n</search_library_items>")
-                    // instead of native function_call entries — typically after a poisoned
+                    // instead of native function_call entries - typically after a poisoned
                     // history or a non-tool-calling model. Parse them so the loop keeps
                     // working, and record real function_calls back into history so the
                     // model self-corrects on the next round.

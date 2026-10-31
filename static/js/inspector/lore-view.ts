@@ -53,9 +53,14 @@ const InspectorLore = (() => {
      */
     L.renderWorldLore = async function(): Promise<void> {
         let lore: LoreViewLoreEntry[] = [];
+        let sceneCtx: { title?: string; premise?: string; enabled?: boolean } = {};
         try {
-            const res = await AC.getWorldLore();
+            const [res, scRes] = await Promise.all([
+                AC.getWorldLore(),
+                AC.getSceneContext().catch(() => ({ scene_context: undefined })),
+            ]);
             lore = res.lore || [];
+            sceneCtx = (scRes as { scene_context?: { title?: string; premise?: string; enabled?: boolean } })?.scene_context || {};
         } catch (e) {
             lore = [];
         }
@@ -115,7 +120,31 @@ const InspectorLore = (() => {
                 <button class="btn btn-sm btn-ghost" @click=${() => IP.hideInspectorPanel()}>✕</button>
             </div>`;
 
+        const sceneContextCard = htmlTag`
+            <div style="background:var(--bg-card);border:1px solid #7c8cf844;border-radius:6px;padding:10px;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <strong style="font-size:12px;color:#a0b8ff;">🎬 Current Scene Context</strong>
+                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                        <input type="checkbox" id="scene-ctx-enabled" ?checked=${sceneCtx.enabled !== false}>
+                        <span>Active</span>
+                    </label>
+                </div>
+                <input type="text" id="scene-ctx-title" value="${sceneCtx.title || ''}" placeholder="Scene Title (e.g. After School Standoff)" style="width:100%;font-size:11px;margin-bottom:6px;">
+                <textarea id="scene-ctx-premise" rows="3" placeholder="Current Situation / Premise..." style="width:100%;font-size:11px;resize:vertical;">${sceneCtx.premise || ''}</textarea>
+                <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+                    <button class="btn btn-sm btn-blue" @click=${async () => {
+                        const title = fieldValue('scene-ctx-title').trim();
+                        const premise = fieldValue('scene-ctx-premise').trim();
+                        const enabled = (document.getElementById('scene-ctx-enabled') as HTMLInputElement)?.checked ?? true;
+                        await AC.setSceneContext({ title, premise, enabled });
+                        if ((window as any).events?.log) (window as any).events.log('🎬 Updated Scene Context: ' + (title || 'Current Situation'), 'system-msg');
+                    }}>💾 Save Situation</button>
+                </div>
+            </div>
+        `;
+
         const bodyContent = htmlTag`
+            ${sceneContextCard}
             <div style="display:flex;gap:4px;margin-bottom:8px;">
                 <button class="btn btn-sm btn-blue" @click=${() => L.addLoreEntry()}>+ Add Lore Entry</button>
                 <button class="btn btn-sm btn-red" @click=${async () => { const ok = await (window as any).Dialog?.confirm?.({ title: 'Clear All Lore', message: 'Delete ALL lore entries?', danger: true }); if (ok) { AC.setWorldLore([]).then(() => L.renderWorldLore()); } }}>🗑 Clear All</button>
@@ -275,6 +304,8 @@ interface LoreApiClient {
     addWorldLoreEntry(entry: Record<string, unknown>): Promise<unknown>;
     updateWorldLoreEntry(entryId: string, entry: Record<string, unknown>): Promise<unknown>;
     deleteWorldLoreEntry(entryId: string): Promise<unknown>;
+    getSceneContext(): Promise<{ scene_context?: { title?: string; premise?: string; active_threads?: string[]; enabled?: boolean } }>;
+    setSceneContext(context: Record<string, unknown>): Promise<unknown>;
 }
 
 interface LoreView {

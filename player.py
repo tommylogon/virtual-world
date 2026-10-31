@@ -389,12 +389,14 @@ class Player:
         self.entered_from_way = None
         # Recent speech heard: list of dicts {speaker, text, tick, timestamp}
         self.recent_hearing = []
-        # === SIMPLE NPC (no LLM) ===
-        self.simple_npc = False
-        # Human-driven flag: autonomy False = a human player drives this
-        # character (the browser agent engine skips it and surfaces the human
-        # turn composer). Persisted so it survives reloads/saves.
-        self.autonomy = True
+        # === CONTROLLER MODE (unified task-437) ===
+        # Canonical agency and runner mode:
+        #   'human'    - human-driven via commands / turn composer
+        #   'directed' - LLM drafts action, director reviews and edits before commit
+        #   'llm'      - autonomous agent driven by browser LLM
+        #   'npc'      - deterministic rule-based behaviors on tick
+        #   'inert'    - frozen / inert actor (test fixtures, paused mobs)
+        self._controller = "llm"
         self.npc_behavior = "wander"  # wander, flee, stationary
         self.npc_action_interval = 3  # act every N ticks
         self.npc_state = "idle"        # behavior state machine
@@ -519,6 +521,76 @@ class Player:
         self.lived_log_memorized_through = 0
 
         self.sync_vitals_with_tags()
+
+    # ── Controller & agency mode (unified task-437) ─────────────────
+    @property
+    def controller(self) -> str:
+        """The character's authoritative runner / controller mode.
+        Values: 'human', 'directed', 'llm', 'npc', 'inert'.
+        """
+        return self._controller
+
+    @controller.setter
+    def controller(self, value):
+        if not value:
+            self._controller = "llm"
+            return
+        s = str(value).strip().lower()
+        if s in ("human", "directed", "llm", "npc", "inert"):
+            self._controller = s
+        elif s in ("false", "off", "0"):
+            self._controller = "human"
+        elif s in ("true", "on", "1"):
+            self._controller = "llm"
+        else:
+            self._controller = "llm"
+
+    @property
+    def control_mode(self) -> str:
+        """Alias for controller."""
+        return self._controller
+
+    @control_mode.setter
+    def control_mode(self, value):
+        self.controller = value
+
+    @property
+    def simple_npc(self) -> bool:
+        """Backward-compat shim: True for backend rule-driven NPCs (npc, inert)."""
+        return self._controller in ("npc", "inert")
+
+    @simple_npc.setter
+    def simple_npc(self, value):
+        if bool(value):
+            if self._controller != "inert":
+                self._controller = "npc"
+        else:
+            if self._controller in ("npc", "inert"):
+                self._controller = "llm"
+
+    @property
+    def autonomy(self):
+        """Backward-compat shim: False for human/inert, 'directed' for directed, True for llm/npc."""
+        if self._controller in ("human", "inert"):
+            return False
+        if self._controller == "directed":
+            return "directed"
+        return True
+
+    @autonomy.setter
+    def autonomy(self, value):
+        if isinstance(value, str) and value.lower() == "directed":
+            self._controller = "directed"
+        elif value is False or str(value).lower() == "false":
+            if self._controller in ("npc", "inert"):
+                self._controller = "inert"
+            else:
+                self._controller = "human"
+        elif value is True or str(value).lower() == "true":
+            if self._controller == "inert":
+                self._controller = "npc"
+            elif self._controller in ("human", "directed"):
+                self._controller = "llm"
 
     # ── Backward-compatible state property ──────────────────────────
     @property
@@ -1442,6 +1514,7 @@ class Player:
             "description": getattr(self, 'description', ''),
             "base_description": getattr(self, 'base_description', ''),
             "unknown_name": getattr(self, 'unknown_name', ''),
+            "controller": self.controller,
             "simple_npc": self.simple_npc,
             "autonomy": self.autonomy,
             "npc_behavior": self.npc_behavior,

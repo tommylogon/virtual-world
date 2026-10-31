@@ -1,5 +1,5 @@
 /**
- * grid-model.js — pure helpers for the WorldPainter editor.
+ * grid-model.js - pure helpers for the WorldPainter editor.
  *
  * No DOM and no network: the editor (`static/js/worldpainter/editor.js`) keeps
  * its rendering dumb by deriving cell rows, colours, and feature placement from
@@ -7,12 +7,12 @@
  *
  * Mirrors the server contract in `engine/world_grid.py` (task-495): a scope owns
  * a bounded grid, paint lives on layers `biome`/`road`/`floor`, and features
- * are child scopes placed at a cell. `floor` is a **storey index** — 0 ground,
+ * are child scopes placed at a cell. `floor` is a **storey index** - 0 ground,
  * 1 one up, -1 one down, unbounded (an 80-storey tower, a lake bottom at -2, a
- * hole to hell at -900) — never a height fraction and never a ground material;
+ * hole to hell at -900) - never a height fraction and never a ground material;
  * the material lives in the biome/road record's `surface`.
  *
- * @module grid-model — WorldPainter grid view-model and cell maths
+ * @module grid-model - WorldPainter grid view-model and cell maths
  * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, cell names, placed areas, compile estimate, cell inspector, scope-grouped area picker, palette grouping/filtering and tile descriptions
  * @powers WorldPainter editor grid rendering, placement and inspection (task-495, task-528, task-540, task-541)
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
@@ -42,7 +42,7 @@ type Vocabulary = any;
     const MODES = ['world', 'town', 'interior'];
     // Mirrors engine/world_grid.py PAINT_LAYERS. A layer missing from either list
     // is dropped on save (the backend normalises against its own tuple) or paints
-    // a colour nothing reads — so the two must move together.
+    // a colour nothing reads - so the two must move together.
     const PAINT_LAYERS = ['biome', 'road', 'floor', 'climate', 'current'];
 
     // The coarse climates a grid may be painted with, and the colours that make
@@ -50,7 +50,7 @@ type Vocabulary = any;
     // server** (`/api/world/painter/vocabulary`) and land in `CLIMATE_IDS` /
     // `CLIMATE_BASE`; only the colour is decided here, because a colour is a
     // display choice the backend has no opinion about. `CLIMATES` below is the
-    // offline fallback so the module is usable in the unit sandbox with no fetch —
+    // offline fallback so the module is usable in the unit sandbox with no fetch -
     // a palette showing one base while the compiler writes another is exactly the
     // disagreement the server payload exists to prevent.
     const CLIMATE_COLORS: Record<string, string> = {
@@ -111,7 +111,7 @@ type Vocabulary = any;
         // Structure (task-562): the cells that are *not* places. They need their own
         // colours, because a hash colour would make a wall look like a biome and the
         // whole point of painting one is that it changes what the map means. A void
-        // is deliberately dark like a chasm — "nothing you can stand on" — and a
+        // is deliberately dark like a chasm - "nothing you can stand on" - and a
         // window is the one cell you can see *through*, so it reads lighter than the
         // wall it sits in.
         wall: '#55525c', void: '#22222a', window: '#8fc4d8', door: '#a8763f',
@@ -167,7 +167,7 @@ type Vocabulary = any;
             const n = Number(value);
             if (!Number.isFinite(n)) return '#666';
             // Storeys, not a 0..1 height: 0 is ground, up is cooler/lighter, down
-            // is warmer/darker. The clamp is for *colour* only — a cell may sit
+            // is warmer/darker. The clamp is for *colour* only - a cell may sit
             // at 80 or -900, and every one of those should still read as "far
             // above/below" rather than as a distinguishable shade.
             const f = Math.max(-4, Math.min(4, n));
@@ -668,7 +668,7 @@ type Vocabulary = any;
      * The author's name for a cell, or `null` (task-560).
      *
      * A name is metadata *about* a cell, not paint on it, so it lives in its own
-     * `names` map beside `layers` — there is no name vocabulary, and the eraser
+     * `names` map beside `layers` - there is no name vocabulary, and the eraser
      * should not wipe a name. A named cell may be unpainted, so this never implies
      * anything about `painted`.
      */
@@ -748,7 +748,7 @@ type Vocabulary = any;
      * their passages, which is what makes the graph view choke).
      *
      * Mirrors `engine/world_compile.compile_grid`: every painted cell becomes an
-     * area, whether it carries a biome, a road, or both (task-496 — a road cell
+     * area, whether it carries a biome, a road, or both (task-496 - a road cell
      * is a place in its own right, and the road *is* the cell's identity, so a
      * road painted over forest merges with other road cells but never with
      * forest). Without merge it is one area per cell and a way per adjacent pair
@@ -780,7 +780,7 @@ type Vocabulary = any;
         const present: Record<string, boolean> = {};
         cells.forEach((k) => { present[k] = true; });
         // A cell holding a hand-placed area is not compiled (task-528), so the
-        // estimate has to drop it too — otherwise the header promises one more
+        // estimate has to drop it too - otherwise the header promises one more
         // area than Generate actually mints.
         const taken = Object.keys(areaMap(payload));
         taken.forEach((k) => { delete present[k]; });
@@ -902,7 +902,7 @@ type Vocabulary = any;
 
     /**
      * Every area the place tool's picker offers, flattened across the scope
-     * groups — the areas already on this grid, this scope's unplaced areas, and
+     * groups - the areas already on this grid, this scope's unplaced areas, and
      * the ones that belong to another scope. The editor renders the groups
      * (see :func:`areaGroups`); this is the flat view of the same list.
      */
@@ -918,12 +918,12 @@ type Vocabulary = any;
      * interior show up in the *world* map's picker as if it belonged there, so
      * membership is what decides the grouping:
      *
-     * 1. `placed`  — already parked on THIS grid (with their cell), still
+     * 1. `placed`  - already parked on THIS grid (with their cell), still
      *    selectable so they can be moved to another cell.
-     * 2. `mine`    — belongs to this scope and has no cell: the things you came
+     * 2. `mine`    - belongs to this scope and has no cell: the things you came
      *    here to place. An area with no scope at all counts as this scope's, since
      *    it belongs to nobody and this is the map being painted.
-     * 3. `elsewhere` — a member of some *other* scope. Kept reachable, but under
+     * 3. `elsewhere` - a member of some *other* scope. Kept reachable, but under
      *    its own heading with that scope's name, because picking one is a
      *    membership change (task-539) and should not read as a placement.
      */
@@ -937,7 +937,7 @@ type Vocabulary = any;
         const elsewhere: any[] = [];
         candidates.forEach((a: any) => {
             // The server already leaves placed areas out of `unplaced_areas`, but
-            // an area on this grid belongs in the `placed` group only — never
+            // an area on this grid belongs in the `placed` group only - never
             // listed twice.
             if (byId[a.id]) return;
             const entry = { ...a, placedHere: null };
@@ -970,11 +970,11 @@ type Vocabulary = any;
     }
 
     /**
-     * What is on a cell (task-540) — the payload half of the painter's cell
+     * What is on a cell (task-540) - the payload half of the painter's cell
      * inspector, kept pure so it can be unit-tested without a canvas.
      *
      * Returns `{x, y, key, name, biome, road, floor, area, child, painted, empty}`:
-     * the three paint layers (with `floor` as a numeric storey index — `null`
+     * the three paint layers (with `floor` as a numeric storey index - `null`
      * when the author painted no storey, which still counts as *painted* when it
      * is 0), the author-set **name** for the cell (task-560, `null` when unnamed),
      * the hand-placed area on the cell, and the child scope placed on it.
@@ -1006,7 +1006,7 @@ type Vocabulary = any;
             kind: cellKind(vocab, biome),
             // A building is entered with `in`, not walked onto (task-563). Null
             // for anything that is not a building, and for a road painted over a
-            // building — the compiler does not treat that cell as one either.
+            // building - the compiler does not treat that cell as one either.
             enter: cellEnter(vocab, road ? null : biome, child),
             area: area ? { id: area.id, name: area.name, x: area.x, y: area.y } : null,
             child,
@@ -1017,19 +1017,19 @@ type Vocabulary = any;
     }
 
     /**
-     * What lies on the four cells touching (x, y) — the painter's answer to
+     * What lies on the four cells touching (x, y) - the painter's answer to
      * "where is the exit from here?" (task-596). The ways a grid compiles into
      * join *adjacent* cells, so a cell's exits are exactly its passable
      * neighbours: a road, a door, open ground, or another building. A solid
      * neighbour (`wall`, `void`) is a wall to the author's face, not an exit.
      *
      * Pure and grid-bounded: an off-grid direction is `null`, not an error, so
-     * the editor says "— map edge" rather than pretending the world ends in a
+     * the editor says "- map edge" rather than pretending the world ends in a
      * wall. Each entry is `{dir, x, y, biome, road, kind, name}`.
      */
     function cellNeighbours(payload: GridPayload, x: number, y: number, vocab?: Vocabulary): Record<string, any> {
         const grid = (payload && payload.grid) || {};
-        const dirs: [string, number, number][] = [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]];
+        const dirs: [string, number, number][] = [['N', 0, -1], ['NE', 1, -1], ['E', 1, 0], ['SE', 1, 1], ['S', 0, 1], ['SW', -1, 1], ['W', -1, 0], ['NW', -1, -1]];
         const out: Record<string, any> = {};
         dirs.forEach(([dir, dx, dy]) => {
             const nx = x + dx;
@@ -1051,7 +1051,7 @@ type Vocabulary = any;
 
     /**
      * The bounding box, in cells, of everything the author has put on the grid
-     * (task-597) — paint, names, placed areas, placed scopes.
+     * (task-597) - paint, names, placed areas, placed scopes.
      *
      * The frame makes the grid's *extent* obvious but says nothing about how much
      * of it is used; a 160×100 region with one road in the corner looks identical
@@ -1088,7 +1088,7 @@ type Vocabulary = any;
 
     /**
      * The resize handles on the grid frame (task-597). The origin is fixed at
-     * (0,0) — moving it would re-key every painted cell — so only the far edges
+     * (0,0) - moving it would re-key every painted cell - so only the far edges
      * and the bottom-right corner can be dragged to grow or shrink the extent.
      * The near edges are deliberately absent rather than present-and-broken.
      */
@@ -1129,7 +1129,7 @@ type Vocabulary = any;
      * is shut and the world answers with a refusal drawn from the building's
      * category. The vocabulary carries that sentence (`biomes[].refusal`, built by
      * the same `world_compile.building_refusal` the compiler uses), so the line
-     * the author reads here is the line the world gives — one implementation
+     * the author reads here is the line the world gives - one implementation
      * rather than two, which is the only way a preview stays true.
      */
     function cellEnter(vocab: Vocabulary, biomeId?: string | null, child?: any): string {
@@ -1145,7 +1145,7 @@ type Vocabulary = any;
      * A grid whose aspect ratio matches a reference image (the `▦ match` button).
      *
      * The painter fits the image *into* the grid (contain, centred), so a grid
-     * with a different ratio than the picture leaves empty bands — the painted
+     * with a different ratio than the picture leaves empty bands - the painted
      * cells and the art then disagree about where the place is. Matching the
      * aspect removes the bands: the width is kept (it is what the author already
      * laid out horizontally) and the height is derived.
@@ -1266,7 +1266,7 @@ type Vocabulary = any;
 
     /**
      * How much of a grid's content would fall outside it if it were resized to
-     * `{w, h}` — the number the `▦ match` button shows before it acts, because a
+     * `{w, h}` - the number the `▦ match` button shows before it acts, because a
      * shrink *prunes* out-of-bounds paint and placements server-side
      * (`world_grid.ensure_grid`) rather than leaving them dangling.
      */
@@ -1307,7 +1307,7 @@ type Vocabulary = any;
      *
      * Corners resize the picture (the crop window is unchanged, so it scales).
      * Edges crop it: the dragged edge follows the pointer and the source window
-     * shrinks proportionally, so the remaining content keeps its scale — a cut,
+     * shrinks proportionally, so the remaining content keeps its scale - a cut,
      * not a stretch. `crop` is normalized (0..1).
      */
     function referenceHandleDrag(rect: Rect, crop: Rect, key: string, cx: number, cy: number): { rect: Rect; crop: Rect } {

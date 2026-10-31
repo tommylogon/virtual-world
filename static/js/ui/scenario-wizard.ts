@@ -282,7 +282,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 areaSpan.textContent = ` - starts in ${c.area || '?'}`;
                 const descSpan = document.createElement('span');
                 descSpan.style.color = 'var(--text-dim)';
-                descSpan.textContent = (c.description || '').slice(0, 160);
+                descSpan.textContent = c.description || '';
                 body.append(strongName, ' ', areaSpan, document.createElement('br'), descSpan);
                 el.appendChild(body);
                 return el;
@@ -305,7 +305,7 @@ Build the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
                 catSpan.textContent = ` [${l.category || ''}]`;
                 const contentSpan = document.createElement('span');
                 contentSpan.style.color = 'var(--text-dim)';
-                contentSpan.textContent = String(l.content ?? '').slice(0, 180);
+                contentSpan.textContent = String(l.content ?? '');
                 body.append(strongTitle, ' ', catSpan, document.createElement('br'), contentSpan);
                 el.appendChild(body);
                 return el;

@@ -2083,7 +2083,7 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         if (!player || !AIGenerator.isConfigured()) return;
 
         const personality = player.personality || '';
-        const appearance = (player.description || player.base_description || '').slice(0, 600);
+        const appearance = player.description || player.base_description || '';
         // No tag menu. The model is given the character and the mechanic and
         // asked what kinds of things this person would care about, in its own
         // words. Grounding to real ids is a local operation (see _resolveConcept)

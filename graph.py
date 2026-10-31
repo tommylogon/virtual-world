@@ -461,6 +461,8 @@ class WorldGraph:
                 # Legacy `contains` was container -> contained; canonical `in`
                 # is the reverse (contained -> container). Swap the endpoints.
                 migrated.append(Edge(source=e.target, target=e.source, type=EDGE_IN, properties=e.properties))
+            elif e.type == "contained_in":
+                migrated.append(Edge(source=e.source, target=e.target, type=EDGE_IN, properties=e.properties))
             else:
                 migrated.append(e)
         self.edges = migrated
@@ -940,7 +942,8 @@ SPATIAL_EDGE_TYPES = {EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT}
 # ── Legacy constants (kept for migration compat) ──
 EDGE_LOCATION = "location"     # → in or carrying depending on target
 EDGE_CONTAINS = "contains"     # → in (direction reversed)
-EDGE_CARRIED_BY = "carried_by" # → carrying
+EDGE_CARRIED_BY = "carried_by" # -> carrying
+EDGE_CONTAINED_IN = "contained_in" # -> in
 
 # ── Migration maps ──
 LEGACY_EDGE_MAP = {
@@ -952,6 +955,7 @@ OLD_TO_NEW_EDGE = {
     EDGE_LOCATION: EDGE_IN,
     EDGE_CONTAINS: EDGE_IN,
     EDGE_CARRIED_BY: EDGE_CARRYING,
+    EDGE_CONTAINED_IN: EDGE_IN,
 }
 
 

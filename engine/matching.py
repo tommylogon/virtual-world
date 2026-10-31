@@ -555,14 +555,15 @@ class NameMatching:
                     w for w in re.findall(r"[a-z]+", input_lower)
                     if len(w) >= 4 and w not in CHARACTER_DESCRIPTION_STOPWORDS
                 ]
-                count = sum(
-                    1 for w in set(significant)
+                matching_words = [
+                    w for w in set(significant)
                     if re.search(r'(?<!\w)' + re.escape(w) + r'(?!\w)', desc_text)
-                )
+                ]
+                count = len(matching_words)
                 if count >= 2:
                     desc_scored.append((count, name))
-                elif count == 1:
-                    distinctive = [w for w in set(significant) if len(w) >= 6]
+                elif count == 1 and len(set(significant)) == 1:
+                    distinctive = [w for w in matching_words if len(w) >= 6]
                     if distinctive:
                         desc_scored.append((count, name))
         if len(alias_matches) == 1:
@@ -578,7 +579,7 @@ class NameMatching:
                 self._fuzzy_match_note = f"matched '{input_str}' as item '{top[0]}' (by description)"
                 return top[0]
             self._fuzzy_match_note = f"matched '{input_str}' as item '{top[0]}' (by description, ambiguous)"
-            return alias_matches[0]
+            return top[0]
 
         # 3. Fuzzy difflib match - score each item name against the input (tight cutoff)
         scored = difflib.get_close_matches(input_lower, [n.lower() for n in item_names], n=1, cutoff=0.7)

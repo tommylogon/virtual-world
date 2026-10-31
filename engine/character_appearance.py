@@ -30,7 +30,8 @@ than they started.
 from __future__ import annotations
 
 import re
-from typing import Any, Callable, Dict, List, Optional
+import unicodedata
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 #: Node property holding the structured block. One key, not two, so "is this
 #: character structured?" is a single membership test.
@@ -154,6 +155,25 @@ APPEARANCE_LIST_SUBS = frozenset({
 #: because the alternative is a display name sneaking in and becoming a
 #: reference that breaks on rename.
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+
+
+def normalize_slug(value: Any) -> str:
+    """Normalize a string to a valid tag slug: lowercase, [a-z0-9_-], no leading/trailing punctuation.
+
+    Converts diacritics to ascii, replaces spaces and non-alphanumeric punctuation with underscores,
+    and collapses repeated separators.
+    """
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9_-]+", "_", text)
+    text = re.sub(r"_+", "_", text)
+    text = re.sub(r"-+", "-", text)
+    return text.strip("_-")
 
 #: Plausible human ranges, used to reject a typo rather than to police a design.
 HEIGHT_CM_RANGE = (40, 260)
@@ -335,6 +355,35 @@ def _clean_narrative(raw: Any) -> Dict[str, Any]:
             if group:
                 out[field] = group
             continue
+        if field == "media":
+            # task-922: media can be list of strings or list of structured objects
+            # { title, medium, opinion, familiarity }
+            if value is None:
+                continue
+            if isinstance(value, (str, dict)):
+                value = [value]
+            if not isinstance(value, (list, tuple, set)):
+                raise StructuredError(f"narrative.{field} must be a list")
+            media_items = []
+            for item in value:
+                if isinstance(item, dict):
+                    m_dict = {}
+                    title = str(item.get("title", "") or "").strip()
+                    if not title:
+                        continue
+                    m_dict["title"] = title
+                    for k in ("medium", "opinion", "familiarity"):
+                        v = str(item.get(k, "") or "").strip()
+                        if v:
+                            m_dict[k] = v
+                    media_items.append(m_dict)
+                else:
+                    s = str(item).strip()
+                    if s:
+                        media_items.append(s)
+            if media_items:
+                out[field] = media_items
+            continue
         if kind == "proselist":
             items = _clean_short_list(value, f"narrative.{field}")
             if items:
@@ -421,7 +470,35 @@ def _clean_personality(raw: Any) -> Dict[str, Any]:
                 out[field] = group
             continue
         if field == "experience":
-            out[field] = str(value).strip()
+            # task-923: support both legacy string and structured intimacy experience
+            if isinstance(value, dict):
+                exp: Dict[str, Any] = {}
+                lvl = str(value.get("intimacy_level", "") or "").strip()
+                if lvl:
+                    exp["intimacy_level"] = lvl
+                partners = _clean_short_list(
+                    value.get("significant_partners"),
+                    "personality.experience.significant_partners",
+                )
+                if partners:
+                    exp["significant_partners"] = partners
+                for lim_key in ("hard_limits", "soft_limits"):
+                    raw_lims = value.get(lim_key)
+                    if raw_lims:
+                        cleaned_lims = []
+                        if isinstance(raw_lims, str):
+                            raw_lims = [raw_lims]
+                        if isinstance(raw_lims, (list, tuple, set)):
+                            for lim_entry in raw_lims:
+                                slug = normalize_slug(lim_entry)
+                                if slug and slug not in cleaned_lims:
+                                    cleaned_lims.append(slug)
+                        if cleaned_lims:
+                            exp[lim_key] = cleaned_lims
+                if exp:
+                    out[field] = exp
+            else:
+                out[field] = str(value).strip()
             continue
         if field in PROSE_LIST_FIELDS:
             items = _clean_short_list(value, f"personality.{field}")
@@ -481,6 +558,198 @@ def validate(record: Any) -> Dict[str, Any]:
     if narrative_block:
         out["narrative"] = narrative_block
     return out
+
+
+def validate_persona_conflicts(record: Any) -> List[str]:
+    """Find conflicting preference tags across polar pairs in a persona record (task-916).
+
+    Checks:
+    - likes vs dislikes
+    - turn_ons vs turn_offs
+    - fears vs kinks
+
+    Returns a list of human-readable warning strings. Non-blocking.
+    """
+    if not isinstance(record, dict):
+        return []
+    pers = record.get("personality", record)
+    if not isinstance(pers, dict):
+        return []
+
+    warnings: List[str] = []
+
+    def _check_pair(field_a: str, field_b: str) -> None:
+        list_a = set(pers.get(field_a) or ())
+        list_b = set(pers.get(field_b) or ())
+        overlap = sorted(list_a & list_b)
+        for tag in overlap:
+            warnings.append(
+                f"Conflicting preferences: '{tag}' appears in both {field_a} and {field_b}"
+            )
+
+    _check_pair("likes", "dislikes")
+    _check_pair("turn_ons", "turn_offs")
+    _check_pair("fears", "kinks")
+    return warnings
+
+
+def validate_before_compile(record: Any) -> Tuple[bool, List[str]]:
+    """Validate a persona record before compiling into prose primitives (task-919).
+
+    Returns (is_valid, errors). Fails closed if critical validation errors exist.
+    """
+    if record is None:
+        return True, []
+    if not isinstance(record, dict):
+        return False, ["Persona record must be an object"]
+    if not record:
+        return True, []
+
+    errors: List[str] = []
+
+    unknown = sorted(set(record) - {"appearance", "personality", "identity", "narrative"})
+    if unknown:
+        errors.append(f"Unknown top-level sections: {unknown}")
+
+    ident = record.get("identity")
+    if ident is not None and not isinstance(ident, dict):
+        errors.append("identity section must be an object")
+    elif isinstance(ident, dict):
+        if "age" in ident and ident["age"] is not None:
+            try:
+                age = float(ident["age"])
+                if age < 0 or age > 10000:
+                    errors.append(f"identity.age ({age:g}) is out of plausible range")
+            except (TypeError, ValueError):
+                errors.append(f"identity.age must be numeric, got {ident['age']!r}")
+        if "birthday" in ident and ident["birthday"] is not None:
+            if parse_birthday(ident["birthday"]) is None:
+                errors.append(f"identity.birthday is invalid: {ident['birthday']!r}")
+
+    app_sec = record.get("appearance")
+    if app_sec is not None and not isinstance(app_sec, dict):
+        errors.append("appearance section must be an object")
+    elif isinstance(app_sec, dict):
+        for field, (kind, _) in APPEARANCE_FIELDS.items():
+            if field in app_sec and kind == "number" and app_sec[field] is not None:
+                try:
+                    val = float(app_sec[field])
+                    if field == "height_cm" and not (HEIGHT_CM_RANGE[0] <= val <= HEIGHT_CM_RANGE[1]):
+                        errors.append(f"appearance.height_cm ({val:g}) is out of range")
+                    elif field == "weight_kg" and not (WEIGHT_KG_RANGE[0] <= val <= WEIGHT_KG_RANGE[1]):
+                        errors.append(f"appearance.weight_kg ({val:g}) is out of range")
+                except (TypeError, ValueError):
+                    errors.append(f"appearance.{field} must be numeric, got {app_sec[field]!r}")
+
+    pers = record.get("personality")
+    if pers is not None and not isinstance(pers, dict):
+        errors.append("personality section must be an object")
+    elif isinstance(pers, dict):
+        for field in ID_LIST_FIELDS:
+            if field in pers:
+                vals = pers[field]
+                if isinstance(vals, str):
+                    vals = [vals]
+                if not isinstance(vals, (list, tuple, set)):
+                    errors.append(f"personality.{field} must be a list of ids")
+                else:
+                    for v in vals:
+                        s = str(v).strip()
+                        if s and not _ID_RE.match(s):
+                            errors.append(f"personality.{field} contains invalid slug {v!r}")
+
+    narr = record.get("narrative")
+    if narr is not None and not isinstance(narr, dict):
+        errors.append("narrative section must be an object")
+
+    return len(errors) == 0, errors
+
+
+def get_character_boundaries(node) -> Dict[str, List[str]]:
+    """Return consolidated boundaries, hard limits, and soft limits for a character node (task-923)."""
+    record = get_record(node)
+    pers = record.get("personality") or {}
+    boundaries = list(pers.get("boundaries") or [])
+    exp = pers.get("experience")
+    hard_limits = list(boundaries)
+    soft_limits: List[str] = []
+    if isinstance(exp, dict):
+        for h in (exp.get("hard_limits") or []):
+            if h not in hard_limits:
+                hard_limits.append(h)
+        soft_limits = list(exp.get("soft_limits") or [])
+    return {
+        "boundaries": boundaries,
+        "hard_limits": hard_limits,
+        "soft_limits": soft_limits,
+    }
+
+
+def validate_persona_batch(characters: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Validate a batch of character persona sheets (task-924).
+
+    Returns a structured health summary:
+    {
+        "total": int,
+        "valid_count": int,
+        "warning_count": int,
+        "error_count": int,
+        "results": [
+            {
+                "name": str,
+                "valid": bool,
+                "errors": list[str],
+                "warnings": list[str],
+            }
+        ]
+    }
+    """
+    total = len(characters)
+    valid_count = 0
+    warning_count = 0
+    error_count = 0
+    results = []
+
+    for char in characters:
+        name = str(char.get("name") or char.get("id") or "unnamed")
+        record = char.get("record") or char.get("persona") or char
+        is_persona = any(k in record for k in ("identity", "appearance", "personality", "narrative"))
+        if not is_persona and "properties" in char:
+            record = char["properties"].get("persona") or {}
+
+        char_errors: List[str] = []
+        try:
+            cleaned = validate(record)
+            is_valid, compile_errors = validate_before_compile(cleaned)
+            if not is_valid:
+                char_errors.extend(compile_errors)
+        except StructuredError as e:
+            char_errors.append(str(e))
+
+        warnings = validate_persona_conflicts(record)
+
+        is_ok = len(char_errors) == 0
+        if is_ok:
+            valid_count += 1
+            if warnings:
+                warning_count += 1
+        else:
+            error_count += 1
+
+        results.append({
+            "name": name,
+            "valid": is_ok,
+            "errors": char_errors,
+            "warnings": warnings,
+        })
+
+    return {
+        "total": total,
+        "valid_count": valid_count,
+        "warning_count": warning_count,
+        "error_count": error_count,
+        "results": results,
+    }
 
 
 def set_record(node, record: Any) -> Dict[str, Any]:
@@ -810,6 +1079,10 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
     compile a candidate block without touching the node.
     """
     record = dict(record or {})
+    is_valid, errors = validate_before_compile(record)
+    if not is_valid:
+        raise StructuredError("; ".join(errors))
+
     ident = record.get("identity") or {}
     pers = record.get("personality") or {}
     narr = record.get("narrative") or {}
@@ -853,8 +1126,21 @@ def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
                 quoted = ", ".join(f'"{c}"' for c in catches)
                 line += f", fond of {quoted}"
             prose_bits.append(line.rstrip(".") + ".")
-    if pers.get("experience"):
-        prose_bits.append(str(pers["experience"]).rstrip(".") + ".")
+    exp_val = pers.get("experience")
+    if isinstance(exp_val, dict):
+        exp_parts = []
+        if exp_val.get("intimacy_level"):
+            exp_parts.append(f"Intimacy experience: {exp_val['intimacy_level']}.")
+        if exp_val.get("significant_partners"):
+            exp_parts.append(f"Past partners: {_join(exp_val['significant_partners'])}.")
+        if exp_val.get("hard_limits"):
+            exp_parts.append(f"Hard limits: {', '.join(exp_val['hard_limits'])}.")
+        if exp_val.get("soft_limits"):
+            exp_parts.append(f"Soft limits: {', '.join(exp_val['soft_limits'])}.")
+        if exp_parts:
+            prose_bits.append(" ".join(exp_parts))
+    elif exp_val:
+        prose_bits.append(str(exp_val).rstrip(".") + ".")
     if ident.get("sexuality"):
         prose_bits.append(
             f"Orientation: {str(ident['sexuality']).rstrip('.')}.")
@@ -1012,8 +1298,21 @@ def schema_for_llm() -> Dict[str, Any]:
                 },
             }
         elif field == "experience":
-            personality_block[field] = {"type": "string",
-                                        "description": f"ids of {mechanic}"}
+            personality_block[field] = {
+                "oneOf": [
+                    {"type": "string", "description": f"ids of {mechanic}"},
+                    {
+                        "type": "object",
+                        "description": "structured intimacy experience and limits",
+                        "properties": {
+                            "intimacy_level": {"type": "string"},
+                            "significant_partners": {"type": "array", "items": {"type": "string"}},
+                            "hard_limits": {"type": "array", "items": {"type": "string"}},
+                            "soft_limits": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
+                ]
+            }
         elif field in PROSE_LIST_FIELDS:
             personality_block[field] = {
                 "type": "array",
@@ -1058,6 +1357,25 @@ def schema_for_llm() -> Dict[str, Any]:
                           if sub in ("hidden_facts", "known_by")
                           else {"type": "string"})
                     for sub in subfields
+                },
+            }
+        elif field == "media":
+            narrative_block[field] = {
+                "type": "array",
+                "items": {
+                    "oneOf": [
+                        {"type": "string"},
+                        {
+                            "type": "object",
+                            "properties": {
+                                "title": {"type": "string"},
+                                "medium": {"type": "string"},
+                                "opinion": {"type": "string"},
+                                "familiarity": {"type": "string"},
+                            },
+                            "required": ["title"],
+                        },
+                    ]
                 },
             }
         elif kind == "proselist":

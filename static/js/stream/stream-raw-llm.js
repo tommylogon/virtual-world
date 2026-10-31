@@ -1,14 +1,14 @@
 "use strict";
 /**
- * stream-raw-llm.js — collapsed LLM payload chips + parse-error inspection
+ * stream-raw-llm.js - collapsed LLM payload chips + parse-error inspection
  *
  * task-340: request/response payloads now render as COLLAPSED chips
- * (click to expand) with an estimated token meter, so ordering matters less —
+ * (click to expand) with an estimated token meter, so ordering matters less -
  * the outcome is always readable above a one-line chip.
  * Also tracks consecutive parse errors and offers a payload export when a
  * streak forms. Extracted from event-stream.js; loaded BEFORE it.
  *
- * @module stream/stream-raw-llm — collapsed LLM payload chips
+ * @module stream/stream-raw-llm - collapsed LLM payload chips
  * @contributes collapsed request/response chips with token meters, parse-error streaks, payload export
  * @powers reading (or hiding) raw LLM payloads inline in the stream
  * @relates loaded before event-stream.js; complements the 🔬 LLM inspector
@@ -79,7 +79,7 @@ class StreamRawLLM {
         bubble.append(header, body);
         this._bus._appendBubble(streamEl, bubble);
     }
-    /** Log raw LLM request — collapsed chip with token estimate. */
+    /** Log raw LLM request - collapsed chip with token estimate. */
     logRequest(phaseName, messages, estTokens, meta) {
         const tick = VW?.state?.tick || 0;
         // Active character + area for this LLM call (bug-560): chips must carry
@@ -99,7 +99,7 @@ class StreamRawLLM {
             || '');
         const tokens = estTokens != null ? estTokens : StreamRawLLM.estimateTokens(messages);
         const warn = tokens >= this.TOKEN_WARN;
-        const tokSpan = window.Lit.html `<span class=${'tok-meter' + (warn ? ' warn' : '')} title=${warn ? 'Near the context ceiling — history pruning imminent' : 'Estimated tokens'}>~${(tokens / 1000).toFixed(1)}k tok${warn ? ' ⚠' : ''}</span>`;
+        const tokSpan = window.Lit.html `<span class=${'tok-meter' + (warn ? ' warn' : '')} title=${warn ? 'Near the context ceiling - history pruning imminent' : 'Estimated tokens'}>~${(tokens / 1000).toFixed(1)}k tok${warn ? ' ⚠' : ''}</span>`;
         // Only attach the recall note when THIS call's messages actually recall
         // (contains the `=== I REMEMBER ===` block). Otherwise a still-fresh
         // _lastRecallStats from an earlier phase (e.g. the prior react call)
@@ -110,19 +110,19 @@ class StreamRawLLM {
         const thisCallRecalls = recall && messages.some((m) => /=== I REMEMBER ===/.test(String(m.content || '')));
         this._chipBubble(tick, actorLabel, '📤', window.Lit.html `LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html ` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`, (body) => {
             // Body is PURELY the prompt text (for display). The retrieval
-            // "why" is NOT included here — it lives on the separate always-
+            // "why" is NOT included here - it lives on the separate always-
             // visible stream line, so it can never be mistaken for prompt text.
             body.textContent = messages.map((m) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
         }, areaName, { ...(meta || {}), phase: meta?.phase || phaseName });
     }
-    /** Log raw LLM response with explicit label — collapsed chip. */
+    /** Log raw LLM response with explicit label - collapsed chip. */
     logResponse(label, content, meta) {
         const tick = VW?.state?.tick || 0;
         const respArea = (label && !label.includes('.') && !label.includes('/'))
             ? (worldState.players?.[label]?.current_area || null) : null;
-        this._chipBubble(tick, label, '🤖', window.Lit.html `${label} <span class="tok-meter">~${Math.round(String(content || '').length / 4)} tok</span>`, (body) => { body.textContent = String(content || ''); }, respArea, meta);
+        this._chipBubble(tick, label, '🤖', window.Lit.html `${label} <span class="tok-meter">~${Math.round(String(content || '').length / 4)} tok${meta?.tokPerSec && meta.tokPerSec > 0 ? ` @ ${meta.tokPerSec.toFixed(1)} tok/s` : ''}${meta?.ttftMs && meta.ttftMs > 0 ? ` (ttft ${meta.ttftMs}ms)` : ''}${meta?.provider ? ` - ${meta.provider}` : ''}${meta?.cost && meta.cost > 0 ? ` - $${meta.cost.toFixed(4)}` : ''}</span>`, (body) => { body.textContent = String(content || ''); }, respArea, meta);
     }
-    /** Log raw LLM response — content only, or (label, content) for model-tagged rows */
+    /** Log raw LLM response - content only, or (label, content) for model-tagged rows */
     log(contentOrLabel, optionalContent) {
         if (optionalContent !== undefined) {
             this.logResponse(contentOrLabel || 'LLM', optionalContent);

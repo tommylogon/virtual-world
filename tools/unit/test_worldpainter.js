@@ -440,6 +440,8 @@ test('cellNeighbours names the exits around a cell (task-596)', () => {
     assertEq(n.N.road, 'road', 'north road');
     assertEq(n.N.name, 'North Road', 'north name');
     assertEq(n.E.road, 'bridge', 'east bridge');
+    assertEq(n.NE.biome, null, 'north-east in-bounds empty');
+    assertEq(n.SE, null, 'south-east is the map edge');
     assertEq(n.S, null, 'south is the map edge, not a wall');
     assertEq(n.W.biome, null, 'west is empty');
 

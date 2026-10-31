@@ -53,7 +53,7 @@ def _infer_way_facts(app, way_id, properties):
     projection read the cache and decided membership from it
     (``world_scopes.way_endpoints``), so a way made by the NL editor or the graph
     canvas had no endpoints to read, failed the membership test for *every* scope,
-    and existed only in the unfiltered graph — visible under "Whole world", absent
+    and existed only in the unfiltered graph - visible under "Whole world", absent
     from the scope it plainly belonged to.
 
     So this derives the cache from the authority, on write:
@@ -62,7 +62,7 @@ def _infer_way_facts(app, way_id, properties):
       to the areas that point back at it (the graph stores area→way→area, so both
       halves are one hop in opposite directions);
     - ``world_scope_id`` when both endpoints are in the **same** scope, and left
-      unset when they are not — a way between two scopes belongs to neither, which
+      unset when they are not - a way between two scopes belongs to neither, which
       is a real state, not a missing value;
     - ``x``/``y`` at the midpoint, which is what places it on the map;
     - ``current_state: "open"``, matching every other way in the library.
@@ -133,7 +133,7 @@ def handle_create_node(app):
 
     properties = data.get('properties') or {}
     if node_type == "way":
-        # The node is added first so ``_infer_way_facts`` can walk its edges — but
+        # The node is added first so ``_infer_way_facts`` can walk its edges - but
         # the NL editor's batch path mints the way and *then* the four edges, so at
         # creation time there is nothing to read. That path is handled separately.
         properties = _infer_way_facts(app, node_id, dict(properties))
@@ -169,12 +169,12 @@ def handle_duplicate_node(app):
     """Duplicate an area / item / way / character with its attached subtree.
 
     Semantics (matches the graph's edge direction convention):
-      * children point TO the node  — ``salt --[on]--> table``, ``top --[equipped]--> char``
-      * the node points to its parents — ``table --[in]--> kitchen``
+      * children point TO the node  - ``salt --[on]--> table``, ``top --[equipped]--> char``
+      * the node points to its parents - ``table --[in]--> kitchen``
     So a duplicate clones the node + nodes attached TO it (children), and keeps
     the node's own attachment edges pointing at the SAME parents (the kitchen is
     never duplicated, the character is never duplicated).
-    Trigger nodes are never duplicated via the graph — they are cloned only as
+    Trigger nodes are never duplicated via the graph - they are cloned only as
     attachments of a duplicated node, each with a brand-new id + link.
     """
     data = request.get_json() or {}
@@ -186,7 +186,7 @@ def handle_duplicate_node(app):
         return jsonify({"error": "Node not found"}), 404
     if node.type == "logic_trigger":
         return jsonify({
-            "error": "Triggers are never duplicated from the graph — "
+            "error": "Triggers are never duplicated from the graph - "
                      "create new triggers from the inspector editor instead."
         }), 400
     if node.type not in ("area", "item", "way", "character"):
@@ -285,7 +285,7 @@ def handle_duplicate_node(app):
             if _e.source != node.id or _e.type not in CHILD_ATTACH_TYPES:
                 continue
             if _e.type in (EDGE_CARRYING, EDGE_EQUIPPED):
-                # Don't strap the copy onto the same holder — drop it into the
+                # Don't strap the copy onto the same holder - drop it into the
                 # holder's area instead ("duplicate the top, not the char").
                 holder_area = None
                 for _h in graph.get_edges_for_source(_e.target, EDGE_IN):
@@ -328,12 +328,12 @@ def handle_duplicate_node(app):
         if src_player is not None:
             for _f in ("stats", "skills", "vitals", "traits", "tags", "interest_tags",
                        "personality", "base_description", "description",
-                       "simple_npc", "npc_behavior", "npc_action_interval"):
+                       "controller", "simple_npc", "npc_behavior", "npc_action_interval"):
                 setattr(new_player, _f, _copy.deepcopy(getattr(src_player, _f)))
             new_player.emotion = "neutral"
             new_player.emotion_intensity = 0.0
             new_player.sync_vitals_with_tags()
-        # add_player() flips active_player to the new copy — restore afterwards.
+        # add_player() flips active_player to the new copy - restore afterwards.
         prev_active = app.world.active_player
         app.world.player_manager.add_player(new_player)
         new_pid = f"player_{new_name}".replace(' ', '_')
@@ -437,7 +437,7 @@ def handle_move_item_node(app, node_id):
                     break
         extra_txt = ('; ' + '; '.join(extra)) if extra else ''
         return jsonify({
-            "error": f"Item node '{node_id}' not found — currently {where}, "
+            "error": f"Item node '{node_id}' not found - currently {where}, "
                      f"intended destination {dest}{extra_txt}"
         }), 404
 
@@ -549,7 +549,7 @@ def handle_delete_node(app, node_id):
     _push_undo_snapshot(app, label=f"delete {node.name}")
     app.world.graph.remove_node(node_id)
     # task-654: `player.equipped` is not part of the graph, so removing a node
-    # left its id behind — worn in the readout, and read by `is_exposed` as
+    # left its id behind - worn in the readout, and read by `is_exposed` as
     # "no node here", which silently flips a covered region to uncovered.
     if node.type == 'item':
         try:
@@ -582,7 +582,7 @@ def handle_create_edge(app):
 _CHARACTER_DICT_FIELDS = ('traits', 'stats', 'skills', 'vitals', 'decay_rates')
 _CHARACTER_LIST_FIELDS = ('tags', 'interest_tags')
 _CHARACTER_SCALAR_FIELDS = (
-    'personality', 'description', 'base_description', 'simple_npc', 'autonomy',
+    'personality', 'description', 'base_description', 'controller', 'simple_npc', 'autonomy',
     'npc_behavior', 'npc_action_interval', 'activity',
 )
 
@@ -730,7 +730,7 @@ def _select_nodes(graph, selector):
     Selector keys: ``kind``/``type``, ``tags``/``tag``,
     ``require_all_tags`` (default true), ``area``/``area_id``,
     ``name_contains``/``query``, and ``ids`` (an explicit list wins over the
-    filters — it is the reviewed affected-entity set).
+    filters - it is the reviewed affected-entity set).
     """
     selector = selector or {}
     kind = str(selector.get('kind') or selector.get('type') or '').strip().lower()
@@ -846,7 +846,7 @@ def _apply_batch_op(app, optype, p):
         player.tags = props.get('tags', player.tags)
         player.interest_tags = props.get('interest_tags', player.interest_tags)
         player.sync_vitals_with_tags()
-        # add_player() flips active_player to the new character — restore afterwards
+        # add_player() flips active_player to the new character - restore afterwards
         # (same guard the duplicate path uses).
         prev_active = app.world.active_player
         app.world.player_manager.add_player(player)
@@ -861,7 +861,7 @@ def _apply_batch_op(app, optype, p):
         return {"id": pid, "player": player.name}
 
     if optype == 'create_trigger':
-        # task-739: author a real trigger — the `logic_trigger` node AND the
+        # task-739: author a real trigger - the `logic_trigger` node AND the
         # `triggers` edge (props on both), via the one materialiser. A bare
         # create_node gives a node with no edge, which the engine never fires.
         owner_id = p.get('owner_id')
@@ -917,8 +917,8 @@ def _apply_batch_op(app, optype, p):
         return {"player": player.name, "applied": applied}
 
     if optype == 'rename_character':
-        # task-447/619: a character is referenced three ways — the players-map
-        # key, Player.name, and the node display name — plus relationship keys
+        # task-447/619: a character is referenced three ways - the players-map
+        # key, Player.name, and the node display name - plus relationship keys
         # (keyed by display name). update_node{name} only touches the node, which
         # is why a "rename" looked like it did nothing in the roster/inspector.
         key = p.get('character') or p.get('character_id')
@@ -1008,7 +1008,7 @@ def _apply_batch_op(app, optype, p):
                             properties={"direction": dir_a}))
         # Now the edges exist, the way can be told what it connects and which scope
         # it is in. Every way in the library carries these; a way made by the NL
-        # editor or the graph canvas did not, and the scope projection reads them —
+        # editor or the graph canvas did not, and the scope projection reads them -
         # so without this the way appeared only under "Whole world" and belonged to
         # no scope at all (see ``_infer_way_facts``).
         way_node = graph.get_node(way_id)
@@ -1703,7 +1703,7 @@ def handle_append_draft(app):
 
     The draft is the wizard's output (areas: {name: {description, environment,
     exits, items}}, characters, world_lore). Merge semantics:
-      * Existing area names are skipped (no clobber) — return them as `skipped`.
+      * Existing area names are skipped (no clobber) - return them as `skipped`.
       * New areas + their ways + items are added.
       * New characters are registered only if the name is free.
       * world_lore entries are appended (category+content dedupe).

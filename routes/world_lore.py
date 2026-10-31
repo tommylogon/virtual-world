@@ -70,3 +70,16 @@ def register_world_lore_routes(app):
         app.world.world_lore = new_lore
         _save_scenario(app.world)
         return jsonify({"status": "success"})
+
+    @app.route('/api/world/scene_context', methods=['GET'])
+    def get_scene_context():
+        return jsonify({"scene_context": getattr(app.world, 'scene_context', None)})
+
+    @app.route('/api/world/scene_context', methods=['POST'])
+    def set_scene_context():
+        data = request.get_json(force=True)
+        if not isinstance(data, dict):
+            return jsonify({"error": "Expected JSON object"}), 400
+        app.world.scene_context = data.get("scene_context")
+        _save_scenario(app.world)
+        return jsonify({"status": "success", "scene_context": app.world.scene_context})

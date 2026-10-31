@@ -93,6 +93,13 @@ class GameLogger:
             Current turn number.  Defaults to ``self.turn_number``.
         """
         current_turn = turn or self.turn_number
+        # Deduplicate identical consecutive event for same actor and tick
+        if self.turn_events:
+            last = self.turn_events[-1]
+            if (last.get("tick") == tick and last.get("actor") == actor_name
+                    and last.get("action") == action_type and last.get("description") == description
+                    and last.get("area") == area_name):
+                return
         event = {
             "tick": tick,
             "turn": current_turn,
@@ -175,9 +182,9 @@ class GameLogger:
         return
 
         actor = player_name or active_player or "__system__"
-        message = f"[LLM {label}] Prompt: {prompt[:500]}"
+        message = f"[LLM {label}] Prompt: {prompt}"
         if response is not None:
-            message += f"\n[Response] {response[:500]}"
+            message += f"\n[Response] {response}"
 
         self.record_turn_event(actor, "llm_log", message)
 

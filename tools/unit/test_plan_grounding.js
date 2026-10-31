@@ -58,10 +58,10 @@ test('go to a KNOWN area grounds even without a visible path', () => {
         assertEq(reason, null, 'known area grounds');
 });
 
-test('carried items satisfy use/take even when absent from the area', () => {
+test('carried items satisfy use but reject take when already carried', () => {
         const facts = { ...FACTS_CHIEFS_PIT, carried: ['Waterskin'] };
         assertEq(PlanGrounding.groundStep({ act: 'use', item: 'waterskin' }, facts, "Chief's Pit"), null, 'use grounds on carried');
-        assertEq(PlanGrounding.groundStep({ act: 'take', item: 'Waterskin' }, facts, "Chief's Pit"), null, 'take grounds on carried');
+        assertTrue(/already carry/.test(PlanGrounding.groundStep({ act: 'take', item: 'Waterskin' }, facts, "Chief's Pit")), 'take rejected when already carried');
 });
 
 test('lenient matching resolves partial references', () => {

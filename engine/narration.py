@@ -406,12 +406,12 @@ class NarrationSystem:
                         "name": getattr(player_obj, "name", pname),
                         "state": player_obj.state,
                         "personality": (
-                            getattr(player_obj, "personality", "")[:200]
+                            getattr(player_obj, "personality", "")
                             if getattr(player_obj, "personality", "")
                             else ""
                         ),
                         "description": (
-                            getattr(player_obj, "description", "")[:200]
+                            getattr(player_obj, "description", "")
                             if getattr(player_obj, "description", "")
                             else ""
                         ),
@@ -423,12 +423,12 @@ class NarrationSystem:
                         "name": pname,
                         "state": "ghost",
                         "personality": (
-                            getattr(player_obj, "personality", "")[:200]
+                            getattr(player_obj, "personality", "")
                             if getattr(player_obj, "personality", "")
                             else ""
                         ),
                         "description": (
-                            getattr(player_obj, "description", "")[:200]
+                            getattr(player_obj, "description", "")
                             if getattr(player_obj, "description", "")
                             else ""
                         ),
@@ -448,7 +448,7 @@ class NarrationSystem:
                         "name": node.name,
                         "quantity": item_quantity(node),
                         "label": describe_item(node, node.properties.get("description", "")),
-                        "description": node.properties.get("description", "")[:200],
+                        "description": node.properties.get("description", ""),
                     }
                 )
 

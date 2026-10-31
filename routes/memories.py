@@ -8,6 +8,7 @@ from logger import setup_logger
 from engine.spatial_memory import SpatialMemory, known_route_areas
 from engine.vector_store import VectorStore
 from engine import memory_dynamics
+from engine import memory_retrieval
 
 logger = logging.getLogger(__name__)
 
@@ -421,7 +422,8 @@ def register_memories_routes(app):
         # task-685: optional dynamics fields  -  client-provided values win,
         # ensure_dynamics fills only what is missing (old clients unaffected).
         for key in ("category", "confidence", "activation", "reflection_depth",
-                    "source_memory_ids", "contradicts", "last_recalled_tick"):
+                    "source_memory_ids", "contradicts", "last_recalled_tick",
+                    "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about"):
             if data.get(key) is not None:
                 entry[key] = data[key]
         memory_dynamics.ensure_dynamics(entry)
@@ -526,7 +528,8 @@ def register_memories_routes(app):
                             "relationship_deltas", "memory_emotions",
                             "salience_override", "timestamp",
                             "category", "confidence", "activation",
-                            "reflection_depth", "source_memory_ids", "contradicts"]:
+                            "reflection_depth", "source_memory_ids", "contradicts",
+                            "valid_at", "invalid_at", "watch_refs", "hypotheses", "status", "about"]:
                     if key in data:
                         entry[key] = data[key]
                 if "relationship_deltas" in data or "emotions" in data:
@@ -648,6 +651,36 @@ def register_memories_routes(app):
         memories = getattr(player, 'memories', [])
         if not memories:
             return jsonify({"memories": [], **({"groups": {}} if structured else {})})
+
+        strategy = str(data.get("strategy") or "associative").lower()
+        if strategy != "legacy":
+            # Associative 3.0 retrieval (task-908)
+            min_score = float(data.get("min_score", 1.0) or 1.0)
+            explain = bool(data.get("explain"))
+            res = memory_retrieval.retrieve_associative_memories(
+                player=player,
+                payload=data,
+                world=getattr(app, "world", None),
+                tick=tick,
+                max_results=max_results,
+                min_score=min_score,
+                explain=explain,
+                do_reinforce=do_reinforce,
+            )
+            if structured:
+                groups = {"events": [], "beliefs": [], "social": [], "expectations": []}
+                for m in res["memories"]:
+                    category = m.get("category") or memory_dynamics.category_for(m)
+                    if category == memory_dynamics.SOCIAL:
+                        groups["social"].append(m)
+                    elif category in (memory_dynamics.BELIEF, memory_dynamics.SEMANTIC):
+                        groups["beliefs"].append(m)
+                    elif category == memory_dynamics.PROCEDURAL:
+                        groups["expectations"].append(m)
+                    else:
+                        groups["events"].append(m)
+                res["groups"] = groups
+            return jsonify(res)
 
         query_lower = query.lower()
         query_words = set(query_lower.split()) if query_lower else set()

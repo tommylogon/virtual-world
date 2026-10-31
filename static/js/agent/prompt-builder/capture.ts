@@ -61,7 +61,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const name = String(charName || '').trim();
         if (!name) throw new Error('captureTurnPrompt: no character name given');
 
-        const state = options.state || worldState?.data;
+        const state = options.state || window.worldState?.data || worldState?.data;
         if (!state) throw new Error('captureTurnPrompt: no world state loaded (worldState.data is empty)');
 
         const player = state.players?.[name];

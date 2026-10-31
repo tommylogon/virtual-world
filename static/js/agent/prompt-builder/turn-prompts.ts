@@ -90,6 +90,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         const blocks = [
             parts.tickHead,
             parts.preamble,
+            parts.extraNote,
+
             `=== YOUR STATE ===\n${String(stateBlock || '').trim()}`,
             String(memoryNL || '').trim(),
             parts.appearance,
@@ -103,7 +105,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             parts.witnessed,
             parts.conversation,
             parts.plan,
-            parts.extraNote,
+
         ];
         return blocks.map(block => String(block || '').trim()).filter(Boolean).join('\n\n');
     }

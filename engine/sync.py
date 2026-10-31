@@ -136,7 +136,7 @@ SPECS: Dict[str, TemplateSpec] = {
             "name", "description", "base_description", "unknown_name",
             "personality", "stats", "skills", "traits", "tags", "interest_tags",
             "behaviors", "npc_behavior", "npc_action_interval", "npc_state",
-            "simple_npc", "memories", "relationships", "vitals", "decay_rates",
+            "controller", "autonomy", "simple_npc", "memories", "relationships", "vitals", "decay_rates",
             "conditions", "equipped", "recent_hearing", "activity", "current_area",
             "emotion", "image", "profile_image", "expressions", "triggers",
         ),

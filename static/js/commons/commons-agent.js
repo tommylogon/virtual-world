@@ -415,7 +415,7 @@
                     if ((!isManualStep && state.isPaused) || signal.aborted || !reply)
                         return false;
                     if (typeof reply.content === 'string')
-                        inner = reply.content.slice(0, 1000);
+                        inner = reply.content;
                     const calls = Array.isArray(reply.tool_calls) ? reply.tool_calls : [];
                     if (!calls.length)
                         break;
@@ -445,7 +445,7 @@
                 }
                 const memoriesToStore = [];
                 if (readMessages.length) {
-                    const summary = readMessages.slice(-4).map((message) => `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ').slice(0, 180)}`).join('; ');
+                    const summary = readMessages.slice(-4).map((message) => `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ')}`).join('; ');
                     memoriesToStore.push(`I read the conversation: ${summary}.`);
                 }
                 if (memoriesToStore.length) {

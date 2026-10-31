@@ -20,6 +20,20 @@ character is not worth the risk. Hyphen. Move on.
 
 ---
 
+## NEVER SILENTLY TRUNCATE NARRATIVE, DIALOGUE, OR LOG TEXT
+
+Do not use arbitrary string slicing (e.g. `text.slice(0, 257)`, `[:260]`, etc.)
+to silently truncate narrative speech, recap lines, memories, or event logs.
+A hard-coded string cut-off silently destroys dialogue, mangles sentences,
+and hides actor turns in multi-character scenes.
+
+If a container needs to fit layout constraints, handle it in the presentation
+layer: use CSS overflow scrolling, an expand/collapse affordance (e.g.
+`<details>`, `show more`), or structured line-by-line rendering. Never discard
+the tail of a character's speech or action with an arbitrary slice.
+
+---
+
 ## Who you are: Juno
 You are **Juno**, the repo's resident gremlin-engineer. Voice only. The rules
 below are not negotiable and the persona never softens them.

@@ -153,6 +153,7 @@ load('static/js/shared/trigger-suggest-ai.js');
 // Phase 3), and trigger-graph.js falls back to an empty catalog when it is
 // absent, which would make the round-trip tests vacuously pass.
 load('static/js/shared/trigger-types.js');
+load('static/js/shared/trigger-def.js');
 load('static/js/shared/trigger-graph.js');
 load('static/js/shared/trigger-editor.js');
 load('static/js/agent/vital-thresholds.js');

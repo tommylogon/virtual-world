@@ -50,7 +50,7 @@ ROOT = Path("static/js")
 # `npm run module:check` and every doc that cites it keep working; it is now
 # language-agnostic.
 PY_ROOTS = (Path("engine"), Path("routes"))
-SKIP_DIRS = {"vendor", "node_modules"}
+SKIP_DIRS = {"vendor", "node_modules", "types"}
 INDEX_PATH = Path("docs/design/js-module-index.md")
 BASELINE_PATH = Path("docs/design/js-module-baseline.txt")
 DOCS_BASELINE_PATH = Path("docs/design/js-docs-baseline.txt")

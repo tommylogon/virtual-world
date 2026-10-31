@@ -174,3 +174,16 @@ def test_nested_container_edge_is_untouched():
     ])
     assert ("item_pouch", "item_backpack") in _item_edges(g)
     assert ("item_backpack", "item_pouch") not in _item_edges(g)
+
+
+def test_legacy_contained_in_edges_normalized():
+    """Verify contained_in edges normalize to canonical EDGE_IN on load."""
+    nodes = {}
+    for d in (_node("area_room", "area", "Room"),
+              _node("item_note", "item", "Note")):
+        nodes.update(d)
+    g = _load(nodes, [
+        {"source": "item_note", "target": "area_room", "type": "contained_in", "properties": {}},
+    ])
+    assert ("item_note", "area_room") in _item_edges(g)
+    assert any(e.type == EDGE_IN and e.source == "item_note" and e.target == "area_room" for e in g.edges)
