@@ -20,6 +20,7 @@ from .player_ops import (
     handle_get_character_record,
     handle_set_character_record,
     handle_compile_character_record,
+    handle_revert_compile_character_record,
     handle_character_recipes,
     handle_clear_character_record,
     handle_set_body_baseline,
@@ -110,6 +111,10 @@ def register_players_routes(app):
     def api_compile_character_record(name):
         return handle_compile_character_record(app, name)
 
+    @app.route('/api/players/<name>/record/revert_compile', methods=['POST'])
+    def api_revert_compile_character_record(name):
+        return handle_revert_compile_character_record(app, name)
+
     @app.route('/api/players/<name>/recipes', methods=['GET'])
     def api_character_recipes(name):
         return handle_character_recipes(app, name)
@@ -137,7 +142,7 @@ def register_players_routes(app):
     @app.route('/api/players/<name>/map', methods=['GET'])
     def api_get_player_map(name):
         """task-677: the cells this character has been in, with what they last
-        observed there. Separate from /api/state on purpose — that payload is
+        observed there. Separate from /api/state on purpose - that payload is
         ~2.48 MB polled every 1.5 s and must not grow a map payload."""
         return handle_get_player_map(app, name)
 

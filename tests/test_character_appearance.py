@@ -892,3 +892,272 @@ class TestIdentitySuggestions:
             with pytest.raises(StructuredError):
                 validate({"identity": {"birthday": bad}})
 
+
+class TestPersonaSlugNormalization:
+    """task-915: Slug normalization for tag and id-list fields."""
+
+    def test_normalize_slug_basic_and_mixed_case(self):
+        assert ca.normalize_slug("Dark Caves") == "dark_caves"
+        assert ca.normalize_slug("Monster energy drink") == "monster_energy_drink"
+        assert ca.normalize_slug("  Shiny-Things  ") == "shiny-things"
+
+    def test_normalize_slug_diacritics_and_special_chars(self):
+        assert ca.normalize_slug("café-au-lait!") == "cafe-au-lait"
+        assert ca.normalize_slug("---multiple---dashes---") == "multiple-dashes"
+        assert ca.normalize_slug("___multiple___underscores___") == "multiple_underscores"
+        assert ca.normalize_slug("!@#$%^&*()") == ""
+        assert ca.normalize_slug(None) == ""
+
+
+class TestPersonaCrossFieldConflicts:
+    """task-916: Cross-field validation for conflicting preferences."""
+
+    def test_detects_polar_conflicts(self):
+        record = {
+            "personality": {
+                "likes": ["spiders", "shiny_things"],
+                "dislikes": ["spiders", "loud_noises"],
+                "turn_ons": ["teasing"],
+                "turn_offs": ["teasing"],
+                "fears": ["darkness"],
+                "kinks": ["darkness"],
+            }
+        }
+        warnings = ca.validate_persona_conflicts(record)
+        assert len(warnings) == 3
+        assert any("spiders" in w and "likes and dislikes" in w for w in warnings)
+        assert any("teasing" in w and "turn_ons and turn_offs" in w for w in warnings)
+        assert any("darkness" in w and "fears and kinks" in w for w in warnings)
+
+    def test_no_conflicts_returns_empty(self):
+        record = {
+            "personality": {
+                "likes": ["sweet_pastries"],
+                "dislikes": ["sour_pickles"],
+            }
+        }
+        assert ca.validate_persona_conflicts(record) == []
+
+
+class TestPreCompileValidation:
+    """task-919: Pre-compile schema and consumer validation."""
+
+    def test_validates_safe_records(self):
+        valid_rec = {
+            "identity": {"age": 25, "gender": "woman"},
+            "appearance": {"height_cm": 165},
+            "personality": {"likes": ["reading"]},
+        }
+        ok, errors = ca.validate_before_compile(valid_rec)
+        assert ok is True
+        assert errors == []
+
+    def test_rejects_out_of_range_or_broken_types(self):
+        bad_rec = {
+            "identity": {"age": -50},
+            "appearance": {"height_cm": 300},
+            "personality": {"likes": ["Not A Valid Slug!"]},
+        }
+        ok, errors = ca.validate_before_compile(bad_rec)
+        assert ok is False
+        assert len(errors) >= 3
+
+    def test_compile_record_refuses_critical_errors(self):
+        bad_rec = {
+            "identity": {"age": -5},
+        }
+        with pytest.raises(StructuredError):
+            ca.compile_record(bad_rec)
+
+
+class TestPersonaMediaSchemaAndMemories:
+    """task-922: Media schema formalization feeding lorebook knowledge and memories."""
+
+    def test_media_accepts_strings_and_structured_objects(self):
+        rec = {
+            "narrative": {
+                "media": [
+                    "The Hobbit",
+                    {"title": "Art of War", "medium": "book", "opinion": "classic strategy"},
+                ]
+            }
+        }
+        cleaned = ca.validate(rec)
+        assert len(cleaned["narrative"]["media"]) == 2
+        assert cleaned["narrative"]["media"][0] == "The Hobbit"
+        assert cleaned["narrative"]["media"][1]["title"] == "Art of War"
+
+    def test_media_does_not_compile_into_appearance_prose(self):
+        rec = {
+            "narrative": {
+                "media": [{"title": "Necronomicon", "medium": "book"}]
+            }
+        }
+        compiled = ca.compile_record(rec)
+        assert "Necronomicon" not in compiled["base_description"]
+
+    def test_media_hydrates_into_player_memories(self):
+        from engine.character_store import apply_node_properties
+        node = Node(id="char_1", type="character", name="Scholar")
+        node.properties["persona"] = {
+            "narrative": {
+                "media": [{"title": "Atlas of the Hollow", "medium": "map", "opinion": "very detailed"}]
+            }
+        }
+        player = Player("Scholar")
+        apply_node_properties(player, node.properties)
+        texts = [m.get("text", "") for m in player.memories]
+        assert any("Atlas of the Hollow" in t for t in texts)
+        assert any("very detailed" in t for t in texts)
+
+
+class TestExperienceFieldSplit:
+    """task-923: Experience field split into structured intimacy history and boundaries."""
+
+    def test_supports_structured_experience_dict(self):
+        rec = {
+            "personality": {
+                "experience": {
+                    "intimacy_level": "experienced",
+                    "significant_partners": ["Alina", "Boran"],
+                    "hard_limits": ["non_consensual", "pain"],
+                    "soft_limits": ["roleplay"],
+                }
+            }
+        }
+        cleaned = ca.validate(rec)
+        exp = cleaned["personality"]["experience"]
+        assert exp["intimacy_level"] == "experienced"
+        assert exp["significant_partners"] == ["Alina", "Boran"]
+        assert exp["hard_limits"] == ["non_consensual", "pain"]
+
+    def test_backward_compatible_with_string_experience(self):
+        rec = {"personality": {"experience": "Wandered the northern wastes for a decade."}}
+        cleaned = ca.validate(rec)
+        assert cleaned["personality"]["experience"] == "Wandered the northern wastes for a decade."
+
+    def test_compile_renders_structured_experience(self):
+        rec = {
+            "personality": {
+                "experience": {
+                    "intimacy_level": "experienced",
+                    "hard_limits": ["non_consensual"],
+                }
+            }
+        }
+        compiled = ca.compile_record(rec)
+        assert "Intimacy experience: experienced." in compiled["personality"]
+        assert "Hard limits: non_consensual." in compiled["personality"]
+
+    def test_get_character_boundaries(self):
+        node = Node(id="char_test", type="character", name="Test")
+        node.properties["persona"] = {
+            "personality": {
+                "boundaries": ["strict_privacy"],
+                "experience": {
+                    "hard_limits": ["coercion"],
+                    "soft_limits": ["strangers"],
+                },
+            }
+        }
+        b = ca.get_character_boundaries(node)
+        assert "strict_privacy" in b["boundaries"]
+        assert "strict_privacy" in b["hard_limits"]
+        assert "coercion" in b["hard_limits"]
+        assert "strangers" in b["soft_limits"]
+
+
+class TestPersonaBatchValidation:
+    """task-924: Batch persona sheet validation."""
+
+    def test_validate_persona_batch_reports_health(self):
+        batch = [
+            {
+                "name": "GoodChar",
+                "persona": {
+                    "identity": {"age": 30},
+                    "appearance": {"height_cm": 175},
+                },
+            },
+            {
+                "name": "WarnChar",
+                "persona": {
+                    "personality": {"likes": ["apples"], "dislikes": ["apples"]},
+                },
+            },
+            {
+                "name": "BadChar",
+                "persona": {
+                    "identity": {"age": -99},
+                },
+            },
+        ]
+        report = ca.validate_persona_batch(batch)
+        assert report["total"] == 3
+        assert report["valid_count"] == 2
+        assert report["warning_count"] == 1
+        assert report["error_count"] == 1
+        assert report["results"][2]["valid"] is False
+
+
+class TestCompileUndoAndSnapshotting:
+    """task-920 & task-921: Persona compile undo and selective section application."""
+
+    def _client(self):
+        world = _world()
+        _character(world, "Arix")
+        node = _node(world, "Arix")
+        node.properties["base_description"] = "Hand crafted prose about Arix."
+        node.properties["personality"] = "Proud and meticulous."
+        node.properties["persona"] = {
+            "identity": {"age": 28, "species": "goblin", "occupation": "blacksmith"},
+            "appearance": {"height_cm": 120},
+        }
+        app = create_app({"TESTING": True})
+        app.world = world
+        return app.test_client()
+
+    def test_compile_snapshots_and_reverts(self):
+        client = self._client()
+        # Initial compile with force
+        res = client.post("/api/players/Arix/record/compile", json={"force": True})
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["applied"] is True
+
+        # Verify state updated
+        state_res = client.get("/api/players/Arix/record").get_json()
+        assert state_res["has_undo"] is True
+
+        # Revert compile
+        rev_res = client.post("/api/players/Arix/record/revert_compile")
+        assert rev_res.status_code == 200
+        rev_data = rev_res.get_json()
+        assert rev_data["reverted"] is True
+        assert rev_data["base_description"] == "Hand crafted prose about Arix."
+        assert rev_data["personality_prose"] == "Proud and meticulous."
+
+
+class TestMigrateProseToPersona:
+    """task-918: Legacy character prose description migration to structured persona."""
+
+    def test_parse_prose_extracts_schema(self):
+        from tools.migrate_prose_to_persona import extract_persona_heuristics
+        sample = (
+            "A 32-year-old human guard standing 180 cm tall with muscular build, "
+            "brown hair and blue eyes. He enjoys hot meals and fears heights."
+        )
+        rec = extract_persona_heuristics(sample)
+        assert rec["identity"]["age"] == 32.0
+        assert rec["identity"]["gender"] == "man"
+        assert rec["identity"]["pronouns"] == "he/him"
+        assert rec["identity"]["species"] == "human"
+        assert rec["identity"]["occupation"] == "guard"
+        assert rec["appearance"]["height_cm"] == 180.0
+        assert rec["appearance"]["build"] == "muscular"
+        assert rec["appearance"]["eyes"]["color"] == "blue"
+        assert "hot_meals" in rec["personality"]["likes"]
+        assert "heights" in rec["personality"]["fears"]
+        assert rec["narrative"]["biography"]["current_situation"] == sample
+
+

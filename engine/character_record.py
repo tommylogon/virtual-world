@@ -104,6 +104,8 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
         DefinitionField("lived_log", "social", ON_PLAYER, False),
     ],
     "tier": [
+        DefinitionField("controller", "tier", ON_PLAYER, False,
+                        "the unified runner and agency mode: human, directed, llm, npc, inert"),
         DefinitionField("simple_npc", "tier", ON_PLAYER, False,
                         "the field that separates a simple NPC from an agent or "
                         "a human; runner tier flag"),

@@ -4,6 +4,7 @@ from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING, EDGE_CONNECTION
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
 from engine.abilities import normalize_stat_block
+from engine.character_store import sync_player_to_node
 from engine.vitals import ceiling, clamp_to_ceiling, polarity as vital_polarity
 
 logger = logging.getLogger(__name__)
@@ -623,19 +624,10 @@ def handle_update_player(app, name):
         player.base_description = data["base_description"]
     # The character node owns authored definition (personality, appearance
     # prose, tags, traits); the Player copy above is the running-world cache. Mirror the write
-    # to the node so the single persisted home is updated and a save round-trips.
-    _def_node = None
-    for _key in ("personality", "description", "base_description", "tags", "traits"):
-        if _key in data:
-            if _def_node is None:
-                _def_node = _character_node(app, name)
-            if _def_node is not None:
-                if _key == "tags":
-                    _def_node.properties[_key] = list(data[_key])
-                elif _key == "traits":
-                    _def_node.properties[_key] = dict(data[_key])
-                else:
-                    _def_node.properties[_key] = data[_key]
+    # to the node so the single persisted home is updated and a save round-trips (task-457/task-914).
+    _def_node = _character_node(app, name)
+    if _def_node is not None:
+        sync_player_to_node(player, _def_node)
     if "stats" in data:
         player.stats = normalize_stat_block(data["stats"]) or player.stats
     if "skills" in data:
@@ -692,10 +684,19 @@ def handle_update_player(app, name):
         player.npc_behavior = data["npc_behavior"]
     if "npc_action_interval" in data:
         player.npc_action_interval = int(data["npc_action_interval"])
-    if "simple_npc" in data:
-        player.simple_npc = bool(data["simple_npc"])
-    if "autonomy" in data:
-        player.autonomy = bool(data["autonomy"])
+    if "controller" in data:
+        player.controller = data["controller"]
+    elif "control_mode" in data:
+        player.controller = data["control_mode"]
+    else:
+        if "simple_npc" in data:
+            player.simple_npc = bool(data["simple_npc"])
+        if "autonomy" in data:
+            val = data["autonomy"]
+            if isinstance(val, str) and val.lower() == "directed":
+                player.autonomy = "directed"
+            else:
+                player.autonomy = bool(val)
     if "conditions" in data:
         player.load_conditions(data["conditions"])
     if "add_condition" in data:
@@ -790,7 +791,14 @@ def handle_import_player(app):
     player.tags = data.get('tags', player.tags) or player.tags
     player.interest_tags = data.get('interest_tags', player.interest_tags) or player.interest_tags
     player.decay_rates = data.get('decay_rates', player.decay_rates) or player.decay_rates
-    player.simple_npc = data.get('simple_npc', player.simple_npc) or False
+    if 'controller' in data:
+        player.controller = data['controller']
+    elif 'control_mode' in data:
+        player.controller = data['control_mode']
+    else:
+        player.simple_npc = data.get('simple_npc', player.simple_npc) or False
+        if 'autonomy' in data:
+            player.autonomy = data['autonomy']
     player.npc_behavior = data.get('npc_behavior', player.npc_behavior) or 'wander'
     player.npc_state = data.get('npc_state', player.npc_state) or 'idle'
     player.behaviors = data.get('behaviors', player.behaviors) or []
@@ -889,15 +897,19 @@ def handle_get_character_record(app, name):
     except Exception:
         lifecycle_status = {"age": None, "life_stage": None,
                             "lifespan": None, "birth_tick_known": False}
+    rec = ca.get_record(node)
+    props = getattr(node, "properties", None) or {}
     return jsonify({
         "structured": ca.is_structured(node),
-        "record": ca.get_record(node),
+        "record": rec,
         "identity": ca.identity(node),
         "appearance": ca.appearance(node),
         "personality": ca.personality(node),
         "narrative": ca.narrative(node),
         "prose": ca.render_prose(node),
         "prose_stale": ca.prose_is_stale(node),
+        "has_undo": bool(props.get("_last_precompile_snapshot")),
+        "warnings": ca.validate_persona_conflicts(rec),
         "lifecycle": lifecycle_status,
         "schema": ca.schema_for_llm(),
         "hints": ca.CONSUMER_HINTS,
@@ -1023,7 +1035,7 @@ def _compile_preview(player, compiled, node=None) -> dict:
     }
 
 
-def _apply_compiled(player, compiled, node=None) -> None:
+def _apply_compiled(player, compiled, node=None, sections=None) -> None:
     """Write a compile projection onto the player (prose + tag mirrors).
 
     The node carries the authored copy too: `/api/state` reads
@@ -1033,16 +1045,34 @@ def _apply_compiled(player, compiled, node=None) -> None:
     prose shadowing the fresh compile in every state payload.
     """
     from engine import character_appearance as ca
-    if (compiled.get("base_description") or "").strip():
+    props = getattr(node, "properties", None) or {} if node is not None else {}
+
+    # task-920: snapshot prior state before overwriting
+    snapshot = {
+        "base_description": props.get("base_description") or player.base_description,
+        "personality": props.get("personality") or player.personality,
+        "interest_tags": list(player.interest_tags or []),
+        "fear_tags": list(player.fear_tags or []),
+    }
+    if node is not None and getattr(node, "properties", None) is not None:
+        node.properties["_last_precompile_snapshot"] = snapshot
+
+    apply_all = sections is None or "all" in sections
+    apply_base = apply_all or "base_description" in sections
+    apply_pers = apply_all or "personality" in sections
+    apply_tags = apply_all or "tags" in sections
+
+    if apply_base and (compiled.get("base_description") or "").strip():
         player.base_description = compiled["base_description"]
         if node is not None and getattr(node, "properties", None) is not None:
             node.properties["base_description"] = compiled["base_description"]
-    if (compiled.get("personality") or "").strip():
+    if apply_pers and (compiled.get("personality") or "").strip():
         player.personality = compiled["personality"]
         if node is not None and getattr(node, "properties", None) is not None:
             node.properties["personality"] = compiled["personality"]
-    player.interest_tags = list(compiled.get("interest_tags") or [])
-    player.fear_tags = list(compiled.get("fear_tags") or [])
+    if apply_tags:
+        player.interest_tags = list(compiled.get("interest_tags") or [])
+        player.fear_tags = list(compiled.get("fear_tags") or [])
     if node is not None:
         (getattr(node, "properties", None) or {}).pop(
             ca.PROSE_STALE_KEY, None)
@@ -1052,8 +1082,8 @@ def handle_compile_character_record(app, name):
     """Project the stored block without writing (task-828 compile preview).
 
     ``POST /api/players/<name>/record/compile`` with optional
-    ``{"force": true}``. Without force: returns the projection plus a
-    ``preview`` when hand prose would be replaced, and writes nothing.
+    ``{"force": true}`` or ``{"sections": [...]}``. Without force: returns the
+    projection plus a ``preview`` when hand prose would be replaced, and writes nothing.
     With force: applies the projection like ``PUT record`` with
     ``compile:true, force:true``.
 
@@ -1074,19 +1104,62 @@ def handle_compile_character_record(app, name):
         g.no_broadcast = True
         try:
             cleaned = ca.validate(data.get("record"))
+            is_valid, errors = ca.validate_before_compile(cleaned)
+            if not is_valid:
+                return jsonify({"error": "Pre-compile validation failed", "errors": errors}), 400
         except ca.StructuredError as e:
             return jsonify({"error": str(e)}), 400
-        return jsonify({"compiled": ca.compile_record(cleaned)})
-    compiled = ca.compile_persona(node)
-    body = {"record": ca.get_record(node), "compiled": compiled,
-            "prose_stale": ca.prose_is_stale(node)}
-    if _compile_would_clobber(player, compiled, node) and not data.get("force"):
+        compiled = ca.compile_record(cleaned)
+        warnings = ca.validate_persona_conflicts(cleaned)
+        return jsonify({"compiled": compiled, "warnings": warnings})
+    try:
+        compiled = ca.compile_persona(node)
+    except ca.StructuredError as e:
+        return jsonify({"error": str(e)}), 400
+    rec = ca.get_record(node)
+    body = {"record": rec, "compiled": compiled,
+            "prose_stale": ca.prose_is_stale(node),
+            "warnings": ca.validate_persona_conflicts(rec)}
+    if _compile_would_clobber(player, compiled, node) and not data.get("force") and not data.get("sections"):
         body["preview"] = _compile_preview(player, compiled, node)
         body["needs_confirm"] = True
         return jsonify(body)
-    _apply_compiled(player, compiled, node)
+    sections = data.get("sections")
+    _apply_compiled(player, compiled, node, sections=sections)
     body["applied"] = True
+    body["has_undo"] = True
     return jsonify(body)
+
+
+def handle_revert_compile_character_record(app, name):
+    """Revert character prose and tags to the pre-compile snapshot (task-920)."""
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    node = _character_node(app, name)
+    if node is None:
+        return jsonify({"error": "No character node"}), 404
+    player = app.world.players[name]
+    props = getattr(node, "properties", None) or {}
+    snapshot = props.pop("_last_precompile_snapshot", None)
+    if not snapshot:
+        return jsonify({"error": "No pre-compile snapshot available to revert"}), 400
+
+    if "base_description" in snapshot:
+        player.base_description = snapshot["base_description"]
+        props["base_description"] = snapshot["base_description"]
+    if "personality" in snapshot:
+        player.personality = snapshot["personality"]
+        props["personality"] = snapshot["personality"]
+    if "interest_tags" in snapshot:
+        player.interest_tags = list(snapshot["interest_tags"])
+    if "fear_tags" in snapshot:
+        player.fear_tags = list(snapshot["fear_tags"])
+    return jsonify({
+        "reverted": True,
+        "snapshot": snapshot,
+        "base_description": player.base_description,
+        "personality_prose": player.personality,
+    })
 
 
 def handle_character_recipes(app, name):
