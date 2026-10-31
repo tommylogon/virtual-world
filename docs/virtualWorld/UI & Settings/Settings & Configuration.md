@@ -28,10 +28,16 @@ The `register_settings_routes()` function registers all settings-related API end
 |--------|----------|-------------|
 | GET | `/api/settings/ghost_mode` | Get ghost mode status |
 | POST | `/api/settings/ghost_mode` | Toggle ghost mode on/off |
+| GET | `/api/settings/mature_content` | Get mature content opt-in status |
+| POST | `/api/settings/mature_content` | Toggle mature content opt-in |
+| POST | `/api/settings/auto_generate_descriptions` | Toggle appearance generation on equip/unequip |
 | GET | `/api/settings/narration` | Get narration mode |
 | POST | `/api/settings/narration` | Set narration mode (`none`/`player`/`ai`) |
 | GET | `/api/settings/time_per_tick` | Get minutes per game tick |
 | POST | `/api/settings/time_per_tick` | Set minutes per game tick |
+| GET | `/api/settings/clock_start` | Get game start time (hour and minute) |
+| POST | `/api/settings/clock_start` | Set game start time |
+| GET | `/api/settings/equip_slots` | Get body equipment slot definitions and layer depths |
 | GET | `/api/settings/engine_config` | Get live engine tuning constants + schema (task-304) |
 | POST | `/api/settings/engine_config` | Save engine tuning overrides |
 | POST | `/api/settings/engine_config/reset` | Restore engine tuning defaults |
@@ -42,7 +48,7 @@ The `register_settings_routes()` function registers all settings-related API end
 
 ### Frontend Model (`static/js/config.ts`)
 
-The `ConfigManager` class (`window.config`) manages all client-side settings with automatic IndexedDB persistence (`storage.js`).
+The `ConfigManager` class (`window.config`) manages all client-side settings with automatic IndexedDB persistence (`storage.js`). To prevent I/O transaction flooding during 60fps physics slider drags, `config.save()` coalesces concurrent writes and applies a 150ms trailing debounce window (`save(immediate = false)`).
 
 To eliminate hardcoded defaults drifting across multiple files, `CONFIG_SCHEMA` defines the canonical schema, types, and fallback defaults in one place:
 
@@ -98,8 +104,9 @@ The Settings panel (`static/js/ui/settings-view.ts` and `templates/index.html`) 
    - Free of inline micro-controllers mutating the state store.
 
 3. **Controller (`SettingsView`)**:
-   - `SettingsView.populateForm()`: Reads `config` and populates `[data-config]` inputs and range value chips.
+   - `SettingsView.populateForm()`: Declaratively populates all `[data-config]` inputs directly from `config` with fallbacks from `CONFIG_SCHEMA`, automatically formatting companion `-val` display spans (`updateRangeDisplay`) while respecting decimal steps.
    - `SettingsView.readForm()`: Scans modal inputs and coerces types based on the schema, feeding `config.saveFromForm()`.
+   - `SettingsView.saveConfigToServer()`: Saves client config and asynchronously syncs scenario flags (`mature_content`, `ghost_mode`, `auto_generate_descriptions`) and game clock parameters directly to `ApiClient` endpoints.
    - `SettingsView.testConnection()`: Diagnostic chat ping for the Primary LLM.
    - `SettingsView.testMemoryConnection()`: Diagnostic ping for the Dedicated Memory Worker with live latency measurement.
    - `EmbeddingClient.test()`: Diagnostic vector calculation for the Embedding Model.
