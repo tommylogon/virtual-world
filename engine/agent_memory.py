@@ -95,11 +95,17 @@ class AgentMind:
     def remember(self, text: str, tick: int = 0, importance: int = 5,
                  tags: Optional[List[str]] = None, source: str = "mind",
                  location: str = "", entity_ids: Optional[List[str]] = None,
-                 memory_type: str = "observation"):
+                 memory_type: str = "observation", kind: Optional[str] = None):
         return self.player.add_memory(
             text, tick, importance=importance, memory_type=memory_type,
             tags=tags, source=source, entity_ids=entity_ids, location=location,
+            kind=kind,
         )
+
+    def record_absence(self, target: str, location: str, tick: int = 0,
+                       text: str = "", importance: int = 4) -> dict:
+        """Record an absence observation: verified empty container or cleared area (task-786)."""
+        return self.player.record_absence(target=target, location=location, tick=tick, text=text, importance=importance)
 
     def know_area(self, name: str) -> bool:
         """Mark an area as known. Returns True when it was newly learned."""

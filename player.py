@@ -1097,7 +1097,7 @@ class Player:
         from engine.relationships import describe
         return describe(self, other_name)
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None, data=None):
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None, data=None, kind=None):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] - optional keyword labels for targeting via trigger effects.
@@ -1126,6 +1126,8 @@ class Player:
             "salience_override": salience,
             "suppressions": [],
         }
+        if kind:
+            entry["kind"] = str(kind)
         if category:
             entry["category"] = str(category)
         if data is not None:
@@ -1152,6 +1154,24 @@ class Player:
         # configurable trim path was removed so nothing deletes a memory.
         return entry
 
+
+    def record_absence(self, target: str, location: str, tick: int, text: str = "", importance: int = 4) -> dict:
+        """Record an absence observation: verified empty container or cleared area (task-786)."""
+        txt = text or f"Confirmed absent: {target} is not in {location}."
+        data = {
+            "ref": f"known:absence:{location}:{target}",
+            "subject": location,
+            "expected_item": target,
+            "polarity": "absent",
+            "checked_at": tick,
+        }
+        return self.add_memory(
+            txt, tick, importance=importance, memory_type="observation",
+            tags=["absence", str(target).lower(), str(location).lower()],
+            source="observation", entity_ids=[location, target], location=location,
+            category="semantic", data=data, kind="absence"
+        )
+
     def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
                            tags=None, importance: int = 4, location: str = "",
                            source: str = "observation") -> dict:
@@ -1174,27 +1194,29 @@ class Player:
             existing["visits"] = int(existing.get("visits", 1)) + 1
             if tags:
                 existing["tags"] = sorted(set(existing.get("tags") or []) | set(tags))
-            # kind describes the SUBJECT, not the visit, so it belongs on the
-            # update as well as the create. Leaving it to the create branch let
-            # a subject first written by an unlabelled path claim the index
-            # slot, after which every later observation of that subject was
-            # refused a kind - and `_observed_by_location` filters on
-            # kind == "area", so the room a character started in never reached
-            # the minimap.
             if kind:
                 existing["kind"] = kind
             self.memory_index[str(subject_id)] = existing["id"]
-            return existing
+            res = existing
+        else:
+            entry = self.add_memory(
+                text, tick, importance=importance, memory_type="observation",
+                tags=(["observed"] + ([kind] if kind else []) + list(tags or [])),
+                source=source, entity_ids=[subject_id], location=location,
+            )
+            entry["kind"] = kind
+            entry["visits"] = 1
+            self.memory_index[str(subject_id)] = entry["id"]
+            res = entry
 
-        entry = self.add_memory(
-            text, tick, importance=importance, memory_type="observation",
-            tags=(["observed"] + ([kind] if kind else []) + list(tags or [])),
-            source=source, entity_ids=[subject_id], location=location,
-        )
-        entry["kind"] = kind
-        entry["visits"] = 1
-        self.memory_index[str(subject_id)] = entry["id"]
-        return entry
+        # task-786: newer presence observation supersedes prior absence record for this subject
+        for m in self.memories:
+            if m.get("kind") == "absence":
+                m_tgt = str(m.get("target") or (m.get("data") or {}).get("expected_item") or "")
+                m_loc = str(m.get("location") or (m.get("data") or {}).get("subject") or "")
+                if m_tgt == str(subject_id) and (not m_loc or not location or m_loc == location):
+                    m["superseded_by"] = res["id"]
+        return res
 
     def record_scene_observation(self, area_id: str, item_ids, text: str, tick: int,
                                 location: str = "", environment=None, exits=None,
@@ -1255,11 +1277,11 @@ class Player:
         entry_id = self.memory_index.get(key)
         if entry_id:
             for m in self.memories:
-                if m.get("id") == entry_id and not m.get("superseded_by"):
+                if m.get("id") == entry_id and not m.get("superseded_by") and m.get("kind") != "absence":
                     return m
         found = None
         for m in self.memories:
-            if m.get("superseded_by"):
+            if m.get("superseded_by") or m.get("kind") == "absence":
                 continue
             if key in (m.get("entity_ids") or []):
                 found = m

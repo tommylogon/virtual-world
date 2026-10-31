@@ -108,11 +108,33 @@ class StreamRawLLM {
         const recall = (recallStats && (Date.now() - (recallStats.at || 0)) < 30000)
             ? recallStats : null;
         const thisCallRecalls = recall && messages.some((m) => /=== I REMEMBER ===/.test(String(m.content || '')));
-        this._chipBubble(tick, actorLabel, '📤', window.Lit.html `LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html ` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`, (body) => {
-            // Body is PURELY the prompt text (for display). The retrieval
-            // "why" is NOT included here - it lives on the separate always-
-            // visible stream line, so it can never be mistaken for prompt text.
-            body.textContent = messages.map((m) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
+        this._chipBubble(tick, actorLabel, '📤', window.Lit.html `LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html ` <span class="recall-note" title="Click to view recalled memories breakdown">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`, (body) => {
+            // Body displays prompt text, preceded by recalled memories breakdown when present (task-786)
+            if (thisCallRecalls && recall && Array.isArray(recall.memories) && recall.memories.length > 0) {
+                const sigIcons = {
+                    spatial: '📍 Spatial',
+                    social: '👥 Social',
+                    conversational: '💬 Dialogue',
+                    emotional: '💭 Mood',
+                    need: '🥩 Need',
+                    recency: '⏱️ Recency',
+                    semantic: '🧠 Semantic',
+                };
+                const recRows = recall.memories.map((rm) => {
+                    const sig = rm.primary_signal || rm._provenance?.primary_signal || 'associative';
+                    const icon = sigIcons[sig] || sig;
+                    const pct = rm.percent_match ?? rm._provenance?.percent_match;
+                    const matchTag = pct != null ? `[Match: ${pct}%]` : `[Score: ${Math.round((rm.score || 0) * 10) / 10}]`;
+                    const txt = String(rm.text || '').replace(/^\[[^\]]*\]\s*/, '');
+                    return `  • ${matchTag} ${icon} - ${txt}`;
+                }).join('\n');
+                const recallHeader = `=== RECALLED MEMORIES (${recall.memories.length}) ===\n${recRows}\n\n` +
+                    `==================================================\n\n`;
+                body.textContent = recallHeader + messages.map((m) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
+            }
+            else {
+                body.textContent = messages.map((m) => `${m.role}: ${m.content}`).join('\n\n---\n\n');
+            }
         }, areaName, { ...(meta || {}), phase: meta?.phase || phaseName });
     }
     /** Log raw LLM response with explicit label - collapsed chip. */

@@ -1010,8 +1010,11 @@ class TickManager:
                 self._decay(p, "HP", -HEAT_SEVERE_HP)
 
             # Sleep regen toward full (~8h from empty once baseline drain nets out)
-            if was_sleeping and "Energy" in p.vitals:
-                self._decay(p, "Energy", SLEEP_ENERGY_REGEN)
+            if was_sleeping:
+                if "Energy" in p.vitals:
+                    self._decay(p, "Energy", SLEEP_ENERGY_REGEN)
+                from engine.memory_dynamics import consolidate_sleep
+                consolidate_sleep(p, current_tick=self.player_manager.time_ticks)
 
             # ── Persistent activities progress one step per tick (task-131) ──
             if p.activity:

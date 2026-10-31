@@ -119,10 +119,47 @@ def extract_cues(data: Dict[str, Any], world: Any = None) -> Dict[str, Any]:
             actor_ids.add(s)
 
     # Emotion
-    emotion = str(data.get("emotion") or "").strip().lower()
+    raw_emo = data.get("emotion")
+    if isinstance(raw_emo, dict):
+        emotion = str(raw_emo.get("label") or "").strip().lower()
+        intensity = float(raw_emo.get("intensity", 5.0) or 5.0)
+    else:
+        emotion = str(raw_emo or "").strip().lower()
+        intensity = float(data.get("emotion_intensity", 5.0) or 5.0)
 
     # Area ID
     area_id = str(data.get("current_area_id") or data.get("area_id") or "").strip().lower()
+
+    # Adjacent areas
+    adjacent_area_ids: Set[str] = set()
+    for adj in (data.get("adjacent_areas") or data.get("adjacent_area_ids") or []):
+        s = str(adj).strip().lower()
+        if s:
+            adjacent_area_ids.add(s)
+            if not s.startswith("area_"):
+                adjacent_area_ids.add(f"area_{s.replace(' ', '_')}")
+
+    if world is not None and area_id:
+        try:
+            from graph import EDGE_CONNECTION
+            for edge in world.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+                target_node = world.graph.get_node(edge.target)
+                if target_node:
+                    adjacent_area_ids.add(str(target_node.id).lower())
+                    if getattr(target_node, "name", None):
+                        adjacent_area_ids.add(str(target_node.name).lower())
+        except Exception:
+            pass
+
+    # Semantic embedding scores dict {memory_id: similarity_float}
+    semantic_scores: Dict[str, float] = {}
+    raw_sem = data.get("semantic_scores") or {}
+    if isinstance(raw_sem, dict):
+        for k, v in raw_sem.items():
+            try:
+                semantic_scores[str(k)] = float(v)
+            except (TypeError, ValueError):
+                pass
 
     return {
         "actor_ids": actor_ids,
@@ -132,7 +169,10 @@ def extract_cues(data: Dict[str, Any], world: Any = None) -> Dict[str, Any]:
         "dialogue_tokens": dialogue_tokens,
         "needs": needs,
         "emotion": emotion,
+        "emotion_intensity": intensity,
         "area_id": area_id,
+        "adjacent_area_ids": adjacent_area_ids,
+        "semantic_scores": semantic_scores,
         "raw_query": str(data.get("query") or "").strip(),
     }
 
@@ -144,7 +184,12 @@ def is_active_memory(m: Dict[str, Any], tick: int) -> Tuple[bool, str]:
     """
     text = str(m.get("text") or "").strip()
     if not text:
-        return False, "empty_text"
+        if m.get("kind") == "absence":
+            tgt = m.get("target") or (m.get("data") or {}).get("expected_item") or "item"
+            loc = m.get("location") or (m.get("data") or {}).get("subject") or "area"
+            text = f"Confirmed absent: {tgt} in {loc}"
+        else:
+            return False, "empty_text"
 
     if m.get("superseded_by"):
         return False, f"superseded_by_{m['superseded_by']}"
@@ -183,106 +228,146 @@ def score_memory(
     if not active:
         return 0.0, {"active": False, "reason": reason}
 
-    mem_tokens = normalize_tokens(memory.get("text", ""))
+    mem_text = str(memory.get("text") or "")
+    if not mem_text and memory.get("kind") == "absence":
+        tgt = memory.get("target") or (memory.get("data") or {}).get("expected_item") or "item"
+        loc = memory.get("location") or (memory.get("data") or {}).get("subject") or "area"
+        mem_text = f"Confirmed absent: {tgt} in {loc}"
+
+    mem_tokens = normalize_tokens(mem_text)
     mem_tags = {str(t).lower() for t in (memory.get("tags") or []) if t}
     mem_eids = {str(e).lower() for e in (memory.get("entity_ids") or []) if e}
+    mem_location = str(memory.get("location") or "").lower().strip()
+    mem_id = str(memory.get("id") or "")
 
-    breakdown: Dict[str, Any] = {
-        "active": True,
-        "facets_hit": [],
-        "keyword_score": 0.0,
-        "entity_score": 0.0,
-        "need_score": 0.0,
-        "emotion_score": 0.0,
-        "intersection_boost": 0.0,
-        "importance_weight": 0.0,
-        "recency_weight": 0.0,
-    }
+    # For absence memories, also register target and subject
+    if memory.get("kind") == "absence":
+        if memory.get("target"):
+            mem_eids.add(str(memory["target"]).lower())
+        if memory.get("data") and isinstance(memory["data"], dict):
+            if memory["data"].get("subject"):
+                mem_eids.add(str(memory["data"]["subject"]).lower())
+            if memory["data"].get("expected_item"):
+                mem_eids.add(str(memory["data"]["expected_item"]).lower())
 
-    # 1. Dialogue / Keyword overlap
-    dialogue_cues = cues.get("dialogue_tokens") or set()
-    matched_words = (mem_tokens & dialogue_cues) - STOPWORDS
-    kw_score = 0.0
-    if dialogue_cues:
-        overlap = len(matched_words)
-        kw_score = (overlap / max(1, min(len(dialogue_cues), 8))) * 3.0
-    breakdown["keyword_score"] = round(kw_score, 3)
-    breakdown["matched_words"] = sorted(matched_words)
-    if matched_words:
-        breakdown["facets_hit"].append("dialogue")
-
-    # 2. Entity match: Scene actors and items
-    entity_score = 0.0
+    facets_hit: List[str] = []
     matched_entities: List[str] = []
+    matched_spatial_label = ""
+    matched_actors: List[str] = []
+    matched_items: List[str] = []
+    matched_needs: List[str] = []
+    matched_words: List[str] = []
+    matched_emotion_label = ""
 
-    # Direct ID match
-    actor_ids = cues.get("actor_ids") or set()
-    matched_actors = mem_eids & actor_ids
-    if matched_actors:
-        entity_score += 2.5 * len(matched_actors)
-        matched_entities.extend(matched_actors)
-        breakdown["facets_hit"].append("actor")
+    # Populate fallbacks if raw un-extracted cues dict was passed directly
+    actor_ids = {str(a).lower() for a in (cues.get("actor_ids") or []) if a}
+    actor_names = {str(a).lower() for a in (cues.get("actor_names") or []) if a}
+    for a in (cues.get("actors") or []):
+        s = str(a).strip().lower()
+        if not s:
+            continue
+        if s.startswith("player_"):
+            actor_ids.add(s)
+        else:
+            actor_names.add(s)
+            actor_ids.add(f"player_{s.replace(' ', '_')}")
 
-    # Actor name match in text/tags (fallback for unlinked mentions)
-    actor_names = cues.get("actor_names") or set()
-    for aname in actor_names:
-        aname_tokens = normalize_tokens(aname)
-        if aname_tokens and aname_tokens.issubset(mem_tokens):
-            if "actor" not in breakdown["facets_hit"]:
-                entity_score += 2.0
-                matched_entities.append(aname)
-                breakdown["facets_hit"].append("actor")
+    item_ids = {str(i).lower() for i in (cues.get("item_ids") or []) if i}
+    item_names = {str(i).lower() for i in (cues.get("item_names") or []) if i}
+    for it in (cues.get("items") or []):
+        s = str(it).strip().lower()
+        if not s:
+            continue
+        if s.startswith("item_"):
+            item_ids.add(s)
+        else:
+            item_names.add(s)
+            item_ids.add(f"item_{s.replace(' ', '_')}")
 
-    # Visible items match
-    item_ids = cues.get("item_ids") or set()
-    matched_items = mem_eids & item_ids
-    if matched_items:
-        entity_score += 2.0 * len(matched_items)
-        matched_entities.extend(matched_items)
-        breakdown["facets_hit"].append("item")
+    dialogue_cues = set(cues.get("dialogue_tokens") or ())
+    if not dialogue_cues and cues.get("dialogue"):
+        for line in cues["dialogue"]:
+            dialogue_cues.update(normalize_tokens(line) - STOPWORDS)
+
+    # ── Channel 1: Spatial Proximity (Area & environmental items) ───────
+    spatial_score = 0.0
+    area_id = str(cues.get("area_id") or "").strip().lower()
+    adjacent_areas = {str(a).lower() for a in (cues.get("adjacent_area_ids") or set()) if a}
+
+    if area_id and (area_id == mem_location or area_id in mem_eids or (mem_location and mem_location in area_id)):
+        spatial_score += 3.5
+        matched_spatial_label = memory.get("location") or area_id
+        matched_entities.append(area_id)
+        facets_hit.extend(["spatial", "area"])
+    elif mem_location and adjacent_areas and (mem_location in adjacent_areas or any(adj in mem_location for adj in adjacent_areas)):
+        spatial_score += 1.5
+        matched_spatial_label = f"adjacent: {mem_location}"
+        facets_hit.extend(["spatial", "area"])
+    elif adjacent_areas and (mem_eids & adjacent_areas):
+        spatial_score += 1.5
+        matched_adj = sorted(mem_eids & adjacent_areas)[0]
+        matched_spatial_label = f"adjacent: {matched_adj}"
+        facets_hit.extend(["spatial", "area"])
+
+    # Visible items in current area connect to spatial environment
+    # item_ids already assembled
+    m_items = mem_eids & item_ids
+    if m_items:
+        spatial_score += 2.0 * len(m_items)
+        matched_items.extend(sorted(m_items))
+        matched_entities.extend(sorted(m_items))
+        if "item" not in facets_hit:
+            facets_hit.append("item")
 
     item_names = cues.get("item_names") or set()
     for iname in item_names:
         iname_tokens = normalize_tokens(iname)
         if iname_tokens and iname_tokens.issubset(mem_tokens):
-            if "item" not in breakdown["facets_hit"]:
-                entity_score += 1.5
+            if "item" not in facets_hit:
+                spatial_score += 1.5
+                matched_items.append(iname)
                 matched_entities.append(iname)
-                breakdown["facets_hit"].append("item")
+                facets_hit.append("item")
 
-    # Current area match
-    area_id = cues.get("area_id")
-    if area_id and area_id in mem_eids:
-        entity_score += 1.5
-        matched_entities.append(area_id)
-        breakdown["facets_hit"].append("area")
+    # ── Channel 2: Social Presence (Copresent scene actors) ─────────────
+    social_score = 0.0
+    # actor_ids already assembled
+    m_actors = mem_eids & actor_ids
+    if m_actors:
+        social_score += 2.5 * len(m_actors)
+        matched_actors.extend(sorted(m_actors))
+        matched_entities.extend(sorted(m_actors))
+        facets_hit.extend(["social", "actor"])
 
-    breakdown["entity_score"] = round(entity_score, 3)
-    breakdown["matched_entities"] = matched_entities
+    actor_names = cues.get("actor_names") or set()
+    for aname in actor_names:
+        aname_tokens = normalize_tokens(aname)
+        if aname_tokens and aname_tokens.issubset(mem_tokens):
+            if "social" not in facets_hit:
+                social_score += 2.0
+                matched_actors.append(aname)
+                matched_entities.append(aname)
+                facets_hit.extend(["social", "actor"])
 
-    # 3. Bodily need probe
-    need_score = 0.0
-    matched_needs: List[str] = []
-    active_needs = cues.get("needs") or set()
-    for need_key in active_needs:
-        vocabulary = NEED_TAG_MAP.get(need_key, set())
-        # Tag match is highest signal
-        if mem_tags & vocabulary:
-            need_score += 3.0
-            matched_needs.append(need_key)
-            breakdown["facets_hit"].append("need")
-            break
-        # Text token match
-        elif mem_tokens & vocabulary:
-            need_score += 2.0
-            matched_needs.append(need_key)
-            breakdown["facets_hit"].append("need")
-            break
-    breakdown["need_score"] = round(need_score, 3)
-    breakdown["matched_needs"] = matched_needs
+    for ab in (memory.get("about") or []):
+        sab = str(ab).lower()
+        if sab in actor_ids or sab in actor_names:
+            if "social" not in facets_hit:
+                social_score += 2.0
+                matched_actors.append(sab)
+                facets_hit.extend(["social", "actor"])
 
-    # 4. Emotion congruence
-    emotion_score = 0.0
+    # ── Channel 3: Conversational Echo (Recently heard words / dialogue) 
+    conversational_score = 0.0
+    m_words = (mem_tokens & dialogue_cues) - STOPWORDS
+    if dialogue_cues and m_words:
+        overlap = len(m_words)
+        conversational_score = (overlap / max(1, min(len(dialogue_cues), 8))) * 3.0
+        matched_words = sorted(m_words)
+        facets_hit.extend(["conversational", "dialogue"])
+
+    # ── Channel 4: Emotional Congruency (Mood bias) ─────────────────────
+    emotional_score = 0.0
     cue_emotion = cues.get("emotion")
     if cue_emotion:
         mem_emotions = []
@@ -291,50 +376,180 @@ def score_memory(
         for me in (memory.get("memory_emotions") or []):
             if isinstance(me, dict) and me.get("label"):
                 mem_emotions.append(str(me["label"]).lower())
-        if cue_emotion in mem_emotions or cue_emotion in mem_tags:
-            emotion_score += 1.5
-            breakdown["facets_hit"].append("emotion")
-    breakdown["emotion_score"] = round(emotion_score, 3)
+        if cue_emotion in mem_emotions or cue_emotion in mem_tags or any(cue_emotion in me for me in mem_emotions):
+            base_emo = 1.5
+            intensity = float(cues.get("emotion_intensity", 5.0) or 5.0)
+            if intensity >= 6.0:
+                multiplier = 1.0 + ((intensity - 5.0) * 0.3)
+                emotional_score = base_emo * multiplier
+            else:
+                emotional_score = base_emo
+            matched_emotion_label = cue_emotion
+            facets_hit.extend(["emotional", "emotion"])
 
-    # 5. Multi-facet intersection boost
-    # A memory that hits multiple distinct buckets (e.g. Actor + Dialogue)
-    # gets an exponential lift over single-facet noise.
-    unique_facets = set(breakdown["facets_hit"])
-    intersection_boost = 0.0
-    if len(unique_facets) >= 2:
-        intersection_boost = (len(unique_facets) - 1) * 2.5
-    breakdown["intersection_boost"] = round(intersection_boost, 3)
+    # ── Channel 5: Physical Need / Vitals Drive ─────────────────────────
+    need_score = 0.0
+    active_needs = cues.get("needs") or set()
+    for need_key in active_needs:
+        vocabulary = NEED_TAG_MAP.get(need_key, set())
+        if mem_tags & vocabulary:
+            need_score += 3.0
+            matched_needs.append(need_key)
+            facets_hit.append("need")
+            break
+        elif mem_tokens & vocabulary:
+            need_score += 2.0
+            matched_needs.append(need_key)
+            facets_hit.append("need")
+            break
 
-    # 6. Recency (exponential half-life)
+    # ── Channel 6: Temporal Recency & Activation ────────────────────────
     try:
         mem_tick = int(memory.get("tick", 0) or 0)
     except (TypeError, ValueError):
         mem_tick = 0
     age = max(0, current_tick - mem_tick)
-    recency = (0.5 ** (age / half_life)) * 2.0 if half_life > 0 else 0.0
-    breakdown["recency_weight"] = round(recency, 3)
+    recency_score = (0.5 ** (age / half_life)) * 2.0 if half_life > 0 else 0.0
+    if recency_score >= 0.8:
+        facets_hit.append("recency")
 
-    # 7. Effective importance (activation * confidence)
     memory_dynamics.ensure_dynamics(memory)
     eff_imp = memory_dynamics.effective_importance(memory) / 10.0
     importance_weight = eff_imp * 2.0
-    breakdown["importance_weight"] = round(importance_weight, 3)
 
-    # Total score calculation:
-    # Situational relevance (cues present in the room/dialogue/needs/emotion)
-    # is the gating trigger. Pure recency and routine importance do not surface
-    # un-cued memories unless importance is exceptionally high (trauma/core identity >= 9).
-    situational_score = kw_score + entity_score + need_score + emotion_score + intersection_boost
-    breakdown["situational_score"] = round(situational_score, 3)
-    base_salience = (recency * 0.5) + (importance_weight * 0.5)
+    # ── Channel 7: Semantic Embedding Similarity ────────────────────────
+    semantic_score = 0.0
+    semantic_scores = cues.get("semantic_scores") or {}
+    if mem_id and mem_id in semantic_scores:
+        sim = float(semantic_scores[mem_id])
+        semantic_score = sim * 3.0
+        facets_hit.append("semantic")
+    elif memory.get("semantic_score") is not None:
+        semantic_score = float(memory["semantic_score"]) * 3.0
+        facets_hit.append("semantic")
+    elif memory.get("similarity") is not None:
+        semantic_score = float(memory["similarity"]) * 3.0
+        facets_hit.append("semantic")
+
+    # ── Multi-facet intersection boost ──────────────────────────────────
+    situational_facets = set()
+    if spatial_score > 0:
+        situational_facets.add("spatial")
+    if social_score > 0:
+        situational_facets.add("social")
+    if conversational_score > 0:
+        situational_facets.add("conversational")
+    if emotional_score > 0:
+        situational_facets.add("emotional")
+    if need_score > 0:
+        situational_facets.add("need")
+    if semantic_score > 0:
+        situational_facets.add("semantic")
+
+    intersection_boost = 0.0
+    if len(situational_facets) >= 2:
+        intersection_boost = (len(situational_facets) - 1) * 2.5
+
+    situational_score = (
+        spatial_score + social_score + conversational_score +
+        emotional_score + need_score + semantic_score + intersection_boost
+    )
+    base_salience = (recency_score * 0.5) + (importance_weight * 0.5)
 
     if situational_score > 0:
         total = situational_score + base_salience
     else:
-        # Idle drift: un-cued memories fade to near-zero unless importance >= 9
         total = base_salience if eff_imp >= 0.9 else (base_salience * 0.2)
 
-    breakdown["total_score"] = round(total, 3)
+    # ── Primary signal & percent match ──────────────────────────────────
+    channel_vals = {
+        "spatial": spatial_score,
+        "social": social_score,
+        "conversational": conversational_score,
+        "emotional": emotional_score,
+        "need": need_score,
+        "semantic": semantic_score,
+    }
+    active_situational = {k: v for k, v in channel_vals.items() if v > 0}
+    if active_situational:
+        primary_signal = max(active_situational.items(), key=lambda x: x[1])[0]
+    elif recency_score >= 0.5:
+        primary_signal = "recency"
+    else:
+        primary_signal = "importance"
+
+    percent_match = min(100, max(0, int(round(total * 10))))
+
+    channels = {
+        "spatial": round(spatial_score, 3),
+        "social": round(social_score, 3),
+        "conversational": round(conversational_score, 3),
+        "emotional": round(emotional_score, 3),
+        "need": round(need_score, 3),
+        "recency": round(recency_score, 3),
+        "semantic": round(semantic_score, 3),
+    }
+
+    points = {
+        "spatial": int(round(spatial_score * 10)),
+        "social": int(round(social_score * 10)),
+        "conversational": int(round(conversational_score * 10)),
+        "emotional": int(round(emotional_score * 10)),
+        "need": int(round(need_score * 10)),
+        "recency": int(round(recency_score * 10)),
+        "semantic": int(round(semantic_score * 10)),
+    }
+
+    provenance = {
+        "score": round(total, 3),
+        "total_score": round(total, 3),
+        "percent_match": percent_match,
+        "primary_signal": primary_signal,
+        "channels": channels,
+        "points": points,
+        "facets_hit": sorted(set(facets_hit)),
+        "details": {
+            "spatial": matched_spatial_label,
+            "social": matched_actors,
+            "conversational": matched_words,
+            "emotional": matched_emotion_label,
+            "need": matched_needs,
+        },
+    }
+
+    breakdown: Dict[str, Any] = {
+        "active": True,
+        "facets_hit": sorted(set(facets_hit)),
+        "channels": channels,
+        "points": points,
+        "primary_signal": primary_signal,
+        "percent_match": percent_match,
+        "_provenance": provenance,
+        "provenance": provenance,
+        "keyword_score": round(conversational_score, 3),
+        "conversational_score": round(conversational_score, 3),
+        "entity_score": round(spatial_score + social_score, 3),
+        "spatial_score": round(spatial_score, 3),
+        "social_score": round(social_score, 3),
+        "need_score": round(need_score, 3),
+        "emotion_score": round(emotional_score, 3),
+        "emotional_score": round(emotional_score, 3),
+        "recency_score": round(recency_score, 3),
+        "recency_weight": round(recency_score, 3),
+        "semantic_score": round(semantic_score, 3),
+        "intersection_boost": round(intersection_boost, 3),
+        "importance_weight": round(importance_weight, 3),
+        "situational_score": round(situational_score, 3),
+        "matched_words": matched_words,
+        "matched_entities": matched_entities,
+        "matched_items": matched_items,
+        "matched_actors": matched_actors,
+        "matched_spatial_label": matched_spatial_label,
+        "matched_emotion_label": matched_emotion_label,
+        "matched_needs": matched_needs,
+        "total_score": round(total, 3),
+    }
+
     return total, breakdown
 
 
@@ -451,6 +666,10 @@ def retrieve_associative_memories(
     for s, m, b in scored_candidates[:max_results]:
         entry = dict(m)
         entry["score"] = round(s, 3)
+        entry["_provenance"] = b.get("_provenance", {})
+        entry["provenance"] = b.get("provenance", {})
+        entry["primary_signal"] = b.get("primary_signal", "associative")
+        entry["percent_match"] = b.get("percent_match", 0)
         if explain:
             entry["explanation"] = b
         associative_lane.append(entry)
@@ -470,6 +689,10 @@ def retrieve_associative_memories(
                 if eids & active_actor_ids:
                     entry = dict(m)
                     entry["score"] = round(s, 3)
+                    entry["_provenance"] = b.get("_provenance", {})
+                    entry["provenance"] = b.get("provenance", {})
+                    entry["primary_signal"] = b.get("primary_signal", "associative")
+                    entry["percent_match"] = b.get("percent_match", 0)
                     if explain:
                         entry["explanation"] = b
                     beliefs_lane.append(entry)
@@ -488,6 +711,9 @@ def retrieve_associative_memories(
             stored = next((orig for orig in memories if orig.get("id") == mid), None)
             if stored is not None:
                 memory_dynamics.reinforce(stored, tick=current_tick)
+                if r.get("_provenance"):
+                    stored["_provenance"] = r["_provenance"]
+                    stored["provenance"] = r["_provenance"]
 
     # Flat memories list for backward compatibility with existing consumers
     combined_memories = associative_lane + beliefs_lane

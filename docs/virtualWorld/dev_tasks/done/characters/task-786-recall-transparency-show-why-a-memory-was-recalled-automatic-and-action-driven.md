@@ -1,16 +1,17 @@
 ---
 type: task
-status: todo
+status: done
 area: characters
 priority: high
 related: ['task-725', 'task-734', 'task-736', 'task-789']
-wiki: "[[World Building/Character Creation & Archetypes]]"
+wiki: "[[AI & Narration/Memory Dynamics]]"
 ---
 
 # task-786: Recall transparency: show why a memory was recalled, automatic and action-driven
 
 **Filed:** 2026-10-12  
-**Updated:** 2026-10-21 (aligned with memory-redesign-3.md)  
+**Completed:** 2026-10-31  
+**Updated:** 2026-10-31 (aligned with memory-redesign-3.md)  
 **Related:** task-685, task-686, task-690, task-714  
 
 <!-- deps:start -->
@@ -43,8 +44,8 @@ The retrieval system scores candidates based on weighted contributions from seve
 
 ## Acceptance
 
-- [ ] Retrieval scoring calculates explicit signal components (spatial, social, conversational, emotional, need, recency, semantic).
-- [ ] Memory recall payload passed to the prompt builder includes a `_provenance` breakdown per recalled item.
-- [ ] Mind panel displays the match signal tags beside recalled memories.
-- [ ] Absence memories (`kind: "absence"`) can be written and surfaced to block obsolete goals.
-- [ ] Unit tests verify multi-signal weighting and that mood-congruent memories receive their salience boost when emotion intensity >= 6.
+- [x] Retrieval scoring calculates explicit signal components (spatial, social, conversational, emotional, need, recency, semantic).
+- [x] Memory recall payload passed to the prompt builder includes a `_provenance` breakdown per recalled item.
+- [x] Mind panel displays the match signal tags beside recalled memories.
+- [x] Absence memories (`kind: "absence"`) can be written and surfaced to block obsolete goals.
+- [x] Unit tests verify multi-signal weighting and that mood-congruent memories receive their salience boost when emotion intensity >= 6.

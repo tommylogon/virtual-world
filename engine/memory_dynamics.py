@@ -25,6 +25,8 @@ What each function is for:
 - :func:`detect_contradiction` - link assert/deny pairs; marks, never resolves.
 - :func:`consolidate` - compress stale low-importance same-entity episodes
   into one semantic trace memory.
+- :func:`consolidate_sleep` - fade routine episodic noise while reinforcing
+  emotionally salient memories during sleep/rest (task-786).
 
 Nothing here calls an LLM and nothing here knows about the graph.
 """
@@ -439,3 +441,58 @@ def consolidate(player, tick: Optional[int] = None, min_group: int = 3,
         folded += len(members)
         traces += 1
     return {"groups": traces, "folded": folded}
+
+
+
+def consolidate_sleep(player, current_tick: Optional[int] = None) -> Dict[str, int]:
+    """Consolidate memories during sleep or rest (task-786).
+
+    Routine episodic memories (< 5 importance, low emotion intensity)
+    fade minor noise, reducing cognitive clutter.
+    Emotionally salient memories (intensity >= 6 or importance >= 7)
+    gain reinforcement and an activation boost.
+
+    Returns {"faded": faded_count, "reinforced": reinforced_count}.
+    """
+    tick = int(current_tick if current_tick is not None else 0)
+    memories = getattr(player, "memories", []) or []
+    faded = 0
+    reinforced = 0
+
+    for m in memories:
+        ensure_dynamics(m)
+        source = str(m.get("source", ""))
+        if source in NON_DECAYING_SOURCES:
+            continue
+
+        cat = m.get("category", EPISODIC)
+        imp = float(m.get("importance", 5) or 5)
+
+        # Measure peak emotional intensity on the memory
+        max_intensity = 0.0
+        if isinstance(m.get("emotion"), dict):
+            try:
+                max_intensity = max(max_intensity, float(m["emotion"].get("intensity", 0) or 0))
+            except (TypeError, ValueError):
+                pass
+        for emo in (m.get("memory_emotions") or []):
+            if isinstance(emo, dict):
+                try:
+                    max_intensity = max(max_intensity, float(emo.get("intensity", 0) or 0))
+                except (TypeError, ValueError):
+                    pass
+
+        # High emotional salience or high importance -> sleep consolidation boost
+        if max_intensity >= 6.0 or imp >= 7.0:
+            m["activation"] = round(min(1.0, _unit(m.get("activation")) + 0.1), 4)
+            m["confidence"] = round(min(1.0, _unit(m.get("confidence")) + 0.05), 4)
+            m["reinforcements"] = int(m.get("reinforcements", 0)) + 1
+            m["last_recalled_tick"] = tick
+            reinforced += 1
+        elif cat == EPISODIC and imp < 5.0 and max_intensity < 4.0:
+            # Routine low-importance episode fades minor noise
+            step = 0.15 * decay_resistance(m)
+            m["activation"] = round(max(0.0, _unit(m.get("activation")) - step), 4)
+            faded += 1
+
+    return {"faded": faded, "reinforced": reinforced}

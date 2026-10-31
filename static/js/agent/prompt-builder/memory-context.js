@@ -32,22 +32,41 @@ window.PromptBuilder = window.PromptBuilder || {};
             return '';
         const player = worldState.data?.players?.[charName];
         const discoveredSet = new Set();
+        const absenceList = [];
         if (Array.isArray(player?.memories)) {
             for (const m of player.memories) {
                 if (m && m.kind === 'item' && m.name) {
                     discoveredSet.add(String(m.name).trim());
+                }
+                else if (m && m.kind === 'absence') {
+                    const target = m.target || m.data?.expected_item || m.name || '';
+                    const loc = m.location || m.data?.subject || '';
+                    if (target && loc) {
+                        absenceList.push(`${target} in ${loc}`);
+                    }
+                    else if (target) {
+                        absenceList.push(String(target));
+                    }
+                    else if (m.text) {
+                        absenceList.push(String(m.text));
+                    }
                 }
             }
         }
         const discovered = Array.from(discoveredSet).filter(Boolean);
         const actionHistory = (VW?.events?.getCharacterState?.(charName)?.actionHistory || [])
             .filter((entry) => entry && typeof entry.action === 'string' && entry.action.trim() && entry.result);
-        if (discovered.length === 0 && actionHistory.length === 0)
+        if (discovered.length === 0 && absenceList.length === 0 && actionHistory.length === 0)
             return '';
         const lines = [];
-        if (discovered.length > 0) {
+        if (discovered.length > 0 || absenceList.length > 0) {
             lines.push('=== ALREADY KNOWN ===');
-            lines.push(`You have already examined or taken: ${discovered.join(', ')}.`);
+            if (discovered.length > 0) {
+                lines.push(`You have already examined or taken: ${discovered.join(', ')}.`);
+            }
+            if (absenceList.length > 0) {
+                lines.push(`You already confirmed absent or empty: ${absenceList.join(', ')}.`);
+            }
             lines.push('');
         }
         // Count repeated verb+target combos from the live action history.
@@ -312,7 +331,11 @@ window.PromptBuilder = window.PromptBuilder || {};
                     confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined,
                     contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [],
                     details: mem.details || null,
-                    facets_hit: mem.facets_hit || []
+                    facets_hit: mem.facets_hit || [],
+                    _provenance: mem._provenance || mem.provenance || null,
+                    provenance: mem._provenance || mem.provenance || null,
+                    primary_signal: mem.primary_signal || mem._provenance?.primary_signal || null,
+                    percent_match: mem.percent_match || mem._provenance?.percent_match || null,
                 });
             }
         }
@@ -416,7 +439,11 @@ window.PromptBuilder = window.PromptBuilder || {};
                     memTags: m.memTags || [],
                     kb: m.kb || 0,
                     facets_hit: m.facets_hit || [],
-                    details: m.details || null
+                    details: m.details || null,
+                    _provenance: m._provenance || null,
+                    provenance: m.provenance || m._provenance || null,
+                    primary_signal: m.primary_signal || m._provenance?.primary_signal || null,
+                    percent_match: m.percent_match || m._provenance?.percent_match || null,
                 })),
                 questions: openQuestions
             };
@@ -427,7 +454,22 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (opts.report && typeof events?.log === 'function' && topMemories.length) {
                 const lines = topMemories.map((m) => {
                     let why;
-                    if (m.source === 'keyword') {
+                    const prov = m._provenance || m.provenance;
+                    if (prov && prov.primary_signal) {
+                        const sigIcons = {
+                            spatial: '📍 spatial',
+                            social: '👥 social',
+                            conversational: '💬 dialogue',
+                            emotional: '💭 mood',
+                            need: '🥩 need',
+                            recency: '⏱️ recency',
+                            semantic: '🧠 semantic',
+                        };
+                        const sigLabel = sigIcons[prov.primary_signal] || prov.primary_signal;
+                        const pct = prov.percent_match ? ` [Match: ${prov.percent_match}%]` : '';
+                        why = `${sigLabel}${pct} (score ${Math.round((m.score || 0) * 100) / 100})`;
+                    }
+                    else if (m.source === 'keyword') {
                         const words = (m.matchedWords?.length ? m.matchedWords.join(', ') : 'phrase');
                         const tags = (m.memTags?.length ? m.memTags.join(', ') : '');
                         why = `keyword (${words})${tags ? ` · tags ${tags}` : ''}`;
@@ -647,6 +689,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         return parts.length > 0 ? '\n' + parts.join('\n') : '';
     }
     Object.assign(window.PromptBuilder, {
-        buildMemoryContext
+        buildMemoryContext,
+        buildAlreadyKnownContext
     });
 })();

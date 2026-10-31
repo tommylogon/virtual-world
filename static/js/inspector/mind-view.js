@@ -155,6 +155,23 @@ const InspectorMindView = (() => {
             badges.push(_badge(`depth ${m.reflection_depth}`, '#bc8cff', `derived memory (from ${Array.isArray(m.source_memory_ids) ? m.source_memory_ids.length : '?'} source memories)`));
         if (String(m.source) === 'manual')
             badges.push(_badge('SEED', '#39c5cf'));
+        if (m.kind === 'absence')
+            badges.push(_badge('ABSENCE', '#e0a33c', 'Confirmed negative knowledge'));
+        const prov = m._provenance || m.provenance;
+        if (prov && prov.primary_signal) {
+            const sigIcons = {
+                spatial: '📍',
+                social: '👥',
+                conversational: '💬',
+                emotional: '💭',
+                need: '🥩',
+                recency: '⏱️',
+                semantic: '🧠',
+            };
+            const icon = sigIcons[prov.primary_signal] || '🔍';
+            const pct = prov.percent_match != null ? ` ${prov.percent_match}%` : '';
+            badges.push(_badge(`${icon} ${prov.primary_signal}${pct}`, '#58a6ff', `Recalled via ${prov.primary_signal} signal (${prov.percent_match || 0}%)`));
+        }
         return `<div class="mind-card" data-id="${esc(m.id)}" style="background:var(--bg-card);border:1px solid ${selected ? '#1f6feb' : 'var(--border)'};border-left:3px solid ${impColor};border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:11px;cursor:pointer;${faded ? 'opacity:0.55;' : ''}">
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                 <span style="color:var(--text-dim);font-size:10px;font-family:monospace;">[${esc(m.tick ?? 0)}]</span>
@@ -309,6 +326,37 @@ const InspectorMindView = (() => {
                 ${Number(m.reflection_depth) > 0 ? `<div style="display:flex;justify-content:space-between;font-size:10.5px;padding:2px 0;">
                     <span style="color:var(--text-dim);">reflection depth</span><span style="font-family:monospace;">${esc(m.reflection_depth)}</span></div>` : ''}
             </div>
+            ${(() => {
+            const prov = m._provenance || m.provenance;
+            if (!prov)
+                return '';
+            const pts = prov.points || {};
+            const chips = [];
+            if (pts.spatial)
+                chips.push(`📍 Spatial (+${pts.spatial})`);
+            if (pts.social)
+                chips.push(`👥 Social (+${pts.social})`);
+            if (pts.conversational)
+                chips.push(`💬 Dialogue (+${pts.conversational})`);
+            if (pts.emotional)
+                chips.push(`💭 Mood (+${pts.emotional})`);
+            if (pts.need)
+                chips.push(`🥩 Need (+${pts.need})`);
+            if (pts.semantic)
+                chips.push(`🧠 Semantic (+${pts.semantic})`);
+            if (pts.recency)
+                chips.push(`⏱️ Recency (+${pts.recency})`);
+            const pct = prov.percent_match != null ? prov.percent_match : Math.min(100, Math.round((prov.total_score || prov.score || 0) * 10));
+            return `<div style="background:var(--bg-inset);border:1px solid #1f6feb;border-radius:5px;padding:8px 10px;margin-bottom:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <span style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Recall Provenance</span>
+                        <span style="font-size:11px;font-weight:600;color:#58a6ff;">Match: ${pct}%</span>
+                    </div>
+                    <div style="font-size:10.5px;color:var(--text-dim);line-height:1.4;">
+                        ${chips.length ? chips.join(' · ') : `Primary signal: ${esc(prov.primary_signal || 'associative')}`}
+                    </div>
+                </div>`;
+        })()}
             ${emoList.length ? `<div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
                 <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Emotional encoding</div>
                 ${emoList.map((e) => _bar(String(e.label || ''), (Number(e.intensity) || 0) / 10, 1, '#e0a33c')).join('')}
@@ -1650,6 +1698,7 @@ const InspectorMindView = (() => {
         get _PERSONA_TONES() { return InspectorPersonaView._PERSONA_TONES; },
         _recordAndEvidenceHtml,
         _detailHtml,
+        _cardHtml,
         _rollupLivedLog,
         _historyHtml,
     });

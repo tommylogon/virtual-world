@@ -26,6 +26,10 @@ Memory Retrieval 3.0 replaces flat scoring with multi-facet perceptual cues:
 - **Open questions and suspicions:** Active unresolved questions (`category: "question"`) now live in their own dedicated prompt lane. When room entities or dialogue touch on a character's suspicion, their working theories surface automatically.
 - **Dedicated Memory Model client:** You can now configure a separate, lightweight model in Settings specifically for memory reflections and extractions. Fast local models (such as small 2B models in LM Studio) run structured memory operations at 200+ tokens per second without tying up your primary story model.
 - **AgentLens recall workbench:** Open the Agent Lens inspector to test memory recall interactively. You can type hypothetical dialogue lines or toggle simulated need states to preview exactly which memories win and read the scoring explanation.
+- **Recall transparency & multi-signal breakdown:** Every recalled memory now carries its exact provenance across seven distinct channels (spatial proximity, social presence, conversational echo, emotional congruency with salience multipliers for intensity >= 6, bodily need drive, temporal recency, and semantic embedding).
+- **Mind panel & Event Stream inspection:** Recalled memory chips in the Mind panel display signal badges and a full point breakdown (e.g. `[Match: 88%] 📍 Spatial (+35) · 👥 Social (+25) · 🥩 Need (+20) · 🧠 Semantic (+8)`). The Event Stream's `recalled: N memories` pill expands to show which memories were pulled into `=== I REMEMBER ===` and the primary trigger for each.
+- **Negative knowledge (absence memories):** Characters now record and recall absence observations (`kind: "absence"`) for verified empty containers or cleared areas. These memories surface in `=== ALREADY KNOWN ===` to prevent repetitive re-searching, and automatically supersede when a new presence observation occurs.
+- **Sleep consolidation:** During sleep and rest, routine episodic memories fade minor noise, while emotionally salient events (intensity >= 6 or importance >= 7) are reinforced and preserved.
 
 ---
 
