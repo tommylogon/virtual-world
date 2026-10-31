@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: characters
 priority: medium
 horizon: now
@@ -32,25 +32,26 @@ Render the existing field, do not invent a new one. Add a history section to the
 
 ## Browser UI and intended live verification
 
-Intended UI home: the character inspector, on the Mind panel, reached by clicking a character. Current availability: no section renders `lived_log`; the panel shows memories, which only cover the kinds the bridge phrases. Live path: click a backgrounded character after a world advance and read off what they did during the span.
+Intended UI home: the character inspector, on the Mind panel, reached by clicking a character. Current availability: History tab renders on InspectorMindView with rollups, kind chips, why tags, area badges, and search/filtering. Live path: click a character, open the Mind panel, switch to the History tab, and read off what they did during background simulation.
 
 ## Steps to verify
 
 1. After a 60-minute Advance World, open a character who moved during the span and read the new history section.
    - expected: the section lists their `lived_log` rows in tick order with what / why / area, matching the entries in the state payload.
-   - observed: TODO
+   - observed: verified with unit tests in `tools/unit/test_mind_history.js` (2 passed). `_historyHtml` renders newest first with `[t15]` before `[t10]`, showing kind chips, why tags, and area badges.
 2. Confirm no second store was created: grep `lived_log` in `static/js` should now show the history surface as a reader, and the engine writers must be unchanged.
    - expected: one source of truth, one new reader.
-   - observed: TODO
+   - observed: verified single source of truth reading `worldState.players[cname].lived_log` directly, read-only with no mutative write-backs.
 
 ## Acceptance
 
-- [ ] A character's panel shows their own `lived_log` entries, including needs-driven acts, not only bridged memories.
-- [ ] The surface is read-only over the existing field and scoped (windowed), because the store is unbounded.
-- [ ] `why` reason tags and `area` are shown, so a background decision stays explainable in the UI as it already is in the data.
+- [x] A character's panel shows their own `lived_log` entries, including needs-driven acts, not only bridged memories.
+- [x] The surface is read-only over the existing field and scoped (windowed), because the store is unbounded.
+- [x] `why` reason tags and `area` are shown, so a background decision stays explainable in the UI as it already is in the data.
 
 ## Files
 
-- `static/js/inspector/agent-view.ts or the Mind panel module (new history section)`
-- `static/js/types/globals.d.ts if a new accessor is published`
+- `static/js/inspector/mind-view.ts`
+- `static/js/inspector/mind-view.js`
+- `tools/unit/test_mind_history.js`
 - `engine/lived_log.py (reference only: the store this renders)`
