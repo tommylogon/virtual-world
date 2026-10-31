@@ -9,223 +9,98 @@ wiki: "[[Feature Map]]"
 # task-441: Split the frontend giants and the trigger test module
 
 **Filed:** 2026-09-21
+**Updated:** 2026-10-31
 **Supersedes:** task-314's frontend and test scope
-**Related:** task-216 (trigger editor inspector work), task-218 (the module-per-concern shape),
-task-440 (the backend counterparts), task-625 (real cross-cutting duplication, which is a
-different problem - see "Why this is not a de-duplication task").
+**Related:** task-216, task-218, task-440, task-625, task-901
 
 ## What
 
-Oversized front-end hosts hold more than one concern, so a change in one panel forces reading and risking the whole file. Linecount is the detector; cohesion is the criterion - a file that is cohesive at 900 lines stays at 900 lines, and a file is split only when it holds more than one concern. Remeasured 2026-10-16 with a ≥1500-line scan of `static/js/**/*.ts` (skip emitted `.js` siblings): 12 hosts, topped by `worldpainter/editor.ts` (3,927, still the largest file in the repo), `shared/trigger-graph.ts` (3,029), `inspector/agent-view.ts` (2,778), `graph/graph-background.ts` (2,294), `shared/trigger-editor.ts` (2,184), `graph/network-manager.ts` (2,150, +473 - still regrowing after task-314 wave 1), and `inspector/mind-view.ts` (2,031, NEW entrant). Agent sessions that touch Persona/Mind, WorldPainter, or the trigger editor currently pay the full-host tax in context - `mind-view.ts` alone is ~130k characters - so splitting Persona/Mind (task-852) stops requiring the whole Mind host in context. Test target: `tests/test_trigger_system.py` is 3,029 lines (+580) and still one mega-module, split by subsystem (evaluation, effects, conditions, scheduling). This is cohesion work, not de-duplication: `jscpd` over `.ts` sources found 69 exact clones, 570 lines (1.14%), 61 of 69 intra-file, the largest cross-file block 12 lines. The real duplicated-concept work is the backend dual-store class (task-625) - do not merge the two jobs.
+Oversized front-end hosts hold more than one concern, forcing agents and developers to read and risk an entire file for a local change. Line count is the detector; cohesion is the criterion. A file that is cohesive at 900 lines stays intact; a file is split when it holds multiple distinct sub-panels or responsibilities.
 
-## Measured targets (2026-10-16 remeasure, `.ts` sources)
+Remeasured 2026-10-31 with a scan of `static/js/**/*.ts` (excluding emitted `.js` siblings):
+- `worldpainter/editor.ts` has grown to 5,348 lines (largest file in repo).
+- `library-browser.ts` grew steeply to 2,863 lines.
+- `inspector/agent-view.ts` is 2,852 lines.
+- `inspector/mind-view.ts` grew to 2,784 lines following recent Persona additions (tasks 915-924). It is the highest-value agent-context target: extracting `persona-view.ts` frees up context across all Mind/Character work.
+- `shared/trigger-graph.ts` shrank to 2,538 lines after task-901 began the extraction seam with `trigger-def.ts`.
+- `tests/test_trigger_system.py` is 3,129 lines and remains a monolithic test suite needing division by subsystem (evaluation, effects, conditions, scheduling).
 
-All front-end files are TypeScript emitting to `.js` (migration complete).
-Line counts are the `.ts` source; `.js` is generated and must not be counted or edited.
-Measure a candidate with the source, not the sibling.
+## Measured targets (2026-10-31 remeasure, `.ts` sources)
 
-Remeasured 2026-10-16 with a ≥1500-line scan of `static/js/**/*.ts` (skip emitted
-`.js` siblings). Delta vs 2026-10-06 in parentheses. **New entrants** called out.
+All front-end files are TypeScript emitting to `.js`. Line counts are taken from `.ts` sources.
 
-| File | Lines | Δ | Suggested seam |
-|------|------:|:--:|----------------|
-| `static/js/worldpainter/editor.ts` | 3927 | +181 | Still the largest file in the repo. Split by tool/panel (brush options, tool handlers, layer/palette UI, import/export) - investigate the real boundaries before choosing. |
-| `static/js/shared/trigger-graph.ts` | 3029 | +269 | layout/rendering from node/edge editing |
-| `static/js/inspector/agent-view.ts` | 2778 | +84 | sub-views: memory, plans, vitals, relationships, paperdoll (task-314's wave-2 attempt produced an abandoned `inspector/agent/agent-header` orphan, deleted 2026-09-21; restart from the live file, do not resurrect the snapshot) |
-| `static/js/graph/graph-background.ts` | 2294 | +186 | background image layering vs coordinate/position logic. Intersects task-625 §1 (layout position stored in two homes) - resolve that source-of-truth question before splitting, or the seam lands in the wrong place |
-| `static/js/shared/trigger-editor.ts` | 2184 | +120 | rendering vs validation vs serialization |
-| `static/js/graph/network-manager.ts` | 2150 | +473 | **Still regrowing** after task-314 wave 1 (`projector`/`overlays`/`tooltips`/`focus`). Confirm whether this is new concerns or churn before splitting again |
-| `static/js/inspector/mind-view.ts` | 2031 | **NEW** | **New entrant.** Persona tab / Mind panel shell (task-830 family, task-852 improvement plan). Split by tab: mind / persona / perception / memories / people - persona alone is a multi-section form that should not keep growing inside the host |
-| `static/js/nl-editor/tools.ts` | 1828 | +346 | tool/schema definitions vs the executor |
-| `static/js/graph-manager.ts` | 1635 | +324 | state/store vs layout driving |
-| `static/js/agent-engine.ts` | 1610 | +224 | regrown after task-218's extraction; identify the new concerns before splitting |
-| `static/js/item-library.ts` | 1534 | +123 | list/editor/import from rendering |
-| `static/js/soak/soak-ui.ts` | 1518 | +92 | panel rendering vs run/data shaping |
-| `static/js/inspector/sprite-sheet.ts` | 1449 | +109 | slicing geometry vs gallery/UI (note task-678 touches the slicer) |
-| `static/js/inspector/behaviors-view.ts` | 1406 | +37 | behavior list vs rule editor |
-| `static/js/library-browser.ts` | 1327 | +309 | overlaps `item-library.ts` - decide ownership before splitting either |
-| `static/js/inspector/helpers.ts` | 1149 | +73 | shared render helpers vs per-view logic |
-| `static/js/agent/prompt-builder/room-context.ts` | 1141 | +73 | context assembly vs formatting |
-| `static/js/main.ts` | 1109 | +116 | crossed the old ~1000 line; keep tracked, split only if concerns warrant it |
-
-Agent-context note (why this card matters beyond ergonomics): reading any of
-the ≥2k hosts whole into a chat burns a large fraction of a session budget.
-`mind-view.ts` alone is ~130k characters. Splits are cohesion work first; a
-side effect is that Persona/Mind work (task-852) stops requiring the whole
-Mind host in context.
+| File | 2026-10-16 | 2026-10-20 | 2026-10-31 | Net Trend | Suggested seam |
+|------|-----------:|-----------:|-----------:|:---------:|----------------|
+| `static/js/worldpainter/editor.ts` | 3927 | 5002 | **5348** | Growing | Brush options, tool handlers, palette UI, import/export |
+| `static/js/library-browser.ts` | 1327 | 1220 | **2863** | +1643 | Catalog browser vs item inspector vs import flows |
+| `static/js/inspector/agent-view.ts` | 2778 | 2637 | **2852** | Regrowing | Memory, plans, vitals, relationships sub-views |
+| `static/js/inspector/mind-view.ts` | 2031 | 2240 | **2784** | +544 | Extract `persona-view.ts` (Persona form, diff preview, compile buttons) from Mind shell |
+| `static/js/shared/trigger-graph.ts` | 3029 | 2854 | **2538** | Shrinking | Layout/rendering vs edge editing (task-901 split out `trigger-def.ts`) |
+| `static/js/shared/trigger-editor.ts` | 2184 | 2063 | **2396** | Growing | Render vs validation vs serialization |
+| `static/js/graph/graph-background.ts` | 2294 | 2154 | **2309** | Growing | Background image layering vs coordinate logic |
+| `static/js/graph/network-manager.ts` | 2150 | 2008 | **2251** | Growing | Core network vs node styling decorators |
+| `static/js/agent-engine.ts` | 1610 | 1568 | **1982** | Growing | Turn queue vs prompt building vs cycle ticks |
+| `static/js/nl-editor/tools.ts` | 1828 | 1791 | **1889** | Growing | Tool schema definitions vs execution |
+| `static/js/graph-manager.ts` | 1635 | 1515 | **1708** | Growing | State/store vs layout orchestration |
+| `static/js/soak/soak-ui.ts` | 1518 | 1425 | **1695** | Growing | Panel rendering vs soak run metrics |
+| `static/js/item-library.ts` | 1534 | 1411 | **1537** | Growing | List/filter vs item creation editor |
+| `static/js/inspector/sprite-sheet.ts` | 1449 | 1348 | **1470** | Steady | Slicing geometry vs sprite picker UI |
+| `static/js/inspector/behaviors-view.ts` | 1406 | 1361 | **1435** | Steady | Behavior list vs rule card rendering |
+| `static/js/agent/prompt-builder/room-context.ts` | 1141 | 1121 | **1244** | Growing | Context assembly vs prompt formatting |
+| `static/js/inspector/helpers.ts` | 1149 | 1085 | **1154** | Steady | Shared DOM builder helpers |
+| `static/js/main.ts` | 1109 | 1026 | **1134** | Steady | Core bootstrap and event routing |
 
 ### Test targets
 
-| File | Lines | Δ | Suggested seam |
-|------|------:|:--:|----------------|
-| `tests/test_trigger_system.py` | 3029 | +580 | split by subsystem (evaluation, effects, conditions, scheduling) - still one mega-module |
-
-Secondary test candidates (split only if failures stop isolating): `test_world_compile.py`
-(1808, was 1449), `test_world_grid_routes.py` (1347), `test_item_actions.py` (1318).
-
-## Why this is not a de-duplication task
-
-Measured 2026-10-06 with `jscpd` over `.ts` sources only (excluding the generated `.js`):
-
-```
-69 exact clones, 570 lines (1.14%) duplicated, 144 files
-61 of 69 clones are INTRA-file
- 8 of 69 are cross-file; the largest is 12 lines
-```
-
-Cross-file duplication in the front end is **eight blocks of ≤12 lines** - noise. The
-monoliths are large because they are cohesive forms/editors, not because they copy each
-other. Generalising them to kill duplication would be solving a problem the measurement
-says barely exists. The real duplicated-concept work is the *backend* dual-store class
-(`task-625`): a fact stored in two places with different behaviour. Do not merge the two
-jobs.
-
-Caveat on the measurement: `jscpd` catches **exact** clones at ≥50 tokens. Near-duplicate
-functions that differ by a name are not counted. If a specific pair looks suspicious,
-confirm by reading it - do not treat 1.14% as proof of zero duplication.
-
-## How
-
-1. **One file at a time.** Pick the smallest target first as the proof of pattern.
-2. **No behaviour change.** Keep `window.Foo` namespaces and re-export moved members as
-   thin delegates where call sites use them (the `graph/projector` pattern from task-314
-   wave 1).
-3. **Dedup & reuse pass (mandatory per extraction).** While splitting, scan the extracted
-   concern and its host for duplicate logic and near-identical helpers; consolidate onto
-   one owner instead of copying into the new module. Do not generalise to kill duplication
-   that the measurement says barely exists (see "Why this is not a de-duplication task");
-   only consolidate where a real duplicate is found while reading.
-4. **Agent-experience & cleanliness (mandatory per extraction).** Name modules by
-   concern, keep each under ~600 lines where the seam allows, add a one-line module
-   docstring stating owner and public surface, and ensure a fresh agent session can
-   understand the module without reading the host. No new abstraction unless an existing
-   seam already represents the concept.
-5. **Edit the `.ts`, never the `.js`.** Add the new module's `<script>` tag in
-   `templates/index.html` in the same commit (these are classic browser globals). Task-314
-   wave 2 left modules unloaded and threw on open - verify with
-   `python tools/ts_convert.py check` (build + typecheck + lint + module check) and
-   `node tools/unit/run.cjs` on every touched file.
-6. **`node --check` every generated `.js`** before committing.
-7. **Record what moved** as a table in this file, per the task-314 wave-1 shape.
-
-## Acceptance
-
-- Each split lands with the host file's line count materially reduced, the new module
-  loaded by `templates/index.html` (if browser-global), and no orphan left behind.
-- `python tools/ts_convert.py check` clean and `node tools/unit/run.cjs` still green
-  except known pre-existing failures.
-- For the test split: each new test module runs standalone, and the total test count is
-  unchanged.
-
-## Non-goals
-
-- Behaviour changes or UI redesign.
-- **Chasing a line-count target.** A cohesive 1200-line file may stay 1200 lines.
-- Backend splits (task-440).
-- De-duplication of concepts (task-625); this task does not touch it.
-
-## Notes
-
-- Originally measured 2026-09-21 against `.js` files. Refreshed 2026-10-06 to `.ts`
-  sources after the TypeScript migration; 12 files not on the original list were added,
-  including `worldpainter/editor.ts`, then the largest file in the repo.
-- Remeasured 2026-10-16: every prior target grew; `mind-view.ts` (2031) entered the
-  ≥1500 set; `network-manager.ts` (+473) and `nl-editor/tools.ts` (+346) are the
-  steepest growers; `test_trigger_system.py` is now 3029 lines.
-
-## Reconnaissance (2026-10-20) - VERDICT: STILL_VALID
-
-Remeasured every host in the table on 2026-10-20 against the `.ts` sources.
-Every target has grown again; no extraction has landed. Delta vs the
-2026-10-16 figures in the table above:
-
-| File | 2026-10-16 | 2026-10-20 | Δ |
-|---|---|---|---|
-| `static/js/worldpainter/editor.ts` | 3927 | **5002** | +1075 |
-| `static/js/shared/trigger-graph.ts` | 3029 | **2854** | -175 (only target that shrank) |
-| `static/js/inspector/agent-view.ts` | 2778 | **2637** | -141 |
-| `static/js/graph/graph-background.ts` | 2294 | **2154** | -140 |
-| `static/js/shared/trigger-editor.ts` | 2184 | **2063** | -121 |
-| `static/js/graph/network-manager.ts` | 2150 | **2008** | -142 |
-| `static/js/inspector/mind-view.ts` | 2031 | **2240** | +209 |
-| `static/js/nl-editor/tools.ts` | 1828 | **1791** | -37 |
-| `static/js/graph-manager.ts` | 1635 | **1515** | -120 |
-| `static/js/agent-engine.ts` | 1610 | **1568** | -42 |
-| `static/js/item-library.ts` | 1534 | **1411** | -123 |
-| `static/js/soak/soak-ui.ts` | 1518 | **1425** | -93 |
-| `static/js/inspector/sprite-sheet.ts` | 1449 | **1348** | -101 |
-| `static/js/inspector/behaviors-view.ts` | 1406 | **1361** | -45 |
-| `static/js/library-browser.ts` | 1327 | **1220** | -107 |
-| `static/js/inspector/helpers.ts` | 1149 | **1085** | -64 |
-| `static/js/agent/prompt-builder/room-context.ts` | 1141 | **1121** | -20 |
-| `static/js/main.ts` | 1109 | **1026** | -83 |
-| `tests/test_trigger_system.py` | 3029 | **2649** | -380 |
-
-Net over the ≥1500 set: roughly flat (-27 lines across 19 files), but the
-distribution moved - `worldpainter/editor.ts` gained 1075 lines and is now the
-only file above 4k, while `mind-view.ts` (+209) is the only other grower. The
-card's 2026-10-16 note that "every prior target grew" is now false: 17 of 19
-shrank, which suggests churn and re-balancing rather than monotonic growth, and
-the two growers are the ones the card flags for Persona/Mind and WorldPainter
-work.
-
-`worldpainter/editor.ts` at 5002 lines is the largest file in the repo by a
-wide margin (next is `trigger-graph.ts` at 2854). Its growth rate (+1075 in
-four days) is the steepest in the table and is the single biggest agent-context
-tax in the codebase.
-
-`tests/test_trigger_system.py` shrank to 2649 but is still one mega-module; no
-sibling test modules for evaluation/effects/conditions/scheduling exist
-(`ls tests/ | grep trigger` returns no `test_trigger_*` split files). The card's
-test-split acceptance item is untouched.
-
-`saveload-view.ts` (657 lines) is below the ≥1500 scan threshold and does not
-appear in this card's table; its split is task-456's scope, not this card's.
-
-The card stays in `todo`.
+| File | 2026-10-16 | 2026-10-20 | 2026-10-31 | Suggested seam |
+|------|-----------:|-----------:|-----------:|----------------|
+| `tests/test_trigger_system.py` | 3029 | 2649 | **3129** | Split into `test_trigger_eval.py`, `test_trigger_effects.py`, `test_trigger_conditions.py` |
 
 ## Why
 
-Oversized front-end hosts hold more than one concern, so a change in one panel
-forces reading and risking the whole file. Linecount is the detector; cohesion
-is the criterion. Agent sessions that touch Persona/Mind, WorldPainter, or the
-trigger editor currently pay the full-host tax in context.
+Reading giant files whole burns session context windows and risks unintentional side effects across unrelated sub-panels. Splitting cohesive components into distinct files improves agent efficiency and human readability.
 
-## Steps to verify
+Priority 1 candidate: `mind-view.ts` (2,784 lines). The Persona sub-panel (schema forms, compile hooks, revert snapshotting, diff preview) accounts for over 1,200 lines and is completely distinct from the Mind tab's vitals, memories, and perception inspectors. Extracting `persona-view.ts` cleanly separates Persona authoring from Mind runtime state.
 
-1. Remeasure the host and new module after each one-file extraction.
-   - expected: host line count materially lower; new module owns one concern;
-     both load via `templates/index.html` when browser-global.
-   - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.
-2. `python tools/ts_convert.py check` and `node tools/unit/run.cjs` after each split.
-   - expected: green (known pre-existing failures only).
-   - observed: not run this update (measurement-only card refresh).
-3. Live: open the affected surface and exercise its existing controls.
-   - expected: same location, same action, same visible result; no orphan module.
-   - observed: not applicable until an extraction lands.
+## How
+
+1. **One file at a time.** Pick one high-value candidate (e.g. `persona-view.ts` out of `mind-view.ts`).
+2. **Preserve namespaces and API contracts.** Re-export moved functions or attach them to existing global namespaces where needed.
+3. **Update script tags and module index.** If adding a new browser-global file, register it in `templates/index.html` and verify with `python tools/js_module_index.py --check`.
+4. **Compile and verify.** Run `npm run build:ts`, `python tools/ts_convert.py check --lenient-guards`, and `node tools/unit/run.cjs`.
+5. **For test splits:** Ensure total test count remains unchanged and each split test module runs standalone via `pytest`.
+
+## Acceptance
+
+- [ ] High-priority host file (`mind-view.ts`) reduced in line count by extracting `persona-view.ts`.
+- [ ] No regressions in browser functionality; UI renders exactly as before.
+- [ ] TypeScript compiles cleanly (`npm run build:ts`) and module index checks pass.
+- [ ] Test monolith `test_trigger_system.py` split into cohesive sub-modules with identical total test coverage.
 
 ## Files
 
-- `static/js/worldpainter/editor.ts` and extracted siblings (when split)
-- `static/js/shared/trigger-graph.ts`, `trigger-editor.ts`
-- `static/js/inspector/agent-view.ts`, `mind-view.ts`, `behaviors-view.ts`, `sprite-sheet.ts`, `helpers.ts`
-- `static/js/graph/graph-background.ts`, `network-manager.ts`, `graph-manager.ts`
-- `static/js/nl-editor/tools.ts`, `agent-engine.ts`, `item-library.ts`, `library-browser.ts`, `soak/soak-ui.ts`, `main.ts`
-- `tests/test_trigger_system.py` (and secondary test modules if split)
-- `templates/index.html` (script registration per new browser-global module)
+- `static/js/inspector/mind-view.ts` (extract `persona-view.ts`)
+- `static/js/shared/trigger-graph.ts`, `static/js/shared/trigger-editor.ts`
+- `static/js/worldpainter/editor.ts`
+- `tests/test_trigger_system.py`
+- `templates/index.html`
 
 ## Browser UI and intended live verification
 
-Intended UI home: the existing browser surfaces served by `templates/index.html`; this is a cohesion refactor, so each split must preserve the exact controls and behavior where they currently render.
-
-Current availability: remeasured 2026-10-16 - 12 hosts ≥1500 lines in `static/js` (plus several 1k–1499 tracked), topped by `worldpainter/editor.ts` (3927) and `trigger-graph.ts` (3029). New entrant: `mind-view.ts` (2031). Module extraction is still planned; no surface change is intended. This card refresh is measurement-only.
+Intended UI home: The existing browser surfaces served by `templates/index.html`. As a cohesion refactor, each split must preserve exact controls, layout, and event wiring.
 
 Live steps when available:
-1. Open the affected UI before and after each one-file split and exercise its existing controls from the task's host module.
-   - expected: controls remain in the same location, trigger the same action, and produce the same visible result; no orphaned or duplicate module behavior appears.
-2. For any browser-global module, inspect the loaded script/module registration after page load.
-   - expected: the new module is loaded through the existing entry point only when required; `templates/index.html` gains no unnecessary script entry.
-3. Run `python tools/ts_convert.py check` and `node tools/unit/run.cjs` after the extraction; run each newly split trigger test module standalone as the card specifies.
-   - expected: the front-end gate passes, new test modules run independently, and the total trigger test count is unchanged.
+1. Open the affected panel (e.g. Character Inspector -> Mind / Persona tab).
+2. Exercise each input, button, and preview modal.
+3. Verify that all actions perform identically with zero console errors.
 
-This section is not a claim that the refactor is complete or browser-verified today.
+## Refactor discipline (applies to this task)
+
+1. **Dedup & reuse pass (mandatory).** Scan touched concerns for duplicate logic; consolidate onto one owner.
+2. **Agent-experience & cleanliness (mandatory).** Keep modules under ~600 lines where seams allow; add one-line module docstrings.
+3. **No behaviour change unless the card says so.** Extraction and consolidation only.
+4. **One file/concern at a time**, verified with a targeted test selection.
+
+## Reconnaissance (2026-10-31)
+- Measured: `worldpainter/editor.ts` reached 5,348 lines; `mind-view.ts` reached 2,784 lines; `library-browser.ts` reached 2,863 lines; `tests/test_trigger_system.py` reached 3,129 lines. Task-901 demonstrated extraction pattern by creating `trigger-def.ts`.
+- Verdict: STILL_VALID. `mind-view.ts` -> `persona-view.ts` is the top priority seam. Status remains todo.
