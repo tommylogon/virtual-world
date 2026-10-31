@@ -96,3 +96,6 @@ kilo/tmp/
 data/soak_telemetry/
 data/exports/soak-e31a7b0521c4.json
 scratch/
+data/config/
+data/exports/Millwood_tick_1-3188*
+data/exports/benchmark_*
