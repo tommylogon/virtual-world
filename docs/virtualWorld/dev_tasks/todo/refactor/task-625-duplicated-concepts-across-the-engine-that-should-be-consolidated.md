@@ -9,100 +9,85 @@ wiki: "[[Feature Map]]"
 # task-625: Duplicated concepts across the engine that should be consolidated
 
 **Filed:** 2026-09-30
-**Related:** 
+**Updated:** 2026-10-31
+**Related:** task-453, task-430, task-914
 
 ## What
 
-Cross-cutting: several concepts are implemented in more than one place with different behaviour, which is how the same fact ends up stored twice. Measured 2026-10-02: (1) a node's layout position has two homes — `graph_background.positions` (serialized, **0 entries** in the live world) and the node's `properties.x/y` (what the layout engine, `moveNode` and `GraphRelativeLayout.persistFrozenDrop` actually write); authoritative is `properties.x/y`, so the background `positions` map should be fed from it or retired. (2) the graph layout axis is expressed three ways — `graphManager._cardinalLayout` (now persisted as `config.graphCardinalLayout`), `config.graphLayoutMode` (`'free'`/`'levels'`), and the derived `activeLayout()` (`'graph'`/`'map'`/`'levels'`); bug-48 made `activeLayout()` the single UI source of truth, but the two underlying flags remain and can disagree in storage. (3) "Where I have been" has two stores — `player.visited_areas` vs `kind == "area"` observation memories — owned by task-430. (4) "What I have seen" has two stores — `player.discovered_items` vs `kind == "item"` observation memories — also task-430. (5) payload version constants were two ideas in one (`APP_VERSION` used as a stand-in for a format marker plus a hard-coded `2`); resolved by task-453 (`SCHEMA_VERSION` in `version.py`, `engine/schema.py`). Note `engine/structures.py::STRUCTURE_SCHEMA_VERSION` is a separate graft-format version and is correctly independent — that is not a duplication. Suggested order: #5 is done; do #1 and #2 as their own small changes (both are front-end/graph-boundary and testable), then defer #3/#4 to task-430.
+Cross-cutting: several concepts were implemented in more than one place with different behavior, storing the same fact twice.
 
-## Acceptance
+STATUS UPDATE (2026-10-31):
+- **Item 5 is completed**: Resolved by `task-453` (`SCHEMA_VERSION` in `version.py`, `engine/schema.py`).
+- **Character node vs player duplication is completed**: Resolved by `task-914` and codified in AGENTS.md simulation invariants (persisted definition lives on node properties; runtime state lives on Player; `to_scenario_dict` strips player definition copies).
+- **Items 3 and 4 are delegated**: "Where I have been" (`visited_areas` vs area memories) and "What I have seen" (`discovered_items` vs item memories) are owned by `task-430`.
+- **Remaining active scope**: Items 1 and 2 below.
 
-- TODO
+## Active Inventory
 
-## Inventory — 2026-10-02 (audit; not yet consolidated)
+### 1. A node's layout position has two homes
 
-Concrete, measured duplications found while working the small-bugs cluster.
-Each names the two stores and the authoritative side.
+`graph_background.positions` (serialized; **0 entries** in the live world) versus the node's `properties.x/y` (what the layout engine, `moveNode`, and `GraphRelativeLayout.persistFrozenDrop` actually write).
 
-1. **A node's layout position has two homes.** `graph_background.positions`
-   (serialized; **0 entries** in the live world — measured) and the node's
-   `properties.x/y` (what the layout engine, `moveNode`, and
-   `GraphRelativeLayout.persistFrozenDrop` actually write). The live-audit
-   (`docs/live-audit/README.md` §4) reached the same conclusion. Authoritative:
-   `properties.x/y`; the background `positions` map should either be fed from it
-   or retired.
+- **Authoritative**: `node.properties.x` and `node.properties.y`.
+- **Remedy**: Retire the background `positions` map or feed it directly from node properties. Do not serialize an empty or divergent `positions` dictionary in scenario files.
 
-2. **The graph layout axis is expressed three ways.** `graphManager._cardinalLayout`
-   (Map, runtime; now also persisted as `config.graphCardinalLayout` — bug-510),
-   `config.graphLayoutMode` (`'free'`/`'levels'`), and the derived
-   `activeLayout()` (`'graph'|'map'|'levels'`). bug-48 made `activeLayout()` the
-   single UI source of truth, but the two underlying flags remain and can
-   disagree in storage. A single persisted layout value would remove the class.
+### 2. The graph layout axis is expressed three ways
 
-3. **"Where I have been" has two stores** — `player.visited_areas` (area names)
-   vs `kind == "area"` observation memories. **Owned by task-430**; do not
-   separately refactor.
+`graphManager._cardinalLayout` (Map, runtime; persisted as `config.graphCardinalLayout`), `config.graphLayoutMode` (`'free'`/`'levels'`), and derived `activeLayout()` (`'graph'|'map'|'levels'`).
 
-4. **"What I have seen" has two stores** — `player.discovered_items` vs
-   `kind == "item"` observation memories. **Also task-430.**
+- **Authoritative**: `activeLayout()`.
+- **Remedy**: Unify the configuration into a single persisted layout mode enum (`layout_mode: 'graph' | 'map' | 'levels'`) to prevent flag desynchronization.
 
-5. **Payload version constants** were two ideas in one (`APP_VERSION` used as a
-   stand-in for a format marker, plus a hard-coded `2`). **Resolved by task-453**
-   (`SCHEMA_VERSION` in `version.py`, `engine/schema.py`). Note
-   `engine/structures.py::STRUCTURE_SCHEMA_VERSION` is a *separate* graft-format
-   version and is correctly independent — that is not a duplication.
+## Resolved or Delegated Items (Historical Record)
 
-Suggested order: #5 is done; do #1 and #2 as their own small changes (both are
-front-end/graph-boundary and testable), then defer #3/#4 to task-430.
+3. **"Where I have been" has two stores** - `player.visited_areas` (area names) vs `kind == "area"` observation memories. **Owned by task-430**; do not separately refactor here.
+4. **"What I have seen" has two stores** - `player.discovered_items` vs `kind == "item"` observation memories. **Also task-430.**
+5. **Payload version constants** - `APP_VERSION` vs format marker. **Resolved by task-453** (`SCHEMA_VERSION`).
+6. **Character definition vs Player** - Character definition properties vs `Player` fields. **Resolved by task-914**; node properties are the single persisted home.
+
+## Acceptance (for Items 1 and 2)
+
+- [ ] Node positions in `graph_background.ts` read from and write to `node.properties.x/y`; `graph_background.positions` is removed from serialization.
+- [ ] Graph layout settings are consolidated onto a single configuration setting matching `activeLayout()`.
+- [ ] Scenario save and load preserves node coordinates without redundant coordinate dictionaries.
+- [ ] Front-end checks (`npm run build:ts`, `python tools/ts_convert.py check`) pass cleanly.
 
 ## Why
 
-Dual-store concepts are the class of bug where a fact is written in two places with
-different behaviour, so readers disagree silently (see task-724 for the character case
-and AGENTS.md "Never infer runtime behavior from existence"). Consolidating onto one
-authoritative home, with derived projections rebuilt from it, removes a whole category
-of drift. This card owns the cross-cutting inventory; task-724 owns the character
-case and task-430 owns the visited/discovered memory case.
-
-## How
-
-1. Work the inventory one concept at a time, smallest first (#1 and #2 — front-end/graph
-   boundary, testable; then defer #3/#4 to task-430).
-2. For each concept: record authored source, runtime writer, every reader/caller, and the
-   serialized home before changing anything. Identify the authoritative side and the
-   behaviour mismatch.
-3. Consolidate onto the authoritative home; make the other a derived projection rebuilt
-   from it (or retire it). Update `to_scenario_dict`/serialization so the fact is stored
-   once.
-4. Update the AGENTS.md invariant sentence where reality disagrees with it (task-724 did
-   this for the character node).
-5. Add a regression test proving the remaining home is the one read. Run the focused
-   module(s) only; never the full suite by default.
+Dual-store concepts create silent drift where readers query different sources of truth. Consolidating onto one authoritative home, with derived projections rebuilt from it, removes an entire class of synchronization defects.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Node position inspection:
+   - expected: Moving a node in the graph editor updates `node.properties.x` and `node.properties.y`; `/api/state` reflects these properties; no auxiliary position map is serialized.
+   - observed: `graph_background.positions` is currently empty (0 entries) while `properties.x/y` carries live coordinates.
+2. Layout mode consistency:
+   - expected: Toggling between Free, Levels, and Map views writes a single configuration value that cleanly drives `activeLayout()`.
+   - observed: Dual boolean/string flags currently coexist.
 
 ## Files
 
-- TODO
+- `static/js/graph/graph-background.ts` - retire redundant `positions` map
+- `static/js/graph-manager.ts` - unify layout mode state
+- `engine/serialization.py` - ensure positions are only serialized in node properties
 
 ## Browser UI and intended live verification
 
-Intended UI home: Not applicable — this is an investigation and consolidation task across engine concepts; the card does not specify one user-facing feature or screen to change.
+Intended UI home: Graph canvas view and Toolbar layout selectors.
 
-Current availability: the task reports duplicated concepts with differing behavior and requires each duplicate to be traced before selecting an authoritative representation. No consolidation is claimed as implemented.
+Live steps when available:
+1. Drag a node to a new position on the canvas.
+2. Save scenario and reload.
+3. Verify the node appears in the exact dragged position and node properties carry the updated coordinates.
+4. Switch layout mode between Graph, Map, and Levels; verify toolbar selector and canvas agree.
 
-Why no browser UI: a browser interaction cannot identify all duplicate stores or prove which runtime caller reads each one; that requires tracing sources, writers, and consumers first.
+## Refactor discipline (applies to this task)
 
-Alternative verification steps:
-1. For each concept selected by the task, record the authored source, runtime writer, every reader/caller, and the serialized home before changing it.
-   - expected: the inventory distinguishes true mirrors/projections from competing sources of truth and identifies the exact behavior mismatch.
-2. After consolidating one concept, inspect the affected module callers and save/load representation.
-   - expected: one authoritative value remains, derived projections are rebuilt from it, and existing scenario/save data still resolves through the documented migration path.
-3. Run the focused regression tests for that concept and compare a small before/after scenario result.
-   - expected: the duplicate behavior is gone while unrelated mechanics retain their measured output.
+1. **Dedup & reuse pass (mandatory).** Scan touched concerns for duplicate logic; consolidate onto one owner.
+2. **Agent-experience & cleanliness (mandatory).** Keep modules under ~600 lines where seams allow; add one-line module docstrings.
+3. **No behaviour change unless the card says so.** Extraction and consolidation only.
+4. **One file/concern at a time**, verified with a targeted test selection.
 
-This section is not a claim that planned consolidation is complete today.
+## Reconnaissance (2026-10-31)
+- Measured: Items 3-4 belong to task-430. Item 5 resolved by task-453. Character definition resolved by task-914. Item 1 (`graph_background.positions`) has 0 live entries. Item 2 has coexisting flags in `graph-manager.ts`.
+- Verdict: STILL_VALID, narrowed to Items 1 and 2. Status remains todo.
