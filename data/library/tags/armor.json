@@ -1,7 +1,7 @@
 {
   "id": "armor",
   "name": "Armor",
-  "description": "Worn protection — defense bonuses via the equipment system (equipment_bonuses.py DEFENSE_TAGS)",
+  "description": "Worn protection - defense bonuses via the equipment system (equipment_bonuses.py DEFENSE_TAGS)",
   "category": "mechanical",
   "color": "#cc8844",
   "icon": "⛡",
