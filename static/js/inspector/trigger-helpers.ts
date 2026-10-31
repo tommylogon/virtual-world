@@ -1,9 +1,9 @@
 /**
- * InspectorTriggers — Trigger system helpers for the Inspector
+ * InspectorTriggers - Trigger system helpers for the Inspector
  * Extracted from inspector.js for modularity.
  * Handles display and removal of trigger edges on item/way nodes.
  *
- * @module inspector/trigger-helpers — trigger display/removal for item & way inspectors
+ * @module inspector/trigger-helpers - trigger display/removal for item & way inspectors
  * @contributes InspectorTriggers: list a node's trigger edges, remove one, open the trigger editor
  * @powers viewing and editing the triggers attached to an item or way
  * @relates renders through InspectorPanel; used by item-view + way-view
@@ -301,16 +301,16 @@ const _InspectorTriggers = (() => {
         const triggers = api._getNodeTriggerData(nodeId);
         const graph = TG.triggersToGraph(triggers);
 
-        const persistDefinitions = async (defs: TriggerDef[]) => {
+        const persistDefinitions = async (defs: TriggerItemDef[]) => {
             if (!defs.length) return;
             const node = worldState.getNode(nodeId);
             if (!node) return;
             const current = TG.normalizeTriggerList((node.properties as any)?.triggers);
-            const byId = new Map<string, TriggerDef>();
+            const byId = new Map<string, TriggerItemDef>();
             for (const trigger of current) {
                 if (trigger && trigger.id) byId.set(String(trigger.id), trigger);
             }
-            const next: TriggerDef[] = [];
+            const next: TriggerItemDef[] = [];
             for (const def of defs) {
                 if (!def) continue;
                 const id = String(def.id || `trigger_${nodeId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`);
@@ -332,7 +332,7 @@ const _InspectorTriggers = (() => {
                 ...(window.VW?.inspector?._triggerEditorOptions(nodeId) || {}),
                 initialName: triggers[0]?.name || '',
                 fail_message: triggers[0]?.fail_message || '',
-                onSave: async (data: TriggerDef) => persistDefinitions([data]),
+                onSave: async (data: TriggerItemDef) => persistDefinitions([data]),
             },
             onSave: async (newGraph: unknown) => {
                 const defs = TG.compileToTriggers(newGraph);
@@ -367,7 +367,7 @@ const _InspectorTriggers = (() => {
      * @param nodeId - Source node ID
      * @param data   - Trigger data ({ trigger_type, effects, conditions, ... })
      */
-    api.createTriggerOnNode = async function(nodeId: string, data: TriggerDef) {
+    api.createTriggerOnNode = async function(nodeId: string, data: TriggerItemDef) {
         const node = worldState.getNode(nodeId);
         if (!node) return;
         const current = _triggerGraph().normalizeTriggerList((node.properties as any)?.triggers);
@@ -404,13 +404,13 @@ const _InspectorTriggers = (() => {
     };
 
     /**
-     * ⚡ Suggest / ✨ Suggest (AI) — item / way / area inspector.
+     * ⚡ Suggest / ✨ Suggest (AI) - item / way / area inspector.
      *
      * Plan-driven: the heuristic computes WHICH trigger types the item's
      * actions call for (planForNode). The heuristic authors them directly; the
      * AI authors the same types (missing ones backfilled from the heuristic
      * floor). Result is diffed against existing triggers and shown in a review
-     * modal — per-trigger keep/use-suggested/skip — never a blind overwrite.
+     * modal - per-trigger keep/use-suggested/skip - never a blind overwrite.
      */
     api.suggestForNode = async function(nodeId: string, useAI?: boolean, btn?: HTMLButtonElement) {
         const Suggester = (window as unknown as { ItemLibraryTriggerSuggester?: TriggerSuggesterApi }).ItemLibraryTriggerSuggester;
@@ -428,10 +428,10 @@ const _InspectorTriggers = (() => {
         try {
             const planTypes = Suggester ? Suggester.planForNode(fields.kind, fields) : null;
             const heuristicFloor = Suggester ? Suggester.suggestForNode(fields.kind, fields) : [];
-            const floorByType = new Map<string, TriggerDef>(
-                heuristicFloor.map((t: TriggerDef) => [String(t.trigger_type), t]));
+            const floorByType = new Map<string, TriggerItemDef>(
+                heuristicFloor.map((t: TriggerItemDef) => [String(t.trigger_type), t]));
 
-            let triggers: TriggerDef[] | null = null;
+            let triggers: TriggerItemDef[] | null = null;
             if (useAI) {
                 const suggestAi = (window as unknown as { TriggerSuggestAI?: TriggerSuggestAiApi }).TriggerSuggestAI;
                 if (!suggestAi || typeof suggestAi.suggest !== 'function') {
@@ -472,7 +472,7 @@ const _InspectorTriggers = (() => {
                 : [];
             if (!suggestDiff || !rows.length) {
                 if (existingData.length) {
-                    if (typeof toastInfo === 'function' && rows.length === 0) toastInfo('All planned triggers are already covered — nothing to change.');
+                    if (typeof toastInfo === 'function' && rows.length === 0) toastInfo('All planned triggers are already covered - nothing to change.');
                 } else {
                     const ok = await (window as any).Dialog?.confirm?.({
                         title: 'Add Suggested Triggers',
@@ -496,12 +496,12 @@ const _InspectorTriggers = (() => {
             if (suggestDiff && rows.length) {
                 suggestDiff.show({
                     title: useAI ? '🤖 Review AI-suggested triggers' : '⚡ Review suggested triggers',
-                    subtitle: `${label} — keep existing triggers you already like; conflicts pick per-row.`,
+                    subtitle: `${label} - keep existing triggers you already like; conflicts pick per-row.`,
                     rows,
                     onApply: apply,
                 });
             } else if (rows.length === 0 && !existingData.length) {
-                await apply({ keep: [], replace: [], add: triggers.map((t: TriggerDef) => ({ type: String(t.trigger_type), data: t })) });
+                await apply({ keep: [], replace: [], add: triggers.map((t: TriggerItemDef) => ({ type: String(t.trigger_type), data: t })) });
             }
         } catch (err) {
             console.error(err);
@@ -521,7 +521,7 @@ const _InspectorTriggers = (() => {
      * @param nodeId - Graph node ID
      * @returns [{ id, trigger_type, effects, conditions, ... }]
      */
-    api._getNodeTriggerData = function(nodeId: string): TriggerDef[] {
+    api._getNodeTriggerData = function(nodeId: string): TriggerItemDef[] {
         const TG = (window as unknown as { TriggerGraph?: TriggerGraphApi }).TriggerGraph;
         if (!TG || typeof TG.triggersFromGraphEdges !== 'function') return [];
         return TG.triggersFromGraphEdges(
@@ -529,14 +529,14 @@ const _InspectorTriggers = (() => {
     };
 
     /**
-     * Apply a diff-modal result to a node's trigger edges — as ONE batched
+     * Apply a diff-modal result to a node's trigger edges - as ONE batched
      * /api/graph/batch request (single undo snapshot, single state reload)
      * instead of N sequential create/delete round-trips.
      * @param nodeId
      * @param existingData - the pre-existing trigger data
      * @param result - { keep: [types], replace: [{type,data}], add: [{type,data}] }
      */
-    api._applyTriggerDiff = async function(nodeId: string, existingData: TriggerDef[], result: DiffResult) {
+    api._applyTriggerDiff = async function(nodeId: string, existingData: TriggerItemDef[], result: DiffResult) {
         const TG = _triggerGraph();
         const toTypeKey = (t: unknown) => Array.isArray(t) ? t.join(',') : String(t || '');
         const kept = new Set<string>(result.keep);
@@ -674,7 +674,7 @@ interface TriggerHelpersTriggerEffect {
 }
 
 /** A compiled trigger definition (edge copy merged with node copy). */
-interface TriggerDef {
+interface TriggerItemDef {
     trigger_type?: string | string[];
     effects?: TriggerHelpersTriggerEffect[];
     /** May be an array of conditions, or the `{ conditions: [...] }` envelope. */
@@ -685,41 +685,41 @@ interface TriggerDef {
     [key: string]: any;
 }
 
-/** graph/trigger-graph.js — not declared in types/globals.d.ts. */
+/** graph/trigger-graph.js - not declared in types/globals.d.ts. */
 interface TriggerGraphApi {
-    triggerDefFromEdge(edge: TriggerHelpersGraphEdge, nodes: unknown): TriggerDef;
-    triggerDefFromProperty(entry: unknown): TriggerDef | null;
-    triggersFromGraphEdges(edges: unknown, nodes: unknown, nodeId: string): TriggerDef[];
-    normalizeTriggerEntry(entry: unknown): TriggerDef | null;
-    normalizeTriggerList(value: unknown): TriggerDef[];
-    triggerToGraph(data: TriggerDef, opts?: Record<string, unknown>): unknown;
-    triggersToGraph(data: TriggerDef[]): unknown;
-    compileToEngine(graph: unknown): TriggerDef;
-    compileToTriggers(graph: unknown): TriggerDef[];
-    compileError(compiled: TriggerDef | null): string;
-    reportCompileError(compiled: TriggerDef | null): boolean;
+    triggerDefFromEdge(edge: TriggerHelpersGraphEdge, nodes: unknown): TriggerItemDef;
+    triggerDefFromProperty(entry: unknown): TriggerItemDef | null;
+    triggersFromGraphEdges(edges: unknown, nodes: unknown, nodeId: string): TriggerItemDef[];
+    normalizeTriggerEntry(entry: unknown): TriggerItemDef | null;
+    normalizeTriggerList(value: unknown): TriggerItemDef[];
+    triggerToGraph(data: TriggerItemDef, opts?: Record<string, unknown>): unknown;
+    triggersToGraph(data: TriggerItemDef[]): unknown;
+    compileToEngine(graph: unknown): TriggerItemDef;
+    compileToTriggers(graph: unknown): TriggerItemDef[];
+    compileError(compiled: TriggerItemDef | null): string;
+    reportCompileError(compiled: TriggerItemDef | null): boolean;
     show(opts: Record<string, unknown>): void;
 }
 
-/** item-library/trigger-suggester.js — not declared in types/globals.d.ts. */
+/** item-library/trigger-suggester.js - not declared in types/globals.d.ts. */
 interface TriggerSuggesterApi {
     planForNode(kind: string, fields: SuggestFields): string[] | null;
-    suggestForNode(kind: string, fields: SuggestFields): TriggerDef[];
+    suggestForNode(kind: string, fields: SuggestFields): TriggerItemDef[];
 }
 
-/** shared/trigger-suggest-ai.js — not declared in types/globals.d.ts. */
+/** shared/trigger-suggest-ai.js - not declared in types/globals.d.ts. */
 interface TriggerSuggestAiApi {
-    suggest(fields: SuggestFields, kind: string, planTypes: string[] | null): Promise<TriggerDef[] | null>;
+    suggest(fields: SuggestFields, kind: string, planTypes: string[] | null): Promise<TriggerItemDef[] | null>;
 }
 
 /** The trigger diff modal's API. */
 interface TriggerSuggestDiffApi {
-    diff(existing: TriggerDef[], planTypes: string[] | null,
-         suggested: TriggerDef[]): DiffRow[];
+    diff(existing: TriggerItemDef[], planTypes: string[] | null,
+         suggested: TriggerItemDef[]): DiffRow[];
     show(opts: { title: string; subtitle: string; rows: DiffRow[]; onApply(r: DiffResult): Promise<void> }): void;
 }
 
-/** validator-panel.js — the one method this module calls. */
+/** validator-panel.js - the one method this module calls. */
 interface ValidatorPanelApi {
     validateNodeInline(nodeId: string, container: HTMLElement): Promise<void>;
 }
@@ -756,8 +756,8 @@ interface DiffRow {
 /** The diff modal's answer. */
 interface DiffResult {
     keep: string[];
-    replace: Array<{ type: string; data: TriggerDef }>;
-    add: Array<{ type: string; data: TriggerDef }>;
+    replace: Array<{ type: string; data: TriggerItemDef }>;
+    add: Array<{ type: string; data: TriggerItemDef }>;
 }
 
 /** One condition of a compiled trigger, as the summary line reads it. */
@@ -778,10 +778,10 @@ interface TriggerHelpersApi {
     validateNode(nodeId: string): Promise<void>;
     _openGraphEditor(escId: string): void;
     _getNodeTriggers(nodeId: string): TriggerHelpersGraphEdge[];
-    createTriggerOnNode(nodeId: string, data: TriggerDef): Promise<void>;
+    createTriggerOnNode(nodeId: string, data: TriggerItemDef): Promise<void>;
     _suggestFieldsForNode(nodeId: string): SuggestFields | null;
     suggestForNode(nodeId: string, useAI?: boolean, btn?: HTMLButtonElement): Promise<void>;
-    _getNodeTriggerData(nodeId: string): TriggerDef[];
-    _applyTriggerDiff(nodeId: string, existingData: TriggerDef[], result: DiffResult): Promise<void>;
+    _getNodeTriggerData(nodeId: string): TriggerItemDef[];
+    _applyTriggerDiff(nodeId: string, existingData: TriggerItemDef[], result: DiffResult): Promise<void>;
     buildContentsHtml(nodeId: string): unknown;
 }

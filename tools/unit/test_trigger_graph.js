@@ -229,3 +229,143 @@ test('trigger-graph: the blueprint name is remembered for the next save', () => 
     assertTrue(/_blueprintName = bp\.name/.test(src), 'loading a blueprint remembers its name');
     assertTrue(/value: defaultName/.test(src), 'the name field is prefilled from it');
 });
+
+// --- task-901: pure trigger converters (shared/trigger-def.js) round-trip tests ---
+
+test('trigger-def: TriggerDef and TriggerGraph re-exports match', () => {
+    assertTrue(window.TriggerDef, 'TriggerDef is defined on window');
+    assertEq(window.TriggerGraph.triggerToGraph, window.TriggerDef.triggerToGraph, 'triggerToGraph matches');
+    assertEq(window.TriggerGraph.compileToTriggers, window.TriggerDef.compileToTriggers, 'compileToTriggers matches');
+    assertEq(window.TriggerGraph.compileToEngine, window.TriggerDef.compileToEngine, 'compileToEngine matches');
+    assertEq(window.TriggerGraph.normalizeConditions, window.TriggerDef.normalizeConditions, 'normalizeConditions matches');
+});
+
+test('trigger-def round-trip: empty definition', () => {
+    const def = {
+        id: 'trig_empty',
+        name: 'Empty Trigger',
+        trigger_type: 'on_use',
+        effects: [{ type: 'message', params: { message: '' } }],
+        conditions: {}
+    };
+    const graph = window.TriggerDef.triggerToGraph(def);
+    const compiled = window.TriggerDef.compileToEngine(graph);
+    assertEq(compiled.id, 'trig_empty', 'id survives');
+    assertEq(compiled.name, 'Empty Trigger', 'name survives');
+    const tt = Array.isArray(compiled.trigger_type) ? compiled.trigger_type[0] : compiled.trigger_type;
+    assertEq(tt, 'on_use', 'trigger_type survives');
+    assertEq(compiled.effects.length, 1, 'effects preserved');
+    assertEq(compiled.effects[0].type, 'message', 'effect type preserved');
+});
+
+test('trigger-def round-trip: flat AND condition chain', () => {
+    const def = {
+        id: 'trig_flat_and',
+        trigger_type: 'on_examine',
+        conditions: {
+            operator: 'and',
+            conditions: [
+                { type: 'skill_check', skill: 'Perception', dc: 14 },
+                { type: 'in_area', area: 'study', target: 'player' }
+            ]
+        },
+        effects: [{ type: 'message', params: { message: 'You discover a hidden compartment.' } }],
+        fail_message: 'You find nothing unusual.'
+    };
+    const graph = window.TriggerDef.triggerToGraph(def);
+    const compiled = window.TriggerDef.compileToEngine(graph);
+    assertEq(compiled.id, 'trig_flat_and', 'id preserved');
+    const tt = Array.isArray(compiled.trigger_type) ? compiled.trigger_type[0] : compiled.trigger_type;
+    assertEq(tt, 'on_examine', 'trigger_type preserved');
+    assertEq(compiled.fail_message, 'You find nothing unusual.', 'fail_message preserved');
+    assertEq(compiled.conditions.operator, 'and', 'operator preserved');
+    assertEq(compiled.conditions.conditions.length, 2, 'condition count preserved');
+    assertEq(compiled.conditions.conditions[0].type, 'skill_check', 'first condition type');
+    assertEq(compiled.conditions.conditions[0].skill, 'Perception', 'first condition skill');
+    assertEq(compiled.conditions.conditions[0].dc, 14, 'first condition dc');
+    assertEq(compiled.conditions.conditions[1].type, 'in_area', 'second condition type');
+    assertEq(compiled.conditions.conditions[1].area, 'study', 'second condition area');
+});
+
+test('trigger-def round-trip: OR group condition tree', () => {
+    const def = {
+        id: 'trig_or_group',
+        trigger_type: 'on_use',
+        conditions: {
+            operator: 'or',
+            conditions: [
+                { type: 'has_item', item: 'iron_key', target: 'player' },
+                { type: 'skill_check', skill: 'Lockpicking', dc: 15 }
+            ]
+        },
+        effects: [{ type: 'message', params: { message: 'The lock clicks open.' } }]
+    };
+    const graph = window.TriggerDef.triggerToGraph(def);
+    const compiled = window.TriggerDef.compileToEngine(graph);
+    assertEq(compiled.conditions.operator, 'or', 'or operator preserved');
+    assertEq(compiled.conditions.conditions.length, 2, 'children count preserved');
+    assertEq(compiled.conditions.conditions[0].type, 'has_item', 'first child type');
+    assertEq(compiled.conditions.conditions[0].item, 'iron_key', 'first child item');
+    assertEq(compiled.conditions.conditions[1].type, 'skill_check', 'second child type');
+    assertEq(compiled.conditions.conditions[1].skill, 'Lockpicking', 'second child skill');
+    assertEq(compiled.conditions.conditions[1].dc, 15, 'second child dc');
+});
+
+test('trigger-def round-trip: NOT group condition tree', () => {
+    const def = {
+        id: 'trig_not_group',
+        trigger_type: 'on_tick',
+        conditions: {
+            operator: 'not',
+            conditions: [
+                { type: 'character_has_tag', tag: 'undead', target: 'self' }
+            ]
+        },
+        effects: [{ type: 'message', params: { message: 'Holy ground protects the living.' } }]
+    };
+    const graph = window.TriggerDef.triggerToGraph(def);
+    const compiled = window.TriggerDef.compileToEngine(graph);
+    assertEq(compiled.conditions.operator, 'not', 'not operator preserved');
+    assertEq(compiled.conditions.conditions.length, 1, 'child count preserved');
+    assertEq(compiled.conditions.conditions[0].type, 'character_has_tag', 'child type preserved');
+    assertEq(compiled.conditions.conditions[0].tag, 'undead', 'child tag preserved');
+});
+
+test('trigger-def round-trip: fan-out multiple effects', () => {
+    const def = {
+        id: 'trig_fan_out',
+        trigger_type: 'on_enter',
+        conditions: {
+            operator: 'and',
+            conditions: [
+                { type: 'in_area', area: 'crypt', target: 'player' }
+            ]
+        },
+        effects: [
+            { type: 'message', params: { message: 'A chill wind blows.' } },
+            { type: 'sound', params: { sound_id: 'gate_creak' } }
+        ]
+    };
+    const graph = window.TriggerDef.triggerToGraph(def);
+    const compiled = window.TriggerDef.compileToEngine(graph);
+    assertEq(compiled.effects.length, 2, 'both effects compiled');
+    assertEq(compiled.effects[0].type, 'message', 'first effect type');
+    assertEq(compiled.effects[0].params.message, 'A chill wind blows.', 'first effect message');
+    assertEq(compiled.effects[1].type, 'sound', 'second effect type');
+    assertEq(compiled.effects[1].params.sound_id, 'gate_creak', 'second effect sound_id');
+});
+
+test('trigger-def: normalizeConditions converts various envelopes to canonical tree', () => {
+    const bare = [{ type: 'has_item', item: 'torch' }];
+    const normBare = window.TriggerDef.normalizeConditions(bare);
+    assertEq(normBare.operator, 'and', 'bare list gets and envelope');
+    assertEq(normBare.conditions.length, 1, 'bare item kept');
+
+    const nested = { conditions: [{ type: 'state_equals', value: 'broken' }] };
+    const normNested = window.TriggerDef.normalizeConditions(nested);
+    assertEq(normNested.operator, 'and', 'nested object normalized');
+    assertEq(normNested.conditions.length, 1, 'nested condition preserved');
+
+    const empty = window.TriggerDef.normalizeConditions(null);
+    assertTrue(!empty || !empty.operator || empty.conditions?.length === 0, 'empty input produces empty envelope');
+});

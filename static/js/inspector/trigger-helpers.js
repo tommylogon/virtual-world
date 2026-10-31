@@ -1,10 +1,10 @@
 "use strict";
 /**
- * InspectorTriggers — Trigger system helpers for the Inspector
+ * InspectorTriggers - Trigger system helpers for the Inspector
  * Extracted from inspector.js for modularity.
  * Handles display and removal of trigger edges on item/way nodes.
  *
- * @module inspector/trigger-helpers — trigger display/removal for item & way inspectors
+ * @module inspector/trigger-helpers - trigger display/removal for item & way inspectors
  * @contributes InspectorTriggers: list a node's trigger edges, remove one, open the trigger editor
  * @powers viewing and editing the triggers attached to an item or way
  * @relates renders through InspectorPanel; used by item-view + way-view
@@ -411,13 +411,13 @@ const _InspectorTriggers = (() => {
         };
     };
     /**
-     * ⚡ Suggest / ✨ Suggest (AI) — item / way / area inspector.
+     * ⚡ Suggest / ✨ Suggest (AI) - item / way / area inspector.
      *
      * Plan-driven: the heuristic computes WHICH trigger types the item's
      * actions call for (planForNode). The heuristic authors them directly; the
      * AI authors the same types (missing ones backfilled from the heuristic
      * floor). Result is diffed against existing triggers and shown in a review
-     * modal — per-trigger keep/use-suggested/skip — never a blind overwrite.
+     * modal - per-trigger keep/use-suggested/skip - never a blind overwrite.
      */
     api.suggestForNode = async function (nodeId, useAI, btn) {
         const Suggester = window.ItemLibraryTriggerSuggester;
@@ -484,7 +484,7 @@ const _InspectorTriggers = (() => {
             if (!suggestDiff || !rows.length) {
                 if (existingData.length) {
                     if (typeof toastInfo === 'function' && rows.length === 0)
-                        toastInfo('All planned triggers are already covered — nothing to change.');
+                        toastInfo('All planned triggers are already covered - nothing to change.');
                 }
                 else {
                     const ok = await window.Dialog?.confirm?.({
@@ -509,7 +509,7 @@ const _InspectorTriggers = (() => {
             if (suggestDiff && rows.length) {
                 suggestDiff.show({
                     title: useAI ? '🤖 Review AI-suggested triggers' : '⚡ Review suggested triggers',
-                    subtitle: `${label} — keep existing triggers you already like; conflicts pick per-row.`,
+                    subtitle: `${label} - keep existing triggers you already like; conflicts pick per-row.`,
                     rows,
                     onApply: apply,
                 });
@@ -544,7 +544,7 @@ const _InspectorTriggers = (() => {
         return TG.triggersFromGraphEdges(worldState.graph?.edges, worldState.graph?.nodes, nodeId);
     };
     /**
-     * Apply a diff-modal result to a node's trigger edges — as ONE batched
+     * Apply a diff-modal result to a node's trigger edges - as ONE batched
      * /api/graph/batch request (single undo snapshot, single state reload)
      * instead of N sequential create/delete round-trips.
      * @param nodeId
