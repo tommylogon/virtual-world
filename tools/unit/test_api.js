@@ -60,3 +60,29 @@ test('ApiClient.getEquipSlots issues GET to /api/settings/equip_slots', async ()
         window.ApiClient.get = originalGet;
     }
 });
+
+test('ApiClient.fetchModels issues POST to /api/models with api_base and api_key', async () => {
+    let requestedUrl = null;
+    let requestedPayload = null;
+    const originalPost = window.ApiClient.post;
+    try {
+        window.ApiClient.post = async (url, payload) => {
+            requestedUrl = url;
+            requestedPayload = payload;
+            return {
+                models: [
+                    { id: 'm1', name: 'Model 1', context_length: 131072, params: '9B', quant: 'Q4_K_M', reasoning: true }
+                ]
+            };
+        };
+        const result = await window.ApiClient.fetchModels('http://localhost:1234/v1', 'secret-key');
+        assertEq(requestedUrl, '/api/models', 'requests canonical models discovery route');
+        assertEq(requestedPayload.api_base, 'http://localhost:1234/v1', 'passes api_base');
+        assertEq(requestedPayload.api_key, 'secret-key', 'passes api_key');
+        assertEq(result.models.length, 1, 'returns models list');
+        assertEq(result.models[0].context_length, 131072, 'preserves context length telemetry');
+        assertEq(result.models[0].reasoning, true, 'preserves reasoning capability');
+    } finally {
+        window.ApiClient.post = originalPost;
+    }
+});

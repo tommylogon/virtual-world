@@ -931,6 +931,15 @@ class ApiClientImpl {
         return this.post('/api/import/audit', data);
     }
 
+    // --- Model Discovery & Capability Telemetry ---
+
+    static async fetchModels(apiBase?: string, apiKey?: string): Promise<ApiResult> {
+        return this.post('/api/models', {
+            api_base: apiBase || '',
+            api_key: apiKey || ''
+        });
+    }
+
     // --- Equipment System ---
 
     static async getEquipSlots(): Promise<ApiResult> {

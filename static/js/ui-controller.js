@@ -18,6 +18,7 @@ class UIController {
         this.AGENT_COLORS = ['#4ec9b0', '#58a6ff', '#ff7eb6', '#e3b341', '#bc8cff', '#f0883e', '#3fb950', '#f85149'];
         this._agentColorMap = {};
         this._modelList = [];
+        this._modelDescriptors = [];
         this._rateLimitTimer = null;
         if (window.appEvents) {
             appEvents.on('state:updated', state => this.renderAll(state));
@@ -534,16 +535,47 @@ class UIController {
         const apiKey = config.apiKey || '';
         window.Lit.render(uiControllerHtmlTag `<option value="" disabled>Loading models...</option>`, modelSelect);
         modelSelect.disabled = true;
-        let models = null;
+        let richModels = null;
         try {
-            models = await llmClient.fetchModels(base, apiKey);
+            // First priority: unified rich model discovery route (/api/models) sharing Benchmark native telemetry
+            const apiRes = await ApiClient.fetchModels(base, apiKey);
+            if (apiRes && Array.isArray(apiRes.models) && apiRes.models.length > 0) {
+                richModels = apiRes.models;
+            }
         }
         catch (e) { }
-        const hadModels = models && models.length > 0;
-        if (!hadModels && apiKey) {
-            models = LLMClient.getFallbackModels(base);
+        if (!richModels || richModels.length === 0) {
+            try {
+                // Second priority: direct browser-to-provider fetch fallback
+                const clientModels = await llmClient.fetchModels(base, apiKey);
+                if (clientModels && clientModels.length > 0) {
+                    richModels = clientModels.map((m) => typeof m === 'string' ? { id: m, name: m } : m);
+                }
+            }
+            catch (e) { }
         }
-        this._modelList = models || [];
+        const hadModels = richModels && richModels.length > 0;
+        if (!hadModels && apiKey) {
+            const fallback = LLMClient.getFallbackModels(base);
+            richModels = (fallback || []).map(m => ({ id: m, name: m }));
+        }
+        this._modelDescriptors = (richModels || []).map((m) => {
+            if (typeof m === 'string')
+                return { id: m, name: m };
+            return {
+                id: m.id || m.name || '',
+                name: m.name || m.id || '',
+                params: m.params,
+                quant: m.quant,
+                context_length: m.context_length,
+                vision: m.vision,
+                tools: m.tools,
+                reasoning: m.reasoning,
+                loaded: m.loaded,
+                size_bytes: m.size_bytes
+            };
+        }).filter(m => m.id);
+        this._modelList = this._modelDescriptors.map(m => m.id);
         // Populate hidden select for test compat
         modelSelect.disabled = false;
         while (modelSelect.firstChild) {
@@ -552,7 +584,7 @@ class UIController {
         if (this._modelList.length === 0) {
             const msg = document.createElement('option');
             msg.value = '';
-            msg.textContent = '⚠️ Could not fetch models - type manually';
+            msg.textContent = 'Could not fetch models - type manually';
             msg.disabled = true;
             modelSelect.appendChild(msg);
         }
@@ -562,10 +594,10 @@ class UIController {
             placeholder.textContent = '-- Select model --';
             placeholder.disabled = true;
             modelSelect.appendChild(placeholder);
-            this._modelList.forEach(m => {
+            this._modelDescriptors.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m;
+                opt.value = m.id;
+                opt.textContent = m.name || m.id;
                 modelSelect.appendChild(opt);
             });
         }
@@ -595,19 +627,22 @@ class UIController {
         }
     }
     _modelCategoryFilter = 'all';
-    _getModelTier(name) {
-        const lower = String(name || '').toLowerCase();
+    _getModelTier(modelOrName) {
+        const id = typeof modelOrName === 'string' ? modelOrName : (modelOrName.id || '');
+        const name = typeof modelOrName === 'string' ? modelOrName : (modelOrName.name || id);
+        const lower = `${name} ${id}`.toLowerCase();
+        const p = typeof modelOrName === 'object' && modelOrName.params ? modelOrName.params.toUpperCase() : '';
         if (lower.includes('embed') || lower.includes('nomic')) {
-            return { category: 'embed', label: '🧬 embed', badgeClass: 'model-badge-embed', weight: 4 };
+            return { category: 'embed', label: 'embed', badgeClass: 'model-badge-embed', weight: 4 };
         }
-        if (/\b(1\.7b|2b|3b|tiny|mini|nano)\b/i.test(lower) || lower.includes('lfm3') || lower.includes('ling-3.0') || lower.includes('spark-x2') || lower.includes('ministral')) {
-            return { category: 'fast', label: '⚡ fast 1-3B', badgeClass: 'model-badge-fast', weight: 1 };
+        if (p.includes('1.') || p.includes('2B') || p.includes('3B') || /\b(1\.7b|2b|3b|tiny|mini|nano)\b/i.test(lower) || lower.includes('lfm3') || lower.includes('ling-3.0') || lower.includes('spark-x2') || lower.includes('ministral')) {
+            return { category: 'fast', label: p || 'fast 1-3B', badgeClass: 'model-badge-fast', weight: 1 };
         }
-        if (/\b(7b|8b|9b|12b|14b)\b/i.test(lower)) {
-            return { category: 'mid', label: '7-14B', badgeClass: 'model-badge-mid', weight: 2 };
+        if (p.includes('7B') || p.includes('8B') || p.includes('9B') || p.includes('12B') || p.includes('14B') || /\b(7b|8b|9b|12b|14b)\b/i.test(lower)) {
+            return { category: 'mid', label: p || '7-14B', badgeClass: 'model-badge-mid', weight: 2 };
         }
-        if (/\b(24b|27b|32b|35b|70b)\b/i.test(lower) || lower.includes('qwq')) {
-            return { category: 'heavy', label: '20B+', badgeClass: 'model-badge-heavy', weight: 3 };
+        if (p || /\b(24b|27b|32b|35b|70b)\b/i.test(lower) || lower.includes('qwq')) {
+            return { category: 'heavy', label: p || '20B+', badgeClass: 'model-badge-heavy', weight: 3 };
         }
         return { category: 'other', label: '', badgeClass: '', weight: 5 };
     }
@@ -619,9 +654,12 @@ class UIController {
         const sortSelect = document.getElementById('model-sort');
         const query = (searchInput?.value || '').toLowerCase();
         const sort = sortSelect?.value || 'name-asc';
-        let models = this._modelList.slice();
+        const descriptors = this._modelDescriptors.length > 0
+            ? this._modelDescriptors
+            : this._modelList.map((id) => ({ id, name: id }));
+        let models = descriptors.slice();
         if (query) {
-            models = models.filter(m => m.toLowerCase().includes(query));
+            models = models.filter(m => (m.name || m.id).toLowerCase().includes(query) || (Boolean(m.params) && m.params.toLowerCase().includes(query)));
         }
         if (this._modelCategoryFilter && this._modelCategoryFilter !== 'all') {
             models = models.filter(m => this._getModelTier(m).category === this._modelCategoryFilter);
@@ -632,14 +670,11 @@ class UIController {
                 const wb = this._getModelTier(b).weight;
                 if (wa !== wb)
                     return wa - wb;
-                return a.toLowerCase().localeCompare(b.toLowerCase());
+                return (a.name || a.id).toLowerCase().localeCompare((b.name || b.id).toLowerCase());
             }
-            const cmp = a.toLowerCase().localeCompare(b.toLowerCase());
+            const cmp = (a.name || a.id).toLowerCase().localeCompare((b.name || b.id).toLowerCase());
             return sort === 'name-asc' ? cmp : -cmp;
         });
-        // Imperative wipe: Lit.render() only clears content between its own
-        // comment markers, so items appended via appendChild would survive it
-        // and stack up on every keystroke/sort change.
         while (listEl.firstChild) {
             listEl.removeChild(listEl.firstChild);
         }
@@ -653,30 +688,117 @@ class UIController {
         const currentModel = config.model || '';
         models.forEach(m => {
             const item = document.createElement('div');
-            item.className = 'model-list-item' + (m === currentModel ? ' selected' : '');
+            item.className = 'model-list-item' + (m.id === currentModel ? ' selected' : '');
+            const nameWrap = document.createElement('div');
+            nameWrap.style.display = 'flex';
+            nameWrap.style.flexDirection = 'column';
+            nameWrap.style.gap = '2px';
+            nameWrap.style.minWidth = '0';
             const nameSpan = document.createElement('span');
             nameSpan.className = 'model-name';
-            nameSpan.textContent = m;
-            item.appendChild(nameSpan);
-            const tier = this._getModelTier(m);
-            if (tier.label) {
-                const badge = document.createElement('span');
-                badge.className = `model-list-badge ${tier.badgeClass}`;
-                badge.textContent = tier.label;
-                item.appendChild(badge);
+            nameSpan.textContent = m.name || m.id;
+            nameWrap.appendChild(nameSpan);
+            const badgesWrap = document.createElement('div');
+            badgesWrap.style.display = 'flex';
+            badgesWrap.style.gap = '4px';
+            badgesWrap.style.flexWrap = 'wrap';
+            badgesWrap.style.alignItems = 'center';
+            if (m.params || m.quant) {
+                const qBadge = document.createElement('span');
+                qBadge.className = 'model-list-badge model-badge-mid';
+                qBadge.textContent = `${m.params || ''} ${m.quant || ''}`.trim();
+                badgesWrap.appendChild(qBadge);
+            }
+            else {
+                const tier = this._getModelTier(m);
+                if (tier.label) {
+                    const badge = document.createElement('span');
+                    badge.className = `model-list-badge ${tier.badgeClass}`;
+                    badge.textContent = tier.label;
+                    badgesWrap.appendChild(badge);
+                }
+            }
+            if (m.context_length) {
+                const ctxBadge = document.createElement('span');
+                ctxBadge.className = 'model-list-badge model-badge-ctx';
+                const k = Math.round(m.context_length / 1024);
+                ctxBadge.textContent = k >= 1024 ? `${(k / 1024).toFixed(1)}M ctx` : `${k}K ctx`;
+                badgesWrap.appendChild(ctxBadge);
+            }
+            if (m.loaded) {
+                const loadBadge = document.createElement('span');
+                loadBadge.className = 'model-list-badge model-badge-loaded';
+                loadBadge.textContent = 'Loaded';
+                badgesWrap.appendChild(loadBadge);
+            }
+            if (m.reasoning) {
+                const rBadge = document.createElement('span');
+                rBadge.className = 'model-list-badge model-badge-reasoning';
+                rBadge.textContent = 'Reasoning';
+                badgesWrap.appendChild(rBadge);
+            }
+            if (m.tools) {
+                const tBadge = document.createElement('span');
+                tBadge.className = 'model-list-badge model-badge-tools';
+                tBadge.textContent = 'Tools';
+                badgesWrap.appendChild(tBadge);
+            }
+            if (m.vision) {
+                const vBadge = document.createElement('span');
+                vBadge.className = 'model-list-badge model-badge-vision';
+                vBadge.textContent = 'Vision';
+                badgesWrap.appendChild(vBadge);
+            }
+            item.appendChild(nameWrap);
+            if (badgesWrap.children.length > 0) {
+                item.appendChild(badgesWrap);
             }
             item.addEventListener('click', () => {
                 const modelInput = document.getElementById('agent-model');
                 if (modelInput)
-                    modelInput.value = m;
-                config.model = m;
+                    modelInput.value = m.id;
+                config.model = m.id;
                 config.save();
                 VW?.llm?.configure(config.toLLMConfig());
                 listEl.querySelectorAll('.model-list-item').forEach(el => el.classList.remove('selected'));
                 item.classList.add('selected');
+                this.updateModelSpecsSummary(m);
             });
             listEl.appendChild(item);
         });
+        const activeObj = descriptors.find(m => m.id === currentModel);
+        if (activeObj) {
+            this.updateModelSpecsSummary(activeObj);
+        }
+    }
+    updateModelSpecsSummary(m) {
+        const summaryEl = document.getElementById('model-specs-summary');
+        if (!summaryEl)
+            return;
+        if (!m || (!m.context_length && !m.params && !m.quant && !m.reasoning && !m.tools)) {
+            summaryEl.style.display = 'none';
+            return;
+        }
+        const parts = [];
+        if (m.context_length) {
+            const k = Math.round(m.context_length / 1024);
+            const formatted = k >= 1024 ? `${(k / 1024).toFixed(1)}M (${m.context_length.toLocaleString()})` : `${k}K (${m.context_length.toLocaleString()})`;
+            parts.push(`Context: ${formatted} tokens`);
+        }
+        if (m.params || m.quant) {
+            parts.push(`Arch: ${m.params || ''} ${m.quant || ''}`.trim());
+        }
+        const caps = [];
+        if (m.reasoning)
+            caps.push('Reasoning');
+        if (m.tools)
+            caps.push('Tools');
+        if (m.vision)
+            caps.push('Vision');
+        if (caps.length > 0)
+            parts.push(`Capabilities: ${caps.join(', ')}`);
+        summaryEl.textContent = parts.join(' | ');
+        summaryEl.style.display = 'block';
     }
     async populateProfileSelect() {
         const sel = document.getElementById('profile-select');

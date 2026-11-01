@@ -38,6 +38,7 @@ def register_benchmark_routes(app):
             scenario_name=scenario_name
         )
 
+    @app.route('/api/models', methods=['POST'])
     @app.route('/api/bench/models', methods=['POST'])
     def fetch_provider_models():
         """Fetch model list from an external provider (with rich LM Studio native detection)."""
