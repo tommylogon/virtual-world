@@ -41,6 +41,7 @@ The `register_settings_routes()` function registers all settings-related API end
 | GET | `/api/settings/engine_config` | Get live engine tuning constants + schema (task-304) |
 | POST | `/api/settings/engine_config` | Save engine tuning overrides |
 | POST | `/api/settings/engine_config/reset` | Restore engine tuning defaults |
+| POST | `/api/models` | Unified provider model discovery with context window, params, quant, and capability telemetry |
 | POST | `/api/debug/save_log` | Save a run log file for debugging |
 | GET | `/api/debug/state` | Compact debug dump of world state |
 | POST | `/api/path` | Find path between two areas |
@@ -118,20 +119,21 @@ Consolidates all network model connections with diagnostic parity:
 - **API Connection**: Base URL, API Key, Model Picker (search, filter chips, model refresh), and Main Test Connection button.
 - **Dedicated Memory Model (Task-909)**: Defaults enabled to localhost LM Studio (`http://localhost:1234/v1`, format `lmstudio`, model `lmstudio-community/lfm3-1.7b`), quick-pick dropdown for fast 1-3B models, and Dedicated Test Connection button with latency display.
 - **Embedding Model**: Semantic memory toggle, API base URL, model name, vector dimensions, and Embedding Test button.
+- **Model Discovery & Capabilities**: Reuses the unified `/api/models` backend telemetry (shared with Benchmark Lab). Discovered models display architecture/quantization tags (e.g. `9B Q4_K_M`), real context window length (e.g. `128K ctx`), loaded state (`Loaded`), and capability tags (`Reasoning`, `Tools`, `Vision`). Selecting a model surfaces a live summary strip displaying formatted context lengths and architecture specs.
 
-#### 2. Agent Settings (`tab-agent`)
-LLM parameters and execution limits:
-- Temperature slider (0.0 to 2.0 with live float readout).
-- Hard max tokens limit (API cutoff).
-- Soft max tokens limit (system prompt instruction).
-- Rate limits: Requests per minute (RPM) and Tokens per minute (TPM).
+#### 2. Parameters & Inference (`tab-agent`)
+LLM inference parameters, reasoning controls, and protocol settings:
+- **Sampling & Token Budget**: Temperature slider (0.0 to 2.0 with live float readout), hard max tokens (API cutoff), and soft max tokens (system prompt instruction).
+- **Reasoning & Thinking**: Chain-of-thought thinking toggle, reasoning effort selector (`high`/`medium`/`low`), and native LM Studio reasoning suppression toggle.
+- **Response Protocol & Output Format**: Streaming mode toggle, structured output (`response_format` JSON schema) toggle, and API format dropdown (`auto`, `chat-completions`, `responses`, `lmstudio`).
+- **Rate Limits**: Requests per minute (RPM) and Tokens per minute (TPM).
 
-#### 3. Behavior & Automation (`tab-automation`)
-Runtime agent loop options and simulation rules:
-- **Agent Behavior**: Reactive mode (3-phase think->act->react), streaming tokens, thinking mode & effort, local thinking suppression, raw LLM request/response capture, end-of-turn memory generation, API format, show LLM logs, manual response mode, auto-generate appearance descriptions, auto-retry invalid actions, structured output (JSON schema).
-- **Ghost Mode**: Dead characters continue to act as ghosts.
-- **Content**: Mature content opt-in (pleasure/arousal subsystem).
-- **Game Clock**: Minutes per tick (game minutes elapsed per agent step, default 5).
+#### 3. Simulation & Loop (`tab-automation`)
+Agent loop execution, simulation rules, and diagnostics:
+- **Agent Execution Loop**: Reactive mode (3-phase thought -> act -> react), auto-retry invalid actions, and end-of-turn memory generation.
+- **Simulation Rules**: Ghost mode (dead characters act as ghosts), mature content opt-in (pleasure/arousal subsystem), and auto-generate appearance descriptions on equip/unequip.
+- **Diagnostics & Overrides**: Raw JSON capture for LLM inspector, show LLM logs in event stream, and manual prompt/response override mode.
+- **Game Clock**: Minutes per tick (game minutes elapsed per agent step, default 5) and game start time.
 
 #### 4. Graph (`tab-graph`)
 In-place vis.js graph physics and layout tuning:
