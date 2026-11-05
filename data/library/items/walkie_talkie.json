@@ -1,0 +1,27 @@
+{
+  "name": "walkie-talkie",
+  "description": "a durable handheld two-way radio with a channel dial and speakerphone switch.",
+  "actions": "examine,take,drop,equip,unequip,use",
+  "uses": -1,
+  "weight": 0.35,
+  "current_state": "lit",
+  "light_level": "none",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "equip_slots": [],
+  "tags": [
+    "device",
+    "electric",
+    "radio",
+    "walkie_talkie",
+    "communication"
+  ],
+  "comms_channel": "alpha",
+  "speakerphone": false,
+  "triggers": [],
+  "contents": [
+    "radio_battery"
+  ],
+  "item_id": "item_walkie_talkie"
+}
