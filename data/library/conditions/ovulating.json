@@ -1,0 +1,35 @@
+{
+  "name": "Ovulating",
+  "description": "In the peak fertile window of the cycle.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "cycle_phase_change"
+  ],
+  "known": true,
+  "symptoms": {
+    "1": "Your body feels warm and receptive."
+  },
+  "stack": "refresh",
+  "default_duration": null,
+  "excludes": [
+    "menstruating",
+    "in_heat"
+  ],
+  "tags": [
+    "cycle"
+  ],
+  "order": 24,
+  "perception_skip": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}
