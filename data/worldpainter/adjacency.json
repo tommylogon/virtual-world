@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "description": "Markov biome adjacency matrix and transition gradients (task-884).",
+  "gradients": {
+    "water_to_land": [
+      "deep_water",
+      "shallow_water",
+      "beach",
+      "clearing",
+      "sparse_forest",
+      "dense_forest"
+    ],
+    "river_to_woods": [
+      "river",
+      "shallow_water",
+      "banks",
+      "clearing",
+      "sparse_forest",
+      "dense_forest"
+    ],
+    "mountain_to_plains": [
+      "mountain",
+      "scree",
+      "cliff",
+      "rocky_ground",
+      "hills",
+      "plains"
+    ],
+    "dwarven_civic_to_mine": [
+      "dwarven_thane_throne",
+      "dwarven_colonnade",
+      "dwarven_archway",
+      "dwarven_mechanists_guild",
+      "dwarven_deep_mine",
+      "dwarven_crystal_geode"
+    ],
+    "dwarven_forge_to_vent": [
+      "dwarven_magma_forge",
+      "dwarven_smelting_works",
+      "dwarven_great_forge",
+      "dwarven_hydro_sluice"
+    ]
+  },
+  "affinities": {
+    "deep_water": ["shallow_water", "underground_river", "waterfall"],
+    "shallow_water": ["deep_water", "river", "beach", "marsh", "bog", "banks"],
+    "river": ["shallow_water", "river_calm", "river_swift", "river_rapids", "bridge", "ford", "banks"],
+    "beach": ["shallow_water", "sand_desert", "clearing", "sparse_forest", "grassland"],
+    "dense_forest": ["sparse_forest", "bramble", "thorns", "deep_woods", "young_regrowth"],
+    "sparse_forest": ["dense_forest", "clearing", "farmland", "hills", "plains", "road"],
+    "clearing": ["sparse_forest", "farmland", "meadow", "road", "cottage"],
+    "cliff": ["scree", "canyon", "ravine", "chasm", "rocky_ground", "dwarven_masonry_wall"],
+    "dwarven_great_forge": ["dwarven_smelting_works", "dwarven_colonnade", "dwarven_archway", "dwarven_masonry_wall"],
+    "dwarven_colonnade": ["dwarven_great_gate", "dwarven_thane_throne", "dwarven_scriptorium", "dwarven_archway"],
+    "dwarven_deep_mine": ["dwarven_crystal_geode", "dwarven_collapsed_shaft", "dwarven_lift_shaft", "chasm"]
+  },
+  "prohibited": [
+    ["deep_water", "dense_forest"],
+    ["deep_water", "sand_desert"],
+    ["deep_water", "mountain"],
+    ["cliff", "deep_water"],
+    ["dwarven_magma_forge", "deep_water"],
+    ["dwarven_ancestral_vault", "dwarven_smelting_works"]
+  ]
+}
