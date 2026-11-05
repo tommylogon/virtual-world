@@ -1,0 +1,3923 @@
+{
+  "_scenario_name": "htc_fixture",
+  "schema_version": 1,
+  "current_area": "Courtyard",
+  "active_player": "Explorer",
+  "narration_mode": "concise",
+  "ghost_mode": false,
+  "mature_content": false,
+  "time_per_tick_minutes": 1,
+  "turn_number": 0,
+  "world_scopes": {
+    "htc_scope": {
+      "id": "htc_scope",
+      "name": "HTC Fixture Scope",
+      "kind": "scope",
+      "mode": "interior",
+      "grid": {
+        "w": 4,
+        "h": 3
+      },
+      "area_ids": [
+        "area_courtyard",
+        "area_hall",
+        "area_armory",
+        "area_parapet",
+        "area_kitchen",
+        "area_pantry",
+        "area_guard_room",
+        "area_tower_base",
+        "area_garden",
+        "area_library",
+        "area_secret_vault",
+        "area_dungeon"
+      ],
+      "area_placements": {
+        "area_courtyard": {
+          "x": 0,
+          "y": 0
+        },
+        "area_hall": {
+          "x": 1,
+          "y": 0
+        },
+        "area_armory": {
+          "x": 2,
+          "y": 0
+        },
+        "area_parapet": {
+          "x": 3,
+          "y": 0
+        },
+        "area_kitchen": {
+          "x": 0,
+          "y": 1
+        },
+        "area_pantry": {
+          "x": 1,
+          "y": 1
+        },
+        "area_guard_room": {
+          "x": 2,
+          "y": 1
+        },
+        "area_tower_base": {
+          "x": 3,
+          "y": 1
+        },
+        "area_garden": {
+          "x": 0,
+          "y": 2
+        },
+        "area_library": {
+          "x": 1,
+          "y": 2
+        },
+        "area_secret_vault": {
+          "x": 2,
+          "y": 2
+        },
+        "area_dungeon": {
+          "x": 3,
+          "y": 2
+        }
+      },
+      "children": [],
+      "placements": {},
+      "parent_id": null
+    }
+  },
+  "players": {
+    "Explorer": {
+      "name": "Explorer",
+      "id": "player_explorer",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": false,
+      "autonomy": true,
+      "behaviors": [],
+      "known": [
+        "Courtyard",
+        "Great Hall"
+      ],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null
+    },
+    "Guard": {
+      "name": "Guard",
+      "id": "a1a1a1",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": false,
+      "autonomy": true,
+      "behaviors": [],
+      "known": [],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null
+    },
+    "Guard__b2b2b2": {
+      "name": "Guard",
+      "id": "b2b2b2",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": false,
+      "autonomy": true,
+      "behaviors": [],
+      "known": [],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null
+    },
+    "Doctor Brown": {
+      "name": "Doctor Brown",
+      "id": "player_doctor_brown",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": false,
+      "autonomy": true,
+      "behaviors": [],
+      "known": [],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null
+    },
+    "Doc Holliday": {
+      "name": "Doc Holliday",
+      "id": "player_doc_holliday",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": false,
+      "autonomy": true,
+      "behaviors": [],
+      "known": [],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null,
+      "activity": {
+        "type": "sleeping"
+      }
+    },
+    "Crypt Ghoul": {
+      "name": "Crypt Ghoul",
+      "id": "player_crypt_ghoul",
+      "skills": {
+        "Athletics": 1,
+        "Acrobatics": 1,
+        "Stealth": 1,
+        "Perception": 1,
+        "Survival": 1,
+        "Persuasion": 1,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
+      },
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "vitals": {
+        "HP": 100.0,
+        "Max_HP": 100,
+        "Hunger": 80,
+        "Thirst": 80,
+        "Hygiene": 97,
+        "Energy": 94,
+        "Social": 100,
+        "Bladder": 15,
+        "Sanity": 97,
+        "Entertainment": 99,
+        "Temperature": 37
+      },
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "bladder": 1,
+        "energy": 1,
+        "entertainment": 1,
+        "hygiene": 1,
+        "sanity": 1,
+        "social": 1
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "flags": {},
+      "personality_dials": {},
+      "disposition": {
+        "weights": [
+          {
+            "name": "survive.utility.need_relief",
+            "value": 35.0,
+            "kind": "utility",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          },
+          {
+            "name": "attention.salience.remembered",
+            "value": 1.0,
+            "kind": "salience",
+            "base": 0.0,
+            "lo": 0.0,
+            "hi": 100.0
+          }
+        ],
+        "dials": {},
+        "gated": [],
+        "actions": [
+          {
+            "verb": "drink",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "eat",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "sleep",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "rest",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "relieve",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "bathe",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "go",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "approach",
+            "scores": [
+              "survive.utility.need_relief"
+            ]
+          },
+          {
+            "verb": "chat",
+            "scores": [
+              "social.weight.chat"
+            ]
+          },
+          {
+            "verb": "joke",
+            "scores": [
+              "social.weight.joke"
+            ]
+          },
+          {
+            "verb": "compliment",
+            "scores": [
+              "social.weight.compliment"
+            ]
+          },
+          {
+            "verb": "tease",
+            "scores": [
+              "social.weight.tease"
+            ]
+          },
+          {
+            "verb": "confide",
+            "scores": [
+              "social.weight.confide"
+            ]
+          },
+          {
+            "verb": "flirt",
+            "scores": [
+              "social.weight.flirt"
+            ]
+          },
+          {
+            "verb": "apologise",
+            "scores": [
+              "social.weight.apologise"
+            ]
+          },
+          {
+            "verb": "bully",
+            "scores": [
+              "social.weight.bully"
+            ]
+          }
+        ]
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "mosiac": {
+        "character": "miki",
+        "tick": 0,
+        "M": "the need to satisfy hunger",
+        "O": [],
+        "S": {
+          "now": 480,
+          "step": null,
+          "day": "no schedule"
+        },
+        "I": "",
+        "A": [
+          {
+            "need": "hunger",
+            "value": 80.0,
+            "why": "drive"
+          },
+          {
+            "need": "thirst",
+            "value": 80.0,
+            "why": "drive"
+          }
+        ],
+        "C": {
+          "minor": [
+            "approach",
+            "disengage",
+            "drink",
+            "eat",
+            "equip",
+            "flee",
+            "grab",
+            "lead",
+            "manifest",
+            "place",
+            "put",
+            "release",
+            "remove",
+            "stand",
+            "stow",
+            "toggle",
+            "unequip",
+            "vanish",
+            "wake",
+            "wear",
+            "withdraw"
+          ],
+          "major": [
+            "attack",
+            "bind",
+            "climb",
+            "combine",
+            "craft",
+            "crawl",
+            "dash",
+            "enchant",
+            "escape",
+            "examine",
+            "find",
+            "fix",
+            "frisk",
+            "get",
+            "give",
+            "go",
+            "jump",
+            "make",
+            "pick",
+            "pickup",
+            "relieve",
+            "search",
+            "split",
+            "steal",
+            "struggle",
+            "take",
+            "teach",
+            "treat",
+            "use"
+          ],
+          "activity": [
+            "bath",
+            "bathe",
+            "dress",
+            "lay",
+            "lie",
+            "meditate",
+            "rest",
+            "sit",
+            "sleep",
+            "strip",
+            "undress",
+            "wait"
+          ],
+          "free": [
+            "close",
+            "do",
+            "drop",
+            "fear",
+            "goal",
+            "guess",
+            "i",
+            "interest",
+            "inv",
+            "inventory",
+            "label",
+            "listen",
+            "look",
+            "name",
+            "obligation",
+            "open",
+            "recall",
+            "say",
+            "schedule",
+            "scream",
+            "shout",
+            "sing",
+            "speak",
+            "stats",
+            "status",
+            "stop",
+            "whisper"
+          ]
+        },
+        "goals": []
+      },
+      "simple_npc": true,
+      "autonomy": false,
+      "behaviors": [
+        {
+          "trigger": "on_player_enter_room",
+          "interval": 1,
+          "priority": 0,
+          "conditions": {
+            "type": "eq",
+            "target": "npc_state",
+            "value": "idle"
+          },
+          "actions": [
+            {
+              "type": "message",
+              "text": "A hollow rasp echoes from the shadows as the crypt ghoul turns toward you."
+            },
+            {
+              "type": "set_npc_state",
+              "state": "angry"
+            }
+          ]
+        },
+        {
+          "trigger": "on_player_enter_area",
+          "interval": 1,
+          "priority": 0,
+          "conditions": {
+            "type": "eq",
+            "target": "npc_state",
+            "value": "angry"
+          },
+          "actions": [
+            {
+              "type": "speak",
+              "text": "The ghoul lunges with blackened claws, swiping at your throat!"
+            },
+            {
+              "type": "damage",
+              "target": "player",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "interval": 1,
+          "priority": 0,
+          "conditions": {},
+          "actions": [
+            {
+              "type": "speak",
+              "text": "Hhhhh... flesh..."
+            }
+          ]
+        },
+        {
+          "trigger": "on_speech_heard",
+          "interval": 1,
+          "priority": 0,
+          "conditions": {},
+          "actions": [
+            {
+              "type": "go",
+              "mode": "random"
+            }
+          ]
+        },
+        {
+          "trigger": "on_player_leave_area",
+          "interval": 1,
+          "priority": 0,
+          "conditions": {},
+          "actions": [
+            {
+              "type": "set_npc_state",
+              "state": "idle"
+            }
+          ]
+        }
+      ],
+      "known": [],
+      "preconceived_knowledge": {
+        "known_areas": [
+          "Courtyard",
+          "Great Hall"
+        ]
+      },
+      "discovered_exits": [],
+      "memories": [],
+      "relationships": {},
+      "current_area": null,
+      "grappled_by": null,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": null,
+      "npc_behavior": "wander",
+      "npc_action_interval": 1,
+      "npc_state": "idle",
+      "state_enter_tick": 0
+    }
+  },
+  "graph": {
+    "nodes": {
+      "area_courtyard": {
+        "id": "area_courtyard",
+        "type": "area",
+        "name": "Courtyard",
+        "properties": {
+          "cell": {
+            "x": 0,
+            "y": 0
+          },
+          "world_scope_id": "htc_scope",
+          "description": "an open cobbled courtyard surrounded by ancient stone walls.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 0,
+          "y": 0
+        }
+      },
+      "area_hall": {
+        "id": "area_hall",
+        "type": "area",
+        "name": "Great Hall",
+        "properties": {
+          "cell": {
+            "x": 1,
+            "y": 0
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a grand hall with high ceilings and banners hanging from the walls.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 100,
+          "y": 0
+        }
+      },
+      "area_armory": {
+        "id": "area_armory",
+        "type": "area",
+        "name": "Armory",
+        "properties": {
+          "cell": {
+            "x": 2,
+            "y": 0
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a secured chamber stocked with weapons and sturdy racks.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 200,
+          "y": 0
+        }
+      },
+      "area_parapet": {
+        "id": "area_parapet",
+        "type": "area",
+        "name": "Parapet",
+        "properties": {
+          "cell": {
+            "x": 3,
+            "y": 0
+          },
+          "world_scope_id": "htc_scope",
+          "description": "an elevated walkway overlooking the perimeter.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 300,
+          "y": 0
+        }
+      },
+      "area_kitchen": {
+        "id": "area_kitchen",
+        "type": "area",
+        "name": "Kitchen",
+        "properties": {
+          "cell": {
+            "x": 0,
+            "y": 1
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a warm kitchen with a large hearth and prep tables.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 0,
+          "y": 100
+        }
+      },
+      "area_pantry": {
+        "id": "area_pantry",
+        "type": "area",
+        "name": "Pantry",
+        "properties": {
+          "cell": {
+            "x": 1,
+            "y": 1
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a cool pantry lined with shelves and provisions.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 100,
+          "y": 100
+        }
+      },
+      "area_guard_room": {
+        "id": "area_guard_room",
+        "type": "area",
+        "name": "Guard Room",
+        "properties": {
+          "cell": {
+            "x": 2,
+            "y": 1
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a fortified station where the keep guards keep watch.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 200,
+          "y": 100
+        }
+      },
+      "area_tower_base": {
+        "id": "area_tower_base",
+        "type": "area",
+        "name": "Tower Base",
+        "properties": {
+          "cell": {
+            "x": 3,
+            "y": 1
+          },
+          "world_scope_id": "htc_scope",
+          "description": "the circular base of the watchtower with winding stairs.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 300,
+          "y": 100
+        }
+      },
+      "area_garden": {
+        "id": "area_garden",
+        "type": "area",
+        "name": "Garden",
+        "properties": {
+          "cell": {
+            "x": 0,
+            "y": 2
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a secluded overgrown garden filled with wild herbs.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 0,
+          "y": 200
+        }
+      },
+      "area_library": {
+        "id": "area_library",
+        "type": "area",
+        "name": "Library",
+        "properties": {
+          "cell": {
+            "x": 1,
+            "y": 2
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a quiet sanctuary lined with towering bookshelves.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 100,
+          "y": 200
+        }
+      },
+      "area_secret_vault": {
+        "id": "area_secret_vault",
+        "type": "area",
+        "name": "Secret Vault",
+        "properties": {
+          "cell": {
+            "x": 2,
+            "y": 2
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a hidden stone vault concealed behind the bookshelves.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 200,
+          "y": 200
+        }
+      },
+      "area_dungeon": {
+        "id": "area_dungeon",
+        "type": "area",
+        "name": "Dungeon Cell",
+        "properties": {
+          "cell": {
+            "x": 3,
+            "y": 2
+          },
+          "world_scope_id": "htc_scope",
+          "description": "a dark cell with heavy damp walls and iron shackles.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "stone and wood",
+            "temperature": 20
+          },
+          "x": 300,
+          "y": 200
+        }
+      },
+      "way_courtyard_hall": {
+        "id": "way_courtyard_hall",
+        "type": "way",
+        "name": "courtyard-hall archway",
+        "properties": {
+          "area_from": "area_courtyard",
+          "area_to": "area_hall",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You pass under the stone archway into the Great Hall.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_hall_armory": {
+        "id": "way_hall_armory",
+        "type": "way",
+        "name": "heavy oak door",
+        "properties": {
+          "area_from": "area_hall",
+          "area_to": "area_armory",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "locked",
+          "pass_message": "You unlock and push through the heavy oak door into the Armory.",
+          "description": "a reinforced door bound in iron, firmly locked.",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_armory_parapet": {
+        "id": "way_armory_parapet",
+        "type": "way",
+        "name": "parapet door",
+        "properties": {
+          "area_from": "area_armory",
+          "area_to": "area_parapet",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You step out onto the windy parapet walkway.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_courtyard_kitchen": {
+        "id": "way_courtyard_kitchen",
+        "type": "way",
+        "name": "kitchen doorway",
+        "properties": {
+          "area_from": "area_courtyard",
+          "area_to": "area_kitchen",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You walk down the stone steps into the warm kitchen.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_hall_pantry": {
+        "id": "way_hall_pantry",
+        "type": "way",
+        "name": "pantry doorway",
+        "properties": {
+          "area_from": "area_hall",
+          "area_to": "area_pantry",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You step through the archway into the cool pantry.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_armory_guard_room": {
+        "id": "way_armory_guard_room",
+        "type": "way",
+        "name": "guard room door",
+        "properties": {
+          "area_from": "area_armory",
+          "area_to": "area_guard_room",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You pass into the busy guard station.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_parapet_tower_base": {
+        "id": "way_parapet_tower_base",
+        "type": "way",
+        "name": "tower stairs",
+        "properties": {
+          "area_from": "area_parapet",
+          "area_to": "area_tower_base",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You descend the stairs into the tower base.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_kitchen_pantry": {
+        "id": "way_kitchen_pantry",
+        "type": "way",
+        "name": "kitchen pantry arch",
+        "properties": {
+          "area_from": "area_kitchen",
+          "area_to": "area_pantry",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You move between the kitchen and pantry.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_pantry_guard_room": {
+        "id": "way_pantry_guard_room",
+        "type": "way",
+        "name": "pantry guard hall",
+        "properties": {
+          "area_from": "area_pantry",
+          "area_to": "area_guard_room",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You walk down the corridor to the guard room.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_guard_room_tower_base": {
+        "id": "way_guard_room_tower_base",
+        "type": "way",
+        "name": "guard tower passage",
+        "properties": {
+          "area_from": "area_guard_room",
+          "area_to": "area_tower_base",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You proceed through the fortified corridor to the tower base.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_kitchen_garden": {
+        "id": "way_kitchen_garden",
+        "type": "way",
+        "name": "garden gate",
+        "properties": {
+          "area_from": "area_kitchen",
+          "area_to": "area_garden",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You step out through the wooden gate into the garden.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_pantry_library": {
+        "id": "way_pantry_library",
+        "type": "way",
+        "name": "library door",
+        "properties": {
+          "area_from": "area_pantry",
+          "area_to": "area_library",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You push open the quiet door into the library.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_library_vault": {
+        "id": "way_library_vault",
+        "type": "way",
+        "name": "false bookcase wall",
+        "properties": {
+          "area_from": "area_library",
+          "area_to": "area_secret_vault",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "hidden",
+          "pass_message": "You slide the false bookcase aside and slip into the vault.",
+          "description": "a false wall panel concealed perfectly behind towering oak shelves.",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_vault_dungeon": {
+        "id": "way_vault_dungeon",
+        "type": "way",
+        "name": "collapsed passage",
+        "properties": {
+          "area_from": "area_secret_vault",
+          "area_to": "area_dungeon",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "blocked",
+          "pass_message": "You squeeze through the rubble into the dungeon cell.",
+          "description": "a collapsed stone tunnel choked with fallen granite blocks.",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_garden_library": {
+        "id": "way_garden_library",
+        "type": "way",
+        "name": "terrace doors",
+        "properties": {
+          "area_from": "area_garden",
+          "area_to": "area_library",
+          "direction": "east",
+          "return_direction": "west",
+          "current_state": "open",
+          "pass_message": "You walk from the garden terrace into the library.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_tower_base_dungeon": {
+        "id": "way_tower_base_dungeon",
+        "type": "way",
+        "name": "dungeon stairs",
+        "properties": {
+          "area_from": "area_tower_base",
+          "area_to": "area_dungeon",
+          "direction": "south",
+          "return_direction": "north",
+          "current_state": "open",
+          "pass_message": "You descend the cold winding stone stairs into the dungeon.",
+          "description": "a standard doorway",
+          "world_scope_id": "htc_scope",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "player_explorer": {
+        "id": "player_explorer",
+        "type": "character",
+        "name": "Explorer",
+        "properties": {
+          "description": "a seasoned explorer with keen eyes and rugged travel gear.",
+          "personality": "You are the intrepid Explorer examining the forgotten keep.",
+          "tags": [
+            "human",
+            "player"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 50,
+          "y": 50
+        }
+      },
+      "player_guard": {
+        "id": "player_guard",
+        "type": "character",
+        "name": "Guard",
+        "properties": {
+          "description": "a tall sentry standing watch in polished steel armor.",
+          "personality": "A stern keep guard on duty.",
+          "tags": [
+            "guard",
+            "sentry"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 250,
+          "y": 150
+        }
+      },
+      "player_guard__b2b2b2": {
+        "id": "player_guard__b2b2b2",
+        "type": "character",
+        "name": "Guard",
+        "properties": {
+          "description": "a scarred veteran guard polishing a heavy crossbow.",
+          "personality": "An experienced veteran guard keeping an eye on the perimeter.",
+          "tags": [
+            "guard",
+            "veteran"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 270,
+          "y": 150
+        }
+      },
+      "player_doctor_brown": {
+        "id": "player_doctor_brown",
+        "type": "character",
+        "name": "Doctor Brown",
+        "properties": {
+          "description": "an eccentric scholar with spectacles and wild white hair.",
+          "personality": "An academic historian researching ancient manuscripts.",
+          "aliases": [
+            "Doc"
+          ],
+          "tags": [
+            "scholar",
+            "doctor"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 150,
+          "y": 250
+        }
+      },
+      "player_doc_holliday": {
+        "id": "player_doc_holliday",
+        "type": "character",
+        "name": "Doc Holliday",
+        "properties": {
+          "description": "a sharp-dressed gambler with a pale face and cold eyes.",
+          "personality": "A notorious gunslinger taking in the evening air.",
+          "aliases": [
+            "Doc"
+          ],
+          "tags": [
+            "gambler"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 70,
+          "y": 50
+        }
+      },
+      "player_crypt_ghoul": {
+        "id": "player_crypt_ghoul",
+        "type": "character",
+        "name": "Crypt Ghoul",
+        "properties": {
+          "description": "a gaunt withered creature with glowing pale eyes and jagged claws.",
+          "personality": "A ravenous undead ghoul dwelling in the dark.",
+          "tags": [
+            "undead",
+            "monster",
+            "ghoul"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 350,
+          "y": 250
+        }
+      },
+      "item_ancient_relic": {
+        "id": "item_ancient_relic",
+        "type": "item",
+        "name": "ancient_relic",
+        "properties": {
+          "name": "ancient_relic",
+          "description": "a weathered stone artifact carved with glowing celestial runes.",
+          "weight": 1.0,
+          "uses": -1,
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "action_costs": {
+            "examine": {
+              "time": 1
+            }
+          },
+          "tags": [
+            "artifact",
+            "magic",
+            "relic"
+          ],
+          "triggers": [
+            {
+              "id": "trigger_item_ancient_relic_on_examine",
+              "trigger_type": "on_examine",
+              "target_name": "",
+              "conditions": [],
+              "conditions_logic": "and",
+              "effects": [
+                {
+                  "type": "message",
+                  "params": {
+                    "message": "",
+                    "success_message": "The runes flare with azure light as faint whispers fill your mind."
+                  }
+                }
+              ]
+            }
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 120,
+          "y": 70
+        }
+      },
+      "item_sparring_dummy": {
+        "id": "item_sparring_dummy",
+        "type": "item",
+        "name": "sparring_dummy",
+        "properties": {
+          "name": "sparring_dummy",
+          "description": "a heavy canvas and straw combat dummy mounted on an iron swivel base.",
+          "weight": 25.0,
+          "uses": -1,
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "tags": [
+            "training",
+            "prop"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 60,
+          "y": 80
+        }
+      },
+      "item_journal": {
+        "id": "item_journal",
+        "type": "item",
+        "name": "leather journal",
+        "properties": {
+          "name": "leather journal",
+          "description": "a worn leather-bound journal with handwritten field notes.",
+          "weight": 0.5,
+          "uses": -1,
+          "actions": [
+            "examine",
+            "drop"
+          ],
+          "tags": [
+            "book",
+            "notes"
+          ],
+          "world_scope_id": "htc_scope",
+          "x": 50,
+          "y": 50
+        }
+      }
+    },
+    "edges": [
+      {
+        "source": "area_courtyard",
+        "target": "way_courtyard_hall",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_courtyard_hall",
+        "target": "area_hall",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_hall",
+        "target": "way_hall_armory",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_hall_armory",
+        "target": "area_armory",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_armory",
+        "target": "way_armory_parapet",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_armory_parapet",
+        "target": "area_parapet",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_courtyard",
+        "target": "way_courtyard_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_courtyard_kitchen",
+        "target": "area_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_hall",
+        "target": "way_hall_pantry",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_hall_pantry",
+        "target": "area_pantry",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_armory",
+        "target": "way_armory_guard_room",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_armory_guard_room",
+        "target": "area_guard_room",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_parapet",
+        "target": "way_parapet_tower_base",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_parapet_tower_base",
+        "target": "area_tower_base",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_kitchen",
+        "target": "way_kitchen_pantry",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_kitchen_pantry",
+        "target": "area_pantry",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_pantry",
+        "target": "way_pantry_guard_room",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_pantry_guard_room",
+        "target": "area_guard_room",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_guard_room",
+        "target": "way_guard_room_tower_base",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_guard_room_tower_base",
+        "target": "area_tower_base",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_kitchen",
+        "target": "way_kitchen_garden",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_kitchen_garden",
+        "target": "area_garden",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_pantry",
+        "target": "way_pantry_library",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_pantry_library",
+        "target": "area_library",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "area_library",
+        "target": "way_library_vault",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_library_vault",
+        "target": "area_secret_vault",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_secret_vault",
+        "target": "way_vault_dungeon",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_vault_dungeon",
+        "target": "area_dungeon",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_garden",
+        "target": "way_garden_library",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "way_garden_library",
+        "target": "area_library",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_tower_base",
+        "target": "way_tower_base_dungeon",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "way_tower_base_dungeon",
+        "target": "area_dungeon",
+        "type": "connection",
+        "properties": {
+          "direction": "north"
+        }
+      },
+      {
+        "source": "player_explorer",
+        "target": "area_courtyard",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_guard",
+        "target": "area_guard_room",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_guard__b2b2b2",
+        "target": "area_guard_room",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_doctor_brown",
+        "target": "area_library",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_doc_holliday",
+        "target": "area_courtyard",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_crypt_ghoul",
+        "target": "area_dungeon",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_ancient_relic",
+        "target": "area_courtyard",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_sparring_dummy",
+        "target": "area_courtyard",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_journal",
+        "target": "player_explorer",
+        "type": "carrying",
+        "properties": {}
+      }
+    ]
+  }
+}
