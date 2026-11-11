@@ -64,7 +64,10 @@
         <div id="commons-feed" class="commons-log" aria-live="polite" aria-label="Messages"></div>
         <form id="commons-form" class="commons-input-row" onsubmit="event.preventDefault();">
             <label class="commons-composer-label" for="commons-input"><span id="commons-composer-verb">Message as</span> <span id="commons-composer-identity">User</span></label>
+            <div id="commons-composer-previews" class="commons-composer-previews"></div>
             <div class="commons-composer-row">
+                <input type="file" id="commons-file-input" accept="image/*" style="display:none;" />
+                <button type="button" id="commons-attach-btn" class="commons-btn commons-btn-secondary" title="Attach image" aria-label="Attach image">📎</button>
                 <input type="text" id="commons-input" class="commons-input" placeholder="Write a message…" autocomplete="off">
                 <button type="submit" id="commons-send-btn" class="commons-btn commons-btn-primary">Send</button>
             </div>
@@ -157,6 +160,7 @@
 <script src="/static/js/shared/json-utils.js"></script>
 <script src="/static/js/agent/action-normalizer.js"></script>
 <script src="/static/js/agent/response-parser.js"></script>
+<script src="/static/js/agent/action-interpreter.js"></script>
 <script src="/static/js/agent/prompt-builder/helpers.js"></script>
 <script src="/static/js/agent/prompt-builder/character-state.js"></script>
 <script src="/static/js/agent/prompt-builder/context-sections.js"></script>

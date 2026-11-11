@@ -52,6 +52,12 @@ const CONFIG_SCHEMA: Record<string, ConfigFieldDef> = {
     memoryApiKey: { storageKey: 'memory_api_key', type: 'string', default: 'not-needed' },
     memoryModel: { storageKey: 'memory_model', type: 'string', default: 'lmstudio-community/lfm3-1.7b' },
     memoryApiFormat: { storageKey: 'memory_api_format', type: 'string', default: 'lmstudio' },
+    interpreterModelEnabled: { storageKey: 'interpreter_model_enabled', type: 'boolean', default: false },
+    interpreterApiBase: { storageKey: 'interpreter_api_base', type: 'string', default: 'http://localhost:1234/v1' },
+    interpreterApiKey: { storageKey: 'interpreter_api_key', type: 'string', default: 'not-needed' },
+    interpreterModel: { storageKey: 'interpreter_model', type: 'string', default: 'lfm3-1.7b@q4_0' },
+    interpreterApiFormat: { storageKey: 'interpreter_api_format', type: 'string', default: 'auto' },
+    visionEnabled: { storageKey: 'vision_enabled', type: 'boolean', default: false },
     thinking: { storageKey: 'thinking', type: 'boolean', default: false },
     thinkingEffort: { storageKey: 'thinking_effort', type: 'string', default: 'high' },
     suppressLocalThinking: { storageKey: 'suppress_local_thinking', type: 'boolean', default: true },
@@ -111,9 +117,15 @@ class ConfigManagerImpl {
     declare memoryApiKey: string;
     declare memoryModel: string;
     declare memoryApiFormat: string;
+    declare interpreterModelEnabled: boolean;
+    declare interpreterApiBase: string;
+    declare interpreterApiKey: string;
+    declare interpreterModel: string;
+    declare interpreterApiFormat: string;
     declare thinking: boolean;
     declare thinkingEffort: string;
     declare suppressLocalThinking: boolean;
+    declare visionEnabled: boolean;
 
     // Turn / mode
     declare turnBased: boolean;
@@ -216,10 +228,13 @@ class ConfigManagerImpl {
         const savedTalkativeness = await storage.getConfig('simultaneous_talkativeness');
         try {
             const parsed = JSON.parse(savedTalkativeness || '{}');
+            const sim = (window as unknown as { VWSimultaneous?: VWSimultaneousApi }).VWSimultaneous;
             this.talkativenessByCharacter = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
                 ? Object.fromEntries(Object.entries(parsed).map(([name, value]) => [
                     name,
-                    (window as unknown as { VWSimultaneous: VWSimultaneousApi }).VWSimultaneous.normalizeTalkativeness(value),
+                    sim && typeof sim.normalizeTalkativeness === 'function'
+                        ? sim.normalizeTalkativeness(value)
+                        : (typeof value === 'number' && Number.isFinite(value) ? value : 0.5),
                 ]))
                 : {};
         } catch (e) {
@@ -323,10 +338,15 @@ class ConfigManagerImpl {
         // legacy boolean setting is folded in so an old save keeps working.
         // "simultaneous_room" resolves rooms independently with characters
         // inside a room acting in order.
-        this.turnOrder = (window as unknown as { VWSimultaneous: VWSimultaneousApi }).VWSimultaneous.normalizeMode(
-            await storage.getConfig('simultaneous_mode'),
-            this.turnOrder
-        );
+        const rawSimMode = await storage.getConfig('simultaneous_mode');
+        const sim = (window as unknown as { VWSimultaneous?: VWSimultaneousApi }).VWSimultaneous;
+        if (sim && typeof sim.normalizeMode === 'function') {
+            this.turnOrder = sim.normalizeMode(rawSimMode, this.turnOrder);
+        } else if (rawSimMode === 'true' || rawSimMode === true) {
+            this.turnOrder = 'simultaneous';
+        } else if (rawSimMode === 'simultaneous' || rawSimMode === 'simultaneous_room') {
+            this.turnOrder = rawSimMode as string;
+        }
 
         // Structured output: send response_format (json_schema / json_object)
         // with every LLM call that expects JSON. Auto-degrades per session when
@@ -351,6 +371,17 @@ class ConfigManagerImpl {
         this.memoryApiKey = await storage.getConfig('memory_api_key') || 'not-needed';
         this.memoryModel = await storage.getConfig('memory_model') || 'lmstudio-community/lfm3-1.7b';
         this.memoryApiFormat = await storage.getConfig('memory_api_format') || 'lmstudio';
+
+        // Dedicated Interpreter Model settings (task-943)
+        const storedIntEnabled = await storage.getConfig('interpreter_model_enabled');
+        this.interpreterModelEnabled = storedIntEnabled !== null ? storedIntEnabled === 'true' : false;
+        this.interpreterApiBase = await storage.getConfig('interpreter_api_base') || 'http://localhost:1234/v1';
+        this.interpreterApiKey = await storage.getConfig('interpreter_api_key') || 'not-needed';
+        this.interpreterModel = await storage.getConfig('interpreter_model') || 'lfm3-1.7b@q4_0';
+        this.interpreterApiFormat = await storage.getConfig('interpreter_api_format') || 'auto';
+
+        // Vision mode: enable sending image attachments to vision models
+        this.visionEnabled = (await storage.getConfig('vision_enabled')) === 'true';
 
         // Thinking mode: sends reasoning_effort + thinking extra_body for reasoning models
         this.thinking = (await storage.getConfig('thinking')) === 'true';
@@ -453,7 +484,7 @@ class ConfigManagerImpl {
             sequential: 'Characters act one at a time',
             random: 'Characters act in a shuffled order, reshuffled each round',
             initiative: 'Each character rolls d20 + DEX; highest acts first',
-            simultaneous: 'Independent 5–120 second cooldowns, jittered per character',
+            simultaneous: 'Independent 5-120 second cooldowns, jittered per character',
             simultaneous_room: 'Rooms resolve independently; order within a room',
         };
         desc.textContent = DESCRIPTIONS[this.turnOrder] || `Turn mode: ${this.turnOrder}`;
@@ -538,6 +569,12 @@ class ConfigManagerImpl {
         await storage.setConfig('memory_api_key', this.memoryApiKey);
         await storage.setConfig('memory_model', this.memoryModel);
         await storage.setConfig('memory_api_format', this.memoryApiFormat);
+        await storage.setConfig('interpreter_model_enabled', this.interpreterModelEnabled ? 'true' : 'false');
+        await storage.setConfig('interpreter_api_base', this.interpreterApiBase);
+        await storage.setConfig('interpreter_api_key', this.interpreterApiKey);
+        await storage.setConfig('interpreter_model', this.interpreterModel);
+        await storage.setConfig('interpreter_api_format', this.interpreterApiFormat);
+        await storage.setConfig('vision_enabled', this.visionEnabled ? 'true' : 'false');
         await storage.setConfig('thinking', this.thinking ? 'true' : 'false');
         await storage.setConfig('thinking_effort', this.thinkingEffort);
         await storage.setConfig('suppress_local_thinking', this.suppressLocalThinking ? 'true' : 'false');
@@ -629,9 +666,15 @@ class ConfigManagerImpl {
         this.memoryApiKey = (document.getElementById('memory-api-key') as HTMLInputElement)?.value.trim() || this.memoryApiKey || 'not-needed';
         this.memoryModel = (document.getElementById('memory-model') as HTMLInputElement)?.value.trim() || this.memoryModel || 'lmstudio-community/lfm3-1.7b';
         this.memoryApiFormat = (document.getElementById('memory-api-format') as HTMLInputElement)?.value || this.memoryApiFormat || 'lmstudio';
+        this.interpreterModelEnabled = (document.getElementById('interpreter-model-enabled') as HTMLInputElement)?.checked ?? this.interpreterModelEnabled;
+        this.interpreterApiBase = (document.getElementById('interpreter-api-base') as HTMLInputElement)?.value.trim() || this.interpreterApiBase || 'http://localhost:1234/v1';
+        this.interpreterApiKey = (document.getElementById('interpreter-api-key') as HTMLInputElement)?.value.trim() || this.interpreterApiKey || 'not-needed';
+        this.interpreterModel = (document.getElementById('interpreter-model') as HTMLInputElement)?.value.trim() || this.interpreterModel || 'lfm3-1.7b@q4_0';
+        this.interpreterApiFormat = (document.getElementById('interpreter-api-format') as HTMLInputElement)?.value || this.interpreterApiFormat || 'auto';
         this.thinking = (document.getElementById('agent-thinking') as HTMLInputElement)?.checked ?? this.thinking;
         this.thinkingEffort = (document.getElementById('agent-thinking-effort') as HTMLInputElement)?.value || this.thinkingEffort;
         this.suppressLocalThinking = (document.getElementById('agent-suppress-local-thinking') as HTMLInputElement)?.checked ?? this.suppressLocalThinking;
+        this.visionEnabled = (document.getElementById('agent-vision-enabled') as HTMLInputElement)?.checked ?? this.visionEnabled;
         this.apiFormat = (document.getElementById('agent-api-format') as HTMLInputElement)?.value || this.apiFormat;
         const rpmInput = (document.getElementById('agent-rpm-limit') as HTMLInputElement);
         if (rpmInput) this.rpmLimit = parseInt(rpmInput.value) || 0;
@@ -676,6 +719,7 @@ class ConfigManagerImpl {
             thinking: this.thinking,
             thinkingEffort: this.thinkingEffort,
             suppressLocalThinking: this.suppressLocalThinking,
+            visionEnabled: Boolean(this.visionEnabled),
             apiFormat: this.apiFormat
         };
     }
@@ -713,6 +757,41 @@ class ConfigManagerImpl {
             }
         }
         return win.memoryLLMClient || win.llmClient;
+    }
+
+    /**
+     * Get or initialize dedicated LLM client for action interpretation from prose (task-943).
+     * Defaults to the main llmClient when dedicated interpreter model is disabled.
+     */
+    getInterpreterLLMClient() {
+        if (!this.interpreterModelEnabled) {
+            return (window as unknown as { llmClient: any }).llmClient;
+        }
+        const model = this.interpreterModel || CONFIG_SCHEMA.interpreterModel.default;
+        const base = this.interpreterApiBase || CONFIG_SCHEMA.interpreterApiBase.default;
+        const format = this.interpreterApiFormat || CONFIG_SCHEMA.interpreterApiFormat.default;
+        const win = window as any;
+        if (!win.interpreterLLMClient || win._interpreterLLMClientModel !== model || win._interpreterLLMClientBase !== base || win._interpreterLLMClientFormat !== format) {
+            const LLMClientClass = win.LLMClient;
+            if (typeof LLMClientClass === 'function') {
+                win.interpreterLLMClient = new LLMClientClass({
+                    apiKey: this.interpreterApiKey || this.apiKey || 'not-needed',
+                    apiBase: base,
+                    model: model,
+                    provider: 'local',
+                    streaming: false,
+                    showLogs: this.showLogs,
+                    apiFormat: format,
+                    reasoning: 'off',
+                    thinking: false,
+                    thinkingEffort: 'none'
+                });
+                win._interpreterLLMClientModel = model;
+                win._interpreterLLMClientBase = base;
+                win._interpreterLLMClientFormat = format;
+            }
+        }
+        return win.interpreterLLMClient || win.llmClient;
     }
 
     // --- Profile Management ---

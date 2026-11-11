@@ -69,27 +69,232 @@ MCP memory tools all operate on this same list.
 
 ## Who writes memories
 
-| Writer | Where | Type |
-|---|---|---|
-| **Agent react phase** | `agent-engine.js` | `reaction` (LLM-generated subjective memory) |
-| **Agent non-reactive phase** | `agent-engine.js` | `reaction` |
-| **Wake from unconsciousness** | `agent-engine.js` | `thought` |
-| **Memory Weaver & Editor** | `static/js/inspector/memory-view.ts` | user-selected or LLM-woven (`episodic`, `belief`, `social`, `procedural`, `semantic`) |
-| **Seeds/backstory** | scenario files (`world_template.json`) | `observation` (`source: manual`) |
-| **MCP memory tools** | `mcp_server.py` | user-selected |
+There are **16 distinct memory-writing paths** across the frontend and backend:
 
-### LLM-generated runtime memories (task-178 / task-160)
+| Writer | Where | Type / Category | Description |
+|---|---|---|---|
+| **Agent react phase** | `agent-engine.ts:1755` | `reaction` (episodic) | LLM-generated subjective takeaway after action resolution |
+| **Agent non-reactive phase** | `agent-engine.ts:1804` | `reaction` (episodic) | Single-phase turn-end memory (opt-in via `config.endOfTurnMemory`) |
+| **Deterministic auto-memory** | `agent-engine.ts:559` | `reaction` (episodic) | Instant, LLM-free memory generated on every action execution: `did X and said Y` |
+| **Composer draft memory** | `agent-engine.ts:558` | `reaction` (episodic) | Explicit memory drafted in `#htc-memory` during Compose phase and committed on Act |
+| **Composer react beat** | `agent-engine.ts:610` | `reaction` (episodic) | Post-action reaction memory entered in `HumanTurnComposer.react()` |
+| **Wake from unconsciousness** | `agent-engine.ts:1423` | `thought` (episodic) | Disorientation memory generated on wake from 0 energy |
+| **Action Interpreter** | `action-interpreter.ts` | canonical `memory` | Extracts personal memory reflections from creative roleplay prose (task-943) |
+| **Lived log memory bridge** | `lived_log_memory.py` | `observation` (episodic) | Tick-advancement bridge phrasing deaths, pursuits, and relationships into memories (task-727) |
+| **Scene observations** | `observation.py` | `observation` (episodic) | Consolidated `scene_observed` memory per room visit, reinforced in place on revisit (task-789) |
+| **Background social simulation** | `background_social.py` | `social` (social) | NPC-to-NPC conversations, approaches, insults, and flirtations with relationship deltas |
+| **Trigger effects** | `effect_handlers/memory.py` | author-defined | World triggers firing `add_memory` or `remove_memory` on examine/use/enter (task-198) |
+| **Direct action handlers** | `routes/action_handlers.py` | `action` / `social` | Whispers, trades, and direct interpersonal actions writing memories to actor and target |
+| **Timeskip milestones** | `timeskip.py` | `observation` (episodic) | Multi-hour/day timeskip summaries for major world events |
+| **Memory Weaver & Editor** | `inspector/memory-view.ts` | user-selected / woven | Manual creation, backdating (`simulate_age_decay`), opinion asking, and relationship weaving |
+| **Seeds and backstory** | `character_store.py` | `observation` (manual) | Initial backstory memories seeded from character bio, secrets, and media |
+| **Commons chat agent** | `commons-agent.ts` | `conversation` | Chat and town board messages stored via the `remember` tool |
 
-The agent stores **one memory per turn** - a subjective takeaway the LLM writes in the react
-phase, not raw action/room dumps. The react prompt asks for:
+### Speech in memories: what the engine actually does
 
-```json
-{"memory": {"text": "...", "importance": 7, "tags": ["door"]}}
+Historical documentation claimed that characters do not remember spoken dialogue. In reality:
+- **In Human / Directed turns (`agent-engine.ts:563`):** Every action commit automatically writes spoken lines into deterministic auto-memory (`said "${step.speech}"`), ensuring dialogue commitments persist.
+- **In Autonomous Agent loops:** The think-decide phase currently does not automatically commit speech to memory unless the model explicitly reflects on what it said in the react phase, which can lead to dialogue repetition if the model ignores the prompt conversation window.
+
+## Architecture & Data Flow
+
+```mermaid
+flowchart TD
+    subgraph WRITERS["Memory Writers (16 Distinct Sources)"]
+        W1["1. Human Composer Draft (#htc-memory)"]
+        W2["2. Deterministic Action Auto-Memory (did X, said Y)"]
+        W3["3. Human Composer React Beat"]
+        W4["4. Agent LLM React Phase (buildResultReactionPrompt)"]
+        W5["5. Agent Single-Phase (endOfTurnMemory)"]
+        W6["6. Wake from Unconsciousness"]
+        W7["7. Action Interpreter (task-943)"]
+        W8["8. Lived Log Memory Bridge (task-727)"]
+        W9["9. Scene Observations (task-789)"]
+        W10["10. Background Social Simulation"]
+        W11["11. World Triggers (add_memory)"]
+        W12["12. Direct Action Handlers (whispers/trades)"]
+        W13["13. Timeskip Milestones"]
+        W14["14. Character Bio / Secret Seeding"]
+        W15["15. Inspector Memory Weaver & Editor"]
+        W16["16. Commons Chat Agent (remember)"]
+    end
+
+    subgraph CLIENT_API["Client & HTTP Layer"]
+        AM["AgentMemory.storeMemory()"]
+        AC["ApiClient.addPlayerMemory()"]
+        EMB["EmbeddingClient.embed()"]
+        REST["POST /api/players/{name}/memories/entry"]
+    end
+
+    subgraph STORAGE["Authoritative Storage & Dynamics"]
+        STORE[("Player.memories[]")]
+        DYN["engine/memory_dynamics.py<br/>(activation decay, contradiction linking, reinforcement)"]
+        VEC[("engine/vector_store.py<br/>(cosine embeddings)")]
+        SER["engine/serialization.py<br/>(persisted to scenario/save)"]
+    end
+
+    subgraph READERS["Memory Consumers & Query Paths"]
+        R1["PromptBuilder.buildMemoryContext()<br/>(Pre-turn recall injected into === I REMEMBER ===)"]
+        R2["engine/memory_retrieval.py<br/>(Multi-channel associative scorer)"]
+        R3["engine/derive.py<br/>(Derived per-person relationship profiles)"]
+        R4["Inspector Mind Panel<br/>(Timeline, connections, lived evidence)"]
+        R5["AgentMemory.reflect()<br/>(Periodic belief synthesis every 5 turns)"]
+    end
+
+    W1 -->|Act commit| AM
+    W2 -->|Immediate step commit| AM
+    W3 -->|React & Continue| AM
+    W4 -->|React response| AM
+    W5 -->|End-of-turn| AM
+    W6 -->|Wake event| AM
+    W7 -->|Interpreted prose| AM
+    W15 -->|Manual save/weave| AC
+    W16 -->|Tool call| AC
+
+    AM --> AC
+    AM -.->|Vectorize| EMB -.-> VEC
+    AC --> REST --> STORE
+
+    W8 -->|bridge_all()| STORE
+    W9 -->|record_scene_observation()| STORE
+    W10 -->|player.add_memory()| STORE
+    W11 -->|on_examine/on_use| STORE
+    W12 -->|player.add_memory()| STORE
+    W13 -->|player.add_memory()| STORE
+    W14 -->|to_player()| STORE
+
+    STORE <--> DYN
+    STORE <--> SER
+
+    STORE --> R1
+    STORE --> R2
+    STORE --> R3
+    STORE --> R4
+    STORE --> R5
+    R5 -->|synthesize insight| REST
 ```
 
-`_extractMemory()` (`agent-engine.js`) parses this (plain-string fallback -> importance 5).
-Speech, emotes, and inner monologues are logged to the event stream but **not** stored as
-memories - people don't remember their own spoken lines.
+## Sequence Diagrams
+
+### Sequence 1: Autonomous Agent Turn (Think -> Act -> React)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Sim as Simulation Loop
+    participant AE as AgentEngine
+    participant PB as PromptBuilder
+    participant LLM as Agent LLM
+    participant ENG as Simulation Engine
+    participant PM as Player.memories[]
+    participant MD as Memory Dynamics
+
+    Note over AE,PM: 1. PRE-TURN RECALL
+    AE->>PB: buildMemoryContext(charName)
+    PB->>PM: Query active memories (area, entities, vitals)
+    PM->>MD: Score activation & reinforce recalled
+    PM-->>PB: Top relevant memories
+    PB-->>AE: === I REMEMBER === context block
+
+    Note over AE,LLM: 2. THINK & DECIDE
+    AE->>PB: buildReactionPrompt()
+    PB-->>AE: Assembled decide prompt
+    AE->>LLM: chat(decideMessages)
+    LLM-->>AE: {action, target, speech, inner_monologue, emote}
+
+    Note over AE,ENG: 3. ACTION EXECUTION
+    AE->>ENG: execute(action, target)
+    ENG-->>AE: Action Result ("the emf reader flickers near zero")
+
+    Note over AE,PM: 4. REACT & MEMORY CREATION
+    AE->>PB: buildResultReactionPrompt(actionResult)
+    PB-->>AE: Assembled react prompt with MEMORY_INSTRUCTION
+    AE->>LLM: chat(reactMessages)
+    LLM-->>AE: {inner_monologue, emote, speech, memory: {text, importance, tags}}
+    AE->>PM: storeReactionMemory(charName, memory)
+    PM->>MD: detect_contradiction() & assign activation=1.0
+
+    Note over AE,MD: 5. PERIODIC REFLECTION (Every 5 turns)
+    AE->>MD: reflect()
+    MD->>LLM: Synthesize clusters of memories into beliefs
+    LLM-->>MD: {belief, confidence, relationship_deltas}
+    MD->>PM: add_memory(category: "belief", source_memory_ids: [...])
+```
+
+### Sequence 2: Human & Director Composer Turn
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Player as Human / Director
+    participant HTC as HumanTurnComposer
+    participant AE as AgentEngine
+    participant AI as ActionInterpreter (task-943)
+    participant ENG as Engine (/api/action)
+    participant PM as Player.memories[]
+
+    Note over Player,HTC: 1. COMPOSE PHASE
+    Player->>HTC: Open turn panel
+    alt Ask Director clicked
+        HTC->>AE: draftTurnForCharacter(charName, directorNote)
+        AE->>AI: interpretProseToAction(rawProse)
+        AI-->>AE: canonical {action, speech, emote, inner, emotion, memory}
+        AE-->>HTC: prefill composer fields including #htc-memory
+    else Manual Authoring
+        Player->>HTC: Type into #htc-do, #htc-speech, #htc-memory
+    end
+
+    Note over Player,PM: 2. ACT COMMIT & AUTO-MEMORY
+    Player->>HTC: Click "Act"
+    HTC->>AE: _humanTurn step
+    opt Explicit memory in #htc-memory
+        AE->>PM: storeReactionMemory(drafted memory)
+    end
+    AE->>ENG: execute(action)
+    ENG-->>AE: ActionResult
+    Note over AE,PM: Deterministic Auto-Memory
+    AE->>PM: storeReactionMemory("did [action] and said [speech]")
+
+    Note over Player,PM: 3. REACT BEAT
+    HTC->>Player: Open react view with WHAT HAPPENED
+    Player->>HTC: Click "React & Continue" with reaction memory
+    HTC->>AE: react result
+    opt Reaction memory present
+        AE->>PM: storeReactionMemory(reaction.memory)
+    end
+```
+
+### Sequence 3: Simulation Tick & Background Passive Bridging
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant TM as tick_manager.py
+    participant LLM_B as lived_log_memory.py
+    participant OBS as observation.py
+    participant SOC as background_social.py
+    participant PM as Player.memories[]
+    participant DYN as memory_dynamics.py
+
+    Note over TM,PM: Simulation Tick Advancement
+    TM->>OBS: observe_area(player, area)
+    OBS->>PM: record_scene_observation() (consolidated scene with items/exits seen)
+
+    TM->>SOC: run_social_approach() / chat
+    opt Off-screen NPC interaction occurs
+        SOC->>PM: add_memory("insulted/chatted with [who]")
+    end
+
+    TM->>LLM_B: bridge_all(gs)
+    opt Unmemorized death, pursuit, or relationship lived entries
+        LLM_B->>PM: add_memory(phrase(entry), source="lived_log")
+        LLM_B->>PM: Update lived_log_memorized_through watermark
+    end
+
+    TM->>DYN: tick_decay_all()
+    DYN->>PM: Decay activation across all inactive memories
+    DYN->>PM: Expire faded memories below threshold
+```
 
 ## Memory API
 
@@ -266,14 +471,14 @@ per-person derived profiles via `GET /api/players/<name>/memories/people`).
 <!-- connected:start -->
 ## Connected
 
-*Generated by `python tools/doc_connected.py --apply` - relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+*Generated by `python tools/doc_connected.py --apply`  -  relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Read next** - [[Memory Weaver]], [[Memory Dynamics#5. Query-driven retrieval]]
+**Read next**  -  [[Memory Dynamics#5. Query-driven retrieval]]
 
-**Features** - [[memory|Memory]] (#22), [[memory-pipeline|Memory pipeline]] (#41)
+**Features**  -  [[memory|Memory]] (#22), [[memory-pipeline|Memory pipeline]] (#41)
 
-**Dev tasks** - [[dev_tasks/cancelled/task-26-vector_embeddings_rag_prep|task]], [[dev_tasks/done/characters/task-178-unify-memory-systems|task]], [[dev_tasks/done/characters/task-37-memory_context_relative_time|task]], [[dev_tasks/done/characters/task-42-proper_memory_editor|task]], [[dev_tasks/done/characters/task-91-activate_cosine_similarity_retrieval|task]], [[dev_tasks/done/emotions/task-96-emotional_residue_intercharacter_memory|task]] ... +2 more
+**Dev tasks**  -  [[dev_tasks/cancelled/task-26-vector_embeddings_rag_prep|task]], [[dev_tasks/done/characters/task-178-unify-memory-systems|task]], [[dev_tasks/done/characters/task-37-memory_context_relative_time|task]], [[dev_tasks/done/characters/task-42-proper_memory_editor|task]], [[dev_tasks/done/characters/task-908-associative-memory-retrieval-3-0-multi-facet-perceptual-cues-and-zero-padding-prompt-lanes|task]], [[dev_tasks/done/characters/task-91-activate_cosine_similarity_retrieval|task]] … +5 more
 
-**Neighbouring notes** - [[Agent Engine]], [[LLM Providers]], [[Memory Dynamics]], [[Memory Weaver]], [[Narration System]], [[Turn-Based System]]
+**Neighbouring notes**  -  [[Agent Engine]], [[LLM Providers]], [[Memory Dynamics]], [[Memory Weaver]], [[Narration System]], [[Turn-Based System]]
 
 <!-- connected:end -->

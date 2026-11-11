@@ -531,6 +531,35 @@
                             <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
                         </div>
                     </div>
+                    <div class="settings-group" style="margin-top:14px;">
+                        <div class="settings-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+                            <span><span class="group-icon">🎭</span> Dedicated Action Interpreter (Task-943)</span>
+                            <label class="toggle-label" style="font-size:11px;cursor:pointer;">
+                                <input type="checkbox" id="interpreter-model-enabled" data-config="interpreterModelEnabled" onchange="config.interpreterModelEnabled=this.checked;document.getElementById('interpreter-model-fields').style.display=this.checked?'block':'none';config.save();">
+                                Enable Dedicated Interpreter
+                            </label>
+                        </div>
+                        <div class="field-hint" style="margin-bottom:8px;">Offload prose-to-action translation to a dedicated parser model. When disabled, uses the main active LLM client.</div>
+                        <div id="interpreter-model-fields" style="display:none;">
+                            <div class="settings-field">
+                                <label for="interpreter-api-base">Interpreter API Base URL</label>
+                                <input type="text" id="interpreter-api-base" data-config="interpreterApiBase" value="http://localhost:1234/v1" placeholder="http://localhost:1234/v1" onchange="config.interpreterApiBase=this.value;config.save();">
+                            </div>
+                            <div class="settings-field">
+                                <label for="interpreter-model">Interpreter Model</label>
+                                <input type="text" id="interpreter-model" data-config="interpreterModel" value="lfm3-1.7b@q4_0" placeholder="lfm3-1.7b@q4_0" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.interpreterModel=this.value;config.save();">
+                                <div class="field-hint">A fast instruction-following model for deterministic schema translation.</div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="interpreter-api-format">Interpreter API Format</label>
+                                <select id="interpreter-api-format" data-config="interpreterApiFormat" style="width:190px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.interpreterApiFormat=this.value;config.save();">
+                                    <option value="auto" selected>Auto</option>
+                                    <option value="chat-completions">Chat Completions (/v1/chat/completions)</option>
+                                    <option value="lmstudio">LM Studio Native (/api/v1/chat)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="tab-agent" class="tab-pane">
                     <div class="settings-group">
@@ -1497,6 +1526,7 @@
     <script src="/static/js/agent/action-verbs.generated.js"></script>
     <script src="/static/js/agent/action-normalizer.js"></script>
     <script src="/static/js/agent/response-parser.js"></script>
+    <script src="/static/js/agent/action-interpreter.js"></script>
     <script src="/static/js/character-art.js"></script>
     <script src="/static/js/agent/turn-scene-view.js"></script>
     <script src="/static/js/agent/turn-minimap.js"></script>

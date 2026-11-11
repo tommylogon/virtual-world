@@ -56,13 +56,19 @@ type AgentEngineEmotion = {
 type AgentEngineHumanReply = {
     endTurn?: boolean;
     speech?: string;
+    volume?: string;
     speechVolume?: string;
     target?: string | null;
     emote?: string;
     action?: string;
+    inner?: string | null;
+    emotion?: string | AgentEngineEmotion | null;
+    memory?: { text?: string };
     step?: {
         action?: string;
         speech?: string;
+        inner?: string | null;
+        emotion?: string | AgentEngineEmotion | null;
         memory?: { text?: string };
         [key: string]: unknown;
     };
@@ -530,6 +536,20 @@ class AgentEngine {
             while (reply && !reply.endTurn && reply.step) {
                 const currentPlayer = worldState.runtimePlayer(charName) || player;
                 const step = reply.step;
+                const picked = step;
+                if (picked.inner) {
+                    events.logThought(charName, picked.inner, worldState.tick);
+                    events.trackPhase?.(charName, 'think', { thought: picked.inner });
+                }
+                if (picked.emotion) {
+                    const emoVal = typeof picked.emotion === 'object' && picked.emotion
+                        ? (picked.emotion as AgentEngineEmotion).label
+                        : String(picked.emotion);
+                    if (emoVal) {
+                        ApiClient.updateCharacter(charName, { emotion: emoVal }).catch(() => {});
+                    }
+                    this._applyFeltEmotion(charName, picked.emotion as any);
+                }
                 const res = await this._executeHumanReply(charName, currentPlayer, step);
                 if (res.text) results.push(res.text);
                 await worldState.fetchRuntime();
@@ -568,6 +588,19 @@ class AgentEngine {
                 const reaction = await HumanTurnComposer.react(charName, results);
                 if (reaction && !reaction.endTurn) {
                     const currentPlayer = worldState.runtimePlayer(charName) || player;
+                    if (reaction.inner) {
+                        events.logThought(charName, reaction.inner, worldState.tick);
+                        events.trackPhase?.(charName, 'think', { thought: reaction.inner });
+                    }
+                    if (reaction.emotion) {
+                        const emoVal = typeof reaction.emotion === 'object' && reaction.emotion
+                            ? (reaction.emotion as AgentEngineEmotion).label
+                            : String(reaction.emotion);
+                        if (emoVal) {
+                            ApiClient.updateCharacter(charName, { emotion: emoVal }).catch(() => {});
+                        }
+                        this._applyFeltEmotion(charName, reaction.emotion as any);
+                    }
                     if (reaction.speech) {
                         await this._speakLine(charName, currentPlayer, reaction.speech, reaction.volume, reaction.target);
                     }
@@ -596,6 +629,588 @@ class AgentEngine {
         } finally {
             worldState.setRuntimeFocusForCharacter(config.controllingPlayer || charName);
         }
+    }
+
+    buildSystemPrompt(charName: string, opts?: { phase?: 'compose' | 'react' }): string {
+        const state = worldState.runtimeData || worldState.data || {};
+        const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
+        if (opts?.phase === 'react' && typeof PromptBuilder?.buildReactSystemPrompt === 'function') {
+            return PromptBuilder.buildReactSystemPrompt(charName, player, config.softMaxTokens);
+        }
+        return PromptBuilder?.buildCharacterSystemPrompt
+            ? PromptBuilder.buildCharacterSystemPrompt(charName, player, config.softMaxTokens)
+            : '';
+    }
+
+    buildContextPrompt(charName: string, opts?: { includeActionMenu?: boolean }): string {
+        const state = worldState.runtimeData || worldState.data || {};
+        const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
+        const currentArea = state.areas?.[(player as AgentEnginePlayer)?.current_area || state.current_area] || null;
+        if (opts?.includeActionMenu === false) {
+            return PromptBuilder?.buildRoomContext
+                ? PromptBuilder.buildRoomContext(state, charName, player, currentArea)
+                : '';
+        }
+        const roomParts = PromptBuilder?.buildRoomContextParts
+            ? PromptBuilder.buildRoomContextParts(state, charName, player, currentArea)
+            : {};
+        const vitalsNL = PromptBuilder?.describeVitals ? PromptBuilder.describeVitals(player, state, charName) : '';
+        const emotionNL = PromptBuilder?.buildEmotionContext ? PromptBuilder.buildEmotionContext(player) : '';
+        const relationshipNL = PromptBuilder?.buildRelationshipContext ? PromptBuilder.buildRelationshipContext(player, charName) : '';
+        return PromptBuilder?.buildReactionPrompt
+            ? PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, '', agentConfig.lastActionResult?.[charName] || '', false, true)
+            : '';
+    }
+
+    async callLLM(systemPrompt: string, messages: AgentEngineMessage[], charName: string, stepName: string): Promise<string | null> {
+        return this._callLLMMessages([{ role: 'system', content: systemPrompt }, ...messages], stepName, charName);
+    }
+
+    /**
+     * Collect canonical entity names (items, people, ways) for grounding
+     * Director drafts against the actual scene and inventory (task-942).
+     */
+    _collectCanonicalSceneEntities(
+        charName: string,
+        state: any,
+        player: any,
+        currentArea: any,
+        scene?: any
+    ): { items: string[]; people: string[]; ways: string[] } {
+        const itemsSet = new Set<string>();
+        const peopleSet = new Set<string>();
+        const waysSet = new Set<string>();
+        const addName = (set: Set<string>, raw: unknown) => {
+            if (!raw) return;
+            const s = typeof raw === 'string'
+                ? raw.trim()
+                : String((raw as any).name || (raw as any).display_name || (raw as any).id || '').trim();
+            if (s && s.toLowerCase() !== 'none') set.add(s);
+        };
+        const toList = (val: unknown): unknown[] => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            if (typeof val === 'object') {
+                return Object.entries(val as Record<string, unknown>).map(([k, v]) =>
+                    (v && typeof v === 'object') ? { id: k, direction: k, ...(v as Record<string, unknown>) } : (typeof v === 'string' && v.trim() ? v : k)
+                );
+            }
+            return [];
+        };
+        if (scene && typeof scene === 'object') {
+            for (const it of toList(scene.items)) addName(itemsSet, it);
+            for (const inv of [...toList(scene.you?.carrying), ...toList(scene.you?.wearing)]) addName(itemsSet, inv);
+            for (const p of toList(scene.people)) addName(peopleSet, (p as any)?.display_name || (p as any)?.name || p);
+            for (const w of toList(scene.ways)) {
+                addName(waysSet, (w as any)?.direction);
+                addName(waysSet, (w as any)?.to);
+                addName(waysSet, (w as any)?.name);
+            }
+        }
+        for (const inv of [...toList(player?.inventory), ...toList(player?.carrying)]) addName(itemsSet, inv);
+        if (player?.equipped && typeof player.equipped === 'object') {
+            for (const eq of Object.values(player.equipped)) addName(itemsSet, eq);
+        }
+        for (const it of toList(currentArea?.items)) addName(itemsSet, it);
+        for (const ch of toList(currentArea?.characters || currentArea?.people)) {
+            const n = typeof ch === 'string' ? ch : ((ch as any)?.name || (ch as any)?.display_name || (ch as any)?.id);
+            if (n && String(n).toLowerCase() !== charName.toLowerCase()) addName(peopleSet, n);
+        }
+        const areaKey = player?.current_area || currentArea?.id || currentArea?.name || state?.current_area;
+        if (areaKey && state?.players && typeof state.players === 'object') {
+            for (const [pName, pObj] of Object.entries(state.players)) {
+                if (pName.toLowerCase() !== charName.toLowerCase() && (pObj as any)?.current_area === areaKey) {
+                    addName(peopleSet, pName);
+                }
+            }
+        }
+        if (currentArea?.exits && typeof currentArea.exits === 'object' && !Array.isArray(currentArea.exits)) {
+            for (const [dir, dest] of Object.entries(currentArea.exits as Record<string, any>)) {
+                addName(waysSet, dir);
+                if (typeof dest === 'string') addName(waysSet, dest);
+                else if (dest && typeof dest === 'object') {
+                    addName(waysSet, dest.to || dest.target || dest.area || dest.name);
+                }
+            }
+        } else {
+            for (const ex of toList(currentArea?.exits || currentArea?.ways)) {
+                if (typeof ex === 'string') addName(waysSet, ex);
+                else if (ex && typeof ex === 'object') {
+                    addName(waysSet, (ex as any).direction);
+                    addName(waysSet, (ex as any).to);
+                    addName(waysSet, (ex as any).name);
+                }
+            }
+        }
+        return {
+            items: Array.from(itemsSet),
+            people: Array.from(peopleSet),
+            ways: Array.from(waysSet),
+        };
+    }
+
+    /**
+     * Match a potentially fuzzy LLM entity reference (e.g. "phone case" or "Kayla")
+     * against canonical entity names in the scene/inventory (task-942).
+     */
+    _matchCanonicalEntity(rawRef: string, candidates: string[]): string {
+        const clean = (rawRef || '').trim();
+        if (!clean || !candidates || !candidates.length) return clean;
+        const lower = clean.toLowerCase();
+        for (const c of candidates) {
+            if (c.toLowerCase() === lower) return c;
+        }
+        const STOP = new Set(['the', 'a', 'an', 'my', 'his', 'her', 'their', 'your', 'our', 'some', 'this', 'that']);
+        const tokenize = (s: string): string[] =>
+            s.toLowerCase()
+                .replace(/['’]s\b/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .split(/\s+/)
+                .filter(tok => tok.length >= 2 && !STOP.has(tok));
+        const refTokens = tokenize(clean);
+        if (!refTokens.length) return clean;
+
+        let bestCandidate = clean;
+        let bestOverlap = 0;
+        let bestSub = false;
+        let bestRatio = 0;
+
+        for (const c of candidates) {
+            const cLower = c.toLowerCase();
+            const cTokens = tokenize(c);
+            if (!cTokens.length) continue;
+            let overlap = 0;
+            for (const rt of refTokens) {
+                if (cTokens.some(ct => ct === rt || (ct.length >= 4 && rt.length >= 4 && (ct.includes(rt) || rt.includes(ct))))) {
+                    overlap++;
+                }
+            }
+            const isSub = cLower.includes(lower) || lower.includes(cLower);
+            const ratio = overlap / cTokens.length;
+            if (
+                overlap > bestOverlap ||
+                (overlap === bestOverlap && overlap > 0 && (isSub && !bestSub || (isSub === bestSub && ratio > bestRatio))) ||
+                (bestOverlap === 0 && isSub && !bestSub)
+            ) {
+                bestOverlap = overlap;
+                bestSub = isSub;
+                bestRatio = ratio;
+                bestCandidate = c;
+            }
+        }
+        return (bestOverlap >= 1 || bestSub) ? bestCandidate : clean;
+    }
+
+    /**
+     * Ground fuzzy entity names in a Director draft's `action` and `target`
+     * against canonical scene/inventory entities, and infer directed speech
+     * target / volume from the Director's Note or vocative speech prefix when
+     * small local models omit them (task-942).
+     */
+    _groundDirectorDraft(
+        charName: string,
+        state: any,
+        player: any,
+        currentArea: any,
+        draft: { action: string; target: string | null; speech?: string | null; speechVolume?: string | null },
+        scene?: any,
+        directorNote?: string
+    ): { action: string; target: string | null; speechVolume: string } {
+        const entities = this._collectCanonicalSceneEntities(charName, state, player, currentArea, scene);
+        const allItems = entities.items;
+        const allPeople = entities.people;
+        const allWays = entities.ways;
+        const allEntities = [...allItems, ...allPeople, ...allWays];
+
+        let groundedVolume = draft.speechVolume || 'say';
+        const noteText = (directorNote || '').trim();
+        if (draft.speech && noteText && groundedVolume === 'say') {
+            if (/\bwhisper(?:s|ing|ed)?\b/i.test(noteText)) groundedVolume = 'whisper';
+            else if (/\bscream(?:s|ing|ed)?\b/i.test(noteText)) groundedVolume = 'scream';
+            else if (/\bshout(?:s|ing|ed)?\b|\byell(?:s|ing|ed)?\b/i.test(noteText)) groundedVolume = 'shout';
+        }
+
+        let groundedTarget: string | null = null;
+        if (draft.target) {
+            if (allPeople.length > 0) {
+                const candidatePerson = this._matchCanonicalEntity(draft.target, allPeople);
+                const matchesItemOnly = allItems.some(it => it.toLowerCase() === candidatePerson.toLowerCase());
+                groundedTarget = matchesItemOnly ? null : candidatePerson;
+            } else {
+                const matchesItemOrWay = [...allItems, ...allWays].some(it => {
+                    const m = this._matchCanonicalEntity(draft.target!, [it]);
+                    return m === it && m.toLowerCase() !== draft.target!.toLowerCase();
+                });
+                groundedTarget = matchesItemOrWay ? null : draft.target;
+            }
+        }
+        if (!groundedTarget && draft.speech && allPeople.length > 0) {
+            const findPersonInText = (txt: string, requireVocative = false): string | null => {
+                if (!txt) return null;
+                const lowerTxt = txt.toLowerCase();
+                const matches: string[] = [];
+                for (const p of allPeople) {
+                    const pLower = p.toLowerCase();
+                    const firstTok = pLower.split(/\s+/)[0];
+                    if (requireVocative) {
+                        const vocRe = new RegExp(`^["'\\s]*(?:${pLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${firstTok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b\\s*[,!?:\\-]`, 'i');
+                        if (vocRe.test(txt)) matches.push(p);
+                    } else {
+                        const wordRe = new RegExp(`\\b(?:${pLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${firstTok.length >= 3 ? firstTok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : pLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i');
+                        if (wordRe.test(lowerTxt)) matches.push(p);
+                    }
+                }
+                return matches.length === 1 ? matches[0] : null;
+            };
+            groundedTarget = findPersonInText(noteText, false) || findPersonInText(draft.speech, true);
+        }
+
+        const act = (draft.action || '').trim();
+        if (!act) return { action: '', target: groundedTarget, speechVolume: groundedVolume };
+
+        const spaceIdx = act.search(/\s/);
+        if (spaceIdx < 0) return { action: act, target: groundedTarget, speechVolume: groundedVolume };
+        const verb = act.slice(0, spaceIdx).toLowerCase();
+        const rest = act.slice(spaceIdx + 1).trim();
+        if (!rest) return { action: act, target: groundedTarget, speechVolume: groundedVolume };
+
+        if (verb === 'give' || verb === 'steal' || verb === 'teach') {
+            const m = rest.match(/^(.+?)\s+(to|from)\s+(.+)$/i);
+            if (m) {
+                const itemGrounded = this._matchCanonicalEntity(m[1], allItems.length ? allItems : allEntities);
+                const prep = m[2].toLowerCase();
+                const targGrounded = this._matchCanonicalEntity(m[3], allPeople.length ? allPeople : allEntities);
+                return { action: `${verb} ${itemGrounded} ${prep} ${targGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
+            }
+        }
+        if (verb === 'use') {
+            const m = rest.match(/^(.+?)\s+on\s+(.+)$/i);
+            if (m) {
+                const itemGrounded = this._matchCanonicalEntity(m[1], allItems.length ? allItems : allEntities);
+                const targGrounded = this._matchCanonicalEntity(m[2], allEntities);
+                return { action: `use ${itemGrounded} on ${targGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
+            }
+        }
+        if (verb === 'go' || verb === 'crawl' || verb === 'climb' || verb === 'jump' || verb === 'dash') {
+            const wayGrounded = this._matchCanonicalEntity(rest, allWays.length ? allWays : allEntities);
+            return { action: `${verb} ${wayGrounded}`, target: groundedTarget, speechVolume: groundedVolume };
+        }
+        if (verb === 'approach' || verb === 'attack' || verb === 'lead' || verb === 'kiss' || verb === 'caress' || verb === 'follow') {
+            const pool = [...allPeople, ...allItems, ...allWays];
+            return { action: `${verb} ${this._matchCanonicalEntity(rest, pool)}`, target: groundedTarget, speechVolume: groundedVolume };
+        }
+        const itemPool = [...allItems, ...allWays, ...allPeople];
+        return { action: `${verb} ${this._matchCanonicalEntity(rest, itemPool)}`, target: groundedTarget, speechVolume: groundedVolume };
+    }
+
+    /**
+     * Build and inject the `[CURRENT DRAFT IN COMPOSER]` and
+     * `[MANDATORY DIRECTOR STEERING NOTE]` blocks right before the JSON schema
+     * instruction so small/local models prioritize the Director's Note (task-942).
+     */
+    _injectDirectorSteering(
+        basePrompt: string,
+        note: string,
+        currentDraft?: Record<string, any> | null,
+        _entities?: { items: string[]; people: string[]; ways: string[] }
+    ): string {
+        const blocks: string[] = [];
+        if (currentDraft && typeof currentDraft === 'object') {
+            const draftLines: string[] = [];
+            if (currentDraft.action) draftLines.push(`- ACTION: ${currentDraft.action}`);
+            if (currentDraft.speech) {
+                const vol = currentDraft.speechVolume || 'say';
+                const tgt = currentDraft.target ? `, target: ${currentDraft.target}` : '';
+                draftLines.push(`- SAY (${vol}${tgt}): "${currentDraft.speech}"`);
+            }
+            if (currentDraft.emote) draftLines.push(`- EMOTE: ${currentDraft.emote}`);
+            if (currentDraft.inner) draftLines.push(`- THOUGHT: ${currentDraft.inner}`);
+            if (currentDraft.emotion) draftLines.push(`- EMOTION: ${currentDraft.emotion}`);
+            if (currentDraft.memory) draftLines.push(`- MEMORY: ${currentDraft.memory}`);
+            if (draftLines.length > 0) {
+                blocks.push(
+                    `[CURRENT DRAFT IN COMPOSER (PREVIOUS TAKE)]:\n${draftLines.join('\n')}\n` +
+                    (note
+                        ? `Refine or adjust this previous take according to the Director Steering Note below (keeping any parts the note asks to keep, and rewriting any parts the note asks to change).`
+                        : `Propose a fresh alternative take that varies from this current draft while staying in character.`)
+                );
+            }
+        }
+        if (note) {
+            blocks.push(
+                `[DIRECTOR STEERING NOTE]: ${note}\n` +
+                `Incorporate this direction into your chosen ACTION, SAY, EMOTE, THOUGHT, EMOTION, and MEMORY.`
+            );
+        }
+        if (!blocks.length) return basePrompt;
+        return `${basePrompt}\n\n${blocks.join('\n\n')}`;
+    }
+
+    /**
+     * Stateless AI Director turn draft helper (task-933, task-942).
+     * Can be invoked on demand from HumanTurnComposer ("Ask Director") or
+     * automatically when a character with auto-draft enabled starts a turn.
+     */
+    async draftTurnForCharacter(
+        charName: string,
+        opts?: {
+            phase?: 'compose' | 'react';
+            directorNote?: string;
+            actionResult?: string;
+            lastAction?: string;
+            currentDraft?: Record<string, any> | null;
+            scene?: any;
+        }
+    ): Promise<{
+        action?: string | null;
+        speech?: string | null;
+        speechVolume?: string | null;
+        target?: string | null;
+        emote?: string | null;
+        inner?: string | null;
+        emotion?: string | null;
+        memory?: string | null;
+    } | null> {
+        if ((!config.apiKey && !config.apiBase?.includes('localhost') && !config.apiBase?.includes('127.0.0.1')) || !config.model) {
+            events.log('No API key/model configured for Director draft.', 'error-msg');
+            return null;
+        }
+        if (worldState._runtimeFocus?.length && typeof worldState.fetchRuntime === 'function') {
+            await worldState.fetchRuntime();
+        } else if (typeof worldState.fetch === 'function') {
+            await worldState.fetch();
+        }
+        const state = worldState.runtimeData || worldState.data || {};
+        const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
+        const currentArea = state.areas?.[(player as AgentEnginePlayer)?.current_area || state.current_area] || null;
+        const systemPrompt = this.buildSystemPrompt(charName, opts);
+        const contextPrompt = this.buildContextPrompt(charName, { includeActionMenu: opts?.phase !== 'react' });
+        const note = (opts?.directorNote || '').trim();
+        const entities = this._collectCanonicalSceneEntities(charName, state, player, currentArea, opts?.scene);
+        const vitalsNL = PromptBuilder?.describeVitals ? PromptBuilder.describeVitals(player, state, charName) : '';
+        const emotionNL = PromptBuilder?.buildEmotionContext ? PromptBuilder.buildEmotionContext(player) : '';
+        const relationshipNL = PromptBuilder?.buildRelationshipContext ? PromptBuilder.buildRelationshipContext(player, charName) : '';
+        const memoryNL = PromptBuilder?.buildMemoryContext ? await PromptBuilder.buildMemoryContext(charName, { report: false }) : '';
+
+        if (opts?.phase === 'react') {
+            const areaName = currentArea?.name || (player as AgentEnginePlayer)?.current_area || state.current_area || 'the area';
+            const tickNum = state.time_ticks ?? worldState.tick ?? 0;
+            const reactContext = `[Tick ${tickNum}] You are in ${areaName}.`;
+            let reactPrompt = '';
+            if (typeof PromptBuilder?.buildResultReactionPrompt === 'function') {
+                reactPrompt = PromptBuilder.buildResultReactionPrompt(
+                    charName,
+                    player,
+                    reactContext,
+                    vitalsNL,
+                    emotionNL,
+                    relationshipNL,
+                    '',
+                    opts?.lastAction || 'act',
+                    opts?.actionResult || 'Nothing notable happened.',
+                    memoryNL,
+                    ''
+                );
+            } else if (typeof PromptBuilder?.buildReactionPrompt === 'function') {
+                reactPrompt = PromptBuilder.buildReactionPrompt(
+                    charName,
+                    opts?.lastAction || 'act',
+                    opts?.actionResult || 'Nothing notable happened.',
+                    null
+                );
+            } else {
+                reactPrompt = opts?.actionResult || 'Nothing notable happened.';
+            }
+            reactPrompt = this._injectDirectorSteering(reactPrompt, note, opts?.currentDraft, entities);
+            const userContent = contextPrompt ? `${contextPrompt}\n\n${reactPrompt}` : reactPrompt;
+            const raw = await this.callLLM(systemPrompt, [{ role: 'user', content: userContent }], charName, 'director-react');
+            if (!raw) return null;
+            const parsed = (ResponseParser.parseReaction ? ResponseParser.parseReaction(raw) : ResponseParser.parseResultReaction?.(raw)) || {};
+            const grounded = this._groundDirectorDraft(charName, state, player, currentArea, {
+                action: '',
+                target: parsed.target || null,
+                speech: parsed.speech || null,
+                speechVolume: parsed.speechVolume || 'say',
+            }, opts?.scene, note);
+            const memVal = typeof parsed.memory === 'object' && parsed.memory
+                ? (parsed.memory as any).text || null
+                : (parsed.memory || null);
+            return {
+                action: null,
+                speech: parsed.speech || null,
+                speechVolume: grounded.speechVolume,
+                target: grounded.target,
+                emote: parsed.emote || null,
+                inner: parsed.inner || null,
+                emotion: typeof parsed.emotion === 'object' && parsed.emotion ? (parsed.emotion as any).label : (parsed.emotion || null),
+                memory: memVal,
+            };
+        }
+
+        let decidePrompt = '';
+        if (typeof PromptBuilder?.buildDecidePrompt === 'function') {
+            decidePrompt = PromptBuilder.buildDecidePrompt(charName, contextPrompt, '', {
+                turnSlots: (this as any)._turnSlots?.[charName] || (player as any)?.turn_slots || null,
+            });
+        } else if (typeof PromptBuilder?.buildReactionPrompt === 'function') {
+            const roomParts = PromptBuilder?.buildRoomContextParts
+                ? PromptBuilder.buildRoomContextParts(state, charName, player, currentArea)
+                : {};
+            decidePrompt = PromptBuilder.buildReactionPrompt(
+                player,
+                roomParts,
+                vitalsNL,
+                emotionNL,
+                relationshipNL,
+                memoryNL,
+                opts?.actionResult || agentConfig.lastActionResult?.[charName] || '',
+                false,
+                true
+            );
+        } else {
+            decidePrompt = contextPrompt;
+        }
+        decidePrompt = this._injectDirectorSteering(decidePrompt, note, opts?.currentDraft, entities);
+        const raw = await this.callLLM(systemPrompt, [{ role: 'user', content: decidePrompt }], charName, 'director-draft');
+        if (!raw) return null;
+
+        // If interpreter is enabled (task-943), pass raw LLM text through ActionInterpreter
+        // to transcribe character thoughts, speech, and actions into canonical engine format
+        const win = window as any;
+        let parsed: any = null;
+        if (config.interpreterModelEnabled && win.ActionInterpreter && typeof win.ActionInterpreter.interpretProseToAction === 'function') {
+            const waysOut: Array<{ name: string; destination: string; direction?: string }> = [];
+            if (currentArea?.ways) {
+                for (const [wName, wObj] of Object.entries(currentArea.ways as Record<string, any>)) {
+                    waysOut.push({
+                        name: wName,
+                        destination: wObj.to || wObj.destination || '',
+                        direction: wObj.direction || ''
+                    });
+                }
+            }
+            const thingsVisible = Object.keys(currentArea?.items || {});
+            const peopleHere = Object.keys(state.players || {}).filter(p => p !== charName && state.players[p]?.current_area === (player as any)?.current_area);
+            const inventory = Object.keys(player?.inventory || {});
+
+            const interpreted = await win.ActionInterpreter.interpretProseToAction({
+                prose: raw,
+                charName,
+                context: { waysOut, thingsVisible, peopleHere, inventory },
+                directorNote: note
+            });
+
+            if (interpreted) {
+                parsed = {
+                    action: interpreted.action,
+                    item: interpreted.item,
+                    target: interpreted.target,
+                    speech: interpreted.speech,
+                    speechVolume: interpreted.speechVolume,
+                    emote: interpreted.emote,
+                    inner: interpreted.inner_monologue,
+                    emotion: interpreted.emotion,
+                    memory: interpreted.memory
+                };
+            }
+        }
+
+        if (!parsed) {
+            parsed = ResponseParser.parseReaction(raw) || {};
+        }
+
+        const actRaw = typeof parsed.action === 'string' ? parsed.action.trim() : '';
+        const normAction = actRaw && actRaw.toLowerCase() !== 'none' ? actRaw : '';
+        const grounded = this._groundDirectorDraft(charName, state, player, currentArea, {
+            action: normAction,
+            target: parsed.target || parsed.item || null,
+            speech: parsed.speech || null,
+            speechVolume: parsed.speechVolume || 'say',
+        }, opts?.scene, note);
+        const memVal = typeof parsed.memory === 'object' && parsed.memory
+            ? (parsed.memory as any).text || null
+            : (parsed.memory || null);
+        return {
+            action: grounded.action,
+            speech: parsed.speech || null,
+            speechVolume: grounded.speechVolume,
+            target: grounded.target,
+            emote: parsed.emote || null,
+            inner: parsed.inner || parsed.inner_monologue || null,
+            emotion: typeof parsed.emotion === 'object' && parsed.emotion ? (parsed.emotion as any).label : (parsed.emotion || null),
+            memory: memVal,
+        };
+    }
+
+    /**
+     * Interpret raw creative character prose into a structured engine turn (task-943).
+     * Pluggable service method utilizing the dedicated or active interpreter model.
+     */
+    async interpretProseToDraft(
+        charName: string,
+        prose: string,
+        opts?: { directorNote?: string; scene?: any }
+    ): Promise<Record<string, any> | null> {
+        const interpreter = (window as any).ActionInterpreter;
+        if (!interpreter || typeof interpreter.interpretProseToAction !== 'function') {
+            events.log('ActionInterpreter not loaded in window.', 'error-msg');
+            return null;
+        }
+
+        const state = worldState.runtimeData || worldState.data || {};
+        const player = worldState.runtimePlayer?.(charName) || state.players?.[charName] || worldState.players?.[charName] || {};
+        const currentArea = state.areas?.[(player as AgentEnginePlayer)?.current_area || state.current_area] || null;
+
+        // Build room context affordances for grounding
+        const waysOut: Array<{ name: string; destination: string; direction?: string }> = [];
+        if (currentArea?.ways) {
+            for (const [wName, wObj] of Object.entries(currentArea.ways as Record<string, any>)) {
+                waysOut.push({
+                    name: wName,
+                    destination: wObj.to || wObj.destination || '',
+                    direction: wObj.direction || ''
+                });
+            }
+        }
+        const thingsVisible = Object.keys(currentArea?.items || {});
+        const peopleHere = Object.keys(state.players || {}).filter(p => p !== charName && state.players[p]?.current_area === (player as any)?.current_area);
+        const inventory = Object.keys(player?.inventory || {});
+
+        const interpreted = await interpreter.interpretProseToAction({
+            prose,
+            charName,
+            context: {
+                waysOut,
+                thingsVisible,
+                peopleHere,
+                inventory
+            },
+            directorNote: opts?.directorNote
+        });
+
+        if (!interpreted) return null;
+
+        // Ground action & target against canonical scene entities
+        const grounded = this._groundDirectorDraft(charName, state, player, currentArea, {
+            action: interpreted.action || '',
+            target: interpreted.target || interpreted.item || null,
+            speech: interpreted.speech || null,
+            speechVolume: interpreted.speechVolume || 'say',
+        }, opts?.scene, opts?.directorNote || '');
+
+        return {
+            action: grounded.action,
+            item: interpreted.item || null,
+            speech: interpreted.speech || null,
+            speechVolume: grounded.speechVolume,
+            target: grounded.target,
+            emote: interpreted.emote || null,
+            inner: interpreted.inner_monologue || null,
+            inner_monologue: interpreted.inner_monologue || null,
+            emotion: interpreted.emotion || null,
+            memory: interpreted.memory || null,
+            rawProse: interpreted.rawProse
+        };
     }
 
     /**
@@ -844,6 +1459,8 @@ class AgentEngine {
                 // Threat-aware replan check - before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
+                // task-856: Seed PlanTracker from server active_pursuit if present
+                PlanTracker.seedFromPlayer?.(charName, player, this.turnNumber);
                 const threatAlert = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
                 const needsReplanReason = PlanTracker.shouldReplan(charName, this.turnNumber, threatAlert, player?.vitals);
                 if (needsReplanReason) {
@@ -924,52 +1541,6 @@ class AgentEngine {
                 if (parsedDecide.parseError) {
                     events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
                 }
-                if (events.getControlMode(charName) === 'directed') {
-                    events.logPhase(charName, 'directed', 'awaiting director review');
-                    VW?.ui?.setStatus('Directed: ' + charName, 'info');
-                    let reviewResult: any = null;
-                    while (true) {
-                        reviewResult = await HumanTurnComposer.request(charName, {
-                            prefill: {
-                                action: parsedDecide.action,
-                                speech: parsedDecide.speech,
-                                speechVolume: parsedDecide.speechVolume,
-                                emote: parsedDecide.emote,
-                                memory: parsedDecide.memory,
-                                emotion: parsedDecide.emotion,
-                                inner: parsedDecide.inner,
-                                target: parsedDecide.target,
-                            },
-                            canReroll: true
-                        });
-                        if (this._checkCancel()) return;
-                        if (reviewResult && reviewResult.reroll) {
-                            events.log('🎬 ' + charName + ' (directed): rerolling draft...', 'system-msg');
-                            VW?.ui?.setStatus('Rerolling: ' + charName, 'info');
-                            combinedResponse = await this._callLLMMessages(decideHistory, 'think-decide', charName);
-                            parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
-                            continue;
-                        }
-                        break;
-                    }
-                    HumanTurnComposer.closeTurn();
-                    if (this._checkCancel()) return;
-                    if (reviewResult && reviewResult.endTurn) {
-                        events.log('🎬 ' + charName + ' (directed): turn skipped by director', 'system-msg');
-                        return this._endTurnEarly(null);
-                    }
-                    if (reviewResult && reviewResult.step) {
-                        parsedDecide.action = reviewResult.step.action || '';
-                        parsedDecide.speech = reviewResult.step.speech || null;
-                        parsedDecide.speechVolume = (reviewResult.step.speechVolume as any) || 'say';
-                        parsedDecide.emote = reviewResult.step.emote || null;
-                        parsedDecide.target = reviewResult.step.target || null;
-                        if (reviewResult.step.memory !== undefined) parsedDecide.memory = reviewResult.step.memory;
-                        if (reviewResult.step.emotion) parsedDecide.emotion = reviewResult.step.emotion as any;
-                        if (reviewResult.step.inner) parsedDecide.inner = reviewResult.step.inner as any;
-                        events.log('🎬 ' + charName + ' (directed): director approved turn', 'system-msg');
-                    }
-                }
                 let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
                 this._applyFeltEmotion(charName, parsedDecide.emotion);
                 this._learnNames(charName, parsedDecide.learnedNames);
@@ -1045,26 +1616,26 @@ class AgentEngine {
                         let outputText = actionResult;
                         const sysMsgs: string[] = Array.isArray(data?.system_messages) ? data.system_messages : [];
                         const narrationUi = agentNarrationUI();
-                        const narrationMode = narrationUi?.getMode();
+                        const narrationMode = narrationUi?.getMode() || 'none';
                         let narratedText: string | null = null;
-                        if (narrationMode === 'ai' && config.apiKey && config.model) {
-                            // Non-null assertion matches the original bare call:
-                            // getMode() only returns 'ai' when the module loaded.
+                        if ((narrationMode === 'ai' && config.apiKey && config.model) || narrationMode === 'player') {
                             narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
-                            if (narratedText) outputText = narratedText;
-                        } else if (narrationMode === 'player') {
-                            narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction, sysMsgs);
-                            if (narratedText) outputText = narratedText;
                         }
+
+                        // task-692: preserve mechanical facts alongside narrated prose for the agent prompt
+                        const factsSuffix = sysMsgs.length > 0 ? ' ' + sysMsgs.map(m => `(${m})`).join(' ') : '';
+                        if (narratedText) {
+                            outputText = narratedText + factsSuffix;
+                        }
+
                         // bug-517: when narration is off, skipped, or fails, preserve the current raw system messages
                         if (!narratedText && sysMsgs.length) {
                             sysMsgs.forEach((systemMessage: string) => events.log(systemMessage, 'system-msg'));
                         }
                         agentConfig.lastActionResult[charName] = outputText;
-                        // task-340: results are first-class rows - outcome-tinted,
-                        // never card-breaking; AI-narrated substitutions are marked.
+                        // task-340/task-692: pass charName explicitly to msg-narrated so it doesn't default to You
                         if (!outputText.includes('says:')) {
-                            if (narratedText) events.log(outputText, 'msg-narrated');
+                            if (narratedText) events.log(narratedText, 'msg-narrated', {}, charName);
                             else if (outputText.includes('ValueError')) events.log(outputText, 'error-msg');
                             else events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' }, charName);
                         }
@@ -1228,52 +1799,6 @@ class AgentEngine {
                 if (parsedNonReactive.parseError) {
                     events.logParseError(charName, 'combined', parsedNonReactive.parseError, reactionResponse);
                 }
-                if (events.getControlMode(charName) === 'directed') {
-                    events.logPhase(charName, 'directed', 'awaiting director review');
-                    VW?.ui?.setStatus('Directed: ' + charName, 'info');
-                    let reviewResult: any = null;
-                    while (true) {
-                        reviewResult = await HumanTurnComposer.request(charName, {
-                            prefill: {
-                                action: parsedNonReactive.action,
-                                speech: parsedNonReactive.speech,
-                                speechVolume: parsedNonReactive.speechVolume,
-                                emote: parsedNonReactive.emote,
-                                memory: parsedNonReactive.memory,
-                                emotion: parsedNonReactive.emotion,
-                                inner: parsedNonReactive.inner,
-                                target: parsedNonReactive.target,
-                            },
-                            canReroll: true
-                        });
-                        if (this._checkCancel()) return;
-                        if (reviewResult && reviewResult.reroll) {
-                            events.log('🎬 ' + charName + ' (directed): rerolling draft...', 'system-msg');
-                            VW?.ui?.setStatus('Rerolling: ' + charName, 'info');
-                            reactionResponse = await this._callLLMMessages(combinedHistory, 'combined', charName);
-                            parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
-                            continue;
-                        }
-                        break;
-                    }
-                    HumanTurnComposer.closeTurn();
-                    if (this._checkCancel()) return;
-                    if (reviewResult && reviewResult.endTurn) {
-                        events.log('🎬 ' + charName + ' (directed): turn skipped by director', 'system-msg');
-                        return this._endTurnEarly(null);
-                    }
-                    if (reviewResult && reviewResult.step) {
-                        parsedNonReactive.action = reviewResult.step.action || '';
-                        parsedNonReactive.speech = reviewResult.step.speech || null;
-                        parsedNonReactive.speechVolume = (reviewResult.step.speechVolume as any) || 'say';
-                        parsedNonReactive.emote = reviewResult.step.emote || null;
-                        parsedNonReactive.target = reviewResult.step.target || null;
-                        if (reviewResult.step.memory !== undefined) parsedNonReactive.memory = reviewResult.step.memory;
-                        if (reviewResult.step.emotion) parsedNonReactive.emotion = reviewResult.step.emotion as any;
-                        if (reviewResult.step.inner) parsedNonReactive.inner = reviewResult.step.inner as any;
-                        events.log('🎬 ' + charName + ' (directed): director approved turn', 'system-msg');
-                    }
-                }
                 let { inner, speech, speechVolume, action, emote: reactionEmote, memory: reactionMemory, target: speechTarget } = parsedNonReactive;
                 if (inner) { events.log(`[${player.name} inner] ${inner}`, "msg-thought"); }
                 this._applyFeltEmotion(charName, parsedNonReactive.emotion);
@@ -1425,7 +1950,7 @@ class AgentEngine {
             else { await this.step(); }
             if (this._paused) continue;
             // Async mode counts completed character turns, not idle scheduler
-            // polls. A 5–120 second cooldown must not hit the max-step limit
+            // polls. A 5-120 second cooldown must not hit the max-step limit
             // after a handful of 250 ms checks.
             if (!didAct) {
                 await new Promise(resolve => setTimeout(resolve, 250));
@@ -1897,8 +2422,8 @@ class AgentEngine {
     _formatForStep(stepName: string): unknown {
         const F = window.StructuredFormats;
         if (!F) return null;
-        if (stepName === 'result-reaction') return F.agentReact;
-        if (stepName === 'think-decide' || stepName === 'combined' || stepName === 'auto-retry' || stepName === 'chain-follow-up') return F.agentAction;
+        if (stepName === 'result-reaction' || stepName === 'director-react') return F.agentReact;
+        if (stepName === 'think-decide' || stepName === 'director-draft' || stepName === 'combined' || stepName === 'auto-retry' || stepName === 'chain-follow-up') return F.agentAction;
         return null;
     }
 
